@@ -2,7 +2,7 @@
 
 namespace Upsilon.Apps.PassKey.Core.Utils
 {
-   internal static class SerializationCenter
+   public static class SerializationCenter
    {
       public static string Serialize<T>(this T toSerialize, bool indent = false) where T : notnull
       {
