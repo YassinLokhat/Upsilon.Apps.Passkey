@@ -2,6 +2,7 @@
 using System.Text;
 using Upsilon.Apps.Passkey.Core.Interfaces;
 using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests
 {
@@ -74,8 +75,10 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          random.NextBytes(bytes);
 
-         return Encoding.ASCII.GetString(bytes);
+         return Encoding.ASCII.GetString(bytes).GetHash();
       }
+
+      public static int GetRandomInt(int max) => GetRandomInt(0, max);
 
       public static int GetRandomInt(int min, int max)
       {

@@ -5,6 +5,9 @@ namespace Upsilon.Apps.PassKey.Core.Utils
 {
    public static class SecurityCenter
    {
+      private static readonly string _alphabet = "BT2Cp4oOU-DqinLjy0HWxk8wI9rY1QgXblaef5RtdFE3sGm6PSzMJvKVhu7+NcZA";
+      private static readonly string _hexadecimal = "0123456789ABCDEF";
+
       public static string GetHash(this string source)
       {
          MD5 md5 = MD5.Create();
@@ -33,6 +36,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       public static string Encrypt(string source, string[] passwords)
       {
          source = _encrypt(source, passwords);
+         source = _stringToCustomBase(source);
          source = source.Sign();
 
          return source;
@@ -41,6 +45,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       public static string Decrypt(string source, string[] passwords)
       {
          source = source.CheckSign();
+         source = _customBaseToString(source);
          source = _decrypt(source, passwords);
 
          return source;
@@ -48,12 +53,29 @@ namespace Upsilon.Apps.PassKey.Core.Utils
 
       public static string Sign(this string source)
       {
-         throw new NotImplementedException();
+         return source.GetHash() + source;
       }
 
       public static string CheckSign(this string source)
       {
-         throw new NotImplementedException();
+         try
+         {
+            string hashSource = source[..HashLength];
+            string hashCheck = source[HashLength..].GetHash();
+
+            if (hashSource != hashCheck)
+            {
+               throw new Exception();
+            }
+
+            source = source[HashLength..];
+         }
+         catch
+         {
+            throw new CheckSignFailedException();
+         }
+
+         return source;
       }
 
       public static string Cipher_Aes(this string plainText, string key)
@@ -65,12 +87,12 @@ namespace Upsilon.Apps.PassKey.Core.Utils
 
          MD5 mD5 = MD5.Create();
 
-         key = Encoding.UTF8.GetString(mD5.ComputeHash(Encoding.UTF8.GetBytes(key)));
-         key += Encoding.UTF8.GetString(mD5.ComputeHash(Encoding.UTF8.GetBytes(key)));
-         key += Encoding.UTF8.GetString(mD5.ComputeHash(Encoding.UTF8.GetBytes(key)));
+         key = Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
+         key += Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
+         key += Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
 
-         byte[] _key = Encoding.UTF8.GetBytes(key[..32]);
-         byte[] IV = Encoding.UTF8.GetBytes(key.Substring(32, 16));
+         byte[] _key = Encoding.ASCII.GetBytes(key[..32]);
+         byte[] IV = Encoding.ASCII.GetBytes(key.Substring(32, 16));
 
          byte[] bytes = _cipher_Aes(plainText, _key, IV);
 
@@ -103,12 +125,12 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          }
 
          MD5 mD5 = MD5.Create();
-         key = Encoding.UTF8.GetString(mD5.ComputeHash(Encoding.UTF8.GetBytes(key)));
-         key += Encoding.UTF8.GetString(mD5.ComputeHash(Encoding.UTF8.GetBytes(key)));
-         key += Encoding.UTF8.GetString(mD5.ComputeHash(Encoding.UTF8.GetBytes(key)));
+         key = Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
+         key += Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
+         key += Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
 
-         byte[] _key = Encoding.UTF8.GetBytes(key[..32]);
-         byte[] IV = Encoding.UTF8.GetBytes(key.Substring(32, 16));
+         byte[] _key = Encoding.ASCII.GetBytes(key[..32]);
+         byte[] IV = Encoding.ASCII.GetBytes(key.Substring(32, 16));
 
          byte[] bytes = cipherText.Select(x => (byte)x).ToArray();
 
@@ -132,6 +154,8 @@ namespace Upsilon.Apps.PassKey.Core.Utils
 
       private static string _encrypt(string source, string[] passwords)
       {
+         passwords = passwords.Select(x => x.GetHash()).ToArray();
+
          for (int i = 0; i < passwords.Length; i++)
          {
             source = Cipher_Aes(source.Sign(), passwords[i]);
@@ -144,6 +168,8 @@ namespace Upsilon.Apps.PassKey.Core.Utils
 
       private static string _decrypt(string source, string[] passwords)
       {
+         passwords = passwords.Select(x => x.GetHash()).ToArray();
+
          try
          {
             source = Uncipher_Aes(source, string.Empty.GetHash());
@@ -153,8 +179,6 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          {
             throw new CorruptedSourceException();
          }
-
-         passwords = passwords.Reverse().ToArray();
 
          for (int i = passwords.Length - 1; i >= 0; i--)
          {
@@ -170,6 +194,48 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          }
 
          return source;
+      }
+
+      private static string _stringToCustomBase(string source)
+      {
+         StringBuilder hexaHigh = new(), hexaLow = new();
+         byte[] bytes = Encoding.UTF8.GetBytes(source);
+         int seed = 0;
+
+         foreach (byte b in bytes)
+         {
+            string hexa = b.ToString("X2");
+            int index = _hexadecimal.IndexOf(hexa[0]) + (_hexadecimal.Length * seed);
+            _ = hexaHigh.Append(_alphabet[index]);
+            index = _hexadecimal.IndexOf(hexa[1]) + (_hexadecimal.Length * seed);
+            _ = hexaLow.Append(_alphabet[index]);
+            seed = b % 3;
+         }
+
+         return hexaHigh.ToString() + hexaLow.ToString();
+      }
+
+      private static string _customBaseToString(string source)
+      {
+         List<byte> bytes = new();
+         int bytesCount = source.Length / 2;
+
+         for (int i = 0; i < bytesCount; i++)
+         {
+            int indexHigh = _alphabet.IndexOf(source[i]) % _hexadecimal.Length;
+            int indexLow = _alphabet.IndexOf(source[i + bytesCount]) % _hexadecimal.Length;
+
+            if (indexLow == -1 ||
+                indexHigh == -1)
+            {
+               throw new CorruptedSourceException();
+            }
+
+            string hexa = $"{_hexadecimal[indexHigh]}{_hexadecimal[indexLow]}";
+            bytes.Add(Convert.ToByte(hexa, 16));
+         }
+
+         return Encoding.UTF8.GetString(bytes.ToArray());
       }
    }
 }
