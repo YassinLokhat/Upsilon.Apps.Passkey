@@ -137,7 +137,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (!Directory.Exists(databaseFileDirectory))
          {
-            Directory.CreateDirectory(databaseFileDirectory);
+            _ = Directory.CreateDirectory(databaseFileDirectory);
          }
 
          Database database = new(databaseFile, autoSaveFile, logFile, username)

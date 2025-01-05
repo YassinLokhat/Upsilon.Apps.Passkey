@@ -49,7 +49,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Account account = Accounts.FirstOrDefault(x => x.ItemId == accountId)
             ?? throw new KeyNotFoundException($"The '{accountId}' account was not found into the '{ItemId}' service");
 
-         Accounts.Remove(User.Database.AutoSave.DeleteValue(ItemId, account));
+         _ = Accounts.Remove(User.Database.AutoSave.DeleteValue(ItemId, account));
       }
 
       #endregion
@@ -113,7 +113,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                break;
             case ChangeType.Delete:
                Account accountToDelete = change.Value.Deserialize<Account>();
-               Accounts.RemoveAll(x => x.ItemId == accountToDelete.ItemId);
+               _ = Accounts.RemoveAll(x => x.ItemId == accountToDelete.ItemId);
                break;
             default:
                throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(ChangeType));

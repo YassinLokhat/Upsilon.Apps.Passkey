@@ -29,62 +29,62 @@ namespace Upsilon.Apps.Passkey.UnitTests
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
 
          // Then
-         databaseCreated.DatabaseFile.Should().Be(databaseFile);
-         File.Exists(databaseCreated.DatabaseFile).Should().BeTrue();
+         _ = databaseCreated.DatabaseFile.Should().Be(databaseFile);
+         _ = File.Exists(databaseCreated.DatabaseFile).Should().BeTrue();
 
-         databaseCreated.AutoSaveFile.Should().Be(autoSaveFile);
-         File.Exists(databaseCreated.AutoSaveFile).Should().BeFalse();
+         _ = databaseCreated.AutoSaveFile.Should().Be(autoSaveFile);
+         _ = File.Exists(databaseCreated.AutoSaveFile).Should().BeFalse();
 
-         databaseCreated.LogFile.Should().Be(logFile);
-         File.Exists(databaseCreated.LogFile).Should().BeFalse();
+         _ = databaseCreated.LogFile.Should().Be(logFile);
+         _ = File.Exists(databaseCreated.LogFile).Should().BeFalse();
 
-         databaseCreated.User.Should().NotBeNull();
-         databaseCreated.User?.Username.Should().Be(username);
-         databaseCreated.User?.Passkeys.Should().BeEquivalentTo(passkeys);
+         _ = databaseCreated.User.Should().NotBeNull();
+         _ = (databaseCreated.User?.Username.Should().Be(username));
+         _ = (databaseCreated.User?.Passkeys.Should().BeEquivalentTo(passkeys));
 
-         databaseCreated.User?.PasswordTimeout.Should().Be(0);
-         databaseCreated.User?.LogoutTimeout.Should().Be(0);
-         databaseCreated.User?.CleaningClipboardTimeout.Should().Be(0);
+         _ = (databaseCreated.User?.PasswordTimeout.Should().Be(0));
+         _ = (databaseCreated.User?.LogoutTimeout.Should().Be(0));
+         _ = (databaseCreated.User?.CleaningClipboardTimeout.Should().Be(0));
 
          // When
          databaseCreated.Close();
 
          // Then
-         databaseCreated.User.Should().BeNull();
-         File.Exists(databaseFile).Should().BeTrue();
-         File.Exists(autoSaveFile).Should().BeFalse();
-         File.Exists(logFile).Should().BeFalse();
+         _ = databaseCreated.User.Should().BeNull();
+         _ = File.Exists(databaseFile).Should().BeTrue();
+         _ = File.Exists(autoSaveFile).Should().BeFalse();
+         _ = File.Exists(logFile).Should().BeFalse();
 
          // When
          IDatabase? databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
 
          // Then
-         databaseLoaded.Should().NotBeNull();
-         databaseLoaded?.DatabaseFile.Should().Be(databaseFile);
-         File.Exists(databaseLoaded?.DatabaseFile).Should().BeTrue();
+         _ = databaseLoaded.Should().NotBeNull();
+         _ = (databaseLoaded?.DatabaseFile.Should().Be(databaseFile));
+         _ = File.Exists(databaseLoaded?.DatabaseFile).Should().BeTrue();
 
-         databaseLoaded?.AutoSaveFile.Should().Be(autoSaveFile);
-         File.Exists(databaseLoaded?.AutoSaveFile).Should().BeFalse();
+         _ = (databaseLoaded?.AutoSaveFile.Should().Be(autoSaveFile));
+         _ = File.Exists(databaseLoaded?.AutoSaveFile).Should().BeFalse();
 
-         databaseLoaded?.LogFile.Should().Be(logFile);
-         File.Exists(databaseLoaded?.LogFile).Should().BeFalse();
+         _ = (databaseLoaded?.LogFile.Should().Be(logFile));
+         _ = File.Exists(databaseLoaded?.LogFile).Should().BeFalse();
 
-         databaseLoaded?.User.Should().NotBeNull();
-         databaseLoaded?.User?.Username.Should().Be(username);
-         databaseLoaded?.User?.Passkeys.Should().BeEquivalentTo(passkeys);
+         _ = (databaseLoaded?.User.Should().NotBeNull());
+         _ = (databaseLoaded?.User?.Username.Should().Be(username));
+         _ = (databaseLoaded?.User?.Passkeys.Should().BeEquivalentTo(passkeys));
 
-         databaseLoaded?.User?.PasswordTimeout.Should().Be(0);
-         databaseLoaded?.User?.LogoutTimeout.Should().Be(0);
-         databaseLoaded?.User?.CleaningClipboardTimeout.Should().Be(0);
+         _ = (databaseLoaded?.User?.PasswordTimeout.Should().Be(0));
+         _ = (databaseLoaded?.User?.LogoutTimeout.Should().Be(0));
+         _ = (databaseLoaded?.User?.CleaningClipboardTimeout.Should().Be(0));
 
          // When
          databaseLoaded?.Delete();
 
          // Then
-         databaseCreated.User.Should().BeNull();
-         File.Exists(databaseFile).Should().BeFalse();
-         File.Exists(autoSaveFile).Should().BeFalse();
-         File.Exists(logFile).Should().BeFalse();
+         _ = databaseCreated.User.Should().BeNull();
+         _ = File.Exists(databaseFile).Should().BeFalse();
+         _ = File.Exists(autoSaveFile).Should().BeFalse();
+         _ = File.Exists(logFile).Should().BeFalse();
 
          // Finaly
          UnitTestsHelper.ClearTestEnvironment();
@@ -118,10 +118,10 @@ namespace Upsilon.Apps.Passkey.UnitTests
          });
 
          // Then
-         act.Should().Throw<IOException>();
-         newDatabase.Should().BeNull();
-         exception.Should().NotBeNull();
-         exception?.Message.Should().Be($"'{UnitTestsHelper.ComputeDatabaseFilePath()}' database file already exists");
+         _ = act.Should().Throw<IOException>();
+         _ = newDatabase.Should().BeNull();
+         _ = exception.Should().NotBeNull();
+         _ = (exception?.Message.Should().Be($"'{UnitTestsHelper.ComputeDatabaseFilePath()}' database file already exists"));
 
          // Finaly
          UnitTestsHelper.ClearTestEnvironment();
@@ -161,9 +161,9 @@ namespace Upsilon.Apps.Passkey.UnitTests
          });
 
          // Then
-         act.Should().Throw<IOException>();
-         databaseLoaded.Should().BeNull();
-         exception.Should().NotBeNull();
+         _ = act.Should().Throw<IOException>();
+         _ = databaseLoaded.Should().BeNull();
+         _ = exception.Should().NotBeNull();
 
          // When
          databaseCreated.Close();
@@ -182,9 +182,9 @@ namespace Upsilon.Apps.Passkey.UnitTests
          });
 
          // Then
-         act.Should().NotThrow<IOException>();
-         exception.Should().BeNull();
-         databaseLoaded.Should().NotBeNull();
+         _ = act.Should().NotThrow<IOException>();
+         _ = exception.Should().BeNull();
+         _ = databaseLoaded.Should().NotBeNull();
 
          // Finaly
          databaseLoaded?.Close();
@@ -198,14 +198,10 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public void Case04_DatabaseOpenButWrongPasskeysProvided()
       {
          // Given
-         string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
          string[] wrongPasskeys = [.. passkeys];
          int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
          wrongPasskeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -215,7 +211,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(wrongPasskeys);
 
          // Then
-         databaseLoaded.User.Should().BeNull();
+         _ = databaseLoaded.User.Should().BeNull();
 
          // Finaly
          databaseLoaded.Close();
@@ -253,8 +249,8 @@ namespace Upsilon.Apps.Passkey.UnitTests
          databaseLoaded.Close();
 
          // Then
-         File.Exists(UnitTestsHelper.ComputeAutoSaveFilePath()).Should().BeTrue();
-         File.ReadAllText(UnitTestsHelper.ComputeDatabaseFilePath()).Should().Be(oldDatabaseContent);
+         _ = File.Exists(UnitTestsHelper.ComputeAutoSaveFilePath()).Should().BeTrue();
+         _ = File.ReadAllText(UnitTestsHelper.ComputeDatabaseFilePath()).Should().Be(oldDatabaseContent);
 
          // Finaly
          UnitTestsHelper.ClearTestEnvironment();
@@ -290,31 +286,31 @@ namespace Upsilon.Apps.Passkey.UnitTests
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
 
          // Then
-         File.Exists(autoSaveFile).Should().BeTrue();
+         _ = File.Exists(autoSaveFile).Should().BeTrue();
 
          // When
          databaseCreated.Save();
          databaseCreated.Close();
 
          // Then
-         File.Exists(autoSaveFile).Should().BeFalse();
+         _ = File.Exists(autoSaveFile).Should().BeFalse();
 
          // When
          IDatabase databaseLoaded = Database.Open(databaseFile, autoSaveFile, logFile, newUsername);
-         foreach (var passkey in newPasskeys)
+         foreach (string passkey in newPasskeys)
          {
-            databaseLoaded.Login(passkey);
+            _ = databaseLoaded.Login(passkey);
          }
 
          // Then
-         databaseLoaded.User.Should().NotBeNull();
-         databaseLoaded.User?.Username.Should().Be(newUsername);
-         databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(newPasskeys);
-         databaseLoaded.User?.PasswordTimeout.Should().Be(passwordTimer);
-         databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout);
-         databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
+         _ = databaseLoaded.User.Should().NotBeNull();
+         _ = (databaseLoaded.User?.Username.Should().Be(newUsername));
+         _ = (databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(newPasskeys));
+         _ = (databaseLoaded.User?.PasswordTimeout.Should().Be(passwordTimer));
+         _ = (databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout));
+         _ = (databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout));
 
-         File.Exists(autoSaveFile).Should().BeFalse();
+         _ = File.Exists(autoSaveFile).Should().BeFalse();
 
          // Finaly
          databaseLoaded.Close();
@@ -355,45 +351,45 @@ namespace Upsilon.Apps.Passkey.UnitTests
          databaseCreated.Close();
 
          // Then
-         File.Exists(autoSaveFile).Should().BeTrue();
+         _ = File.Exists(autoSaveFile).Should().BeTrue();
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(oldPasskeys);
 
          // Then
-         databaseLoaded.User.Should().NotBeNull();
-         databaseLoaded.User?.Username.Should().Be(oldUsername);
-         databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(oldPasskeys);
-         databaseLoaded.User?.PasswordTimeout.Should().Be(0);
-         databaseLoaded.User?.LogoutTimeout.Should().Be(0);
-         databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(0);
+         _ = databaseLoaded.User.Should().NotBeNull();
+         _ = (databaseLoaded.User?.Username.Should().Be(oldUsername));
+         _ = (databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(oldPasskeys));
+         _ = (databaseLoaded.User?.PasswordTimeout.Should().Be(0));
+         _ = (databaseLoaded.User?.LogoutTimeout.Should().Be(0));
+         _ = (databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(0));
 
          // When
          databaseLoaded.HandleAutoSave(mergeAutoSave: true);
 
          // Then
-         File.Exists(autoSaveFile).Should().BeFalse();
-         databaseLoaded.User?.Username.Should().Be(newUsername);
-         databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(newPasskeys);
-         databaseLoaded.User?.PasswordTimeout.Should().Be(passwordTimer);
-         databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout);
-         databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
+         _ = File.Exists(autoSaveFile).Should().BeFalse();
+         _ = (databaseLoaded.User?.Username.Should().Be(newUsername));
+         _ = (databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(newPasskeys));
+         _ = (databaseLoaded.User?.PasswordTimeout.Should().Be(passwordTimer));
+         _ = (databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout));
+         _ = (databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout));
 
          // When
          databaseLoaded.Close();
          databaseLoaded = Database.Open(databaseFile, autoSaveFile, logFile, newUsername);
-         foreach (var passkey in newPasskeys)
+         foreach (string passkey in newPasskeys)
          {
-            databaseLoaded.Login(passkey);
+            _ = databaseLoaded.Login(passkey);
          }
 
          // // Then
-         File.Exists(autoSaveFile).Should().BeFalse();
-         databaseLoaded.User?.Username.Should().Be(newUsername);
-         databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(newPasskeys);
-         databaseLoaded.User?.PasswordTimeout.Should().Be(passwordTimer);
-         databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout);
-         databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
+         _ = File.Exists(autoSaveFile).Should().BeFalse();
+         _ = (databaseLoaded.User?.Username.Should().Be(newUsername));
+         _ = (databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(newPasskeys));
+         _ = (databaseLoaded.User?.PasswordTimeout.Should().Be(passwordTimer));
+         _ = (databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout));
+         _ = (databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout));
 
          // Finaly
          databaseLoaded.Close();

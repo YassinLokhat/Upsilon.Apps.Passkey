@@ -34,9 +34,9 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          IDatabase database = Database.Open(databaseFile, autoSaveFile, logFile, username);
 
-         foreach (var passkey in passkeys)
+         foreach (string passkey in passkeys)
          {
-            database.Login(passkey);
+            _ = database.Login(passkey);
          }
 
          return database;

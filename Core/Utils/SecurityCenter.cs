@@ -12,7 +12,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       {
          MD5 md5 = MD5.Create();
 
-         var hash = md5
+         IEnumerable<string> hash = md5
             .ComputeHash(Encoding.UTF8.GetBytes(source))
             .Select(x => x.ToString("X2"));
 

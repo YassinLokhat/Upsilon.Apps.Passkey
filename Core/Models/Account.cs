@@ -29,7 +29,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          set
          {
             Passwords[DateTime.Now.Ticks] = value;
-            Service.User.Database.AutoSave.UpdateValue(ItemId, nameof(Passwords), Passwords);
+            _ = Service.User.Database.AutoSave.UpdateValue(ItemId, nameof(Passwords), Passwords);
          }
       }
 

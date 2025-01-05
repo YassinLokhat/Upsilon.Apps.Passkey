@@ -21,13 +21,13 @@ namespace Upsilon.Apps.PassKey.UnitTests
          string signedSource = source.Sign();
 
          // Then
-         signedSource.Should().Be(string.Empty.GetHash());
+         _ = signedSource.Should().Be(string.Empty.GetHash());
 
          // When
          string checkedSource = signedSource.CheckSign();
 
          // Then
-         checkedSource.Should().Be(source);
+         _ = checkedSource.Should().Be(source);
       }
 
       [TestMethod]
@@ -46,7 +46,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
             string checkedSource = signedSource.CheckSign();
 
             // Then
-            checkedSource.Should().Be(source);
+            _ = checkedSource.Should().Be(source);
          }
       }
 
@@ -68,7 +68,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
             string decryptedSource = SecurityCenter.Decrypt(encryptedSource, passkeys);
 
             // Then
-            decryptedSource.Should().Be(source);
+            _ = decryptedSource.Should().Be(source);
          }
       }
 
@@ -102,8 +102,8 @@ namespace Upsilon.Apps.PassKey.UnitTests
             });
 
             // Then
-            act.Should().Throw<CheckSignFailedException>();
-            exception.Should().NotBeNull();
+            _ = act.Should().Throw<CheckSignFailedException>();
+            _ = exception.Should().NotBeNull();
          }
       }
 
@@ -138,9 +138,9 @@ namespace Upsilon.Apps.PassKey.UnitTests
             });
 
             // Then
-            act.Should().Throw<WrongPasswordException>();
-            exception.Should().NotBeNull();
-            exception?.PasswordLevel.Should().Be(wrongKeyIndex);
+            _ = act.Should().Throw<WrongPasswordException>();
+            _ = exception.Should().NotBeNull();
+            _ = (exception?.PasswordLevel.Should().Be(wrongKeyIndex));
          }
       }
    }
