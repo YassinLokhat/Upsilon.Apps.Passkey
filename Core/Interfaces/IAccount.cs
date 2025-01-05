@@ -1,4 +1,6 @@
-﻿namespace Upsilon.Apps.Passkey.Core.Interfaces
+﻿using Upsilon.Apps.PassKey.Core.Enums;
+
+namespace Upsilon.Apps.Passkey.Core.Interfaces
 {
    public interface IAccount : IItem
    {
@@ -7,7 +9,7 @@
       string[] Identifiants { get; set; }
       string Password { get; set; }
       Dictionary<long, string> Passwords { get; }
-      Models.AccountOption Options { get; set; }
+      AccountOption Options { get; set; }
       IService Service { get; }
    }
 }

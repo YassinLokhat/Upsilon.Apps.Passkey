@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
-   internal sealed class Account : IAccount
+   internal sealed class Account : IAccount, IChangable
    {
       #region IAccount interface explicit implementation
 
@@ -52,7 +53,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public string ItemId { get; set; } = string.Empty;
 
       private Service? _service;
-      public Service Service
+      internal Service Service
       {
          get => _service ?? throw new NullReferenceException(nameof(Service));
          set => _service = value;

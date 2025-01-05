@@ -1,4 +1,6 @@
-﻿namespace Upsilon.Apps.Passkey.Core.Models
+﻿using Upsilon.Apps.PassKey.Core.Enums;
+
+namespace Upsilon.Apps.Passkey.Core.Models
 {
    internal sealed class Change
    {

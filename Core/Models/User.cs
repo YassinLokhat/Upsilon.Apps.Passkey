@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel;
-using System.Text.Json.Serialization;
 using Upsilon.Apps.Passkey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
-   internal sealed class User : IUser
+   internal sealed class User : IUser, IChangable
    {
       #region IUser interface explicit implementation
 
@@ -65,8 +65,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       #endregion
 
       private Database? _database;
-      [JsonIgnore]
-      public Database Database
+      internal Database Database
       {
          get => _database ?? throw new NullReferenceException(nameof(Database));
          set => _database = value;

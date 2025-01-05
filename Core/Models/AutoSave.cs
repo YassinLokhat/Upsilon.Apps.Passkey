@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+﻿using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
@@ -6,7 +6,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
    internal sealed class AutoSave
    {
       private Database? _database;
-      [JsonIgnore]
       internal Database Database
       {
          get => _database ?? throw new NullReferenceException(nameof(Database));
@@ -15,21 +14,21 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public Queue<Change> Changes { get; set; } = new();
 
-      public T UpdateValue<T>(string itemId, string fieldName, T value) where T : notnull
+      internal T UpdateValue<T>(string itemId, string fieldName, T value) where T : notnull
       {
          _addChange(itemId, fieldName, value.Serialize(), ChangeType.Update);
 
          return value;
       }
 
-      public T AddValue<T>(string itemId, T value) where T : notnull
+      internal T AddValue<T>(string itemId, T value) where T : notnull
       {
          _addChange(itemId, string.Empty, value.Serialize(), ChangeType.Add);
 
          return value;
       }
 
-      public T DeleteValue<T>(string itemId, T value) where T : notnull
+      internal T DeleteValue<T>(string itemId, T value) where T : notnull
       {
          _addChange(itemId, string.Empty, value.Serialize(), ChangeType.Delete);
 
@@ -54,7 +53,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Database.AutoSaveFileLocker.WriteAllText(this.Serialize(), Database.Passkeys);
       }
 
-      public void MergeChange()
+      internal void MergeChange()
       {
          while (Changes.Any())
          {
@@ -66,7 +65,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Clear();
       }
 
-      public void Clear()
+      internal void Clear()
       {
          Changes.Clear();
 
