@@ -71,6 +71,37 @@ namespace Upsilon.Apps.Passkey.Core.Models
          AutoSave.Clear();
       }
 
+      public bool Login(string passkey)
+      {
+         Passkeys = Passkeys.Union(new[] { passkey }).ToArray();
+
+         try
+         {
+            User = DatabaseFileLocker?.ReadAllText(Passkeys).Deserialize<User>();
+         }
+         catch { }
+
+         if (User == null) return false;
+
+         User.Database = this;
+
+         if (File.Exists(AutoSaveFile))
+         {
+            AutoSaveFileLocker = new(AutoSaveFile, FileMode.Open);
+
+            AutoSave = AutoSaveFileLocker.ReadAllText(Passkeys).Deserialize<AutoSave>();
+
+            AutoSave.Database = this;
+         }
+
+         return true;
+      }
+
+      public void Close()
+      {
+         Dispose();
+      }
+
       #endregion
 
       internal User? User;
@@ -81,72 +112,61 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal FileLocker? DatabaseFileLocker;
       internal FileLocker? AutoSaveFileLocker;
 
-      private Database(string databaseFile, string autoSaveFile, string logFile, string username, string[] passkeys, bool createNew)
+      private Database(string databaseFile, string autoSaveFile, string logFile, string username)
       {
          DatabaseFile = databaseFile;
          AutoSaveFile = autoSaveFile;
          LogFile = logFile;
 
-         Passkeys = new[] { username.GetHash() }.Union(passkeys).ToArray();
+         Passkeys = new[] { username.GetHash() };
 
          AutoSave = new()
          {
             Database = this,
          };
-
-         if (createNew)
-         {
-            if (File.Exists(DatabaseFile))
-            {
-               throw new IOException($"'{databaseFile}' database file already exists");
-            }
-
-            string databaseFileDirectory = Path.GetDirectoryName(DatabaseFile) ?? string.Empty;
-
-            if (!Directory.Exists(databaseFileDirectory))
-            {
-               Directory.CreateDirectory(databaseFileDirectory);
-            }
-
-            User = new()
-            {
-               Database = this,
-               ItemId = username.GetHash(),
-               Username = username,
-               Passkeys = passkeys,
-            };
-
-            DatabaseFileLocker = new(DatabaseFile, FileMode.OpenOrCreate);
-
-            Save();
-         }
-         else
-         {
-            DatabaseFileLocker = new(DatabaseFile, FileMode.Open);
-
-            User = DatabaseFileLocker.ReadAllText(Passkeys).Deserialize<User>();
-
-            User.Database = this;
-
-            if (File.Exists(AutoSaveFile))
-            {
-               AutoSaveFileLocker = new(AutoSaveFile, FileMode.Open);
-
-               AutoSave = AutoSaveFileLocker.ReadAllText(Passkeys).Deserialize<AutoSave>();
-
-               AutoSave.Database = this;
-            }
-         }
       }
 
       public static IDatabase Create(string databaseFile, string autoSaveFile, string logFile, string username, string[] passkeys)
       {
-         return new Database(databaseFile, autoSaveFile, logFile, username, passkeys, createNew: true);
+         if (File.Exists(databaseFile))
+         {
+            throw new IOException($"'{databaseFile}' database file already exists");
+         }
+
+         string databaseFileDirectory = Path.GetDirectoryName(databaseFile) ?? string.Empty;
+
+         if (!Directory.Exists(databaseFileDirectory))
+         {
+            Directory.CreateDirectory(databaseFileDirectory);
+         }
+
+         Database database = new(databaseFile, autoSaveFile, logFile, username)
+         {
+            DatabaseFileLocker = new(databaseFile, FileMode.Create),
+            Passkeys = new[] { username.GetHash() }.Union(passkeys).ToArray(),
+         };
+
+         database.User = new()
+         {
+            Database = database,
+            ItemId = username.GetHash(),
+            Username = username,
+            Passkeys = passkeys,
+         };
+
+         database.Save();
+
+         return database;
       }
 
-      public static IDatabase Open(string databaseFile, string autoSaveFile, string logFile, string username, string[] passkeys)
+      public static IDatabase Open(string databaseFile, string autoSaveFile, string logFile, string username)
       {
-         return new Database(databaseFile, autoSaveFile, logFile, username, passkeys, createNew: false);
+         Database database = new(databaseFile, autoSaveFile, logFile, username)
+         {
+            DatabaseFileLocker = new(databaseFile, FileMode.Open),
+         };
+
+         return database;
       }
    }
 }

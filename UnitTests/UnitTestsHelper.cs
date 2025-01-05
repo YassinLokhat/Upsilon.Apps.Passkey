@@ -8,6 +8,8 @@ namespace Upsilon.Apps.Passkey.UnitTests
 {
    internal static class UnitTestsHelper
    {
+      public static readonly int RANDOMIZED_TESTS_LOOP = 100;
+
       public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
       public static string ComputeDatabaseFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{username}.pku";
       public static string ComputeAutoSaveFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{username}.pka";
@@ -30,7 +32,14 @@ namespace Upsilon.Apps.Passkey.UnitTests
          string autoSaveFile = ComputeAutoSaveFilePath(username);
          string logFile = ComputeLogFilePath(username);
 
-         return Database.Open(databaseFile, autoSaveFile, logFile, username, passkeys);
+         IDatabase database = Database.Open(databaseFile, autoSaveFile, logFile, username);
+
+         foreach (var passkey in passkeys)
+         {
+            database.Login(passkey);
+         }
+
+         return database;
       }
 
       public static void ClearTestEnvironment([CallerMemberName] string username = "")

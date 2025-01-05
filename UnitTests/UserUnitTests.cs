@@ -9,15 +9,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
    {
       [TestMethod]
       /*
-       * 
-      */
-      public void Case0()
-      {
-
-      }
-
-      [TestMethod]
-      /*
        * Database.Create creates an empty database file,
        * Then Database.Dispose releases correctly the database file,
        * Then Database.Open loads correctly the database file,
@@ -56,7 +47,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          databaseCreated.User?.CleaningClipboardTimeout.Should().Be(0);
 
          // When
-         databaseCreated.Dispose();
+         databaseCreated.Close();
 
          // Then
          databaseCreated.User.Should().BeNull();
@@ -65,7 +56,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          File.Exists(logFile).Should().BeFalse();
 
          // When
-         IDatabase? databaseLoaded = Database.Open(databaseFile, autoSaveFile, logFile, username, passkeys);
+         IDatabase? databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
 
          // Then
          databaseLoaded.Should().NotBeNull();
@@ -108,7 +99,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          // Given
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase();
-         databaseCreated.Dispose();
+         databaseCreated.Close();
          IOException? exception = null;
          IDatabase? newDatabase = null;
 
@@ -160,11 +151,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          {
             try
             {
-               databaseLoaded = Database.Open(databaseFile,
-                  autoSaveFile,
-                  logFile,
-                  username,
-                  passkeys);
+               databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
             }
             catch (IOException ex)
             {
@@ -179,17 +166,13 @@ namespace Upsilon.Apps.Passkey.UnitTests
          exception.Should().NotBeNull();
 
          // When
-         databaseCreated.Dispose();
+         databaseCreated.Close();
          exception = null;
          act = new(() =>
          {
             try
             {
-               databaseLoaded = Database.Open(databaseFile,
-                  autoSaveFile,
-                  logFile,
-                  username,
-                  passkeys);
+               databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
             }
             catch (IOException ex)
             {
@@ -204,7 +187,38 @@ namespace Upsilon.Apps.Passkey.UnitTests
          databaseLoaded.Should().NotBeNull();
 
          // Finaly
-         databaseLoaded?.Dispose();
+         databaseLoaded?.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Database.Login don't return any User if wrong passkeys is provided.
+      */
+      public void Case04_DatabaseOpenButWrongPasskeysProvided()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] wrongPasskeys = [.. passkeys];
+         int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
+         wrongPasskeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
+         string logFile = UnitTestsHelper.ComputeLogFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         // When
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(wrongPasskeys);
+
+         // Then
+         databaseLoaded.User.Should().BeNull();
+
+         // Finaly
+         databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
 
@@ -212,13 +226,13 @@ namespace Upsilon.Apps.Passkey.UnitTests
       /*
        * Updating User creates an autosave file and don't update the save file.
       */
-      public void Case04_UserUpdateWithoutSaving()
+      public void Case05_UserUpdateWithoutSaving()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         databaseCreated.Dispose();
+         databaseCreated.Close();
          string oldDatabaseContent = File.ReadAllText(UnitTestsHelper.ComputeDatabaseFilePath());
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
 
@@ -236,7 +250,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          databaseLoaded.User.PasswordTimeout = passwordTimer;
          databaseLoaded.User.LogoutTimeout = logoutTimeout;
          databaseLoaded.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
-         databaseLoaded.Dispose();
+         databaseLoaded.Close();
 
          // Then
          File.Exists(UnitTestsHelper.ComputeAutoSaveFilePath()).Should().BeTrue();
@@ -252,7 +266,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
        * Then Database.Save will save the update in the database file and delete the autosave file,
        * Then GetUser loads correctly the updated database file.
       */
-      public void Case05_UserUpdateThenSaved()
+      public void Case06_UserUpdateThenSaved()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
@@ -280,13 +294,17 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          // When
          databaseCreated.Save();
-         databaseCreated.Dispose();
+         databaseCreated.Close();
 
          // Then
          File.Exists(autoSaveFile).Should().BeFalse();
 
          // When
-         IDatabase databaseLoaded = Database.Open(databaseFile, autoSaveFile, logFile, newUsername, newPasskeys);
+         IDatabase databaseLoaded = Database.Open(databaseFile, autoSaveFile, logFile, newUsername);
+         foreach (var passkey in newPasskeys)
+         {
+            databaseLoaded.Login(passkey);
+         }
 
          // Then
          databaseLoaded.User.Should().NotBeNull();
@@ -299,7 +317,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          File.Exists(autoSaveFile).Should().BeFalse();
 
          // Finaly
-         databaseLoaded.Dispose();
+         databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
 
@@ -310,7 +328,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
        * Then HandleAutoSave updates the database object and the database file,
        * Then GetUser loads correctly the updated database file.
       */
-      public void Case06_UserUpdateButNotSaved()
+      public void Case07_UserUpdateButNotSaved()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
@@ -334,13 +352,13 @@ namespace Upsilon.Apps.Passkey.UnitTests
          databaseCreated.User.PasswordTimeout = passwordTimer;
          databaseCreated.User.LogoutTimeout = logoutTimeout;
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
-         databaseCreated.Dispose();
+         databaseCreated.Close();
 
          // Then
          File.Exists(autoSaveFile).Should().BeTrue();
 
          // When
-         IDatabase databaseLoaded = Database.Open(databaseFile, autoSaveFile, logFile, oldUsername, oldPasskeys);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(oldPasskeys);
 
          // Then
          databaseLoaded.User.Should().NotBeNull();
@@ -362,8 +380,12 @@ namespace Upsilon.Apps.Passkey.UnitTests
          databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
          // When
-         databaseLoaded.Dispose();
-         databaseLoaded = Database.Open(databaseFile, autoSaveFile, logFile, newUsername, newPasskeys);
+         databaseLoaded.Close();
+         databaseLoaded = Database.Open(databaseFile, autoSaveFile, logFile, newUsername);
+         foreach (var passkey in newPasskeys)
+         {
+            databaseLoaded.Login(passkey);
+         }
 
          // // Then
          File.Exists(autoSaveFile).Should().BeFalse();
@@ -374,7 +396,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
          // Finaly
-         databaseLoaded.Dispose();
+         databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
    }

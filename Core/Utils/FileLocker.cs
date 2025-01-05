@@ -6,21 +6,19 @@ namespace Upsilon.Apps.Passkey.Core.Utils
    {
       public string FilePath { get; private set; }
       private FileStream? _stream;
-      private FileMode _fileMode;
 
       public FileLocker(string filePath, FileMode fileMode = FileMode.Open)
       {
          FilePath = filePath;
-         _fileMode = fileMode;
 
-         Lock();
+         _stream = new FileStream(FilePath, fileMode, FileAccess.ReadWrite, FileShare.None);
       }
 
       public void Lock()
       {
          Unlock();
 
-         _stream = new FileStream(FilePath, _fileMode, FileAccess.ReadWrite, FileShare.None);
+         _stream = new FileStream(FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
       }
 
       public void Unlock()

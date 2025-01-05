@@ -10,5 +10,7 @@
       void Delete();
       void Save();
       void HandleAutoSave(bool mergeAutoSave);
+      bool Login(string passkey);
+      void Close();
    }
 }

@@ -36,15 +36,18 @@ namespace Upsilon.Apps.PassKey.UnitTests
       */
       public void Case02_SignRandomString()
       {
-         // Given
-         string source = UnitTestsHelper.GetRandomString();
+         for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
+         {
+            // Given
+            string source = UnitTestsHelper.GetRandomString();
 
-         // When
-         string signedSource = source.Sign();
-         string checkedSource = signedSource.CheckSign();
+            // When
+            string signedSource = source.Sign();
+            string checkedSource = signedSource.CheckSign();
 
-         // Then
-         checkedSource.Should().Be(source);
+            // Then
+            checkedSource.Should().Be(source);
+         }
       }
 
       [TestMethod]
@@ -54,16 +57,19 @@ namespace Upsilon.Apps.PassKey.UnitTests
       */
       public void Case03_EncryptionRandomString()
       {
-         // Given
-         string source = UnitTestsHelper.GetRandomString();
-         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
+         {
+            // Given
+            string source = UnitTestsHelper.GetRandomString();
+            string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
 
-         // When
-         string encryptedSource = SecurityCenter.Encrypt(source, passkeys);
-         string decryptedSource = SecurityCenter.Decrypt(encryptedSource, passkeys);
+            // When
+            string encryptedSource = SecurityCenter.Encrypt(source, passkeys);
+            string decryptedSource = SecurityCenter.Decrypt(encryptedSource, passkeys);
 
-         // Then
-         decryptedSource.Should().Be(source);
+            // Then
+            decryptedSource.Should().Be(source);
+         }
       }
 
       [TestMethod]
@@ -72,30 +78,33 @@ namespace Upsilon.Apps.PassKey.UnitTests
       */
       public void Case04_DecryptingCorruptedRandomString()
       {
-         // Given
-         string source = UnitTestsHelper.GetRandomString();
-         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
-         string encryptedSource = SecurityCenter.Encrypt(source, passkeys);
-         string corruptedSource = encryptedSource + " ";
-         CheckSignFailedException? exception = null;
-
-         // When
-         Action act = new(() =>
+         for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
-            try
-            {
-               string decryptedSource = SecurityCenter.Decrypt(corruptedSource, passkeys);
-            }
-            catch (CheckSignFailedException ex)
-            {
-               exception = ex;
-               throw;
-            }
-         });
+            // Given
+            string source = UnitTestsHelper.GetRandomString();
+            string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+            string encryptedSource = SecurityCenter.Encrypt(source, passkeys);
+            string corruptedSource = encryptedSource + " ";
+            CheckSignFailedException? exception = null;
 
-         // Then
-         act.Should().Throw<CheckSignFailedException>();
-         exception.Should().NotBeNull();
+            // When
+            Action act = new(() =>
+            {
+               try
+               {
+                  string decryptedSource = SecurityCenter.Decrypt(corruptedSource, passkeys);
+               }
+               catch (CheckSignFailedException ex)
+               {
+                  exception = ex;
+                  throw;
+               }
+            });
+
+            // Then
+            act.Should().Throw<CheckSignFailedException>();
+            exception.Should().NotBeNull();
+         }
       }
 
       [TestMethod]
@@ -104,32 +113,35 @@ namespace Upsilon.Apps.PassKey.UnitTests
       */
       public void Case05_DecryptingRandomStringWithWrongPasskey()
       {
-         // Given
-         string source = UnitTestsHelper.GetRandomString();
-         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
-         string encryptedSource = SecurityCenter.Encrypt(source, passkeys);
-         int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
-         passkeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
-         WrongPasswordException? exception = null;
-
-         // When
-         Action act = new(() =>
+         for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
-            try
-            {
-               string decryptedSource = SecurityCenter.Decrypt(encryptedSource, passkeys);
-            }
-            catch (WrongPasswordException ex)
-            {
-               exception = ex;
-               throw;
-            }
-         });
+            // Given
+            string source = UnitTestsHelper.GetRandomString();
+            string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+            string encryptedSource = SecurityCenter.Encrypt(source, passkeys);
+            int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
+            passkeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
+            WrongPasswordException? exception = null;
 
-         // Then
-         act.Should().Throw<WrongPasswordException>();
-         exception.Should().NotBeNull();
-         exception?.PasswordLevel.Should().Be(wrongKeyIndex);
+            // When
+            Action act = new(() =>
+            {
+               try
+               {
+                  string decryptedSource = SecurityCenter.Decrypt(encryptedSource, passkeys);
+               }
+               catch (WrongPasswordException ex)
+               {
+                  exception = ex;
+                  throw;
+               }
+            });
+
+            // Then
+            act.Should().Throw<WrongPasswordException>();
+            exception.Should().NotBeNull();
+            exception?.PasswordLevel.Should().Be(wrongKeyIndex);
+         }
       }
    }
 }
