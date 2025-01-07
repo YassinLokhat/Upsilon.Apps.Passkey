@@ -24,12 +24,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
          set => Passkeys = Database.AutoSave.UpdateValue(ItemId, nameof(Passkeys), value);
       }
 
-      int IUser.PasswordTimeout
-      {
-         get => PasswordTimeout;
-         set => PasswordTimeout = Database.AutoSave.UpdateValue(ItemId, nameof(PasswordTimeout), value);
-      }
-
       int IUser.LogoutTimeout
       {
          get => LogoutTimeout;
@@ -72,11 +66,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
       }
 
       public string ItemId { get; set; } = string.Empty;
-      public List<Service> Services { get; set; } = new();
+      public List<Service> Services { get; set; } = [];
 
       public string Username { get; set; } = string.Empty;
       public string[] Passkeys { get; set; } = [];
-      public int PasswordTimeout { get; set; } = 0;
       public int LogoutTimeout { get; set; } = 0;
       public int CleaningClipboardTimeout { get; set; } = 0;
 
@@ -111,9 +104,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      break;
                   case nameof(Passkeys):
                      Passkeys = change.Value.Deserialize<string[]>();
-                     break;
-                  case nameof(PasswordTimeout):
-                     PasswordTimeout = change.Value.Deserialize<int>();
                      break;
                   case nameof(LogoutTimeout):
                      LogoutTimeout = change.Value.Deserialize<int>();

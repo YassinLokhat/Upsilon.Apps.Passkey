@@ -42,6 +42,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
          set => Notes = Service.User.Database.AutoSave.UpdateValue(ItemId, nameof(Notes), value);
       }
 
+      int IAccount.PasswordUpdateReminderDelay
+      {
+         get => PasswordUpdateReminderDelay;
+         set => PasswordUpdateReminderDelay = Service.User.Database.AutoSave.UpdateValue(ItemId, nameof(PasswordUpdateReminderDelay), value);
+      }
+
       AccountOption IAccount.Options
       {
          get => Options;
@@ -61,9 +67,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public string Label { get; set; } = string.Empty;
       public string[] Identifiants { get; set; } = [];
-      public Dictionary<long, string> Passwords { get; set; } = new();
+      public Dictionary<long, string> Passwords { get; set; } = [];
       public string Notes { get; set; } = string.Empty;
-      public AccountOption Options { get; set; }
+      public int PasswordUpdateReminderDelay { get; set; } = 0;
+      public AccountOption Options { get; set; } = AccountOption.None;
 
       public void Apply(Change change)
       {
@@ -83,6 +90,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      break;
                   case nameof(Passwords):
                      Passwords = change.Value.Deserialize<Dictionary<long, string>>();
+                     break;
+                  case nameof(PasswordUpdateReminderDelay):
+                     PasswordUpdateReminderDelay = change.Value.Deserialize<int>();
                      break;
                   case nameof(Options):
                      Options = change.Value.Deserialize<AccountOption>();

@@ -64,7 +64,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          set => _user = value;
       }
 
-      public List<Account> Accounts { get; set; } = new();
+      public List<Account> Accounts { get; set; } = [];
 
       public string ServiceName { get; set; } = string.Empty;
       public string Url { get; set; } = string.Empty;

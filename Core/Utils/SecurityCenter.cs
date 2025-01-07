@@ -217,7 +217,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
 
       private static string _customBaseToString(string source)
       {
-         List<byte> bytes = new();
+         List<byte> bytes = [];
          int bytesCount = source.Length / 2;
 
          for (int i = 0; i < bytesCount; i++)
