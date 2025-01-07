@@ -32,13 +32,13 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return database;
       }
 
-      public static IDatabase OpenTestDatabase(string[] passkeys, [CallerMemberName] string username = "")
+      public static IDatabase OpenTestDatabase(string[] passkeys, bool mergeAutoSave = false, [CallerMemberName] string username = "")
       {
          string databaseFile = ComputeDatabaseFilePath(username);
          string autoSaveFile = ComputeAutoSaveFilePath(username);
          string logFile = ComputeLogFilePath(username);
 
-         IDatabase database = IDatabase.Open(databaseFile, autoSaveFile, logFile, username);
+         IDatabase database = IDatabase.Open(databaseFile, autoSaveFile, logFile, username, (s, e) => { e.MergeAutoSave = mergeAutoSave; });
 
          foreach (string passkey in passkeys)
          {

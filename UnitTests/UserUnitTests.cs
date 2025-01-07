@@ -353,18 +353,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          _ = File.Exists(autoSaveFile).Should().BeTrue();
 
          // When
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(oldPasskeys);
-
-         // Then
-         _ = databaseLoaded.User.Should().NotBeNull();
-         _ = (databaseLoaded.User?.Username.Should().Be(oldUsername));
-         _ = (databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(oldPasskeys));
-         _ = (databaseLoaded.User?.PasswordTimeout.Should().Be(0));
-         _ = (databaseLoaded.User?.LogoutTimeout.Should().Be(0));
-         _ = (databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(0));
-
-         // When
-         databaseLoaded.HandleAutoSave(mergeAutoSave: true);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(oldPasskeys, mergeAutoSave: true);
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeFalse();
@@ -382,7 +371,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
             _ = databaseLoaded.Login(passkey);
          }
 
-         // // Then
+         // Then
          _ = File.Exists(autoSaveFile).Should().BeFalse();
          _ = (databaseLoaded.User?.Username.Should().Be(newUsername));
          _ = (databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(newPasskeys));
