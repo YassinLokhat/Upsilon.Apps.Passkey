@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Interfaces;
-using Upsilon.Apps.Passkey.Core.Models;
 
 namespace Upsilon.Apps.Passkey.UnitTests
 {
@@ -296,7 +295,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          _ = File.Exists(autoSaveFile).Should().BeFalse();
 
          // When
-         IDatabase databaseLoaded = Database.Open(databaseFile, autoSaveFile, logFile, newUsername);
+         IDatabase databaseLoaded = IDatabase.Open(databaseFile, autoSaveFile, logFile, newUsername);
          foreach (string passkey in newPasskeys)
          {
             _ = databaseLoaded.Login(passkey);
@@ -377,7 +376,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          // When
          databaseLoaded.Close();
-         databaseLoaded = Database.Open(databaseFile, autoSaveFile, logFile, newUsername);
+         databaseLoaded = IDatabase.Open(databaseFile, autoSaveFile, logFile, newUsername);
          foreach (string passkey in newPasskeys)
          {
             _ = databaseLoaded.Login(passkey);

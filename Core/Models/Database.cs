@@ -4,7 +4,7 @@ using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
-   public sealed class Database : IDatabase
+   internal sealed class Database : IDatabase
    {
       #region IUser interface explicit implementation
 
@@ -16,6 +16,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Delete()
       {
+         if (User == null) throw new NullReferenceException(nameof(User));
+
          DatabaseFileLocker?.Delete();
 
          if (File.Exists(AutoSaveFile))
@@ -30,7 +32,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          User = null;
          AutoSave.Changes.Clear();
-         Passkeys = Array.Empty<string>();
+         Passkeys = [];
 
          DatabaseFileLocker?.Dispose();
          DatabaseFileLocker = null;
@@ -45,6 +47,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void HandleAutoSave(bool mergeAutoSave)
       {
+         if (User == null) throw new NullReferenceException(nameof(User));
+
          if (!File.Exists(AutoSaveFile))
          {
             return;
@@ -65,36 +69,40 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (User == null) throw new NullReferenceException(nameof(User));
          if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
-         Passkeys = new[] { User.Username.GetHash() }.Union(User.Passkeys).ToArray();
+         Passkeys = [User.Username.GetHash(), .. User.Passkeys];
          DatabaseFileLocker.WriteAllText(User.Serialize(), Passkeys);
 
          AutoSave.Clear();
       }
 
-      public bool Login(string passkey)
+      public IUser? Login(string passkey)
       {
-         Passkeys = Passkeys.Union(new[] { passkey }).ToArray();
+         Passkeys = [.. Passkeys, passkey];
 
          try
          {
             User = DatabaseFileLocker?.ReadAllText(Passkeys).Deserialize<User>();
          }
-         catch { }
-
-         if (User == null) return false;
-
-         User.Database = this;
-
-         if (File.Exists(AutoSaveFile))
+         catch
          {
-            AutoSaveFileLocker = new(AutoSaveFile, FileMode.Open);
-
-            AutoSave = AutoSaveFileLocker.ReadAllText(Passkeys).Deserialize<AutoSave>();
-
-            AutoSave.Database = this;
+            // TODO : Log the error
          }
 
-         return true;
+         if (User != null)
+         {
+            User.Database = this;
+
+            if (File.Exists(AutoSaveFile))
+            {
+               AutoSaveFileLocker = new(AutoSaveFile, FileMode.Open);
+
+               AutoSave = AutoSaveFileLocker.ReadAllText(Passkeys).Deserialize<AutoSave>();
+
+               AutoSave.Database = this;
+            }
+         }
+
+         return User;
       }
 
       public void Close()
@@ -112,21 +120,28 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal FileLocker? DatabaseFileLocker;
       internal FileLocker? AutoSaveFileLocker;
 
-      private Database(string databaseFile, string autoSaveFile, string logFile, string username)
+      private Database(string databaseFile, string autoSaveFile, string logFile, FileMode fileMode, string username, string[]? passkeys = null)
       {
          DatabaseFile = databaseFile;
          AutoSaveFile = autoSaveFile;
          LogFile = logFile;
 
-         Passkeys = new[] { username.GetHash() };
+         Passkeys = [username.GetHash()];
+
+         if (passkeys != null)
+         {
+            Passkeys = [.. Passkeys, .. passkeys];
+         }
 
          AutoSave = new()
          {
             Database = this,
          };
+
+         DatabaseFileLocker = new(databaseFile, fileMode);
       }
 
-      public static IDatabase Create(string databaseFile, string autoSaveFile, string logFile, string username, string[] passkeys)
+      internal static IDatabase Create(string databaseFile, string autoSaveFile, string logFile, string username, string[] passkeys)
       {
          if (File.Exists(databaseFile))
          {
@@ -140,11 +155,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             _ = Directory.CreateDirectory(databaseFileDirectory);
          }
 
-         Database database = new(databaseFile, autoSaveFile, logFile, username)
-         {
-            DatabaseFileLocker = new(databaseFile, FileMode.Create),
-            Passkeys = new[] { username.GetHash() }.Union(passkeys).ToArray(),
-         };
+         Database database = new(databaseFile, autoSaveFile, logFile, FileMode.Create, username, passkeys);
 
          database.User = new()
          {
@@ -156,17 +167,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          database.Save();
 
-         return database;
+         database.Dispose();
+
+         return Open(databaseFile, autoSaveFile, logFile, username);
       }
 
-      public static IDatabase Open(string databaseFile, string autoSaveFile, string logFile, string username)
-      {
-         Database database = new(databaseFile, autoSaveFile, logFile, username)
-         {
-            DatabaseFileLocker = new(databaseFile, FileMode.Open),
-         };
-
-         return database;
-      }
+      internal static IDatabase Open(string databaseFile, string autoSaveFile, string logFile, string username) => new Database(databaseFile, autoSaveFile, logFile, FileMode.Open, username);
    }
 }

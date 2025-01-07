@@ -75,7 +75,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public List<Service> Services { get; set; } = new();
 
       public string Username { get; set; } = string.Empty;
-      public string[] Passkeys { get; set; } = Array.Empty<string>();
+      public string[] Passkeys { get; set; } = [];
       public int PasswordTimeout { get; set; } = 0;
       public int LogoutTimeout { get; set; } = 0;
       public int CleaningClipboardTimeout { get; set; } = 0;

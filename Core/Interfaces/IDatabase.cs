@@ -1,4 +1,6 @@
-﻿namespace Upsilon.Apps.Passkey.Core.Interfaces
+﻿using Upsilon.Apps.Passkey.Core.Models;
+
+namespace Upsilon.Apps.Passkey.Core.Interfaces
 {
    public interface IDatabase : IDisposable
    {
@@ -10,7 +12,13 @@
       void Delete();
       void Save();
       void HandleAutoSave(bool mergeAutoSave);
-      bool Login(string passkey);
+      IUser? Login(string passkey);
       void Close();
+
+      static IDatabase Create(string databaseFile, string autoSaveFile, string logFile, string username, string[] passkeys)
+         => Database.Create(databaseFile, autoSaveFile, logFile, username, passkeys);
+
+      static IDatabase Open(string databaseFile, string autoSaveFile, string logFile, string username)
+         => Database.Open(databaseFile, autoSaveFile, logFile, username);
    }
 }

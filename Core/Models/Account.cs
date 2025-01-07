@@ -60,7 +60,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       }
 
       public string Label { get; set; } = string.Empty;
-      public string[] Identifiants { get; set; } = Array.Empty<string>();
+      public string[] Identifiants { get; set; } = [];
       public Dictionary<long, string> Passwords { get; set; } = new();
       public string Notes { get; set; } = string.Empty;
       public AccountOption Options { get; set; }

@@ -1,7 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
 using Upsilon.Apps.Passkey.Core.Interfaces;
-using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests
@@ -23,7 +22,14 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          passkeys ??= GetRandomPasskeys();
 
-         return Database.Create(databaseFile, autoSaveFile, logFile, username, passkeys);
+         IDatabase database = IDatabase.Create(databaseFile, autoSaveFile, logFile, username, passkeys);
+
+         foreach (string passkey in passkeys)
+         {
+            _ = database.Login(passkey);
+         }
+
+         return database;
       }
 
       public static IDatabase OpenTestDatabase(string[] passkeys, [CallerMemberName] string username = "")
@@ -32,7 +38,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          string autoSaveFile = ComputeAutoSaveFilePath(username);
          string logFile = ComputeLogFilePath(username);
 
-         IDatabase database = Database.Open(databaseFile, autoSaveFile, logFile, username);
+         IDatabase database = IDatabase.Open(databaseFile, autoSaveFile, logFile, username);
 
          foreach (string passkey in passkeys)
          {
