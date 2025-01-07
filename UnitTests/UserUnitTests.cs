@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Enums;
 
 namespace Upsilon.Apps.Passkey.UnitTests
 {
@@ -39,7 +40,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          _ = databaseCreated.User.Should().NotBeNull();
          _ = (databaseCreated.User?.Username.Should().Be(username));
-         _ = (databaseCreated.User?.Passkeys.Should().BeEquivalentTo(passkeys));
 
          _ = (databaseCreated.User?.LogoutTimeout.Should().Be(0));
          _ = (databaseCreated.User?.CleaningClipboardTimeout.Should().Be(0));
@@ -69,7 +69,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          _ = (databaseLoaded?.User.Should().NotBeNull());
          _ = (databaseLoaded?.User?.Username.Should().Be(username));
-         _ = (databaseLoaded?.User?.Passkeys.Should().BeEquivalentTo(passkeys));
 
          _ = (databaseLoaded?.User?.LogoutTimeout.Should().Be(0));
          _ = (databaseLoaded?.User?.CleaningClipboardTimeout.Should().Be(0));
@@ -298,7 +297,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
          // Then
          _ = databaseLoaded.User.Should().NotBeNull();
          _ = (databaseLoaded.User?.Username.Should().Be(newUsername));
-         _ = (databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(newPasskeys));
          _ = (databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout));
          _ = (databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout));
 
@@ -344,7 +342,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          _ = File.Exists(autoSaveFile).Should().BeTrue();
 
          // When
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(oldPasskeys, mergeAutoSave: true);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(oldPasskeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeFalse();

@@ -1,14 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="Upsilon.Apps.Passkey.Core.Models.Database">
-    <Position X="9.5" Y="1" Width="1.75" />
-    <AssociationLine Name="User" Type="Upsilon.Apps.Passkey.Core.Models.User">
+    <Position X="9.5" Y="1" Width="2" />
+    <AssociationLine Name="User" Type="Upsilon.Apps.Passkey.Core.Models.User" FixedFromPoint="true">
+      <Path>
+        <Point X="10.438" Y="5.699" />
+        <Point X="10.438" Y="6.75" />
+      </Path>
       <MemberNameLabel ManuallyPlaced="true" ManuallySized="true">
-        <Position X="0.036" Y="0.911" Height="0.182" Width="0.535" />
+        <Position X="0.182" Y="0.703" Height="0.182" Width="0.535" />
       </MemberNameLabel>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>IAABAIAACCAAIAAAQAAACAAAQAGABEAAAAkQAACAAAA=</HashCode>
+      <HashCode>IAABAIAACCAAIAACQAAACAAAQAGAJEAAAAgQAACAAAA=</HashCode>
       <FileName>Models\Database.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -34,7 +38,7 @@
       </MemberNameLabel>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>gAAEAAEAAFwAAAAggQAAAAAAAABACAQAgAgBDAgAAAQ=</HashCode>
+      <HashCode>gAAEAAEAAFgAAAAggQAAAAAAAABACAQAgAgBDAAAAAQ=</HashCode>
       <FileName>Models\User.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -69,7 +73,7 @@
     <Lollipop Position="0.1" />
   </Class>
   <Class Name="Upsilon.Apps.Passkey.Core.Models.Account">
-    <Position X="13" Y="12" Width="1.75" />
+    <Position X="13" Y="12" Width="3" />
     <Members>
       <Field Name="_service" Hidden="true" />
     </Members>
@@ -83,7 +87,7 @@
       </Path>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AAAgAAAAEBABAABQgIAAAQAAAAAAQAACgAAQAABAAAA=</HashCode>
+      <HashCode>AAAgAAAAEBADAABQgIAAAQAAAAAAQAACgAAQAABAAAA=</HashCode>
       <FileName>Models\Account.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -125,7 +129,7 @@
   <Interface Name="Upsilon.Apps.Passkey.Core.Interfaces.IUser">
     <Position X="5.5" Y="5.75" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>gAAAAAEAAAAAAAAAAQAAAAAAAAAACAAAAAgAECgAAAA=</HashCode>
+      <HashCode>gAAAAAEAAAAAAAAAAQAAAAAAAAAACAAAAAgAECAAAAA=</HashCode>
       <FileName>Interfaces\IUser.cs</FileName>
     </TypeIdentifier>
     <ShowAsCollectionAssociation>
@@ -146,14 +150,14 @@
     </ShowAsCollectionAssociation>
   </Interface>
   <Interface Name="Upsilon.Apps.Passkey.Core.Interfaces.IAccount">
-    <Position X="2.25" Y="10.75" Width="1.5" />
+    <Position X="2.25" Y="10.75" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAgAAAAEAAAAAAAAAAAAAAAAAAAQAACAAAAAABAAAA=</HashCode>
       <FileName>Interfaces\IAccount.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
-      <Property Name="Service" />
       <Property Name="Options" />
+      <Property Name="Service" />
     </ShowAsAssociation>
   </Interface>
   <Interface Name="Upsilon.Apps.Passkey.Core.Interfaces.IDatabase">
@@ -164,7 +168,7 @@
       </MemberNameLabel>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AAABAIAAAAAAAAAAQAAACAAAAAGAAAAAAAEQAACAAAA=</HashCode>
+      <HashCode>AAABAIAAAAAAIAAAQAAACAAAAAGAAEAAAAAQAACAAAA=</HashCode>
       <FileName>Interfaces\IDatabase.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -190,6 +194,13 @@
     <TypeIdentifier>
       <HashCode>AAYAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAEAAAA=</HashCode>
       <FileName>Enums\ChangeType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Upsilon.Apps.PassKey.Core.Enums.AutoSaveMergeBehavior">
+    <Position X="15.75" Y="1.25" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABAgAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAA=</HashCode>
+      <FileName>Enums\AutoSaveMergeBehavior.cs</FileName>
     </TypeIdentifier>
   </Enum>
   <Font Name="Segoe UI" Size="9" />

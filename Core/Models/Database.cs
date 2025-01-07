@@ -1,5 +1,6 @@
 ﻿using Upsilon.Apps.Passkey.Core.Interfaces;
 using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Events;
 using Upsilon.Apps.PassKey.Core.Utils;
 
@@ -51,7 +52,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (User == null) throw new NullReferenceException(nameof(User));
          if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
-         Passkeys = [User.Username.GetHash(), .. User.Passkeys];
+         Passkeys = [User.Username.GetHash(), .. User.Passkeys.Select(x => x.GetSlowHash())];
          DatabaseFileLocker.WriteAllText(User.Serialize(), Passkeys);
 
          AutoSave.Clear();
@@ -59,7 +60,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public IUser? Login(string passkey)
       {
-         Passkeys = [.. Passkeys, passkey];
+         Passkeys = [.. Passkeys, passkey.GetSlowHash()];
 
          try
          {
@@ -83,7 +84,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
                AutoSaveDetectedEventArgs eventArg = new();
                _onAutoSaveDetected?.Invoke(this, eventArg);
-               _handleAutoSave(eventArg.MergeAutoSave);
+               _handleAutoSave(eventArg.MergeBehavior);
             }
          }
 
@@ -105,7 +106,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal FileLocker? DatabaseFileLocker;
       internal FileLocker? AutoSaveFileLocker;
 
-      private EventHandler<AutoSaveDetectedEventArgs>? _onAutoSaveDetected = null;
+      private readonly EventHandler<AutoSaveDetectedEventArgs>? _onAutoSaveDetected = null;
 
       private Database(string databaseFile, string autoSaveFile, string logFile, FileMode fileMode, EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler, string username, string[]? passkeys = null)
       {
@@ -117,7 +118,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (passkeys != null)
          {
-            Passkeys = [.. Passkeys, .. passkeys];
+            Passkeys = [.. Passkeys, .. passkeys.Select(x => x.GetSlowHash())];
          }
 
          AutoSave = new()
@@ -151,7 +152,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             Database = database,
             ItemId = username.GetHash(),
             Username = username,
-            Passkeys = passkeys,
+            Passkeys = [.. passkeys],
          };
 
          database.Save();
@@ -164,7 +165,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal static IDatabase Open(string databaseFile, string autoSaveFile, string logFile, string username, EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
          => new Database(databaseFile, autoSaveFile, logFile, FileMode.Open, autoSaveHandler, username);
 
-      private void _handleAutoSave(bool mergeAutoSave)
+      private void _handleAutoSave(AutoSaveMergeBehavior mergeAutoSave)
       {
          if (User == null) throw new NullReferenceException(nameof(User));
 
@@ -173,13 +174,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
             return;
          }
 
-         if (mergeAutoSave)
+         switch (mergeAutoSave)
          {
-            AutoSave.MergeChange();
-         }
-         else
-         {
-            AutoSave.Clear();
+            case AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile:
+               AutoSave.MergeChange();
+               break;
+            case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
+               AutoSave.Clear();
+               break;
+            case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
+            default:
+               break;
          }
       }
    }

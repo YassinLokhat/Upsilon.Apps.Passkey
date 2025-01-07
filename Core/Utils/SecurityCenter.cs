@@ -19,7 +19,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          return string.Join(string.Empty, hash);
       }
 
-      public static string GetSlowHash(this string source, byte timeFactor)
+      public static string GetSlowHash(this string source, byte timeFactor = 5)
       {
          long realTimeFactor = (long)Math.Pow(0b1000, timeFactor);
 

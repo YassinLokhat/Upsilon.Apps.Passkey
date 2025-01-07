@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
 using Upsilon.Apps.Passkey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests
@@ -32,13 +33,13 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return database;
       }
 
-      public static IDatabase OpenTestDatabase(string[] passkeys, bool mergeAutoSave = false, [CallerMemberName] string username = "")
+      public static IDatabase OpenTestDatabase(string[] passkeys, AutoSaveMergeBehavior mergeAutoSave = AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile, [CallerMemberName] string username = "")
       {
          string databaseFile = ComputeDatabaseFilePath(username);
          string autoSaveFile = ComputeAutoSaveFilePath(username);
          string logFile = ComputeLogFilePath(username);
 
-         IDatabase database = IDatabase.Open(databaseFile, autoSaveFile, logFile, username, (s, e) => { e.MergeAutoSave = mergeAutoSave; });
+         IDatabase database = IDatabase.Open(databaseFile, autoSaveFile, logFile, username, (s, e) => { e.MergeBehavior = mergeAutoSave; });
 
          foreach (string passkey in passkeys)
          {
