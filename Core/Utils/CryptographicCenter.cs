@@ -25,7 +25,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
             .ComputeHash(Encoding.UTF8.GetBytes(source))
             .Select(x => x.ToString("X2"));
 
-         return string.Join(string.Empty, hash);
+         return string.Join(string.Empty, hash).ToLower();
       }
 
       /// <summary>
@@ -234,15 +234,15 @@ namespace Upsilon.Apps.PassKey.Core.Utils
             try
             {
                source = _uncipher_Aes(source, passwords[i]);
+
+               if (!CheckSign(ref source))
+               {
+                  throw new CheckSignFailedException();
+               }
             }
             catch
             {
                throw new WrongPasswordException(i);
-            }
-
-            if (!CheckSign(ref source))
-            {
-               throw new CheckSignFailedException();
             }
          }
 

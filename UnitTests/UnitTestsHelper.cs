@@ -2,6 +2,7 @@
 using System.Text;
 using Upsilon.Apps.Passkey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Enums;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests
@@ -9,6 +10,9 @@ namespace Upsilon.Apps.Passkey.UnitTests
    internal static class UnitTestsHelper
    {
       public static readonly int RANDOMIZED_TESTS_LOOP = 100;
+
+      public static readonly ICryptographicCenter CryptographicCenter = new CryptographicCenter();
+      public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
 
       public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
       public static string ComputeDatabaseFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{username}.pku";
@@ -23,7 +27,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          passkeys ??= GetRandomPasskeys();
 
-         IDatabase database = IDatabase.Create(databaseFile, autoSaveFile, logFile, username, passkeys);
+         IDatabase database = IDatabase.Create(CryptographicCenter, SerializationCenter, databaseFile, autoSaveFile, logFile, username, passkeys);
 
          foreach (string passkey in passkeys)
          {
@@ -39,7 +43,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          string autoSaveFile = ComputeAutoSaveFilePath(username);
          string logFile = ComputeLogFilePath(username);
 
-         IDatabase database = IDatabase.Open(databaseFile, autoSaveFile, logFile, username, (s, e) => { e.MergeBehavior = mergeAutoSave; });
+         IDatabase database = IDatabase.Open(CryptographicCenter, SerializationCenter, databaseFile, autoSaveFile, logFile, username, (s, e) => { e.MergeBehavior = mergeAutoSave; });
 
          foreach (string passkey in passkeys)
          {
@@ -91,7 +95,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          random.NextBytes(bytes);
 
-         return Encoding.ASCII.GetString(bytes).GetHash();
+         return CryptographicCenter.GetHash(Encoding.ASCII.GetString(bytes));
       }
 
       public static int GetRandomInt(int max) => GetRandomInt(0, max);

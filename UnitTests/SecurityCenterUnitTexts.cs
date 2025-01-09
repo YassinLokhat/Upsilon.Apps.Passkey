@@ -18,13 +18,15 @@ namespace Upsilon.Apps.PassKey.UnitTests
          string source = string.Empty;
 
          // When
-         string signedSource = source.Sign();
+         string signedSource = source;
+         UnitTestsHelper.CryptographicCenter.Sign(ref signedSource);
 
          // Then
-         _ = signedSource.Should().Be(string.Empty.GetHash());
+         _ = signedSource.Should().Be(UnitTestsHelper.CryptographicCenter.GetHash(string.Empty));
 
          // When
-         string checkedSource = signedSource.CheckSign();
+         string checkedSource = signedSource;
+         UnitTestsHelper.CryptographicCenter.CheckSign(ref checkedSource);
 
          // Then
          _ = checkedSource.Should().Be(source);
@@ -42,8 +44,10 @@ namespace Upsilon.Apps.PassKey.UnitTests
             string source = UnitTestsHelper.GetRandomString();
 
             // When
-            string signedSource = source.Sign();
-            string checkedSource = signedSource.CheckSign();
+            string signedSource = source;
+            UnitTestsHelper.CryptographicCenter.Sign(ref signedSource);
+            string checkedSource = signedSource;
+            UnitTestsHelper.CryptographicCenter.CheckSign(ref checkedSource);
 
             // Then
             _ = checkedSource.Should().Be(source);
@@ -64,8 +68,8 @@ namespace Upsilon.Apps.PassKey.UnitTests
             string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
 
             // When
-            string encryptedSource = CryptographicCenter.Encrypt(source, passkeys);
-            string decryptedSource = CryptographicCenter.Decrypt(encryptedSource, passkeys);
+            string encryptedSource = UnitTestsHelper.CryptographicCenter.Encrypt(source, passkeys);
+            string decryptedSource = UnitTestsHelper.CryptographicCenter.Decrypt(encryptedSource, passkeys);
 
             // Then
             _ = decryptedSource.Should().Be(source);
@@ -83,7 +87,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
             // Given
             string source = UnitTestsHelper.GetRandomString();
             string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
-            string encryptedSource = CryptographicCenter.Encrypt(source, passkeys);
+            string encryptedSource = UnitTestsHelper.CryptographicCenter.Encrypt(source, passkeys);
             string corruptedSource = encryptedSource + " ";
             CheckSignFailedException? exception = null;
 
@@ -92,7 +96,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
             {
                try
                {
-                  string decryptedSource = CryptographicCenter.Decrypt(corruptedSource, passkeys);
+                  string decryptedSource = UnitTestsHelper.CryptographicCenter.Decrypt(corruptedSource, passkeys);
                }
                catch (CheckSignFailedException ex)
                {
@@ -118,7 +122,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
             // Given
             string source = UnitTestsHelper.GetRandomString();
             string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
-            string encryptedSource = CryptographicCenter.Encrypt(source, passkeys);
+            string encryptedSource = UnitTestsHelper.CryptographicCenter.Encrypt(source, passkeys);
             int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
             passkeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
             WrongPasswordException? exception = null;
@@ -128,7 +132,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
             {
                try
                {
-                  string decryptedSource = CryptographicCenter.Decrypt(encryptedSource, passkeys);
+                  string decryptedSource = UnitTestsHelper.CryptographicCenter.Decrypt(encryptedSource, passkeys);
                }
                catch (WrongPasswordException ex)
                {

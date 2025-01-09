@@ -288,7 +288,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          _ = File.Exists(autoSaveFile).Should().BeFalse();
 
          // When
-         IDatabase databaseLoaded = IDatabase.Open(databaseFile, autoSaveFile, logFile, newUsername);
+         IDatabase databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter, UnitTestsHelper.SerializationCenter, databaseFile, autoSaveFile, logFile, newUsername);
          foreach (string passkey in newPasskeys)
          {
             _ = databaseLoaded.Login(passkey);
@@ -353,7 +353,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          // When
          databaseLoaded.Close();
-         databaseLoaded = IDatabase.Open(databaseFile, autoSaveFile, logFile, newUsername);
+         databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter, UnitTestsHelper.SerializationCenter, databaseFile, autoSaveFile, logFile, newUsername);
          foreach (string passkey in newPasskeys)
          {
             _ = databaseLoaded.Login(passkey);
