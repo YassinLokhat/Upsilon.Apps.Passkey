@@ -1,5 +1,4 @@
 ﻿using Upsilon.Apps.PassKey.Core.Enums;
-using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -16,21 +15,21 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal T UpdateValue<T>(string itemId, string fieldName, T value) where T : notnull
       {
-         _addChange(itemId, fieldName, value.Serialize(), ChangeType.Update);
+         _addChange(itemId, fieldName, Database.SerializationCenter.Serialize(value), ChangeType.Update);
 
          return value;
       }
 
       internal T AddValue<T>(string itemId, T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, value.Serialize(), ChangeType.Add);
+         _addChange(itemId, string.Empty, Database.SerializationCenter.Serialize(value), ChangeType.Add);
 
          return value;
       }
 
       internal T DeleteValue<T>(string itemId, T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, value.Serialize(), ChangeType.Delete);
+         _addChange(itemId, string.Empty, Database.SerializationCenter.Serialize(value), ChangeType.Delete);
 
          return value;
       }
@@ -47,15 +46,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (Database.AutoSaveFileLocker == null)
          {
-            Database.AutoSaveFileLocker = new(Database.AutoSaveFile, FileMode.OpenOrCreate);
+            Database.AutoSaveFileLocker = new(Database.CryptographicCenter, Database.SerializationCenter, Database.AutoSaveFile, FileMode.OpenOrCreate);
          }
 
-         Database.AutoSaveFileLocker.WriteAllText(this.Serialize(), Database.Passkeys);
+         Database.AutoSaveFileLocker.WriteAllText(Database.SerializationCenter.Serialize(this), Database.Passkeys);
       }
 
       internal void MergeChange()
       {
-         while (Changes.Any())
+         while (Changes.Count != 0)
          {
             Database.User?.Apply(Changes.Dequeue());
          }

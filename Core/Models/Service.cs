@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Enums;
-using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -16,19 +15,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
       string IService.ServiceName
       {
          get => ServiceName;
-         set => ServiceName = User.Database.AutoSave.UpdateValue(ItemId, nameof(ServiceName), value);
+         set => ServiceName = Database.AutoSave.UpdateValue(ItemId, nameof(ServiceName), value);
       }
 
       string IService.Url
       {
          get => Url;
-         set => Url = User.Database.AutoSave.UpdateValue(ItemId, nameof(Url), value);
+         set => Url = Database.AutoSave.UpdateValue(ItemId, nameof(Url), value);
       }
 
       string IService.Notes
       {
          get => Notes;
-         set => Notes = User.Database.AutoSave.UpdateValue(ItemId, nameof(Notes), value);
+         set => Notes = Database.AutoSave.UpdateValue(ItemId, nameof(Notes), value);
       }
 
       void IService.AddAccount(string label, IEnumerable<string> identifiants, string password)
@@ -36,13 +35,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Account account = new()
          {
             Service = this,
-            ItemId = ItemId + (label + string.Join(string.Empty, identifiants)).GetHash(),
+            ItemId = ItemId + Database.CryptographicCenter.GetHash(label + string.Join(string.Empty, identifiants)),
             Label = label,
             Identifiants = identifiants.ToArray(),
             Password = password,
          };
 
-         Accounts.Add(User.Database.AutoSave.AddValue(ItemId, account));
+         Accounts.Add(Database.AutoSave.AddValue(ItemId, account));
       }
 
       void IService.DeleteAccount(string accountId)
@@ -50,10 +49,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Account account = Accounts.FirstOrDefault(x => x.ItemId == accountId)
             ?? throw new KeyNotFoundException($"The '{accountId}' account was not found into the '{ItemId}' service");
 
-         _ = Accounts.Remove(User.Database.AutoSave.DeleteValue(ItemId, account));
+         _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, account));
       }
 
       #endregion
+
+      internal Database Database => User.Database;
 
       public string ItemId { get; set; } = string.Empty;
 
@@ -72,7 +73,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Apply(Change change)
       {
-         switch (change.ItemId.Length / SecurityCenter.HashLength)
+         switch (change.ItemId.Length / Database.CryptographicCenter.HashLength)
          {
             case 2:
                _apply(change);
@@ -96,24 +97,24 @@ namespace Upsilon.Apps.Passkey.Core.Models
                switch (change.FieldName)
                {
                   case nameof(ServiceName):
-                     ServiceName = change.Value.Deserialize<string>();
+                     ServiceName = Database.SerializationCenter.Deserialize<string>(change.Value); ;
                      break;
                   case nameof(Url):
-                     Url = change.Value.Deserialize<string>();
+                     Url = Database.SerializationCenter.Deserialize<string>(change.Value); ;
                      break;
                   case nameof(Notes):
-                     Notes = change.Value.Deserialize<string>();
+                     Notes = Database.SerializationCenter.Deserialize<string>(change.Value); ;
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
             case ChangeType.Add:
-               Account accountToAdd = change.Value.Deserialize<Account>();
+               Account accountToAdd = Database.SerializationCenter.Deserialize<Account>(change.Value);
                Accounts.Add(accountToAdd);
                break;
             case ChangeType.Delete:
-               Account accountToDelete = change.Value.Deserialize<Account>();
+               Account accountToDelete = Database.SerializationCenter.Deserialize<Account>(change.Value);
                _ = Accounts.RemoveAll(x => x.ItemId == accountToDelete.ItemId);
                break;
             default:

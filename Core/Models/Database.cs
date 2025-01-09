@@ -2,7 +2,7 @@
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Events;
-using Upsilon.Apps.PassKey.Core.Utils;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -52,19 +52,21 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (User == null) throw new NullReferenceException(nameof(User));
          if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
-         Passkeys = [User.Username.GetHash(), .. User.Passkeys.Select(x => x.GetSlowHash())];
-         DatabaseFileLocker.WriteAllText(User.Serialize(), Passkeys);
+         Passkeys = [CryptographicCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographicCenter.GetSlowHash(x))];
+         DatabaseFileLocker.Save(User, Passkeys);
 
          AutoSave.Clear();
       }
 
       public IUser? Login(string passkey)
       {
-         Passkeys = [.. Passkeys, passkey.GetSlowHash()];
+         if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
+
+         Passkeys = [.. Passkeys, CryptographicCenter.GetSlowHash(passkey)];
 
          try
          {
-            User = DatabaseFileLocker?.ReadAllText(Passkeys).Deserialize<User>();
+            User = DatabaseFileLocker.Open<User>(Passkeys);
          }
          catch
          {
@@ -77,9 +79,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (File.Exists(AutoSaveFile))
             {
-               AutoSaveFileLocker = new(AutoSaveFile, FileMode.Open);
+               AutoSaveFileLocker = new(CryptographicCenter, SerializationCenter, AutoSaveFile, FileMode.Open);
 
-               AutoSave = AutoSaveFileLocker.ReadAllText(Passkeys).Deserialize<AutoSave>();
+               AutoSave = AutoSaveFileLocker.Open<AutoSave>(Passkeys);
                AutoSave.Database = this;
 
                AutoSaveDetectedEventArgs eventArg = new();
@@ -105,20 +107,33 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal FileLocker? DatabaseFileLocker;
       internal FileLocker? AutoSaveFileLocker;
+      internal readonly ICryptographicCenter CryptographicCenter;
+      internal readonly ISerializationCenter SerializationCenter;
 
       private readonly EventHandler<AutoSaveDetectedEventArgs>? _onAutoSaveDetected = null;
 
-      private Database(string databaseFile, string autoSaveFile, string logFile, FileMode fileMode, EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler, string username, string[]? passkeys = null)
+      private Database(ICryptographicCenter cryptographicCenter,
+         ISerializationCenter serializationCenter,
+         string databaseFile,
+         string autoSaveFile,
+         string logFile,
+         FileMode fileMode,
+         EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler,
+         string username,
+         string[]? passkeys = null)
       {
          DatabaseFile = databaseFile;
          AutoSaveFile = autoSaveFile;
          LogFile = logFile;
 
-         Passkeys = [username.GetHash()];
+         CryptographicCenter = cryptographicCenter;
+         SerializationCenter = serializationCenter;
+
+         Passkeys = [CryptographicCenter.GetHash(username)];
 
          if (passkeys != null)
          {
-            Passkeys = [.. Passkeys, .. passkeys.Select(x => x.GetSlowHash())];
+            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographicCenter.GetSlowHash(x))];
          }
 
          AutoSave = new()
@@ -126,12 +141,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
             Database = this,
          };
 
-         DatabaseFileLocker = new(databaseFile, fileMode);
+         DatabaseFileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
 
          _onAutoSaveDetected = autoSaveHandler;
       }
 
-      internal static IDatabase Create(string databaseFile, string autoSaveFile, string logFile, string username, string[] passkeys)
+      internal static IDatabase Create(ICryptographicCenter cryptographicCenter,
+         ISerializationCenter serializationCenter,
+         string databaseFile,
+         string autoSaveFile,
+         string logFile,
+         string username,
+         string[] passkeys)
       {
          if (File.Exists(databaseFile))
          {
@@ -145,12 +166,20 @@ namespace Upsilon.Apps.Passkey.Core.Models
             _ = Directory.CreateDirectory(databaseFileDirectory);
          }
 
-         Database database = new(databaseFile, autoSaveFile, logFile, FileMode.Create, autoSaveHandler: null, username, passkeys);
+         Database database = new(cryptographicCenter,
+            serializationCenter,
+            databaseFile,
+            autoSaveFile,
+            logFile,
+            FileMode.Create,
+            autoSaveHandler: null,
+            username,
+            passkeys);
 
          database.User = new()
          {
             Database = database,
-            ItemId = username.GetHash(),
+            ItemId = cryptographicCenter.GetHash(username),
             Username = username,
             Passkeys = [.. passkeys],
          };
@@ -159,11 +188,29 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          database.Dispose();
 
-         return Open(databaseFile, autoSaveFile, logFile, username);
+         return Open(cryptographicCenter,
+            serializationCenter,
+            databaseFile,
+            autoSaveFile,
+            logFile,
+            username);
       }
 
-      internal static IDatabase Open(string databaseFile, string autoSaveFile, string logFile, string username, EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
-         => new Database(databaseFile, autoSaveFile, logFile, FileMode.Open, autoSaveHandler, username);
+      internal static IDatabase Open(ICryptographicCenter cryptographicCenter,
+         ISerializationCenter serializationCenter,
+         string databaseFile,
+         string autoSaveFile,
+         string logFile,
+         string username,
+         EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
+         => new Database(cryptographicCenter,
+            serializationCenter,
+            databaseFile,
+            autoSaveFile,
+            logFile,
+            FileMode.Open,
+            autoSaveHandler,
+            username);
 
       private void _handleAutoSave(AutoSaveMergeBehavior mergeAutoSave)
       {

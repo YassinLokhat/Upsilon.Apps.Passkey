@@ -77,15 +77,6 @@
     <Members>
       <Field Name="_service" Hidden="true" />
     </Members>
-    <AssociationLine Name="Options" Type="Upsilon.Apps.PassKey.Core.Enums.AccountOption" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="13" Y="15.562" />
-        <Point X="12.422" Y="15.562" />
-        <Point X="12.422" Y="16.42" />
-        <Point X="3.125" Y="16.42" />
-        <Point X="3.125" Y="15.989" />
-      </Path>
-    </AssociationLine>
     <TypeIdentifier>
       <HashCode>AAAgAAAAEBADAABQgIAAAQAAAAAAQAACgAAQAABAAAA=</HashCode>
       <FileName>Models\Account.cs</FileName>
@@ -156,15 +147,22 @@
       <FileName>Interfaces\IAccount.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
-      <Property Name="Options" />
       <Property Name="Service" />
+      <Property Name="Options" />
     </ShowAsAssociation>
   </Interface>
   <Interface Name="Upsilon.Apps.Passkey.Core.Interfaces.IDatabase">
-    <Position X="5.75" Y="1" Width="1.5" />
-    <AssociationLine Name="User" Type="Upsilon.Apps.Passkey.Core.Interfaces.IUser">
+    <Position X="2.5" Y="1.25" Width="1.5" />
+    <AssociationLine Name="User" Type="Upsilon.Apps.Passkey.Core.Interfaces.IUser" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="3.906" Y="4.281" />
+        <Point X="3.906" Y="5.015" />
+        <Point X="4.802" Y="5.015" />
+        <Point X="4.802" Y="5.938" />
+        <Point X="5.5" Y="5.938" />
+      </Path>
       <MemberNameLabel ManuallyPlaced="true" ManuallySized="true">
-        <Position X="0.112" Y="0.098" Height="0.162" Width="0.5" />
+        <Position X="0.098" Y="0.112" Height="0.162" Width="0.5" />
       </MemberNameLabel>
     </AssociationLine>
     <TypeIdentifier>
@@ -182,10 +180,24 @@
       <FileName>Interfaces\IChangable.cs</FileName>
     </TypeIdentifier>
   </Interface>
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.ISerializationCenter">
+    <Position X="6" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACBAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces\ISerializationCenter.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.ICryptographicCenter">
+    <Position X="6" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQACAAAAAAAAABAQAIAAAAAAAAAAAAACAAAAAABAAAA=</HashCode>
+      <FileName>Interfaces\ICryptographicCenter.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
   <Enum Name="Upsilon.Apps.PassKey.Core.Enums.AccountOption">
     <Position X="2.25" Y="14.75" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AIAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAEAAAA=</HashCode>
+      <HashCode>AIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAA=</HashCode>
       <FileName>Enums\AccountOption.cs</FileName>
     </TypeIdentifier>
   </Enum>

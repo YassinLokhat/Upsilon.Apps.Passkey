@@ -1,5 +1,6 @@
 ﻿using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.PassKey.Core.Events;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 
 namespace Upsilon.Apps.Passkey.Core.Interfaces
 {
@@ -56,26 +57,54 @@ namespace Upsilon.Apps.Passkey.Core.Interfaces
       /// Create a new user database and returns the database.
       /// After creating, the User should be loaded with the Login method.
       /// </summary>
+      /// <param name="cryptographicCenter">An implementation of the cryptographic center.</param>
+      /// <param name="serializationCenter">An implementation of the serialization center.</param>
       /// <param name="databaseFile">The path to the database file.</param>
       /// <param name="autoSaveFile">The path to the autosave file.</param>
       /// <param name="logFile">The path to the log file.</param>
       /// <param name="username">The username.</param>
       /// <param name="passkeys">The passkeys.</param>
       /// <returns>The database created.</returns>
-      static IDatabase Create(string databaseFile, string autoSaveFile, string logFile, string username, string[] passkeys)
-         => Database.Create(databaseFile, autoSaveFile, logFile, username, passkeys);
+      static IDatabase Create(ICryptographicCenter cryptographicCenter,
+         ISerializationCenter serializationCenter,
+         string databaseFile,
+         string autoSaveFile,
+         string logFile,
+         string username,
+         string[] passkeys)
+         => Database.Create(cryptographicCenter,
+            serializationCenter,
+            databaseFile,
+            autoSaveFile,
+            logFile,
+            username,
+            passkeys);
 
       /// <summary>
       /// Open an user and returns the database.
       /// After opening, the User should be loaded with the Login method.
       /// </summary>
+      /// <param name="cryptographicCenter">An implementation of the cryptographic center.</param>
+      /// <param name="serializationCenter">An implementation of the serialization center.</param>
       /// <param name="databaseFile">The path to the database file.</param>
       /// <param name="autoSaveFile">The path to the autosave file.</param>
       /// <param name="logFile">The path to the log file.</param>
       /// <param name="username">The username.</param>
       /// <param name="autoSaveHandler">The event handler for Auto-save merge behavior.</param>
       /// <returns>The database opened.</returns>
-      static IDatabase Open(string databaseFile, string autoSaveFile, string logFile, string username, EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
-         => Database.Open(databaseFile, autoSaveFile, logFile, username, autoSaveHandler);
+      static IDatabase Open(ICryptographicCenter cryptographicCenter,
+         ISerializationCenter serializationCenter,
+         string databaseFile,
+         string autoSaveFile,
+         string logFile,
+         string username,
+         EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
+         => Database.Open(cryptographicCenter,
+            serializationCenter,
+            databaseFile,
+            autoSaveFile,
+            logFile,
+            username,
+            autoSaveHandler);
    }
 }

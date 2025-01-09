@@ -1,14 +1,23 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 
 namespace Upsilon.Apps.PassKey.Core.Utils
 {
-   public static class SecurityCenter
+   /// <summary>
+   /// Represent a cryptographic center implementation.
+   /// </summary>
+   public class CryptographicCenter : ICryptographicCenter
    {
-      private static readonly string _alphabet = "BT2Cp4oOU-DqinLjy0HWxk8wI9rY1QgXblaef5RtdFE3sGm6PSzMJvKVhu7+NcZA";
-      private static readonly string _hexadecimal = "0123456789ABCDEF";
+      private readonly string _alphabet = "BT2Cp4oOU-DqinLjy0HWxk8wI9rY1QgXblaef5RtdFE3sGm6PSzMJvKVhu7+NcZA";
+      private readonly string _hexadecimal = "0123456789ABCDEF";
 
-      public static string GetHash(this string source)
+      /// <summary>
+      /// Returs a fast string hash of the given string.
+      /// </summary>
+      /// <param name="source">The string to hash.</param>
+      /// <returns>The hash.</returns>
+      public string GetHash(string source)
       {
          MD5 md5 = MD5.Create();
 
@@ -19,49 +28,48 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          return string.Join(string.Empty, hash);
       }
 
-      public static string GetSlowHash(this string source, byte timeFactor = 5)
+      /// <summary>
+      /// Returs a slow string hash of the given string.
+      /// </summary>
+      /// <param name="source">The string to hash.</param>
+      /// <returns>The hash.</returns>
+      public string GetSlowHash(string source)
       {
-         long realTimeFactor = (long)Math.Pow(0b1000, timeFactor);
+         long realTimeFactor = (long)Math.Pow(0b1000, 5);
 
          for (int i = 0; i < realTimeFactor; i++)
          {
-            source = source.GetHash();
+            source = GetHash(source);
          }
 
          return source;
       }
 
-      public static int HashLength => GetHash(string.Empty).Length;
+      /// <summary>
+      /// The fixed length of the hash.
+      /// </summary>
+      public int HashLength => GetHash(string.Empty).Length;
 
-      public static string Encrypt(string source, string[] passwords)
+      /// <summary>
+      /// Sign a string.
+      /// </summary>
+      /// <param name="source">The string to sign. The method will modify the string to add the signature.</param>
+      public void Sign(ref string source)
       {
-         source = _encrypt(source, passwords);
-         source = _stringToCustomBase(source);
-         source = source.Sign();
-
-         return source;
+         source = GetHash(source) + source;
       }
 
-      public static string Decrypt(string source, string[] passwords)
-      {
-         source = source.CheckSign();
-         source = _customBaseToString(source);
-         source = _decrypt(source, passwords);
-
-         return source;
-      }
-
-      public static string Sign(this string source)
-      {
-         return source.GetHash() + source;
-      }
-
-      public static string CheckSign(this string source)
+      /// <summary>
+      /// check the signature of a given string.
+      /// </summary>
+      /// <param name="source">The string to sign. The method will modify the string to remove the signature.</param>
+      /// <returns>True if the signature is good, False else.</returns>
+      public bool CheckSign(ref string source)
       {
          try
          {
             string hashSource = source[..HashLength];
-            string hashCheck = source[HashLength..].GetHash();
+            string hashCheck = GetHash(source[HashLength..]);
 
             if (hashSource != hashCheck)
             {
@@ -72,13 +80,48 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          }
          catch
          {
-            throw new CheckSignFailedException();
+            return false;
          }
+
+         return true;
+      }
+
+      /// <summary>
+      /// Encrypt a string with a set of passekeys in an onion structure.
+      /// </summary>
+      /// <param name="source">The string to encrypt.</param>
+      /// <param name="passwords">The set of passkeys.</param>
+      /// <returns>The encrypted string.</returns>
+      public string Encrypt(string source, string[] passwords)
+      {
+         source = _encrypt(source, passwords);
+         source = _stringToCustomBase(source);
+
+         Sign(ref source);
 
          return source;
       }
 
-      public static string Cipher_Aes(this string plainText, string key)
+      /// <summary>
+      /// Decrypt a string with a set of passekeys in an onion structure.
+      /// </summary>
+      /// <param name="source">The string to decrypt.</param>
+      /// <param name="passwords">The set of passkeys.</param>
+      /// <returns>The decrypted string.</returns>
+      public string Decrypt(string source, string[] passwords)
+      {
+         if (!CheckSign(ref source))
+         {
+            throw new CheckSignFailedException();
+         }
+
+         source = _customBaseToString(source);
+         source = _decrypt(source, passwords);
+
+         return source;
+      }
+
+      private string _cipher_Aes(string plainText, string key)
       {
          if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(plainText))
          {
@@ -99,7 +142,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          return new string(bytes.Select(x => (char)x).ToArray());
       }
 
-      private static byte[] _cipher_Aes(string plainText, byte[] key, byte[] IV)
+      private byte[] _cipher_Aes(string plainText, byte[] key, byte[] IV)
       {
          using Aes aesAlg = Aes.Create();
          aesAlg.Key = key;
@@ -117,7 +160,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          return msEncrypt.ToArray();
       }
 
-      public static string Uncipher_Aes(this string cipherText, string key)
+      private string _uncipher_Aes(string cipherText, string key)
       {
          if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(cipherText))
          {
@@ -137,7 +180,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          return _uncither_Aes(bytes, _key, IV);
       }
 
-      private static string _uncither_Aes(byte[] cipherText, byte[] key, byte[] IV)
+      private string _uncither_Aes(byte[] cipherText, byte[] key, byte[] IV)
       {
          using Aes aesAlg = Aes.Create();
          aesAlg.Key = key;
@@ -152,51 +195,61 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          return srDecrypt.ReadToEnd();
       }
 
-      private static string _encrypt(string source, string[] passwords)
+      private string _encrypt(string source, string[] passwords)
       {
-         passwords = passwords.Select(x => x.GetHash()).ToArray();
+         passwords = passwords.Select(x => GetHash(x)).ToArray();
 
          for (int i = 0; i < passwords.Length; i++)
          {
-            source = Cipher_Aes(source.Sign(), passwords[i]);
+            Sign(ref source);
+            source = _cipher_Aes(source, passwords[i]);
          }
 
-         source = Cipher_Aes(source.Sign(), string.Empty.GetHash());
+         Sign(ref source);
+         source = _cipher_Aes(source, GetHash(string.Empty));
 
          return source;
       }
 
-      private static string _decrypt(string source, string[] passwords)
+      private string _decrypt(string source, string[] passwords)
       {
-         passwords = passwords.Select(x => x.GetHash()).ToArray();
+         passwords = passwords.Select(x => GetHash(x)).ToArray();
 
          try
          {
-            source = Uncipher_Aes(source, string.Empty.GetHash());
-            source = source.CheckSign();
+            source = _uncipher_Aes(source, GetHash(string.Empty));
          }
          catch
          {
             throw new CorruptedSourceException();
          }
 
+         if (!CheckSign(ref source))
+         {
+            throw new CheckSignFailedException();
+         }
+
          for (int i = passwords.Length - 1; i >= 0; i--)
          {
             try
             {
-               source = Uncipher_Aes(source, passwords[i]);
-               source = source.CheckSign();
+               source = _uncipher_Aes(source, passwords[i]);
             }
             catch
             {
                throw new WrongPasswordException(i);
+            }
+
+            if (!CheckSign(ref source))
+            {
+               throw new CheckSignFailedException();
             }
          }
 
          return source;
       }
 
-      private static string _stringToCustomBase(string source)
+      private string _stringToCustomBase(string source)
       {
          StringBuilder hexaHigh = new(), hexaLow = new();
          byte[] bytes = Encoding.UTF8.GetBytes(source);
@@ -215,7 +268,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          return hexaHigh.ToString() + hexaLow.ToString();
       }
 
-      private static string _customBaseToString(string source)
+      private string _customBaseToString(string source)
       {
          List<byte> bytes = [];
          int bytesCount = source.Length / 2;

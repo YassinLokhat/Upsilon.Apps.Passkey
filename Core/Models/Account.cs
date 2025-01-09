@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Enums;
-using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -15,13 +14,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
       string IAccount.Label
       {
          get => Label;
-         set => Label = Service.User.Database.AutoSave.UpdateValue(ItemId, nameof(Label), value);
+         set => Label = Database.AutoSave.UpdateValue(ItemId, nameof(Label), value);
       }
 
       string[] IAccount.Identifiants
       {
          get => Identifiants;
-         set => Identifiants = Service.User.Database.AutoSave.UpdateValue(ItemId, nameof(Identifiants), value);
+         set => Identifiants = Database.AutoSave.UpdateValue(ItemId, nameof(Identifiants), value);
       }
 
       public string Password
@@ -30,7 +29,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          set
          {
             Passwords[DateTime.Now.Ticks] = value;
-            _ = Service.User.Database.AutoSave.UpdateValue(ItemId, nameof(Passwords), Passwords);
+            _ = Database.AutoSave.UpdateValue(ItemId, nameof(Passwords), Passwords);
          }
       }
 
@@ -39,22 +38,24 @@ namespace Upsilon.Apps.Passkey.Core.Models
       string IAccount.Notes
       {
          get => Notes;
-         set => Notes = Service.User.Database.AutoSave.UpdateValue(ItemId, nameof(Notes), value);
+         set => Notes = Database.AutoSave.UpdateValue(ItemId, nameof(Notes), value);
       }
 
       int IAccount.PasswordUpdateReminderDelay
       {
          get => PasswordUpdateReminderDelay;
-         set => PasswordUpdateReminderDelay = Service.User.Database.AutoSave.UpdateValue(ItemId, nameof(PasswordUpdateReminderDelay), value);
+         set => PasswordUpdateReminderDelay = Database.AutoSave.UpdateValue(ItemId, nameof(PasswordUpdateReminderDelay), value);
       }
 
       AccountOption IAccount.Options
       {
          get => Options;
-         set => Options = Service.User.Database.AutoSave.UpdateValue(ItemId, nameof(Options), value);
+         set => Options = Database.AutoSave.UpdateValue(ItemId, nameof(Options), value);
       }
 
       #endregion
+
+      internal Database Database => Service.User.Database;
 
       public string ItemId { get; set; } = string.Empty;
 
@@ -80,22 +81,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
                switch (change.FieldName)
                {
                   case nameof(Label):
-                     Label = change.Value.Deserialize<string>();
+                     Label = Database.SerializationCenter.Deserialize<string>(change.Value);
                      break;
                   case nameof(Identifiants):
-                     Identifiants = change.Value.Deserialize<string[]>();
+                     Identifiants = Database.SerializationCenter.Deserialize<string[]>(change.Value);
                      break;
                   case nameof(Notes):
-                     Notes = change.Value.Deserialize<string>();
+                     Notes = Database.SerializationCenter.Deserialize<string>(change.Value);
                      break;
                   case nameof(Passwords):
-                     Passwords = change.Value.Deserialize<Dictionary<long, string>>();
+                     Passwords = Database.SerializationCenter.Deserialize<Dictionary<long, string>>(change.Value);
                      break;
                   case nameof(PasswordUpdateReminderDelay):
-                     PasswordUpdateReminderDelay = change.Value.Deserialize<int>();
+                     PasswordUpdateReminderDelay = Database.SerializationCenter.Deserialize<int>(change.Value);
                      break;
                   case nameof(Options):
-                     Options = change.Value.Deserialize<AccountOption>();
+                     Options = Database.SerializationCenter.Deserialize<AccountOption>(change.Value);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");

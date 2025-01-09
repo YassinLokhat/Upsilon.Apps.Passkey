@@ -1,27 +1,32 @@
-﻿using Upsilon.Apps.PassKey.Core.Utils;
+﻿using Upsilon.Apps.PassKey.Core.Interfaces;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
    internal class FileLocker : IDisposable
    {
-      public string FilePath { get; private set; }
+      internal string FilePath { get; private set; }
       private FileStream? _stream;
+      private readonly ICryptographicCenter _cryptographicCenter;
+      private readonly ISerializationCenter _serializationCenter;
 
-      public FileLocker(string filePath, FileMode fileMode = FileMode.Open)
+      internal FileLocker(ICryptographicCenter cryptographicCenter, ISerializationCenter serializationCenter, string filePath, FileMode fileMode = FileMode.Open)
       {
          FilePath = filePath;
+
+         _cryptographicCenter = cryptographicCenter;
+         _serializationCenter = serializationCenter;
 
          _stream = new FileStream(FilePath, fileMode, FileAccess.ReadWrite, FileShare.None);
       }
 
-      public void Lock()
+      internal void Lock()
       {
          Unlock();
 
          _stream = new FileStream(FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
       }
 
-      public void Unlock()
+      internal void Unlock()
       {
          if (_stream == null) return;
 
@@ -30,7 +35,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          _stream = null;
       }
 
-      public string ReadAllText()
+      internal string ReadAllText()
       {
          Unlock();
 
@@ -41,14 +46,19 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return text;
       }
 
-      public string ReadAllText(string[] passkeys)
+      internal string ReadAllText(string[] passkeys)
       {
          string text = ReadAllText();
 
-         return SecurityCenter.Decrypt(text, passkeys);
+         return _cryptographicCenter.Decrypt(text, passkeys);
       }
 
-      public void WriteAllText(string text)
+      internal T Open<T>(string[] passkeys) where T : notnull
+      {
+         return _serializationCenter.Deserialize<T>(ReadAllText(passkeys));
+      }
+
+      internal void WriteAllText(string text)
       {
          Unlock();
 
@@ -57,14 +67,19 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          Lock();
       }
 
-      public void WriteAllText(string text, string[] passkeys)
+      internal void WriteAllText(string text, string[] passkeys)
       {
-         text = SecurityCenter.Encrypt(text, passkeys);
+         text = _cryptographicCenter.Encrypt(text, passkeys);
 
          WriteAllText(text);
       }
 
-      public void Delete()
+      internal void Save<T>(T obj, string[] passkeys) where T : notnull
+      {
+         WriteAllText(_serializationCenter.Serialize(obj), passkeys);
+      }
+
+      internal void Delete()
       {
          Unlock();
          File.Delete(FilePath);

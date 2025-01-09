@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Enums;
-using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -41,7 +40,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Service service = new()
          {
             User = this,
-            ItemId = ItemId + serviceName.GetHash(),
+            ItemId = ItemId + Database.CryptographicCenter.GetHash(serviceName),
             ServiceName = serviceName,
          };
 
@@ -75,7 +74,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Apply(Change change)
       {
-         switch (change.ItemId.Length / SecurityCenter.HashLength)
+         switch (change.ItemId.Length / Database.CryptographicCenter.HashLength)
          {
             case 1:
                _apply(change);
@@ -83,7 +82,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             case 2:
             case 3:
                Service service = Services.FirstOrDefault(x => change.ItemId.StartsWith(x.ItemId))
-                  ?? throw new KeyNotFoundException($"The '{change.ItemId[..(2 * SecurityCenter.HashLength)]}' service was not found into the '{ItemId}' user");
+                  ?? throw new KeyNotFoundException($"The '{change.ItemId[..(2 * Database.CryptographicCenter.HashLength)]}' service was not found into the '{ItemId}' user");
 
                service.Apply(change);
                break;
@@ -100,27 +99,27 @@ namespace Upsilon.Apps.Passkey.Core.Models
                switch (change.FieldName)
                {
                   case nameof(Username):
-                     Username = change.Value.Deserialize<string>();
+                     Username = Database.SerializationCenter.Deserialize<string>(change.Value);
                      break;
                   case nameof(Passkeys):
-                     Passkeys = change.Value.Deserialize<string[]>();
+                     Passkeys = Database.SerializationCenter.Deserialize<string[]>(change.Value);
                      break;
                   case nameof(LogoutTimeout):
-                     LogoutTimeout = change.Value.Deserialize<int>();
+                     LogoutTimeout = Database.SerializationCenter.Deserialize<int>(change.Value);
                      break;
                   case nameof(CleaningClipboardTimeout):
-                     CleaningClipboardTimeout = change.Value.Deserialize<int>();
+                     CleaningClipboardTimeout = Database.SerializationCenter.Deserialize<int>(change.Value);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
             case ChangeType.Add:
-               Service serviceToAdd = change.Value.Deserialize<Service>();
+               Service serviceToAdd = Database.SerializationCenter.Deserialize<Service>(change.Value);
                Services.Add(serviceToAdd);
                break;
             case ChangeType.Delete:
-               Service serviceToDelete = change.Value.Deserialize<Service>();
+               Service serviceToDelete = Database.SerializationCenter.Deserialize<Service>(change.Value);
                _ = Services.RemoveAll(x => x.ItemId == serviceToDelete.ItemId);
                break;
             default:
