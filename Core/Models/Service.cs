@@ -114,6 +114,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                break;
             case ChangeType.Add:
                Account accountToAdd = Database.SerializationCenter.Deserialize<Account>(change.Value);
+               accountToAdd.Service = this;
                Accounts.Add(accountToAdd);
                break;
             case ChangeType.Delete:

@@ -9,94 +9,46 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
    {
       [TestMethod]
       /*
-       * User.AddService Adds the new service,
-       * Then updating the service,
-       * Then Database.Save will save the update in the database file and delete the autosave file,
-       * Then GetUser loads correctly the updated database file.
+       * User.AddService adds the new service,
+       * Then updating the service and saving will save the update in the database file and delete the autosave file,
+       * Then Database.Open loads correctly the updated database file with the updated service.
       */
-      public void Case01_ServiceAdd()
+      public void Case01_AddServiceUpdateSaved()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         databaseCreated.Close();
-         string oldDatabaseContent = File.ReadAllText(UnitTestsHelper.ComputeDatabaseFilePath());
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-
-         string newUsername = UnitTestsHelper.GetRandomString();
-         string[] newPasskeys = UnitTestsHelper.GetRandomPasskeys();
-         int logoutTimeout = UnitTestsHelper.GetRandomInt(1, 60);
-         int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
-
-         // When
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseLoaded.User));
-
-         databaseLoaded.User.Username = newUsername;
-         databaseLoaded.User.Passkeys = newPasskeys;
-         databaseLoaded.User.LogoutTimeout = logoutTimeout;
-         databaseLoaded.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
-         databaseLoaded.Close();
-
-         // Then
-         _ = File.Exists(UnitTestsHelper.ComputeAutoSaveFilePath()).Should().BeTrue();
-         _ = File.ReadAllText(UnitTestsHelper.ComputeDatabaseFilePath()).Should().Be(oldDatabaseContent);
-
-         // Finaly
-         UnitTestsHelper.ClearTestEnvironment();
-      }
-
-      [TestMethod]
-      /*
-       * Updating User creates an autosave file,
-       * Then Database.Save will save the update in the database file and delete the autosave file,
-       * Then GetUser loads correctly the updated database file.
-      */
-      public void Case02_UserUpdateThenSaved()
-      {
-         // Given
-         UnitTestsHelper.ClearTestEnvironment();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
-         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase();
-         string newUsername = UnitTestsHelper.GetRandomString();
-         string[] newPasskeys = UnitTestsHelper.GetRandomPasskeys();
-         int logoutTimeout = UnitTestsHelper.GetRandomInt(1, 60);
-         int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
+         string serviceName = "Service_" + UnitTestsHelper.GetUsername();
+         string url = UnitTestsHelper.GetRandomString();
+         string notes = UnitTestsHelper.GetRandomString();
 
          // When
          if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
-
-         databaseCreated.User.Username = newUsername;
-         databaseCreated.User.Passkeys = newPasskeys;
-         databaseCreated.User.LogoutTimeout = logoutTimeout;
-         databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
+         IService service = databaseCreated.User.AddService(serviceName);
 
          // Then
-         _ = File.Exists(autoSaveFile).Should().BeTrue();
+         databaseCreated.User.Services.Count().Should().Be(1);
 
          // When
+         service.Url = url;
+         service.Notes = notes;
          databaseCreated.Save();
          databaseCreated.Close();
 
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
+
          // Then
-         _ = File.Exists(autoSaveFile).Should().BeFalse();
+         databaseLoaded.User.Services.Count().Should().Be(1);
 
          // When
-         IDatabase databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter, UnitTestsHelper.SerializationCenter, databaseFile, autoSaveFile, logFile, newUsername);
-         foreach (string passkey in newPasskeys)
-         {
-            _ = databaseLoaded.Login(passkey);
-         }
+         IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = databaseLoaded.User.Should().NotBeNull();
-         _ = (databaseLoaded.User?.Username.Should().Be(newUsername));
-         _ = (databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout));
-         _ = (databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout));
-
-         _ = File.Exists(autoSaveFile).Should().BeFalse();
+         serviceLoaded.ServiceName.Should().Be(serviceName);
+         serviceLoaded.Url.Should().Be(url);
+         serviceLoaded.Notes.Should().Be(notes);
 
          // Finaly
          databaseLoaded.Close();
@@ -105,62 +57,126 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
       [TestMethod]
       /*
-       * Updating User creates an autosave file,
-       * Then GetUser loads the database file without the updated data,
-       * Then HandleAutoSave updates the database object and the database file,
-       * Then GetUser loads correctly the updated database file.
+       * User.AddService adds the new service,
+       * Then updating the service without saving will create the autosave file,
+       * Then Database.Open with AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile loads correctly the updated database file with the updated service.
       */
-      public void Case03_UserUpdateButNotSaved()
+      public void Case02_AddServiceUpdateAutoSave()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
-         string oldUsername = UnitTestsHelper.GetUsername();
-         string[] oldPasskeys = UnitTestsHelper.GetRandomPasskeys();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
-         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(oldPasskeys);
-         string newUsername = UnitTestsHelper.GetRandomString();
-         string[] newPasskeys = UnitTestsHelper.GetRandomPasskeys();
-         int logoutTimeout = UnitTestsHelper.GetRandomInt(1, 60);
-         int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
+         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         string serviceName = "Service_" + UnitTestsHelper.GetUsername();
+         string url = UnitTestsHelper.GetRandomString();
+         string notes = UnitTestsHelper.GetRandomString();
 
          // When
          if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
+         IService service = databaseCreated.User.AddService(serviceName);
 
-         databaseCreated.User.Username = newUsername;
-         databaseCreated.User.Passkeys = newPasskeys;
-         databaseCreated.User.LogoutTimeout = logoutTimeout;
-         databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
+         // Then
+         databaseCreated.User.Services.Count().Should().Be(1);
+
+         // When
+         service.Url = url;
+         service.Notes = notes;
          databaseCreated.Close();
 
-         // Then
-         _ = File.Exists(autoSaveFile).Should().BeTrue();
-
-         // When
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(oldPasskeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
+         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
 
          // Then
-         _ = File.Exists(autoSaveFile).Should().BeFalse();
-         _ = (databaseLoaded.User?.Username.Should().Be(newUsername));
-         _ = (databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(newPasskeys));
-         _ = (databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout));
-         _ = (databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout));
+         databaseLoaded.User.Services.Count().Should().Be(1);
 
          // When
+         IService serviceLoaded = databaseLoaded.User.Services.First();
+
+         // Then
+         serviceLoaded.ServiceName.Should().Be(serviceName);
+         serviceLoaded.Url.Should().Be(url);
+         serviceLoaded.Notes.Should().Be(notes);
+
+         // Finaly
          databaseLoaded.Close();
-         databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter, UnitTestsHelper.SerializationCenter, databaseFile, autoSaveFile, logFile, newUsername);
-         foreach (string passkey in newPasskeys)
-         {
-            _ = databaseLoaded.Login(passkey);
-         }
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * User.DeleteService deletes the service,
+       * Then Database.Open loads correctly the updated database file with the updated service.
+      */
+      public void Case03_DeleteServiceUpdateSaved()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         string serviceName = "Service_" + UnitTestsHelper.GetUsername();
+         if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
+         databaseCreated.User.AddService(serviceName);
+         databaseCreated.Save();
+         databaseCreated.Close();
+
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
+         IService serviceLoaded = databaseLoaded.User.Services.First();
+
+         // When
+         databaseLoaded.User.DeleteService(serviceLoaded);
 
          // Then
-         _ = File.Exists(autoSaveFile).Should().BeFalse();
-         _ = (databaseLoaded.User?.Username.Should().Be(newUsername));
-         _ = (databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(newPasskeys));
-         _ = (databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout));
-         _ = (databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout));
+         databaseLoaded.User.Services.Count().Should().Be(0);
+
+         // When
+         databaseLoaded.Save();
+         databaseLoaded.Close();
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
+
+         // Then
+         databaseLoaded.User.Services.Count().Should().Be(0);
+
+         // Finaly
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * User.DeleteService adeletes the service,
+       * Then Database.Open with AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile loads correctly the updated database file with the updated service.
+      */
+      public void Case04_DeleteServiceUpdateAutoSave()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         string serviceName = "Service_" + UnitTestsHelper.GetUsername();
+         if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
+         databaseCreated.User.AddService(serviceName);
+         databaseCreated.Close();
+
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
+         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
+         IService serviceLoaded = databaseLoaded.User.Services.First();
+
+         // When
+         databaseLoaded.User.DeleteService(serviceLoaded);
+
+         // Then
+         databaseLoaded.User.Services.Count().Should().Be(0);
+
+         // When
+         databaseLoaded.Save();
+         databaseLoaded.Close();
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
+         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
+
+         // Then
+         databaseLoaded.User.Services.Count().Should().Be(0);
 
          // Finaly
          databaseLoaded.Close();

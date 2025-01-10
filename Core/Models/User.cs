@@ -118,6 +118,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                break;
             case ChangeType.Add:
                Service serviceToAdd = Database.SerializationCenter.Deserialize<Service>(change.Value);
+               serviceToAdd.User = this;
                Services.Add(serviceToAdd);
                break;
             case ChangeType.Delete:

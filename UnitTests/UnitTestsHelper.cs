@@ -37,7 +37,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return database;
       }
 
-      public static IDatabase OpenTestDatabase(string[] passkeys, AutoSaveMergeBehavior mergeAutoSave = AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile, [CallerMemberName] string username = "")
+      public static IDatabase OpenTestDatabase(string[] passkeys, AutoSaveMergeBehavior mergeAutoSave = AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile, [CallerMemberName] string username = "")
       {
          string databaseFile = ComputeDatabaseFilePath(username);
          string autoSaveFile = ComputeAutoSaveFilePath(username);

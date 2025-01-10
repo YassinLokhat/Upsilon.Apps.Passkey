@@ -47,7 +47,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       /*
        * Updating User creates an autosave file,
        * Then Database.Save will save the update in the database file and delete the autosave file,
-       * Then GetUser loads correctly the updated database file.
+       * Then Database.Open loads correctly the updated database file.
       */
       public void Case02_UserUpdateThenSaved()
       {
@@ -103,9 +103,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       [TestMethod]
       /*
        * Updating User creates an autosave file,
-       * Then GetUser loads the database file without the updated data,
+       * Then Database.Open loads the database file without the updated data,
        * Then HandleAutoSave updates the database object and the database file,
-       * Then GetUser loads correctly the updated database file.
+       * Then Database.Open loads correctly the updated database file.
       */
       public void Case03_UserUpdateButNotSaved()
       {
