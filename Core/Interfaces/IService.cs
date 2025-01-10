@@ -36,12 +36,13 @@
       /// <param name="label">The label of the account.</param>
       /// <param name="identifiants">The identifiants.</param>
       /// <param name="password">The password.</param>
-      void AddAccount(string label, IEnumerable<string> identifiants, string password);
+      /// <returns>The created account.</returns>
+      IAccount AddAccount(string label, IEnumerable<string> identifiants, string password);
 
       /// <summary>
       /// Delete the given account from this service. 
       /// </summary>
-      /// <param name="accountId">The Id of the account to delete.</param>
-      void DeleteAccount(string accountId);
+      /// <param name="account">The account to delete.</param>
+      void DeleteAccount(IAccount account);
    }
 }

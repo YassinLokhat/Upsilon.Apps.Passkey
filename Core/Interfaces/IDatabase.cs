@@ -33,7 +33,7 @@ namespace Upsilon.Apps.Passkey.Core.Interfaces
       /// Try to load the current user.
       /// </summary>
       /// <param name="passkey">The current passkey.</param>
-      /// <returns></returns>
+      /// <returns>The loaded user.</returns>
       IUser? Login(string passkey);
 
       /// <summary>

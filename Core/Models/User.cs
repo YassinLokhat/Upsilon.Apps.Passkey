@@ -35,7 +35,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          set => CleaningClipboardTimeout = Database.AutoSave.UpdateValue(ItemId, nameof(CleaningClipboardTimeout), value);
       }
 
-      void IUser.AddService(string serviceName)
+      IService IUser.AddService(string serviceName)
       {
          Service service = new()
          {
@@ -45,14 +45,16 @@ namespace Upsilon.Apps.Passkey.Core.Models
          };
 
          Services.Add(Database.AutoSave.AddValue(ItemId, service));
+
+         return service;
       }
 
-      void IUser.DeleteService(string serviceId)
+      void IUser.DeleteService(IService service)
       {
-         Service service = Services.FirstOrDefault(x => x.ItemId == serviceId)
-            ?? throw new KeyNotFoundException($"The '{serviceId}' service was not found into the '{ItemId}' user");
+         Service serviceToRemove = Services.FirstOrDefault(x => x.ItemId == service.ItemId)
+            ?? throw new KeyNotFoundException($"The '{service.ItemId}' service was not found into the '{ItemId}' user");
 
-         _ = Services.Remove(Database.AutoSave.DeleteValue(ItemId, service));
+         _ = Services.Remove(Database.AutoSave.DeleteValue(ItemId, serviceToRemove));
       }
 
       #endregion

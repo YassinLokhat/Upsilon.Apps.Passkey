@@ -30,7 +30,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          set => Notes = Database.AutoSave.UpdateValue(ItemId, nameof(Notes), value);
       }
 
-      void IService.AddAccount(string label, IEnumerable<string> identifiants, string password)
+      IAccount IService.AddAccount(string label, IEnumerable<string> identifiants, string password)
       {
          Account account = new()
          {
@@ -42,14 +42,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
          };
 
          Accounts.Add(Database.AutoSave.AddValue(ItemId, account));
+
+         return account;
       }
 
-      void IService.DeleteAccount(string accountId)
+      void IService.DeleteAccount(IAccount account)
       {
-         Account account = Accounts.FirstOrDefault(x => x.ItemId == accountId)
-            ?? throw new KeyNotFoundException($"The '{accountId}' account was not found into the '{ItemId}' service");
+         Account accountToRemove = Accounts.FirstOrDefault(x => x.ItemId == account.ItemId)
+            ?? throw new KeyNotFoundException($"The '{account.ItemId}' account was not found into the '{ItemId}' service");
 
-         _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, account));
+         _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, accountToRemove));
+
       }
 
       #endregion

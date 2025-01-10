@@ -34,12 +34,13 @@
       /// Add a new service to the user's services.
       /// </summary>
       /// <param name="serviceName">The name of the new service.</param>
-      void AddService(string serviceName);
+      /// <returns>The created service.</returns>
+      IService AddService(string serviceName);
 
       /// <summary>
       /// Delete the given service from the user's services. 
       /// </summary>
-      /// <param name="serviceId">The Id of the service to delete.</param>
-      void DeleteService(string serviceId);
+      /// <param name="service">The service to delete.</param>
+      void DeleteService(IService service);
    }
 }
