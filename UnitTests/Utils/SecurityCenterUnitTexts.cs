@@ -2,7 +2,7 @@
 using Upsilon.Apps.Passkey.UnitTests;
 using Upsilon.Apps.PassKey.Core.Utils;
 
-namespace Upsilon.Apps.PassKey.UnitTests
+namespace Upsilon.Apps.PassKey.UnitTests.Utils
 {
    [TestClass]
    public sealed class SecurityCenterUnitTexts
