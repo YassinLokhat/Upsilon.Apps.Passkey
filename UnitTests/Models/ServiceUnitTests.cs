@@ -17,7 +17,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
-         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          string serviceName = "Service_" + UnitTestsHelper.GetUsername();
          string url = UnitTestsHelper.GetRandomString();
@@ -28,7 +28,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IService service = databaseCreated.User.AddService(serviceName);
 
          // Then
-         databaseCreated.User.Services.Count().Should().Be(1);
+         _ = databaseCreated.User.Services.Count().Should().Be(1);
 
          // When
          service.Url = url;
@@ -40,15 +40,15 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
 
          // Then
-         databaseLoaded.User.Services.Count().Should().Be(1);
+         _ = databaseLoaded.User.Services.Count().Should().Be(1);
 
          // When
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         serviceLoaded.ServiceName.Should().Be(serviceName);
-         serviceLoaded.Url.Should().Be(url);
-         serviceLoaded.Notes.Should().Be(notes);
+         _ = serviceLoaded.ServiceName.Should().Be(serviceName);
+         _ = serviceLoaded.Url.Should().Be(url);
+         _ = serviceLoaded.Notes.Should().Be(notes);
 
          // Finaly
          databaseLoaded.Close();
@@ -65,7 +65,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
-         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          string serviceName = "Service_" + UnitTestsHelper.GetUsername();
          string url = UnitTestsHelper.GetRandomString();
@@ -76,7 +76,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IService service = databaseCreated.User.AddService(serviceName);
 
          // Then
-         databaseCreated.User.Services.Count().Should().Be(1);
+         _ = databaseCreated.User.Services.Count().Should().Be(1);
 
          // When
          service.Url = url;
@@ -87,15 +87,15 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
 
          // Then
-         databaseLoaded.User.Services.Count().Should().Be(1);
+         _ = databaseLoaded.User.Services.Count().Should().Be(1);
 
          // When
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         serviceLoaded.ServiceName.Should().Be(serviceName);
-         serviceLoaded.Url.Should().Be(url);
-         serviceLoaded.Notes.Should().Be(notes);
+         _ = serviceLoaded.ServiceName.Should().Be(serviceName);
+         _ = serviceLoaded.Url.Should().Be(url);
+         _ = serviceLoaded.Notes.Should().Be(notes);
 
          // Finaly
          databaseLoaded.Close();
@@ -111,11 +111,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
-         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          string serviceName = "Service_" + UnitTestsHelper.GetUsername();
          if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
-         databaseCreated.User.AddService(serviceName);
+         _ = databaseCreated.User.AddService(serviceName);
          databaseCreated.Save();
          databaseCreated.Close();
 
@@ -127,7 +127,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded.User.DeleteService(serviceLoaded);
 
          // Then
-         databaseLoaded.User.Services.Count().Should().Be(0);
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          // When
          databaseLoaded.Save();
@@ -136,7 +136,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
 
          // Then
-         databaseLoaded.User.Services.Count().Should().Be(0);
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          // Finaly
          databaseLoaded.Close();
@@ -152,11 +152,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
-         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          string serviceName = "Service_" + UnitTestsHelper.GetUsername();
          if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
-         databaseCreated.User.AddService(serviceName);
+         _ = databaseCreated.User.AddService(serviceName);
          databaseCreated.Close();
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
@@ -167,7 +167,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded.User.DeleteService(serviceLoaded);
 
          // Then
-         databaseLoaded.User.Services.Count().Should().Be(0);
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          // When
          databaseLoaded.Save();
@@ -176,7 +176,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
 
          // Then
-         databaseLoaded.User.Services.Count().Should().Be(0);
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          // Finaly
          databaseLoaded.Close();

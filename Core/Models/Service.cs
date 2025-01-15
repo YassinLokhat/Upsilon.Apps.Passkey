@@ -37,11 +37,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
             Service = this,
             ItemId = ItemId + Database.CryptographicCenter.GetHash(label + string.Join(string.Empty, identifiants)),
             Label = label,
-            Identifiants = identifiants.ToArray(),
-            Password = password,
+            Identifiants = identifiants.ToArray()
          };
 
          Accounts.Add(Database.AutoSave.AddValue(ItemId, account));
+         account.Password = password;
 
          return account;
       }
@@ -65,7 +65,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal User User
       {
          get => _user ?? throw new NullReferenceException(nameof(User));
-         set => _user = value;
+         set
+         {
+            _user = value;
+
+            foreach (Account account in Accounts)
+            {
+               account.Service = this;
+            }
+         }
       }
 
       public List<Account> Accounts { get; set; } = [];
@@ -100,13 +108,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
                switch (change.FieldName)
                {
                   case nameof(ServiceName):
-                     ServiceName = Database.SerializationCenter.Deserialize<string>(change.Value); ;
+                     ServiceName = Database.SerializationCenter.Deserialize<string>(change.Value);
                      break;
                   case nameof(Url):
-                     Url = Database.SerializationCenter.Deserialize<string>(change.Value); ;
+                     Url = Database.SerializationCenter.Deserialize<string>(change.Value);
                      break;
                   case nameof(Notes):
-                     Notes = Database.SerializationCenter.Deserialize<string>(change.Value); ;
+                     Notes = Database.SerializationCenter.Deserialize<string>(change.Value);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");

@@ -15,14 +15,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
-         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          databaseCreated.Close();
          string oldDatabaseContent = File.ReadAllText(UnitTestsHelper.ComputeDatabaseFilePath());
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
 
          string newUsername = UnitTestsHelper.GetRandomString();
-         string[] newPasskeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] newPasskeys = UnitTestsHelper.GetRandomStringArray();
          int logoutTimeout = UnitTestsHelper.GetRandomInt(1, 60);
          int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
 
@@ -58,7 +58,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string logFile = UnitTestsHelper.ComputeLogFilePath();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase();
          string newUsername = UnitTestsHelper.GetRandomString();
-         string[] newPasskeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] newPasskeys = UnitTestsHelper.GetRandomStringArray();
          int logoutTimeout = UnitTestsHelper.GetRandomInt(1, 60);
          int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
 
@@ -112,13 +112,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // Given
          UnitTestsHelper.ClearTestEnvironment();
          string oldUsername = UnitTestsHelper.GetUsername();
-         string[] oldPasskeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] oldPasskeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
          string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
          string logFile = UnitTestsHelper.ComputeLogFilePath();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(oldPasskeys);
          string newUsername = UnitTestsHelper.GetRandomString();
-         string[] newPasskeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] newPasskeys = UnitTestsHelper.GetRandomStringArray();
          int logoutTimeout = UnitTestsHelper.GetRandomInt(1, 60);
          int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
 

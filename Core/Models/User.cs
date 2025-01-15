@@ -41,7 +41,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             User = this,
             ItemId = ItemId + Database.CryptographicCenter.GetHash(serviceName),
-            ServiceName = serviceName,
+            ServiceName = serviceName
          };
 
          Services.Add(Database.AutoSave.AddValue(ItemId, service));
@@ -63,7 +63,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal Database Database
       {
          get => _database ?? throw new NullReferenceException(nameof(Database));
-         set => _database = value;
+         set
+         {
+            _database = value;
+
+            foreach (Service service in Services)
+            {
+               service.User = this;
+            }
+         }
       }
 
       public string ItemId { get; set; } = string.Empty;

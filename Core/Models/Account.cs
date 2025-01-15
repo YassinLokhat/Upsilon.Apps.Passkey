@@ -25,11 +25,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public string Password
       {
-         get => Passwords[Passwords.Keys.Max()];
+         get => Passwords.Count != 0 ? Passwords[Passwords.Keys.Max()] : string.Empty;
          set
          {
-            Passwords[DateTime.Now.Ticks] = value;
-            _ = Database.AutoSave.UpdateValue(ItemId, nameof(Passwords), Passwords);
+            if (!string.IsNullOrEmpty(value))
+            {
+               Passwords[DateTime.Now.Ticks] = value;
+
+               if (_service != null)
+               {
+                  _ = Database.AutoSave.UpdateValue(ItemId, nameof(Passwords), Passwords);
+               }
+            }
          }
       }
 

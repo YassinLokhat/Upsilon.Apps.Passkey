@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Interfaces;
-using Upsilon.Apps.PassKey.Core.Enums;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
@@ -18,7 +17,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       {
          // Given
          string username = UnitTestsHelper.GetUsername();
-         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
          string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
          string logFile = UnitTestsHelper.ComputeLogFilePath();
@@ -132,7 +131,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       {
          // Given
          string username = UnitTestsHelper.GetUsername();
-         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
          string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
          string logFile = UnitTestsHelper.ComputeLogFilePath();
@@ -194,7 +193,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       public void Case04_DatabaseOpenButWrongPasskeysProvided()
       {
          // Given
-         string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string[] wrongPasskeys = [.. passkeys];
          int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
          wrongPasskeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();

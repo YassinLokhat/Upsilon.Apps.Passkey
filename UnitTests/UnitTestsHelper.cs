@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          string autoSaveFile = ComputeAutoSaveFilePath(username);
          string logFile = ComputeLogFilePath(username);
 
-         passkeys ??= GetRandomPasskeys();
+         passkeys ??= GetRandomStringArray();
 
          IDatabase database = IDatabase.Create(CryptographicCenter, SerializationCenter, databaseFile, autoSaveFile, logFile, username, passkeys);
 
@@ -67,7 +67,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
       private static Random _getRandom() => new((int)DateTime.Now.Ticks);
 
-      public static string[] GetRandomPasskeys(int count = 0)
+      public static string[] GetRandomStringArray(int count = 0)
       {
          Random random = _getRandom();
 

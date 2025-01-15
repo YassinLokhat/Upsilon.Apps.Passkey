@@ -26,7 +26,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
 
          // When
          string checkedSource = signedSource;
-         UnitTestsHelper.CryptographicCenter.CheckSign(ref checkedSource);
+         _ = UnitTestsHelper.CryptographicCenter.CheckSign(ref checkedSource);
 
          // Then
          _ = checkedSource.Should().Be(source);
@@ -47,7 +47,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
             string signedSource = source;
             UnitTestsHelper.CryptographicCenter.Sign(ref signedSource);
             string checkedSource = signedSource;
-            UnitTestsHelper.CryptographicCenter.CheckSign(ref checkedSource);
+            _ = UnitTestsHelper.CryptographicCenter.CheckSign(ref checkedSource);
 
             // Then
             _ = checkedSource.Should().Be(source);
@@ -65,7 +65,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
          {
             // Given
             string source = UnitTestsHelper.GetRandomString();
-            string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+            string[] passkeys = UnitTestsHelper.GetRandomStringArray();
 
             // When
             string encryptedSource = UnitTestsHelper.CryptographicCenter.Encrypt(source, passkeys);
@@ -86,7 +86,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
          {
             // Given
             string source = UnitTestsHelper.GetRandomString();
-            string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+            string[] passkeys = UnitTestsHelper.GetRandomStringArray();
             string encryptedSource = UnitTestsHelper.CryptographicCenter.Encrypt(source, passkeys);
             string corruptedSource = encryptedSource + " ";
             CheckSignFailedException? exception = null;
@@ -121,7 +121,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
          {
             // Given
             string source = UnitTestsHelper.GetRandomString();
-            string[] passkeys = UnitTestsHelper.GetRandomPasskeys();
+            string[] passkeys = UnitTestsHelper.GetRandomStringArray();
             string encryptedSource = UnitTestsHelper.CryptographicCenter.Encrypt(source, passkeys);
             int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
             passkeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
