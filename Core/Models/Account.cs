@@ -30,7 +30,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             if (!string.IsNullOrEmpty(value))
             {
-               Passwords[DateTime.Now.Ticks] = value;
+               Passwords[DateTime.Now] = value;
 
                if (_service != null)
                {
@@ -40,7 +40,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      Dictionary<long, string> IAccount.Passwords => new(Passwords);
+      Dictionary<DateTime, string> IAccount.Passwords => new(Passwords);
 
       string IAccount.Notes
       {
@@ -75,7 +75,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public string Label { get; set; } = string.Empty;
       public string[] Identifiants { get; set; } = [];
-      public Dictionary<long, string> Passwords { get; set; } = [];
+      public Dictionary<DateTime, string> Passwords { get; set; } = [];
       public string Notes { get; set; } = string.Empty;
       public int PasswordUpdateReminderDelay { get; set; } = 0;
       public AccountOption Options { get; set; } = AccountOption.None;
@@ -97,7 +97,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      Notes = Database.SerializationCenter.Deserialize<string>(change.Value);
                      break;
                   case nameof(Passwords):
-                     Passwords = Database.SerializationCenter.Deserialize<Dictionary<long, string>>(change.Value);
+                     Passwords = Database.SerializationCenter.Deserialize<Dictionary<DateTime, string>>(change.Value);
                      break;
                   case nameof(PasswordUpdateReminderDelay):
                      PasswordUpdateReminderDelay = Database.SerializationCenter.Deserialize<int>(change.Value);
