@@ -35,7 +35,7 @@ namespace Upsilon.Apps.Passkey.Core.Interfaces
       /// <summary>
       /// The passwords history.
       /// </summary>
-      Dictionary<long, string> Passwords { get; }
+      Dictionary<DateTime, string> Passwords { get; }
 
       /// <summary>
       /// The number of month before a password update remind.
