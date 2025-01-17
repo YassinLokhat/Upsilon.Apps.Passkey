@@ -1,6 +1,6 @@
 ﻿using Upsilon.Apps.PassKey.Core.Interfaces;
 
-namespace Upsilon.Apps.Passkey.Core.Utils
+namespace Upsilon.Apps.PassKey.Core.Utils
 {
    internal class FileLocker : IDisposable
    {

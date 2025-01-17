@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
-using Upsilon.Apps.Passkey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Enums;
 
-namespace Upsilon.Apps.Passkey.Core.Models
+namespace Upsilon.Apps.PassKey.Core.Models
 {
    internal sealed class Account : IAccount, IChangable
    {

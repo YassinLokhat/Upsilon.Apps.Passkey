@@ -1,6 +1,6 @@
-﻿using Upsilon.Apps.Passkey.Core.Models;
+﻿using Upsilon.Apps.PassKey.Core.Models;
 
-namespace Upsilon.Apps.Passkey.Core.Interfaces
+namespace Upsilon.Apps.PassKey.Core.Interfaces
 {
    internal interface IChangable
    {

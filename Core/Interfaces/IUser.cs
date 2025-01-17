@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.Passkey.Core.Interfaces
+﻿namespace Upsilon.Apps.PassKey.Core.Interfaces
 {
    /// <summary>
    /// Represent an user.

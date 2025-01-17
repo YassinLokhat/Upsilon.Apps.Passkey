@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.Passkey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 
-namespace Upsilon.Apps.Passkey.UnitTests.Models
+namespace Upsilon.Apps.PassKey.UnitTests.Models
 {
    [TestClass]
    public sealed class DatabaseUnitTests

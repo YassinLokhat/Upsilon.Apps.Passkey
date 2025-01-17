@@ -1,10 +1,9 @@
-﻿using Upsilon.Apps.Passkey.Core.Interfaces;
-using Upsilon.Apps.Passkey.Core.Utils;
-using Upsilon.Apps.PassKey.Core.Enums;
+﻿using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Events;
 using Upsilon.Apps.PassKey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Utils;
 
-namespace Upsilon.Apps.Passkey.Core.Models
+namespace Upsilon.Apps.PassKey.Core.Models
 {
    internal sealed class Database : IDatabase
    {

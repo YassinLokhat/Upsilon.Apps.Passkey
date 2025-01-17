@@ -1,6 +1,6 @@
 ﻿using Upsilon.Apps.PassKey.Core.Enums;
 
-namespace Upsilon.Apps.Passkey.Core.Models
+namespace Upsilon.Apps.PassKey.Core.Models
 {
    internal sealed class AutoSave
    {
