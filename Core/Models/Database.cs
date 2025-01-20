@@ -13,18 +13,17 @@ namespace Upsilon.Apps.PassKey.Core.Models
       public string AutoSaveFile { get; set; }
       public string LogFile { get; set; }
 
-      IUser? IDatabase.User { get => User; }
+      IUser? IDatabase.User => User;
+
+      IEnumerable<ILog>? IDatabase.Logs => User != null ? Logs.Cast<ILog>() : null;
 
       public void Delete()
       {
          if (User == null) throw new NullReferenceException(nameof(User));
 
          DatabaseFileLocker?.Delete();
-
-         if (File.Exists(AutoSaveFile))
-         {
-            AutoSaveFileLocker?.Delete();
-         }
+         LogFileLocker?.Delete();
+         AutoSaveFileLocker?.Delete();
 
          Dispose();
       }
@@ -37,6 +36,9 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
          DatabaseFileLocker?.Dispose();
          DatabaseFileLocker = null;
+
+         LogFileLocker?.Dispose();
+         LogFileLocker = null;
 
          AutoSaveFileLocker?.Dispose();
          AutoSaveFileLocker = null;
@@ -101,17 +103,19 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
       internal User? User;
       internal AutoSave AutoSave;
+      internal List<Log> Logs;
 
       internal string[] Passkeys { get; private set; }
 
       internal FileLocker? DatabaseFileLocker;
       internal FileLocker? AutoSaveFileLocker;
-      internal readonly ICryptographicCenter CryptographicCenter;
+      internal FileLocker? LogFileLocker;
+      internal readonly ICryptographyCenter CryptographicCenter;
       internal readonly ISerializationCenter SerializationCenter;
 
       private readonly EventHandler<AutoSaveDetectedEventArgs>? _onAutoSaveDetected = null;
 
-      private Database(ICryptographicCenter cryptographicCenter,
+      private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          string databaseFile,
          string autoSaveFile,
@@ -142,10 +146,13 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
          DatabaseFileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
 
+         LogFileLocker = new(cryptographicCenter, serializationCenter, logFile, fileMode);
+         Logs = LogFileLocker.Open<List<Log>>([CryptographicCenter.GetHash(string.Empty), CryptographicCenter.GetHash(username)]);
+
          _onAutoSaveDetected = autoSaveHandler;
       }
 
-      internal static IDatabase Create(ICryptographicCenter cryptographicCenter,
+      internal static IDatabase Create(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          string databaseFile,
          string autoSaveFile,
@@ -195,7 +202,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             username);
       }
 
-      internal static IDatabase Open(ICryptographicCenter cryptographicCenter,
+      internal static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          string databaseFile,
          string autoSaveFile,

@@ -1,4 +1,5 @@
 ﻿using Upsilon.Apps.PassKey.Core.Events;
+using Upsilon.Apps.PassKey.Core.Models;
 
 namespace Upsilon.Apps.PassKey.Core.Interfaces
 {
@@ -26,6 +27,11 @@ namespace Upsilon.Apps.PassKey.Core.Interfaces
       /// The user loaded.
       /// </summary>
       IUser? User { get; }
+
+      /// <summary>
+      /// The logs.
+      /// </summary>
+      IEnumerable<ILog>? Logs { get; }
 
       /// <summary>
       /// Try to load the current user.
@@ -63,7 +69,7 @@ namespace Upsilon.Apps.PassKey.Core.Interfaces
       /// <param name="username">The username.</param>
       /// <param name="passkeys">The passkeys.</param>
       /// <returns>The database created.</returns>
-      static IDatabase Create(ICryptographicCenter cryptographicCenter,
+      static IDatabase Create(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          string databaseFile,
          string autoSaveFile,
@@ -90,7 +96,7 @@ namespace Upsilon.Apps.PassKey.Core.Interfaces
       /// <param name="username">The username.</param>
       /// <param name="autoSaveHandler">The event handler for Auto-save merge behavior.</param>
       /// <returns>The database opened.</returns>
-      static IDatabase Open(ICryptographicCenter cryptographicCenter,
+      static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          string databaseFile,
          string autoSaveFile,
