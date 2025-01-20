@@ -3,14 +3,14 @@
    /// <summary>
    /// Represent a cryptographic center.
    /// </summary>
-   public interface ICryptographicCenter
+   public interface ICryptographyCenter
    {
       /// <summary>
       /// Returs a fast string hash of the given string.
       /// </summary>
       /// <param name="source">The string to hash.</param>
       /// <returns>The hash.</returns>
-      public string GetHash(string source);
+      string GetHash(string source);
 
       /// <summary>
       /// Returs a slow string hash of the given string.
@@ -38,19 +38,42 @@
       bool CheckSign(ref string source);
 
       /// <summary>
-      /// Encrypt a string with a set of passekeys in an onion structure.
+      /// Encrypt symmetrically a string with a set of passekeys in an onion structure.
       /// </summary>
       /// <param name="source">The string to encrypt.</param>
       /// <param name="passwords">The set of passkeys.</param>
       /// <returns>The encrypted string.</returns>
-      string Encrypt(string source, string[] passwords);
+      string EncryptSymmetrically(string source, string[] passwords);
 
       /// <summary>
-      /// Decrypt a string with a set of passekeys in an onion structure.
+      /// Decrypt symmetrically a string with a set of passekeys in an onion structure.
       /// </summary>
       /// <param name="source">The string to decrypt.</param>
       /// <param name="passwords">The set of passkeys.</param>
       /// <returns>The decrypted string.</returns>
-      string Decrypt(string source, string[] passwords);
+      string DecryptSymmetrically(string source, string[] passwords);
+
+      /// <summary>
+      /// Generate a random public key and private key pair.
+      /// </summary>
+      /// <param name="publicKey">The public key generated.</param>
+      /// <param name="privateKey">The private key generated.</param>
+      void GenerateRandomKeys(out string publicKey, out string privateKey);
+
+      /// <summary>
+      /// Encrypt asymmetrically a string with a set of passekeys in an onion structure.
+      /// </summary>
+      /// <param name="source">The string to encrypt.</param>
+      /// <param name="key">The encryption key.</param>
+      /// <returns>The encrypted string.</returns>
+      string EncryptAsymmetrically(string source, string key);
+
+      /// <summary>
+      /// Decrypt asymmetrically a string with a set of passekeys in an onion structure.
+      /// </summary>
+      /// <param name="source">The string to decrypt.</param>
+      /// <param name="key">The encryption key.</param>
+      /// <returns>The decrypted string.</returns>
+      string DecryptAsymmetrically(string source, string key);
    }
 }

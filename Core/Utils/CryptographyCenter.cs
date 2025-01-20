@@ -7,7 +7,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
    /// <summary>
    /// Represent a cryptographic center implementation.
    /// </summary>
-   public class CryptographicCenter : ICryptographicCenter
+   public class CryptographyCenter : ICryptographyCenter
    {
       private readonly string _alphabet = "BT2Cp4oOU-DqinLjy0HWxk8wI9rY1QgXblaef5RtdFE3sGm6PSzMJvKVhu7+NcZA";
       private readonly string _hexadecimal = "0123456789ABCDEF";
@@ -87,14 +87,14 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       }
 
       /// <summary>
-      /// Encrypt a string with a set of passekeys in an onion structure.
+      /// Encrypt symmetrically a string with a set of passekeys in an onion structure.
       /// </summary>
       /// <param name="source">The string to encrypt.</param>
       /// <param name="passwords">The set of passkeys.</param>
       /// <returns>The encrypted string.</returns>
-      public string Encrypt(string source, string[] passwords)
+      public string EncryptSymmetrically(string source, string[] passwords)
       {
-         source = _encrypt(source, passwords);
+         source = _encryptAes(source, passwords);
          source = _stringToCustomBase(source);
 
          Sign(ref source);
@@ -103,12 +103,12 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       }
 
       /// <summary>
-      /// Decrypt a string with a set of passekeys in an onion structure.
+      /// Decrypt symmetrically a string with a set of passekeys in an onion structure.
       /// </summary>
       /// <param name="source">The string to decrypt.</param>
       /// <param name="passwords">The set of passkeys.</param>
       /// <returns>The decrypted string.</returns>
-      public string Decrypt(string source, string[] passwords)
+      public string DecryptSymmetrically(string source, string[] passwords)
       {
          if (!CheckSign(ref source))
          {
@@ -116,12 +116,69 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          }
 
          source = _customBaseToString(source);
-         source = _decrypt(source, passwords);
+         source = _decryptAes(source, passwords);
 
          return source;
       }
 
-      private string _cipher_Aes(string plainText, string key)
+      /// <summary>
+      /// Generate a random public key and private key pair.
+      /// </summary>
+      /// <param name="publicKey">The public key generated.</param>
+      /// <param name="privateKey">The private key generated.</param>
+      public void GenerateRandomKeys(out string publicKey, out string privateKey)
+      {
+         RSACryptoServiceProvider csp = new(2048);
+
+         var sw = new System.IO.StringWriter();
+         var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
+
+         xs.Serialize(sw, csp.ExportParameters(includePrivateParameters: false));
+         publicKey = sw.ToString();
+
+         sw = new System.IO.StringWriter();
+         xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
+
+         xs.Serialize(sw, csp.ExportParameters(includePrivateParameters: true));
+         privateKey = sw.ToString();
+      }
+
+      /// <summary>
+      /// Encrypt asymmetrically a string with a set of passekeys in an onion structure.
+      /// </summary>
+      /// <param name="source">The string to encrypt.</param>
+      /// <param name="key">The encryption key.</param>
+      /// <returns>The encrypted string.</returns>
+      public string EncryptAsymmetrically(string source, string key)
+      {
+         source = _encryptRsa(source, key);
+         source = _stringToCustomBase(source);
+
+         Sign(ref source);
+
+         return source;
+      }
+
+      /// <summary>
+      /// Decrypt asymmetrically a string with a set of passekeys in an onion structure.
+      /// </summary>
+      /// <param name="source">The string to decrypt.</param>
+      /// <param name="key">The encryption key.</param>
+      /// <returns>The decrypted string.</returns>
+      public string DecryptAsymmetrically(string source, string key)
+      {
+         if (!CheckSign(ref source))
+         {
+            throw new CheckSignFailedException();
+         }
+
+         source = _customBaseToString(source);
+         source = _decryptRsa(source, key);
+
+         return source;
+      }
+
+      private string _cipherAes(string plainText, string key)
       {
          if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(plainText))
          {
@@ -137,12 +194,12 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          byte[] _key = Encoding.ASCII.GetBytes(key[..32]);
          byte[] IV = Encoding.ASCII.GetBytes(key.Substring(32, 16));
 
-         byte[] bytes = _cipher_Aes(plainText, _key, IV);
+         byte[] bytes = _cipherAes(plainText, _key, IV);
 
          return new string(bytes.Select(x => (char)x).ToArray());
       }
 
-      private byte[] _cipher_Aes(string plainText, byte[] key, byte[] IV)
+      private byte[] _cipherAes(string plainText, byte[] key, byte[] IV)
       {
          using Aes aesAlg = Aes.Create();
          aesAlg.Key = key;
@@ -160,7 +217,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          return msEncrypt.ToArray();
       }
 
-      private string _uncipher_Aes(string cipherText, string key)
+      private string _uncipherAes(string cipherText, string key)
       {
          if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(cipherText))
          {
@@ -177,10 +234,10 @@ namespace Upsilon.Apps.PassKey.Core.Utils
 
          byte[] bytes = cipherText.Select(x => (byte)x).ToArray();
 
-         return _uncither_Aes(bytes, _key, IV);
+         return _uncitherAes(bytes, _key, IV);
       }
 
-      private string _uncither_Aes(byte[] cipherText, byte[] key, byte[] IV)
+      private string _uncitherAes(byte[] cipherText, byte[] key, byte[] IV)
       {
          using Aes aesAlg = Aes.Create();
          aesAlg.Key = key;
@@ -195,29 +252,29 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          return srDecrypt.ReadToEnd();
       }
 
-      private string _encrypt(string source, string[] passwords)
+      private string _encryptAes(string source, string[] passwords)
       {
          passwords = passwords.Select(x => GetHash(x)).ToArray();
 
          for (int i = 0; i < passwords.Length; i++)
          {
             Sign(ref source);
-            source = _cipher_Aes(source, passwords[i]);
+            source = _cipherAes(source, passwords[i]);
          }
 
          Sign(ref source);
-         source = _cipher_Aes(source, GetHash(string.Empty));
+         source = _cipherAes(source, GetHash(string.Empty));
 
          return source;
       }
 
-      private string _decrypt(string source, string[] passwords)
+      private string _decryptAes(string source, string[] passwords)
       {
          passwords = passwords.Select(x => GetHash(x)).ToArray();
 
          try
          {
-            source = _uncipher_Aes(source, GetHash(string.Empty));
+            source = _uncipherAes(source, GetHash(string.Empty));
          }
          catch
          {
@@ -233,7 +290,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          {
             try
             {
-               source = _uncipher_Aes(source, passwords[i]);
+               source = _uncipherAes(source, passwords[i]);
 
                if (!CheckSign(ref source))
                {
@@ -247,6 +304,47 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          }
 
          return source;
+      }
+
+      private string _encryptRsa(string source, string key)
+      {
+         RSACryptoServiceProvider csp = new();
+
+         var sr = new System.IO.StringReader(key);
+         var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
+
+         RSAParameters pubKey = (RSAParameters?)xs.Deserialize(sr) ?? throw new WrongPasswordException(0);
+
+         csp.ImportParameters(pubKey);
+
+         var bytesPlainTextData = System.Text.Encoding.Unicode.GetBytes(source);
+         var bytesCypherText = csp.Encrypt(bytesPlainTextData, false);
+
+         return Convert.ToBase64String(bytesCypherText);
+      }
+
+      private string _decryptRsa(string source, string key)
+      {
+         try
+         {
+            RSACryptoServiceProvider csp = new();
+
+            var sr = new System.IO.StringReader(key);
+            var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
+
+            RSAParameters privKey = (RSAParameters?)xs.Deserialize(sr) ?? throw new Exception();
+
+            csp.ImportParameters(privKey);
+
+            var bytesCypherText = Convert.FromBase64String(source);
+            var bytesPlainTextData = csp.Decrypt(bytesCypherText, false);
+
+            return System.Text.Encoding.Unicode.GetString(bytesPlainTextData);
+         }
+         catch
+         {
+            throw new WrongPasswordException(0);
+         }
       }
 
       private string _stringToCustomBase(string source)

@@ -11,7 +11,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
    {
       public static readonly int RANDOMIZED_TESTS_LOOP = 100;
 
-      public static readonly ICryptographicCenter CryptographicCenter = new CryptographicCenter();
+      public static readonly ICryptographyCenter CryptographicCenter = new CryptographyCenter();
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
 
       public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
