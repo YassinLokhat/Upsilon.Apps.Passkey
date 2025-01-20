@@ -151,8 +151,19 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       /// <returns>The encrypted string.</returns>
       public string EncryptAsymmetrically(string source, string key)
       {
-         source = _encryptRsa(source, key);
-         source = _stringToCustomBase(source);
+         RSACryptoServiceProvider csp = new();
+
+         var sr = new System.IO.StringReader(key);
+         var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
+
+         RSAParameters pubKey = (RSAParameters?)xs.Deserialize(sr) ?? throw new WrongPasswordException(0);
+
+         csp.ImportParameters(pubKey);
+
+         var bytesPlainTextData = System.Text.Encoding.Unicode.GetBytes(source);
+         var bytesCypherText = csp.Encrypt(bytesPlainTextData, false);
+
+         source = Convert.ToBase64String(bytesCypherText);
 
          Sign(ref source);
 
@@ -172,10 +183,26 @@ namespace Upsilon.Apps.PassKey.Core.Utils
             throw new CheckSignFailedException();
          }
 
-         source = _customBaseToString(source);
-         source = _decryptRsa(source, key);
+         try
+         {
+            RSACryptoServiceProvider csp = new();
 
-         return source;
+            var sr = new System.IO.StringReader(key);
+            var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
+
+            RSAParameters privKey = (RSAParameters?)xs.Deserialize(sr) ?? throw new Exception();
+
+            csp.ImportParameters(privKey);
+
+            var bytesCypherText = Convert.FromBase64String(source);
+            var bytesPlainTextData = csp.Decrypt(bytesCypherText, false);
+
+            return System.Text.Encoding.Unicode.GetString(bytesPlainTextData);
+         }
+         catch
+         {
+            throw new WrongPasswordException(0);
+         }
       }
 
       private string _cipherAes(string plainText, string key)
@@ -304,47 +331,6 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          }
 
          return source;
-      }
-
-      private string _encryptRsa(string source, string key)
-      {
-         RSACryptoServiceProvider csp = new();
-
-         var sr = new System.IO.StringReader(key);
-         var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
-
-         RSAParameters pubKey = (RSAParameters?)xs.Deserialize(sr) ?? throw new WrongPasswordException(0);
-
-         csp.ImportParameters(pubKey);
-
-         var bytesPlainTextData = System.Text.Encoding.Unicode.GetBytes(source);
-         var bytesCypherText = csp.Encrypt(bytesPlainTextData, false);
-
-         return Convert.ToBase64String(bytesCypherText);
-      }
-
-      private string _decryptRsa(string source, string key)
-      {
-         try
-         {
-            RSACryptoServiceProvider csp = new();
-
-            var sr = new System.IO.StringReader(key);
-            var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
-
-            RSAParameters privKey = (RSAParameters?)xs.Deserialize(sr) ?? throw new Exception();
-
-            csp.ImportParameters(privKey);
-
-            var bytesCypherText = Convert.FromBase64String(source);
-            var bytesPlainTextData = csp.Decrypt(bytesCypherText, false);
-
-            return System.Text.Encoding.Unicode.GetString(bytesPlainTextData);
-         }
-         catch
-         {
-            throw new WrongPasswordException(0);
-         }
       }
 
       private string _stringToCustomBase(string source)
