@@ -4,10 +4,10 @@ namespace Upsilon.Apps.PassKey.Core.Models
 {
    internal class Log : ILog
    {
-      DateTime ILog.DateTime => throw new NotImplementedException();
+      public DateTime DateTime { get; set; }
 
-      string ILog.ItemId => throw new NotImplementedException();
+      public string ItemId { get; set; } = string.Empty;
 
-      string ILog.Message => throw new NotImplementedException();
+      public string Message { get; set; } = string.Empty;
    }
 }

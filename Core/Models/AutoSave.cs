@@ -75,6 +75,8 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             File.Delete(Database.AutoSaveFile);
          }
+
+         // LOG "Autosave cleared"
       }
    }
 }

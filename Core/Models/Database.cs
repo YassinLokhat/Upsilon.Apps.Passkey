@@ -15,7 +15,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
       IUser? IDatabase.User => User;
 
-      IEnumerable<ILog>? IDatabase.Logs => User != null ? Logs.Cast<ILog>() : null;
+      IEnumerable<ILog>? IDatabase.Logs => User != null ? Logs.Logs.Cast<ILog>() : null;
 
       public void Delete()
       {
@@ -56,6 +56,8 @@ namespace Upsilon.Apps.PassKey.Core.Models
          Passkeys = [CryptographicCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographicCenter.GetSlowHash(x))];
          DatabaseFileLocker.Save(User, Passkeys);
 
+         // LOG "Database saved"
+
          AutoSave.Clear();
       }
 
@@ -71,7 +73,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          }
          catch
          {
-            // TODO : Log the error
+            // LOG "Database login failed"
          }
 
          if (User != null)
@@ -103,7 +105,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
       internal User? User;
       internal AutoSave AutoSave;
-      internal List<Log> Logs;
+      internal LogCenter Logs;
 
       internal string[] Passkeys { get; private set; }
 
@@ -147,7 +149,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          DatabaseFileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
 
          LogFileLocker = new(cryptographicCenter, serializationCenter, logFile, fileMode);
-         Logs = LogFileLocker.Open<List<Log>>([CryptographicCenter.GetHash(string.Empty), CryptographicCenter.GetHash(username)]);
+         Logs = LogFileLocker.Open<LogCenter>([CryptographicCenter.GetHash(username)]);
 
          _onAutoSaveDetected = autoSaveHandler;
       }
@@ -182,13 +184,24 @@ namespace Upsilon.Apps.PassKey.Core.Models
             username,
             passkeys);
 
+         cryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
+
          database.User = new()
          {
             Database = database,
+            PrivateKey = privateKey,
             ItemId = cryptographicCenter.GetHash(username),
             Username = username,
             Passkeys = [.. passkeys],
          };
+
+         database.Logs = new()
+         {
+            Database = database,
+            PublicKey = publicKey,
+         };
+
+         // LOG "Database created"
 
          database.Save();
 
@@ -209,7 +222,8 @@ namespace Upsilon.Apps.PassKey.Core.Models
          string logFile,
          string username,
          EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
-         => new Database(cryptographicCenter,
+      {
+         Database database = new(cryptographicCenter,
             serializationCenter,
             databaseFile,
             autoSaveFile,
@@ -217,6 +231,11 @@ namespace Upsilon.Apps.PassKey.Core.Models
             FileMode.Open,
             autoSaveHandler,
             username);
+
+         // LOG "Database opened"
+
+         return database;
+      }
 
       private void _handleAutoSave(AutoSaveMergeBehavior mergeAutoSave)
       {
@@ -231,12 +250,15 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             case AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile:
                AutoSave.MergeChange();
+               // LOG "MergeThenRemoveAutoSaveFile"
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear();
+               // LOG "DontMergeAndRemoveAutoSaveFile"
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
+               // LOG "DontMergeAndKeepAutoSaveFile"
                break;
          }
       }

@@ -74,6 +74,8 @@ namespace Upsilon.Apps.PassKey.Core.Models
          }
       }
 
+      public string PrivateKey { get; set; } = string.Empty;
+
       public string ItemId { get; set; } = string.Empty;
       public List<Service> Services { get; set; } = [];
 
