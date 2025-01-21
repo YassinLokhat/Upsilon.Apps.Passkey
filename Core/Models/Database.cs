@@ -14,7 +14,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
       public string LogFile { get; set; }
 
       IUser? IDatabase.User => User;
-      IEnumerable<ILog>? IDatabase.Logs => Logs.Logs;
+      ILog[]? IDatabase.Logs => Logs.Logs;
 
       public void Delete()
       {

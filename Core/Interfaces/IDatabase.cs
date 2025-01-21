@@ -31,7 +31,7 @@ namespace Upsilon.Apps.PassKey.Core.Interfaces
       /// <summary>
       /// The logs.
       /// </summary>
-      IEnumerable<ILog>? Logs { get; }
+      ILog[]? Logs { get; }
 
       /// <summary>
       /// Try to load the current user.

@@ -9,7 +9,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
       #region IUser interface explicit implementation
 
       string IItem.ItemId => ItemId;
-      IEnumerable<IService> IUser.Services => Services.Cast<IService>();
+      IService[] IUser.Services => [.. Services];
 
       string IUser.Username
       {

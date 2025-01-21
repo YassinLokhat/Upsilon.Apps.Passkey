@@ -10,7 +10,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
       string IItem.ItemId => ItemId;
       IUser IService.User => User;
-      IEnumerable<IAccount> IService.Accounts => Accounts.Cast<IAccount>();
+      IAccount[] IService.Accounts => [.. Accounts];
 
       string IService.ServiceName
       {
