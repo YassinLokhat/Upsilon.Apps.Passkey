@@ -1,4 +1,7 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Models
+﻿using System.Text.Json.Serialization;
+using Upsilon.Apps.PassKey.Core.Interfaces;
+
+namespace Upsilon.Apps.PassKey.Core.Models
 {
    internal class LogCenter
    {
@@ -9,16 +12,35 @@
          set => _database = value;
       }
 
-      public List<Log> Logs { get; set; } = [];
+      [JsonIgnore]
+      public IEnumerable<ILog>? Logs
+      {
+         get
+         {
+            if (Database.User == null) return null;
+
+            return LogList.Select(x =>
+            {
+               string textLog = Database.CryptographicCenter.DecryptAsymmetrically(x, Database.User.PrivateKey);
+               return Database.SerializationCenter.Deserialize<Log>(textLog);
+            });
+         }
+      }
+
+      public List<string> LogList { get; set; } = [];
       public string PublicKey { get; set; } = string.Empty;
 
-      public void AddLog(string itemId, string message)
+      public void AddLog(string itemId, string message, bool needsReview)
       {
-         Logs.Add(new()
+         Log log = new()
          {
             ItemId = itemId,
             Message = message,
-         });
+            NeedsReview = needsReview,
+         };
+
+         string textLog = Database.SerializationCenter.Serialize(log);
+         LogList.Add(Database.CryptographicCenter.EncryptAsymmetrically(textLog, PublicKey));
 
          _save();
       }
@@ -28,7 +50,7 @@
          if (Database.User == null) throw new NullReferenceException(nameof(Database.User));
          if (Database.LogFileLocker == null) throw new NullReferenceException(nameof(Database.LogFileLocker));
 
-         Database.LogFileLocker.Save(this, PublicKey);
+         Database.LogFileLocker.Save(this, [Database.CryptographicCenter.GetHash(Database.User.Username)]);
       }
    }
 }

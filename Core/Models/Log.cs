@@ -9,5 +9,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
       public string ItemId { get; set; } = string.Empty;
 
       public string Message { get; set; } = string.Empty;
+
+      public bool NeedsReview { get; set; }
    }
 }

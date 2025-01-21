@@ -14,8 +14,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
       public string LogFile { get; set; }
 
       IUser? IDatabase.User => User;
-
-      IEnumerable<ILog>? IDatabase.Logs => User != null ? Logs.Logs.Cast<ILog>() : null;
+      IEnumerable<ILog>? IDatabase.Logs => Logs.Logs;
 
       public void Delete()
       {
@@ -55,6 +54,8 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
          Passkeys = [CryptographicCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographicCenter.GetSlowHash(x))];
          DatabaseFileLocker.Save(User, Passkeys);
+
+         LogFileLocker?.Save(Logs, [CryptographicCenter.GetHash(User.Username)]);
 
          // LOG "Database saved"
 
@@ -125,6 +126,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          FileMode fileMode,
          EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler,
          string username,
+         string publicKey = "",
          string[]? passkeys = null)
       {
          DatabaseFile = databaseFile;
@@ -149,7 +151,19 @@ namespace Upsilon.Apps.PassKey.Core.Models
          DatabaseFileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
 
          LogFileLocker = new(cryptographicCenter, serializationCenter, logFile, fileMode);
-         Logs = LogFileLocker.Open<LogCenter>([CryptographicCenter.GetHash(username)]);
+
+         if (fileMode == FileMode.Create)
+         {
+            Logs = new()
+            {
+               Database = this,
+               PublicKey = publicKey,
+            };
+         }
+         else
+         {
+            Logs = LogFileLocker.Open<LogCenter>([cryptographicCenter.GetHash(username)]);
+         }
 
          _onAutoSaveDetected = autoSaveHandler;
       }
@@ -174,6 +188,8 @@ namespace Upsilon.Apps.PassKey.Core.Models
             _ = Directory.CreateDirectory(databaseFileDirectory);
          }
 
+         cryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
+
          Database database = new(cryptographicCenter,
             serializationCenter,
             databaseFile,
@@ -182,9 +198,8 @@ namespace Upsilon.Apps.PassKey.Core.Models
             FileMode.Create,
             autoSaveHandler: null,
             username,
+            publicKey,
             passkeys);
-
-         cryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
 
          database.User = new()
          {
@@ -193,12 +208,6 @@ namespace Upsilon.Apps.PassKey.Core.Models
             ItemId = cryptographicCenter.GetHash(username),
             Username = username,
             Passkeys = [.. passkeys],
-         };
-
-         database.Logs = new()
-         {
-            Database = database,
-            PublicKey = publicKey,
          };
 
          // LOG "Database created"

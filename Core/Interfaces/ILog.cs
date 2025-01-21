@@ -19,5 +19,10 @@
       /// The event message.
       /// </summary>
       public string Message { get; }
+
+      /// <summary>
+      /// Indicate if the current log needs review.
+      /// </summary>
+      public bool NeedsReview { get; }
    }
 }

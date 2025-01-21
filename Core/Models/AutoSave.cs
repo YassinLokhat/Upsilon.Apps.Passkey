@@ -49,7 +49,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             Database.AutoSaveFileLocker = new(Database.CryptographicCenter, Database.SerializationCenter, Database.AutoSaveFile, FileMode.OpenOrCreate);
          }
 
-         Database.AutoSaveFileLocker.WriteAllText(Database.SerializationCenter.Serialize(this), Database.Passkeys);
+         Database.AutoSaveFileLocker.Save(this, Database.Passkeys);
       }
 
       internal void MergeChange()

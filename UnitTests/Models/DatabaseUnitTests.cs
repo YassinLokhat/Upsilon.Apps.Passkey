@@ -35,7 +35,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = File.Exists(databaseCreated.AutoSaveFile).Should().BeFalse();
 
          _ = databaseCreated.LogFile.Should().Be(logFile);
-         _ = File.Exists(databaseCreated.LogFile).Should().BeFalse();
+         _ = File.Exists(databaseCreated.LogFile).Should().BeTrue();
 
          _ = databaseCreated.User.Should().NotBeNull();
          _ = (databaseCreated.User?.Username.Should().Be(username));
@@ -50,7 +50,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = databaseCreated.User.Should().BeNull();
          _ = File.Exists(databaseFile).Should().BeTrue();
          _ = File.Exists(autoSaveFile).Should().BeFalse();
-         _ = File.Exists(logFile).Should().BeFalse();
+         _ = File.Exists(logFile).Should().BeTrue();
 
          // When
          IDatabase? databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
@@ -64,7 +64,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = File.Exists(databaseLoaded?.AutoSaveFile).Should().BeFalse();
 
          _ = (databaseLoaded?.LogFile.Should().Be(logFile));
-         _ = File.Exists(databaseLoaded?.LogFile).Should().BeFalse();
+         _ = File.Exists(databaseLoaded?.LogFile).Should().BeTrue();
 
          _ = (databaseLoaded?.User.Should().NotBeNull());
          _ = (databaseLoaded?.User?.Username.Should().Be(username));

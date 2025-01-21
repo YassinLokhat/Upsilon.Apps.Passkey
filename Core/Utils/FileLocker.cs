@@ -46,23 +46,11 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          return text;
       }
 
-      internal string ReadAllText(string passkey)
-      {
-         string text = ReadAllText();
-
-         return _cryptographicCenter.DecryptAsymmetrically(text, passkey);
-      }
-
       internal string ReadAllText(string[] passkeys)
       {
          string text = ReadAllText();
 
          return _cryptographicCenter.DecryptSymmetrically(text, passkeys);
-      }
-
-      internal T Open<T>(string passkey) where T : notnull
-      {
-         return _serializationCenter.Deserialize<T>(ReadAllText(passkey));
       }
 
       internal T Open<T>(string[] passkeys) where T : notnull
@@ -79,23 +67,11 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          Lock();
       }
 
-      internal void WriteAllText(string text, string passkey)
-      {
-         text = _cryptographicCenter.EncryptAsymmetrically(text, passkey);
-
-         WriteAllText(text);
-      }
-
       internal void WriteAllText(string text, string[] passkeys)
       {
          text = _cryptographicCenter.EncryptSymmetrically(text, passkeys);
 
          WriteAllText(text);
-      }
-
-      internal void Save<T>(T obj, string passkey) where T : notnull
-      {
-         WriteAllText(_serializationCenter.Serialize(obj), passkey);
       }
 
       internal void Save<T>(T obj, string[] passkeys) where T : notnull
