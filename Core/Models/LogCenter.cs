@@ -17,9 +17,9 @@ namespace Upsilon.Apps.PassKey.Core.Models
       {
          get
          {
-            if (Database.User == null) return null;
-
-            return LogList.Select(x =>
+            return Database.User == null
+               ? null
+               : (IEnumerable<ILog>)LogList.Select(x =>
             {
                string textLog = Database.CryptographicCenter.DecryptAsymmetrically(x, Database.User.PrivateKey);
                return Database.SerializationCenter.Deserialize<Log>(textLog);

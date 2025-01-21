@@ -124,8 +124,8 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       {
          RSACryptoServiceProvider csp = new(2048);
 
-         var sw = new System.IO.StringWriter();
-         var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
+         StringWriter sw = new();
+         System.Xml.Serialization.XmlSerializer xs = new(typeof(RSAParameters));
 
          xs.Serialize(sw, csp.ExportParameters(includePrivateParameters: false));
          publicKey = sw.ToString();
@@ -147,15 +147,15 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       {
          RSACryptoServiceProvider csp = new();
 
-         var sr = new System.IO.StringReader(key);
-         var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
+         StringReader sr = new(key);
+         System.Xml.Serialization.XmlSerializer xs = new(typeof(RSAParameters));
 
          RSAParameters pubKey = (RSAParameters?)xs.Deserialize(sr) ?? throw new WrongPasswordException(0);
 
          csp.ImportParameters(pubKey);
 
-         var bytesPlainTextData = System.Text.Encoding.Unicode.GetBytes(source);
-         var bytesCypherText = csp.Encrypt(bytesPlainTextData, false);
+         byte[] bytesPlainTextData = System.Text.Encoding.Unicode.GetBytes(source);
+         byte[] bytesCypherText = csp.Encrypt(bytesPlainTextData, false);
 
          source = Convert.ToBase64String(bytesCypherText);
 
@@ -181,15 +181,15 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          {
             RSACryptoServiceProvider csp = new();
 
-            var sr = new System.IO.StringReader(key);
-            var xs = new System.Xml.Serialization.XmlSerializer(typeof(RSAParameters));
+            StringReader sr = new(key);
+            System.Xml.Serialization.XmlSerializer xs = new(typeof(RSAParameters));
 
             RSAParameters privKey = (RSAParameters?)xs.Deserialize(sr) ?? throw new Exception();
 
             csp.ImportParameters(privKey);
 
-            var bytesCypherText = Convert.FromBase64String(source);
-            var bytesPlainTextData = csp.Decrypt(bytesCypherText, false);
+            byte[] bytesCypherText = Convert.FromBase64String(source);
+            byte[] bytesPlainTextData = csp.Decrypt(bytesCypherText, false);
 
             return System.Text.Encoding.Unicode.GetString(bytesPlainTextData);
          }

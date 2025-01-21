@@ -61,7 +61,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
 
          do
          {
-            stringBuilder.Clear();
+            _ = stringBuilder.Clear();
 
             for (int i = 0; i < length; i++)
             {

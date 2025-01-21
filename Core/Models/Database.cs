@@ -152,18 +152,13 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
          LogFileLocker = new(cryptographicCenter, serializationCenter, logFile, fileMode);
 
-         if (fileMode == FileMode.Create)
-         {
-            Logs = new()
+         Logs = fileMode == FileMode.Create
+            ? new()
             {
                Database = this,
                PublicKey = publicKey,
-            };
-         }
-         else
-         {
-            Logs = LogFileLocker.Open<LogCenter>([cryptographicCenter.GetHash(username)]);
-         }
+            }
+            : LogFileLocker.Open<LogCenter>([cryptographicCenter.GetHash(username)]);
 
          _onAutoSaveDetected = autoSaveHandler;
       }
