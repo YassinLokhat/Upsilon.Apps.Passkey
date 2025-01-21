@@ -9,9 +9,6 @@ namespace Upsilon.Apps.PassKey.Core.Utils
    /// </summary>
    public class CryptographyCenter : ICryptographyCenter
    {
-      private readonly string _alphabet = "BT2Cp4oOU-DqinLjy0HWxk8wI9rY1QgXblaef5RtdFE3sGm6PSzMJvKVhu7+NcZA";
-      private readonly string _hexadecimal = "0123456789ABCDEF";
-
       /// <summary>
       /// Returs a fast string hash of the given string.
       /// </summary>
@@ -19,13 +16,10 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       /// <returns>The hash.</returns>
       public string GetHash(string source)
       {
-         MD5 md5 = MD5.Create();
+         string md5Hash = Convert.ToBase64String(MD5.HashData(Encoding.Unicode.GetBytes(source))).TrimEnd('=');
+         string sha1Hash = Convert.ToBase64String(SHA1.HashData(Encoding.Unicode.GetBytes(source))).TrimEnd('=');
 
-         IEnumerable<string> hash = md5
-            .ComputeHash(Encoding.UTF8.GetBytes(source))
-            .Select(x => x.ToString("X2"));
-
-         return string.Join(string.Empty, hash).ToLower();
+         return md5Hash + sha1Hash;
       }
 
       /// <summary>
@@ -95,7 +89,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       public string EncryptSymmetrically(string source, string[] passwords)
       {
          source = _encryptAes(source, passwords);
-         source = _stringToCustomBase(source);
+         source = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(source));
 
          Sign(ref source);
 
@@ -115,7 +109,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
             throw new CheckSignFailedException();
          }
 
-         source = _customBaseToString(source);
+         source = System.Text.Encoding.Unicode.GetString(Convert.FromBase64String(source));
          source = _decryptAes(source, passwords);
 
          return source;
@@ -331,48 +325,6 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          }
 
          return source;
-      }
-
-      private string _stringToCustomBase(string source)
-      {
-         StringBuilder hexaHigh = new(), hexaLow = new();
-         byte[] bytes = Encoding.UTF8.GetBytes(source);
-         int seed = 0;
-
-         foreach (byte b in bytes)
-         {
-            string hexa = b.ToString("X2");
-            int index = _hexadecimal.IndexOf(hexa[0]) + (_hexadecimal.Length * seed);
-            _ = hexaHigh.Append(_alphabet[index]);
-            index = _hexadecimal.IndexOf(hexa[1]) + (_hexadecimal.Length * seed);
-            _ = hexaLow.Append(_alphabet[index]);
-            seed = b % 3;
-         }
-
-         return hexaHigh.ToString() + hexaLow.ToString();
-      }
-
-      private string _customBaseToString(string source)
-      {
-         List<byte> bytes = [];
-         int bytesCount = source.Length / 2;
-
-         for (int i = 0; i < bytesCount; i++)
-         {
-            int indexHigh = _alphabet.IndexOf(source[i]) % _hexadecimal.Length;
-            int indexLow = _alphabet.IndexOf(source[i + bytesCount]) % _hexadecimal.Length;
-
-            if (indexLow == -1 ||
-                indexHigh == -1)
-            {
-               throw new CorruptedSourceException();
-            }
-
-            string hexa = $"{_hexadecimal[indexHigh]}{_hexadecimal[indexLow]}";
-            bytes.Add(Convert.ToByte(hexa, 16));
-         }
-
-         return Encoding.UTF8.GetString(bytes.ToArray());
       }
    }
 }
