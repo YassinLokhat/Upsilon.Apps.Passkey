@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Text;
 using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Utils;
@@ -84,17 +83,22 @@ namespace Upsilon.Apps.PassKey.UnitTests
          return [.. passkeys];
       }
 
-      public static string GetRandomString()
+      public static string GetRandomString(int min = 10, int max = 0)
       {
          Random random = _getRandom();
 
-         int length = random.Next(10, 20);
+         if (max == 0)
+         {
+            max = min + 10;
+         }
+
+         int length = random.Next(min, max);
 
          byte[] bytes = new byte[length];
 
          random.NextBytes(bytes);
 
-         return CryptographicCenter.GetHash(Encoding.ASCII.GetString(bytes));
+         return Convert.ToBase64String(bytes)[..length];
       }
 
       public static int GetRandomInt(int max) => GetRandomInt(0, max);

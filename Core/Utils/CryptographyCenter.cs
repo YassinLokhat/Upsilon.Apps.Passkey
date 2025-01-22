@@ -89,7 +89,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       public string EncryptSymmetrically(string source, string[] passwords)
       {
          source = _encryptAes(source, passwords);
-         source = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(source));
+         source = Convert.ToBase64String(Encoding.Unicode.GetBytes(source));
 
          Sign(ref source);
 
@@ -109,7 +109,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
             throw new CheckSignFailedException();
          }
 
-         source = System.Text.Encoding.Unicode.GetString(Convert.FromBase64String(source));
+         source = Encoding.Unicode.GetString(Convert.FromBase64String(source));
          source = _decryptAes(source, passwords);
 
          return source;
@@ -153,11 +153,18 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          RSAParameters pubKey = (RSAParameters?)xs.Deserialize(sr) ?? throw new WrongPasswordException(0);
 
          csp.ImportParameters(pubKey);
+         StringBuilder sb = new();
 
-         byte[] bytesPlainTextData = System.Text.Encoding.Unicode.GetBytes(source);
-         byte[] bytesCypherText = csp.Encrypt(bytesPlainTextData, false);
+         while (source.Length != 0)
+         {
+            int size = source.Length < 100 ? source.Length : 100;
 
-         source = Convert.ToBase64String(bytesCypherText);
+            sb.Append(_encryptRsa(source[..size], csp) + "|");
+
+            source = source[size..];
+         }
+
+         source = sb.ToString().TrimEnd('|');
 
          Sign(ref source);
 
@@ -177,26 +184,24 @@ namespace Upsilon.Apps.PassKey.Core.Utils
             throw new CheckSignFailedException();
          }
 
-         try
+         RSACryptoServiceProvider csp = new();
+
+         StringReader sr = new(key);
+         System.Xml.Serialization.XmlSerializer xs = new(typeof(RSAParameters));
+
+         RSAParameters privKey = (RSAParameters?)xs.Deserialize(sr) ?? throw new Exception();
+
+         csp.ImportParameters(privKey);
+
+         string[] sourecs = source.Split('|');
+         StringBuilder sb = new();
+
+         for (int i = 0; i < sourecs.Length; i++)
          {
-            RSACryptoServiceProvider csp = new();
-
-            StringReader sr = new(key);
-            System.Xml.Serialization.XmlSerializer xs = new(typeof(RSAParameters));
-
-            RSAParameters privKey = (RSAParameters?)xs.Deserialize(sr) ?? throw new Exception();
-
-            csp.ImportParameters(privKey);
-
-            byte[] bytesCypherText = Convert.FromBase64String(source);
-            byte[] bytesPlainTextData = csp.Decrypt(bytesCypherText, false);
-
-            return System.Text.Encoding.Unicode.GetString(bytesPlainTextData);
+            sb.Append(_decryptRsa(sourecs[i], i, csp));
          }
-         catch
-         {
-            throw new WrongPasswordException(0);
-         }
+
+         return sb.ToString();
       }
 
       private string _cipherAes(string plainText, string key)
@@ -325,6 +330,31 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          }
 
          return source;
+      }
+
+      private string _encryptRsa(string source, RSACryptoServiceProvider csp)
+      {
+         byte[] bytesPlainTextData = Encoding.Unicode.GetBytes(source);
+         byte[] bytesCypherText = csp.Encrypt(bytesPlainTextData, false);
+
+         source = Convert.ToBase64String(bytesCypherText);
+
+         return source;
+      }
+
+      private string _decryptRsa(string source, int level, RSACryptoServiceProvider csp)
+      {
+         try
+         {
+            byte[] bytesCypherText = Convert.FromBase64String(source);
+            byte[] bytesPlainTextData = csp.Decrypt(bytesCypherText, false);
+
+            return Encoding.Unicode.GetString(bytesPlainTextData);
+         }
+         catch
+         {
+            throw new WrongPasswordException(level);
+         }
       }
    }
 }
