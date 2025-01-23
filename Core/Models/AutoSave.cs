@@ -1,4 +1,6 @@
 ﻿using Upsilon.Apps.PassKey.Core.Enums;
+using Upsilon.Apps.PassKey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Models
 {
@@ -50,6 +52,9 @@ namespace Upsilon.Apps.PassKey.Core.Models
          }
 
          Database.AutoSaveFileLocker.Save(this, Database.Passkeys);
+
+         string act = action == ChangeType.Add ? "added" : action == ChangeType.Delete ? "deleted" : "updated";
+         Database.Logs.AddLog(itemId, $"{fieldName.ToSentenceCase()} has been {act}", false);
       }
 
       internal void MergeChange()
@@ -76,7 +81,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             File.Delete(Database.AutoSaveFile);
          }
 
-         // LOG "Autosave cleared"
+         Database.Logs.AddLog(Database.User?.ItemId ?? string.Empty, $"autosave cleared", false);
       }
    }
 }

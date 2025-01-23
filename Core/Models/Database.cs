@@ -55,9 +55,9 @@ namespace Upsilon.Apps.PassKey.Core.Models
          Passkeys = [CryptographicCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographicCenter.GetSlowHash(x))];
          DatabaseFileLocker.Save(User, Passkeys);
 
+         Logs.Username = User.Username;
          LogFileLocker?.Save(Logs, [CryptographicCenter.GetHash(User.Username)]);
-
-         // LOG "Database saved"
+         Logs.AddLog(User.ItemId, $"updates have been saved", false);
 
          AutoSave.Clear();
       }
@@ -72,9 +72,12 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             User = DatabaseFileLocker.Open<User>(Passkeys);
          }
-         catch
+         catch (Exception ex)
          {
-            // LOG "Database login failed"
+            if (ex is WrongPasswordException passwordException)
+            {
+               Logs.AddLog(string.Empty, $"login failed at level {(passwordException.PasswordLevel)}", true);
+            }
          }
 
          if (User != null)
@@ -155,10 +158,12 @@ namespace Upsilon.Apps.PassKey.Core.Models
          Logs = fileMode == FileMode.Create
             ? new()
             {
-               Database = this,
+               Username = username,
                PublicKey = publicKey,
             }
             : LogFileLocker.Open<LogCenter>([cryptographicCenter.GetHash(username)]);
+
+         Logs.Database = this;
 
          _onAutoSaveDetected = autoSaveHandler;
       }
@@ -205,7 +210,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             Passkeys = [.. passkeys],
          };
 
-         // LOG "Database created"
+         database.Logs.AddLog(database.User.ItemId, $"database has been created", false);
 
          database.Save();
 
@@ -236,7 +241,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             autoSaveHandler,
             username);
 
-         // LOG "Database opened"
+         database.Logs.AddLog(database.User?.ItemId ?? username, $"logged in", false);
 
          return database;
       }
@@ -254,15 +259,15 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             case AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile:
                AutoSave.MergeChange();
-               // LOG "MergeThenRemoveAutoSaveFile"
+               Logs.AddLog(User.ItemId, $"autosave file merged and removed", false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear();
-               // LOG "DontMergeAndRemoveAutoSaveFile"
+               Logs.AddLog(User.ItemId, $"autosave file not merged and removed", false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
-               // LOG "DontMergeAndKeepAutoSaveFile"
+               Logs.AddLog(User.ItemId, $"autosave file not merged and keeped.", false);
                break;
          }
       }
