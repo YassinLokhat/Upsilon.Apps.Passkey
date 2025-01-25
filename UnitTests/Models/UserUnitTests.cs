@@ -27,8 +27,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
 
          // When
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseLoaded.User));
-
          databaseLoaded.User.Username = newUsername;
          databaseLoaded.User.Passkeys = newPasskeys;
          databaseLoaded.User.LogoutTimeout = logoutTimeout;
@@ -63,8 +61,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
 
          // When
-         if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
-
          databaseCreated.User.Username = newUsername;
          databaseCreated.User.Passkeys = newPasskeys;
          databaseCreated.User.LogoutTimeout = logoutTimeout;
@@ -89,9 +85,9 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // Then
          _ = databaseLoaded.User.Should().NotBeNull();
-         _ = (databaseLoaded.User?.Username.Should().Be(newUsername));
-         _ = (databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout));
-         _ = (databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout));
+         _ = databaseLoaded.User.Username.Should().Be(newUsername);
+         _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
+         _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
          _ = File.Exists(autoSaveFile).Should().BeFalse();
 
@@ -123,8 +119,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
 
          // When
-         if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
-
          databaseCreated.User.Username = newUsername;
          databaseCreated.User.Passkeys = newPasskeys;
          databaseCreated.User.LogoutTimeout = logoutTimeout;
@@ -139,10 +133,10 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeFalse();
-         _ = (databaseLoaded.User?.Username.Should().Be(newUsername));
-         _ = (databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(newPasskeys));
-         _ = (databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout));
-         _ = (databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout));
+         _ = databaseLoaded.User.Username.Should().Be(newUsername);
+         _ = databaseLoaded.User.Passkeys.Should().BeEquivalentTo(newPasskeys);
+         _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
+         _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
          // When
          databaseLoaded.Close();
@@ -154,10 +148,10 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeFalse();
-         _ = (databaseLoaded.User?.Username.Should().Be(newUsername));
-         _ = (databaseLoaded.User?.Passkeys.Should().BeEquivalentTo(newPasskeys));
-         _ = (databaseLoaded.User?.LogoutTimeout.Should().Be(logoutTimeout));
-         _ = (databaseLoaded.User?.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout));
+         _ = databaseLoaded.User.Username.Should().Be(newUsername);
+         _ = databaseLoaded.User.Passkeys.Should().BeEquivalentTo(newPasskeys);
+         _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
+         _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
          // Finaly
          databaseLoaded.Close();

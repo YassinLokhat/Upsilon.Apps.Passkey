@@ -19,7 +19,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService service = databaseCreated.User.AddService("Service_" + UnitTestsHelper.GetUsername());
          string accountLabel = "Account_" + UnitTestsHelper.GetUsername();
          string[] identifiants = UnitTestsHelper.GetRandomStringArray();
@@ -46,7 +45,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          databaseCreated.Close();
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
@@ -81,7 +79,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService service = databaseCreated.User.AddService("Service_" + UnitTestsHelper.GetUsername());
          string accountLabel = "Account_" + UnitTestsHelper.GetUsername();
          string[] identifiants = UnitTestsHelper.GetRandomStringArray();
@@ -107,7 +104,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          databaseCreated.Close();
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
@@ -141,7 +137,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService service = databaseCreated.User.AddService("Service_" + UnitTestsHelper.GetUsername());
          string accountLabel = "Account_" + UnitTestsHelper.GetUsername();
          string[] identifiants = UnitTestsHelper.GetRandomStringArray();
@@ -151,7 +146,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          databaseCreated.Close();
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService serviceLoaded = databaseLoaded.User.Services.First();
          IAccount accountLoaded = serviceLoaded.Accounts.First();
 
@@ -165,7 +159,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          databaseLoaded.Save();
          databaseLoaded.Close();
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
@@ -187,7 +180,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService service = databaseCreated.User.AddService("Service_" + UnitTestsHelper.GetUsername());
          string accountLabel = "Account_" + UnitTestsHelper.GetUsername();
          string[] identifiants = UnitTestsHelper.GetRandomStringArray();
@@ -197,7 +189,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          databaseCreated.Close();
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService serviceLoaded = databaseLoaded.User.Services.First();
          IAccount accountLoaded = serviceLoaded.Accounts.First();
 
@@ -210,7 +201,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          // When
          databaseLoaded.Close();
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then

@@ -159,7 +159,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          {
             int size = source.Length < 100 ? source.Length : 100;
 
-            sb.Append(_encryptRsa(source[..size], csp) + "|");
+            _ = sb.Append(_encryptRsa(source[..size], csp) + "|");
 
             source = source[size..];
          }
@@ -198,7 +198,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
 
          for (int i = 0; i < sourecs.Length; i++)
          {
-            sb.Append(_decryptRsa(sourecs[i], i, csp));
+            _ = sb.Append(_decryptRsa(sourecs[i], i, csp));
          }
 
          return sb.ToString();

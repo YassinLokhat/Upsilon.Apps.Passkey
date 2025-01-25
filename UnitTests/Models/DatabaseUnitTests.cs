@@ -38,10 +38,10 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = File.Exists(databaseCreated.LogFile).Should().BeTrue();
 
          _ = databaseCreated.User.Should().NotBeNull();
-         _ = (databaseCreated.User?.Username.Should().Be(username));
+         _ = databaseCreated.User.Username.Should().Be(username);
 
-         _ = (databaseCreated.User?.LogoutTimeout.Should().Be(0));
-         _ = (databaseCreated.User?.CleaningClipboardTimeout.Should().Be(0));
+         _ = databaseCreated.User.LogoutTimeout.Should().Be(0);
+         _ = databaseCreated.User.CleaningClipboardTimeout.Should().Be(0);
 
          // When
          databaseCreated.Close();
@@ -53,27 +53,27 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = File.Exists(logFile).Should().BeTrue();
 
          // When
-         IDatabase? databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
 
          // Then
          _ = databaseLoaded.Should().NotBeNull();
-         _ = (databaseLoaded?.DatabaseFile.Should().Be(databaseFile));
-         _ = File.Exists(databaseLoaded?.DatabaseFile).Should().BeTrue();
+         _ = databaseLoaded.DatabaseFile.Should().Be(databaseFile);
+         _ = File.Exists(databaseLoaded.DatabaseFile).Should().BeTrue();
 
-         _ = (databaseLoaded?.AutoSaveFile.Should().Be(autoSaveFile));
-         _ = File.Exists(databaseLoaded?.AutoSaveFile).Should().BeFalse();
+         _ = databaseLoaded.AutoSaveFile.Should().Be(autoSaveFile);
+         _ = File.Exists(databaseLoaded.AutoSaveFile).Should().BeFalse();
 
-         _ = (databaseLoaded?.LogFile.Should().Be(logFile));
-         _ = File.Exists(databaseLoaded?.LogFile).Should().BeTrue();
+         _ = databaseLoaded.LogFile.Should().Be(logFile);
+         _ = File.Exists(databaseLoaded.LogFile).Should().BeTrue();
 
-         _ = (databaseLoaded?.User.Should().NotBeNull());
-         _ = (databaseLoaded?.User?.Username.Should().Be(username));
+         _ = databaseLoaded.User.Should().NotBeNull();
+         _ = databaseLoaded.User.Username.Should().Be(username);
 
-         _ = (databaseLoaded?.User?.LogoutTimeout.Should().Be(0));
-         _ = (databaseLoaded?.User?.CleaningClipboardTimeout.Should().Be(0));
+         _ = databaseLoaded.User.LogoutTimeout.Should().Be(0);
+         _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(0);
 
          // When
-         databaseLoaded?.Delete();
+         databaseLoaded.Delete();
 
          // Then
          _ = databaseCreated.User.Should().BeNull();
@@ -95,8 +95,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase();
          databaseCreated.Close();
-         IOException? exception = null;
-         IDatabase? newDatabase = null;
+         IOException exception = null;
+         IDatabase newDatabase = null;
 
          // When
          Action act = new(() =>
@@ -116,7 +116,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = act.Should().Throw<IOException>();
          _ = newDatabase.Should().BeNull();
          _ = exception.Should().NotBeNull();
-         _ = (exception?.Message.Should().Be($"'{UnitTestsHelper.ComputeDatabaseFilePath()}' database file already exists"));
+         _ = exception.Message.Should().Be($"'{UnitTestsHelper.ComputeDatabaseFilePath()}' database file already exists");
 
          // Finaly
          UnitTestsHelper.ClearTestEnvironment();
@@ -138,8 +138,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         IOException? exception = null;
-         IDatabase? databaseLoaded = null;
+         IOException exception = null;
+         IDatabase databaseLoaded = null;
 
          // When
          Action act = new(() =>
@@ -182,7 +182,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = databaseLoaded.Should().NotBeNull();
 
          // Finaly
-         databaseLoaded?.Close();
+         databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
 
