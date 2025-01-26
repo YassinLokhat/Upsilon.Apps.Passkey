@@ -1,5 +1,4 @@
 ﻿using Upsilon.Apps.PassKey.Core.Enums;
-using Upsilon.Apps.PassKey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Models
@@ -80,8 +79,6 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             File.Delete(Database.AutoSaveFile);
          }
-
-         Database.Logs.AddLog(Database.User?.ItemId ?? string.Empty, $"autosave cleared", false);
       }
    }
 }

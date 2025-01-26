@@ -29,6 +29,11 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
       public void Dispose()
       {
+         if (User != null)
+         {
+            Logs.AddLog(User.ItemId, $"logged out", false);
+         }
+
          User = null;
          AutoSave.Changes.Clear();
          Passkeys = [];
@@ -57,7 +62,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
          Logs.Username = User.Username;
          LogFileLocker?.Save(Logs, [CryptographicCenter.GetHash(User.Username)]);
-         Logs.AddLog(User.ItemId, $"updates have been saved", false);
+         Logs.AddLog(User.ItemId, $"database saved", false);
 
          AutoSave.Clear();
       }
@@ -83,6 +88,8 @@ namespace Upsilon.Apps.PassKey.Core.Models
          if (User != null)
          {
             User.Database = this;
+
+            Logs.AddLog(User.ItemId, $"logged in", false);
 
             if (File.Exists(AutoSaveFile))
             {
@@ -210,7 +217,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             Passkeys = [.. passkeys],
          };
 
-         database.Logs.AddLog(database.User.ItemId, $"database has been created", false);
+         database.Logs.AddLog(database.User.ItemId, $"database created", false);
 
          database.Save();
 
@@ -241,7 +248,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             autoSaveHandler,
             username);
 
-         database.Logs.AddLog(database.User?.ItemId ?? username, $"logged in", false);
+         database.Logs.AddLog(username, $"database opened", false);
 
          return database;
       }
@@ -259,15 +266,15 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             case AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile:
                AutoSave.MergeChange();
-               Logs.AddLog(User.ItemId, $"autosave file merged and removed", false);
+               Logs.AddLog(User.ItemId, $"autosave merged and removed", false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear();
-               Logs.AddLog(User.ItemId, $"autosave file not merged and removed", false);
+               Logs.AddLog(User.ItemId, $"autosave not merged and removed", false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
-               Logs.AddLog(User.ItemId, $"autosave file not merged and keeped.", false);
+               Logs.AddLog(User.ItemId, $"autosave not merged and keeped.", false);
                break;
          }
       }

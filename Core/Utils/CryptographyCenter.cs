@@ -282,7 +282,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       {
          passwords = passwords.Select(x => GetHash(x)).ToArray();
 
-         for (int i = 0; i < passwords.Length; i++)
+         for (int i = passwords.Length - 1; i >= 0; i--)
          {
             Sign(ref source);
             source = _cipherAes(source, passwords[i]);
@@ -312,7 +312,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
             throw new CheckSignFailedException();
          }
 
-         for (int i = passwords.Length - 1; i >= 0; i--)
+         for (int i = 0; i < passwords.Length; i++)
          {
             try
             {

@@ -38,6 +38,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       {
          Log log = new()
          {
+            DateTime = DateTime.Now,
             ItemId = itemId,
             Message = message,
             NeedsReview = needsReview,
