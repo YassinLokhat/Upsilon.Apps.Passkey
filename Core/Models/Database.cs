@@ -240,7 +240,12 @@ namespace Upsilon.Apps.PassKey.Core.Models
       {
          if (logCloseEvent)
          {
-            Logs.AddLog(Username, $"logged out", false);
+            if (User != null)
+            {
+               Logs.AddLog(Username, $"logged out", false);
+            }
+
+            Logs.AddLog(Username, $"database closed", false);
          }
 
          User = null;

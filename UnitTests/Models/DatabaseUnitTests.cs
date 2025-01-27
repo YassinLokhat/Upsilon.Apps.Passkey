@@ -50,6 +50,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          // When
          databaseCreated.Close();
          expectedLogs.Push($"{username}|logged out|False");
+         expectedLogs.Push($"{username}|database closed|False");
 
          // Then
          _ = databaseCreated.User.Should().BeNull();
@@ -79,11 +80,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = databaseLoaded.User.LogoutTimeout.Should().Be(0);
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(0);
 
-         // When
-         string[] databaseLogs = databaseLoaded.Logs.Select(x => $"{x.ItemName}|{x.Message}|{x.NeedsReview}").ToArray();
-
-         // Then
-         databaseLogs.Should().BeEquivalentTo(expectedLogs);
+         UnitTestsHelper.LastLogsMatches(databaseLoaded, [.. expectedLogs]).Should().BeTrue();
 
          // When
          databaseLoaded.Delete();
@@ -206,10 +203,12 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
       public void Case04_DatabaseOpenButWrongPasskeysProvided()
       {
          // Given
+         string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string[] wrongPasskeys = [.. passkeys];
          int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
          wrongPasskeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
+         Stack<string> expectedLogs = new();
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -217,9 +216,24 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(wrongPasskeys);
+         expectedLogs.Push($"{username}|database opened|False");
+         for (int i = wrongKeyIndex; i < wrongPasskeys.Length; i++)
+         {
+            expectedLogs.Push($"{username}|login failed at level {(wrongKeyIndex + 1)}|True");
+         }
 
          // Then
          _ = databaseLoaded.User.Should().BeNull();
+
+         // When
+         databaseLoaded.Close();
+         expectedLogs.Push($"{username}|database closed|False");
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+         expectedLogs.Push($"{username}|database opened|False");
+         expectedLogs.Push($"{username}|logged in|False");
+
+         // Then
+         UnitTestsHelper.LastLogsMatches(databaseLoaded, [.. expectedLogs]).Should().BeTrue();
 
          // Finaly
          databaseLoaded.Close();

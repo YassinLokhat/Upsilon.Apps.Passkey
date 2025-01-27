@@ -109,5 +109,18 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
          return random.Next(min, max);
       }
+
+      public static bool LastLogsMatches(IDatabase database, string[] expectedLogs)
+      {
+         string[] actualLogs = database.Logs.Select(x => $"{x.ItemName}|{x.Message}|{x.NeedsReview}").ToArray();
+
+         for (int i = 0; i < expectedLogs.Length; i++)
+         {
+            if (expectedLogs[i] != actualLogs[i])
+               return false;
+         }
+
+         return true;
+      }
    }
 }
