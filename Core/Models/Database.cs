@@ -24,48 +24,12 @@ namespace Upsilon.Apps.PassKey.Core.Models
          LogFileLocker?.Delete();
          AutoSaveFileLocker?.Delete();
 
-         Dispose();
+         _close(logCloseEvent: false);
       }
 
-      public void Dispose()
-      {
-         if (User != null)
-         {
-            Logs.AddLog(User.ItemId, $"logged out", false);
-         }
+      public void Dispose() => _close(logCloseEvent: true);
 
-         User = null;
-         AutoSave.Changes.Clear();
-         Passkeys = [];
-
-         DatabaseFileLocker?.Dispose();
-         DatabaseFileLocker = null;
-
-         LogFileLocker?.Dispose();
-         LogFileLocker = null;
-
-         AutoSaveFileLocker?.Dispose();
-         AutoSaveFileLocker = null;
-
-         DatabaseFile = string.Empty;
-         AutoSaveFile = string.Empty;
-         LogFile = string.Empty;
-      }
-
-      public void Save()
-      {
-         if (User == null) throw new NullReferenceException(nameof(User));
-         if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
-
-         Passkeys = [CryptographicCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographicCenter.GetSlowHash(x))];
-         DatabaseFileLocker.Save(User, Passkeys);
-
-         Logs.Username = User.Username;
-         LogFileLocker?.Save(Logs, [CryptographicCenter.GetHash(User.Username)]);
-         Logs.AddLog(User.ItemId, $"database saved", false);
-
-         AutoSave.Clear();
-      }
+      public void Save() => _save(logSaveEvent: true);
 
       public IUser? Login(string passkey)
       {
@@ -81,7 +45,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             if (ex is WrongPasswordException passwordException)
             {
-               Logs.AddLog(string.Empty, $"login failed at level {(passwordException.PasswordLevel)}", true);
+               Logs.AddLog(Username, $"login failed at level {(passwordException.PasswordLevel)}", true);
             }
          }
 
@@ -89,7 +53,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             User.Database = this;
 
-            Logs.AddLog(User.ItemId, $"logged in", false);
+            Logs.AddLog(Username, $"logged in", false);
 
             if (File.Exists(AutoSaveFile))
             {
@@ -107,10 +71,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          return User;
       }
 
-      public void Close()
-      {
-         Dispose();
-      }
+      public void Close() => Dispose();
 
       #endregion
 
@@ -118,6 +79,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
       internal AutoSave AutoSave;
       internal LogCenter Logs;
 
+      internal string Username { get; private set; }
       internal string[] Passkeys { get; private set; }
 
       internal FileLocker? DatabaseFileLocker;
@@ -146,6 +108,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          CryptographicCenter = cryptographicCenter;
          SerializationCenter = serializationCenter;
 
+         Username = username;
          Passkeys = [CryptographicCenter.GetHash(username)];
 
          if (passkeys != null)
@@ -217,11 +180,11 @@ namespace Upsilon.Apps.PassKey.Core.Models
             Passkeys = [.. passkeys],
          };
 
-         database.Logs.AddLog(database.User.ItemId, $"database created", false);
+         database.Logs.AddLog(username, $"database created", false);
 
-         database.Save();
+         database._save(logSaveEvent: false);
 
-         database.Dispose();
+         database._close(logCloseEvent: false);
 
          return Open(cryptographicCenter,
             serializationCenter,
@@ -253,6 +216,52 @@ namespace Upsilon.Apps.PassKey.Core.Models
          return database;
       }
 
+      private void _save(bool logSaveEvent)
+      {
+         if (User == null) throw new NullReferenceException(nameof(User));
+         if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
+
+         Username = User.Username;
+         Passkeys = [CryptographicCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographicCenter.GetSlowHash(x))];
+         DatabaseFileLocker.Save(User, Passkeys);
+
+         Logs.Username = Username;
+         LogFileLocker?.Save(Logs, [CryptographicCenter.GetHash(User.Username)]);
+
+         if (logSaveEvent)
+         {
+            Logs.AddLog(Username, $"database saved", false);
+         }
+
+         AutoSave.Clear();
+      }
+
+      private void _close(bool logCloseEvent)
+      {
+         if (logCloseEvent)
+         {
+            Logs.AddLog(Username, $"logged out", false);
+         }
+
+         User = null;
+         AutoSave.Changes.Clear();
+         Username = string.Empty;
+         Passkeys = [];
+
+         DatabaseFileLocker?.Dispose();
+         DatabaseFileLocker = null;
+
+         LogFileLocker?.Dispose();
+         LogFileLocker = null;
+
+         AutoSaveFileLocker?.Dispose();
+         AutoSaveFileLocker = null;
+
+         DatabaseFile = string.Empty;
+         AutoSaveFile = string.Empty;
+         LogFile = string.Empty;
+      }
+
       private void _handleAutoSave(AutoSaveMergeBehavior mergeAutoSave)
       {
          if (User == null) throw new NullReferenceException(nameof(User));
@@ -266,15 +275,15 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             case AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile:
                AutoSave.MergeChange();
-               Logs.AddLog(User.ItemId, $"autosave merged and removed", false);
+               Logs.AddLog(Username, $"autosave merged and removed", false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear();
-               Logs.AddLog(User.ItemId, $"autosave not merged and removed", false);
+               Logs.AddLog(Username, $"autosave not merged and removed", false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
-               Logs.AddLog(User.ItemId, $"autosave not merged and keeped.", false);
+               Logs.AddLog(Username, $"autosave not merged and keeped.", false);
                break;
          }
       }

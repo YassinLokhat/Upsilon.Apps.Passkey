@@ -17,7 +17,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
       public static string ComputeAutoSaveFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{username}.pka";
       public static string ComputeLogFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{username}.pkl";
 
-      public static IDatabase CreateTestDatabase(string[]? passkeys = null, [CallerMemberName] string username = "")
+      public static IDatabase CreateTestDatabase(string[] passkeys = null, [CallerMemberName] string username = "")
       {
          string databaseFile = ComputeDatabaseFilePath(username);
          string autoSaveFile = ComputeAutoSaveFilePath(username);

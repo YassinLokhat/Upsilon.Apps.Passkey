@@ -21,11 +21,15 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
          string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
          string logFile = UnitTestsHelper.ComputeLogFilePath();
+         Stack<string> expectedLogs = new();
 
          UnitTestsHelper.ClearTestEnvironment();
 
          // When
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         expectedLogs.Push($"{username}|database created|False");
+         expectedLogs.Push($"{username}|database opened|False");
+         expectedLogs.Push($"{username}|logged in|False");
 
          // Then
          _ = databaseCreated.DatabaseFile.Should().Be(databaseFile);
@@ -45,6 +49,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          databaseCreated.Close();
+         expectedLogs.Push($"{username}|logged out|False");
 
          // Then
          _ = databaseCreated.User.Should().BeNull();
@@ -54,6 +59,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+         expectedLogs.Push($"{username}|database opened|False");
+         expectedLogs.Push($"{username}|logged in|False");
 
          // Then
          _ = databaseLoaded.Should().NotBeNull();
@@ -71,6 +78,12 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          _ = databaseLoaded.User.LogoutTimeout.Should().Be(0);
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(0);
+
+         // When
+         string[] databaseLogs = databaseLoaded.Logs.Select(x => $"{x.ItemName}|{x.Message}|{x.NeedsReview}").ToArray();
+
+         // Then
+         databaseLogs.Should().BeEquivalentTo(expectedLogs);
 
          // When
          databaseLoaded.Delete();

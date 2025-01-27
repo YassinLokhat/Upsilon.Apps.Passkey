@@ -88,7 +88,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
             string[] passkeys = UnitTestsHelper.GetRandomStringArray();
             string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptSymmetrically(source, passkeys);
             string corruptedSource = encryptedSource + " ";
-            CheckSignFailedException? exception = null;
+            CheckSignFailedException exception = null;
 
             // When
             Action act = new(() =>
@@ -124,7 +124,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
             string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptSymmetrically(source, passkeys);
             int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
             passkeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
-            WrongPasswordException? exception = null;
+            WrongPasswordException exception = null;
 
             // When
             Action act = new(() =>
@@ -182,7 +182,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
             UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
             string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptAsymmetrically(source, publicKey);
             string corruptedSource = encryptedSource + " ";
-            CheckSignFailedException? exception = null;
+            CheckSignFailedException exception = null;
 
             // When
             Action act = new(() =>
@@ -217,7 +217,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
             UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
             UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string wrongPublicKey, out string wrongPrivateKey);
             string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptAsymmetrically(source, publicKey);
-            WrongPasswordException? exception = null;
+            WrongPasswordException exception = null;
 
             // When
             Action act = new(() =>

@@ -52,6 +52,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
          Database.AutoSaveFileLocker.Save(this, Database.Passkeys);
 
+         // TODO : add specific format for ADD : "{ItemName} has been added", DELETE : "{ItemName} has beed deleted" and UPDATE : "{ItemName}'s {FieldName} has been set to {Value}
          string act = action == ChangeType.Add ? "added" : action == ChangeType.Delete ? "deleted" : "updated";
          Database.Logs.AddLog(itemId, $"{fieldName.ToSentenceCase()} has been {act}", false);
       }

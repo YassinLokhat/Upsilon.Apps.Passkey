@@ -34,12 +34,12 @@ namespace Upsilon.Apps.PassKey.Core.Utils
       public string Username { get; set; } = string.Empty;
       public string PublicKey { get; set; } = string.Empty;
 
-      public void AddLog(string itemId, string message, bool needsReview)
+      public void AddLog(string itemName, string message, bool needsReview)
       {
          Log log = new()
          {
             DateTime = DateTime.Now,
-            ItemId = itemId,
+            ItemName = itemName,
             Message = message,
             NeedsReview = needsReview,
          };

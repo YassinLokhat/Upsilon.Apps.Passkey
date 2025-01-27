@@ -13,7 +13,7 @@
       /// <summary>
       /// The identifiant of the item.
       /// </summary>
-      public string ItemId { get; }
+      public string ItemName { get; }
 
       /// <summary>
       /// The event message.
