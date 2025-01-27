@@ -242,7 +242,15 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             if (User != null)
             {
-               Logs.AddLog(Username, $"logged out", false);
+               string logoutLog = $"logged out";
+               bool needsReview = AutoSave.Changes.Count != 0;
+
+               if (needsReview)
+               {
+                  logoutLog += " without saving";
+               }
+
+               Logs.AddLog(Username, logoutLog, needsReview);
             }
 
             Logs.AddLog(Username, $"database closed", false);
