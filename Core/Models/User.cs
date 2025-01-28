@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Security.Principal;
 using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Interfaces;
 
@@ -14,25 +15,45 @@ namespace Upsilon.Apps.PassKey.Core.Models
       string IUser.Username
       {
          get => Username;
-         set => Username = Database.AutoSave.UpdateValue(ItemId, nameof(Username), value);
+         set => Username = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(Username),
+            needsReview: true,
+            value: value,
+            readaableValue: value);
       }
 
       string[] IUser.Passkeys
       {
          get => Passkeys;
-         set => Passkeys = Database.AutoSave.UpdateValue(ItemId, nameof(Passkeys), value);
+         set => Passkeys = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(Passkeys),
+            needsReview: true,
+            value: value,
+            readaableValue: ":\n" + string.Join("\n", value));
       }
 
       int IUser.LogoutTimeout
       {
          get => LogoutTimeout;
-         set => LogoutTimeout = Database.AutoSave.UpdateValue(ItemId, nameof(LogoutTimeout), value);
+         set => LogoutTimeout = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(LogoutTimeout),
+            needsReview: false,
+            value: value,
+            readaableValue: value.ToString());
       }
 
       int IUser.CleaningClipboardTimeout
       {
          get => CleaningClipboardTimeout;
-         set => CleaningClipboardTimeout = Database.AutoSave.UpdateValue(ItemId, nameof(CleaningClipboardTimeout), value);
+         set => CleaningClipboardTimeout = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(CleaningClipboardTimeout),
+            needsReview: false,
+            value: value,
+            readaableValue: value.ToString());
       }
 
       IService IUser.AddService(string serviceName)
@@ -44,7 +65,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             ServiceName = serviceName
          };
 
-         Services.Add(Database.AutoSave.AddValue(ItemId, service));
+         Services.Add(Database.AutoSave.AddValue(ItemId, itemName: $"Service {service}", containerName: this.ToString(), needsReview: false, value: service));
 
          return service;
       }
@@ -54,7 +75,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          Service serviceToRemove = Services.FirstOrDefault(x => x.ItemId == service.ItemId)
             ?? throw new KeyNotFoundException($"The '{service.ItemId}' service was not found into the '{ItemId}' user");
 
-         _ = Services.Remove(Database.AutoSave.DeleteValue(ItemId, serviceToRemove));
+         _ = Services.Remove(Database.AutoSave.DeleteValue(ItemId, itemName: $"Service {serviceToRemove}", containerName: this.ToString(), needsReview: true, value: serviceToRemove));
       }
 
       #endregion
@@ -139,5 +160,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
                throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(ChangeType));
          }
       }
+
+      public override string ToString() => $"User {Username}";
    }
 }

@@ -64,35 +64,35 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          databaseCreated.User.Username = newUsername;
-         expectedLogs.Push($"{username}|User {username}'s username has been set to {newUsername}|True");
+         expectedLogs.Push($"User {username}'s username has been set to {newUsername}|True");
          databaseCreated.User.Passkeys = newPasskeys;
-         expectedLogs.Push($"{username}|User {username}'s passkeys has been set to {newPasskeys}|True");
+         expectedLogs.Push($"User {newUsername}'s passkeys has been set to :\n{string.Join("\n", newPasskeys)}|True");
          databaseCreated.User.LogoutTimeout = logoutTimeout;
-         expectedLogs.Push($"{username}|User {username}'s logout timeout has been set to {logoutTimeout}|False");
+         expectedLogs.Push($"User {newUsername}'s logout timeout has been set to {logoutTimeout}|False");
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
-         expectedLogs.Push($"{username}|User {username}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}|False");
+         expectedLogs.Push($"User {newUsername}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}|False");
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeTrue();
 
          // When
          databaseCreated.Save();
-         expectedLogs.Push($"{newUsername}|User {newUsername}'s database saved|False");
+         expectedLogs.Push($"User {newUsername}'s database saved|False");
          databaseCreated.Close();
-         expectedLogs.Push($"{newUsername}|User {newUsername} logged out|False");
-         expectedLogs.Push($"{newUsername}|User {newUsername}'s database closed|False");
+         expectedLogs.Push($"User {newUsername} logged out|False");
+         expectedLogs.Push($"User {newUsername}'s database closed|False");
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeFalse();
 
          // When
          IDatabase databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter, UnitTestsHelper.SerializationCenter, databaseFile, autoSaveFile, logFile, newUsername);
-         expectedLogs.Push($"{newUsername}|User {newUsername}'s database opened|False");
+         expectedLogs.Push($"User {newUsername}'s database opened|False");
          foreach (string passkey in newPasskeys)
          {
             _ = databaseLoaded.Login(passkey);
          }
-         expectedLogs.Push($"{newUsername}|User {newUsername} logged in|False");
+         expectedLogs.Push($"User {newUsername} logged in|False");
 
          // Then
          _ = databaseLoaded.User.Should().NotBeNull();

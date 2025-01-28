@@ -6,8 +6,6 @@ namespace Upsilon.Apps.PassKey.Core.Models
    {
       public DateTime DateTime { get; set; }
 
-      public string ItemName { get; set; } = string.Empty;
-
       public string Message { get; set; } = string.Empty;
 
       public bool NeedsReview { get; set; }

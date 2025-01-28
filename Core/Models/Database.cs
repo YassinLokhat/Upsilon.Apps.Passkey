@@ -45,7 +45,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             if (ex is WrongPasswordException passwordException)
             {
-               Logs.AddLog(Username, $"User {Username} login failed at level {(passwordException.PasswordLevel)}", true);
+               Logs.AddLog($"User {Username} login failed at level {(passwordException.PasswordLevel)}", true);
             }
          }
 
@@ -53,7 +53,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             User.Database = this;
 
-            Logs.AddLog(Username, $"User {Username} logged in", false);
+            Logs.AddLog($"User {Username} logged in", false);
 
             if (File.Exists(AutoSaveFile))
             {
@@ -180,7 +180,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             Passkeys = [.. passkeys],
          };
 
-         database.Logs.AddLog(username, $"User {username}'s database created", false);
+         database.Logs.AddLog($"User {username}'s database created", false);
 
          database._save(logSaveEvent: false);
 
@@ -211,7 +211,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             autoSaveHandler,
             username);
 
-         database.Logs.AddLog(username, $"User {username}'s database opened", false);
+         database.Logs.AddLog($"User {username}'s database opened", false);
 
          return database;
       }
@@ -230,7 +230,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
          if (logSaveEvent)
          {
-            Logs.AddLog(Username, $"User {Username}'s database saved", false);
+            Logs.AddLog($"User {Username}'s database saved", false);
          }
 
          AutoSave.Clear();
@@ -250,10 +250,10 @@ namespace Upsilon.Apps.PassKey.Core.Models
                   logoutLog += " without saving";
                }
 
-               Logs.AddLog(Username, logoutLog, needsReview);
+               Logs.AddLog(logoutLog, needsReview);
             }
 
-            Logs.AddLog(Username, $"User {Username}'s database closed", false);
+            Logs.AddLog($"User {Username}'s database closed", false);
          }
 
          User = null;
@@ -288,15 +288,15 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             case AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile:
                AutoSave.MergeChange();
-               Logs.AddLog(Username, $"User {Username}'s autosave merged and removed", false);
+               Logs.AddLog($"User {Username}'s autosave merged and removed", false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear();
-               Logs.AddLog(Username, $"User {Username}'s autosave not merged and removed", false);
+               Logs.AddLog($"User {Username}'s autosave not merged and removed", false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
-               Logs.AddLog(Username, $"User {Username}'s autosave not merged and keeped.", false);
+               Logs.AddLog($"User {Username}'s autosave not merged and keeped.", false);
                break;
          }
       }

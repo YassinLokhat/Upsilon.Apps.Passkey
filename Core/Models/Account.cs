@@ -14,13 +14,23 @@ namespace Upsilon.Apps.PassKey.Core.Models
       string IAccount.Label
       {
          get => Label;
-         set => Label = Database.AutoSave.UpdateValue(ItemId, nameof(Label), value);
+         set => Label = Database.AutoSave.UpdateValue(ItemId, 
+            itemName: this.ToString(),
+            fieldName: nameof(Label),
+            needsReview: false,
+            value: value,
+            readaableValue: value);
       }
 
       string[] IAccount.Identifiants
       {
          get => Identifiants;
-         set => Identifiants = Database.AutoSave.UpdateValue(ItemId, nameof(Identifiants), value);
+         set => Identifiants = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(Identifiants),
+            needsReview: true,
+            value: value,
+            readaableValue: ":\n" + string.Join("\n", value));
       }
 
       public string Password
@@ -34,7 +44,12 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
                if (_service != null)
                {
-                  _ = Database.AutoSave.UpdateValue(ItemId, nameof(Passwords), Passwords);
+                  _ = Database.AutoSave.UpdateValue(ItemId,
+                     itemName: this.ToString(),
+                     fieldName: nameof(Passwords),
+                     needsReview: true,
+                     value: Passwords,
+                     readaableValue: value);
                }
             }
          }
@@ -45,19 +60,34 @@ namespace Upsilon.Apps.PassKey.Core.Models
       string IAccount.Notes
       {
          get => Notes;
-         set => Notes = Database.AutoSave.UpdateValue(ItemId, nameof(Notes), value);
+         set => Notes = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(Notes),
+            needsReview: false, 
+            value: value,
+            readaableValue: value);
       }
 
       int IAccount.PasswordUpdateReminderDelay
       {
          get => PasswordUpdateReminderDelay;
-         set => PasswordUpdateReminderDelay = Database.AutoSave.UpdateValue(ItemId, nameof(PasswordUpdateReminderDelay), value);
+         set => PasswordUpdateReminderDelay = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(PasswordUpdateReminderDelay),
+            needsReview: false,
+            value: value,
+            readaableValue: value.ToString());
       }
 
       AccountOption IAccount.Options
       {
          get => Options;
-         set => Options = Database.AutoSave.UpdateValue(ItemId, nameof(Options), value);
+         set => Options = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(Options),
+            needsReview: false,
+            value: value,
+            readaableValue: value.ToString());
       }
 
       #endregion
@@ -112,6 +142,18 @@ namespace Upsilon.Apps.PassKey.Core.Models
             default:
                throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(ChangeType));
          }
+      }
+
+      public override string ToString()
+      {
+         string account = "Account ";
+
+         if (!string.IsNullOrEmpty(Label))
+         {
+            account += "Label ";
+         }
+
+         return account + $"({string.Join(", ", Identifiants)})";
       }
    }
 }

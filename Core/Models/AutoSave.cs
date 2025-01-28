@@ -14,28 +14,28 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
       public Queue<Change> Changes { get; set; } = new();
 
-      internal T UpdateValue<T>(string itemId, string fieldName, T value) where T : notnull
+      internal T UpdateValue<T>(string itemId, string itemName, string fieldName, bool needsReview, T value, string readaableValue) where T : notnull
       {
-         _addChange(itemId, fieldName, Database.SerializationCenter.Serialize(value), ChangeType.Update);
+         _addChange(itemId, itemName, string.Empty, fieldName, Database.SerializationCenter.Serialize(value), readaableValue, needsReview, ChangeType.Update);
 
          return value;
       }
 
-      internal T AddValue<T>(string itemId, T value) where T : notnull
+      internal T AddValue<T>(string itemId, string itemName, string containerName, bool needsReview, T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, Database.SerializationCenter.Serialize(value), ChangeType.Add);
+         _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, ChangeType.Add);
 
          return value;
       }
 
-      internal T DeleteValue<T>(string itemId, T value) where T : notnull
+      internal T DeleteValue<T>(string itemId, string itemName, string containerName, bool needsReview, T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, Database.SerializationCenter.Serialize(value), ChangeType.Delete);
+         _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, ChangeType.Delete);
 
          return value;
       }
 
-      private void _addChange(string itemId, string fieldName, string value, ChangeType action)
+      private void _addChange(string itemId, string itemName, string containerName, string fieldName, string value, string readableValue, bool needsReview, ChangeType action)
       {
          Changes.Enqueue(new Change
          {
@@ -51,10 +51,23 @@ namespace Upsilon.Apps.PassKey.Core.Models
          }
 
          Database.AutoSaveFileLocker.Save(this, Database.Passkeys);
+         string logMessage;
 
-         // TODO : add specific format for ADD : "{ItemName} has been added", DELETE : "{ItemName} has beed deleted" and UPDATE : "{ItemName}'s {FieldName} has been set to {Value}
-         string act = action == ChangeType.Add ? "added" : action == ChangeType.Delete ? "deleted" : "updated";
-         Database.Logs.AddLog(itemId, $"{fieldName.ToSentenceCase()} has been {act}", false);
+         switch (action)
+         {
+            case ChangeType.Add:
+               logMessage = $"{itemName} has been added to {containerName}";
+               break;
+            case ChangeType.Delete:
+               logMessage = $"{itemName} has been deleted from {containerName}";
+               break;
+            case ChangeType.Update:
+            default:
+               logMessage = $"{itemName}'s {fieldName.ToSentenceCase().ToLower()} has been set to {readableValue}";
+               break;
+         }
+
+         Database.Logs.AddLog(logMessage, needsReview);
       }
 
       internal void MergeChange()

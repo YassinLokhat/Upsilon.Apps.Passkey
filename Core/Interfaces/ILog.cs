@@ -11,11 +11,6 @@
       public DateTime DateTime { get; }
 
       /// <summary>
-      /// The identifiant of the item.
-      /// </summary>
-      public string ItemName { get; }
-
-      /// <summary>
       /// The event message.
       /// </summary>
       public string Message { get; }
