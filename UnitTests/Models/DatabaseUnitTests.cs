@@ -27,9 +27,9 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         expectedLogs.Push($"{username}|database created|False");
-         expectedLogs.Push($"{username}|database opened|False");
-         expectedLogs.Push($"{username}|logged in|False");
+         expectedLogs.Push($"{username}|User {username}'s database created|False");
+         expectedLogs.Push($"{username}|User {username}'s database opened|False");
+         expectedLogs.Push($"{username}|User {username} logged in|False");
 
          // Then
          _ = databaseCreated.DatabaseFile.Should().Be(databaseFile);
@@ -49,8 +49,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          databaseCreated.Close();
-         expectedLogs.Push($"{username}|logged out|False");
-         expectedLogs.Push($"{username}|database closed|False");
+         expectedLogs.Push($"{username}|User {username} logged out|False");
+         expectedLogs.Push($"{username}|User {username}'s database closed|False");
 
          // Then
          _ = databaseCreated.User.Should().BeNull();
@@ -60,8 +60,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-         expectedLogs.Push($"{username}|database opened|False");
-         expectedLogs.Push($"{username}|logged in|False");
+         expectedLogs.Push($"{username}|User {username}'s database opened|False");
+         expectedLogs.Push($"{username}|User {username} logged in|False");
 
          // Then
          _ = databaseLoaded.Should().NotBeNull();
@@ -80,7 +80,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = databaseLoaded.User.LogoutTimeout.Should().Be(0);
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(0);
 
-         UnitTestsHelper.LastLogsMatches(databaseLoaded, [.. expectedLogs]).Should().BeTrue();
+         UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
 
          // When
          databaseLoaded.Delete();
@@ -216,10 +216,10 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(wrongPasskeys);
-         expectedLogs.Push($"{username}|database opened|False");
+         expectedLogs.Push($"{username}|User {username}'s database opened|False");
          for (int i = wrongKeyIndex; i < wrongPasskeys.Length; i++)
          {
-            expectedLogs.Push($"{username}|login failed at level {(wrongKeyIndex + 1)}|True");
+            expectedLogs.Push($"{username}|User {username} login failed at level {(wrongKeyIndex + 1)}|True");
          }
 
          // Then
@@ -227,13 +227,13 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          databaseLoaded.Close();
-         expectedLogs.Push($"{username}|database closed|False");
+         expectedLogs.Push($"{username}|User {username}'s database closed|False");
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-         expectedLogs.Push($"{username}|database opened|False");
-         expectedLogs.Push($"{username}|logged in|False");
+         expectedLogs.Push($"{username}|User {username}'s database opened|False");
+         expectedLogs.Push($"{username}|User {username} logged in|False");
 
          // Then
-         UnitTestsHelper.LastLogsMatches(databaseLoaded, [.. expectedLogs]).Should().BeTrue();
+         UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
 
          // Finaly
          databaseLoaded.Close();

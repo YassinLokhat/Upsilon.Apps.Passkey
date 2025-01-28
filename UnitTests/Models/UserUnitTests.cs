@@ -54,34 +54,45 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
          string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
          string logFile = UnitTestsHelper.ComputeLogFilePath();
+         string username = UnitTestsHelper.GetUsername();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase();
-         string newUsername = UnitTestsHelper.GetRandomString();
+         string newUsername = "new_" + username;
          string[] newPasskeys = UnitTestsHelper.GetRandomStringArray();
          int logoutTimeout = UnitTestsHelper.GetRandomInt(1, 60);
          int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
+         Stack<string> expectedLogs = new();
 
          // When
          databaseCreated.User.Username = newUsername;
+         expectedLogs.Push($"{username}|User {username}'s username has been set to {newUsername}|True");
          databaseCreated.User.Passkeys = newPasskeys;
+         expectedLogs.Push($"{username}|User {username}'s passkeys has been set to {newPasskeys}|True");
          databaseCreated.User.LogoutTimeout = logoutTimeout;
+         expectedLogs.Push($"{username}|User {username}'s logout timeout has been set to {logoutTimeout}|False");
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
+         expectedLogs.Push($"{username}|User {username}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}|False");
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeTrue();
 
          // When
          databaseCreated.Save();
+         expectedLogs.Push($"{newUsername}|User {newUsername}'s database saved|False");
          databaseCreated.Close();
+         expectedLogs.Push($"{newUsername}|User {newUsername} logged out|False");
+         expectedLogs.Push($"{newUsername}|User {newUsername}'s database closed|False");
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeFalse();
 
          // When
          IDatabase databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter, UnitTestsHelper.SerializationCenter, databaseFile, autoSaveFile, logFile, newUsername);
+         expectedLogs.Push($"{newUsername}|User {newUsername}'s database opened|False");
          foreach (string passkey in newPasskeys)
          {
             _ = databaseLoaded.Login(passkey);
          }
+         expectedLogs.Push($"{newUsername}|User {newUsername} logged in|False");
 
          // Then
          _ = databaseLoaded.User.Should().NotBeNull();
@@ -90,6 +101,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
          _ = File.Exists(autoSaveFile).Should().BeFalse();
+
+         UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
 
          // Finaly
          databaseLoaded.Close();
