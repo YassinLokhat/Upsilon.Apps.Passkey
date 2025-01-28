@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using FluentAssertions;
 using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Utils;
@@ -110,17 +111,14 @@ namespace Upsilon.Apps.PassKey.UnitTests
          return random.Next(min, max);
       }
 
-      public static bool LastLogsMatches(IDatabase database, string[] expectedLogs)
+      public static void LastLogsShouldMatch(IDatabase database, string[] expectedLogs)
       {
          string[] actualLogs = database.Logs.Select(x => $"{x.ItemName}|{x.Message}|{x.NeedsReview}").ToArray();
 
          for (int i = 0; i < expectedLogs.Length; i++)
          {
-            if (expectedLogs[i] != actualLogs[i])
-               return false;
+            actualLogs[i].Should().Be(expectedLogs[i]);
          }
-
-         return true;
       }
    }
 }
