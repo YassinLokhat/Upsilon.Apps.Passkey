@@ -288,15 +288,16 @@ namespace Upsilon.Apps.PassKey.Core.Models
          {
             case AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile:
                AutoSave.MergeChange();
-               Logs.AddLog($"User {Username}'s autosave merged and removed", false);
+               Logs.AddLog($"User {Username}'s autosave merged", true);
+               _save(logSaveEvent: false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear();
-               Logs.AddLog($"User {Username}'s autosave not merged and removed", false);
+               Logs.AddLog($"User {Username}'s autosave not merged and removed", true);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
-               Logs.AddLog($"User {Username}'s autosave not merged and keeped.", false);
+               Logs.AddLog($"User {Username}'s autosave not merged and keeped.", true);
                break;
          }
       }

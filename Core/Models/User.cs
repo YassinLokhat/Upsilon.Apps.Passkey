@@ -161,6 +161,6 @@ namespace Upsilon.Apps.PassKey.Core.Models
          }
       }
 
-      public override string ToString() => $"User {Username}";
+      public override string ToString() => $"User {Database.Username}";
    }
 }

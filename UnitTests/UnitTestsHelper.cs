@@ -115,7 +115,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
       {
          string[] actualLogs = database.Logs.Select(x => $"{x.Message}|{x.NeedsReview}").ToArray();
 
-         for (int i = 0; i < expectedLogs.Length; i++)
+         for (int i = expectedLogs.Length - 1; i >= 0; i--)
          {
             actualLogs[i].Should().Be(expectedLogs[i]);
          }

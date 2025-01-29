@@ -77,8 +77,6 @@ namespace Upsilon.Apps.PassKey.Core.Models
             Database.User?.Apply(Changes.Dequeue());
          }
 
-         Database.Save();
-
          Clear();
       }
 
