@@ -30,7 +30,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(Identifiants),
             needsReview: true,
             value: value,
-            readaableValue: ":\n" + string.Join("\n", value));
+            readaableValue: $"({string.Join(", ", value)})");
       }
 
       public string Password
@@ -49,7 +49,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
                      fieldName: nameof(Passwords),
                      needsReview: true,
                      value: Passwords,
-                     readaableValue: value);
+                     readaableValue: string.Empty);
                }
             }
          }

@@ -31,7 +31,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(Passkeys),
             needsReview: true,
             value: value,
-            readaableValue: ":\n" + string.Join("\n", value));
+            readaableValue: string.Empty);
       }
 
       int IUser.LogoutTimeout

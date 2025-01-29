@@ -66,7 +66,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          databaseCreated.User.Username = newUsername;
          expectedLogs.Push($"User {username}'s username has been set to {newUsername}|True");
          databaseCreated.User.Passkeys = newPasskeys;
-         expectedLogs.Push($"User {newUsername}'s passkeys has been set to :\n{string.Join("\n", newPasskeys)}|True");
+         expectedLogs.Push($"User {newUsername}'s passkeys has been updated|True");
          databaseCreated.User.LogoutTimeout = logoutTimeout;
          expectedLogs.Push($"User {newUsername}'s logout timeout has been set to {logoutTimeout}|False");
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;

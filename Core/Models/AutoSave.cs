@@ -63,7 +63,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
                break;
             case ChangeType.Update:
             default:
-               logMessage = $"{itemName}'s {fieldName.ToSentenceCase().ToLower()} has been set to {readableValue}";
+               logMessage = $"{itemName}'s {fieldName.ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(readableValue) ? $"updated" : $"set to {readableValue}")}";
                break;
          }
 
