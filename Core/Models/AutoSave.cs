@@ -59,7 +59,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
                logMessage = $"{itemName} has been added to {containerName}";
                break;
             case ChangeType.Delete:
-               logMessage = $"{itemName} has been deleted from {containerName}";
+               logMessage = $"{itemName} has been removed from {containerName}";
                break;
             case ChangeType.Update:
             default:

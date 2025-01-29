@@ -31,7 +31,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          IAccount account = service.AddAccount(accountLabel, identifiants, password);
 
          // Then
-         _ = service.Accounts.Count().Should().Be(1);
+         _ = service.Accounts.Length.Should().Be(1);
          _ = account.Label.Should().Be(accountLabel);
          _ = account.Identifiants.Should().BeEquivalentTo(identifiants);
          _ = account.Password.Should().Be(password);
@@ -48,7 +48,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = serviceLoaded.Accounts.Count().Should().Be(1);
+         _ = serviceLoaded.Accounts.Length.Should().Be(1);
 
          // When
          _ = serviceLoaded.Accounts.First();
@@ -91,7 +91,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          IAccount account = service.AddAccount(accountLabel, identifiants, password);
 
          // Then
-         _ = service.Accounts.Count().Should().Be(1);
+         _ = service.Accounts.Length.Should().Be(1);
          _ = account.Label.Should().Be(accountLabel);
          _ = account.Identifiants.Should().BeEquivalentTo(identifiants);
          _ = account.Password.Should().Be(password);
@@ -107,7 +107,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = serviceLoaded.Accounts.Count().Should().Be(1);
+         _ = serviceLoaded.Accounts.Length.Should().Be(1);
 
          // When
          _ = serviceLoaded.Accounts.First();
@@ -153,7 +153,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          serviceLoaded.DeleteAccount(accountLoaded);
 
          // Then
-         _ = serviceLoaded.Accounts.Count().Should().Be(0);
+         _ = serviceLoaded.Accounts.Length.Should().Be(0);
 
          // When
          databaseLoaded.Save();
@@ -162,7 +162,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = serviceLoaded.Accounts.Count().Should().Be(0);
+         _ = serviceLoaded.Accounts.Length.Should().Be(0);
 
          // Finaly
          databaseLoaded.Close();
@@ -196,7 +196,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          serviceLoaded.DeleteAccount(accountLoaded);
 
          // Then
-         _ = serviceLoaded.Accounts.Count().Should().Be(0);
+         _ = serviceLoaded.Accounts.Length.Should().Be(0);
 
          // When
          databaseLoaded.Close();
@@ -204,7 +204,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = serviceLoaded.Accounts.Count().Should().Be(0);
+         _ = serviceLoaded.Accounts.Length.Should().Be(0);
 
          // Finaly
          databaseLoaded.Close();

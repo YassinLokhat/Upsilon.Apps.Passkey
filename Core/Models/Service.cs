@@ -29,7 +29,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          set => Url = Database.AutoSave.UpdateValue(ItemId,
             itemName: this.ToString(),
             fieldName: nameof(Url),
-            needsReview: true,
+            needsReview: false,
             value: value,
             readaableValue: value);
       }
@@ -40,7 +40,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          set => Notes = Database.AutoSave.UpdateValue(ItemId,
             itemName: this.ToString(),
             fieldName: nameof(Notes),
-            needsReview: true,
+            needsReview: false,
             value: value,
             readaableValue: value);
       }
@@ -55,7 +55,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             Identifiants = identifiants.ToArray()
          };
 
-         Accounts.Add(Database.AutoSave.AddValue(ItemId, itemName: $"Account {account}", containerName: this.ToString(), needsReview: false, account));
+         Accounts.Add(Database.AutoSave.AddValue(ItemId, itemName: account.ToString(), containerName: this.ToString(), needsReview: false, account));
          account.Password = password;
 
          return account;
@@ -66,7 +66,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          Account accountToRemove = Accounts.FirstOrDefault(x => x.ItemId == account.ItemId)
             ?? throw new KeyNotFoundException($"The '{account.ItemId}' account was not found into the '{ItemId}' service");
 
-         _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, itemName: $"Account {accountToRemove}", containerName: this.ToString(), needsReview: true, accountToRemove));
+         _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, itemName: accountToRemove.ToString(), containerName: this.ToString(), needsReview: true, accountToRemove));
 
       }
 

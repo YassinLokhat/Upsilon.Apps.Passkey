@@ -65,7 +65,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             ServiceName = serviceName
          };
 
-         Services.Add(Database.AutoSave.AddValue(ItemId, itemName: $"Service {service}", containerName: this.ToString(), needsReview: false, value: service));
+         Services.Add(Database.AutoSave.AddValue(ItemId, itemName: service.ToString(), containerName: this.ToString(), needsReview: false, value: service));
 
          return service;
       }
@@ -75,7 +75,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          Service serviceToRemove = Services.FirstOrDefault(x => x.ItemId == service.ItemId)
             ?? throw new KeyNotFoundException($"The '{service.ItemId}' service was not found into the '{ItemId}' user");
 
-         _ = Services.Remove(Database.AutoSave.DeleteValue(ItemId, itemName: $"Service {serviceToRemove}", containerName: this.ToString(), needsReview: true, value: serviceToRemove));
+         _ = Services.Remove(Database.AutoSave.DeleteValue(ItemId, itemName: serviceToRemove.ToString(), containerName: this.ToString(), needsReview: true, value: serviceToRemove));
       }
 
       #endregion
