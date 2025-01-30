@@ -1,8 +1,7 @@
-﻿using Upsilon.Apps.Passkey.Core.Models;
-using Upsilon.Apps.PassKey.Core.Events;
-using Upsilon.Apps.PassKey.Core.Interfaces;
+﻿using Upsilon.Apps.PassKey.Core.Events;
+using Upsilon.Apps.PassKey.Core.Models;
 
-namespace Upsilon.Apps.Passkey.Core.Interfaces
+namespace Upsilon.Apps.PassKey.Core.Interfaces
 {
    /// <summary>
    /// Represent a database.
@@ -28,6 +27,11 @@ namespace Upsilon.Apps.Passkey.Core.Interfaces
       /// The user loaded.
       /// </summary>
       IUser? User { get; }
+
+      /// <summary>
+      /// The logs.
+      /// </summary>
+      ILog[]? Logs { get; }
 
       /// <summary>
       /// Try to load the current user.
@@ -65,7 +69,7 @@ namespace Upsilon.Apps.Passkey.Core.Interfaces
       /// <param name="username">The username.</param>
       /// <param name="passkeys">The passkeys.</param>
       /// <returns>The database created.</returns>
-      static IDatabase Create(ICryptographicCenter cryptographicCenter,
+      static IDatabase Create(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          string databaseFile,
          string autoSaveFile,
@@ -92,7 +96,7 @@ namespace Upsilon.Apps.Passkey.Core.Interfaces
       /// <param name="username">The username.</param>
       /// <param name="autoSaveHandler">The event handler for Auto-save merge behavior.</param>
       /// <returns>The database opened.</returns>
-      static IDatabase Open(ICryptographicCenter cryptographicCenter,
+      static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          string databaseFile,
          string autoSaveFile,

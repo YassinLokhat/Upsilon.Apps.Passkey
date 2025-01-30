@@ -1,6 +1,7 @@
 ﻿using Upsilon.Apps.PassKey.Core.Enums;
+using Upsilon.Apps.PassKey.Core.Utils;
 
-namespace Upsilon.Apps.Passkey.Core.Models
+namespace Upsilon.Apps.PassKey.Core.Models
 {
    internal sealed class AutoSave
    {
@@ -13,28 +14,28 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public Queue<Change> Changes { get; set; } = new();
 
-      internal T UpdateValue<T>(string itemId, string fieldName, T value) where T : notnull
+      internal T UpdateValue<T>(string itemId, string itemName, string fieldName, bool needsReview, T value, string readableValue) where T : notnull
       {
-         _addChange(itemId, fieldName, Database.SerializationCenter.Serialize(value), ChangeType.Update);
+         _addChange(itemId, itemName, string.Empty, fieldName, Database.SerializationCenter.Serialize(value), readableValue, needsReview, ChangeType.Update);
 
          return value;
       }
 
-      internal T AddValue<T>(string itemId, T value) where T : notnull
+      internal T AddValue<T>(string itemId, string itemName, string containerName, bool needsReview, T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, Database.SerializationCenter.Serialize(value), ChangeType.Add);
+         _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, ChangeType.Add);
 
          return value;
       }
 
-      internal T DeleteValue<T>(string itemId, T value) where T : notnull
+      internal T DeleteValue<T>(string itemId, string itemName, string containerName, bool needsReview, T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, Database.SerializationCenter.Serialize(value), ChangeType.Delete);
+         _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, ChangeType.Delete);
 
          return value;
       }
 
-      private void _addChange(string itemId, string fieldName, string value, ChangeType action)
+      private void _addChange(string itemId, string itemName, string containerName, string fieldName, string value, string readableValue, bool needsReview, ChangeType action)
       {
          Changes.Enqueue(new Change
          {
@@ -49,7 +50,24 @@ namespace Upsilon.Apps.Passkey.Core.Models
             Database.AutoSaveFileLocker = new(Database.CryptographicCenter, Database.SerializationCenter, Database.AutoSaveFile, FileMode.OpenOrCreate);
          }
 
-         Database.AutoSaveFileLocker.WriteAllText(Database.SerializationCenter.Serialize(this), Database.Passkeys);
+         Database.AutoSaveFileLocker.Save(this, Database.Passkeys);
+         string logMessage;
+
+         switch (action)
+         {
+            case ChangeType.Add:
+               logMessage = $"{itemName} has been added to {containerName}";
+               break;
+            case ChangeType.Delete:
+               logMessage = $"{itemName} has been removed from {containerName}";
+               break;
+            case ChangeType.Update:
+            default:
+               logMessage = $"{itemName}'s {fieldName.ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(readableValue) ? $"updated" : $"set to {readableValue}")}";
+               break;
+         }
+
+         Database.Logs.AddLog(logMessage, needsReview);
       }
 
       internal void MergeChange()
@@ -58,8 +76,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             Database.User?.Apply(Changes.Dequeue());
          }
-
-         Database.Save();
 
          Clear();
       }

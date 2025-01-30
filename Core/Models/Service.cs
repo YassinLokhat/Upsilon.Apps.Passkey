@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
-using Upsilon.Apps.Passkey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Enums;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 
-namespace Upsilon.Apps.Passkey.Core.Models
+namespace Upsilon.Apps.PassKey.Core.Models
 {
    internal sealed class Service : IService, IChangable
    {
@@ -10,24 +10,39 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       string IItem.ItemId => ItemId;
       IUser IService.User => User;
-      IEnumerable<IAccount> IService.Accounts => Accounts.Cast<IAccount>();
+      IAccount[] IService.Accounts => [.. Accounts];
 
       string IService.ServiceName
       {
          get => ServiceName;
-         set => ServiceName = Database.AutoSave.UpdateValue(ItemId, nameof(ServiceName), value);
+         set => ServiceName = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(ServiceName),
+            needsReview: true,
+            value: value,
+            readableValue: value);
       }
 
       string IService.Url
       {
          get => Url;
-         set => Url = Database.AutoSave.UpdateValue(ItemId, nameof(Url), value);
+         set => Url = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(Url),
+            needsReview: false,
+            value: value,
+            readableValue: value);
       }
 
       string IService.Notes
       {
          get => Notes;
-         set => Notes = Database.AutoSave.UpdateValue(ItemId, nameof(Notes), value);
+         set => Notes = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(Notes),
+            needsReview: false,
+            value: value,
+            readableValue: value);
       }
 
       IAccount IService.AddAccount(string label, IEnumerable<string> identifiants, string password)
@@ -37,11 +52,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
             Service = this,
             ItemId = ItemId + Database.CryptographicCenter.GetHash(label + string.Join(string.Empty, identifiants)),
             Label = label,
-            Identifiants = identifiants.ToArray()
+            Identifiants = identifiants.ToArray(),
+            Password = password,
          };
+         account.Passwords[DateTime.Now] = password;
 
-         Accounts.Add(Database.AutoSave.AddValue(ItemId, account));
-         account.Password = password;
+         Accounts.Add(Database.AutoSave.AddValue(ItemId, itemName: account.ToString(), containerName: this.ToString(), needsReview: false, account));
 
          return account;
       }
@@ -51,7 +67,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Account accountToRemove = Accounts.FirstOrDefault(x => x.ItemId == account.ItemId)
             ?? throw new KeyNotFoundException($"The '{account.ItemId}' account was not found into the '{ItemId}' service");
 
-         _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, accountToRemove));
+         _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, itemName: accountToRemove.ToString(), containerName: this.ToString(), needsReview: true, accountToRemove));
 
       }
 
@@ -133,5 +149,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(ChangeType));
          }
       }
+
+      public override string ToString() => $"Service {ServiceName}";
    }
 }

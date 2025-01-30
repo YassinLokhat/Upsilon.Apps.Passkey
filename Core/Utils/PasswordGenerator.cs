@@ -9,9 +9,9 @@ namespace Upsilon.Apps.PassKey.Core.Utils
    /// </summary>
    public static class PasswordGenerator
    {
-      public static string Alphabetic { get => "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
-      public static string Numeric { get => "0123456789"; }
-      public static string SpecialChars { get => "~!@#$%^&*()_-+={[}]\\|'\";:,<.>/?"; }
+      public static string Alphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      public static string Numeric => "0123456789";
+      public static string SpecialChars => "~!@#$%^&*()_-+={[}]\\|'\";:,<.>/?";
 
       public static string GeneratePassword(int length,
          bool includeUpperCaseAlphabeticChars = true,
@@ -61,7 +61,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
 
          do
          {
-            stringBuilder.Clear();
+            _ = stringBuilder.Clear();
 
             for (int i = 0; i < length; i++)
             {

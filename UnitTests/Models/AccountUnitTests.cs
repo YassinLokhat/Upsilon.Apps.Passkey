@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.Passkey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Enums;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 
-namespace Upsilon.Apps.Passkey.UnitTests.Models
+namespace Upsilon.Apps.PassKey.UnitTests.Models
 {
    [TestClass]
    public sealed class AccountUnitTests
@@ -17,52 +17,73 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
+         string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService service = databaseCreated.User.AddService("Service_" + UnitTestsHelper.GetUsername());
-         string accountLabel = "Account_" + UnitTestsHelper.GetUsername();
-         string[] identifiants = UnitTestsHelper.GetRandomStringArray();
-         string password = UnitTestsHelper.GetRandomString();
+         string oldAccountLabel = "Account_" + UnitTestsHelper.GetUsername();
+         string newAccountLabel = "new_" + oldAccountLabel;
+         string[] oldIdentifiants = UnitTestsHelper.GetRandomStringArray();
+         string[] newIdentifiants = UnitTestsHelper.GetRandomStringArray();
+         string oldPassword = UnitTestsHelper.GetRandomString();
+         string newPassword = UnitTestsHelper.GetRandomString();
          string notes = UnitTestsHelper.GetRandomString();
          int passwordUpdateReminderDelay = UnitTestsHelper.GetRandomInt(12);
          AccountOption options = AccountOption.WarnIfPasswordLeaked;
+         Stack<string> expectedLogs = new();
 
          // When
-         IAccount account = service.AddAccount(accountLabel, identifiants, password);
+         IAccount account = service.AddAccount(oldAccountLabel, oldIdentifiants, oldPassword);
+         expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)}) has been added to Service {service.ServiceName}");
 
          // Then
-         _ = service.Accounts.Count().Should().Be(1);
-         _ = account.Label.Should().Be(accountLabel);
-         _ = account.Identifiants.Should().BeEquivalentTo(identifiants);
-         _ = account.Password.Should().Be(password);
-         _ = account.Passwords.Values.Should().BeEquivalentTo([password]);
+         _ = service.Accounts.Length.Should().Be(1);
+         _ = account.Label.Should().Be(oldAccountLabel);
+         _ = account.Identifiants.Should().BeEquivalentTo(oldIdentifiants);
+         _ = account.Password.Should().Be(oldPassword);
+         _ = account.Passwords.Values.Should().BeEquivalentTo([oldPassword]);
 
          // When
+         account.Label = newAccountLabel;
+         expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)})'s label has been set to {newAccountLabel}");
+         account.Identifiants = newIdentifiants;
+         expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", oldIdentifiants)})'s identifiants has been set to ({string.Join(", ", newIdentifiants)})");
+         account.Password = newPassword;
+         expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password has been updated");
          account.Notes = notes;
+         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s notes has been set to {notes}");
          account.PasswordUpdateReminderDelay = passwordUpdateReminderDelay;
+         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password update reminder delay has been set to {passwordUpdateReminderDelay}");
          account.Options = options;
+         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s options has been set to {options}");
+
          databaseCreated.Save();
+         expectedLogs.Push($"Information : User {username}'s database saved");
          databaseCreated.Close();
+         expectedLogs.Push($"Information : User {username} logged out");
+         expectedLogs.Push($"Information : User {username}'s database closed");
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
+         expectedLogs.Push($"Information : User {username}'s database opened");
+         expectedLogs.Push($"Information : User {username} logged in");
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = serviceLoaded.Accounts.Count().Should().Be(1);
+         _ = serviceLoaded.Accounts.Length.Should().Be(1);
 
          // When
          _ = serviceLoaded.Accounts.First();
 
          // Then
-         _ = account.Label.Should().Be(accountLabel);
-         _ = account.Identifiants.Should().BeEquivalentTo(identifiants);
-         _ = account.Password.Should().Be(password);
-         _ = account.Passwords.Values.Should().BeEquivalentTo([password]);
+         _ = account.Label.Should().Be(newAccountLabel);
+         _ = account.Identifiants.Should().BeEquivalentTo(newIdentifiants);
+         _ = account.Password.Should().Be(newPassword);
+         _ = account.Passwords.OrderByDescending(x => x.Key).Select(x => x.Value).Should().BeEquivalentTo([newPassword, oldPassword]);
          _ = account.Notes.Should().Be(notes);
          _ = account.PasswordUpdateReminderDelay.Should().Be(passwordUpdateReminderDelay);
          _ = account.Options.Should().Be(options);
+
+         UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
 
          // Finaly
          databaseLoaded.Close();
@@ -79,51 +100,72 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
+         string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService service = databaseCreated.User.AddService("Service_" + UnitTestsHelper.GetUsername());
-         string accountLabel = "Account_" + UnitTestsHelper.GetUsername();
-         string[] identifiants = UnitTestsHelper.GetRandomStringArray();
-         string password = UnitTestsHelper.GetRandomString();
+         string oldAccountLabel = "Account_" + UnitTestsHelper.GetUsername();
+         string newAccountLabel = "new_" + oldAccountLabel;
+         string[] oldIdentifiants = UnitTestsHelper.GetRandomStringArray();
+         string[] newIdentifiants = UnitTestsHelper.GetRandomStringArray();
+         string oldPassword = UnitTestsHelper.GetRandomString();
+         string newPassword = UnitTestsHelper.GetRandomString();
          string notes = UnitTestsHelper.GetRandomString();
          int passwordUpdateReminderDelay = UnitTestsHelper.GetRandomInt(12);
          AccountOption options = AccountOption.WarnIfPasswordLeaked;
+         Stack<string> expectedLogs = new();
 
          // When
-         IAccount account = service.AddAccount(accountLabel, identifiants, password);
+         IAccount account = service.AddAccount(oldAccountLabel, oldIdentifiants, oldPassword);
+         expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)}) has been added to Service {service.ServiceName}");
 
          // Then
-         _ = service.Accounts.Count().Should().Be(1);
-         _ = account.Label.Should().Be(accountLabel);
-         _ = account.Identifiants.Should().BeEquivalentTo(identifiants);
-         _ = account.Password.Should().Be(password);
-         _ = account.Passwords.Values.Should().BeEquivalentTo([password]);
+         _ = service.Accounts.Length.Should().Be(1);
+         _ = account.Label.Should().Be(oldAccountLabel);
+         _ = account.Identifiants.Should().BeEquivalentTo(oldIdentifiants);
+         _ = account.Password.Should().Be(oldPassword);
+         _ = account.Passwords.Values.Should().BeEquivalentTo([oldPassword]);
 
          // When
+         account.Label = newAccountLabel;
+         expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)})'s label has been set to {newAccountLabel}");
+         account.Identifiants = newIdentifiants;
+         expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", oldIdentifiants)})'s identifiants has been set to ({string.Join(", ", newIdentifiants)})");
+         account.Password = newPassword;
+         expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password has been updated");
          account.Notes = notes;
+         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s notes has been set to {notes}");
          account.PasswordUpdateReminderDelay = passwordUpdateReminderDelay;
+         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password update reminder delay has been set to {passwordUpdateReminderDelay}");
          account.Options = options;
+         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s options has been set to {options}");
+
          databaseCreated.Close();
+         expectedLogs.Push($"Warning : User {username} logged out without saving");
+         expectedLogs.Push($"Information : User {username}'s database closed");
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
+         expectedLogs.Push($"Information : User {username}'s database opened");
+         expectedLogs.Push($"Information : User {username} logged in");
+         expectedLogs.Push($"Warning : User {username}'s autosave merged");
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = serviceLoaded.Accounts.Count().Should().Be(1);
+         _ = serviceLoaded.Accounts.Length.Should().Be(1);
 
          // When
          _ = serviceLoaded.Accounts.First();
 
          // Then
-         _ = account.Label.Should().Be(accountLabel);
-         _ = account.Identifiants.Should().BeEquivalentTo(identifiants);
-         _ = account.Password.Should().Be(password);
-         _ = account.Passwords.Values.Should().BeEquivalentTo([password]);
+         _ = account.Label.Should().Be(newAccountLabel);
+         _ = account.Identifiants.Should().BeEquivalentTo(newIdentifiants);
+         _ = account.Password.Should().Be(newPassword);
+         _ = account.Passwords.OrderByDescending(x => x.Key).Select(x => x.Value).Should().BeEquivalentTo([newPassword, oldPassword]);
          _ = account.Notes.Should().Be(notes);
          _ = account.PasswordUpdateReminderDelay.Should().Be(passwordUpdateReminderDelay);
          _ = account.Options.Should().Be(options);
+
+         UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
 
          // Finaly
          databaseLoaded.Close();
@@ -139,9 +181,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
+         string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService service = databaseCreated.User.AddService("Service_" + UnitTestsHelper.GetUsername());
          string accountLabel = "Account_" + UnitTestsHelper.GetUsername();
          string[] identifiants = UnitTestsHelper.GetRandomStringArray();
@@ -149,27 +191,36 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = service.AddAccount(accountLabel, identifiants, password);
          databaseCreated.Save();
          databaseCreated.Close();
+         Stack<string> expectedLogs = new();
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService serviceLoaded = databaseLoaded.User.Services.First();
          IAccount accountLoaded = serviceLoaded.Accounts.First();
 
          // When
          serviceLoaded.DeleteAccount(accountLoaded);
+         expectedLogs.Push($"Warning : Account {accountLabel} ({string.Join(", ", identifiants)}) has been removed from Service {service.ServiceName}");
 
          // Then
-         _ = serviceLoaded.Accounts.Count().Should().Be(0);
+         _ = serviceLoaded.Accounts.Length.Should().Be(0);
 
          // When
          databaseLoaded.Save();
+         expectedLogs.Push($"Information : User {username}'s database saved");
          databaseLoaded.Close();
+         expectedLogs.Push($"Information : User {username} logged out");
+         expectedLogs.Push($"Information : User {username}'s database closed");
+
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
+         expectedLogs.Push($"Information : User {username}'s database opened");
+         expectedLogs.Push($"Information : User {username} logged in");
+
          serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = serviceLoaded.Accounts.Count().Should().Be(0);
+         _ = serviceLoaded.Accounts.Length.Should().Be(0);
+
+         UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
 
          // Finaly
          databaseLoaded.Close();
@@ -185,9 +236,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
+         string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         if (databaseCreated.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService service = databaseCreated.User.AddService("Service_" + UnitTestsHelper.GetUsername());
          string accountLabel = "Account_" + UnitTestsHelper.GetUsername();
          string[] identifiants = UnitTestsHelper.GetRandomStringArray();
@@ -195,26 +246,35 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = service.AddAccount(accountLabel, identifiants, password);
          databaseCreated.Save();
          databaseCreated.Close();
+         Stack<string> expectedLogs = new();
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
          IService serviceLoaded = databaseLoaded.User.Services.First();
          IAccount accountLoaded = serviceLoaded.Accounts.First();
 
          // When
          serviceLoaded.DeleteAccount(accountLoaded);
+         expectedLogs.Push($"Warning : Account {accountLabel} ({string.Join(", ", identifiants)}) has been removed from Service {service.ServiceName}");
 
          // Then
-         _ = serviceLoaded.Accounts.Count().Should().Be(0);
+         _ = serviceLoaded.Accounts.Length.Should().Be(0);
 
          // When
          databaseLoaded.Close();
+         expectedLogs.Push($"Warning : User {username} logged out without saving");
+         expectedLogs.Push($"Information : User {username}'s database closed");
+
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
-         if (databaseLoaded.User == null) throw new NullReferenceException(nameof(databaseCreated.User));
+         expectedLogs.Push($"Information : User {username}'s database opened");
+         expectedLogs.Push($"Information : User {username} logged in");
+         expectedLogs.Push($"Warning : User {username}'s autosave merged");
+
          serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = serviceLoaded.Accounts.Count().Should().Be(0);
+         _ = serviceLoaded.Accounts.Length.Should().Be(0);
+
+         UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
 
          // Finaly
          databaseLoaded.Close();

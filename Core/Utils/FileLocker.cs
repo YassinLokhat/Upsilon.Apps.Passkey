@@ -1,15 +1,15 @@
 ﻿using Upsilon.Apps.PassKey.Core.Interfaces;
 
-namespace Upsilon.Apps.Passkey.Core.Utils
+namespace Upsilon.Apps.PassKey.Core.Utils
 {
    internal class FileLocker : IDisposable
    {
       internal string FilePath { get; private set; }
       private FileStream? _stream;
-      private readonly ICryptographicCenter _cryptographicCenter;
+      private readonly ICryptographyCenter _cryptographicCenter;
       private readonly ISerializationCenter _serializationCenter;
 
-      internal FileLocker(ICryptographicCenter cryptographicCenter, ISerializationCenter serializationCenter, string filePath, FileMode fileMode = FileMode.Open)
+      internal FileLocker(ICryptographyCenter cryptographicCenter, ISerializationCenter serializationCenter, string filePath, FileMode fileMode = FileMode.Open)
       {
          FilePath = filePath;
 
@@ -50,7 +50,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          string text = ReadAllText();
 
-         return _cryptographicCenter.Decrypt(text, passkeys);
+         return _cryptographicCenter.DecryptSymmetrically(text, passkeys);
       }
 
       internal T Open<T>(string[] passkeys) where T : notnull
@@ -69,7 +69,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       internal void WriteAllText(string text, string[] passkeys)
       {
-         text = _cryptographicCenter.Encrypt(text, passkeys);
+         text = _cryptographicCenter.EncryptSymmetrically(text, passkeys);
 
          WriteAllText(text);
       }
@@ -82,7 +82,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       internal void Delete()
       {
          Unlock();
-         File.Delete(FilePath);
+
+         if (File.Exists(FilePath))
+         {
+            File.Delete(FilePath);
+         }
       }
 
       public void Dispose()

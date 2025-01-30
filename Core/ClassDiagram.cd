@@ -1,38 +1,37 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="Upsilon.Apps.Passkey.Core.Models.Database">
+  <Class Name="Upsilon.Apps.PassKey.Core.Models.Database">
     <Position X="9.5" Y="1" Width="2" />
-    <AssociationLine Name="User" Type="Upsilon.Apps.Passkey.Core.Models.User" FixedFromPoint="true">
-      <Path>
-        <Point X="10.438" Y="5.699" />
-        <Point X="10.438" Y="6.75" />
-      </Path>
+    <AssociationLine Name="User" Type="Upsilon.Apps.PassKey.Core.Models.User">
       <MemberNameLabel ManuallyPlaced="true" ManuallySized="true">
         <Position X="0.182" Y="0.703" Height="0.182" Width="0.535" />
       </MemberNameLabel>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>IAABAIAACCAAIAACQAAACAAAQAGAJEAAAAgQAACAAAA=</HashCode>
+      <HashCode>MIABAIAQCCAAIAACQAAQCAAAwAGAJEAAAAgQAACAAAA=</HashCode>
       <FileName>Models\Database.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Field Name="User" />
       <Field Name="AutoSave" />
     </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Field Name="Logs" />
+    </ShowAsCollectionAssociation>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Upsilon.Apps.Passkey.Core.Models.User">
+  <Class Name="Upsilon.Apps.PassKey.Core.Models.User">
     <Position X="9.25" Y="6.75" Width="2.5" />
     <Members>
       <Method Name="_apply" Hidden="true" />
       <Field Name="_database" Hidden="true" />
     </Members>
-    <AssociationLine Name="Database" Type="Upsilon.Apps.Passkey.Core.Models.Database">
+    <AssociationLine Name="Database" Type="Upsilon.Apps.PassKey.Core.Models.Database">
       <MemberNameLabel ManuallyPlaced="true">
         <Position X="-0.859" Y="0.175" />
       </MemberNameLabel>
     </AssociationLine>
-    <AssociationLine Name="Services" Type="Upsilon.Apps.Passkey.Core.Models.Service">
+    <AssociationLine Name="Services" Type="Upsilon.Apps.PassKey.Core.Models.Service">
       <MemberNameLabel ManuallyPlaced="true">
         <Position X="-0.825" Y="0.092" />
       </MemberNameLabel>
@@ -49,19 +48,19 @@
     </ShowAsCollectionAssociation>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Upsilon.Apps.Passkey.Core.Models.Service">
+  <Class Name="Upsilon.Apps.PassKey.Core.Models.Service">
     <Position X="9" Y="12.5" Width="2" />
     <Members>
       <Method Name="_apply" Hidden="true" />
       <Field Name="_user" Hidden="true" />
     </Members>
-    <AssociationLine Name="User" Type="Upsilon.Apps.Passkey.Core.Models.User">
+    <AssociationLine Name="User" Type="Upsilon.Apps.PassKey.Core.Models.User">
       <MemberNameLabel ManuallyPlaced="true">
         <Position X="0.116" Y="0.081" />
       </MemberNameLabel>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>ACAlAAAAABNgAAAAgAAAAAAAAACAAICAiAAAAAAABQA=</HashCode>
+      <HashCode>ACAlAAAAAFNgAAAAgAAAAAAAAACAAICAiAAAAAAABQA=</HashCode>
       <FileName>Models\Service.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -72,13 +71,13 @@
     </ShowAsCollectionAssociation>
     <Lollipop Position="0.1" />
   </Class>
-  <Class Name="Upsilon.Apps.Passkey.Core.Models.Account">
+  <Class Name="Upsilon.Apps.PassKey.Core.Models.Account">
     <Position X="13" Y="12" Width="3" />
     <Members>
       <Field Name="_service" Hidden="true" />
     </Members>
     <TypeIdentifier>
-      <HashCode>AAAgAAAAEBADAABQgIAAAQAAAAAAQAACgAAQAABAAAA=</HashCode>
+      <HashCode>AAAgAAAAEFADAABQgIAAAQAAAAAAQAACgAAQAABAAAA=</HashCode>
       <FileName>Models\Account.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -87,7 +86,7 @@
     </ShowAsAssociation>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="Upsilon.Apps.Passkey.Core.Models.AutoSave">
+  <Class Name="Upsilon.Apps.PassKey.Core.Models.AutoSave">
     <Position X="13.25" Y="1.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAECACIgAAQAAAAAAAAAgAAQAAAAAAABAAAA=</HashCode>
@@ -100,7 +99,7 @@
       <Property Name="Changes" />
     </ShowAsCollectionAssociation>
   </Class>
-  <Class Name="Upsilon.Apps.Passkey.Core.Models.Change">
+  <Class Name="Upsilon.Apps.PassKey.Core.Models.Change">
     <Position X="13.25" Y="5.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAACAEAAAAAAgAAAAAAA=</HashCode>
@@ -110,14 +109,22 @@
       <Property Name="ActionType" />
     </ShowAsAssociation>
   </Class>
-  <Interface Name="Upsilon.Apps.Passkey.Core.Interfaces.IItem">
+  <Class Name="Upsilon.Apps.PassKey.Core.Models.Log">
+    <Position X="7.25" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAQAAAAAAA=</HashCode>
+      <FileName>Models\Log.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IItem">
     <Position X="2.25" Y="5.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Interfaces\IItem.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Interface Name="Upsilon.Apps.Passkey.Core.Interfaces.IUser">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IUser">
     <Position X="5.5" Y="5.75" Width="2.25" />
     <TypeIdentifier>
       <HashCode>gAAAAAEAAAAAAAAAAQAAAAAAAAAACAAAAAgAECAAAAA=</HashCode>
@@ -127,7 +134,7 @@
       <Property Name="Services" />
     </ShowAsCollectionAssociation>
   </Interface>
-  <Interface Name="Upsilon.Apps.Passkey.Core.Interfaces.IService">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IService">
     <Position X="5.5" Y="10" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAhAAAAAAAAAAAAAAAAAAAAAAAAAACACAACAQAABAA=</HashCode>
@@ -140,7 +147,7 @@
       <Property Name="Accounts" />
     </ShowAsCollectionAssociation>
   </Interface>
-  <Interface Name="Upsilon.Apps.Passkey.Core.Interfaces.IAccount">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IAccount">
     <Position X="2.25" Y="10.75" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAgAAAAEAAAAAAAAAAAAAAAAAAAQAACAAAAAABAAAA=</HashCode>
@@ -151,9 +158,9 @@
       <Property Name="Options" />
     </ShowAsAssociation>
   </Interface>
-  <Interface Name="Upsilon.Apps.Passkey.Core.Interfaces.IDatabase">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IDatabase">
     <Position X="2.5" Y="1.25" Width="1.5" />
-    <AssociationLine Name="User" Type="Upsilon.Apps.Passkey.Core.Interfaces.IUser" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+    <AssociationLine Name="User" Type="Upsilon.Apps.PassKey.Core.Interfaces.IUser" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
         <Point X="3.906" Y="4.281" />
         <Point X="3.906" Y="5.015" />
@@ -166,32 +173,42 @@
       </MemberNameLabel>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AAABAIAAAAAAIAAAQAAACAAAAAGAAEAAAAAQAACAAAA=</HashCode>
+      <HashCode>AAABAIAQAAAAIAAAQAAACAAAAAGAAEAAAAAQAACAAAA=</HashCode>
       <FileName>Interfaces\IDatabase.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Property Name="User" />
     </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Logs" />
+    </ShowAsCollectionAssociation>
   </Interface>
-  <Interface Name="Upsilon.Apps.Passkey.Core.Interfaces.IChangable">
-    <Position X="5.5" Y="14" Width="1.5" />
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IChangable">
+    <Position X="3.5" Y="7.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Interfaces\IChangable.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.ISerializationCenter">
-    <Position X="6" Y="1" Width="1.5" />
+    <Position X="7" Y="1" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACBAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Interfaces\ISerializationCenter.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.ICryptographicCenter">
-    <Position X="6" Y="2.75" Width="1.5" />
+    <Position X="5" Y="1" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AQACAAAAAAAAABAQAIAAAAAAAAAAAAACAAAAAABAAAA=</HashCode>
       <FileName>Interfaces\ICryptographicCenter.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.ILog" Collapsed="true">
+    <Position X="5" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAQAAAAAIAAAAAA=</HashCode>
+      <FileName>Interfaces\ILog.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Enum Name="Upsilon.Apps.PassKey.Core.Enums.AccountOption">

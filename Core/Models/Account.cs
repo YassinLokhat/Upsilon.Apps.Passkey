@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
-using Upsilon.Apps.Passkey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Enums;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 
-namespace Upsilon.Apps.Passkey.Core.Models
+namespace Upsilon.Apps.PassKey.Core.Models
 {
    internal sealed class Account : IAccount, IChangable
    {
@@ -14,27 +14,42 @@ namespace Upsilon.Apps.Passkey.Core.Models
       string IAccount.Label
       {
          get => Label;
-         set => Label = Database.AutoSave.UpdateValue(ItemId, nameof(Label), value);
+         set => Label = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(Label),
+            needsReview: false,
+            value: value,
+            readableValue: value);
       }
 
       string[] IAccount.Identifiants
       {
          get => Identifiants;
-         set => Identifiants = Database.AutoSave.UpdateValue(ItemId, nameof(Identifiants), value);
+         set => Identifiants = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(Identifiants),
+            needsReview: true,
+            value: value,
+            readableValue: $"({string.Join(", ", value)})");
       }
 
-      public string Password
+      string IAccount.Password
       {
-         get => Passwords.Count != 0 ? Passwords[Passwords.Keys.Max()] : string.Empty;
+         get => Password;
          set
          {
             if (!string.IsNullOrEmpty(value))
             {
-               Passwords[DateTime.Now] = value;
+               Passwords[DateTime.Now] = Password = value;
 
                if (_service != null)
                {
-                  _ = Database.AutoSave.UpdateValue(ItemId, nameof(Passwords), Passwords);
+                  _ = Database.AutoSave.UpdateValue(ItemId,
+                     itemName: this.ToString(),
+                     fieldName: nameof(Password),
+                     needsReview: true,
+                     value: Passwords,
+                     readableValue: string.Empty);
                }
             }
          }
@@ -45,19 +60,34 @@ namespace Upsilon.Apps.Passkey.Core.Models
       string IAccount.Notes
       {
          get => Notes;
-         set => Notes = Database.AutoSave.UpdateValue(ItemId, nameof(Notes), value);
+         set => Notes = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(Notes),
+            needsReview: false,
+            value: value,
+            readableValue: value);
       }
 
       int IAccount.PasswordUpdateReminderDelay
       {
          get => PasswordUpdateReminderDelay;
-         set => PasswordUpdateReminderDelay = Database.AutoSave.UpdateValue(ItemId, nameof(PasswordUpdateReminderDelay), value);
+         set => PasswordUpdateReminderDelay = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(PasswordUpdateReminderDelay),
+            needsReview: false,
+            value: value,
+            readableValue: value.ToString());
       }
 
       AccountOption IAccount.Options
       {
          get => Options;
-         set => Options = Database.AutoSave.UpdateValue(ItemId, nameof(Options), value);
+         set => Options = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(Options),
+            needsReview: false,
+            value: value,
+            readableValue: value.ToString());
       }
 
       #endregion
@@ -75,6 +105,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public string Label { get; set; } = string.Empty;
       public string[] Identifiants { get; set; } = [];
+      public string Password { get; set; } = string.Empty;
       public Dictionary<DateTime, string> Passwords { get; set; } = [];
       public string Notes { get; set; } = string.Empty;
       public int PasswordUpdateReminderDelay { get; set; } = 0;
@@ -96,8 +127,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
                   case nameof(Notes):
                      Notes = Database.SerializationCenter.Deserialize<string>(change.Value);
                      break;
-                  case nameof(Passwords):
+                  case nameof(Password):
                      Passwords = Database.SerializationCenter.Deserialize<Dictionary<DateTime, string>>(change.Value);
+                     Password = Passwords.Count != 0 ? Passwords[Passwords.Keys.Max()] : string.Empty;
                      break;
                   case nameof(PasswordUpdateReminderDelay):
                      PasswordUpdateReminderDelay = Database.SerializationCenter.Deserialize<int>(change.Value);
@@ -112,6 +144,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
             default:
                throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(ChangeType));
          }
+      }
+
+      public override string ToString()
+      {
+         string account = "Account ";
+
+         if (!string.IsNullOrEmpty(Label))
+         {
+            account += $"{Label} ";
+         }
+
+         return account + $"({string.Join(", ", Identifiants)})";
       }
    }
 }

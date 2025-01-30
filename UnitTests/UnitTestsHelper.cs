@@ -1,17 +1,16 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Text;
-using Upsilon.Apps.Passkey.Core.Interfaces;
+using FluentAssertions;
 using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Utils;
 
-namespace Upsilon.Apps.Passkey.UnitTests
+namespace Upsilon.Apps.PassKey.UnitTests
 {
    internal static class UnitTestsHelper
    {
       public static readonly int RANDOMIZED_TESTS_LOOP = 100;
 
-      public static readonly ICryptographicCenter CryptographicCenter = new CryptographicCenter();
+      public static readonly ICryptographyCenter CryptographicCenter = new CryptographyCenter();
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
 
       public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
@@ -19,7 +18,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public static string ComputeAutoSaveFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{username}.pka";
       public static string ComputeLogFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{username}.pkl";
 
-      public static IDatabase CreateTestDatabase(string[]? passkeys = null, [CallerMemberName] string username = "")
+      public static IDatabase CreateTestDatabase(string[] passkeys = null, [CallerMemberName] string username = "")
       {
          string databaseFile = ComputeDatabaseFilePath(username);
          string autoSaveFile = ComputeAutoSaveFilePath(username);
@@ -85,17 +84,22 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return [.. passkeys];
       }
 
-      public static string GetRandomString()
+      public static string GetRandomString(int min = 10, int max = 0)
       {
          Random random = _getRandom();
 
-         int length = random.Next(10, 20);
+         if (max == 0)
+         {
+            max = min + 10;
+         }
+
+         int length = random.Next(min, max);
 
          byte[] bytes = new byte[length];
 
          random.NextBytes(bytes);
 
-         return CryptographicCenter.GetHash(Encoding.ASCII.GetString(bytes));
+         return Convert.ToBase64String(bytes)[..length];
       }
 
       public static int GetRandomInt(int max) => GetRandomInt(0, max);
@@ -105,6 +109,16 @@ namespace Upsilon.Apps.Passkey.UnitTests
          Random random = _getRandom();
 
          return random.Next(min, max);
+      }
+
+      public static void LastLogsShouldMatch(IDatabase database, string[] expectedLogs)
+      {
+         string[] actualLogs = database.Logs.Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
+
+         for (int i = expectedLogs.Length - 1; i >= 0; i--)
+         {
+            actualLogs[i].Should().Be(expectedLogs[i]);
+         }
       }
    }
 }

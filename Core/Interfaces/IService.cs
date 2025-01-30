@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.Passkey.Core.Interfaces
+﻿namespace Upsilon.Apps.PassKey.Core.Interfaces
 {
    /// <summary>
    /// Represent a service.
@@ -28,7 +28,7 @@
       /// <summary>
       /// The list of the user's account on this service.
       /// </summary>
-      IEnumerable<IAccount> Accounts { get; }
+      IAccount[] Accounts { get; }
 
       /// <summary>
       /// Add a new account to this service.
