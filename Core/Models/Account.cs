@@ -14,7 +14,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
       string IAccount.Label
       {
          get => Label;
-         set => Label = Database.AutoSave.UpdateValue(ItemId, 
+         set => Label = Database.AutoSave.UpdateValue(ItemId,
             itemName: this.ToString(),
             fieldName: nameof(Label),
             needsReview: false,
@@ -63,7 +63,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          set => Notes = Database.AutoSave.UpdateValue(ItemId,
             itemName: this.ToString(),
             fieldName: nameof(Notes),
-            needsReview: false, 
+            needsReview: false,
             value: value,
             readableValue: value);
       }

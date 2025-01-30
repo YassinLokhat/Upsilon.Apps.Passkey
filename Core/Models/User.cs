@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Security.Principal;
 using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Interfaces;
 

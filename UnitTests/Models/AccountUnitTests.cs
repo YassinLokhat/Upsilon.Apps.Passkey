@@ -82,7 +82,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = account.Notes.Should().Be(notes);
          _ = account.PasswordUpdateReminderDelay.Should().Be(passwordUpdateReminderDelay);
          _ = account.Options.Should().Be(options);
-         
+
          UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
 
          // Finaly
