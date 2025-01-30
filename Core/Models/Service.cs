@@ -20,7 +20,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(ServiceName),
             needsReview: true,
             value: value,
-            readaableValue: value);
+            readableValue: value);
       }
 
       string IService.Url
@@ -31,7 +31,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(Url),
             needsReview: false,
             value: value,
-            readaableValue: value);
+            readableValue: value);
       }
 
       string IService.Notes
@@ -42,7 +42,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(Notes),
             needsReview: false,
             value: value,
-            readaableValue: value);
+            readableValue: value);
       }
 
       IAccount IService.AddAccount(string label, IEnumerable<string> identifiants, string password)
@@ -52,11 +52,12 @@ namespace Upsilon.Apps.PassKey.Core.Models
             Service = this,
             ItemId = ItemId + Database.CryptographicCenter.GetHash(label + string.Join(string.Empty, identifiants)),
             Label = label,
-            Identifiants = identifiants.ToArray()
+            Identifiants = identifiants.ToArray(),
+            Password = password,
          };
+         account.Passwords[DateTime.Now] = password;
 
          Accounts.Add(Database.AutoSave.AddValue(ItemId, itemName: account.ToString(), containerName: this.ToString(), needsReview: false, account));
-         account.Password = password;
 
          return account;
       }

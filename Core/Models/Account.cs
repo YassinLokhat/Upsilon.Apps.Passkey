@@ -19,7 +19,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(Label),
             needsReview: false,
             value: value,
-            readaableValue: value);
+            readableValue: value);
       }
 
       string[] IAccount.Identifiants
@@ -30,26 +30,26 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(Identifiants),
             needsReview: true,
             value: value,
-            readaableValue: $"({string.Join(", ", value)})");
+            readableValue: $"({string.Join(", ", value)})");
       }
 
-      public string Password
+      string IAccount.Password
       {
-         get => Passwords.Count != 0 ? Passwords[Passwords.Keys.Max()] : string.Empty;
+         get => Password;
          set
          {
             if (!string.IsNullOrEmpty(value))
             {
-               Passwords[DateTime.Now] = value;
+               Passwords[DateTime.Now] = Password = value;
 
                if (_service != null)
                {
                   _ = Database.AutoSave.UpdateValue(ItemId,
                      itemName: this.ToString(),
-                     fieldName: nameof(Passwords),
+                     fieldName: nameof(Password),
                      needsReview: true,
                      value: Passwords,
-                     readaableValue: string.Empty);
+                     readableValue: string.Empty);
                }
             }
          }
@@ -65,7 +65,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(Notes),
             needsReview: false, 
             value: value,
-            readaableValue: value);
+            readableValue: value);
       }
 
       int IAccount.PasswordUpdateReminderDelay
@@ -76,7 +76,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(PasswordUpdateReminderDelay),
             needsReview: false,
             value: value,
-            readaableValue: value.ToString());
+            readableValue: value.ToString());
       }
 
       AccountOption IAccount.Options
@@ -87,7 +87,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(Options),
             needsReview: false,
             value: value,
-            readaableValue: value.ToString());
+            readableValue: value.ToString());
       }
 
       #endregion
@@ -105,6 +105,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
       public string Label { get; set; } = string.Empty;
       public string[] Identifiants { get; set; } = [];
+      public string Password { get; set; } = string.Empty;
       public Dictionary<DateTime, string> Passwords { get; set; } = [];
       public string Notes { get; set; } = string.Empty;
       public int PasswordUpdateReminderDelay { get; set; } = 0;
@@ -126,8 +127,9 @@ namespace Upsilon.Apps.PassKey.Core.Models
                   case nameof(Notes):
                      Notes = Database.SerializationCenter.Deserialize<string>(change.Value);
                      break;
-                  case nameof(Passwords):
+                  case nameof(Password):
                      Passwords = Database.SerializationCenter.Deserialize<Dictionary<DateTime, string>>(change.Value);
+                     Password = Passwords.Count != 0 ? Passwords[Passwords.Keys.Max()] : string.Empty;
                      break;
                   case nameof(PasswordUpdateReminderDelay):
                      PasswordUpdateReminderDelay = Database.SerializationCenter.Deserialize<int>(change.Value);
@@ -150,7 +152,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
          if (!string.IsNullOrEmpty(Label))
          {
-            account += "Label ";
+            account += $"{Label} ";
          }
 
          return account + $"({string.Join(", ", Identifiants)})";

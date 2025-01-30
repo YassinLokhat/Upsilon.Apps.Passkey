@@ -14,9 +14,9 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
       public Queue<Change> Changes { get; set; } = new();
 
-      internal T UpdateValue<T>(string itemId, string itemName, string fieldName, bool needsReview, T value, string readaableValue) where T : notnull
+      internal T UpdateValue<T>(string itemId, string itemName, string fieldName, bool needsReview, T value, string readableValue) where T : notnull
       {
-         _addChange(itemId, itemName, string.Empty, fieldName, Database.SerializationCenter.Serialize(value), readaableValue, needsReview, ChangeType.Update);
+         _addChange(itemId, itemName, string.Empty, fieldName, Database.SerializationCenter.Serialize(value), readableValue, needsReview, ChangeType.Update);
 
          return value;
       }

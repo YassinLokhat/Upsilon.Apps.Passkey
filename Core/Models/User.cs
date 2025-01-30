@@ -20,7 +20,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(Username),
             needsReview: true,
             value: value,
-            readaableValue: value);
+            readableValue: value);
       }
 
       string[] IUser.Passkeys
@@ -31,7 +31,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(Passkeys),
             needsReview: true,
             value: value,
-            readaableValue: string.Empty);
+            readableValue: string.Empty);
       }
 
       int IUser.LogoutTimeout
@@ -42,7 +42,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(LogoutTimeout),
             needsReview: false,
             value: value,
-            readaableValue: value.ToString());
+            readableValue: value.ToString());
       }
 
       int IUser.CleaningClipboardTimeout
@@ -53,7 +53,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             fieldName: nameof(CleaningClipboardTimeout),
             needsReview: false,
             value: value,
-            readaableValue: value.ToString());
+            readableValue: value.ToString());
       }
 
       IService IUser.AddService(string serviceName)
