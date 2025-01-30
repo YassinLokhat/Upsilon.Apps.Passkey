@@ -113,7 +113,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
       public static void LastLogsShouldMatch(IDatabase database, string[] expectedLogs)
       {
-         string[] actualLogs = database.Logs.Select(x => $"{x.Message}|{x.NeedsReview}").ToArray();
+         string[] actualLogs = database.Logs.Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
 
          for (int i = expectedLogs.Length - 1; i >= 0; i--)
          {

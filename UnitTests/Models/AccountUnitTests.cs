@@ -34,7 +34,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          IAccount account = service.AddAccount(oldAccountLabel, oldIdentifiants, oldPassword);
-         expectedLogs.Push($"Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)}) has been added to Service {service.ServiceName}|False");
+         expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)}) has been added to Service {service.ServiceName}");
 
          // Then
          _ = service.Accounts.Length.Should().Be(1);
@@ -45,27 +45,27 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          account.Label = newAccountLabel;
-         expectedLogs.Push($"Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)})'s label has been set to {newAccountLabel}|False");
+         expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)})'s label has been set to {newAccountLabel}");
          account.Identifiants = newIdentifiants;
-         expectedLogs.Push($"Account {newAccountLabel} ({string.Join(", ", oldIdentifiants)})'s identifiants has been set to ({string.Join(", ", newIdentifiants)})|True");
+         expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", oldIdentifiants)})'s identifiants has been set to ({string.Join(", ", newIdentifiants)})");
          account.Password = newPassword;
-         expectedLogs.Push($"Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password has been updated|True");
+         expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password has been updated");
          account.Notes = notes;
-         expectedLogs.Push($"Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s notes has been set to {notes}|False");
+         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s notes has been set to {notes}");
          account.PasswordUpdateReminderDelay = passwordUpdateReminderDelay;
-         expectedLogs.Push($"Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password update reminder delay has been set to {passwordUpdateReminderDelay}|False");
+         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password update reminder delay has been set to {passwordUpdateReminderDelay}");
          account.Options = options;
-         expectedLogs.Push($"Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s options has been set to {options}|False");
+         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s options has been set to {options}");
 
          databaseCreated.Save();
-         expectedLogs.Push($"User {username}'s database saved|False");
+         expectedLogs.Push($"Information : User {username}'s database saved");
          databaseCreated.Close();
-         expectedLogs.Push($"User {username} logged out|False");
-         expectedLogs.Push($"User {username}'s database closed|False");
+         expectedLogs.Push($"Information : User {username} logged out");
+         expectedLogs.Push($"Information : User {username}'s database closed");
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-         expectedLogs.Push($"User {username}'s database opened|False");
-         expectedLogs.Push($"User {username} logged in|False");
+         expectedLogs.Push($"Information : User {username}'s database opened");
+         expectedLogs.Push($"Information : User {username} logged in");
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
@@ -117,7 +117,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          IAccount account = service.AddAccount(oldAccountLabel, oldIdentifiants, oldPassword);
-         expectedLogs.Push($"Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)}) has been added to Service {service.ServiceName}|False");
+         expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)}) has been added to Service {service.ServiceName}");
 
          // Then
          _ = service.Accounts.Length.Should().Be(1);
@@ -128,26 +128,26 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          account.Label = newAccountLabel;
-         expectedLogs.Push($"Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)})'s label has been set to {newAccountLabel}|False");
+         expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)})'s label has been set to {newAccountLabel}");
          account.Identifiants = newIdentifiants;
-         expectedLogs.Push($"Account {newAccountLabel} ({string.Join(", ", oldIdentifiants)})'s identifiants has been set to ({string.Join(", ", newIdentifiants)})|True");
+         expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", oldIdentifiants)})'s identifiants has been set to ({string.Join(", ", newIdentifiants)})");
          account.Password = newPassword;
-         expectedLogs.Push($"Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password has been updated|True");
+         expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password has been updated");
          account.Notes = notes;
-         expectedLogs.Push($"Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s notes has been set to {notes}|False");
+         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s notes has been set to {notes}");
          account.PasswordUpdateReminderDelay = passwordUpdateReminderDelay;
-         expectedLogs.Push($"Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password update reminder delay has been set to {passwordUpdateReminderDelay}|False");
+         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password update reminder delay has been set to {passwordUpdateReminderDelay}");
          account.Options = options;
-         expectedLogs.Push($"Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s options has been set to {options}|False");
+         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s options has been set to {options}");
 
          databaseCreated.Close();
-         expectedLogs.Push($"User {username} logged out without saving|True");
-         expectedLogs.Push($"User {username}'s database closed|False");
+         expectedLogs.Push($"Warning : User {username} logged out without saving");
+         expectedLogs.Push($"Information : User {username}'s database closed");
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
-         expectedLogs.Push($"User {username}'s database opened|False");
-         expectedLogs.Push($"User {username} logged in|False");
-         expectedLogs.Push($"User {username}'s autosave merged|True");
+         expectedLogs.Push($"Information : User {username}'s database opened");
+         expectedLogs.Push($"Information : User {username} logged in");
+         expectedLogs.Push($"Warning : User {username}'s autosave merged");
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
@@ -199,21 +199,21 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          serviceLoaded.DeleteAccount(accountLoaded);
-         expectedLogs.Push($"Account {accountLabel} ({string.Join(", ", identifiants)}) has been removed from Service {service.ServiceName}|True");
+         expectedLogs.Push($"Warning : Account {accountLabel} ({string.Join(", ", identifiants)}) has been removed from Service {service.ServiceName}");
 
          // Then
          _ = serviceLoaded.Accounts.Length.Should().Be(0);
 
          // When
          databaseLoaded.Save();
-         expectedLogs.Push($"User {username}'s database saved|False");
+         expectedLogs.Push($"Information : User {username}'s database saved");
          databaseLoaded.Close();
-         expectedLogs.Push($"User {username} logged out|False");
-         expectedLogs.Push($"User {username}'s database closed|False");
+         expectedLogs.Push($"Information : User {username} logged out");
+         expectedLogs.Push($"Information : User {username}'s database closed");
 
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
-         expectedLogs.Push($"User {username}'s database opened|False");
-         expectedLogs.Push($"User {username} logged in|False");
+         expectedLogs.Push($"Information : User {username}'s database opened");
+         expectedLogs.Push($"Information : User {username} logged in");
 
          serviceLoaded = databaseLoaded.User.Services.First();
 
@@ -254,20 +254,20 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          serviceLoaded.DeleteAccount(accountLoaded);
-         expectedLogs.Push($"Account {accountLabel} ({string.Join(", ", identifiants)}) has been removed from Service {service.ServiceName}|True");
+         expectedLogs.Push($"Warning : Account {accountLabel} ({string.Join(", ", identifiants)}) has been removed from Service {service.ServiceName}");
 
          // Then
          _ = serviceLoaded.Accounts.Length.Should().Be(0);
 
          // When
          databaseLoaded.Close();
-         expectedLogs.Push($"User {username} logged out without saving|True");
-         expectedLogs.Push($"User {username}'s database closed|False");
+         expectedLogs.Push($"Warning : User {username} logged out without saving");
+         expectedLogs.Push($"Information : User {username}'s database closed");
 
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
-         expectedLogs.Push($"User {username}'s database opened|False");
-         expectedLogs.Push($"User {username} logged in|False");
-         expectedLogs.Push($"User {username}'s autosave merged|True");
+         expectedLogs.Push($"Information : User {username}'s database opened");
+         expectedLogs.Push($"Information : User {username} logged in");
+         expectedLogs.Push($"Warning : User {username}'s autosave merged");
 
          serviceLoaded = databaseLoaded.User.Services.First();
 

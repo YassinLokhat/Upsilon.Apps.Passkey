@@ -64,35 +64,35 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          databaseCreated.User.Username = newUsername;
-         expectedLogs.Push($"User {oldUsername}'s username has been set to {newUsername}|True");
+         expectedLogs.Push($"Warning : User {oldUsername}'s username has been set to {newUsername}");
          databaseCreated.User.Passkeys = newPasskeys;
-         expectedLogs.Push($"User {oldUsername}'s passkeys has been updated|True");
+         expectedLogs.Push($"Warning : User {oldUsername}'s passkeys has been updated");
          databaseCreated.User.LogoutTimeout = logoutTimeout;
-         expectedLogs.Push($"User {oldUsername}'s logout timeout has been set to {logoutTimeout}|False");
+         expectedLogs.Push($"Information : User {oldUsername}'s logout timeout has been set to {logoutTimeout}");
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
-         expectedLogs.Push($"User {oldUsername}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}|False");
+         expectedLogs.Push($"Information : User {oldUsername}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeTrue();
 
          // When
          databaseCreated.Save();
-         expectedLogs.Push($"User {newUsername}'s database saved|False");
+         expectedLogs.Push($"Information : User {newUsername}'s database saved");
          databaseCreated.Close();
-         expectedLogs.Push($"User {newUsername} logged out|False");
-         expectedLogs.Push($"User {newUsername}'s database closed|False");
+         expectedLogs.Push($"Information : User {newUsername} logged out");
+         expectedLogs.Push($"Information : User {newUsername}'s database closed");
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeFalse();
 
          // When
          IDatabase databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter, UnitTestsHelper.SerializationCenter, databaseFile, autoSaveFile, logFile, newUsername);
-         expectedLogs.Push($"User {newUsername}'s database opened|False");
+         expectedLogs.Push($"Information : User {newUsername}'s database opened");
          foreach (string passkey in newPasskeys)
          {
             _ = databaseLoaded.Login(passkey);
          }
-         expectedLogs.Push($"User {newUsername} logged in|False");
+         expectedLogs.Push($"Information : User {newUsername} logged in");
 
          // Then
          _ = databaseLoaded.User.Should().NotBeNull();
@@ -134,25 +134,25 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          databaseCreated.User.Username = newUsername;
-         expectedLogs.Push($"User {oldUsername}'s username has been set to {newUsername}|True");
+         expectedLogs.Push($"Warning : User {oldUsername}'s username has been set to {newUsername}");
          databaseCreated.User.Passkeys = newPasskeys;
-         expectedLogs.Push($"User {oldUsername}'s passkeys has been updated|True");
+         expectedLogs.Push($"Warning : User {oldUsername}'s passkeys has been updated");
          databaseCreated.User.LogoutTimeout = logoutTimeout;
-         expectedLogs.Push($"User {oldUsername}'s logout timeout has been set to {logoutTimeout}|False");
+         expectedLogs.Push($"Information : User {oldUsername}'s logout timeout has been set to {logoutTimeout}");
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
-         expectedLogs.Push($"User {oldUsername}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}|False");
+         expectedLogs.Push($"Information : User {oldUsername}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
          databaseCreated.Close();
-         expectedLogs.Push($"User {oldUsername} logged out without saving|True");
-         expectedLogs.Push($"User {oldUsername}'s database closed|False");
+         expectedLogs.Push($"Warning : User {oldUsername} logged out without saving");
+         expectedLogs.Push($"Information : User {oldUsername}'s database closed");
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeTrue();
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(oldPasskeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
-         expectedLogs.Push($"User {oldUsername}'s database opened|False");
-         expectedLogs.Push($"User {oldUsername} logged in|False");
-         expectedLogs.Push($"User {oldUsername}'s autosave merged|True");
+         expectedLogs.Push($"Information : User {oldUsername}'s database opened");
+         expectedLogs.Push($"Information : User {oldUsername} logged in");
+         expectedLogs.Push($"Warning : User {oldUsername}'s autosave merged");
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeFalse();
@@ -163,16 +163,16 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          databaseLoaded.Close();
-         expectedLogs.Push($"User {newUsername} logged out|False");
-         expectedLogs.Push($"User {newUsername}'s database closed|False");
+         expectedLogs.Push($"Information : User {newUsername} logged out");
+         expectedLogs.Push($"Information : User {newUsername}'s database closed");
 
          databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter, UnitTestsHelper.SerializationCenter, databaseFile, autoSaveFile, logFile, newUsername);
-         expectedLogs.Push($"User {newUsername}'s database opened|False");
+         expectedLogs.Push($"Information : User {newUsername}'s database opened");
          foreach (string passkey in newPasskeys)
          {
             _ = databaseLoaded.Login(passkey);
          }
-         expectedLogs.Push($"User {newUsername} logged in|False");
+         expectedLogs.Push($"Information : User {newUsername} logged in");
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeFalse();
