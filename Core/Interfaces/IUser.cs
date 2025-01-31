@@ -1,4 +1,6 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Interfaces
+﻿using Upsilon.Apps.PassKey.Core.Enums;
+
+namespace Upsilon.Apps.PassKey.Core.Interfaces
 {
    /// <summary>
    /// Represent an user.
@@ -24,6 +26,11 @@
       /// The number of second to keep existing passwords in the clipboard.
       /// </summary>
       int CleaningClipboardTimeout { get; set; }
+
+      /// <summary>
+      /// The warnings types which will be notified if detected.
+      /// </summary>
+      WarningType WarningsToNotify { get; set; }
 
       /// <summary>
       /// The list of the user's services.
