@@ -55,6 +55,17 @@ namespace Upsilon.Apps.PassKey.Core.Models
             readableValue: value.ToString());
       }
 
+      WarningType IUser.WarningsToNotify
+      {
+         get => WarningsToNotify;
+         set => WarningsToNotify = Database.AutoSave.UpdateValue(ItemId,
+            itemName: this.ToString(),
+            fieldName: nameof(WarningsToNotify),
+            needsReview: false,
+            value: value,
+            readableValue: value.ToString());
+      }
+
       IService IUser.AddService(string serviceName)
       {
          Service service = new()
@@ -103,6 +114,11 @@ namespace Upsilon.Apps.PassKey.Core.Models
       public string[] Passkeys { get; set; } = [];
       public int LogoutTimeout { get; set; } = 0;
       public int CleaningClipboardTimeout { get; set; } = 0;
+      public WarningType WarningsToNotify { get; set; }
+         = WarningType.LogReviewWarning
+         | WarningType.PasswordUpdateReminderWarning
+         | WarningType.DuplicatedPasswordsWarning
+         | WarningType.PasswordLeakedWarning;
 
       public void Apply(Change change)
       {
@@ -141,6 +157,9 @@ namespace Upsilon.Apps.PassKey.Core.Models
                      break;
                   case nameof(CleaningClipboardTimeout):
                      CleaningClipboardTimeout = Database.SerializationCenter.Deserialize<int>(change.Value);
+                     break;
+                  case nameof(WarningsToNotify):
+                     WarningsToNotify = Database.SerializationCenter.Deserialize<WarningType>(change.Value);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");

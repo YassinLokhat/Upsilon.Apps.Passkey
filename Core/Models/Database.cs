@@ -15,6 +15,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
       IUser? IDatabase.User => User;
       ILog[]? IDatabase.Logs => Logs.Logs;
+      IWarning[]? IDatabase.Warnings => User != null ? Warnings : null;
 
       public void Delete()
       {
@@ -78,6 +79,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
       internal User? User;
       internal AutoSave AutoSave;
       internal LogCenter Logs;
+      internal Warning[]? Warnings;
 
       internal string Username { get; private set; }
       internal string[] Passkeys { get; private set; }
@@ -88,6 +90,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
       internal readonly ICryptographyCenter CryptographicCenter;
       internal readonly ISerializationCenter SerializationCenter;
 
+      private readonly EventHandler<WarningDetectedEventArgs>? _onWarningDetected = null;
       private readonly EventHandler<AutoSaveDetectedEventArgs>? _onAutoSaveDetected = null;
 
       private Database(ICryptographyCenter cryptographicCenter,
@@ -96,6 +99,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          string autoSaveFile,
          string logFile,
          FileMode fileMode,
+         EventHandler<WarningDetectedEventArgs>? warningDetectedHandler,
          EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler,
          string username,
          string publicKey = "",
@@ -136,6 +140,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          Logs.Database = this;
 
          _onAutoSaveDetected = autoSaveHandler;
+         _onWarningDetected = warningDetectedHandler;
       }
 
       internal static IDatabase Create(ICryptographyCenter cryptographicCenter,
@@ -166,6 +171,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             autoSaveFile,
             logFile,
             FileMode.Create,
+            warningDetectedHandler: null,
             autoSaveHandler: null,
             username,
             publicKey,
@@ -200,6 +206,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          string autoSaveFile,
          string logFile,
          string username,
+         EventHandler<WarningDetectedEventArgs>? warningDetectedHandler = null,
          EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
       {
          Database database = new(cryptographicCenter,
@@ -208,6 +215,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             autoSaveFile,
             logFile,
             FileMode.Open,
+            warningDetectedHandler,
             autoSaveHandler,
             username);
 
@@ -260,6 +268,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          AutoSave.Changes.Clear();
          Username = string.Empty;
          Passkeys = [];
+         Warnings = null;
 
          DatabaseFileLocker?.Dispose();
          DatabaseFileLocker = null;
