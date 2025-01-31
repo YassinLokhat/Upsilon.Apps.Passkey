@@ -36,18 +36,29 @@ namespace Upsilon.Apps.PassKey.UnitTests
          return database;
       }
 
-      public static IDatabase OpenTestDatabase(string[] passkeys, AutoSaveMergeBehavior mergeAutoSave = AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile, [CallerMemberName] string username = "")
+      public static IDatabase OpenTestDatabase(string[] passkeys, out IWarning[] detectedWarnings, AutoSaveMergeBehavior mergeAutoSave = AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile, [CallerMemberName] string username = "")
       {
          string databaseFile = ComputeDatabaseFilePath(username);
          string autoSaveFile = ComputeAutoSaveFilePath(username);
          string logFile = ComputeLogFilePath(username);
 
-         IDatabase database = IDatabase.Open(CryptographicCenter, SerializationCenter, databaseFile, autoSaveFile, logFile, username, (s, e) => { e.MergeBehavior = mergeAutoSave; });
+         IWarning[] warnings = [];
+
+         IDatabase database = IDatabase.Open(CryptographicCenter,
+            SerializationCenter,
+            databaseFile,
+            autoSaveFile,
+            logFile,
+            username,
+            (s, e) => { warnings = e.Warnings; },
+            (s, e) => { e.MergeBehavior = mergeAutoSave; });
 
          foreach (string passkey in passkeys)
          {
             _ = database.Login(passkey);
          }
+
+         detectedWarnings = warnings;
 
          return database;
       }
