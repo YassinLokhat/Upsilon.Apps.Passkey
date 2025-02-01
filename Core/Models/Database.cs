@@ -67,6 +67,11 @@ namespace Upsilon.Apps.PassKey.Core.Models
                _onAutoSaveDetected?.Invoke(this, eventArg);
                _handleAutoSave(eventArg.MergeBehavior);
             }
+
+            Warnings = [.._lookAtLogWarnings(),
+               .._lookAtPasswordUpdateReminderWarnings(),
+               .._lookAtPasswordLeakedWarnings(),
+               .._lookAtDuplicatedPasswordsWarnings()];
          }
 
          return User;
@@ -309,6 +314,93 @@ namespace Upsilon.Apps.PassKey.Core.Models
                Logs.AddLog($"User {Username}'s autosave not merged and keeped.", true);
                break;
          }
+      }
+
+      private Warning[] _lookAtLogWarnings()
+      {
+         if (User == null) throw new NullReferenceException(nameof(User));
+         if (Logs.Logs == null) throw new NullReferenceException(nameof(Logs.Logs));
+
+         if ((User.WarningsToNotify & WarningType.LogReviewWarning) != WarningType.LogReviewWarning)
+         {
+            return [];
+         }
+
+         List<Log> logs = Logs.Logs.Cast<Log>().ToList();
+
+         while (logs.Count > 0
+            && logs[0].Message != $"User {Username} logged in")
+         {
+            logs.RemoveAt(0);
+         }
+
+         if (logs.Count > 0)
+         {
+            logs.RemoveAt(0);
+         }
+
+         logs = logs.Where(x => x.NeedsReview).ToList();
+
+         return [new Warning([.. logs])];
+      }
+
+      private Warning[] _lookAtPasswordUpdateReminderWarnings()
+      {
+         if (User == null) throw new NullReferenceException(nameof(User));
+
+         if ((User.WarningsToNotify & WarningType.PasswordUpdateReminderWarning) != WarningType.PasswordUpdateReminderWarning)
+         {
+            return [];
+         }
+
+         Account[] accounts = User.Services
+            .SelectMany(x => x.Accounts)
+            .Where(x => x.PasswordExpired)
+            .ToArray();
+
+         return [new Warning(WarningType.PasswordUpdateReminderWarning, accounts)];
+      }
+
+      private Warning[] _lookAtPasswordLeakedWarnings()
+      {
+         if (User == null) throw new NullReferenceException(nameof(User));
+
+         if ((User.WarningsToNotify & WarningType.PasswordLeakedWarning) != WarningType.PasswordLeakedWarning)
+         {
+            return [];
+         }
+
+         Account[] accounts = User.Services
+            .SelectMany(x => x.Accounts)
+            .Where(x => PasswordGenerator.PasswordLeaked(x.Password))
+            .ToArray();
+
+         return [new Warning(WarningType.PasswordLeakedWarning, accounts)];
+      }
+
+      private Warning[] _lookAtDuplicatedPasswordsWarnings()
+      {
+         if (User == null) throw new NullReferenceException(nameof(User));
+
+         if ((User.WarningsToNotify & WarningType.DuplicatedPasswordsWarning) != WarningType.DuplicatedPasswordsWarning)
+         {
+            return [];
+         }
+
+         IGrouping<string, Account>[] duplicatedPasswords = User.Services
+            .SelectMany(x => x.Accounts)
+            .GroupBy(x => x.Password)
+            .Where(x => x.Count() > 1)
+            .ToArray();
+
+         List<Warning> warnings = new();
+
+         foreach (IGrouping<string, Account> accounts in duplicatedPasswords)
+         {
+            warnings.Add(new(WarningType.DuplicatedPasswordsWarning, [.. accounts.Cast<Account>()]));
+         }
+
+         return [.. warnings];
       }
    }
 }

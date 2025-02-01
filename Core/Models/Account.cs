@@ -111,6 +111,17 @@ namespace Upsilon.Apps.PassKey.Core.Models
       public int PasswordUpdateReminderDelay { get; set; } = 0;
       public AccountOption Options { get; set; } = AccountOption.None;
 
+      internal bool PasswordExpired
+      {
+         get
+         {
+            DateTime lastPassword = Passwords.Keys.Max();
+            int delay = ((DateTime.Now.Year - lastPassword.Year) * 12) + DateTime.Now.Month - lastPassword.Month;
+
+            return delay >= PasswordUpdateReminderDelay;
+         }
+      }
+
       public void Apply(Change change)
       {
          switch (change.ActionType)
