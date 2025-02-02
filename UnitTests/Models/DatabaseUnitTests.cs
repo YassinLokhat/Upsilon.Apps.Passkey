@@ -59,7 +59,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = File.Exists(logFile).Should().BeTrue();
 
          // When
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
          expectedLogs.Push($"Information : User {username}'s database opened");
          expectedLogs.Push($"Information : User {username} logged in");
 
@@ -156,7 +156,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          {
             try
             {
-               databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+               databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
             }
             catch (IOException ex)
             {
@@ -177,7 +177,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          {
             try
             {
-               databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+               databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
             }
             catch (IOException ex)
             {
@@ -209,17 +209,19 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
          wrongPasskeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
          Stack<string> expectedLogs = new();
+         Stack<string> expectedLogWarnings = new();
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          databaseCreated.Close();
 
          // When
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(wrongPasskeys);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(wrongPasskeys, out _);
          expectedLogs.Push($"Information : User {username}'s database opened");
          for (int i = wrongKeyIndex; i < wrongPasskeys.Length; i++)
          {
             expectedLogs.Push($"Warning : User {username} login failed at level {(wrongKeyIndex + 1)}");
+            expectedLogWarnings.Push($"Warning : User {username} login failed at level {(wrongKeyIndex + 1)}");
          }
 
          // Then
@@ -228,12 +230,13 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          // When
          databaseLoaded.Close();
          expectedLogs.Push($"Information : User {username}'s database closed");
-         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
          expectedLogs.Push($"Information : User {username}'s database opened");
          expectedLogs.Push($"Information : User {username} logged in");
 
          // Then
          UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
+         UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
