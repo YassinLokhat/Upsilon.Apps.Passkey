@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Models
 {
@@ -109,18 +110,23 @@ namespace Upsilon.Apps.PassKey.Core.Models
       public Dictionary<DateTime, string> Passwords { get; set; } = [];
       public string Notes { get; set; } = string.Empty;
       public int PasswordUpdateReminderDelay { get; set; } = 0;
-      public AccountOption Options { get; set; } = AccountOption.None;
+      public AccountOption Options { get; set; }
+         = AccountOption.WarnIfPasswordLeaked;
 
       internal bool PasswordExpired
       {
          get
          {
+            if (PasswordUpdateReminderDelay == 0) return false;
+
             DateTime lastPassword = Passwords.Keys.Max();
             int delay = ((DateTime.Now.Year - lastPassword.Year) * 12) + DateTime.Now.Month - lastPassword.Month;
 
             return delay >= PasswordUpdateReminderDelay;
          }
       }
+
+      internal bool PasswordLeaked => Options.ContainsFlag(AccountOption.WarnIfPasswordLeaked) && PasswordGenerator.PasswordLeaked(Password);
 
       public void Apply(Change change)
       {

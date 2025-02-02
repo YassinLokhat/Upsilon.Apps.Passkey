@@ -68,10 +68,21 @@ namespace Upsilon.Apps.PassKey.Core.Models
                _handleAutoSave(eventArg.MergeBehavior);
             }
 
-            Warnings = [.._lookAtLogWarnings(),
-               .._lookAtPasswordUpdateReminderWarnings(),
-               .._lookAtPasswordLeakedWarnings(),
-               .._lookAtDuplicatedPasswordsWarnings()];
+            Warning[] logWarnings = _lookAtLogWarnings();
+            Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
+            Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
+            Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
+
+            Warnings = [..logWarnings,
+               ..passwordUpdateReminderWarnings,
+               ..passwordLeakedWarnings,
+               ..duplicatedPasswordsWarnings];
+
+            _onWarningDetected?.Invoke(this, new WarningDetectedEventArgs(
+               [..User.WarningsToNotify.ContainsFlag(WarningType.LogReviewWarning) ? logWarnings : [],
+               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
+               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
+               ..User.WarningsToNotify.ContainsFlag(WarningType.DuplicatedPasswordsWarning) ? duplicatedPasswordsWarnings : []]));
          }
 
          return User;
@@ -321,37 +332,24 @@ namespace Upsilon.Apps.PassKey.Core.Models
          if (User == null) throw new NullReferenceException(nameof(User));
          if (Logs.Logs == null) throw new NullReferenceException(nameof(Logs.Logs));
 
-         if ((User.WarningsToNotify & WarningType.LogReviewWarning) != WarningType.LogReviewWarning)
-         {
-            return [];
-         }
-
          List<Log> logs = Logs.Logs.Cast<Log>().ToList();
 
-         while (logs.Count > 0
-            && logs[0].Message != $"User {Username} logged in")
+         for (int i = 0; i < logs.Count && logs[i].Message != $"User {Username} logged in"; i++)
          {
-            logs.RemoveAt(0);
+            if (!logs[i].NeedsReview
+               || !logs[i].Message.StartsWith($"User {Username}'s autosave "))
+            {
+               logs.RemoveAt(i);
+               i--;
+            }
          }
 
-         if (logs.Count > 0)
-         {
-            logs.RemoveAt(0);
-         }
-
-         logs = logs.Where(x => x.NeedsReview).ToList();
-
-         return [new Warning([.. logs])];
+         return [new Warning([.. logs.Where(x => x.NeedsReview)])];
       }
 
       private Warning[] _lookAtPasswordUpdateReminderWarnings()
       {
          if (User == null) throw new NullReferenceException(nameof(User));
-
-         if ((User.WarningsToNotify & WarningType.PasswordUpdateReminderWarning) != WarningType.PasswordUpdateReminderWarning)
-         {
-            return [];
-         }
 
          Account[] accounts = User.Services
             .SelectMany(x => x.Accounts)
@@ -365,14 +363,9 @@ namespace Upsilon.Apps.PassKey.Core.Models
       {
          if (User == null) throw new NullReferenceException(nameof(User));
 
-         if ((User.WarningsToNotify & WarningType.PasswordLeakedWarning) != WarningType.PasswordLeakedWarning)
-         {
-            return [];
-         }
-
          Account[] accounts = User.Services
             .SelectMany(x => x.Accounts)
-            .Where(x => PasswordGenerator.PasswordLeaked(x.Password))
+            .Where(x => x.PasswordLeaked)
             .ToArray();
 
          return [new Warning(WarningType.PasswordLeakedWarning, accounts)];
@@ -382,18 +375,13 @@ namespace Upsilon.Apps.PassKey.Core.Models
       {
          if (User == null) throw new NullReferenceException(nameof(User));
 
-         if ((User.WarningsToNotify & WarningType.DuplicatedPasswordsWarning) != WarningType.DuplicatedPasswordsWarning)
-         {
-            return [];
-         }
-
          IGrouping<string, Account>[] duplicatedPasswords = User.Services
             .SelectMany(x => x.Accounts)
             .GroupBy(x => x.Password)
             .Where(x => x.Count() > 1)
             .ToArray();
 
-         List<Warning> warnings = new();
+         List<Warning> warnings = [];
 
          foreach (IGrouping<string, Account> accounts in duplicatedPasswords)
          {

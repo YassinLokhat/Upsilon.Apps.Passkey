@@ -61,7 +61,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          set => WarningsToNotify = Database.AutoSave.UpdateValue(ItemId,
             itemName: this.ToString(),
             fieldName: nameof(WarningsToNotify),
-            needsReview: false,
+            needsReview: true,
             value: value,
             readableValue: value.ToString());
       }
