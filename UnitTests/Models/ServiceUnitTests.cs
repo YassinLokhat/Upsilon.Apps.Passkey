@@ -25,6 +25,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          string url = UnitTestsHelper.GetRandomString();
          string notes = UnitTestsHelper.GetRandomString();
          Stack<string> expectedLogs = new();
+         Stack<string> expectedLogWarnings = new();
 
          // When
          IService service = databaseCreated.User.AddService(oldServiceName);
@@ -36,6 +37,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          // When
          service.ServiceName = newServiceName;
          expectedLogs.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
+         expectedLogWarnings.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
          service.Url = url;
          expectedLogs.Push($"Information : Service {newServiceName}'s url has been set to {url}");
          service.Notes = notes;
@@ -47,7 +49,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          expectedLogs.Push($"Information : User {username} logged out");
          expectedLogs.Push($"Information : User {username}'s database closed");
 
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
          expectedLogs.Push($"Information : User {username}'s database opened");
          expectedLogs.Push($"Information : User {username} logged in");
 
@@ -63,6 +65,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = serviceLoaded.Notes.Should().Be(notes);
 
          UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
+         UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
@@ -87,6 +90,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          string url = UnitTestsHelper.GetRandomString();
          string notes = UnitTestsHelper.GetRandomString();
          Stack<string> expectedLogs = new();
+         Stack<string> expectedLogWarnings = new();
 
          // When
          IService service = databaseCreated.User.AddService(oldServiceName);
@@ -98,6 +102,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          // When
          service.ServiceName = newServiceName;
          expectedLogs.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
+         expectedLogWarnings.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
          service.Url = url;
          expectedLogs.Push($"Information : Service {newServiceName}'s url has been set to {url}");
          service.Notes = notes;
@@ -105,12 +110,14 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          databaseCreated.Close();
          expectedLogs.Push($"Warning : User {username} logged out without saving");
+         expectedLogWarnings.Push($"Warning : User {username} logged out without saving");
          expectedLogs.Push($"Information : User {username}'s database closed");
 
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
          expectedLogs.Push($"Information : User {username}'s database opened");
          expectedLogs.Push($"Information : User {username} logged in");
          expectedLogs.Push($"Warning : User {username}'s autosave merged");
+         expectedLogWarnings.Push($"Warning : User {username}'s autosave merged");
 
          // Then
          _ = databaseLoaded.User.Services.Length.Should().Be(1);
@@ -124,6 +131,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = serviceLoaded.Notes.Should().Be(notes);
 
          UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
+         UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
@@ -147,13 +155,15 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          databaseCreated.Save();
          databaseCreated.Close();
          Stack<string> expectedLogs = new();
+         Stack<string> expectedLogWarnings = new();
 
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // When
          databaseLoaded.User.DeleteService(serviceLoaded);
          expectedLogs.Push($"Warning : Service {serviceName} has been removed from User {username}");
+         expectedLogWarnings.Push($"Warning : Service {serviceName} has been removed from User {username}");
 
          // Then
          _ = databaseLoaded.User.Services.Length.Should().Be(0);
@@ -165,7 +175,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          expectedLogs.Push($"Information : User {username} logged out");
          expectedLogs.Push($"Information : User {username}'s database closed");
 
-         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
          expectedLogs.Push($"Information : User {username}'s database opened");
          expectedLogs.Push($"Information : User {username} logged in");
 
@@ -173,6 +183,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = databaseLoaded.User.Services.Length.Should().Be(0);
 
          UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
+         UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
@@ -195,13 +206,15 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = databaseCreated.User.AddService(serviceName);
          databaseCreated.Close();
          Stack<string> expectedLogs = new();
+         Stack<string> expectedLogWarnings = new();
 
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // When
          databaseLoaded.User.DeleteService(serviceLoaded);
          expectedLogs.Push($"Warning : Service {serviceName} has been removed from User {username}");
+         expectedLogWarnings.Push($"Warning : Service {serviceName} has been removed from User {username}");
 
          // Then
          _ = databaseLoaded.User.Services.Length.Should().Be(0);
@@ -209,17 +222,20 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          // When
          databaseLoaded.Close();
          expectedLogs.Push($"Warning : User {username} logged out without saving");
+         expectedLogWarnings.Push($"Warning : User {username} logged out without saving");
          expectedLogs.Push($"Information : User {username}'s database closed");
 
-         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
          expectedLogs.Push($"Information : User {username}'s database opened");
          expectedLogs.Push($"Information : User {username} logged in");
          expectedLogs.Push($"Warning : User {username}'s autosave merged");
+         expectedLogWarnings.Push($"Warning : User {username}'s autosave merged");
 
          // Then
          _ = databaseLoaded.User.Services.Length.Should().Be(0);
 
          UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
+         UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
