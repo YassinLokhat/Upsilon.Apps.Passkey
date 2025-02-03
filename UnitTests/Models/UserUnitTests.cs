@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.PassKey.Core.Abstraction.Enums;
-using Upsilon.Apps.PassKey.Core.Abstraction.Interfaces;
+using Upsilon.Apps.PassKey.Core.Public.Enums;
+using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.PassKey.UnitTests.Models
 {

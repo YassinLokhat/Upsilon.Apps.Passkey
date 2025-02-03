@@ -1,8 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using FluentAssertions;
-using Upsilon.Apps.PassKey.Core.Abstraction.Enums;
-using Upsilon.Apps.PassKey.Core.Abstraction.Interfaces;
-using Upsilon.Apps.PassKey.Core.Implementation.Utils;
+using Upsilon.Apps.PassKey.Core.Public.Enums;
+using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Core.Internal.Utils;
 
 namespace Upsilon.Apps.PassKey.UnitTests
 {
