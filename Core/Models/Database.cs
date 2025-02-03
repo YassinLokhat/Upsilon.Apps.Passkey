@@ -15,6 +15,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
 
       IUser? IDatabase.User => User;
       ILog[]? IDatabase.Logs => Logs.Logs;
+      IWarning[]? IDatabase.Warnings => User != null ? Warnings : null;
 
       public void Delete()
       {
@@ -66,6 +67,22 @@ namespace Upsilon.Apps.PassKey.Core.Models
                _onAutoSaveDetected?.Invoke(this, eventArg);
                _handleAutoSave(eventArg.MergeBehavior);
             }
+
+            Warning[] logWarnings = _lookAtLogWarnings();
+            Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
+            Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
+            Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
+
+            Warnings = [..logWarnings,
+               ..passwordUpdateReminderWarnings,
+               ..passwordLeakedWarnings,
+               ..duplicatedPasswordsWarnings];
+
+            _onWarningDetected?.Invoke(this, new WarningDetectedEventArgs(
+               [..User.WarningsToNotify.ContainsFlag(WarningType.LogReviewWarning) ? logWarnings : [],
+               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
+               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
+               ..User.WarningsToNotify.ContainsFlag(WarningType.DuplicatedPasswordsWarning) ? duplicatedPasswordsWarnings : []]));
          }
 
          return User;
@@ -78,6 +95,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
       internal User? User;
       internal AutoSave AutoSave;
       internal LogCenter Logs;
+      internal Warning[]? Warnings;
 
       internal string Username { get; private set; }
       internal string[] Passkeys { get; private set; }
@@ -88,6 +106,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
       internal readonly ICryptographyCenter CryptographicCenter;
       internal readonly ISerializationCenter SerializationCenter;
 
+      private readonly EventHandler<WarningDetectedEventArgs>? _onWarningDetected = null;
       private readonly EventHandler<AutoSaveDetectedEventArgs>? _onAutoSaveDetected = null;
 
       private Database(ICryptographyCenter cryptographicCenter,
@@ -96,6 +115,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          string autoSaveFile,
          string logFile,
          FileMode fileMode,
+         EventHandler<WarningDetectedEventArgs>? warningDetectedHandler,
          EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler,
          string username,
          string publicKey = "",
@@ -136,6 +156,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          Logs.Database = this;
 
          _onAutoSaveDetected = autoSaveHandler;
+         _onWarningDetected = warningDetectedHandler;
       }
 
       internal static IDatabase Create(ICryptographyCenter cryptographicCenter,
@@ -166,6 +187,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             autoSaveFile,
             logFile,
             FileMode.Create,
+            warningDetectedHandler: null,
             autoSaveHandler: null,
             username,
             publicKey,
@@ -200,6 +222,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          string autoSaveFile,
          string logFile,
          string username,
+         EventHandler<WarningDetectedEventArgs>? warningDetectedHandler = null,
          EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
       {
          Database database = new(cryptographicCenter,
@@ -208,6 +231,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
             autoSaveFile,
             logFile,
             FileMode.Open,
+            warningDetectedHandler,
             autoSaveHandler,
             username);
 
@@ -260,6 +284,7 @@ namespace Upsilon.Apps.PassKey.Core.Models
          AutoSave.Changes.Clear();
          Username = string.Empty;
          Passkeys = [];
+         Warnings = null;
 
          DatabaseFileLocker?.Dispose();
          DatabaseFileLocker = null;
@@ -300,6 +325,84 @@ namespace Upsilon.Apps.PassKey.Core.Models
                Logs.AddLog($"User {Username}'s autosave not merged and keeped.", true);
                break;
          }
+      }
+
+      private Warning[] _lookAtLogWarnings()
+      {
+         if (User == null) throw new NullReferenceException(nameof(User));
+         if (Logs.Logs == null) throw new NullReferenceException(nameof(Logs.Logs));
+
+         List<Log> logs = Logs.Logs.Cast<Log>().ToList();
+
+         for (int i = 0; i < logs.Count && logs[i].Message != $"User {Username} logged in"; i++)
+         {
+            if (!logs[i].NeedsReview
+               || !logs[i].Message.StartsWith($"User {Username}'s autosave "))
+            {
+               logs.RemoveAt(i);
+               i--;
+            }
+         }
+
+         return [new Warning([.. logs.Where(x => x.NeedsReview)])];
+      }
+
+      private Warning[] _lookAtPasswordUpdateReminderWarnings()
+      {
+         if (User == null) throw new NullReferenceException(nameof(User));
+
+         Account[] accounts = User.Services
+            .SelectMany(x => x.Accounts)
+            .Where(x => x.PasswordExpired)
+            .ToArray();
+
+         if (accounts.Length != 0)
+         {
+            return [new Warning(WarningType.PasswordUpdateReminderWarning, accounts)];
+         }
+         else
+         {
+            return [];
+         }
+      }
+
+      private Warning[] _lookAtPasswordLeakedWarnings()
+      {
+         if (User == null) throw new NullReferenceException(nameof(User));
+
+         Account[] accounts = User.Services
+            .SelectMany(x => x.Accounts)
+            .Where(x => x.PasswordLeaked)
+            .ToArray();
+
+         if (accounts.Length != 0)
+         {
+            return [new Warning(WarningType.PasswordLeakedWarning, accounts)];
+         }
+         else
+         {
+            return [];
+         }
+      }
+
+      private Warning[] _lookAtDuplicatedPasswordsWarnings()
+      {
+         if (User == null) throw new NullReferenceException(nameof(User));
+
+         IGrouping<string, Account>[] duplicatedPasswords = User.Services
+            .SelectMany(x => x.Accounts)
+            .GroupBy(x => x.Password)
+            .Where(x => x.Count() > 1)
+            .ToArray();
+
+         List<Warning> warnings = [];
+
+         foreach (IGrouping<string, Account> accounts in duplicatedPasswords)
+         {
+            warnings.Add(new(WarningType.DuplicatedPasswordsWarning, [.. accounts.Cast<Account>()]));
+         }
+
+         return [.. warnings];
       }
    }
 }

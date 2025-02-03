@@ -1,5 +1,5 @@
-﻿using System.Runtime.CompilerServices;
-using FluentAssertions;
+﻿using FluentAssertions;
+using System.Runtime.CompilerServices;
 using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Interfaces;
 using Upsilon.Apps.PassKey.Core.Utils;
@@ -36,18 +36,29 @@ namespace Upsilon.Apps.PassKey.UnitTests
          return database;
       }
 
-      public static IDatabase OpenTestDatabase(string[] passkeys, AutoSaveMergeBehavior mergeAutoSave = AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile, [CallerMemberName] string username = "")
+      public static IDatabase OpenTestDatabase(string[] passkeys, out IWarning[] detectedWarnings, AutoSaveMergeBehavior mergeAutoSave = AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile, [CallerMemberName] string username = "")
       {
          string databaseFile = ComputeDatabaseFilePath(username);
          string autoSaveFile = ComputeAutoSaveFilePath(username);
          string logFile = ComputeLogFilePath(username);
 
-         IDatabase database = IDatabase.Open(CryptographicCenter, SerializationCenter, databaseFile, autoSaveFile, logFile, username, (s, e) => { e.MergeBehavior = mergeAutoSave; });
+         IWarning[] warnings = [];
+
+         IDatabase database = IDatabase.Open(CryptographicCenter,
+            SerializationCenter,
+            databaseFile,
+            autoSaveFile,
+            logFile,
+            username,
+            (s, e) => { warnings = e.Warnings; },
+            (s, e) => { e.MergeBehavior = mergeAutoSave; });
 
          foreach (string passkey in passkeys)
          {
             _ = database.Login(passkey);
          }
+
+         detectedWarnings = warnings;
 
          return database;
       }
@@ -115,6 +126,22 @@ namespace Upsilon.Apps.PassKey.UnitTests
       {
          string[] actualLogs = database.Logs.Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
 
+         _lastLogsShouldMatch(actualLogs, expectedLogs);
+      }
+
+      public static void LastLogWarningsShouldMatch(IDatabase database, string[] expectedLogs)
+      {
+         IWarning logWarning = database.Warnings.First(x => x.WarningType == WarningType.LogReviewWarning);
+
+         string[] actualLogs = logWarning.Logs
+            .OrderByDescending(x => x.DateTime)
+            .Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
+
+         _lastLogsShouldMatch(actualLogs, expectedLogs);
+      }
+
+      private static void _lastLogsShouldMatch(string[] actualLogs, string[] expectedLogs)
+      {
          for (int i = expectedLogs.Length - 1; i >= 0; i--)
          {
             actualLogs[i].Should().Be(expectedLogs[i]);

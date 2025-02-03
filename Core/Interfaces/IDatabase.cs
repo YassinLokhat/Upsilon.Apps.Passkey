@@ -34,6 +34,11 @@ namespace Upsilon.Apps.PassKey.Core.Interfaces
       ILog[]? Logs { get; }
 
       /// <summary>
+      /// The warnings detected.
+      /// </summary>
+      IWarning[]? Warnings { get; }
+
+      /// <summary>
       /// Try to load the current user.
       /// </summary>
       /// <param name="passkey">The current passkey.</param>
@@ -102,6 +107,7 @@ namespace Upsilon.Apps.PassKey.Core.Interfaces
          string autoSaveFile,
          string logFile,
          string username,
+         EventHandler<WarningDetectedEventArgs> warningDetectedHandler,
          EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
          => Database.Open(cryptographicCenter,
             serializationCenter,
@@ -109,6 +115,7 @@ namespace Upsilon.Apps.PassKey.Core.Interfaces
             autoSaveFile,
             logFile,
             username,
+            warningDetectedHandler,
             autoSaveHandler);
    }
 }
