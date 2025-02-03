@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.PassKey.Core.Utils;
+using Upsilon.Apps.PassKey.Core.Implementation.Utils;
 
 namespace Upsilon.Apps.PassKey.UnitTests.Utils
 {
