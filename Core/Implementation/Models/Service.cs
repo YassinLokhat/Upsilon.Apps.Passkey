@@ -1,11 +1,9 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.PassKey.Core.Abstraction.Interfaces;
-using Upsilon.Apps.PassKey.Core.Implementation.Enums;
-using Upsilon.Apps.PassKey.Core.Implementation.Interfaces;
 
 namespace Upsilon.Apps.PassKey.Core.Implementation.Models
 {
-   internal sealed class Service : IService, IChangable
+   internal sealed class Service : IService
    {
       #region IService interface explicit implementation
 
@@ -121,7 +119,7 @@ namespace Upsilon.Apps.PassKey.Core.Implementation.Models
       {
          switch (change.ActionType)
          {
-            case ChangeType.Update:
+            case Change.Type.Update:
                switch (change.FieldName)
                {
                   case nameof(ServiceName):
@@ -137,17 +135,17 @@ namespace Upsilon.Apps.PassKey.Core.Implementation.Models
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
-            case ChangeType.Add:
+            case Change.Type.Add:
                Account accountToAdd = Database.SerializationCenter.Deserialize<Account>(change.Value);
                accountToAdd.Service = this;
                Accounts.Add(accountToAdd);
                break;
-            case ChangeType.Delete:
+            case Change.Type.Delete:
                Account accountToDelete = Database.SerializationCenter.Deserialize<Account>(change.Value);
                _ = Accounts.RemoveAll(x => x.ItemId == accountToDelete.ItemId);
                break;
             default:
-               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(ChangeType));
+               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(Change.Type));
          }
       }
 

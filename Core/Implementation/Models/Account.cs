@@ -1,13 +1,11 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.PassKey.Core.Abstraction.Enums;
 using Upsilon.Apps.PassKey.Core.Abstraction.Interfaces;
-using Upsilon.Apps.PassKey.Core.Implementation.Enums;
-using Upsilon.Apps.PassKey.Core.Implementation.Interfaces;
 using Upsilon.Apps.PassKey.Core.Implementation.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Implementation.Models
 {
-   internal sealed class Account : IAccount, IChangable
+   internal sealed class Account : IAccount
    {
       #region IAccount interface explicit implementation
 
@@ -134,7 +132,7 @@ namespace Upsilon.Apps.PassKey.Core.Implementation.Models
       {
          switch (change.ActionType)
          {
-            case ChangeType.Update:
+            case Change.Type.Update:
                switch (change.FieldName)
                {
                   case nameof(Label):
@@ -161,7 +159,7 @@ namespace Upsilon.Apps.PassKey.Core.Implementation.Models
                }
                break;
             default:
-               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(ChangeType));
+               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(Change.Type));
          }
       }
 

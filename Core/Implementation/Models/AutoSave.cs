@@ -1,5 +1,4 @@
-﻿using Upsilon.Apps.PassKey.Core.Implementation.Enums;
-using Upsilon.Apps.PassKey.Core.Implementation.Utils;
+﻿using Upsilon.Apps.PassKey.Core.Implementation.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Implementation.Models
 {
@@ -16,26 +15,26 @@ namespace Upsilon.Apps.PassKey.Core.Implementation.Models
 
       internal T UpdateValue<T>(string itemId, string itemName, string fieldName, bool needsReview, T value, string readableValue) where T : notnull
       {
-         _addChange(itemId, itemName, string.Empty, fieldName, Database.SerializationCenter.Serialize(value), readableValue, needsReview, ChangeType.Update);
+         _addChange(itemId, itemName, string.Empty, fieldName, Database.SerializationCenter.Serialize(value), readableValue, needsReview, Change.Type.Update);
 
          return value;
       }
 
       internal T AddValue<T>(string itemId, string itemName, string containerName, bool needsReview, T value) where T : notnull
       {
-         _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, ChangeType.Add);
+         _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, Change.Type.Add);
 
          return value;
       }
 
       internal T DeleteValue<T>(string itemId, string itemName, string containerName, bool needsReview, T value) where T : notnull
       {
-         _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, ChangeType.Delete);
+         _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, Change.Type.Delete);
 
          return value;
       }
 
-      private void _addChange(string itemId, string itemName, string containerName, string fieldName, string value, string readableValue, bool needsReview, ChangeType action)
+      private void _addChange(string itemId, string itemName, string containerName, string fieldName, string value, string readableValue, bool needsReview, Change.Type action)
       {
          Changes.Enqueue(new Change
          {
@@ -55,13 +54,13 @@ namespace Upsilon.Apps.PassKey.Core.Implementation.Models
 
          switch (action)
          {
-            case ChangeType.Add:
+            case Change.Type.Add:
                logMessage = $"{itemName} has been added to {containerName}";
                break;
-            case ChangeType.Delete:
+            case Change.Type.Delete:
                logMessage = $"{itemName} has been removed from {containerName}";
                break;
-            case ChangeType.Update:
+            case Change.Type.Update:
             default:
                logMessage = $"{itemName}'s {fieldName.ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(readableValue) ? $"updated" : $"set to {readableValue}")}";
                break;
