@@ -65,8 +65,9 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       /// Create a new user database and returns the database.
       /// After creating, the User should be loaded with the Login method.
       /// </summary>
-      /// <param name="cryptographicCenter">An Internal of the cryptographic center.</param>
-      /// <param name="serializationCenter">An Internal of the serialization center.</param>
+      /// <param name="cryptographicCenter">An implementation of the cryptographic center.</param>
+      /// <param name="serializationCenter">An implementation of the serialization center.</param>
+      /// <param name="passwordGenerator">An implementation of the password generator.</param>
       /// <param name="databaseFile">The path to the database file.</param>
       /// <param name="autoSaveFile">The path to the autosave file.</param>
       /// <param name="logFile">The path to the log file.</param>
@@ -75,6 +76,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       /// <returns>The database created.</returns>
       static IDatabase Create(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
+         IPasswordGenerator passwordGenerator,
          string databaseFile,
          string autoSaveFile,
          string logFile,
@@ -82,6 +84,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
          string[] passkeys)
          => Upsilon.Apps.PassKey.Core.Internal.Models.Database.Create(cryptographicCenter,
             serializationCenter,
+            passwordGenerator,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -92,8 +95,9 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       /// Open an user and returns the database.
       /// After opening, the User should be loaded with the Login method.
       /// </summary>
-      /// <param name="cryptographicCenter">An Internal of the cryptographic center.</param>
-      /// <param name="serializationCenter">An Internal of the serialization center.</param>
+      /// <param name="cryptographicCenter">An implementation of the cryptographic center.</param>
+      /// <param name="serializationCenter">An implementation of the serialization center.</param>
+      /// <param name="passwordGenerator">An implementation of the password generator.</param>
       /// <param name="databaseFile">The path to the database file.</param>
       /// <param name="autoSaveFile">The path to the autosave file.</param>
       /// <param name="logFile">The path to the log file.</param>
@@ -102,6 +106,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       /// <returns>The database opened.</returns>
       static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
+         IPasswordGenerator passwordGenerator,
          string databaseFile,
          string autoSaveFile,
          string logFile,
@@ -110,6 +115,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
          EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
          => Upsilon.Apps.PassKey.Core.Internal.Models.Database.Open(cryptographicCenter,
             serializationCenter,
+            passwordGenerator,
             databaseFile,
             autoSaveFile,
             logFile,

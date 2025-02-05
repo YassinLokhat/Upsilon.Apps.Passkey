@@ -220,8 +220,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          expectedLogs.Push($"Information : User {username}'s database opened");
          for (int i = wrongKeyIndex; i < wrongPasskeys.Length; i++)
          {
-            expectedLogs.Push($"Warning : User {username} login failed at level {(wrongKeyIndex + 1)}");
-            expectedLogWarnings.Push($"Warning : User {username} login failed at level {(wrongKeyIndex + 1)}");
+            expectedLogs.Push($"Warning : User {username} login failed at level {wrongKeyIndex + 1}");
+            expectedLogWarnings.Push($"Warning : User {username} login failed at level {wrongKeyIndex + 1}");
          }
 
          // Then

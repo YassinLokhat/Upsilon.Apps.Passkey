@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Internal.Utils
+﻿namespace Upsilon.Apps.PassKey.Core.Public.Utils
 {
    public sealed class CheckSignFailedException : Exception
    {

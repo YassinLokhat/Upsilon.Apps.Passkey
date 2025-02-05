@@ -75,8 +75,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
          expectedLogs.Push($"Information : User {oldUsername}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
          databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
-         expectedLogs.Push($"Warning : User {oldUsername}'s warnings to notify has been set to {(WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning)}");
-         expectedLogWarnings.Push($"Warning : User {oldUsername}'s warnings to notify has been set to {(WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning)}");
+         expectedLogs.Push($"Warning : User {oldUsername}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
+         expectedLogWarnings.Push($"Warning : User {oldUsername}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
 
          // Then
          _ = File.Exists(autoSaveFile).Should().BeTrue();
@@ -94,6 +94,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          // When
          IDatabase databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.PasswordGenerator,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -114,7 +115,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          _ = File.Exists(autoSaveFile).Should().BeFalse();
 
-         databaseLoaded.Warnings.Should().NotBeEmpty();
+         _ = databaseLoaded.Warnings.Should().NotBeEmpty();
 
          UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
          UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
@@ -160,8 +161,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
          expectedLogs.Push($"Information : User {oldUsername}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
          databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
-         expectedLogs.Push($"Warning : User {oldUsername}'s warnings to notify has been set to {(WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning)}");
-         expectedLogWarnings.Push($"Warning : User {oldUsername}'s warnings to notify has been set to {(WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning)}");
+         expectedLogs.Push($"Warning : User {oldUsername}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
+         expectedLogWarnings.Push($"Warning : User {oldUsername}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
 
          databaseCreated.Close();
          expectedLogs.Push($"Warning : User {oldUsername} logged out without saving");
@@ -185,8 +186,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
-         databaseLoaded.Warnings.Should().NotBeEmpty();
-         warnings.Should().BeEmpty();
+         _ = databaseLoaded.Warnings.Should().NotBeEmpty();
+         _ = warnings.Should().BeEmpty();
 
          // When
          databaseLoaded.Close();
@@ -195,6 +196,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.PasswordGenerator,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -214,8 +216,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
-         databaseLoaded.Warnings.Should().NotBeEmpty();
-         warnings.Should().BeEmpty();
+         _ = databaseLoaded.Warnings.Should().NotBeEmpty();
+         _ = warnings.Should().BeEmpty();
 
          UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
          UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);

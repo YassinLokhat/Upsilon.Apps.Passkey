@@ -1,19 +1,17 @@
 ﻿using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Utils
+namespace Upsilon.Apps.PassKey.Core.Public.Utils
 {
-   /// <summary>
-   /// Contains the password generation methods.
-   /// </summary>
-   public static class PasswordGenerator
+   public class PasswordGenerator : IPasswordGenerator
    {
-      public static string Alphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      public static string Numeric => "0123456789";
-      public static string SpecialChars => "~!@#$%^&*()_-+={[}]\\|'\";:,<.>/?";
+      public string Alphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      public string Numeric => "0123456789";
+      public string SpecialChars => "~!@#$%^&*()_-+={[}]\\|'\";:,<.>/?";
 
-      public static string GeneratePassword(int length,
+      public string GeneratePassword(int length,
          bool includeUpperCaseAlphabeticChars = true,
          bool includeLowerCaseAlphabeticChars = true,
          bool includeNumericChars = true,
@@ -48,7 +46,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
          return GeneratePassword(length, alphabet, checkIfLeaked);
       }
 
-      public static string GeneratePassword(int length, string alphabet, bool checkIfLeaked = true)
+      public string GeneratePassword(int length, string alphabet, bool checkIfLeaked = true)
       {
          if (string.IsNullOrWhiteSpace(alphabet)
             || length == 0)
@@ -73,7 +71,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
          return stringBuilder.ToString();
       }
 
-      public static bool PasswordLeaked(string password)
+      public bool PasswordLeaked(string password)
       {
          string hash = Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(password)));
 

@@ -2,18 +2,10 @@
 using System.Text;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Utils
+namespace Upsilon.Apps.PassKey.Core.Public.Utils
 {
-   /// <summary>
-   /// Represent a cryptographic center Internal.
-   /// </summary>
    public class CryptographyCenter : ICryptographyCenter
    {
-      /// <summary>
-      /// Returs a fast string hash of the given string.
-      /// </summary>
-      /// <param name="source">The string to hash.</param>
-      /// <returns>The hash.</returns>
       public string GetHash(string source)
       {
          string md5Hash = Convert.ToBase64String(MD5.HashData(Encoding.Unicode.GetBytes(source))).TrimEnd('=');
@@ -22,11 +14,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
          return md5Hash + sha1Hash;
       }
 
-      /// <summary>
-      /// Returs a slow string hash of the given string.
-      /// </summary>
-      /// <param name="source">The string to hash.</param>
-      /// <returns>The hash.</returns>
       public string GetSlowHash(string source)
       {
          long realTimeFactor = (long)Math.Pow(0b1000, 5);
@@ -39,25 +26,13 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
          return source;
       }
 
-      /// <summary>
-      /// The fixed length of the hash.
-      /// </summary>
       public int HashLength => GetHash(string.Empty).Length;
 
-      /// <summary>
-      /// Sign a string.
-      /// </summary>
-      /// <param name="source">The string to sign. The method will modify the string to add the signature.</param>
       public void Sign(ref string source)
       {
          source = GetHash(source) + source;
       }
 
-      /// <summary>
-      /// check the signature of a given string.
-      /// </summary>
-      /// <param name="source">The string to sign. The method will modify the string to remove the signature.</param>
-      /// <returns>True if the signature is good, False else.</returns>
       public bool CheckSign(ref string source)
       {
          try
@@ -80,12 +55,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
          return true;
       }
 
-      /// <summary>
-      /// Encrypt symmetrically a string with a set of passekeys in an onion structure.
-      /// </summary>
-      /// <param name="source">The string to encrypt.</param>
-      /// <param name="passwords">The set of passkeys.</param>
-      /// <returns>The encrypted string.</returns>
       public string EncryptSymmetrically(string source, string[] passwords)
       {
          source = _encryptAes(source, passwords);
@@ -96,12 +65,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
          return source;
       }
 
-      /// <summary>
-      /// Decrypt symmetrically a string with a set of passekeys in an onion structure.
-      /// </summary>
-      /// <param name="source">The string to decrypt.</param>
-      /// <param name="passwords">The set of passkeys.</param>
-      /// <returns>The decrypted string.</returns>
       public string DecryptSymmetrically(string source, string[] passwords)
       {
          if (!CheckSign(ref source))
@@ -115,11 +78,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
          return source;
       }
 
-      /// <summary>
-      /// Generate a random public key and private key pair.
-      /// </summary>
-      /// <param name="publicKey">The public key generated.</param>
-      /// <param name="privateKey">The private key generated.</param>
       public void GenerateRandomKeys(out string publicKey, out string privateKey)
       {
          RSACryptoServiceProvider csp = new(2048);
@@ -137,12 +95,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
          privateKey = sw.ToString();
       }
 
-      /// <summary>
-      /// Encrypt asymmetrically a string with a set of passekeys in an onion structure.
-      /// </summary>
-      /// <param name="source">The string to encrypt.</param>
-      /// <param name="key">The encryption key.</param>
-      /// <returns>The encrypted string.</returns>
       public string EncryptAsymmetrically(string source, string key)
       {
          RSACryptoServiceProvider csp = new();
@@ -171,12 +123,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
          return source;
       }
 
-      /// <summary>
-      /// Decrypt asymmetrically a string with a set of passekeys in an onion structure.
-      /// </summary>
-      /// <param name="source">The string to decrypt.</param>
-      /// <param name="key">The encryption key.</param>
-      /// <returns>The decrypted string.</returns>
       public string DecryptAsymmetrically(string source, string key)
       {
          if (!CheckSign(ref source))

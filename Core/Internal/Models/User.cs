@@ -15,7 +15,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => Username;
          set => Username = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(Username),
             needsReview: true,
             value: value,
@@ -26,7 +26,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => Passkeys;
          set => Passkeys = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(Passkeys),
             needsReview: true,
             value: value,
@@ -37,7 +37,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => LogoutTimeout;
          set => LogoutTimeout = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(LogoutTimeout),
             needsReview: false,
             value: value,
@@ -48,7 +48,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => CleaningClipboardTimeout;
          set => CleaningClipboardTimeout = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(CleaningClipboardTimeout),
             needsReview: false,
             value: value,
@@ -59,7 +59,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => WarningsToNotify;
          set => WarningsToNotify = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(WarningsToNotify),
             needsReview: true,
             value: value,
@@ -75,7 +75,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             ServiceName = serviceName
          };
 
-         Services.Add(Database.AutoSave.AddValue(ItemId, itemName: service.ToString(), containerName: this.ToString(), needsReview: false, value: service));
+         Services.Add(Database.AutoSave.AddValue(ItemId, itemName: service.ToString(), containerName: ToString(), needsReview: false, value: service));
 
          return service;
       }
@@ -85,7 +85,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          Service serviceToRemove = Services.FirstOrDefault(x => x.ItemId == service.ItemId)
             ?? throw new KeyNotFoundException($"The '{service.ItemId}' service was not found into the '{ItemId}' user");
 
-         _ = Services.Remove(Database.AutoSave.DeleteValue(ItemId, itemName: serviceToRemove.ToString(), containerName: this.ToString(), needsReview: true, value: serviceToRemove));
+         _ = Services.Remove(Database.AutoSave.DeleteValue(ItemId, itemName: serviceToRemove.ToString(), containerName: ToString(), needsReview: true, value: serviceToRemove));
       }
 
       #endregion

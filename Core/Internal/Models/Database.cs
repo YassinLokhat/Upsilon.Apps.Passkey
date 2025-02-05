@@ -1,7 +1,8 @@
-﻿using Upsilon.Apps.PassKey.Core.Public.Enums;
+﻿using Upsilon.Apps.PassKey.Core.Internal.Utils;
+using Upsilon.Apps.PassKey.Core.Public.Enums;
 using Upsilon.Apps.PassKey.Core.Public.Events;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Internal.Utils;
+using Upsilon.Apps.PassKey.Core.Public.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Internal.Models
 {
@@ -46,7 +47,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          {
             if (ex is WrongPasswordException passwordException)
             {
-               Logs.AddLog($"User {Username} login failed at level {(passwordException.PasswordLevel)}", true);
+               Logs.AddLog($"User {Username} login failed at level {passwordException.PasswordLevel}", true);
             }
          }
 
@@ -105,12 +106,14 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       internal FileLocker? LogFileLocker;
       internal readonly ICryptographyCenter CryptographicCenter;
       internal readonly ISerializationCenter SerializationCenter;
+      internal readonly IPasswordGenerator PasswordGenerator;
 
       private readonly EventHandler<WarningDetectedEventArgs>? _onWarningDetected = null;
       private readonly EventHandler<AutoSaveDetectedEventArgs>? _onAutoSaveDetected = null;
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
+         IPasswordGenerator passwordGenerator,
          string databaseFile,
          string autoSaveFile,
          string logFile,
@@ -127,6 +130,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          CryptographicCenter = cryptographicCenter;
          SerializationCenter = serializationCenter;
+         PasswordGenerator = passwordGenerator;
 
          Username = username;
          Passkeys = [CryptographicCenter.GetHash(username)];
@@ -161,6 +165,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       internal static IDatabase Create(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
+         IPasswordGenerator passwordGenerator,
          string databaseFile,
          string autoSaveFile,
          string logFile,
@@ -183,6 +188,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          Database database = new(cryptographicCenter,
             serializationCenter,
+            passwordGenerator,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -210,6 +216,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          return Open(cryptographicCenter,
             serializationCenter,
+            passwordGenerator,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -218,6 +225,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       internal static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
+         IPasswordGenerator passwordGenerator,
          string databaseFile,
          string autoSaveFile,
          string logFile,
@@ -227,6 +235,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          Database database = new(cryptographicCenter,
             serializationCenter,
+            passwordGenerator,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -356,14 +365,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             .Where(x => x.PasswordExpired)
             .ToArray();
 
-         if (accounts.Length != 0)
-         {
-            return [new Warning(WarningType.PasswordUpdateReminderWarning, accounts)];
-         }
-         else
-         {
-            return [];
-         }
+         return accounts.Length != 0 ? ([new Warning(WarningType.PasswordUpdateReminderWarning, accounts)]) : ([]);
       }
 
       private Warning[] _lookAtPasswordLeakedWarnings()
@@ -375,14 +377,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             .Where(x => x.PasswordLeaked)
             .ToArray();
 
-         if (accounts.Length != 0)
-         {
-            return [new Warning(WarningType.PasswordLeakedWarning, accounts)];
-         }
-         else
-         {
-            return [];
-         }
+         return accounts.Length != 0 ? ([new Warning(WarningType.PasswordLeakedWarning, accounts)]) : ([]);
       }
 
       private Warning[] _lookAtDuplicatedPasswordsWarnings()

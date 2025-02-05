@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
+using Upsilon.Apps.PassKey.Core.Internal.Utils;
 using Upsilon.Apps.PassKey.Core.Public.Enums;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Internal.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Internal.Models
 {
@@ -16,7 +16,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => Label;
          set => Label = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(Label),
             needsReview: false,
             value: value,
@@ -27,7 +27,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => Identifiants;
          set => Identifiants = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(Identifiants),
             needsReview: true,
             value: value,
@@ -46,7 +46,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                if (_service != null)
                {
                   _ = Database.AutoSave.UpdateValue(ItemId,
-                     itemName: this.ToString(),
+                     itemName: ToString(),
                      fieldName: nameof(Password),
                      needsReview: true,
                      value: Passwords,
@@ -62,7 +62,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => Notes;
          set => Notes = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(Notes),
             needsReview: false,
             value: value,
@@ -73,7 +73,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => PasswordUpdateReminderDelay;
          set => PasswordUpdateReminderDelay = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(PasswordUpdateReminderDelay),
             needsReview: false,
             value: value,
@@ -84,7 +84,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => Options;
          set => Options = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(Options),
             needsReview: false,
             value: value,
@@ -126,7 +126,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          }
       }
 
-      internal bool PasswordLeaked => Options.ContainsFlag(AccountOption.WarnIfPasswordLeaked) && PasswordGenerator.PasswordLeaked(Password);
+      internal bool PasswordLeaked => Options.ContainsFlag(AccountOption.WarnIfPasswordLeaked) && Database.PasswordGenerator.PasswordLeaked(Password);
 
       public void Apply(Change change)
       {

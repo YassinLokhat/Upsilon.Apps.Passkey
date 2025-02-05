@@ -15,7 +15,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => ServiceName;
          set => ServiceName = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(ServiceName),
             needsReview: true,
             value: value,
@@ -26,7 +26,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => Url;
          set => Url = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(Url),
             needsReview: false,
             value: value,
@@ -37,7 +37,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          get => Notes;
          set => Notes = Database.AutoSave.UpdateValue(ItemId,
-            itemName: this.ToString(),
+            itemName: ToString(),
             fieldName: nameof(Notes),
             needsReview: false,
             value: value,
@@ -56,7 +56,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          };
          account.Passwords[DateTime.Now] = password;
 
-         Accounts.Add(Database.AutoSave.AddValue(ItemId, itemName: account.ToString(), containerName: this.ToString(), needsReview: false, account));
+         Accounts.Add(Database.AutoSave.AddValue(ItemId, itemName: account.ToString(), containerName: ToString(), needsReview: false, account));
 
          return account;
       }
@@ -66,7 +66,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          Account accountToRemove = Accounts.FirstOrDefault(x => x.ItemId == account.ItemId)
             ?? throw new KeyNotFoundException($"The '{account.ItemId}' account was not found into the '{ItemId}' service");
 
-         _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, itemName: accountToRemove.ToString(), containerName: this.ToString(), needsReview: true, accountToRemove));
+         _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, itemName: accountToRemove.ToString(), containerName: ToString(), needsReview: true, accountToRemove));
 
       }
 
