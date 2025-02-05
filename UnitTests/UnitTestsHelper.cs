@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using System.Runtime.CompilerServices;
-using Upsilon.Apps.PassKey.Core.Enums;
-using Upsilon.Apps.PassKey.Core.Interfaces;
-using Upsilon.Apps.PassKey.Core.Utils;
+using Upsilon.Apps.PassKey.Core.Public.Enums;
+using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Core.Public.Utils;
 
 namespace Upsilon.Apps.PassKey.UnitTests
 {
@@ -12,6 +12,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
       public static readonly ICryptographyCenter CryptographicCenter = new CryptographyCenter();
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
+      public static readonly IPasswordGenerator PasswordGenerator = new PasswordGenerator();
 
       public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
       public static string ComputeDatabaseFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{username}.pku";
@@ -26,7 +27,14 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
          passkeys ??= GetRandomStringArray();
 
-         IDatabase database = IDatabase.Create(CryptographicCenter, SerializationCenter, databaseFile, autoSaveFile, logFile, username, passkeys);
+         IDatabase database = IDatabase.Create(CryptographicCenter,
+            SerializationCenter,
+            PasswordGenerator,
+            databaseFile,
+            autoSaveFile,
+            logFile,
+            username,
+            passkeys);
 
          foreach (string passkey in passkeys)
          {
@@ -46,6 +54,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
          IDatabase database = IDatabase.Open(CryptographicCenter,
             SerializationCenter,
+            PasswordGenerator,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -144,7 +153,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
       {
          for (int i = expectedLogs.Length - 1; i >= 0; i--)
          {
-            actualLogs[i].Should().Be(expectedLogs[i]);
+            _ = actualLogs[i].Should().Be(expectedLogs[i]);
          }
       }
    }
