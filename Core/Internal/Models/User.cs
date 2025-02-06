@@ -71,7 +71,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          Service service = new()
          {
             User = this,
-            ItemId = ItemId + Database.CryptographicCenter.GetHash(serviceName),
+            ItemId = ItemId + Database.CryptographyCenter.GetHash(serviceName),
             ServiceName = serviceName
          };
 
@@ -122,7 +122,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public void Apply(Change change)
       {
-         switch (change.ItemId.Length / Database.CryptographicCenter.HashLength)
+         switch (change.ItemId.Length / Database.CryptographyCenter.HashLength)
          {
             case 1:
                _apply(change);
@@ -130,7 +130,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             case 2:
             case 3:
                Service service = Services.FirstOrDefault(x => change.ItemId.StartsWith(x.ItemId))
-                  ?? throw new KeyNotFoundException($"The '{change.ItemId[..(2 * Database.CryptographicCenter.HashLength)]}' service was not found into the '{ItemId}' user");
+                  ?? throw new KeyNotFoundException($"The '{change.ItemId[..(2 * Database.CryptographyCenter.HashLength)]}' service was not found into the '{ItemId}' user");
 
                service.Apply(change);
                break;

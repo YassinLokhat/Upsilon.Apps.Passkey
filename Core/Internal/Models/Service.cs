@@ -49,7 +49,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          Account account = new()
          {
             Service = this,
-            ItemId = ItemId + Database.CryptographicCenter.GetHash(label + string.Join(string.Empty, identifiants)),
+            ItemId = ItemId + Database.CryptographyCenter.GetHash(label + string.Join(string.Empty, identifiants)),
             Label = label,
             Identifiants = identifiants.ToArray(),
             Password = password,
@@ -99,7 +99,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public void Apply(Change change)
       {
-         switch (change.ItemId.Length / Database.CryptographicCenter.HashLength)
+         switch (change.ItemId.Length / Database.CryptographyCenter.HashLength)
          {
             case 2:
                _apply(change);

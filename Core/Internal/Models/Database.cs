@@ -18,6 +18,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       ILog[]? IDatabase.Logs => Logs.Logs;
       IWarning[]? IDatabase.Warnings => User != null ? Warnings : null;
 
+      public ICryptographyCenter CryptographyCenter { get; private set; }
+      public ISerializationCenter SerializationCenter { get; private set; }
+      public IPasswordGenerator PasswordGenerator { get; private set; }
+
       public event EventHandler<WarningDetectedEventArgs>? WarningDetected;
       public event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
       public event EventHandler? DatabaseSaved;
@@ -42,7 +46,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
-         Passkeys = [.. Passkeys, CryptographicCenter.GetSlowHash(passkey)];
+         Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey)];
 
          try
          {
@@ -64,7 +68,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
             if (File.Exists(AutoSaveFile))
             {
-               AutoSaveFileLocker = new(CryptographicCenter, SerializationCenter, AutoSaveFile, FileMode.Open);
+               AutoSaveFileLocker = new(CryptographyCenter, SerializationCenter, AutoSaveFile, FileMode.Open);
 
                AutoSave = AutoSaveFileLocker.Open<AutoSave>(Passkeys);
                AutoSave.Database = this;
@@ -109,9 +113,8 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       internal FileLocker? DatabaseFileLocker;
       internal FileLocker? AutoSaveFileLocker;
       internal FileLocker? LogFileLocker;
-      internal readonly ICryptographyCenter CryptographicCenter;
-      internal readonly ISerializationCenter SerializationCenter;
-      internal readonly IPasswordGenerator PasswordGenerator;
+
+      internal DateTime LastActionTime;
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
@@ -128,16 +131,18 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          AutoSaveFile = autoSaveFile;
          LogFile = logFile;
 
-         CryptographicCenter = cryptographicCenter;
+         CryptographyCenter = cryptographicCenter;
          SerializationCenter = serializationCenter;
          PasswordGenerator = passwordGenerator;
 
          Username = username;
-         Passkeys = [CryptographicCenter.GetHash(username)];
+         Passkeys = [CryptographyCenter.GetHash(username)];
+
+         LastActionTime = DateTime.Now;
 
          if (passkeys != null)
          {
-            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographicCenter.GetSlowHash(x))];
+            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x))];
          }
 
          AutoSave = new()
@@ -246,11 +251,11 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
          Username = User.Username;
-         Passkeys = [CryptographicCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographicCenter.GetSlowHash(x))];
+         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x))];
          DatabaseFileLocker.Save(User, Passkeys);
 
          Logs.Username = Username;
-         LogFileLocker?.Save(Logs, [CryptographicCenter.GetHash(User.Username)]);
+         LogFileLocker?.Save(Logs, [CryptographyCenter.GetHash(User.Username)]);
 
          if (logSaveEvent)
          {

@@ -38,6 +38,21 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       IWarning[]? Warnings { get; }
 
       /// <summary>
+      /// The serialization center implementation.
+      /// </summary>
+      ISerializationCenter SerializationCenter { get; }
+
+      /// <summary>
+      /// The cryptographic center implementation.
+      /// </summary>
+      ICryptographyCenter CryptographyCenter { get; }
+
+      /// <summary>
+      /// The password generator implementation.
+      /// </summary>
+      IPasswordGenerator PasswordGenerator { get; }
+
+      /// <summary>
       /// Occurs when a warning is detected.
       /// </summary>
       event EventHandler<WarningDetectedEventArgs>? WarningDetected;

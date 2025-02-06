@@ -22,7 +22,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
                ? null
                : LogList.Select(x =>
                {
-                  string textLog = Database.CryptographicCenter.DecryptAsymmetrically(x, Database.User.PrivateKey);
+                  string textLog = Database.CryptographyCenter.DecryptAsymmetrically(x, Database.User.PrivateKey);
                   return Database.SerializationCenter.Deserialize<Log>(textLog);
                })
                .OrderByDescending(x => x.DateTime)
@@ -44,7 +44,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
          };
 
          string textLog = Database.SerializationCenter.Serialize(log);
-         LogList.Add(Database.CryptographicCenter.EncryptAsymmetrically(textLog, PublicKey));
+         LogList.Add(Database.CryptographyCenter.EncryptAsymmetrically(textLog, PublicKey));
 
          _save();
       }
@@ -53,7 +53,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
       {
          if (Database.LogFileLocker == null) throw new NullReferenceException(nameof(Database.LogFileLocker));
 
-         Database.LogFileLocker.Save(this, [Database.CryptographicCenter.GetHash(Username)]);
+         Database.LogFileLocker.Save(this, [Database.CryptographyCenter.GetHash(Username)]);
       }
    }
 }
