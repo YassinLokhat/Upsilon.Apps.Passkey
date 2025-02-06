@@ -98,8 +98,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
             databaseFile,
             autoSaveFile,
             logFile,
-            newUsername,
-            (s, e) => { });
+            newUsername);
          expectedLogs.Push($"Information : User {newUsername}'s database opened");
          foreach (string passkey in newPasskeys)
          {
@@ -200,8 +199,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
             databaseFile,
             autoSaveFile,
             logFile,
-            newUsername,
-            (s, e) => warnings = e.Warnings);
+            newUsername);
          expectedLogs.Push($"Information : User {newUsername}'s database opened");
          foreach (string passkey in newPasskeys)
          {
@@ -215,9 +213,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = databaseLoaded.User.Passkeys.Should().BeEquivalentTo(newPasskeys);
          _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
-
          _ = databaseLoaded.Warnings.Should().NotBeEmpty();
-         _ = warnings.Should().BeEmpty();
 
          UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
          UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);

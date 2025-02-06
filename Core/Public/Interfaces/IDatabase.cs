@@ -38,6 +38,26 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       IWarning[]? Warnings { get; }
 
       /// <summary>
+      /// Occurs when a warning is detected.
+      /// </summary>
+      event EventHandler<WarningDetectedEventArgs>? WarningDetected;
+
+      /// <summary>
+      /// Occurs when an autosave is detected.
+      /// </summary>
+      event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
+
+      /// <summary>
+      /// Occurs when the database is saved.
+      /// </summary>
+      event EventHandler? DatabaseSaved;
+
+      /// <summary>
+      /// Occurs when an database is closed.
+      /// </summary>
+      event EventHandler<LogoutEventArgs>? DatabaseClosed;
+
+      /// <summary>
       /// Try to load the current user.
       /// </summary>
       /// <param name="passkey">The current passkey.</param>
@@ -82,7 +102,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
          string logFile,
          string username,
          string[] passkeys)
-         => Upsilon.Apps.PassKey.Core.Internal.Models.Database.Create(cryptographicCenter,
+         => Internal.Models.Database.Create(cryptographicCenter,
             serializationCenter,
             passwordGenerator,
             databaseFile,
@@ -110,17 +130,13 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
          string databaseFile,
          string autoSaveFile,
          string logFile,
-         string username,
-         EventHandler<WarningDetectedEventArgs> warningDetectedHandler,
-         EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
-         => Upsilon.Apps.PassKey.Core.Internal.Models.Database.Open(cryptographicCenter,
+         string username)
+         => Internal.Models.Database.Open(cryptographicCenter,
             serializationCenter,
             passwordGenerator,
             databaseFile,
             autoSaveFile,
             logFile,
-            username,
-            warningDetectedHandler,
-            autoSaveHandler);
+            username);
    }
 }

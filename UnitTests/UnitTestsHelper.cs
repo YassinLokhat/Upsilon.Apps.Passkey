@@ -58,9 +58,10 @@ namespace Upsilon.Apps.PassKey.UnitTests
             databaseFile,
             autoSaveFile,
             logFile,
-            username,
-            (s, e) => { warnings = e.Warnings; },
-            (s, e) => { e.MergeBehavior = mergeAutoSave; });
+            username);
+
+         database.AutoSaveDetected += (s, e) => { e.MergeBehavior = mergeAutoSave; };
+         database.WarningDetected += (s, e) => { warnings = e.Warnings; };
 
          foreach (string passkey in passkeys)
          {
