@@ -137,7 +137,6 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       /// <param name="autoSaveFile">The path to the autosave file.</param>
       /// <param name="logFile">The path to the log file.</param>
       /// <param name="username">The username.</param>
-      /// <param name="autoSaveHandler">The event handler for Auto-save merge behavior.</param>
       /// <returns>The database opened.</returns>
       static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,

@@ -14,9 +14,32 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       public string AutoSaveFile { get; set; }
       public string LogFile { get; set; }
 
-      IUser? IDatabase.User => User;
-      ILog[]? IDatabase.Logs => Logs.Logs;
-      IWarning[]? IDatabase.Warnings => User != null ? Warnings : null;
+      IUser? IDatabase.User
+      {
+         get
+         {
+            _lastActionTime = DateTime.Now;
+            return User;
+         }
+      }
+
+      ILog[]? IDatabase.Logs
+      {
+         get
+         {
+            _lastActionTime = DateTime.Now;
+            return Logs.Logs;
+         }
+      }
+
+      IWarning[]? IDatabase.Warnings
+      {
+         get
+         {
+            _lastActionTime = DateTime.Now;
+            return User != null ? Warnings : null;
+         }
+      }
 
       public ICryptographyCenter CryptographyCenter { get; private set; }
       public ISerializationCenter SerializationCenter { get; private set; }
@@ -35,10 +58,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          LogFileLocker?.Delete();
          AutoSaveFileLocker?.Delete();
 
-         _close(logCloseEvent: false);
+         _close(logCloseEvent: false, loginTimeoutReached: false);
       }
 
-      public void Dispose() => _close(logCloseEvent: true);
+      public void Dispose() => _close(logCloseEvent: true, loginTimeoutReached: false);
 
       public void Save() => _save(logSaveEvent: true);
 
@@ -56,7 +79,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          {
             if (ex is WrongPasswordException passwordException)
             {
-               Logs.AddLog($"User {Username} login failed at level {passwordException.PasswordLevel}", true);
+               Logs.AddLog($"User {Username} login failed at level {passwordException.PasswordLevel}", needsReview: true);
             }
          }
 
@@ -64,7 +87,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          {
             User.Database = this;
 
-            Logs.AddLog($"User {Username} logged in", false);
+            Logs.AddLog($"User {Username} logged in", needsReview: false);
 
             if (File.Exists(AutoSaveFile))
             {
@@ -114,7 +137,8 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       internal FileLocker? AutoSaveFileLocker;
       internal FileLocker? LogFileLocker;
 
-      internal DateTime LastActionTime;
+      private DateTime _lastActionTime;
+      private System.Timers.Timer _timer;
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
@@ -138,7 +162,14 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          Username = username;
          Passkeys = [CryptographyCenter.GetHash(username)];
 
-         LastActionTime = DateTime.Now;
+         _lastActionTime = DateTime.Now;
+         _timer = new()
+         {
+            Interval = 5000,
+            AutoReset = true,
+            Enabled = true,
+         };
+         _timer.Elapsed += _timer_Elapsed;
 
          if (passkeys != null)
          {
@@ -208,11 +239,11 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             Passkeys = [.. passkeys],
          };
 
-         database.Logs.AddLog($"User {username}'s database created", false);
+         database.Logs.AddLog($"User {username}'s database created", needsReview: false);
 
          database._save(logSaveEvent: false);
 
-         database._close(logCloseEvent: false);
+         database._close(logCloseEvent: false, loginTimeoutReached: false);
 
          return Open(cryptographicCenter,
             serializationCenter,
@@ -240,9 +271,28 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             FileMode.Open,
             username);
 
-         database.Logs.AddLog($"User {username}'s database opened", false);
+         database.Logs.AddLog($"User {username}'s database opened", needsReview: false);
 
          return database;
+      }
+
+      private void _timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+      {
+         if (User == null) throw new NullReferenceException(nameof(User));
+
+         if (User.LogoutTimeout == 0)
+         {
+            return;
+         }
+
+         TimeSpan durationSinceLastAction = e.SignalTime - _lastActionTime;
+
+         if (durationSinceLastAction.TotalMinutes >= User.LogoutTimeout)
+         {
+            _close(logCloseEvent: true, loginTimeoutReached: true);
+
+            Logs.AddLog($"User {Username}'s login session timeout ", needsReview: true);
+         }
       }
 
       private void _save(bool logSaveEvent)
@@ -259,7 +309,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          if (logSaveEvent)
          {
-            Logs.AddLog($"User {Username}'s database saved", false);
+            Logs.AddLog($"User {Username}'s database saved", needsReview: false);
          }
 
          AutoSave.Clear();
@@ -267,7 +317,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          DatabaseSaved?.Invoke(this, EventArgs.Empty);
       }
 
-      private void _close(bool logCloseEvent)
+      private void _close(bool logCloseEvent, bool loginTimeoutReached)
       {
          if (logCloseEvent)
          {
@@ -284,7 +334,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                Logs.AddLog(logoutLog, needsReview);
             }
 
-            Logs.AddLog($"User {Username}'s database closed", false);
+            Logs.AddLog($"User {Username}'s database closed", needsReview: false);
          }
 
          User = null;
@@ -306,7 +356,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          AutoSaveFile = string.Empty;
          LogFile = string.Empty;
 
-         DatabaseClosed?.Invoke(this, new(loginTimeoutReached: false));
+         _timer.Stop();
+         _timer.Dispose();
+
+         DatabaseClosed?.Invoke(this, new(loginTimeoutReached));
       }
 
       private void _handleAutoSave(AutoSaveMergeBehavior mergeAutoSave)
@@ -322,16 +375,16 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          {
             case AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile:
                AutoSave.MergeChange();
-               Logs.AddLog($"User {Username}'s autosave merged", true);
+               Logs.AddLog($"User {Username}'s autosave merged", needsReview: true);
                _save(logSaveEvent: false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear();
-               Logs.AddLog($"User {Username}'s autosave not merged and removed", true);
+               Logs.AddLog($"User {Username}'s autosave not merged and removed", needsReview: true);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
-               Logs.AddLog($"User {Username}'s autosave not merged and keeped.", true);
+               Logs.AddLog($"User {Username}'s autosave not merged and keeped.", needsReview: true);
                break;
          }
       }
