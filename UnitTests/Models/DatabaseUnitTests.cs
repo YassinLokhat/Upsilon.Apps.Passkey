@@ -242,5 +242,65 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * Database autmatically closes when timeout reached and Database.DatabaseClosed event rized with the correct eventarg.
+      */
+      public void Case05_DatabaseAutoLogout()
+      {
+         // Given
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
+         string logFile = UnitTestsHelper.ComputeLogFilePath();
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         bool closedDueToTimeout = false;
+         Stack<string> expectedLogs = new();
+         Stack<string> expectedLogWarnings = new();
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase database = IDatabase.Create(UnitTestsHelper.CryptographicCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.PasswordGenerator,
+            databaseFile,
+            autoSaveFile,
+            logFile,
+            username,
+            passkeys);
+
+         database.DatabaseClosed += (s, e) => { closedDueToTimeout = e.LoginTimeoutReached; };
+
+         foreach (string passkey in passkeys)
+         {
+            _ = database.Login(passkey);
+         }
+
+         database.User.LogoutTimeout = 1;
+         database.Save();
+         DateTime start = DateTime.Now;
+
+         // When
+         for (int i = 0; !closedDueToTimeout && i < 300; i++)
+         {
+            Thread.Sleep(500);
+         }
+
+         int elapsedTime = (int)(DateTime.Now - start).TotalMinutes;
+
+         // Then
+         _ = closedDueToTimeout.Should().BeTrue();
+
+         // When
+         database = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then
+         elapsedTime.Should().Be(database.User.LogoutTimeout);
+         database.Logs.FirstOrDefault(x => x.Message == $"User {username}'s login session timeout reached" && x.NeedsReview).Should().NotBeNull();
+
+         // Finaly
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

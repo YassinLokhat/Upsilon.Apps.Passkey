@@ -138,7 +138,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       internal FileLocker? LogFileLocker;
 
       private DateTime _lastActionTime;
-      private System.Timers.Timer _timer;
+      private readonly System.Timers.Timer _timer;
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
@@ -289,9 +289,9 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          if (durationSinceLastAction.TotalMinutes >= User.LogoutTimeout)
          {
-            _close(logCloseEvent: true, loginTimeoutReached: true);
+            Logs.AddLog($"User {Username}'s login session timeout reached", needsReview: true);
 
-            Logs.AddLog($"User {Username}'s login session timeout ", needsReview: true);
+            _close(logCloseEvent: true, loginTimeoutReached: true);
          }
       }
 
