@@ -94,7 +94,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          // When
          IDatabase databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
-            UnitTestsHelper.PasswordGenerator,
+            UnitTestsHelper.PasswordFactory,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -195,7 +195,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
-            UnitTestsHelper.PasswordGenerator,
+            UnitTestsHelper.PasswordFactory,
             databaseFile,
             autoSaveFile,
             logFile,

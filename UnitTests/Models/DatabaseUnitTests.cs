@@ -262,7 +262,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase database = IDatabase.Create(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
-            UnitTestsHelper.PasswordGenerator,
+            UnitTestsHelper.PasswordFactory,
             databaseFile,
             autoSaveFile,
             logFile,

@@ -43,7 +43,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public ICryptographyCenter CryptographyCenter { get; private set; }
       public ISerializationCenter SerializationCenter { get; private set; }
-      public IPasswordGenerator PasswordGenerator { get; private set; }
+      public IPasswordFactory PasswordFactory { get; private set; }
 
       public event EventHandler<WarningDetectedEventArgs>? WarningDetected;
       public event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
@@ -142,7 +142,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
-         IPasswordGenerator passwordGenerator,
+         IPasswordFactory passwordFactory,
          string databaseFile,
          string autoSaveFile,
          string logFile,
@@ -157,7 +157,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          CryptographyCenter = cryptographicCenter;
          SerializationCenter = serializationCenter;
-         PasswordGenerator = passwordGenerator;
+         PasswordFactory = passwordFactory;
 
          Username = username;
          Passkeys = [CryptographyCenter.GetHash(username)];
@@ -198,7 +198,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       internal static IDatabase Create(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
-         IPasswordGenerator passwordGenerator,
+         IPasswordFactory passwordFactory,
          string databaseFile,
          string autoSaveFile,
          string logFile,
@@ -221,7 +221,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          Database database = new(cryptographicCenter,
             serializationCenter,
-            passwordGenerator,
+            passwordFactory,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -247,7 +247,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          return Open(cryptographicCenter,
             serializationCenter,
-            passwordGenerator,
+            passwordFactory,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -256,7 +256,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       internal static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
-         IPasswordGenerator passwordGenerator,
+         IPasswordFactory passwordFactory,
          string databaseFile,
          string autoSaveFile,
          string logFile,
@@ -264,7 +264,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          Database database = new(cryptographicCenter,
             serializationCenter,
-            passwordGenerator,
+            passwordFactory,
             databaseFile,
             autoSaveFile,
             logFile,

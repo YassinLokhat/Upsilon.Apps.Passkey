@@ -126,7 +126,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          }
       }
 
-      internal bool PasswordLeaked => Options.ContainsFlag(AccountOption.WarnIfPasswordLeaked) && Database.PasswordGenerator.PasswordLeaked(Password);
+      internal bool PasswordLeaked => Options.ContainsFlag(AccountOption.WarnIfPasswordLeaked) && Database.PasswordFactory.PasswordLeaked(Password);
 
       public void Apply(Change change)
       {
