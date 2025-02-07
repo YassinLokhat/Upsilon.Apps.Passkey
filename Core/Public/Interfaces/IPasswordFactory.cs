@@ -1,22 +1,22 @@
 ﻿namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
 {
    /// <summary>
-   /// Represent a Password generator engine.
+   /// Represent a Password factory engine.
    /// </summary>
-   public interface IPasswordGenerator
+   public interface IPasswordFactory
    {
       /// <summary>
-      /// The letters used by the generator.
+      /// The letters used by the factory.
       /// </summary>
       public string Alphabetic { get; }
 
       /// <summary>
-      /// The digits used by the generator.
+      /// The digits used by the factory.
       /// </summary>
       public string Numeric { get; }
 
       /// <summary>
-      /// The special characters used by the generator.
+      /// The special characters used by the factory.
       /// </summary>
       public string SpecialChars { get; }
 

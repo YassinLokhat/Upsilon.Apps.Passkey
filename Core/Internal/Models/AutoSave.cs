@@ -46,7 +46,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          if (Database.AutoSaveFileLocker == null)
          {
-            Database.AutoSaveFileLocker = new(Database.CryptographicCenter, Database.SerializationCenter, Database.AutoSaveFile, FileMode.OpenOrCreate);
+            Database.AutoSaveFileLocker = new(Database.CryptographyCenter, Database.SerializationCenter, Database.AutoSaveFile, FileMode.OpenOrCreate);
          }
 
          Database.AutoSaveFileLocker.Save(this, Database.Passkeys);

@@ -14,9 +14,41 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       public string AutoSaveFile { get; set; }
       public string LogFile { get; set; }
 
-      IUser? IDatabase.User => User;
-      ILog[]? IDatabase.Logs => Logs.Logs;
-      IWarning[]? IDatabase.Warnings => User != null ? Warnings : null;
+      IUser? IDatabase.User
+      {
+         get
+         {
+            _lastActionTime = DateTime.Now;
+            return User;
+         }
+      }
+
+      ILog[]? IDatabase.Logs
+      {
+         get
+         {
+            _lastActionTime = DateTime.Now;
+            return Logs.Logs;
+         }
+      }
+
+      IWarning[]? IDatabase.Warnings
+      {
+         get
+         {
+            _lastActionTime = DateTime.Now;
+            return User != null ? Warnings : null;
+         }
+      }
+
+      public ICryptographyCenter CryptographyCenter { get; private set; }
+      public ISerializationCenter SerializationCenter { get; private set; }
+      public IPasswordFactory PasswordFactory { get; private set; }
+
+      public event EventHandler<WarningDetectedEventArgs>? WarningDetected;
+      public event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
+      public event EventHandler? DatabaseSaved;
+      public event EventHandler<LogoutEventArgs>? DatabaseClosed;
 
       public void Delete()
       {
@@ -26,10 +58,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          LogFileLocker?.Delete();
          AutoSaveFileLocker?.Delete();
 
-         _close(logCloseEvent: false);
+         _close(logCloseEvent: false, loginTimeoutReached: false);
       }
 
-      public void Dispose() => _close(logCloseEvent: true);
+      public void Dispose() => _close(logCloseEvent: true, loginTimeoutReached: false);
 
       public void Save() => _save(logSaveEvent: true);
 
@@ -37,7 +69,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
-         Passkeys = [.. Passkeys, CryptographicCenter.GetSlowHash(passkey)];
+         Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey)];
 
          try
          {
@@ -47,7 +79,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          {
             if (ex is WrongPasswordException passwordException)
             {
-               Logs.AddLog($"User {Username} login failed at level {passwordException.PasswordLevel}", true);
+               Logs.AddLog($"User {Username} login failed at level {passwordException.PasswordLevel}", needsReview: true);
             }
          }
 
@@ -55,17 +87,17 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          {
             User.Database = this;
 
-            Logs.AddLog($"User {Username} logged in", false);
+            Logs.AddLog($"User {Username} logged in", needsReview: false);
 
             if (File.Exists(AutoSaveFile))
             {
-               AutoSaveFileLocker = new(CryptographicCenter, SerializationCenter, AutoSaveFile, FileMode.Open);
+               AutoSaveFileLocker = new(CryptographyCenter, SerializationCenter, AutoSaveFile, FileMode.Open);
 
                AutoSave = AutoSaveFileLocker.Open<AutoSave>(Passkeys);
                AutoSave.Database = this;
 
                AutoSaveDetectedEventArgs eventArg = new();
-               _onAutoSaveDetected?.Invoke(this, eventArg);
+               AutoSaveDetected?.Invoke(this, eventArg);
                _handleAutoSave(eventArg.MergeBehavior);
             }
 
@@ -79,7 +111,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                ..passwordLeakedWarnings,
                ..duplicatedPasswordsWarnings];
 
-            _onWarningDetected?.Invoke(this, new WarningDetectedEventArgs(
+            WarningDetected?.Invoke(this, new WarningDetectedEventArgs(
                [..User.WarningsToNotify.ContainsFlag(WarningType.LogReviewWarning) ? logWarnings : [],
                ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
                ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
@@ -104,22 +136,17 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       internal FileLocker? DatabaseFileLocker;
       internal FileLocker? AutoSaveFileLocker;
       internal FileLocker? LogFileLocker;
-      internal readonly ICryptographyCenter CryptographicCenter;
-      internal readonly ISerializationCenter SerializationCenter;
-      internal readonly IPasswordGenerator PasswordGenerator;
 
-      private readonly EventHandler<WarningDetectedEventArgs>? _onWarningDetected = null;
-      private readonly EventHandler<AutoSaveDetectedEventArgs>? _onAutoSaveDetected = null;
+      private DateTime _lastActionTime;
+      private readonly System.Timers.Timer _timer;
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
-         IPasswordGenerator passwordGenerator,
+         IPasswordFactory passwordFactory,
          string databaseFile,
          string autoSaveFile,
          string logFile,
          FileMode fileMode,
-         EventHandler<WarningDetectedEventArgs>? warningDetectedHandler,
-         EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler,
          string username,
          string publicKey = "",
          string[]? passkeys = null)
@@ -128,16 +155,25 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          AutoSaveFile = autoSaveFile;
          LogFile = logFile;
 
-         CryptographicCenter = cryptographicCenter;
+         CryptographyCenter = cryptographicCenter;
          SerializationCenter = serializationCenter;
-         PasswordGenerator = passwordGenerator;
+         PasswordFactory = passwordFactory;
 
          Username = username;
-         Passkeys = [CryptographicCenter.GetHash(username)];
+         Passkeys = [CryptographyCenter.GetHash(username)];
+
+         _lastActionTime = DateTime.Now;
+         _timer = new()
+         {
+            Interval = 5000,
+            AutoReset = true,
+            Enabled = true,
+         };
+         _timer.Elapsed += _timer_Elapsed;
 
          if (passkeys != null)
          {
-            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographicCenter.GetSlowHash(x))];
+            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x))];
          }
 
          AutoSave = new()
@@ -158,14 +194,11 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             : LogFileLocker.Open<LogCenter>([cryptographicCenter.GetHash(username)]);
 
          Logs.Database = this;
-
-         _onAutoSaveDetected = autoSaveHandler;
-         _onWarningDetected = warningDetectedHandler;
       }
 
       internal static IDatabase Create(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
-         IPasswordGenerator passwordGenerator,
+         IPasswordFactory passwordFactory,
          string databaseFile,
          string autoSaveFile,
          string logFile,
@@ -188,13 +221,11 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          Database database = new(cryptographicCenter,
             serializationCenter,
-            passwordGenerator,
+            passwordFactory,
             databaseFile,
             autoSaveFile,
             logFile,
             FileMode.Create,
-            warningDetectedHandler: null,
-            autoSaveHandler: null,
             username,
             publicKey,
             passkeys);
@@ -208,15 +239,15 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             Passkeys = [.. passkeys],
          };
 
-         database.Logs.AddLog($"User {username}'s database created", false);
+         database.Logs.AddLog($"User {username}'s database created", needsReview: false);
 
          database._save(logSaveEvent: false);
 
-         database._close(logCloseEvent: false);
+         database._close(logCloseEvent: false, loginTimeoutReached: false);
 
          return Open(cryptographicCenter,
             serializationCenter,
-            passwordGenerator,
+            passwordFactory,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -225,28 +256,43 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       internal static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
-         IPasswordGenerator passwordGenerator,
+         IPasswordFactory passwordFactory,
          string databaseFile,
          string autoSaveFile,
          string logFile,
-         string username,
-         EventHandler<WarningDetectedEventArgs>? warningDetectedHandler = null,
-         EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
+         string username)
       {
          Database database = new(cryptographicCenter,
             serializationCenter,
-            passwordGenerator,
+            passwordFactory,
             databaseFile,
             autoSaveFile,
             logFile,
             FileMode.Open,
-            warningDetectedHandler,
-            autoSaveHandler,
             username);
 
-         database.Logs.AddLog($"User {username}'s database opened", false);
+         database.Logs.AddLog($"User {username}'s database opened", needsReview: false);
 
          return database;
+      }
+
+      private void _timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+      {
+         if (User == null) throw new NullReferenceException(nameof(User));
+
+         if (User.LogoutTimeout == 0)
+         {
+            return;
+         }
+
+         TimeSpan durationSinceLastAction = e.SignalTime - _lastActionTime;
+
+         if (durationSinceLastAction.TotalMinutes >= User.LogoutTimeout)
+         {
+            Logs.AddLog($"User {Username}'s login session timeout reached", needsReview: true);
+
+            _close(logCloseEvent: true, loginTimeoutReached: true);
+         }
       }
 
       private void _save(bool logSaveEvent)
@@ -255,21 +301,23 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
          Username = User.Username;
-         Passkeys = [CryptographicCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographicCenter.GetSlowHash(x))];
+         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x))];
          DatabaseFileLocker.Save(User, Passkeys);
 
          Logs.Username = Username;
-         LogFileLocker?.Save(Logs, [CryptographicCenter.GetHash(User.Username)]);
+         LogFileLocker?.Save(Logs, [CryptographyCenter.GetHash(User.Username)]);
 
          if (logSaveEvent)
          {
-            Logs.AddLog($"User {Username}'s database saved", false);
+            Logs.AddLog($"User {Username}'s database saved", needsReview: false);
          }
 
          AutoSave.Clear();
+
+         DatabaseSaved?.Invoke(this, EventArgs.Empty);
       }
 
-      private void _close(bool logCloseEvent)
+      private void _close(bool logCloseEvent, bool loginTimeoutReached)
       {
          if (logCloseEvent)
          {
@@ -286,7 +334,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                Logs.AddLog(logoutLog, needsReview);
             }
 
-            Logs.AddLog($"User {Username}'s database closed", false);
+            Logs.AddLog($"User {Username}'s database closed", needsReview: false);
          }
 
          User = null;
@@ -307,6 +355,11 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          DatabaseFile = string.Empty;
          AutoSaveFile = string.Empty;
          LogFile = string.Empty;
+
+         _timer.Stop();
+         _timer.Dispose();
+
+         DatabaseClosed?.Invoke(this, new(loginTimeoutReached));
       }
 
       private void _handleAutoSave(AutoSaveMergeBehavior mergeAutoSave)
@@ -322,16 +375,16 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          {
             case AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile:
                AutoSave.MergeChange();
-               Logs.AddLog($"User {Username}'s autosave merged", true);
+               Logs.AddLog($"User {Username}'s autosave merged", needsReview: true);
                _save(logSaveEvent: false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear();
-               Logs.AddLog($"User {Username}'s autosave not merged and removed", true);
+               Logs.AddLog($"User {Username}'s autosave not merged and removed", needsReview: true);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
-               Logs.AddLog($"User {Username}'s autosave not merged and keeped.", true);
+               Logs.AddLog($"User {Username}'s autosave not merged and keeped.", needsReview: true);
                break;
          }
       }

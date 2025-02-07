@@ -12,7 +12,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
       public static readonly ICryptographyCenter CryptographicCenter = new CryptographyCenter();
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
-      public static readonly IPasswordGenerator PasswordGenerator = new PasswordGenerator();
+      public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
 
       public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
       public static string ComputeDatabaseFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{username}.pku";
@@ -29,7 +29,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
          IDatabase database = IDatabase.Create(CryptographicCenter,
             SerializationCenter,
-            PasswordGenerator,
+            PasswordFactory,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -54,13 +54,14 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
          IDatabase database = IDatabase.Open(CryptographicCenter,
             SerializationCenter,
-            PasswordGenerator,
+            PasswordFactory,
             databaseFile,
             autoSaveFile,
             logFile,
-            username,
-            (s, e) => { warnings = e.Warnings; },
-            (s, e) => { e.MergeBehavior = mergeAutoSave; });
+            username);
+
+         database.AutoSaveDetected += (s, e) => { e.MergeBehavior = mergeAutoSave; };
+         database.WarningDetected += (s, e) => { warnings = e.Warnings; };
 
          foreach (string passkey in passkeys)
          {

@@ -38,6 +38,41 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       IWarning[]? Warnings { get; }
 
       /// <summary>
+      /// The serialization center implementation.
+      /// </summary>
+      ISerializationCenter SerializationCenter { get; }
+
+      /// <summary>
+      /// The cryptographic center implementation.
+      /// </summary>
+      ICryptographyCenter CryptographyCenter { get; }
+
+      /// <summary>
+      /// The password factory implementation.
+      /// </summary>
+      IPasswordFactory PasswordFactory { get; }
+
+      /// <summary>
+      /// Occurs when a warning is detected.
+      /// </summary>
+      event EventHandler<WarningDetectedEventArgs>? WarningDetected;
+
+      /// <summary>
+      /// Occurs when an autosave is detected.
+      /// </summary>
+      event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
+
+      /// <summary>
+      /// Occurs when the database is saved.
+      /// </summary>
+      event EventHandler? DatabaseSaved;
+
+      /// <summary>
+      /// Occurs when an database is closed.
+      /// </summary>
+      event EventHandler<LogoutEventArgs>? DatabaseClosed;
+
+      /// <summary>
       /// Try to load the current user.
       /// </summary>
       /// <param name="passkey">The current passkey.</param>
@@ -67,7 +102,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       /// </summary>
       /// <param name="cryptographicCenter">An implementation of the cryptographic center.</param>
       /// <param name="serializationCenter">An implementation of the serialization center.</param>
-      /// <param name="passwordGenerator">An implementation of the password generator.</param>
+      /// <param name="passwordFactory">An implementation of the password factory.</param>
       /// <param name="databaseFile">The path to the database file.</param>
       /// <param name="autoSaveFile">The path to the autosave file.</param>
       /// <param name="logFile">The path to the log file.</param>
@@ -76,15 +111,15 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       /// <returns>The database created.</returns>
       static IDatabase Create(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
-         IPasswordGenerator passwordGenerator,
+         IPasswordFactory passwordFactory,
          string databaseFile,
          string autoSaveFile,
          string logFile,
          string username,
          string[] passkeys)
-         => Upsilon.Apps.PassKey.Core.Internal.Models.Database.Create(cryptographicCenter,
+         => Internal.Models.Database.Create(cryptographicCenter,
             serializationCenter,
-            passwordGenerator,
+            passwordFactory,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -97,30 +132,25 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       /// </summary>
       /// <param name="cryptographicCenter">An implementation of the cryptographic center.</param>
       /// <param name="serializationCenter">An implementation of the serialization center.</param>
-      /// <param name="passwordGenerator">An implementation of the password generator.</param>
+      /// <param name="passwordFactory">An implementation of the password factory.</param>
       /// <param name="databaseFile">The path to the database file.</param>
       /// <param name="autoSaveFile">The path to the autosave file.</param>
       /// <param name="logFile">The path to the log file.</param>
       /// <param name="username">The username.</param>
-      /// <param name="autoSaveHandler">The event handler for Auto-save merge behavior.</param>
       /// <returns>The database opened.</returns>
       static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
-         IPasswordGenerator passwordGenerator,
+         IPasswordFactory passwordFactory,
          string databaseFile,
          string autoSaveFile,
          string logFile,
-         string username,
-         EventHandler<WarningDetectedEventArgs> warningDetectedHandler,
-         EventHandler<AutoSaveDetectedEventArgs>? autoSaveHandler = null)
-         => Upsilon.Apps.PassKey.Core.Internal.Models.Database.Open(cryptographicCenter,
+         string username)
+         => Internal.Models.Database.Open(cryptographicCenter,
             serializationCenter,
-            passwordGenerator,
+            passwordFactory,
             databaseFile,
             autoSaveFile,
             logFile,
-            username,
-            warningDetectedHandler,
-            autoSaveHandler);
+            username);
    }
 }

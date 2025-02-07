@@ -5,7 +5,7 @@ using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.PassKey.Core.Public.Utils
 {
-   public class PasswordGenerator : IPasswordGenerator
+   public class PasswordFactory : IPasswordFactory
    {
       public string Alphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
       public string Numeric => "0123456789";
