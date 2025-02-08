@@ -7,13 +7,13 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
    {
       #region IService interface explicit Internal
 
-      string IItem.ItemId => ItemId;
-      IUser IService.User => User;
-      IAccount[] IService.Accounts => [.. Accounts];
+      string IItem.ItemId => Database.Get(ItemId);
+      IUser IService.User => Database.Get(User);
+      IAccount[] IService.Accounts => [.. Database.Get(Accounts)];
 
       string IService.ServiceName
       {
-         get => ServiceName;
+         get => Database.Get(ServiceName);
          set => ServiceName = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(ServiceName),
@@ -24,7 +24,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       string IService.Url
       {
-         get => Url;
+         get => Database.Get(Url);
          set => Url = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(Url),
@@ -35,7 +35,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       string IService.Notes
       {
-         get => Notes;
+         get => Database.Get(Notes);
          set => Notes = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(Notes),

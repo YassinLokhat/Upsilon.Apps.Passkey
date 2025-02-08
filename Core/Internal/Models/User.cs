@@ -8,12 +8,12 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
    {
       #region IUser interface explicit Internal
 
-      string IItem.ItemId => ItemId;
-      IService[] IUser.Services => [.. Services];
+      string IItem.ItemId => Database.Get(ItemId);
+      IService[] IUser.Services => [.. Database.Get(Services)];
 
       string IUser.Username
       {
-         get => Username;
+         get => Database.Get(Username);
          set => Username = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(Username),
@@ -24,7 +24,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       string[] IUser.Passkeys
       {
-         get => Passkeys;
+         get => Database.Get(Passkeys);
          set => Passkeys = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(Passkeys),
@@ -35,7 +35,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       int IUser.LogoutTimeout
       {
-         get => LogoutTimeout;
+         get => Database.Get(LogoutTimeout);
          set => LogoutTimeout = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(LogoutTimeout),
@@ -46,7 +46,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       int IUser.CleaningClipboardTimeout
       {
-         get => CleaningClipboardTimeout;
+         get => Database.Get(CleaningClipboardTimeout);
          set => CleaningClipboardTimeout = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(CleaningClipboardTimeout),
@@ -57,7 +57,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       WarningType IUser.WarningsToNotify
       {
-         get => WarningsToNotify;
+         get => Database.Get(WarningsToNotify);
          set => WarningsToNotify = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(WarningsToNotify),

@@ -14,32 +14,11 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       public string AutoSaveFile { get; set; }
       public string LogFile { get; set; }
 
-      IUser? IDatabase.User
-      {
-         get
-         {
-            _lastActionTime = DateTime.Now;
-            return User;
-         }
-      }
+      IUser? IDatabase.User => Get(User);
 
-      ILog[]? IDatabase.Logs
-      {
-         get
-         {
-            _lastActionTime = DateTime.Now;
-            return Logs.Logs;
-         }
-      }
+      ILog[]? IDatabase.Logs => Get(Logs.Logs);
 
-      IWarning[]? IDatabase.Warnings
-      {
-         get
-         {
-            _lastActionTime = DateTime.Now;
-            return User != null ? Warnings : null;
-         }
-      }
+      IWarning[]? IDatabase.Warnings => Get(User != null ? Warnings : null);
 
       public ICryptographyCenter CryptographyCenter { get; private set; }
       public ISerializationCenter SerializationCenter { get; private set; }
@@ -274,6 +253,13 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          database.Logs.AddLog($"User {username}'s database opened", needsReview: false);
 
          return database;
+      }
+
+      internal T Get<T>(T value)
+      {
+         _lastActionTime = DateTime.Now;
+
+         return value;
       }
 
       private void _timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
