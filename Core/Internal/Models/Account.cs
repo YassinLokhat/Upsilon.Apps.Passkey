@@ -9,12 +9,12 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
    {
       #region IAccount interface explicit Internal
 
-      string IItem.ItemId => ItemId;
-      IService IAccount.Service => Service;
+      string IItem.ItemId => Database.Get(ItemId);
+      IService IAccount.Service => Database.Get(Service);
 
       string IAccount.Label
       {
-         get => Label;
+         get => Database.Get(Label);
          set => Label = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(Label),
@@ -25,7 +25,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       string[] IAccount.Identifiants
       {
-         get => Identifiants;
+         get => Database.Get(Identifiants);
          set => Identifiants = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(Identifiants),
@@ -36,7 +36,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       string IAccount.Password
       {
-         get => Password;
+         get => Database.Get(Password);
          set
          {
             if (!string.IsNullOrEmpty(value))
@@ -60,7 +60,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       string IAccount.Notes
       {
-         get => Notes;
+         get => Database.Get(Notes);
          set => Notes = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(Notes),
@@ -71,7 +71,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       int IAccount.PasswordUpdateReminderDelay
       {
-         get => PasswordUpdateReminderDelay;
+         get => Database.Get(PasswordUpdateReminderDelay);
          set => PasswordUpdateReminderDelay = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(PasswordUpdateReminderDelay),
@@ -82,7 +82,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       AccountOption IAccount.Options
       {
-         get => Options;
+         get => Database.Get(Options);
          set => Options = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
             fieldName: nameof(Options),
