@@ -6,14 +6,14 @@
 **Overview**
 ------------
 
-This is a C# implementation of a local stored password manager core API. The API provides a secure way to store and manage passwords locally on a user's device.
+This C# implementation serves as the core of a password manager, enabling secure local storage and management of user credentials.
 
 **Features**
 ------------
 
 *   **Password Storage**: Store accounts and services passwords securely
 *   **History log**: Log every events
-*   **Trigger warnings**: Trigger warnings when detected
+*   **Trigger warnings**: Trigger warnings when detected like unauthorized access attempt or password leaked detection
 *   **Autosave**: Autosave updates
 *   **Password Generation**: Generate strong, unique passwords
 
