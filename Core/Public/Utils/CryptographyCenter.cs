@@ -281,7 +281,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
       private string _encryptRsa(string source, RSACryptoServiceProvider csp)
       {
          byte[] bytesPlainTextData = Encoding.Unicode.GetBytes(source);
-         byte[] bytesCypherText = csp.Encrypt(bytesPlainTextData, false);
+         byte[] bytesCypherText = csp.Encrypt(bytesPlainTextData, true);
 
          source = Convert.ToBase64String(bytesCypherText);
 
@@ -293,7 +293,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          try
          {
             byte[] bytesCypherText = Convert.FromBase64String(source);
-            byte[] bytesPlainTextData = csp.Decrypt(bytesCypherText, false);
+            byte[] bytesPlainTextData = csp.Decrypt(bytesCypherText, true);
 
             return Encoding.Unicode.GetString(bytesPlainTextData);
          }
