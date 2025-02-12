@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using Upsilon.Apps.PassKey.Core.Public.Enums;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 using Upsilon.Apps.PassKey.Core.Public.Utils;
@@ -85,7 +86,14 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
       public static string GetUsername([CallerMemberName] string username = "") => username;
 
-      private static Random _getRandom() => new((int)DateTime.Now.Ticks);
+      private static RandomNumberGenerator _randomNumberGenerator => RandomNumberGenerator.Create();
+      private static Random _getRandom()
+      {
+         byte[] randomNumber = new byte[4];
+         _randomNumberGenerator.GetBytes(randomNumber);
+         int value = BitConverter.ToInt32(randomNumber, 0);
+         return new Random(value);
+      }
 
       public static string[] GetRandomStringArray(int count = 0)
       {
@@ -125,12 +133,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
       public static int GetRandomInt(int max) => GetRandomInt(0, max);
 
-      public static int GetRandomInt(int min, int max)
-      {
-         Random random = _getRandom();
-
-         return random.Next(min, max);
-      }
+      public static int GetRandomInt(int min, int max) => _getRandom().Next(min, max);
 
       public static void LastLogsShouldMatch(IDatabase database, string[] expectedLogs)
       {
