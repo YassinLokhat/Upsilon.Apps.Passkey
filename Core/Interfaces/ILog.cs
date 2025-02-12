@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
+﻿namespace Upsilon.Apps.PassKey.Core.Interfaces
 {
    /// <summary>
    /// Represent an event log.

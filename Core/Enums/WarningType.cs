@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Public.Enums
+﻿namespace Upsilon.Apps.PassKey.Core.Enums
 {
    /// <summary>
    /// Represent a type of warning.

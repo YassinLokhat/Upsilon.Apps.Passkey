@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 
 namespace Upsilon.Apps.PassKey.UnitTests.Models
 {

@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.PassKey.UnitTests.Utils
 {
@@ -88,7 +88,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
             string[] passkeys = UnitTestsHelper.GetRandomStringArray();
             string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptSymmetrically(source, passkeys);
             string corruptedSource = encryptedSource + " ";
-            CheckSignFailedException exception = null;
+            CorruptedSourceException exception = null;
 
             // When
             Action act = new(() =>
@@ -97,7 +97,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
                {
                   string decryptedSource = UnitTestsHelper.CryptographicCenter.DecryptSymmetrically(corruptedSource, passkeys);
                }
-               catch (CheckSignFailedException ex)
+               catch (CorruptedSourceException ex)
                {
                   exception = ex;
                   throw;
@@ -105,7 +105,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
             });
 
             // Then
-            _ = act.Should().Throw<CheckSignFailedException>();
+            _ = act.Should().Throw<CorruptedSourceException>();
             _ = exception.Should().NotBeNull();
          }
       }
@@ -182,7 +182,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
             UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
             string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptAsymmetrically(source, publicKey);
             string corruptedSource = encryptedSource + " ";
-            CheckSignFailedException exception = null;
+            CorruptedSourceException exception = null;
 
             // When
             Action act = new(() =>
@@ -191,7 +191,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
                {
                   string decryptedSource = UnitTestsHelper.CryptographicCenter.DecryptAsymmetrically(corruptedSource, privateKey);
                }
-               catch (CheckSignFailedException ex)
+               catch (CorruptedSourceException ex)
                {
                   exception = ex;
                   throw;
@@ -199,7 +199,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
             });
 
             // Then
-            _ = act.Should().Throw<CheckSignFailedException>();
+            _ = act.Should().Throw<CorruptedSourceException>();
             _ = exception.Should().NotBeNull();
          }
       }

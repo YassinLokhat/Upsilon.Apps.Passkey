@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using System.Runtime.CompilerServices;
-using Upsilon.Apps.PassKey.Core.Public.Enums;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+using Upsilon.Apps.PassKey.Core.Enums;
+using Upsilon.Apps.PassKey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.PassKey.UnitTests
 {
@@ -134,7 +134,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
       public static void LastLogsShouldMatch(IDatabase database, string[] expectedLogs)
       {
-         string[] actualLogs = database.Logs.Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
+         string[] actualLogs = [.. database.Logs.Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}")];
 
          _lastLogsShouldMatch(actualLogs, expectedLogs);
       }
@@ -143,9 +143,9 @@ namespace Upsilon.Apps.PassKey.UnitTests
       {
          IWarning logWarning = database.Warnings.First(x => x.WarningType == WarningType.LogReviewWarning);
 
-         string[] actualLogs = logWarning.Logs
+         string[] actualLogs = [.. logWarning.Logs
             .OrderByDescending(x => x.DateTime)
-            .Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
+            .Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}")];
 
          _lastLogsShouldMatch(actualLogs, expectedLogs);
       }

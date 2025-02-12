@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
+﻿namespace Upsilon.Apps.PassKey.Core.Interfaces
 {
    /// <summary>
    /// Represent a cryptographic center.
@@ -61,7 +61,7 @@
       void GenerateRandomKeys(out string publicKey, out string privateKey);
 
       /// <summary>
-      /// Encrypt asymmetrically a string with a set of passekeys in an onion structure.
+      /// Encrypt asymmetrically a string with a public key.
       /// </summary>
       /// <param name="source">The string to encrypt.</param>
       /// <param name="key">The encryption key.</param>
@@ -69,7 +69,7 @@
       string EncryptAsymmetrically(string source, string key);
 
       /// <summary>
-      /// Decrypt asymmetrically a string with a set of passekeys in an onion structure.
+      /// Decrypt asymmetrically a string with a private key.
       /// </summary>
       /// <param name="source">The string to decrypt.</param>
       /// <param name="key">The encryption key.</param>

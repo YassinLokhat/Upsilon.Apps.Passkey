@@ -1,6 +1,6 @@
-﻿using Upsilon.Apps.PassKey.Core.Public.Events;
+﻿using Upsilon.Apps.PassKey.Core.Events;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
+namespace Upsilon.Apps.PassKey.Core.Interfaces
 {
    /// <summary>
    /// Represent a database.

@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 
 namespace Upsilon.Apps.PassKey.Core.Internal.Models
 {
@@ -51,7 +51,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             Service = this,
             ItemId = ItemId + Database.CryptographyCenter.GetHash(label + string.Join(string.Empty, identifiants)),
             Label = label,
-            Identifiants = identifiants.ToArray(),
+            Identifiants = [.. identifiants],
             Password = password,
          };
          account.Passwords[DateTime.Now] = password;

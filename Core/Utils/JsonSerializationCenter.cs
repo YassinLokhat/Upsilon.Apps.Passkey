@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Utils
+namespace Upsilon.Apps.PassKey.Core.Utils
 {
    public class JsonSerializationCenter : ISerializationCenter
    {

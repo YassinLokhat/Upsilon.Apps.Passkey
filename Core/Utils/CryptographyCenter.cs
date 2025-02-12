@@ -1,8 +1,8 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Core.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Utils
+namespace Upsilon.Apps.PassKey.Core.Utils
 {
    public class CryptographyCenter : ICryptographyCenter
    {
@@ -69,7 +69,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
       {
          if (!CheckSign(ref source))
          {
-            throw new CheckSignFailedException();
+            throw new CorruptedSourceException();
          }
 
          source = Encoding.Unicode.GetString(Convert.FromBase64String(source));
@@ -127,7 +127,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
       {
          if (!CheckSign(ref source))
          {
-            throw new CheckSignFailedException();
+            throw new CorruptedSourceException();
          }
 
          RSACryptoServiceProvider csp = new();
@@ -150,28 +150,26 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          return sb.ToString();
       }
 
-      private string _cipherAes(string plainText, string key)
+      private static string _cipherAes(string plainText, string key)
       {
          if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(plainText))
          {
             return plainText;
          }
 
-         MD5 mD5 = MD5.Create();
-
-         key = Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
+         key = Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
+         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
+         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
 
          byte[] _key = Encoding.ASCII.GetBytes(key[..32]);
          byte[] IV = Encoding.ASCII.GetBytes(key.Substring(32, 16));
 
          byte[] bytes = _cipherAes(plainText, _key, IV);
 
-         return new string(bytes.Select(x => (char)x).ToArray());
+         return new string([.. bytes.Select(x => (char)x)]);
       }
 
-      private byte[] _cipherAes(string plainText, byte[] key, byte[] IV)
+      private static byte[] _cipherAes(string plainText, byte[] key, byte[] IV)
       {
          using Aes aesAlg = Aes.Create();
          aesAlg.Key = key;
@@ -189,27 +187,26 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          return msEncrypt.ToArray();
       }
 
-      private string _uncipherAes(string cipherText, string key)
+      private static string _uncipherAes(string cipherText, string key)
       {
          if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(cipherText))
          {
             return cipherText;
          }
 
-         MD5 mD5 = MD5.Create();
-         key = Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
+         key = Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
+         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
+         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
 
          byte[] _key = Encoding.ASCII.GetBytes(key[..32]);
          byte[] IV = Encoding.ASCII.GetBytes(key.Substring(32, 16));
 
-         byte[] bytes = cipherText.Select(x => (byte)x).ToArray();
+         byte[] bytes = [.. cipherText.Select(x => (byte)x)];
 
          return _uncitherAes(bytes, _key, IV);
       }
 
-      private string _uncitherAes(byte[] cipherText, byte[] key, byte[] IV)
+      private static string _uncitherAes(byte[] cipherText, byte[] key, byte[] IV)
       {
          using Aes aesAlg = Aes.Create();
          aesAlg.Key = key;
@@ -226,7 +223,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
       private string _encryptAes(string source, string[] passwords)
       {
-         passwords = passwords.Select(x => GetHash(x)).ToArray();
+         passwords = [.. passwords.Select(x => GetHash(x))];
 
          for (int i = passwords.Length - 1; i >= 0; i--)
          {
@@ -242,7 +239,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
       private string _decryptAes(string source, string[] passwords)
       {
-         passwords = passwords.Select(x => GetHash(x)).ToArray();
+         passwords = [.. passwords.Select(x => GetHash(x))];
 
          try
          {
@@ -278,7 +275,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          return source;
       }
 
-      private string _encryptRsa(string source, RSACryptoServiceProvider csp)
+      private static string _encryptRsa(string source, RSACryptoServiceProvider csp)
       {
          byte[] bytesPlainTextData = Encoding.Unicode.GetBytes(source);
          byte[] bytesCypherText = csp.Encrypt(bytesPlainTextData, false);
@@ -288,7 +285,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          return source;
       }
 
-      private string _decryptRsa(string source, int level, RSACryptoServiceProvider csp)
+      private static string _decryptRsa(string source, int level, RSACryptoServiceProvider csp)
       {
          try
          {

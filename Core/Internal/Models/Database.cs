@@ -1,8 +1,8 @@
 ﻿using Upsilon.Apps.PassKey.Core.Internal.Utils;
-using Upsilon.Apps.PassKey.Core.Public.Enums;
-using Upsilon.Apps.PassKey.Core.Public.Events;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+using Upsilon.Apps.PassKey.Core.Enums;
+using Upsilon.Apps.PassKey.Core.Events;
+using Upsilon.Apps.PassKey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Internal.Models
 {
@@ -380,7 +380,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          if (User == null) throw new NullReferenceException(nameof(User));
          if (Logs.Logs == null) throw new NullReferenceException(nameof(Logs.Logs));
 
-         List<Log> logs = Logs.Logs.Cast<Log>().ToList();
+         List<Log> logs = [.. Logs.Logs.Cast<Log>()];
 
          for (int i = 0; i < logs.Count && logs[i].Message != $"User {Username} logged in"; i++)
          {
@@ -399,10 +399,9 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          if (User == null) throw new NullReferenceException(nameof(User));
 
-         Account[] accounts = User.Services
+         Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
-            .Where(x => x.PasswordExpired)
-            .ToArray();
+            .Where(x => x.PasswordExpired)];
 
          return accounts.Length != 0 ? ([new Warning(WarningType.PasswordUpdateReminderWarning, accounts)]) : ([]);
       }
@@ -411,10 +410,9 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          if (User == null) throw new NullReferenceException(nameof(User));
 
-         Account[] accounts = User.Services
+         Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
-            .Where(x => x.PasswordLeaked)
-            .ToArray();
+            .Where(x => x.PasswordLeaked)];
 
          return accounts.Length != 0 ? ([new Warning(WarningType.PasswordLeakedWarning, accounts)]) : ([]);
       }
@@ -423,11 +421,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          if (User == null) throw new NullReferenceException(nameof(User));
 
-         IGrouping<string, Account>[] duplicatedPasswords = User.Services
+         IGrouping<string, Account>[] duplicatedPasswords = [.. User.Services
             .SelectMany(x => x.Accounts)
             .GroupBy(x => x.Password)
-            .Where(x => x.Count() > 1)
-            .ToArray();
+            .Where(x => x.Count() > 1)];
 
          List<Warning> warnings = [];
 
