@@ -86,22 +86,13 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
       public static string GetUsername([CallerMemberName] string username = "") => username;
 
-      private static RandomNumberGenerator _randomNumberGenerator => RandomNumberGenerator.Create();
-      private static Random _getRandom()
-      {
-         byte[] byteSeed = new byte[4];
-         _randomNumberGenerator.GetBytes(byteSeed);
-         int seed = BitConverter.ToInt32(byteSeed, 0);
-         return new Random(seed);
-      }
+      private static RandomNumberGenerator _random => RandomNumberGenerator.Create();
 
       public static string[] GetRandomStringArray(int count = 0)
       {
-         Random random = _getRandom();
-
          if (count == 0)
          {
-            count = random.Next(2, 5);
+            count = GetRandomInt(2, 5);
          }
 
          List<string> passkeys = [];
@@ -115,25 +106,34 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
       public static string GetRandomString(int min = 10, int max = 0)
       {
-         Random random = _getRandom();
-
          if (max == 0)
          {
             max = min + 10;
          }
 
-         int length = random.Next(min, max);
+         int length = GetRandomInt(min, max);
 
-         byte[] bytes = new byte[length];
+         byte[] randomBytes = new byte[length];
+         _random.GetBytes(randomBytes);
 
-         random.NextBytes(bytes);
-
-         return Convert.ToBase64String(bytes)[..length];
+         return Convert.ToBase64String(randomBytes)[..length];
       }
 
       public static int GetRandomInt(int max) => GetRandomInt(0, max);
 
-      public static int GetRandomInt(int min, int max) => _getRandom().Next(min, max);
+      public static int GetRandomInt(int min, int max)
+      {
+         byte[] randomBytes = new byte[4];
+         _random.GetBytes(randomBytes);
+
+         uint value = BitConverter.ToUInt32(randomBytes, 0);
+
+         uint interval = (uint)(max - min);
+         value = value % interval;
+         value += (uint)min;
+
+         return (int)value;
+      }
 
       public static void LastLogsShouldMatch(IDatabase database, string[] expectedLogs)
       {
