@@ -89,10 +89,10 @@ namespace Upsilon.Apps.PassKey.UnitTests
       private static RandomNumberGenerator _randomNumberGenerator => RandomNumberGenerator.Create();
       private static Random _getRandom()
       {
-         byte[] randomNumber = new byte[4];
-         _randomNumberGenerator.GetBytes(randomNumber);
-         int value = BitConverter.ToInt32(randomNumber, 0);
-         return new Random(value);
+         byte[] byteSeed = new byte[4];
+         _randomNumberGenerator.GetBytes(byteSeed);
+         int seed = BitConverter.ToInt32(byteSeed, 0);
+         return new Random(seed);
       }
 
       public static string[] GetRandomStringArray(int count = 0)
