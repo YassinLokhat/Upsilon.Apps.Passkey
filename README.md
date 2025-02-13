@@ -91,8 +91,8 @@ Else that method will return `null`.
 
 ```csharp
 IUser? user = database.Login("master_password_1");	// Will return null
-user = database.Login("master_password_2");			// Will also return null
-user = database.Login("master_password_3");			// Will return a IUser this time
+user = database.Login("master_password_2");		// Will also return null
+user = database.Login("master_password_3");		// Will return a IUser this time
 ```
 
 Once the IUser retrieved, it allow a full access to all services and accounts, all log history and all user parameters.
@@ -104,7 +104,7 @@ Note that any update on the user, its services and/or accounts which is not save
 
 ```csharp
 user.LogoutTimeout = 5;	// Setting the logout timeout to 5 min will create an autosave file
-database.Save();		// Will save the new logout timeout in the database file and removed the autosave file
+database.Save();	// Will save the new logout timeout in the database file and removed the autosave file
 ```
 
 ### Logout/Close a database
