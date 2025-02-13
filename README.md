@@ -28,7 +28,7 @@ This C# implementation serves as the core of a password manager, enabling secure
 ----------
 
 ### Class diagram
-![Interfaces](https://github.com/user-attachments/assets/a4ad591c-1334-426f-86de-b7d264ea904b)
+![ClassDiagram](https://github.com/user-attachments/assets/7c17f2a2-c62b-4a9a-808f-c0f471c23609)
 
 **Example Use Cases**
 
