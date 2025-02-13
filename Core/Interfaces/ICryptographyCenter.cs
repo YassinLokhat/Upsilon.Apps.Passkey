@@ -6,7 +6,7 @@
    public interface ICryptographyCenter
    {
       /// <summary>
-      /// Returs a fast string hash of the given string.
+      /// Returns a fast string hash of the given string.
       /// </summary>
       /// <param name="source">The string to hash.</param>
       /// <returns>The hash.</returns>
@@ -31,9 +31,9 @@
       void Sign(ref string source);
 
       /// <summary>
-      /// check the signature of a given string.
+      /// Check the signature of a given string.
       /// </summary>
-      /// <param name="source">The string to sign. The method will modify the string to remove the signature.</param>
+      /// <param name="source">The string to check. The method will modify the string to remove the signature.</param>
       /// <returns>True if the signature is good, False else.</returns>
       bool CheckSign(ref string source);
 

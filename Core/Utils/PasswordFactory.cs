@@ -17,7 +17,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          bool includeNumericChars = true,
          bool includeSpecialChars = true,
          string excludedChars = "",
-         bool checkIfLeaked = true)
+         bool onlySafePasswords = true)
       {
          string alphabet = "";
 
@@ -43,10 +43,10 @@ namespace Upsilon.Apps.PassKey.Core.Utils
 
          alphabet = string.Join("", alphabet.ToCharArray().Except(excludedChars.ToCharArray()));
 
-         return GeneratePassword(length, alphabet, checkIfLeaked);
+         return GeneratePassword(length, alphabet, onlySafePasswords);
       }
 
-      public string GeneratePassword(int length, string alphabet, bool checkIfLeaked = true)
+      public string GeneratePassword(int length, string alphabet, bool onlySafePasswords = true)
       {
          if (string.IsNullOrWhiteSpace(alphabet)
             || length == 0)
@@ -66,7 +66,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
                _ = stringBuilder.Append(alphabet[random.Next(alphabet.Length)]);
             }
          }
-         while (checkIfLeaked && PasswordLeaked(stringBuilder.ToString()));
+         while (onlySafePasswords && PasswordLeaked(stringBuilder.ToString()));
 
          return stringBuilder.ToString();
       }
