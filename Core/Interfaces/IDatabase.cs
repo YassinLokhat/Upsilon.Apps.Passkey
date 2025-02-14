@@ -10,17 +10,17 @@ namespace Upsilon.Apps.PassKey.Core.Interfaces
       /// <summary>
       /// The path to the database file.
       /// </summary>
-      string DatabaseFile { get; set; }
+      string DatabaseFile { get; }
 
       /// <summary>
       /// The path to the autosave file.
       /// </summary>
-      string AutoSaveFile { get; set; }
+      string AutoSaveFile { get; }
 
       /// <summary>
       /// The path to the log file.
       /// </summary>
-      string LogFile { get; set; }
+      string LogFile { get; }
 
       /// <summary>
       /// The user loaded.
