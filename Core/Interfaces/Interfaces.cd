@@ -1,27 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="Upsilon.Apps.PassKey.Core.Public.Events.AutoSaveDetectedEventArgs">
+  <Class Name="Upsilon.Apps.PassKey.Core.Events.AutoSaveDetectedEventArgs">
     <Position X="9.75" Y="7.5" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Public\Events\AutoSaveDetectedEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Upsilon.Apps.PassKey.Core.Public.Events.WarningDetectedEventArgs">
+  <Class Name="Upsilon.Apps.PassKey.Core.Events.WarningDetectedEventArgs">
     <Position X="9.75" Y="10.5" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Public\Events\WarningDetectedEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Upsilon.Apps.PassKey.Core.Public.Events.LogoutEventArgs">
+  <Class Name="Upsilon.Apps.PassKey.Core.Events.LogoutEventArgs">
     <Position X="9.75" Y="9" Width="2" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Public\Events\LogoutEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Interface Name="Upsilon.Apps.PassKey.Core.Public.Interfaces.IAccount">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IAccount">
     <Position X="3.25" Y="2.25" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAgAAAAEAAAAAAAAAAAAAAAAAAAQAACAAAAAABAAAA=</HashCode>
@@ -32,16 +32,16 @@
       <Property Name="Options" />
     </ShowAsAssociation>
   </Interface>
-  <Interface Name="Upsilon.Apps.PassKey.Core.Public.Interfaces.ICryptographyCenter">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.ICryptographyCenter">
     <Position X="12.75" Y="2.75" Width="2" />
     <TypeIdentifier>
       <HashCode>AAACAAAAAAAAABAAAMAAAAAAAAAAAAASAAAAAABABAE=</HashCode>
       <FileName>Public\Interfaces\ICryptographyCenter.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Interface Name="Upsilon.Apps.PassKey.Core.Public.Interfaces.IDatabase">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IDatabase">
     <Position X="7.25" Y="5.75" Width="1.75" />
-    <AssociationLine Name="User" Type="Upsilon.Apps.PassKey.Core.Public.Interfaces.IUser" FixedFromPoint="true" FixedToPoint="true">
+    <AssociationLine Name="User" Type="Upsilon.Apps.PassKey.Core.Interfaces.IUser" FixedFromPoint="true" FixedToPoint="true">
       <Path>
         <Point X="8.562" Y="5.75" />
         <Point X="8.562" Y="5.271" />
@@ -49,7 +49,7 @@
         <Point X="10.281" Y="4.896" />
       </Path>
     </AssociationLine>
-    <AssociationLine Name="SerializationCenter" Type="Upsilon.Apps.PassKey.Core.Public.Interfaces.ISerializationCenter" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+    <AssociationLine Name="SerializationCenter" Type="Upsilon.Apps.PassKey.Core.Interfaces.ISerializationCenter" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
         <Point X="9" Y="5.989" />
         <Point X="12.042" Y="5.989" />
@@ -60,7 +60,7 @@
         <Position X="0.777" Y="-5.107" />
       </MemberNameLabel>
     </AssociationLine>
-    <AssociationLine Name="CryptographyCenter" Type="Upsilon.Apps.PassKey.Core.Public.Interfaces.ICryptographyCenter" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+    <AssociationLine Name="CryptographyCenter" Type="Upsilon.Apps.PassKey.Core.Interfaces.ICryptographyCenter" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
       <Path>
         <Point X="9" Y="6.525" />
         <Point X="12.333" Y="6.525" />
@@ -86,28 +86,28 @@
       <Property Name="Warnings" />
     </ShowAsCollectionAssociation>
   </Interface>
-  <Interface Name="Upsilon.Apps.PassKey.Core.Public.Interfaces.IItem">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IItem">
     <Position X="6.5" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Public\Interfaces\IItem.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Interface Name="Upsilon.Apps.PassKey.Core.Public.Interfaces.ILog">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.ILog">
     <Position X="4.5" Y="7" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAIAIAAAAAA=</HashCode>
       <FileName>Public\Interfaces\ILog.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Interface Name="Upsilon.Apps.PassKey.Core.Public.Interfaces.ISerializationCenter">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.ISerializationCenter">
     <Position X="12.75" Y="0.5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACBAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Public\Interfaces\ISerializationCenter.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Interface Name="Upsilon.Apps.PassKey.Core.Public.Interfaces.IService">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IService">
     <Position X="6.75" Y="2.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAhAAAAAAAAAAAAAAAAAAAAAAAAAACACAACAQAABAA=</HashCode>
@@ -120,9 +120,9 @@
       <Property Name="Accounts" />
     </ShowAsCollectionAssociation>
   </Interface>
-  <Interface Name="Upsilon.Apps.PassKey.Core.Public.Interfaces.IUser">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IUser">
     <Position X="9.25" Y="2.25" Width="2.25" />
-    <InheritanceLine Type="Upsilon.Apps.PassKey.Core.Public.Interfaces.IItem" FixedToPoint="true">
+    <InheritanceLine Type="Upsilon.Apps.PassKey.Core.Interfaces.IItem" FixedToPoint="true">
       <Path>
         <Point X="7.25" Y="1.603" />
         <Point X="7.25" Y="1.875" />
@@ -138,9 +138,9 @@
       <Property Name="Services" />
     </ShowAsCollectionAssociation>
   </Interface>
-  <Interface Name="Upsilon.Apps.PassKey.Core.Public.Interfaces.IWarning">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IWarning">
     <Position X="4.5" Y="5.75" Width="1.5" />
-    <AssociationLine Name="Accounts" Type="Upsilon.Apps.PassKey.Core.Public.Interfaces.IAccount" FixedFromPoint="true" FixedToPoint="true">
+    <AssociationLine Name="Accounts" Type="Upsilon.Apps.PassKey.Core.Interfaces.IAccount" FixedFromPoint="true" FixedToPoint="true">
       <Path>
         <Point X="5.188" Y="5.75" />
         <Point X="5.188" Y="5.375" />
@@ -160,21 +160,21 @@
       <Property Name="Accounts" />
     </ShowAsCollectionAssociation>
   </Interface>
-  <Interface Name="Upsilon.Apps.PassKey.Core.Public.Interfaces.IPasswordFactory">
+  <Interface Name="Upsilon.Apps.PassKey.Core.Interfaces.IPasswordFactory">
     <Position X="12.75" Y="6.75" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAAAQAAAAAAAAAAAAAAAAACAAAAAAQAgABAAAAAAAA=</HashCode>
       <FileName>Public\Interfaces\IPasswordFactory.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Enum Name="Upsilon.Apps.PassKey.Core.Public.Enums.AccountOption">
+  <Enum Name="Upsilon.Apps.PassKey.Core.Enums.AccountOption">
     <Position X="0.5" Y="2.75" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAA=</HashCode>
       <FileName>Public\Enums\AccountOption.cs</FileName>
     </TypeIdentifier>
   </Enum>
-  <Enum Name="Upsilon.Apps.PassKey.Core.Public.Enums.WarningType">
+  <Enum Name="Upsilon.Apps.PassKey.Core.Enums.WarningType">
     <Position X="0.5" Y="5.5" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAAQAAAAABgAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>

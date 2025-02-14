@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Public.Events
+﻿namespace Upsilon.Apps.PassKey.Core.Events
 {
    /// <summary>
    /// Represent a loggout event argument.

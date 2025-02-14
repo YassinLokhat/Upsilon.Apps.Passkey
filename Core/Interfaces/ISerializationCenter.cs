@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
+﻿namespace Upsilon.Apps.PassKey.Core.Interfaces
 {
    /// <summary>
    /// Represent a serialization center.
@@ -10,7 +10,7 @@
       /// </summary>
       /// <typeparam name="T">The type of the object.</typeparam>
       /// <param name="toSerialize">The object to serialize.</param>
-      /// <returns>The serialised string.</returns>
+      /// <returns>The serialized string.</returns>
       string Serialize<T>(T toSerialize) where T : notnull;
 
       /// <summary>

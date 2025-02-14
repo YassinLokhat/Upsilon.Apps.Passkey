@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
+﻿namespace Upsilon.Apps.PassKey.Core.Interfaces
 {
    /// <summary>
    /// Represent a cryptographic center.
@@ -6,7 +6,7 @@
    public interface ICryptographyCenter
    {
       /// <summary>
-      /// Returs a fast string hash of the given string.
+      /// Returns a fast string hash of the given string.
       /// </summary>
       /// <param name="source">The string to hash.</param>
       /// <returns>The hash.</returns>
@@ -31,9 +31,9 @@
       void Sign(ref string source);
 
       /// <summary>
-      /// check the signature of a given string.
+      /// Check the signature of a given string.
       /// </summary>
-      /// <param name="source">The string to sign. The method will modify the string to remove the signature.</param>
+      /// <param name="source">The string to check. The method will modify the string to remove the signature.</param>
       /// <returns>True if the signature is good, False else.</returns>
       bool CheckSign(ref string source);
 
@@ -61,7 +61,7 @@
       void GenerateRandomKeys(out string publicKey, out string privateKey);
 
       /// <summary>
-      /// Encrypt asymmetrically a string with a set of passekeys in an onion structure.
+      /// Encrypt asymmetrically a string with a public key.
       /// </summary>
       /// <param name="source">The string to encrypt.</param>
       /// <param name="key">The encryption key.</param>
@@ -69,7 +69,7 @@
       string EncryptAsymmetrically(string source, string key);
 
       /// <summary>
-      /// Decrypt asymmetrically a string with a set of passekeys in an onion structure.
+      /// Decrypt asymmetrically a string with a private key.
       /// </summary>
       /// <param name="source">The string to decrypt.</param>
       /// <param name="key">The encryption key.</param>

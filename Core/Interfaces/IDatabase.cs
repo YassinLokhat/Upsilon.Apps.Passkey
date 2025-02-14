@@ -1,6 +1,6 @@
-﻿using Upsilon.Apps.PassKey.Core.Public.Events;
+﻿using Upsilon.Apps.PassKey.Core.Events;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
+namespace Upsilon.Apps.PassKey.Core.Interfaces
 {
    /// <summary>
    /// Represent a database.
@@ -10,17 +10,17 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       /// <summary>
       /// The path to the database file.
       /// </summary>
-      string DatabaseFile { get; set; }
+      string DatabaseFile { get; }
 
       /// <summary>
       /// The path to the autosave file.
       /// </summary>
-      string AutoSaveFile { get; set; }
+      string AutoSaveFile { get; }
 
       /// <summary>
       /// The path to the log file.
       /// </summary>
-      string LogFile { get; set; }
+      string LogFile { get; }
 
       /// <summary>
       /// The user loaded.

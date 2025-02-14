@@ -1,6 +1,6 @@
-﻿using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+﻿using Upsilon.Apps.PassKey.Core.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Events
+namespace Upsilon.Apps.PassKey.Core.Events
 {
    /// <summary>
    /// Represent a warning detected event argument.
