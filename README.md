@@ -11,7 +11,7 @@ This C# implementation serves as the core of a password manager, enabling secure
 **Features**
 ------------
 
-*   **Password Storage**: Store accounts and services passwords securely
+*   **Password Storage**: Store accounts and services securely
 *   **History log**: Log every events
 *   **Trigger warnings**: Trigger warnings when detected like unauthorized access attempt or password leaked detection
 *   **Autosave**: Autosave updates
