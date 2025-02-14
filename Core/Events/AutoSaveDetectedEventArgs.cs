@@ -5,7 +5,7 @@ namespace Upsilon.Apps.PassKey.Core.Events
    /// <summary>
    /// Represent the behavior of auto-save handling event argument.
    /// </summary>
-   public class AutoSaveDetectedEventArgs : EventArgs
+   public sealed class AutoSaveDetectedEventArgs : EventArgs
    {
       /// <summary>
       /// The behavior selected.

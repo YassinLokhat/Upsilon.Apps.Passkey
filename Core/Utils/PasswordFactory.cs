@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Upsilon.Apps.PassKey.Core.Interfaces;
@@ -55,7 +56,7 @@ namespace Upsilon.Apps.PassKey.Core.Utils
          }
 
          StringBuilder stringBuilder = new();
-         Random random = new((int)DateTime.Now.Ticks);
+         RandomNumberGenerator random = RandomNumberGenerator.Create();
 
          do
          {
@@ -63,7 +64,12 @@ namespace Upsilon.Apps.PassKey.Core.Utils
 
             for (int i = 0; i < length; i++)
             {
-               _ = stringBuilder.Append(alphabet[random.Next(alphabet.Length)]);
+               byte[] randomBytes = new byte[4];
+               random.GetBytes(randomBytes);
+
+               int randomCharIndex = (int)(BitConverter.ToUInt32(randomBytes, 0) % alphabet.Length);
+
+               _ = stringBuilder.Append(alphabet[randomCharIndex]);
             }
          }
          while (onlySafePasswords && PasswordLeaked(stringBuilder.ToString()));

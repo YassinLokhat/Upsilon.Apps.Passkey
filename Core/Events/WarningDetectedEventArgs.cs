@@ -6,7 +6,7 @@ namespace Upsilon.Apps.PassKey.Core.Events
    /// Represent a warning detected event argument.
    /// </summary>
    /// <param name="warning">The warnings detected.</param>
-   public class WarningDetectedEventArgs(IWarning[] warning) : EventArgs
+   public sealed class WarningDetectedEventArgs(IWarning[] warning) : EventArgs
    {
       /// <summary>
       /// The warnings detected.
