@@ -1,38 +1,39 @@
+# Upsilon.Apps.Passkey.Core
 
-
-**Upsilon.Apps.Passkey.Core**
-=============================================
-
+------------
 **Overview**
 ------------
 
 This C# implementation serves as the core of a password manager, enabling secure local storage and management of user credentials.
 
+------------
 **Features**
 ------------
 
-*   **Password Storage**: Store accounts and services securely
-*   **History log**: Log every events
-*   **Trigger warnings**: Trigger warnings when detected like unauthorized access attempt or password leaked detection
-*   **Autosave**: Autosave updates
-*   **Password Generation**: Generate strong, unique passwords
+*   **Credentials Storage**: Store accounts and services localy.
+*   **Secured Encryption**: All data are encrypted with several layers of encryption.
+*   **Password Generation**: Generate strong, unique passwords.
+*   **History log**: Log every events.
+*   **Trigger warnings**: Trigger warnings when detected like unauthorized access attempt or password leaked detection.
+*   **Autosave**: Autosave updates.
 
+------------
 **Security**
 ------------
 
 *   **Encryption**: All passwords are encrypted using AES with a set of keys and RSA with a 1024-bit key
 *   **Access Control**: Access to the password store is restricted to authorized users only
 
+----------
 **Models**
-
 ----------
 
-### Class diagram
+## Class diagram
 ![ClassDiagram](https://github.com/user-attachments/assets/7c17f2a2-c62b-4a9a-808f-c0f471c23609)
 
+---------------------
 **Example Use Cases**
-
---------------------
+---------------------
 
 ### Create a new database
 
@@ -116,6 +117,7 @@ All unsaved updates are stored inside the autosave file.
 database.Close();
 ```
 
+-------------------
 **Getting Started**
 -------------------
 
@@ -123,12 +125,14 @@ database.Close();
 2.  Build the solution: `dotnet build`
 3.  Run the API: `dotnet run`
 
+----------------
 **Contributing**
-------------
+----------------
 
 Contributions are welcome! Please submit a pull request with your changes.
 
+-----------
 **License**
--------
+-----------
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
