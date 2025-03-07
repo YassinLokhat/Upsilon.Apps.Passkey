@@ -4,25 +4,64 @@
 **Overview**
 ------------
 
-This C# implementation serves as the core of a password manager, enabling secure local storage and management of user credentials.
+This C# implementation serves as the core of a password manager, enabling secure local storage and management of user credentials with advanced multi-layer encryption and security features.
 
 ------------
 **Features**
 ------------
 
-*   **Credentials Storage**: Store accounts and services localy.
-*   **Secured Encryption**: All data are encrypted with several layers of encryption.
+*   **Credentials Storage**: Securely store accounts and services locally.
+*   **Advanced Multi-Layer Encryption**: Implement robust, multi-stage data protection using AES and RSA algorithms.
 *   **Password Generation**: Generate strong, unique passwords.
-*   **History log**: Log every events.
-*   **Trigger warnings**: Trigger warnings when detected like unauthorized access attempt or password leaked detection.
-*   **Autosave**: Autosave updates.
+*   **Comprehensive Logging**: Detailed event tracking with secure, encrypted logs.
+*   **Intelligent Warning System**: Proactive security alerts and notifications.
+*   **Autosave**: Automatic update preservation.
 
 ------------
-**Security**
+**Security Architecture**
 ------------
 
-*   **Encryption**: All passwords are encrypted using AES with a set of keys and RSA with a 1024-bit key
-*   **Access Control**: Access to the password store is restricted to authorized users only
+### Encryption Strategy
+*   **Data Encryption**: 
+    - AES encryption for database and autosave files
+    - Multi-layer encryption using an ordered set of passkeys
+    - Each passkey encrypts data in an "onion" style, adding complexity to decryption
+
+*   **Log File Security**: 
+    - RSA encryption with 2048-bit key
+    - Public key allows log entry addition
+    - Private key required for log review
+
+### Multi-Passkey Authentication
+*   Enhanced security through sequential passkey verification
+*   Prevents brute-force attacks by removing predictability
+*   Login process requires correct entry of all passkeys in precise order
+
+**Key Security Benefits**:
+*   No intermediate decryption hints
+*   Increased complexity for potential attackers
+*   Flexible, user-defined passkey sequences
+
+------------
+**Warning and Alert System**
+------------
+
+Comprehensive warning mechanisms include:
+
+*   Password Expiration Reminders
+*   Duplicate Password Detection
+*   Password Leak Alerts
+*   Unauthorized Access Attempt Notifications and Login Failure Tracking
+*   Unsaved Update Highlighting
+*   Recent Password Change Alerts
+
+----------
+**Technical Specifications**
+----------
+
+*   **Platform**: Multi-platform (Windows, Linux)
+*   **Framework**: .NET 8
+*   **Dependencies**: Native .NET libraries only
 
 ----------
 **Models**
@@ -61,6 +100,10 @@ IDatabase database = IDatabase.Create(new Upsilon.Apps.PassKey.Core.Public.Utils
 
 After creation, the method will directly open the database but it will not login directly to the current user.
 So to login, check the **Login to an user** use case.
+
+Note :
+The file extentions used here are purely arbitrary. The API user is free to use any kind of extentions.
+
 
 ### Open an existing database
 
