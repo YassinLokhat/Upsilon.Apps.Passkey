@@ -2,7 +2,16 @@ cmake_minimum_required(VERSION 3.14)
 project(UnitTests LANGUAGES CSharp)
 
 # Unit tests project
-file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/*/*.cs)
+file(GLOB_RECURSE SRC_FILES 
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cs"
+)
+file(GLOB_RECURSE EXCLUDED_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/obj/*"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bin/*"
+)
+if(EXCLUDED_FILES)
+    list(REMOVE_ITEM SRC_FILES ${EXCLUDED_FILES})
+endif()
 
 add_executable(UnitTests
     # Add your test source files here or use a glob pattern
@@ -13,8 +22,11 @@ add_executable(UnitTests
 set_target_properties(UnitTests PROPERTIES
     DOTNET_SDK "${CMAKE_DOTNET_SDK}"
     DOTNET_TARGET_FRAMEWORK "${CMAKE_DOTNET_TARGET_FRAMEWORK}"
-    VS_DOTNET_REFERENCES "System;System.Core;Microsoft.VisualStudio.TestPlatform.TestFramework"
+	VS_PACKAGE_REFERENCES "FluentAssertions_7.0.0;Microsoft.NET.Test.Sdk_17.11.1;MSTest_3.6.1"
+	VS_GLOBAL_ImplicitUsings "enable"
 )
 
+set_property(TARGET UnitTests PROPERTY VS_DOTNET_REFERENCEPROP_Using_TAG_ItemGroup "Microsoft.VisualStudio.TestTools.UnitTesting")
+
 # Add reference from tests to core library
-set_property(TARGET UnitTests PROPERTY VS_DOTNET_REFERENCE_Upsilon.Apps.PassKey.Core ${CMAKE_CURRENT_BINARY_DIR}/Core/Core.csproj)
+target_link_libraries(UnitTests Core)
