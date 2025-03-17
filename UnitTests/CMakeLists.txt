@@ -26,7 +26,5 @@ set_target_properties(UnitTests PROPERTIES
 	VS_GLOBAL_ImplicitUsings "enable"
 )
 
-set_property(TARGET UnitTests PROPERTY VS_DOTNET_REFERENCEPROP_Using_TAG_ItemGroup "Microsoft.VisualStudio.TestTools.UnitTesting")
-
 # Add reference from tests to core library
 target_link_libraries(UnitTests Core)

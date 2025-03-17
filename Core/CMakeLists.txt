@@ -32,6 +32,5 @@ set_target_properties(Core PROPERTIES
 	VS_GLOBAL_Version "1.0.0"
 )
 
-
 set_property(TARGET Core PROPERTY VS_GLOBAL_WarningLevel_DEBUG "9999")
 set_property(TARGET Core PROPERTY VS_GLOBAL_TreatWarningsAsErrors "True")
