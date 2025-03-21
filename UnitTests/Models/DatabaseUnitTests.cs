@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Upsilon.Apps.PassKey.Core.Interfaces;
 
 namespace Upsilon.Apps.PassKey.UnitTests.Models
