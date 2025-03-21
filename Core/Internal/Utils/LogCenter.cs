@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
-using Upsilon.Apps.PassKey.Core.Internal.Models;
 using Upsilon.Apps.PassKey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Internal.Models;
 
 namespace Upsilon.Apps.PassKey.Core.Internal.Utils
 {

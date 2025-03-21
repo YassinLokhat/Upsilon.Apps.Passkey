@@ -1,7 +1,7 @@
-﻿using Upsilon.Apps.PassKey.Core.Internal.Utils;
-using Upsilon.Apps.PassKey.Core.Enums;
+﻿using Upsilon.Apps.PassKey.Core.Enums;
 using Upsilon.Apps.PassKey.Core.Events;
 using Upsilon.Apps.PassKey.Core.Interfaces;
+using Upsilon.Apps.PassKey.Core.Internal.Utils;
 using Upsilon.Apps.PassKey.Core.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Internal.Models
@@ -403,7 +403,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             .SelectMany(x => x.Accounts)
             .Where(x => x.PasswordExpired)];
 
-         return accounts.Length != 0 ? ([new Warning(WarningType.PasswordUpdateReminderWarning, accounts)]) : ([]);
+         return accounts.Length != 0 ? [new Warning(WarningType.PasswordUpdateReminderWarning, accounts)] : [];
       }
 
       private Warning[] _lookAtPasswordLeakedWarnings()
@@ -414,7 +414,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             .SelectMany(x => x.Accounts)
             .Where(x => x.PasswordLeaked)];
 
-         return accounts.Length != 0 ? ([new Warning(WarningType.PasswordLeakedWarning, accounts)]) : ([]);
+         return accounts.Length != 0 ? [new Warning(WarningType.PasswordLeakedWarning, accounts)] : [];
       }
 
       private Warning[] _lookAtDuplicatedPasswordsWarnings()
