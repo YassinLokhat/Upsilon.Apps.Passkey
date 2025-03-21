@@ -14,7 +14,6 @@ if(EXCLUDED_FILES)
 endif()
 
 add_executable(UnitTests
-    # Add your test source files here or use a glob pattern
     ${SRC_FILES}
 )
 

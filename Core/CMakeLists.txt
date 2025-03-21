@@ -14,7 +14,6 @@ if(EXCLUDED_FILES)
 endif()
 
 add_library(Core SHARED
-    # Add your source files here or use a glob pattern
     ${SRC_FILES}
 )
 
@@ -30,7 +29,6 @@ set_target_properties(Core PROPERTIES
 	VS_GLOBAL_Configurations "Debug;Release"
 	VS_GLOBAL_Description "A local stored Password Manager Core."
 	VS_GLOBAL_Version "1.0.0"
+	VS_GLOBAL_TreatWarningsAsErrors "True"
+	VS_GLOBAL_WarningLevel "9999"
 )
-
-set_property(TARGET Core PROPERTY VS_GLOBAL_WarningLevel_DEBUG "9999")
-set_property(TARGET Core PROPERTY VS_GLOBAL_TreatWarningsAsErrors "True")
