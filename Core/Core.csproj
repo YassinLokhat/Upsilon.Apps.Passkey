@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Authors>Yassin Lokhat</Authors>
+    <Description>A local stored Password Manager Core.</Description>
+    <Title>$(AssemblyName)</Title>
+    <Configurations>Debug;Release</Configurations>
+    <Version>1.0.0</Version>
+    <WarningLevel>9999</WarningLevel>
+    <ManagedAssembly>true</ManagedAssembly>
+    <OutputType>Library</OutputType>
+
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>
