@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.PassKey.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Upsilon.Apps.PassKey.Core.Models;
+using Upsilon.Apps.PassKey.Interfaces;
 
 namespace Upsilon.Apps.PassKey.UnitTests.Models
 {
