@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
-using Upsilon.Apps.PassKey.Core.Internal.Models;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Core.Models;
+using Upsilon.Apps.PassKey.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Utils
+namespace Upsilon.Apps.PassKey.Core.Utils
 {
    internal class LogCenter
    {

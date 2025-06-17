@@ -1,12 +1,11 @@
-﻿using Upsilon.Apps.PassKey.Core.Internal.Utils;
-using Upsilon.Apps.PassKey.Core.Public.Enums;
-using Upsilon.Apps.PassKey.Core.Public.Events;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+﻿using Upsilon.Apps.PassKey.Core.Utils;
+using Upsilon.Apps.PassKey.Interfaces.Enums;
+using Upsilon.Apps.PassKey.Interfaces.Events;
+using Upsilon.Apps.PassKey.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Models
+namespace Upsilon.Apps.PassKey.Core.Models
 {
-   internal sealed class Database : IDatabase
+   public sealed class Database : IDatabase
    {
       #region IUser interface explicit Internal
 
@@ -175,7 +174,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          Logs.Database = this;
       }
 
-      internal static IDatabase Create(ICryptographyCenter cryptographicCenter,
+      public static IDatabase Create(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
          string databaseFile,
@@ -233,7 +232,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             username);
       }
 
-      internal static IDatabase Open(ICryptographyCenter cryptographicCenter,
+      public static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
          string databaseFile,

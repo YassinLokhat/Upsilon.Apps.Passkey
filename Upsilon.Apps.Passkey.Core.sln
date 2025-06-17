@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\Unit
 		{B418DD40-BB83-30F0-9D54-3C04D34560EC} = {B418DD40-BB83-30F0-9D54-3C04D34560EC}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Interfaces", "submodules\Interfaces\Interfaces.csproj", "{7B88A54E-424A-EE43-3C03-942B071C9BEE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,10 @@ Global
 		{5CD2FDE0-701C-3B99-9007-6A13904BE29D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5CD2FDE0-701C-3B99-9007-6A13904BE29D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5CD2FDE0-701C-3B99-9007-6A13904BE29D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B88A54E-424A-EE43-3C03-942B071C9BEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B88A54E-424A-EE43-3C03-942B071C9BEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B88A54E-424A-EE43-3C03-942B071C9BEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B88A54E-424A-EE43-3C03-942B071C9BEE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

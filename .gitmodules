@@ -1,0 +1,4 @@
+[submodule "submodules"]
+	path = submodules
+	url = https://github.com/YassinLokhat/Upsilon.Apps.Passkey.Interfaces.git
+	branch = main

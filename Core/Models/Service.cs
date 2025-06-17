@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Models
+namespace Upsilon.Apps.PassKey.Core.Models
 {
    internal sealed class Service : IService
    {

@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Upsilon.Apps.PassKey.Core.Models;
 
 namespace Upsilon.Apps.PassKey.UnitTests.Models
 {
@@ -261,7 +262,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          Stack<string> expectedLogWarnings = new();
 
          UnitTestsHelper.ClearTestEnvironment();
-         IDatabase database = IDatabase.Create(UnitTestsHelper.CryptographicCenter,
+         IDatabase database = Database.Create(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             databaseFile,

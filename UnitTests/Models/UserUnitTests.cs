@@ -1,7 +1,8 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.PassKey.Core.Public.Enums;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Interfaces.Enums;
+using Upsilon.Apps.PassKey.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Upsilon.Apps.PassKey.Core.Models;
 
 namespace Upsilon.Apps.PassKey.UnitTests.Models
 {
@@ -93,7 +94,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = File.Exists(autoSaveFile).Should().BeFalse();
 
          // When
-         IDatabase databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter,
+         IDatabase databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             databaseFile,
@@ -194,7 +195,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          expectedLogs.Push($"Information : User {newUsername} logged out");
          expectedLogs.Push($"Information : User {newUsername}'s database closed");
 
-         databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter,
+         databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             databaseFile,

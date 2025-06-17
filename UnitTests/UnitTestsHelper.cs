@@ -1,9 +1,10 @@
 ﻿using FluentAssertions;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using Upsilon.Apps.PassKey.Core.Public.Enums;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+using Upsilon.Apps.PassKey.Interfaces.Enums;
+using Upsilon.Apps.PassKey.Interfaces;
+using Upsilon.Apps.PassKey.Core.Utils;
+using Upsilon.Apps.PassKey.Core.Models;
 
 namespace Upsilon.Apps.PassKey.UnitTests
 {
@@ -28,7 +29,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
          passkeys ??= GetRandomStringArray();
 
-         IDatabase database = IDatabase.Create(CryptographicCenter,
+         IDatabase database = Database.Create(CryptographicCenter,
             SerializationCenter,
             PasswordFactory,
             databaseFile,
@@ -53,7 +54,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
          IWarning[] warnings = [];
 
-         IDatabase database = IDatabase.Open(CryptographicCenter,
+         IDatabase database = Database.Open(CryptographicCenter,
             SerializationCenter,
             PasswordFactory,
             databaseFile,
