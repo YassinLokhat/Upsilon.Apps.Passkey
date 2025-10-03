@@ -23,6 +23,11 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       int LogoutTimeout { get; set; }
 
       /// <summary>
+      /// The number of seconds left before the session ended.
+      /// </summary>
+      int SessionLeftTime { get; }
+
+      /// <summary>
       /// The number of second to keep existing passwords in the clipboard.
       /// </summary>
       int CleaningClipboardTimeout { get; set; }

@@ -4,8 +4,10 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 {
    public static class ClipboardManager
    {
-      public static void RemoveAllOccurence(string[] removeList)
+      public static int RemoveAllOccurence(string[] removeList)
       {
+         int cleanedPasswordCount = 0;
+
          var clipboardHistory = Clipboard.GetHistoryItemsAsync().AsTask().GetAwaiter().GetResult().Items;
 
          foreach (var item in clipboardHistory)
@@ -18,9 +20,12 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
                if (removeList.Any(x => x == text))
                {
                   Clipboard.DeleteItemFromHistory(item);
+                  cleanedPasswordCount++;
                }
             }
          }
+
+         return cleanedPasswordCount;
       }
    }
 }

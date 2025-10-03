@@ -37,10 +37,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          LogFileLocker?.Delete();
          AutoSaveFileLocker?.Delete();
 
-         _close(logCloseEvent: false, loginTimeoutReached: false);
+         Close(logCloseEvent: false, loginTimeoutReached: false);
       }
 
-      public void Dispose() => _close(logCloseEvent: true, loginTimeoutReached: false);
+      public void Dispose() => Close(logCloseEvent: true, loginTimeoutReached: false);
 
       public void Save() => _save(logSaveEvent: true);
 
@@ -95,6 +95,8 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
                ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
                ..User.WarningsToNotify.ContainsFlag(WarningType.DuplicatedPasswordsWarning) ? duplicatedPasswordsWarnings : []]));
+
+            User.ResetTimer();
          }
 
          return User;
@@ -115,9 +117,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       internal FileLocker? DatabaseFileLocker;
       internal FileLocker? AutoSaveFileLocker;
       internal FileLocker? LogFileLocker;
-
-      private DateTime _lastActionTime;
-      private readonly System.Timers.Timer _timer;
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
@@ -140,15 +139,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          Username = username;
          Passkeys = [CryptographyCenter.GetHash(username)];
-
-         _lastActionTime = DateTime.Now;
-         _timer = new()
-         {
-            Interval = 5000,
-            AutoReset = true,
-            Enabled = true,
-         };
-         _timer.Elapsed += _timer_Elapsed;
 
          if (passkeys != null)
          {
@@ -222,7 +212,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          database._save(logSaveEvent: false);
 
-         database._close(logCloseEvent: false, loginTimeoutReached: false);
+         database.Close(logCloseEvent: false, loginTimeoutReached: false);
 
          return Open(cryptographicCenter,
             serializationCenter,
@@ -257,28 +247,9 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       internal T Get<T>(T value)
       {
-         _lastActionTime = DateTime.Now;
+         User?.ResetTimer();
 
          return value;
-      }
-
-      private void _timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
-      {
-         if (User == null) throw new NullReferenceException(nameof(User));
-
-         if (User.LogoutTimeout == 0)
-         {
-            return;
-         }
-
-         TimeSpan durationSinceLastAction = e.SignalTime - _lastActionTime;
-
-         if (durationSinceLastAction.TotalMinutes >= User.LogoutTimeout)
-         {
-            Logs.AddLog($"User {Username}'s login session timeout reached", needsReview: true);
-
-            _close(logCloseEvent: true, loginTimeoutReached: true);
-         }
       }
 
       private void _save(bool logSaveEvent)
@@ -300,10 +271,12 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          AutoSave.Clear();
 
+         User.ResetTimer();
+
          DatabaseSaved?.Invoke(this, EventArgs.Empty);
       }
 
-      private void _close(bool logCloseEvent, bool loginTimeoutReached)
+      internal void Close(bool logCloseEvent, bool loginTimeoutReached)
       {
          if (logCloseEvent)
          {
@@ -341,9 +314,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          DatabaseFile = string.Empty;
          AutoSaveFile = string.Empty;
          LogFile = string.Empty;
-
-         _timer.Stop();
-         _timer.Dispose();
 
          DatabaseClosed?.Invoke(this, new(loginTimeoutReached));
       }

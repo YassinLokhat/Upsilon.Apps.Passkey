@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.PassKey.Core.Public.Enums;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Core.Public.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Internal.Models
 {
@@ -43,6 +44,8 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             value: value,
             readableValue: value.ToString());
       }
+
+      int IUser.SessionLeftTime => _sessionLeftTime;
 
       int IUser.CleaningClipboardTimeout
       {
@@ -119,6 +122,68 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          | WarningType.PasswordUpdateReminderWarning
          | WarningType.DuplicatedPasswordsWarning
          | WarningType.PasswordLeakedWarning;
+
+      private readonly System.Timers.Timer _timer = new()
+      {
+         AutoReset = true,
+         Enabled = true,
+         Interval = 1000,
+      };
+
+      private int _sessionLeftTime = 0;
+      private int _clipboardLeftTime = 0;
+
+      public User()
+      {
+         _timer.Elapsed += _timer_Elapsed;
+      }
+
+      private void _timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+      {
+         if (LogoutTimeout != 0)
+         {
+            _sessionLeftTime--;
+
+            if (_sessionLeftTime == 0)
+            {
+               Database.Logs.AddLog($"User {Username}'s login session timeout reached", needsReview: true);
+               Database.Close(logCloseEvent: true, loginTimeoutReached: true);
+
+               _timer.Stop();
+               _timer.Dispose();
+            }
+         }
+
+         if (CleaningClipboardTimeout != 0)
+         {
+            _clipboardLeftTime--;
+
+            if (_clipboardLeftTime == 0)
+            {
+               _cleanClipboard();
+
+               _clipboardLeftTime = CleaningClipboardTimeout;
+            }
+         }
+      }
+
+      private void _cleanClipboard()
+      {
+         var passwords = Services.SelectMany(x => x.Accounts).Select(x => x.Password).ToArray();
+
+         var cleanedPasswordsCount = ClipboardManager.RemoveAllOccurence(passwords);
+
+         if (cleanedPasswordsCount != 0)
+         {
+            Database.Logs.AddLog($"{cleanedPasswordsCount} passwords was cleaned from User {Username}'s clipboard", needsReview: false);
+         }
+      }
+
+      public void ResetTimer()
+      {
+         _sessionLeftTime = LogoutTimeout * 60;
+         _clipboardLeftTime = CleaningClipboardTimeout;
+      }
 
       public void Apply(Change change)
       {
