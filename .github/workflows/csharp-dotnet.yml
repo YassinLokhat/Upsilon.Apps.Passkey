@@ -1,0 +1,36 @@
+name: C# Build with CMake
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore Upsilon.Apps.Passkey.sln
+      
+    - name: Build Debug
+      run: dotnet build Upsilon.Apps.Passkey.sln --no-restore --configuration Debug
+      
+    - name: Build Relesae
+      run: dotnet build Upsilon.Apps.Passkey.sln --no-restore --configuration Release
+            
+    - name: Test
+      run: dotnet test --no-build --verbosity normal Upsilon.Apps.Passkey.sln
+
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
