@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.PassKey.Core.Public.Utils
@@ -105,18 +106,15 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          RSAParameters pubKey = (RSAParameters?)xs.Deserialize(sr) ?? throw new WrongPasswordException(0);
 
          csp.ImportParameters(pubKey);
-         StringBuilder sb = new();
 
-         while (source.Length != 0)
-         {
-            int size = source.Length < 100 ? source.Length : 100;
-
-            _ = sb.Append(_encryptRsa(source[..size], csp) + "|");
-
-            source = source[size..];
-         }
-
-         source = sb.ToString().TrimEnd('|');
+         Random random = new((int)DateTime.Now.Ticks);
+         byte[] randomBytes = new byte[100];
+         random.NextBytes(randomBytes);
+         string aesKey = Encoding.UTF8.GetString(randomBytes);
+         source = EncryptSymmetrically(source, [aesKey]);
+         aesKey = _encryptRsa(aesKey, csp);
+         var s = new KeyValuePair<string, string>(aesKey, source);
+         source = JsonSerializer.Serialize(s);
 
          Sign(ref source);
 
@@ -139,15 +137,11 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
          csp.ImportParameters(privKey);
 
-         string[] sourecs = source.Split('|');
-         StringBuilder sb = new();
+         var s = JsonSerializer.Deserialize<KeyValuePair<string, string>>(source);
+         string aesKey = _decryptRsa(s.Key, 0, csp);
+         source = DecryptSymmetrically(s.Value, [aesKey]);
 
-         for (int i = 0; i < sourecs.Length; i++)
-         {
-            _ = sb.Append(_decryptRsa(sourecs[i], i, csp));
-         }
-
-         return sb.ToString();
+         return source;
       }
 
       private string _cipherAes(string plainText, string key)
