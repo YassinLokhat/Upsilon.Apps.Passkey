@@ -7,8 +7,27 @@
         mc:Ignorable="d"
         Title="{Binding WindowTitle}"
         ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen"
         Height="100" Width="400">
     <Grid>
-
+        <DockPanel>
+            <Menu DockPanel.Dock="Top">
+                <Menu.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <DockPanel HorizontalAlignment="Stretch"/>
+                    </ItemsPanelTemplate>
+                </Menu.ItemsPanel>
+                <MenuItem Header="_New User"/>
+                <MenuItem Header="_Generate random Password" HorizontalAlignment="Right"/>
+            </Menu>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" VerticalContentAlignment="Center">Username :</Label>
+                <TextBox Grid.Column="1" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+            </Grid>
+        </DockPanel>
     </Grid>
 </Window>
