@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI"
         mc:Ignorable="d"
-        Title="{Binding WindowTitle}"
+        Title="{Binding MainWindowTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         Height="100" Width="400">
@@ -18,15 +18,20 @@
                     </ItemsPanelTemplate>
                 </Menu.ItemsPanel>
                 <MenuItem Header="_New User"/>
-                <MenuItem Header="_Generate random Password" HorizontalAlignment="Right"/>
+                <MenuItem Header="_Generate random Password"
+                          HorizontalAlignment="Right"
+                          Click="_generatePassword_MenuItem_Click"/>
             </Menu>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Label Grid.Column="0" VerticalContentAlignment="Center">Username :</Label>
-                <TextBox Grid.Column="1" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                <Label Grid.Column="0"
+                       VerticalContentAlignment="Center">Username :</Label>
+                <TextBox Grid.Column="1"
+                         VerticalAlignment="Center"
+                         VerticalContentAlignment="Center"/>
             </Grid>
         </DockPanel>
     </Grid>

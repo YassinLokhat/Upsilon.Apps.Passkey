@@ -1,17 +1,7 @@
-﻿using System.Runtime.InteropServices;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows;
+using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
+using Upsilon.Apps.Passkey.GUI.Views;
 
 namespace Upsilon.Apps.Passkey.GUI
 {
@@ -35,46 +25,23 @@ namespace Upsilon.Apps.Passkey.GUI
       {
          InitializeComponent();
 
-         DataContext = new MainViewModel { WindowTitle = AppTitle };
+         DataContext = new TitleViewModel();
 
-         this.Loaded += MainWindow_Loaded;
+         this.Loaded += _mainWindow_Loaded;
       }
 
-      private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+      private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
       {
-         SetDarkMode();
+         DarkMode.SetDarkMode(this);
       }
 
-      #region SetDarkMode
-      private void SetDarkMode()
+      private void _generatePassword_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         SetDarkTitleBar();
-
-         var dictionaries = Application.Current.Resources.MergedDictionaries;
-         dictionaries.Clear();
-
-         var themeDict = new ResourceDictionary
+         new PasswordGenerator
          {
-            Source = new Uri($"Themes/DarkTheme.xaml", UriKind.Relative)
-         };
-
-         dictionaries.Add(themeDict);
+            Owner = this
+         }
+         .ShowDialog();
       }
-
-      private void SetDarkTitleBar()
-      {
-         var hwnd = new WindowInteropHelper(this).Handle;
-
-         if (hwnd == IntPtr.Zero)
-            return;
-
-         int attribute = 20; // DWMWA_USE_IMMERSIVE_DARK_MODE
-         int useImmersiveDarkMode = 1;
-         DwmSetWindowAttribute(hwnd, attribute, ref useImmersiveDarkMode, sizeof(int));
-      }
-
-      [DllImport("dwmapi.dll", PreserveSig = true)]
-      private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
-      #endregion
    }
 }
