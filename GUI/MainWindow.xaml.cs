@@ -10,22 +10,11 @@ namespace Upsilon.Apps.Passkey.GUI
    /// </summary>
    public partial class MainWindow : Window
    {
-      public static string AppTitle
-      {
-         get
-         {
-            var package = System.Reflection.Assembly.GetExecutingAssembly().GetName();
-            var packageVersion = package.Version?.ToString(2);
-
-            return $"{package.Name} v{packageVersion}";
-         }
-      }
-
       public MainWindow()
       {
          InitializeComponent();
 
-         DataContext = new TitleViewModel();
+         DataContext = new MainViewModel();
 
          this.Loaded += _mainWindow_Loaded;
       }
@@ -33,6 +22,13 @@ namespace Upsilon.Apps.Passkey.GUI
       private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
       {
          DarkMode.SetDarkMode(this);
+
+         /// TODO : To be removed
+         new PasswordGenerator
+         {
+            Owner = this
+         }
+         .ShowDialog();
       }
 
       private void _generatePassword_MenuItem_Click(object sender, RoutedEventArgs e)

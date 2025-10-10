@@ -4,12 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI"
+        xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.ViewModels"
+        d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
         Title="{Binding MainWindowTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="100" Width="400">
-    <Grid>
+        Height="120" Width="400">
         <DockPanel>
             <Menu DockPanel.Dock="Top">
                 <Menu.ItemsPanel>
@@ -17,8 +18,10 @@
                         <DockPanel HorizontalAlignment="Stretch"/>
                     </ItemsPanelTemplate>
                 </Menu.ItemsPanel>
-                <MenuItem Header="_New User"/>
-                <MenuItem Header="_Generate random Password"
+                <MenuItem Margin="5"
+                          Header="_New User"/>
+                <MenuItem Margin="5"
+                          Header="_Generate random Password"
                           HorizontalAlignment="Right"
                           Click="_generatePassword_MenuItem_Click"/>
             </Menu>
@@ -27,12 +30,13 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Label Grid.Column="0"
+                <Label Margin="5"
+                       Grid.Column="0"
                        VerticalContentAlignment="Center">Username :</Label>
-                <TextBox Grid.Column="1"
+                <TextBox Margin="5"
+                         Grid.Column="1"
                          VerticalAlignment="Center"
                          VerticalContentAlignment="Center"/>
             </Grid>
         </DockPanel>
-    </Grid>
 </Window>

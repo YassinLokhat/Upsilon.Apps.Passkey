@@ -2,6 +2,7 @@
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
+using Upsilon.Apps.PassKey.Core.Public.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
@@ -10,11 +11,15 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    /// </summary>
    public partial class PasswordGenerator : Window
    {
+      private PasswordGeneratorViewModel _viewModel;
+
+      public string? GeneratedPassword = null;
+
       public PasswordGenerator()
       {
          InitializeComponent();
 
-         DataContext = new TitleViewModel();
+         DataContext = _viewModel = new PasswordGeneratorViewModel(new PasswordFactory());
 
          this.Loaded += _passwordGenerator_Loaded;
       }
@@ -25,6 +30,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       }
 
       private static readonly Regex _regex = new Regex("[^0-9.-]+"); //regex that matches disallowed text
+
       private static bool _isTextAllowed(string text)
       {
          return !_regex.IsMatch(text);
@@ -49,6 +55,24 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          {
             e.CancelCommand();
          }
+      }
+
+      private void _insertMenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         _copyMenuItem_Click(sender, e);
+
+         GeneratedPassword = _viewModel.GeneratedPassword;
+         this.DialogResult = true;
+      }
+
+      private void _regenerateMenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         _viewModel.GeneratePassword();
+      }
+
+      private void _copyMenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         /// TODO : Copy the current passeonr to the clipboard
       }
    }
 }
