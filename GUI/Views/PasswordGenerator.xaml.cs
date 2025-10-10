@@ -11,7 +11,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    /// </summary>
    public partial class PasswordGenerator : Window
    {
-      private PasswordGeneratorViewModel _viewModel;
+      private readonly PasswordGeneratorViewModel _viewModel;
 
       private string? _generatedPassword = null;
       public string? GeneratedPassword
@@ -35,6 +35,22 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          DataContext = _viewModel = new PasswordGeneratorViewModel(new PasswordFactory());
 
          this.Loaded += _passwordGenerator_Loaded;
+      }
+
+      public static string? ShowGeneratePasswordDialog(Window owner)
+      {
+         PasswordGenerator _passwordGenerator = new()
+         {
+            Owner = owner,
+            GeneratedPassword = string.Empty
+         };
+
+         if (_passwordGenerator.ShowDialog() ?? false)
+         {
+            return _passwordGenerator.GeneratedPassword;
+         }
+
+         return null;
       }
 
       private void _passwordGenerator_Loaded(object sender, RoutedEventArgs e)
@@ -85,7 +101,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _copyMenuItem_Click(object sender, RoutedEventArgs e)
       {
-         /// TODO : Copy the current passeonr to the clipboard
+         Clipboard.SetText(_viewModel.GeneratedPassword);
       }
    }
 }

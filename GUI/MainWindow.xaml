@@ -7,7 +7,7 @@
         xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.ViewModels"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
-        Title="{Binding MainWindowTitle}"
+        Title="{Binding AppTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         Height="120" Width="400">
