@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using Upsilon.Apps.PassKey.Core.Public.Utils;
 
@@ -11,7 +7,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
    internal class PasswordGeneratorViewModel : INotifyPropertyChanged
    {
-      public string PasswordGeneratorWindowTitle => MainViewModel.AppTitle + " - Password Generator";
+      public static string AppTitle => MainViewModel.AppTitle + " - Password Generator";
 
       private Visibility _allowInsert = Visibility.Hidden;
       public Visibility AllowInsert
