@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using Upsilon.Apps.PassKey.Core.Public.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
@@ -11,6 +12,20 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
    internal class PasswordGeneratorViewModel : INotifyPropertyChanged
    {
       public string PasswordGeneratorWindowTitle => MainViewModel.AppTitle + " - Password Generator";
+
+      private Visibility _allowInsert = Visibility.Hidden;
+      public Visibility AllowInsert
+      {
+         get => _allowInsert;
+         set
+         {
+            if (_allowInsert != value)
+            {
+               _allowInsert = value;
+               _includeCharactersChanged(nameof(AllowInsert));
+            }
+         }
+      }
 
       private bool _checkIfLeaked = true;
       public bool CheckIfLeaked

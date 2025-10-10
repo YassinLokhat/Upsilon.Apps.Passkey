@@ -13,7 +13,20 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    {
       private PasswordGeneratorViewModel _viewModel;
 
-      public string? GeneratedPassword = null;
+      private string? _generatedPassword = null;
+      public string? GeneratedPassword
+      {
+         get => _generatedPassword;
+         private set
+         {
+            if (_generatedPassword == null)
+            {
+               _viewModel.AllowInsert = Visibility.Visible;
+            }
+
+            _generatedPassword = value;
+         }
+      }
 
       public PasswordGenerator()
       {
