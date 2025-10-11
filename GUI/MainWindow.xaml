@@ -11,8 +11,8 @@
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         Height="120" Width="400">
-        <DockPanel>
-            <Menu DockPanel.Dock="Top">
+        <StackPanel>
+            <Menu>
                 <Menu.ItemsPanel>
                     <ItemsPanelTemplate>
                         <DockPanel HorizontalAlignment="Stretch"/>
@@ -39,5 +39,5 @@
                          VerticalAlignment="Center"
                          VerticalContentAlignment="Center"/>
             </Grid>
-        </DockPanel>
+        </StackPanel>
 </Window>

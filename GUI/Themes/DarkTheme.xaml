@@ -13,8 +13,8 @@
         <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
     </Style>
 
-    <Style TargetType="DockPanel">
-        <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
+    <Style TargetType="GroupBox">
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
     </Style>
 
     <Style TargetType="Menu">
@@ -50,6 +50,12 @@
     </Style>
 
     <Style TargetType="TextBox">
+        <Setter Property="Background" Value="{StaticResource SecondaryBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+    </Style>
+
+    <Style TargetType="PasswordBox">
         <Setter Property="Background" Value="{StaticResource SecondaryBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>

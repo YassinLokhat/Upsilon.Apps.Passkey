@@ -47,6 +47,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
             {
                _passwordLength = value;
                OnPropertyChanged(nameof(PasswordLength));
+               GeneratePassword();
             }
          }
       }
@@ -155,7 +156,12 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 
       internal void GeneratePassword()
       {
-         GeneratedPassword = _passwordFactory.GeneratePassword(PasswordLength, Alphabet, CheckIfLeaked);
+         GeneratedPassword = string.Empty;
+
+         Task.Run(() =>
+         {
+            GeneratedPassword = _passwordFactory.GeneratePassword(PasswordLength, Alphabet, CheckIfLeaked);
+         });
       }
 
       private void _includeCharactersChanged(string propertyName)
