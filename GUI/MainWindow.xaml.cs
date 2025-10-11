@@ -10,11 +10,13 @@ namespace Upsilon.Apps.Passkey.GUI
    /// </summary>
    public partial class MainWindow : Window
    {
+      private readonly MainViewModel _mainViewModel;
+
       public MainWindow()
       {
          InitializeComponent();
 
-         DataContext = new MainViewModel();
+         DataContext = _mainViewModel = new MainViewModel();
 
          this.Loaded += _mainWindow_Loaded;
       }
@@ -43,6 +45,28 @@ namespace Upsilon.Apps.Passkey.GUI
             Owner = this
          }
          .ShowDialog();
+      }
+
+      private void _usernameTextBox_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+      {
+         if (e.Key == System.Windows.Input.Key.Enter)
+         {
+            _passwordVisiblePasswordBox_Validated(this, EventArgs.Empty);
+         }
+         else if (e.Key == System.Windows.Input.Key.Escape)
+         {
+            _passwordVisiblePasswordBox_Aborded(this, EventArgs.Empty);
+         }
+      }
+
+      private void _passwordVisiblePasswordBox_Validated(object sender, EventArgs e)
+      {
+         _mainViewModel.Label = "Password :";
+      }
+
+      private void _passwordVisiblePasswordBox_Aborded(object sender, EventArgs e)
+      {
+         _mainViewModel.Label = "Username :";
       }
    }
 }

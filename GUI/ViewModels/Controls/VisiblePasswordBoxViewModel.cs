@@ -28,7 +28,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             if (_passwordVisibility != value)
             {
                _passwordVisibility = value;
-
                OnPropertyChanged(nameof(PasswordVisibility));
             }
          }
@@ -43,7 +42,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             if (_textVisibility != value)
             {
                _textVisibility = value;
-
                OnPropertyChanged(nameof(TextVisibility));
             }
          }
@@ -58,7 +56,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             if (_buttonVisibility != value)
             {
                _buttonVisibility = value;
-
                OnPropertyChanged(nameof(ButtonVisibility));
             }
          }
