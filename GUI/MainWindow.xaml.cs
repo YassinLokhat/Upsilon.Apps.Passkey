@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.GUI
          DarkMode.SetDarkMode(this);
 
          /// TODO : To be removed
-         _newUser_MenuItem_Click(this, e);
+         //_newUser_MenuItem_Click(this, e);
       }
 
       private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
