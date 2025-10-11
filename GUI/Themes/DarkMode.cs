@@ -8,21 +8,6 @@ namespace Upsilon.Apps.Passkey.GUI.Themes
    {
       public static void SetDarkMode(Window window)
       {
-         _setDarkTitleBar(window);
-
-         var dictionaries = Application.Current.Resources.MergedDictionaries;
-         dictionaries.Clear();
-
-         var themeDict = new ResourceDictionary
-         {
-            Source = new Uri($"Themes/DarkTheme.xaml", UriKind.Relative)
-         };
-
-         dictionaries.Add(themeDict);
-      }
-
-      private static void _setDarkTitleBar(Window window)
-      {
          var hwnd = new WindowInteropHelper(window).Handle;
 
          if (hwnd == IntPtr.Zero)

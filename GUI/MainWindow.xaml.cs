@@ -24,7 +24,16 @@ namespace Upsilon.Apps.Passkey.GUI
          DarkMode.SetDarkMode(this);
 
          /// TODO : To be removed
-         var pwd = PasswordGenerator.ShowGeneratePasswordDialog(this);
+         _newUser_MenuItem_Click(this, e);
+      }
+
+      private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         new UserView(database: null)
+         {
+            Owner = this
+         }
+         .ShowDialog();
       }
 
       private void _generatePassword_MenuItem_Click(object sender, RoutedEventArgs e)

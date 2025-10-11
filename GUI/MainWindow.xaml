@@ -19,7 +19,8 @@
                     </ItemsPanelTemplate>
                 </Menu.ItemsPanel>
                 <MenuItem Margin="5"
-                          Header="_New User"/>
+                          Header="_New User"
+                          Click="_newUser_MenuItem_Click"/>
                 <MenuItem Margin="5"
                           Header="_Generate random Password"
                           HorizontalAlignment="Right"
