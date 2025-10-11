@@ -35,8 +35,8 @@
                 <Label Margin="5"
                        Grid.Column="0"
                        VerticalContentAlignment="Center">Username :</Label>
-                <Controls:PrivateTextBox Margin="5"
-                                         Grid.Column="1" />
+                <Controls:VisiblePasswordBox Margin="5"
+                                             Grid.Column="1" />
             </Grid>
         </StackPanel>
 </Window>
