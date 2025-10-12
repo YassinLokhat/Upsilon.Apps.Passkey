@@ -9,8 +9,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       {
          get
          {
-            var package = System.Reflection.Assembly.GetExecutingAssembly().GetName();
-            var packageVersion = package.Version?.ToString(2);
+            System.Reflection.AssemblyName package = System.Reflection.Assembly.GetExecutingAssembly().GetName();
+            string? packageVersion = package.Version?.ToString(2);
 
             return $"{package.Name} v{packageVersion}";
          }

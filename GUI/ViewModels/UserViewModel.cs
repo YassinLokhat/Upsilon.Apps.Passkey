@@ -4,10 +4,10 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
    internal class UserViewModel
    {
-      private string _appTitle;
+      private readonly string _appTitle;
       public string AppTitle => _appTitle;
 
-      private IDatabase? _database;
+      private readonly IDatabase? _database;
 
       public UserViewModel(IDatabase? database)
       {

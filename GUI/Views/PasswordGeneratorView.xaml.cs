@@ -34,7 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          DataContext = _viewModel = new PasswordGeneratorViewModel(new PasswordFactory());
 
-         this.Loaded += _passwordGenerator_Loaded;
+         Loaded += _passwordGenerator_Loaded;
       }
 
       public static string? ShowGeneratePasswordDialog(Window owner)
@@ -45,12 +45,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             GeneratedPassword = string.Empty
          };
 
-         if (_passwordGenerator.ShowDialog() ?? false)
-         {
-            return _passwordGenerator.GeneratedPassword;
-         }
-
-         return null;
+         return _passwordGenerator.ShowDialog() ?? false ? _passwordGenerator.GeneratedPassword : null;
       }
 
       private void _passwordGenerator_Loaded(object sender, RoutedEventArgs e)
@@ -58,7 +53,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          DarkMode.SetDarkMode(this);
       }
 
-      private static readonly Regex _regex = new Regex("[^0-9.-]+"); //regex that matches disallowed text
+      private static readonly Regex _regex = new("[^0-9.-]+"); //regex that matches disallowed text
 
       private static bool _isTextAllowed(string text)
       {
@@ -72,9 +67,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _length_TextBox_Pasting(object sender, DataObjectPastingEventArgs e)
       {
-         if (e.DataObject.GetDataPresent(typeof(String)))
+         if (e.DataObject.GetDataPresent(typeof(string)))
          {
-            String text = (String)e.DataObject.GetData(typeof(String));
+            string text = (string)e.DataObject.GetData(typeof(string));
             if (!_isTextAllowed(text))
             {
                e.CancelCommand();
@@ -91,7 +86,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _copyMenuItem_Click(sender, e);
 
          GeneratedPassword = _viewModel.GeneratedPassword;
-         this.DialogResult = true;
+         DialogResult = true;
       }
 
       private void _regenerateMenuItem_Click(object sender, RoutedEventArgs e)

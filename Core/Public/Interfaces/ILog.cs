@@ -8,16 +8,16 @@
       /// <summary>
       /// The date and time the event occured.
       /// </summary>
-      public DateTime DateTime { get; }
+      DateTime DateTime { get; }
 
       /// <summary>
       /// The event message.
       /// </summary>
-      public string Message { get; }
+      string Message { get; }
 
       /// <summary>
       /// Indicate if the current log needs review.
       /// </summary>
-      public bool NeedsReview { get; set; }
+      bool NeedsReview { get; set; }
    }
 }

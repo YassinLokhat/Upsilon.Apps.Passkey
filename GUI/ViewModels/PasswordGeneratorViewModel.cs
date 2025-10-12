@@ -137,7 +137,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          }
       }
 
-      private PasswordFactory _passwordFactory;
+      private readonly PasswordFactory _passwordFactory;
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -158,7 +158,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       {
          GeneratedPassword = string.Empty;
 
-         Task.Run(() =>
+         _ = Task.Run(() =>
          {
             GeneratedPassword = _passwordFactory.GeneratePassword(PasswordLength, Alphabet, CheckIfLeaked);
          });
@@ -177,22 +177,22 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 
          if (IncludeNumerics)
          {
-            alphabetBuilder.Append(_passwordFactory.Numeric);
+            _ = alphabetBuilder.Append(_passwordFactory.Numeric);
          }
 
          if (IncludeUpperCaseAlphabet)
          {
-            alphabetBuilder.Append(_passwordFactory.Alphabetic.ToUpper());
+            _ = alphabetBuilder.Append(_passwordFactory.Alphabetic.ToUpper());
          }
 
          if (IncludeLowerCaseAlphabet)
          {
-            alphabetBuilder.Append(_passwordFactory.Alphabetic.ToLower());
+            _ = alphabetBuilder.Append(_passwordFactory.Alphabetic.ToLower());
          }
 
          if (IncludeSpecialCharacters)
          {
-            alphabetBuilder.Append(_passwordFactory.SpecialChars);
+            _ = alphabetBuilder.Append(_passwordFactory.SpecialChars);
          }
 
          return alphabetBuilder.ToString();

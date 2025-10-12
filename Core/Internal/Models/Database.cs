@@ -374,7 +374,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             .Where(x => x.PasswordExpired)
             .ToArray();
 
-         return accounts.Length != 0 ? ([new Warning(WarningType.PasswordUpdateReminderWarning, accounts)]) : ([]);
+         return accounts.Length != 0 ? [new Warning(WarningType.PasswordUpdateReminderWarning, accounts)] : [];
       }
 
       private Warning[] _lookAtPasswordLeakedWarnings()
@@ -386,7 +386,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             .Where(x => x.PasswordLeaked)
             .ToArray();
 
-         return accounts.Length != 0 ? ([new Warning(WarningType.PasswordLeakedWarning, accounts)]) : ([]);
+         return accounts.Length != 0 ? [new Warning(WarningType.PasswordLeakedWarning, accounts)] : [];
       }
 
       private Warning[] _lookAtDuplicatedPasswordsWarnings()

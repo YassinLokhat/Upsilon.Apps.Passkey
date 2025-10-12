@@ -23,8 +23,8 @@ namespace Upsilon.Apps.Passkey.GUI
 
          DataContext = _mainViewModel = new MainViewModel();
 
-         _username_TB = (TextBox)this.FindName("Username");
-         _password_PB = (PasswordBox)this.FindName("Password");
+         _username_TB = (TextBox)FindName("Username");
+         _password_PB = (PasswordBox)FindName("Password");
 
          _timer = new DispatcherTimer()
          {
@@ -34,7 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI
          _username_TB.KeyUp += _credential_TB_KeyUp;
          _password_PB.KeyUp += _credential_TB_KeyUp;
          _timer.Tick += _timer_Elapsed;
-         this.Loaded += _mainWindow_Loaded;
+         Loaded += _mainWindow_Loaded;
       }
 
       private void _timer_Elapsed(object? sender, EventArgs e)
@@ -52,7 +52,7 @@ namespace Upsilon.Apps.Passkey.GUI
 
       private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         new UserView(database: null)
+         _ = new UserView(database: null)
          {
             Owner = this
          }
@@ -61,7 +61,7 @@ namespace Upsilon.Apps.Passkey.GUI
 
       private void _generatePassword_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         new PasswordGenerator
+         _ = new PasswordGenerator
          {
             Owner = this
          }
@@ -83,7 +83,7 @@ namespace Upsilon.Apps.Passkey.GUI
 
                _password_PB.Password = string.Empty;
                _password_PB.Visibility = Visibility.Visible;
-               _password_PB.Focus();
+               _ = _password_PB.Focus();
             }
             else
             {
@@ -106,7 +106,7 @@ namespace Upsilon.Apps.Passkey.GUI
 
          _username_TB.Text = string.Empty;
          _username_TB.Visibility = Visibility.Visible;
-         _username_TB.Focus();
+         _ = _username_TB.Focus();
 
          _password_PB.Password = string.Empty;
          _password_PB.Visibility = Visibility.Hidden;

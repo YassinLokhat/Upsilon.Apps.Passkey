@@ -8,14 +8,14 @@ namespace Upsilon.Apps.Passkey.GUI.Themes
    {
       public static void SetDarkMode(Window window)
       {
-         var hwnd = new WindowInteropHelper(window).Handle;
+         nint hwnd = new WindowInteropHelper(window).Handle;
 
          if (hwnd == IntPtr.Zero)
             return;
 
          int attribute = 20; // DWMWA_USE_IMMERSIVE_DARK_MODE
          int useImmersiveDarkMode = 1;
-         DwmSetWindowAttribute(hwnd, attribute, ref useImmersiveDarkMode, sizeof(int));
+         _ = DwmSetWindowAttribute(hwnd, attribute, ref useImmersiveDarkMode, sizeof(int));
       }
 
       [DllImport("dwmapi.dll", PreserveSig = true)]

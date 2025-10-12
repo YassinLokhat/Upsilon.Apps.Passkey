@@ -113,7 +113,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          string aesKey = Encoding.UTF8.GetString(randomBytes);
          source = EncryptSymmetrically(source, [aesKey]);
          aesKey = _encryptRsa(aesKey, csp);
-         var s = new KeyValuePair<string, string>(aesKey, source);
+         KeyValuePair<string, string> s = new(aesKey, source);
          source = JsonSerializer.Serialize(s);
 
          Sign(ref source);
@@ -137,7 +137,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
          csp.ImportParameters(privKey);
 
-         var s = JsonSerializer.Deserialize<KeyValuePair<string, string>>(source);
+         KeyValuePair<string, string> s = JsonSerializer.Deserialize<KeyValuePair<string, string>>(source);
          string aesKey = _decryptRsa(s.Key, 0, csp);
          source = DecryptSymmetrically(s.Value, [aesKey]);
 

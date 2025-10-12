@@ -21,7 +21,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
             Password = string.Empty,
          };
 
-         _password_VPB = (VisiblePasswordBox)this.FindName("Password");
+         _password_VPB = (VisiblePasswordBox)FindName("Password");
 
          _viewModel.PropertyChanged += _viewModel_PropertyChanged;
          _password_VPB.Validated += _password_VPB_Validated;

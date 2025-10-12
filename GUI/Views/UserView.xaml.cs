@@ -16,7 +16,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          DataContext = new UserViewModel(database);
 
-         this.Loaded += _mainWindow_Loaded;
+         Loaded += _mainWindow_Loaded;
       }
 
       private void _mainWindow_Loaded(object sender, RoutedEventArgs e)

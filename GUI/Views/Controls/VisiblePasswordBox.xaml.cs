@@ -26,7 +26,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
          DataContext = _visiblePasswordBoxViewModel = new VisiblePasswordBoxViewModel();
 
-         _passwordBox = (PasswordBox)this.FindName("PasswordBox");
+         _passwordBox = (PasswordBox)FindName("PasswordBox");
          _passwordBox.PasswordChanged += _passwordBox_PasswordChanged;
 
          _passwordBox.KeyUp += _passwordBox_KeyUp;
