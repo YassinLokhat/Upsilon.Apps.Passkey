@@ -17,7 +17,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
       public string GetSlowHash(string source)
       {
-         long realTimeFactor = (long)Math.Pow(0b1000, 5);
+         long realTimeFactor = (long)Math.Pow(0b1001, 6);
 
          for (int i = 0; i < realTimeFactor; i++)
          {
