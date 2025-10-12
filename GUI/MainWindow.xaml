@@ -12,39 +12,40 @@
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         Height="120" Width="400">
-        <StackPanel>
-            <Menu>
-                <Menu.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <DockPanel HorizontalAlignment="Stretch"/>
-                    </ItemsPanelTemplate>
-                </Menu.ItemsPanel>
-                <MenuItem Margin="5"
-                          Header="_New User"
-                          Click="_newUser_MenuItem_Click"/>
-                <MenuItem Margin="5"
-                          Header="_Generate random Password"
-                          HorizontalAlignment="Right"
-                          Click="_generatePassword_MenuItem_Click"/>
-            </Menu>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Margin="5"
-                       Grid.Column="0"
-                       VerticalContentAlignment="Center"
-                       Content="{Binding Label}"/>
-                <TextBox Margin="5"
-                         Grid.Column="1"
-                         Visibility="{Binding UsernameVisibility}"
-                         KeyUp="_usernameTextBox_KeyUp"/>
-                <Controls:VisiblePasswordBox Margin="5"
-                                             Grid.Column="1"
-                                             Visibility="{Binding PasswordVisibility}"
-                                             Validated="_passwordVisiblePasswordBox_Validated"
-                                             Aborded="_passwordVisiblePasswordBox_Aborded"/>
-            </Grid>
-        </StackPanel>
+    <StackPanel FocusManager.FocusedElement="{Binding ElementName=Username}">
+        <Menu>
+            <Menu.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <DockPanel HorizontalAlignment="Stretch"/>
+                </ItemsPanelTemplate>
+            </Menu.ItemsPanel>
+            <MenuItem Margin="5"
+                        Header="_New User"
+                        Click="_newUser_MenuItem_Click"/>
+            <MenuItem Margin="5"
+                        Header="_Generate random Password"
+                        HorizontalAlignment="Right"
+                        Click="_generatePassword_MenuItem_Click"/>
+        </Menu>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Margin="5"
+                    Grid.Column="0"
+                    VerticalContentAlignment="Center"
+                    Content="{Binding Label}"/>
+            <TextBox Name="Username"
+                        Margin="5"
+                        VerticalAlignment="Center"
+                        Grid.Column="1"
+                        Visibility="Visible"/>
+            <PasswordBox Name="Password"
+                            Margin="5"
+                            VerticalAlignment="Center"
+                            Grid.Column="1"
+                            Visibility="Hidden"/>
+        </Grid>
+    </StackPanel>
 </Window>

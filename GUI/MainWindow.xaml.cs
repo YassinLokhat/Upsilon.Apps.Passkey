@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.Views;
@@ -11,6 +13,9 @@ namespace Upsilon.Apps.Passkey.GUI
    public partial class MainWindow : Window
    {
       private readonly MainViewModel _mainViewModel;
+      private readonly TextBox _username_TB;
+      private readonly PasswordBox _password_PB;
+      private readonly DispatcherTimer _timer;
 
       public MainWindow()
       {
@@ -18,7 +23,23 @@ namespace Upsilon.Apps.Passkey.GUI
 
          DataContext = _mainViewModel = new MainViewModel();
 
+         _username_TB = (TextBox)this.FindName("Username");
+         _password_PB = (PasswordBox)this.FindName("Password");
+
+         _timer = new DispatcherTimer()
+         {
+            Interval = new TimeSpan(0, 0, 5),
+         };
+
+         _username_TB.KeyUp += _credential_TB_KeyUp;
+         _password_PB.KeyUp += _credential_TB_KeyUp;
+         _timer.Tick += _timer_Elapsed;
          this.Loaded += _mainWindow_Loaded;
+      }
+
+      private void _timer_Elapsed(object? sender, EventArgs e)
+      {
+         _resetCredentials();
       }
 
       private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -47,26 +68,50 @@ namespace Upsilon.Apps.Passkey.GUI
          .ShowDialog();
       }
 
-      private void _usernameTextBox_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+      private void _credential_TB_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
       {
          if (e.Key == System.Windows.Input.Key.Enter)
          {
-            _passwordVisiblePasswordBox_Validated(this, EventArgs.Empty);
+            if (sender == _username_TB)
+            {
+               if (string.IsNullOrEmpty(_username_TB.Text)) return;
+
+               _mainViewModel.Label = "Password :";
+
+               _username_TB.Text = string.Empty;
+               _username_TB.Visibility = Visibility.Hidden;
+
+               _password_PB.Password = string.Empty;
+               _password_PB.Visibility = Visibility.Visible;
+               _password_PB.Focus();
+            }
+            else
+            {
+               if (string.IsNullOrEmpty(_password_PB.Password)) return;
+            }
+
+            _password_PB.Password = string.Empty;
+            _timer.Stop();
+            _timer.Start();
          }
          else if (e.Key == System.Windows.Input.Key.Escape)
          {
-            _passwordVisiblePasswordBox_Aborded(this, EventArgs.Empty);
+            _resetCredentials();
          }
       }
 
-      private void _passwordVisiblePasswordBox_Validated(object sender, EventArgs e)
-      {
-         _mainViewModel.Label = "Password :";
-      }
-
-      private void _passwordVisiblePasswordBox_Aborded(object sender, EventArgs e)
+      private void _resetCredentials()
       {
          _mainViewModel.Label = "Username :";
+
+         _username_TB.Text = string.Empty;
+         _username_TB.Visibility = Visibility.Visible;
+         _username_TB.Focus();
+
+         _password_PB.Password = string.Empty;
+         _password_PB.Visibility = Visibility.Hidden;
+
+         _timer.Stop();
       }
    }
 }
