@@ -30,6 +30,12 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          _passwordBox.PasswordChanged += _passwordBox_PasswordChanged;
 
          _passwordBox.KeyUp += _passwordBox_KeyUp;
+         _passwordBox.LostFocus += _passwordBox_LostFocus;
+      }
+
+      private void _passwordBox_LostFocus(object sender, System.Windows.RoutedEventArgs e)
+      {
+         Validated?.Invoke(this, EventArgs.Empty);
       }
 
       private void _passwordBox_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
