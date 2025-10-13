@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.ComponentModel;
+using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.Views.Controls
@@ -8,37 +9,52 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
    /// </summary>
    public partial class PasswordItem : UserControl
    {
-      private readonly PasswordItemViewModel _viewModel;
+      public readonly PasswordItemViewModel ViewModel;
       private readonly VisiblePasswordBox _password_VPB;
 
-      public PasswordItem()
+      public event EventHandler? UpClicked;
+      public event EventHandler? DownClicked;
+      public event EventHandler? DeleteClicked;
+
+      public PasswordItem(PasswordItemViewModel viewModel)
       {
          InitializeComponent();
 
-         DataContext = _viewModel = new PasswordItemViewModel()
-         {
-            Index = 0,
-            Password = string.Empty,
-         };
+         DataContext = ViewModel = viewModel;
 
          _password_VPB = (VisiblePasswordBox)FindName("Password");
 
-         _viewModel.PropertyChanged += _viewModel_PropertyChanged;
+         ViewModel.PropertyChanged += _viewModel_PropertyChanged;
          _password_VPB.Validated += _password_VPB_Validated;
       }
 
-      private void _viewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+      private void _viewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
       {
          if (e.PropertyName == "Password"
-            && _password_VPB.Password != _viewModel.Password)
+            && _password_VPB.Password != ViewModel.Password)
          {
-            _password_VPB.Password = _viewModel.Password;
+            _password_VPB.Password = ViewModel.Password;
          }
       }
 
       private void _password_VPB_Validated(object? sender, EventArgs e)
       {
-         _viewModel.Password = _password_VPB.Password;
+         ViewModel.Password = _password_VPB.Password;
+      }
+
+      private void _upButton_Click(object sender, System.Windows.RoutedEventArgs e)
+      {
+         UpClicked?.Invoke(this, EventArgs.Empty);
+      }
+
+      private void _downButton_Click(object sender, System.Windows.RoutedEventArgs e)
+      {
+         DownClicked?.Invoke(this, EventArgs.Empty);
+      }
+
+      private void _deleteButton_Click(object sender, System.Windows.RoutedEventArgs e)
+      {
+         DeleteClicked?.Invoke(this, EventArgs.Empty);
       }
    }
 }

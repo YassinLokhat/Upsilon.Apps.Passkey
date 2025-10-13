@@ -2,7 +2,7 @@
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
-   internal class PasswordItemViewModel : INotifyPropertyChanged
+   public class PasswordItemViewModel : INotifyPropertyChanged
    {
       private int _index = 0;
       public int Index
