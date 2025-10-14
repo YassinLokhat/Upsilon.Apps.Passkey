@@ -11,7 +11,7 @@
         Title="{Binding AppTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="500" Width="800">
+        Height="500" Width="900">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -35,7 +35,37 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
-            <GroupBox Header="Settings"></GroupBox>
+            <GroupBox Header="Settings">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Label VerticalContentAlignment="Center">Log out after</Label>
+                        <TextBox Margin="5"
+                                 Width="25"
+                                 VerticalContentAlignment="Center"
+                                 HorizontalContentAlignment="Center"
+                                 Text="{Binding LogoutTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Label VerticalContentAlignment="Center">minutes. *</Label>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Label VerticalContentAlignment="Center">Clean any passwords in clipboard every</Label>
+                        <TextBox Margin="5"
+                                 Width="35"
+                                 VerticalContentAlignment="Center"
+                                 HorizontalContentAlignment="Center"
+                                 Text="{Binding CleaningClipboardTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Label VerticalContentAlignment="Center">seconds. *</Label>
+                    </StackPanel>
+                    <Label VerticalContentAlignment="Center">* Put '0' value to disable the option.</Label>
+                    <GroupBox Header="Warnings">
+                        <StackPanel>
+                            <CheckBox Margin="5" IsChecked="{Binding NotifyLogReview}">Notify Log Review</CheckBox>
+                            <CheckBox Margin="5" IsChecked="{Binding NotifyDuplicatedPasswords}">Notify Duplicated Passwords</CheckBox>
+                            <CheckBox Margin="5" IsChecked="{Binding NotifyPasswordUpdateReminder}">Notify Password Update Reminder</CheckBox>
+                            <CheckBox Margin="5" IsChecked="{Binding NotifyPasswordLeaked}">Notify Password Leaked</CheckBox>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </GroupBox>
         </StackPanel>
     </Grid>
 </Window>

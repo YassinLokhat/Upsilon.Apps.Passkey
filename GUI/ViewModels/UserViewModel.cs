@@ -7,7 +7,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       private readonly string _appTitle;
       public string AppTitle => _appTitle;
 
-      private string _username = string.Empty;
+      private string _username = "NewUser";
       public string Username
       {
          get => _username;
@@ -21,8 +21,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          }
       }
 
-      private int _logoutTimeout = 0;
-      public int LogoutTimeout
+      private uint _logoutTimeout = 5;
+      public uint LogoutTimeout
       {
          get => _logoutTimeout;
          set
@@ -35,8 +35,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          }
       }
 
-      private int _cleaningClipboardTimeout = 0;
-      public int CleaningClipboardTimeout
+      private uint _cleaningClipboardTimeout = 30;
+      public uint CleaningClipboardTimeout
       {
          get => _cleaningClipboardTimeout;
          set
@@ -104,6 +104,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
             }
          }
       }
+
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
