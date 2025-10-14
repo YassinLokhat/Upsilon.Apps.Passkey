@@ -11,26 +11,31 @@
         Title="{Binding AppTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="215" Width="500">
-    <StackPanel>
-        <Menu>
+        Height="500" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0">
             <MenuItem Margin="5"
                       Header="_Save"/>
         </Menu>
-        <StackPanel Orientation="Horizontal">
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal">
             <GroupBox Header="Credentials">
-                <StackPanel>
+                <StackPanel Name="Credentials">
                     <StackPanel Orientation="Horizontal">
                         <Label Margin="5"
                                VerticalAlignment="Center">Username :</Label>
                         <TextBox Margin="5"
-                                 Width="100"
+                                 Width="400"
                                  VerticalAlignment="Center"
-                                 Text="username"/>
+                                 Text="{Binding Username, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
             <GroupBox Header="Settings"></GroupBox>
         </StackPanel>
-    </StackPanel>
+    </Grid>
 </Window>

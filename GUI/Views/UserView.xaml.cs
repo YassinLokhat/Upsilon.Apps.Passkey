@@ -1,6 +1,8 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
+using Upsilon.Apps.Passkey.GUI.Views.Controls;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
@@ -10,11 +12,18 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    /// </summary>
    public partial class UserView : Window
    {
+      private readonly IDatabase? _database;
+      private readonly StackPanel _credentials;
+
       public UserView(IDatabase? database)
       {
          InitializeComponent();
 
-         DataContext = new UserViewModel(database);
+         _database = database;
+         _credentials = (StackPanel)FindName("Credentials");
+         _credentials.Children.Add(new PasswordsContainer(_database?.User?.Passkeys));
+
+         DataContext = new UserViewModel(_database is null || _database.User is null);
 
          Loaded += _mainWindow_Loaded;
       }
