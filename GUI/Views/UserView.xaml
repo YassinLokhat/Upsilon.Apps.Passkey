@@ -64,6 +64,12 @@
                             <CheckBox Margin="5" IsChecked="{Binding NotifyPasswordLeaked}">Notify Password Leaked</CheckBox>
                         </StackPanel>
                     </GroupBox>
+                    <Controls:NumericUpDown Margin="5"
+                                            Value="15"
+                                            MinValue="5"
+                                            MaxValue="50"
+                                            Step="2"
+                                            ValueChanged="_numericUpDown_ValueChanged"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

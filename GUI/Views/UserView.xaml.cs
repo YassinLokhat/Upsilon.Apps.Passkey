@@ -14,6 +14,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    {
       private readonly IDatabase? _database;
       private readonly StackPanel _credentials;
+      private readonly UserViewModel _viewModel;
 
       public UserView(IDatabase? database)
       {
@@ -23,7 +24,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _credentials = (StackPanel)FindName("Credentials");
          _credentials.Children.Add(new PasswordsContainer(_database?.User?.Passkeys));
 
-         DataContext = new UserViewModel(_database is null || _database.User is null);
+         DataContext = _viewModel = new UserViewModel(_database is null || _database.User is null);
 
          Loaded += _mainWindow_Loaded;
       }
@@ -31,6 +32,18 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
       {
          DarkMode.SetDarkMode(this);
+      }
+
+      private void _numericUpDown_ValueChanged(object sender, EventArgs e)
+      {
+         NumericUpDown numericUpDown = (NumericUpDown)sender;
+
+         try
+         {
+            if (_viewModel.LogoutTimeout != numericUpDown.Value)
+               _viewModel.LogoutTimeout = numericUpDown.Value;
+         }
+         catch { }
       }
    }
 }
