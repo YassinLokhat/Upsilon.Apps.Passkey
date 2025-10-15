@@ -47,7 +47,7 @@ namespace Upsilon.Apps.Passkey.GUI
 
       private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         _ = new UserView(database: null)
+         _ = new UserView()
          {
             Owner = this
          }

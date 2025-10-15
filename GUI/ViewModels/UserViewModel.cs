@@ -21,8 +21,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          }
       }
 
-      private uint _logoutTimeout = 5;
-      public uint LogoutTimeout
+      private int _logoutTimeout = 5;
+      public int LogoutTimeout
       {
          get => _logoutTimeout;
          set
@@ -35,8 +35,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          }
       }
 
-      private uint _cleaningClipboardTimeout = 30;
-      public uint CleaningClipboardTimeout
+      private int _cleaningClipboardTimeout = 30;
+      public int CleaningClipboardTimeout
       {
          get => _cleaningClipboardTimeout;
          set

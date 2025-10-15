@@ -137,8 +137,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          }
       }
 
-      private readonly PasswordFactory _passwordFactory;
-
       public event PropertyChangedEventHandler? PropertyChanged;
 
       protected virtual void OnPropertyChanged(string propertyName)
@@ -146,10 +144,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
-      public PasswordGeneratorViewModel(PasswordFactory passwordFactory)
+      public PasswordGeneratorViewModel()
       {
-         _passwordFactory = passwordFactory;
-
          _alphabet = _buildAlphabet();
          GeneratePassword();
       }
@@ -160,7 +156,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 
          _ = Task.Run(() =>
          {
-            GeneratedPassword = _passwordFactory.GeneratePassword(PasswordLength, Alphabet, CheckIfLeaked);
+            GeneratedPassword = MainViewModel.PasswordFactory.GeneratePassword(PasswordLength, Alphabet, CheckIfLeaked);
          });
       }
 
@@ -177,22 +173,22 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 
          if (IncludeNumerics)
          {
-            _ = alphabetBuilder.Append(_passwordFactory.Numeric);
+            _ = alphabetBuilder.Append(MainViewModel.PasswordFactory.Numeric);
          }
 
          if (IncludeUpperCaseAlphabet)
          {
-            _ = alphabetBuilder.Append(_passwordFactory.Alphabetic.ToUpper());
+            _ = alphabetBuilder.Append(MainViewModel.PasswordFactory.Alphabetic.ToUpper());
          }
 
          if (IncludeLowerCaseAlphabet)
          {
-            _ = alphabetBuilder.Append(_passwordFactory.Alphabetic.ToLower());
+            _ = alphabetBuilder.Append(MainViewModel.PasswordFactory.Alphabetic.ToLower());
          }
 
          if (IncludeSpecialCharacters)
          {
-            _ = alphabetBuilder.Append(_passwordFactory.SpecialChars);
+            _ = alphabetBuilder.Append(MainViewModel.PasswordFactory.SpecialChars);
          }
 
          return alphabetBuilder.ToString();

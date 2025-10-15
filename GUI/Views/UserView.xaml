@@ -19,7 +19,8 @@
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
             <MenuItem Margin="5"
-                      Header="_Save"/>
+                      Header="_Save"
+                      Click="_save_MenuItem_Click"/>
         </Menu>
         <StackPanel Grid.Row="1"
                     Orientation="Horizontal">

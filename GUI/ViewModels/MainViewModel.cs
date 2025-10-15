@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Windows;
+using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Core.Public.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
@@ -15,6 +17,12 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
             return $"{package.Name} v{packageVersion}";
          }
       }
+
+      public readonly static ICryptographyCenter CryptographyCenter = new CryptographyCenter();
+      public readonly static ISerializationCenter SerializationCenter = new JsonSerializationCenter();
+      public readonly static IPasswordFactory PasswordFactory = new PasswordFactory();
+
+      public static IDatabase? Database = null;
 
       private string _label = "Username :";
       public string Label

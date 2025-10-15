@@ -1,5 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
+using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.PassKey.Core.Public.Utils;
@@ -32,7 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       {
          InitializeComponent();
 
-         DataContext = _viewModel = new PasswordGeneratorViewModel(new PasswordFactory());
+         DataContext = _viewModel = new PasswordGeneratorViewModel();
 
          Loaded += _passwordGenerator_Loaded;
       }
@@ -53,32 +55,19 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          DarkMode.SetDarkMode(this);
       }
 
-      private static readonly Regex _regex = new("[^0-9.-]+"); //regex that matches disallowed text
-
-      private static bool _isTextAllowed(string text)
+      private void _length_TextBox_TextChanged(object sender, TextChangedEventArgs e)
       {
-         return !_regex.IsMatch(text);
+         NumericTextBoxHelper.TextChanged(sender, e);
       }
 
       private void _length_TextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
       {
-         e.Handled = !_isTextAllowed(e.Text);
+         NumericTextBoxHelper.PreviewTextInput(sender, e);
       }
 
       private void _length_TextBox_Pasting(object sender, DataObjectPastingEventArgs e)
       {
-         if (e.DataObject.GetDataPresent(typeof(string)))
-         {
-            string text = (string)e.DataObject.GetData(typeof(string));
-            if (!_isTextAllowed(text))
-            {
-               e.CancelCommand();
-            }
-         }
-         else
-         {
-            e.CancelCommand();
-         }
+         NumericTextBoxHelper.Pasting(sender, e);
       }
 
       private void _insertMenuItem_Click(object sender, RoutedEventArgs e)

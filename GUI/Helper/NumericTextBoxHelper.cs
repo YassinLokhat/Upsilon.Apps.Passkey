@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
          return isValid;
       }
 
-      public static void Value_TextBox_TextChanged(object sender, TextChangedEventArgs e)
+      public static void TextChanged(object sender, TextChangedEventArgs e)
       {
          TextBox textBox = (TextBox)sender;
 
@@ -37,12 +37,12 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
          }
       }
 
-      public static void Value_TextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+      public static void PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
       {
          e.Handled = !_isTextAllowed(e.Text);
       }
 
-      public static void Value_TextBox_Pasting(object sender, DataObjectPastingEventArgs e)
+      public static void Pasting(object sender, DataObjectPastingEventArgs e)
       {
          if (e.DataObject.GetDataPresent(typeof(string)))
          {
