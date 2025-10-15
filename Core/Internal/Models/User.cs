@@ -19,6 +19,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(Username),
             needsReview: true,
+            oldValue: Username,
             value: value,
             readableValue: value);
       }
@@ -30,6 +31,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(Passkeys),
             needsReview: true,
+            oldValue: Passkeys,
             value: value,
             readableValue: string.Empty);
       }
@@ -41,6 +43,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(LogoutTimeout),
             needsReview: false,
+            oldValue: LogoutTimeout,
             value: value,
             readableValue: value.ToString());
       }
@@ -54,6 +57,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(CleaningClipboardTimeout),
             needsReview: false,
+            oldValue: CleaningClipboardTimeout,
             value: value,
             readableValue: value.ToString());
       }
@@ -65,6 +69,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(WarningsToNotify),
             needsReview: true,
+            oldValue: WarningsToNotify,
             value: value,
             readableValue: value.ToString());
       }
@@ -169,7 +174,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private void _cleanClipboard()
       {
-         string[] passwords = Services.SelectMany(x => x.Accounts).Select(x => x.Password).ToArray();
+         string[] passwords = [.. Services.SelectMany(x => x.Accounts).Select(x => x.Password)];
 
          int cleanedPasswordsCount = ClipboardManager.RemoveAllOccurence(passwords);
 

@@ -18,6 +18,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(ServiceName),
             needsReview: true,
+            oldValue: ServiceName,
             value: value,
             readableValue: value);
       }
@@ -29,6 +30,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(Url),
             needsReview: false,
+            oldValue: Url,
             value: value,
             readableValue: value);
       }
@@ -40,6 +42,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(Notes),
             needsReview: false,
+            oldValue: Notes,
             value: value,
             readableValue: value);
       }

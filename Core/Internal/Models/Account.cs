@@ -19,6 +19,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(Label),
             needsReview: false,
+            oldValue: Label,
             value: value,
             readableValue: value);
       }
@@ -30,6 +31,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(Identifiants),
             needsReview: true,
+            oldValue: Identifiants,
             value: value,
             readableValue: $"({string.Join(", ", value)})");
       }
@@ -49,6 +51,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                      itemName: ToString(),
                      fieldName: nameof(Password),
                      needsReview: true,
+                     oldValue: Passwords,
                      value: Passwords,
                      readableValue: string.Empty);
                }
@@ -65,6 +68,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(Notes),
             needsReview: false,
+            oldValue: Notes,
             value: value,
             readableValue: value);
       }
@@ -76,6 +80,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(PasswordUpdateReminderDelay),
             needsReview: false,
+            oldValue: PasswordUpdateReminderDelay,
             value: value,
             readableValue: value.ToString());
       }
@@ -87,6 +92,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             itemName: ToString(),
             fieldName: nameof(Options),
             needsReview: false,
+            oldValue: Options,
             value: value,
             readableValue: value.ToString());
       }
