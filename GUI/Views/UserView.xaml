@@ -43,6 +43,9 @@
                                  Width="25"
                                  VerticalContentAlignment="Center"
                                  HorizontalContentAlignment="Center"
+                                 TextChanged="_value_TextBox_TextChanged"
+                                 PreviewTextInput="_value_TextBox_PreviewTextInput"
+                                 DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding LogoutTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         <Label VerticalContentAlignment="Center">minutes. *</Label>
                     </StackPanel>
@@ -52,6 +55,9 @@
                                  Width="35"
                                  VerticalContentAlignment="Center"
                                  HorizontalContentAlignment="Center"
+                                 TextChanged="_value_TextBox_TextChanged"
+                                 PreviewTextInput="_value_TextBox_PreviewTextInput"
+                                 DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding CleaningClipboardTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         <Label VerticalContentAlignment="Center">seconds. *</Label>
                     </StackPanel>

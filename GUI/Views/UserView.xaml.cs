@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.Views.Controls;
@@ -30,6 +31,21 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
       {
          DarkMode.SetDarkMode(this);
+      }
+
+      private void _value_TextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+      {
+         NumericTextBoxHelper.Value_TextBox_PreviewTextInput(sender, e);
+      }
+
+      private void _value_TextBox_Pasting(object sender, DataObjectPastingEventArgs e)
+      {
+         NumericTextBoxHelper.Value_TextBox_Pasting(sender, e);
+      }
+
+      private void _value_TextBox_TextChanged(object sender, TextChangedEventArgs e)
+      {
+         NumericTextBoxHelper.Value_TextBox_TextChanged(sender, e);
       }
    }
 }
