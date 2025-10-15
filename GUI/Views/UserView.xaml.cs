@@ -33,17 +33,5 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       {
          DarkMode.SetDarkMode(this);
       }
-
-      private void _numericUpDown_ValueChanged(object sender, EventArgs e)
-      {
-         NumericUpDown numericUpDown = (NumericUpDown)sender;
-
-         try
-         {
-            if (_viewModel.LogoutTimeout != numericUpDown.Value)
-               _viewModel.LogoutTimeout = numericUpDown.Value;
-         }
-         catch { }
-      }
    }
 }
