@@ -36,12 +36,12 @@
                     Grid.Column="0"
                     VerticalContentAlignment="Center"
                     Content="{Binding Label}"/>
-            <TextBox Name="Username"
+            <TextBox Name="_username_TB"
                         Margin="5"
                         VerticalAlignment="Center"
                         Grid.Column="1"
                         Visibility="Visible"/>
-            <PasswordBox Name="Password"
+            <PasswordBox Name="_password_PB"
                             Margin="5"
                             VerticalAlignment="Center"
                             Grid.Column="1"

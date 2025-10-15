@@ -24,7 +24,7 @@
         <StackPanel Grid.Row="1"
                     Orientation="Horizontal">
             <GroupBox Header="Credentials">
-                <StackPanel Name="Credentials">
+                <StackPanel Name="_credentials">
                     <StackPanel Orientation="Horizontal">
                         <Label Margin="5"
                                VerticalAlignment="Center">Username :</Label>

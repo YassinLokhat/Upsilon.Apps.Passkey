@@ -13,7 +13,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    public partial class UserView : Window
    {
       private readonly IDatabase? _database;
-      private readonly StackPanel _credentials;
       private readonly UserViewModel _viewModel;
 
       public UserView(IDatabase? database)
@@ -21,7 +20,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          InitializeComponent();
 
          _database = database;
-         _credentials = (StackPanel)FindName("Credentials");
          _credentials.Children.Add(new PasswordsContainer(_database?.User?.Passkeys));
 
          DataContext = _viewModel = new UserViewModel(_database is null || _database.User is null);

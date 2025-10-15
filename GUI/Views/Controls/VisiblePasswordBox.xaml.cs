@@ -8,7 +8,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
    /// </summary>
    public partial class VisiblePasswordBox : UserControl
    {
-      private readonly PasswordBox _passwordBox;
       private readonly VisiblePasswordBoxViewModel _visiblePasswordBoxViewModel;
 
       public string Password
@@ -26,7 +25,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
          DataContext = _visiblePasswordBoxViewModel = new VisiblePasswordBoxViewModel();
 
-         _passwordBox = (PasswordBox)FindName("PasswordBox");
          _passwordBox.PasswordChanged += _passwordBox_PasswordChanged;
 
          _passwordBox.KeyUp += _passwordBox_KeyUp;

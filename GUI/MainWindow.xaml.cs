@@ -13,8 +13,6 @@ namespace Upsilon.Apps.Passkey.GUI
    public partial class MainWindow : Window
    {
       private readonly MainViewModel _mainViewModel;
-      private readonly TextBox _username_TB;
-      private readonly PasswordBox _password_PB;
       private readonly DispatcherTimer _timer;
 
       public MainWindow()
@@ -22,9 +20,6 @@ namespace Upsilon.Apps.Passkey.GUI
          InitializeComponent();
 
          DataContext = _mainViewModel = new MainViewModel();
-
-         _username_TB = (TextBox)FindName("Username");
-         _password_PB = (PasswordBox)FindName("Password");
 
          _timer = new DispatcherTimer()
          {

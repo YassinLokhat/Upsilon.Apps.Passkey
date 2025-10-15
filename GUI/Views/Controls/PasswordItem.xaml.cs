@@ -10,7 +10,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
    public partial class PasswordItem : UserControl
    {
       public readonly PasswordItemViewModel ViewModel;
-      private readonly VisiblePasswordBox _password_VPB;
 
       public event EventHandler? UpClicked;
       public event EventHandler? DownClicked;
@@ -21,8 +20,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          InitializeComponent();
 
          DataContext = ViewModel = viewModel;
-
-         _password_VPB = (VisiblePasswordBox)FindName("Password");
 
          ViewModel.PropertyChanged += _viewModel_PropertyChanged;
          _password_VPB.Validated += _password_VPB_Validated;

@@ -10,7 +10,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
    {
       public string[] Passkeys => [.. _passwords.Select(x => x.ViewModel.Password)];
 
-      private readonly StackPanel _stackPanel;
       private readonly List<PasswordItem> _passwords;
 
       public PasswordsContainer(string[]? passkeys)
@@ -18,7 +17,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          InitializeComponent();
 
          _passwords = [];
-         _stackPanel = (StackPanel)FindName("Passwords");
 
          if (passkeys != null)
          {
