@@ -29,7 +29,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          string newPassword = UnitTestsHelper.GetRandomString();
          string notes = UnitTestsHelper.GetRandomString();
          int passwordUpdateReminderDelay = UnitTestsHelper.GetRandomInt(12);
-         AccountOption options = AccountOption.WarnIfPasswordLeaked;
+         AccountOption options = AccountOption.None;
          Stack<string> expectedLogs = new();
          Stack<string> expectedLogWarnings = new();
 
@@ -46,17 +46,22 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          account.Label = newAccountLabel;
+         account.Label = newAccountLabel;
          expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)})'s label has been set to {newAccountLabel}");
+         account.Identifiants = newIdentifiants;
          account.Identifiants = newIdentifiants;
          expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", oldIdentifiants)})'s identifiants has been set to ({string.Join(", ", newIdentifiants)})");
          expectedLogWarnings.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", oldIdentifiants)})'s identifiants has been set to ({string.Join(", ", newIdentifiants)})");
          account.Password = newPassword;
+         account.Password = newPassword;
          expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password has been updated");
          expectedLogWarnings.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password has been updated");
+         account.Notes = notes;
          account.Notes = notes;
          expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s notes has been set to {notes}");
          account.PasswordUpdateReminderDelay = passwordUpdateReminderDelay;
          expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password update reminder delay has been set to {passwordUpdateReminderDelay}");
+         account.Options = options;
          account.Options = options;
          expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s options has been set to {options}");
 
@@ -116,7 +121,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          string newPassword = UnitTestsHelper.GetRandomString();
          string notes = UnitTestsHelper.GetRandomString();
          int passwordUpdateReminderDelay = UnitTestsHelper.GetRandomInt(12);
-         AccountOption options = AccountOption.WarnIfPasswordLeaked;
+         AccountOption options = AccountOption.None;
          Stack<string> expectedLogs = new();
          Stack<string> expectedLogWarnings = new();
 
@@ -133,17 +138,22 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          account.Label = newAccountLabel;
+         account.Label = newAccountLabel;
          expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)})'s label has been set to {newAccountLabel}");
+         account.Identifiants = newIdentifiants;
          account.Identifiants = newIdentifiants;
          expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", oldIdentifiants)})'s identifiants has been set to ({string.Join(", ", newIdentifiants)})");
          expectedLogWarnings.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", oldIdentifiants)})'s identifiants has been set to ({string.Join(", ", newIdentifiants)})");
          account.Password = newPassword;
+         account.Password = newPassword;
          expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password has been updated");
          expectedLogWarnings.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password has been updated");
+         account.Notes = notes;
          account.Notes = notes;
          expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s notes has been set to {notes}");
          account.PasswordUpdateReminderDelay = passwordUpdateReminderDelay;
          expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s password update reminder delay has been set to {passwordUpdateReminderDelay}");
+         account.Options = options;
          account.Options = options;
          expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s options has been set to {options}");
 

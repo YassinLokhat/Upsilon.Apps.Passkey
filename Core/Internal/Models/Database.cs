@@ -174,10 +174,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          string username,
          string[] passkeys)
       {
-         databaseFile = Path.GetFullPath(databaseFile);
-         autoSaveFile = Path.GetFullPath(databaseFile);
-         logFile = Path.GetFullPath(databaseFile);
-
          if (File.Exists(databaseFile))
          {
             throw new IOException($"'{databaseFile}' database file already exists");

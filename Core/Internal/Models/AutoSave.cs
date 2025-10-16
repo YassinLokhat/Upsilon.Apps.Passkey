@@ -1,4 +1,6 @@
 ﻿using Upsilon.Apps.PassKey.Core.Internal.Utils;
+using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Core.Public.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Internal.Models
 {
@@ -15,7 +17,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       internal T UpdateValue<T>(string itemId, string itemName, string fieldName, bool needsReview, T oldValue, T value, string readableValue) where T : notnull
       {
-         if (Database.SerializationCenter.Serialize(oldValue) != Database.SerializationCenter.Serialize(value))
+         if (ISerializationCenter.AreDifferent(Database.SerializationCenter, oldValue, value))
          {
             _addChange(itemId, itemName, string.Empty, fieldName, Database.SerializationCenter.Serialize(value), readableValue, needsReview, Change.Type.Update);
          }

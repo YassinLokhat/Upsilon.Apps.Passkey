@@ -41,8 +41,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          get => Database.Get(Password);
          set
          {
-            if (!string.IsNullOrEmpty(value))
+            if (!string.IsNullOrEmpty(value)
+               && Password != value)
             {
+               Dictionary<DateTime, string> oldPasswords = ISerializationCenter.Clone(Database.SerializationCenter, Passwords);
                Passwords[DateTime.Now] = Password = value;
 
                if (_service != null)
@@ -51,7 +53,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                      itemName: ToString(),
                      fieldName: nameof(Password),
                      needsReview: true,
-                     oldValue: Passwords,
+                     oldValue: oldPasswords,
                      value: Passwords,
                      readableValue: string.Empty);
                }
