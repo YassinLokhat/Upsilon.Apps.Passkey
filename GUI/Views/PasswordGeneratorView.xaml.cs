@@ -21,12 +21,12 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          get => _generatedPassword;
          private set
          {
-            if (_generatedPassword == null)
-            {
-               _viewModel.AllowInsert = Visibility.Visible;
-            }
-
             _generatedPassword = value;
+
+            if (_generatedPassword != null)
+            {
+               _insert.Visibility = Visibility.Visible;
+            }
          }
       }
 

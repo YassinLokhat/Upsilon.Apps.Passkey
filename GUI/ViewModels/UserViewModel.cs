@@ -113,17 +113,27 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
-      public UserViewModel(bool newUser)
-      {
+      public UserViewModel()
+      {  
          _appTitle = MainViewModel.AppTitle;
 
-         if (newUser)
+         if (MainViewModel.Database is null || MainViewModel.Database.User is null)
          {
             _appTitle += " - New user";
          }
          else
          {
             _appTitle += " - User settings";
+
+            Username = MainViewModel.Database.User.Username;
+            
+            LogoutTimeout = MainViewModel.Database.User.LogoutTimeout;
+            CleaningClipboardTimeout = MainViewModel.Database.User.CleaningClipboardTimeout;
+
+            NotifyLogReview = (MainViewModel.Database.User.WarningsToNotify & PassKey.Core.Public.Enums.WarningType.LogReviewWarning) != 0;
+            NotifyPasswordUpdateReminder = (MainViewModel.Database.User.WarningsToNotify & PassKey.Core.Public.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
+            NotifyDuplicatedPasswords = (MainViewModel.Database.User.WarningsToNotify & PassKey.Core.Public.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
+            NotifyPasswordLeaked = (MainViewModel.Database.User.WarningsToNotify & PassKey.Core.Public.Enums.WarningType.PasswordLeakedWarning) != 0;
          }
       }
    }

@@ -24,8 +24,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          _passwordsContainer = new(MainViewModel.Database?.User?.Passkeys);
          _credentials.Children.Add(_passwordsContainer);
+         _deleteUser.Visibility = (MainViewModel.Database is null || MainViewModel.Database.User is null) ? Visibility.Hidden : Visibility.Visible;
 
-         DataContext = _viewModel = new UserViewModel(MainViewModel.Database is null || MainViewModel.Database.User is null);
+         DataContext = _viewModel = new UserViewModel();
 
          Loaded += _mainWindow_Loaded;
       }
@@ -68,6 +69,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          }
 
          return string.Empty;
+      }
+
+      private void _deleteUser_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+
       }
 
       private void _save_MenuItem_Click(object sender, RoutedEventArgs e)

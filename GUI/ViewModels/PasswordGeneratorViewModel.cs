@@ -9,20 +9,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
    {
       public static string AppTitle => MainViewModel.AppTitle + " - Password Generator";
 
-      private Visibility _allowInsert = Visibility.Hidden;
-      public Visibility AllowInsert
-      {
-         get => _allowInsert;
-         set
-         {
-            if (_allowInsert != value)
-            {
-               _allowInsert = value;
-               _includeCharactersChanged(nameof(AllowInsert));
-            }
-         }
-      }
-
       private bool _checkIfLeaked = true;
       public bool CheckIfLeaked
       {

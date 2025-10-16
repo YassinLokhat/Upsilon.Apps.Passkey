@@ -11,17 +11,28 @@
         Title="{Binding AppTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="500" Width="900">
+        Height="500" Width="856">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
+            <Menu.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <DockPanel HorizontalAlignment="Stretch"/>
+                </ItemsPanelTemplate>
+            </Menu.ItemsPanel>
             <MenuItem Margin="5"
                       Header="_Save"
                       Click="_save_MenuItem_Click"/>
+            <MenuItem Name="_deleteUser"
+                      Margin="5"
+                      Header="_Delete User"
+                      HorizontalAlignment="Right"
+                      Click="_deleteUser_MenuItem_Click"/>
         </Menu>
+
         <StackPanel Grid.Row="1"
                     Orientation="Horizontal">
             <GroupBox Header="Credentials">
@@ -32,7 +43,7 @@
                         <TextBox Margin="5"
                                  Width="400"
                                  VerticalAlignment="Center"
-                                 Text="{Binding Username, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}"/>
+                                 Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
