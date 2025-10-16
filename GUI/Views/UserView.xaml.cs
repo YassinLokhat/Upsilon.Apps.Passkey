@@ -73,7 +73,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _deleteUser_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-
+         /// TODO : To implement
       }
 
       private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -86,9 +86,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          }
 
          string newFilename = MainViewModel.CryptographyCenter.GetHash(_viewModel.Username);
-         string databaseFile = $"{newFilename}.pku";
-         string autoSaveFile = $"{newFilename}.pks";
-         string logFile = $"{newFilename}.pkl";
+         string databaseFile = Path.GetFullPath($"{newFilename}/{newFilename}.pku");
+         string autoSaveFile = Path.GetFullPath($"{newFilename}/{newFilename}.pks");
+         string logFile = Path.GetFullPath($"{newFilename}/{newFilename}.pkl");
          
          if (MainViewModel.Database is null
             || MainViewModel.Database.User is null)
@@ -136,6 +136,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
             if (credentialsChanged)
             {
+               MessageBox.Show("User credentials has been updated.\nYou will be logged out.\nPlease login again.");
+
                MainViewModel.Database.Close();
 
                if (File.Exists(databaseFile))
@@ -158,9 +160,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          DialogResult = true;
       }
 
-      private bool _credentialsChanged(string oldFileName, string[] oldPasskeys, string newFilename, string[] newPasskeys)
+      private static bool _credentialsChanged(string oldFileName, string[] oldPasskeys, string newFilename, string[] newPasskeys)
       {
-         return oldFileName != newFilename || MainViewModel.SerializationCenter.Serialize(oldPasskeys) != MainViewModel.SerializationCenter.Serialize(newPasskeys);
+         return oldFileName != newFilename || ISerializationCenter.AreDifferent(MainViewModel.SerializationCenter, oldPasskeys, newPasskeys);
       }
    }
 }
