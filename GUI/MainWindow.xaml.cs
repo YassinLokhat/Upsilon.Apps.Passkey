@@ -35,7 +35,7 @@ namespace Upsilon.Apps.Passkey.GUI
 
       private void _timer_Elapsed(object? sender, EventArgs e)
       {
-         _resetCredentials();
+         _resetCredentials(resetDatabase: true);
       }
 
       private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -127,14 +127,14 @@ namespace Upsilon.Apps.Passkey.GUI
 
                   if (MainViewModel.Database.User is not null)
                   {
+                     _resetCredentials(resetDatabase: false);
+
                      /// TODO Open user services view
                      _ = new UserView()
                      {
                         Owner = this
                      }
                      .ShowDialog();
-
-                     _resetCredentials();
                   }
                }
             }
@@ -145,11 +145,11 @@ namespace Upsilon.Apps.Passkey.GUI
          }
          else if (e.Key == System.Windows.Input.Key.Escape)
          {
-            _resetCredentials();
+            _resetCredentials(resetDatabase: true);
          }
       }
 
-      private void _resetCredentials()
+      private void _resetCredentials(bool resetDatabase)
       {
          _mainViewModel.Label = "Username :";
 
@@ -160,7 +160,10 @@ namespace Upsilon.Apps.Passkey.GUI
          _password_PB.Password = string.Empty;
          _password_PB.Visibility = Visibility.Hidden;
 
-         MainViewModel.Database = null;
+         if (resetDatabase)
+         {
+            MainViewModel.Database = null;
+         }
 
          _timer.Stop();
       }

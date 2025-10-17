@@ -9,10 +9,10 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
    {
       public string GetHash(string source)
       {
-         string md5Hash = Convert.ToBase64String(MD5.HashData(Encoding.Unicode.GetBytes(source))).TrimEnd('=');
-         string sha1Hash = Convert.ToBase64String(SHA1.HashData(Encoding.Unicode.GetBytes(source))).TrimEnd('=');
+         string md5Hash = Convert.ToBase64String(MD5.HashData(Encoding.Unicode.GetBytes(source)));
+         string sha1Hash = Convert.ToBase64String(SHA1.HashData(Encoding.Unicode.GetBytes(source)));
 
-         return md5Hash + sha1Hash;
+         return (md5Hash + sha1Hash).Replace("/", "-");
       }
 
       public string GetSlowHash(string source)

@@ -72,8 +72,18 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             return;
          }
 
+         string databaseDirectory = Path.GetDirectoryName(MainViewModel.Database.DatabaseFile) ?? string.Empty;
+
          MainViewModel.Database.Delete();
+
+         if (Directory.Exists(databaseDirectory))
+         {
+            Directory.Delete(databaseDirectory, true);
+         }
+
          _ = MessageBox.Show($"'{_viewModel.Username}' user database deleted successfully", "Success");
+
+         DialogResult = true;
       }
 
       private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -90,6 +100,12 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          string autoSaveFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pks");
          string logFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pkl");
 
+         bool newUser = false;
+         bool credentialsChanged = false;
+         string oldDatabaseFile = string.Empty;
+         string oldAutoSaveFile = string.Empty;
+         string oldLogFile = string.Empty;
+
          if (MainViewModel.Database is null
             || MainViewModel.Database.User is null)
          {
@@ -104,7 +120,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                   _viewModel.Username,
                   _passwordsContainer.Passkeys);
 
-               MainViewModel.Database.Close();
+               foreach (string passkey in _passwordsContainer.Passkeys)
+               {
+                  MainViewModel.Database.Login(passkey);
+               }
             }
             catch (Exception ex)
             {
@@ -112,17 +131,23 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                return;
             }
 
-            _ = MessageBox.Show($"'{_viewModel.Username}' user database created successfully", "Success");
+            newUser = true;
          }
          else
          {
             string oldFileName = MainViewModel.CryptographyCenter.GetHash(MainViewModel.Database.User.Username);
+            oldDatabaseFile = Path.GetFullPath($"raw/{oldFileName}/{oldFileName}.pku");
+            oldAutoSaveFile = Path.GetFullPath($"raw/{oldFileName}/{oldFileName}.pks");
+            oldLogFile = Path.GetFullPath($"raw/{oldFileName}/{oldFileName}.pkl");
 
-            bool credentialsChanged = _credentialsChanged(oldFileName,
+            credentialsChanged = _credentialsChanged(oldFileName,
                oldPasskeys: MainViewModel.Database.User.Passkeys,
                newFilename,
                newPasskeys: _passwordsContainer.Passkeys);
+         }
 
+         if (MainViewModel.Database.User != null)
+         {
             MainViewModel.Database.User.Username = _viewModel.Username;
             MainViewModel.Database.User.Passkeys = _passwordsContainer.Passkeys;
             MainViewModel.Database.User.LogoutTimeout = _viewModel.LogoutTimeout;
@@ -135,33 +160,41 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             MainViewModel.Database.User.WarningsToNotify = warningsToNotify;
 
             MainViewModel.Database.Save();
+         }
 
-            if (credentialsChanged)
+         string message = $"'{_viewModel.Username}' user database ";
+
+         if (credentialsChanged)
+         {
+            message = $"'{_viewModel.Username}' user's credentials has been updated.\nYou will be logged out.\nPlease login again.";
+            MainViewModel.Database.Close();
+
+            if (File.Exists(oldDatabaseFile))
             {
-               _ = MessageBox.Show("User credentials has been updated.\nYou will be logged out.\nPlease login again.", "Success");
-
-               MainViewModel.Database.Close();
-
-               if (File.Exists(databaseFile))
-               {
-                  File.Delete(databaseFile);
-               }
-
-               if (File.Exists(autoSaveFile))
-               {
-                  File.Delete(autoSaveFile);
-               }
-
-               if (File.Exists(logFile))
-               {
-                  File.Delete(logFile);
-               }
+               File.Delete(oldDatabaseFile);
             }
-            else
+
+            if (File.Exists(oldAutoSaveFile))
             {
-               _ = MessageBox.Show($"'{_viewModel.Username}' user settings updated successfully", "Success");
+               File.Delete(oldAutoSaveFile);
+            }
+
+            if (File.Exists(oldLogFile))
+            {
+               File.Delete(oldLogFile);
             }
          }
+         else if (newUser)
+         {
+            message += $"created successfully";
+            MainViewModel.Database.Close();
+         }
+         else
+         {
+            message += $"updated successfully";
+         }
+
+         _ = MessageBox.Show(message, "Success");
 
          DialogResult = true;
       }
