@@ -20,6 +20,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          InitializeComponent();
 
          DataContext = ViewModel = viewModel;
+         _password_VPB.Password = ViewModel.Password;
 
          ViewModel.PropertyChanged += _viewModel_PropertyChanged;
          _password_VPB.Validated += _password_VPB_Validated;

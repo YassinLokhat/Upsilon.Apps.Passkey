@@ -1,8 +1,10 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.Views;
+using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI
 {
@@ -41,7 +43,26 @@ namespace Upsilon.Apps.Passkey.GUI
          DarkMode.SetDarkMode(this);
 
          /// TODO : To be removed
-         _newUser_MenuItem_Click(this, e);
+         try
+         {
+            string filename = MainViewModel.CryptographyCenter.GetHash("NewUser");
+            string databaseFile = Path.GetFullPath($"raw/{filename}/{filename}.pku");
+            string autoSaveFile = Path.GetFullPath($"raw/{filename}/{filename}.pks");
+            string logFile = Path.GetFullPath($"raw/{filename}/{filename}.pkl");
+
+            MainViewModel.Database = IDatabase.Open(MainViewModel.CryptographyCenter,
+               MainViewModel.SerializationCenter,
+               MainViewModel.PasswordFactory,
+               databaseFile,
+               autoSaveFile,
+               logFile,
+               "NewUser");
+            MainViewModel.Database.Login("a");
+            MainViewModel.Database.Login("b");
+         
+            _newUser_MenuItem_Click(this, e);
+         }
+         catch { }
       }
 
       private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -70,6 +91,23 @@ namespace Upsilon.Apps.Passkey.GUI
             {
                if (string.IsNullOrEmpty(_username_TB.Text)) return;
 
+               string filename = MainViewModel.CryptographyCenter.GetHash(_username_TB.Text);
+               string databaseFile = Path.GetFullPath($"raw/{filename}/{filename}.pku");
+               string autoSaveFile = Path.GetFullPath($"raw/{filename}/{filename}.pks");
+               string logFile = Path.GetFullPath($"raw/{filename}/{filename}.pkl");
+
+               try
+               {
+                  MainViewModel.Database = IDatabase.Open(MainViewModel.CryptographyCenter,
+                     MainViewModel.SerializationCenter,
+                     MainViewModel.PasswordFactory,
+                     databaseFile,
+                     autoSaveFile,
+                     logFile,
+                     _username_TB.Text);
+               }
+               catch { }
+
                _mainViewModel.Label = "Password :";
 
                _username_TB.Text = string.Empty;
@@ -82,6 +120,23 @@ namespace Upsilon.Apps.Passkey.GUI
             else
             {
                if (string.IsNullOrEmpty(_password_PB.Password)) return;
+
+               if (MainViewModel.Database is not null)
+               {
+                  MainViewModel.Database.Login(_password_PB.Password);
+
+                  if (MainViewModel.Database.User is not null)
+                  {
+                     /// TODO Open user services view
+                     _ = new UserView()
+                     {
+                        Owner = this
+                     }
+                     .ShowDialog();
+
+                     _resetCredentials();
+                  }
+               }
             }
 
             _password_PB.Password = string.Empty;
@@ -104,6 +159,8 @@ namespace Upsilon.Apps.Passkey.GUI
 
          _password_PB.Password = string.Empty;
          _password_PB.Visibility = Visibility.Hidden;
+
+         MainViewModel.Database = null;
 
          _timer.Stop();
       }
