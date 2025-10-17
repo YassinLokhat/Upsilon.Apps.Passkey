@@ -1,6 +1,5 @@
 ﻿using Upsilon.Apps.PassKey.Core.Internal.Utils;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Internal.Models
 {
@@ -55,22 +54,12 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          }
 
          Database.AutoSaveFileLocker.Save(this, Database.Passkeys);
-         string logMessage;
-
-         switch (action)
+         string logMessage = action switch
          {
-            case Change.Type.Add:
-               logMessage = $"{itemName} has been added to {containerName}";
-               break;
-            case Change.Type.Delete:
-               logMessage = $"{itemName} has been removed from {containerName}";
-               break;
-            case Change.Type.Update:
-            default:
-               logMessage = $"{itemName}'s {fieldName.ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(readableValue) ? $"updated" : $"set to {readableValue}")}";
-               break;
-         }
-
+            Change.Type.Add => $"{itemName} has been added to {containerName}",
+            Change.Type.Delete => $"{itemName} has been removed from {containerName}",
+            _ => $"{itemName}'s {fieldName.ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(readableValue) ? $"updated" : $"set to {readableValue}")}",
+         };
          Database.Logs.AddLog(logMessage, needsReview);
       }
 

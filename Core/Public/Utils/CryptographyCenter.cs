@@ -218,7 +218,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
       private string _encryptAes(string source, string[] passwords)
       {
-         passwords = passwords.Select(x => GetHash(x)).ToArray();
+         passwords = passwords.Select(GetHash).ToArray();
 
          for (int i = passwords.Length - 1; i >= 0; i--)
          {
@@ -234,7 +234,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
       private string _decryptAes(string source, string[] passwords)
       {
-         passwords = passwords.Select(x => GetHash(x)).ToArray();
+         passwords = passwords.Select(GetHash).ToArray();
 
          try
          {

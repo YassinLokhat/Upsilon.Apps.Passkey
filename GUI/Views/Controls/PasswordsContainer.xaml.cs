@@ -20,7 +20,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
          if (passkeys != null)
          {
-            foreach (var password in passkeys)
+            foreach (string password in passkeys)
             {
                _addPassword(password);
             }
@@ -39,7 +39,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
          int index = passwordItem.ViewModel.Index;
          _stackPanel.Children.Remove(passwordItem);
-         _passwords.Remove(passwordItem);
+         _ = _passwords.Remove(passwordItem);
 
          for (int i = index; i < _passwords.Count; i++)
          {
@@ -78,7 +78,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          passwordItem.DeleteClicked += _passwordItem_DeleteClicked;
 
          _passwords.Add(passwordItem);
-         _stackPanel.Children.Add(passwordItem);
+         _ = _stackPanel.Children.Add(passwordItem);
       }
 
       private void _movePassword(PasswordItem passwordItem, int index)
@@ -92,7 +92,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          for (int i = 0; i < _passwords.Count; i++)
          {
             _passwords[i].ViewModel.Index = i;
-            _stackPanel.Children.Add(_passwords[i]);
+            _ = _stackPanel.Children.Add(_passwords[i]);
          }
       }
    }

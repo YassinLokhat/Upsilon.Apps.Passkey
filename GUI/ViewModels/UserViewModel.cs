@@ -4,8 +4,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
    internal class UserViewModel : INotifyPropertyChanged
    {
-      private readonly string _appTitle;
-      public string AppTitle => _appTitle;
+      public string AppTitle { get; }
 
       private string _username = "NewUser";
       public string Username
@@ -114,19 +113,19 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       }
 
       public UserViewModel()
-      {  
-         _appTitle = MainViewModel.AppTitle;
+      {
+         AppTitle = MainViewModel.AppTitle;
 
          if (MainViewModel.Database is null || MainViewModel.Database.User is null)
          {
-            _appTitle += " - New user";
+            AppTitle += " - New user";
          }
          else
          {
-            _appTitle += " - User settings";
+            AppTitle += " - User settings";
 
             Username = MainViewModel.Database.User.Username;
-            
+
             LogoutTimeout = MainViewModel.Database.User.LogoutTimeout;
             CleaningClipboardTimeout = MainViewModel.Database.User.CleaningClipboardTimeout;
 

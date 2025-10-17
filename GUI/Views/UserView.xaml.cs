@@ -23,7 +23,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          InitializeComponent();
 
          _passwordsContainer = new(MainViewModel.Database?.User?.Passkeys);
-         _credentials.Children.Add(_passwordsContainer);
+         _ = _credentials.Children.Add(_passwordsContainer);
          _deleteUser.Visibility = (MainViewModel.Database is null || MainViewModel.Database.User is null) ? Visibility.Hidden : Visibility.Visible;
 
          DataContext = _viewModel = new UserViewModel();
@@ -53,22 +53,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private string _canSave()
       {
-         if (string.IsNullOrEmpty(_viewModel.Username))
-         {
-            return "Username cannot be empty.";
-         }
-
-         if (_passwordsContainer.Passkeys.Length == 0)
-         {
-            return "At least one password should be set.";
-         }
-
-         if (_passwordsContainer.Passkeys.Any(x => string.IsNullOrEmpty(x)))
-         {
-            return "No password can be empty.";
-         }
-
-         return string.Empty;
+         return string.IsNullOrEmpty(_viewModel.Username)
+            ? "Username cannot be empty."
+            : _passwordsContainer.Passkeys.Length == 0
+            ? "At least one password should be set."
+            : _passwordsContainer.Passkeys.Any(string.IsNullOrEmpty)
+            ? "No password can be empty."
+            : string.Empty;
       }
 
       private void _deleteUser_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -81,7 +72,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          string error = _canSave();
          if (!string.IsNullOrEmpty(error))
          {
-            MessageBox.Show(error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            _ = MessageBox.Show(error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
          }
 
@@ -89,7 +80,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          string databaseFile = Path.GetFullPath($"{newFilename}/{newFilename}.pku");
          string autoSaveFile = Path.GetFullPath($"{newFilename}/{newFilename}.pks");
          string logFile = Path.GetFullPath($"{newFilename}/{newFilename}.pkl");
-         
+
          if (MainViewModel.Database is null
             || MainViewModel.Database.User is null)
          {
@@ -108,7 +99,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             }
             catch (Exception ex)
             {
-               MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+               _ = MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                return;
             }
          }
@@ -136,7 +127,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
             if (credentialsChanged)
             {
-               MessageBox.Show("User credentials has been updated.\nYou will be logged out.\nPlease login again.");
+               _ = MessageBox.Show("User credentials has been updated.\nYou will be logged out.\nPlease login again.");
 
                MainViewModel.Database.Close();
 

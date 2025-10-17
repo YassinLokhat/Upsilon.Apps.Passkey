@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Windows;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 using Upsilon.Apps.PassKey.Core.Public.Utils;
 
@@ -18,9 +17,9 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          }
       }
 
-      public readonly static ICryptographyCenter CryptographyCenter = new CryptographyCenter();
-      public readonly static ISerializationCenter SerializationCenter = new JsonSerializationCenter();
-      public readonly static IPasswordFactory PasswordFactory = new PasswordFactory();
+      public static readonly ICryptographyCenter CryptographyCenter = new CryptographyCenter();
+      public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
+      public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
 
       public static IDatabase? Database = null;
 

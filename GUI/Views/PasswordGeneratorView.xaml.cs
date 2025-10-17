@@ -1,10 +1,8 @@
-﻿using System.Text.RegularExpressions;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
