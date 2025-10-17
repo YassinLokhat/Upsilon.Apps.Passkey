@@ -64,7 +64,16 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _deleteUser_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         /// TODO : To implement
+         if (MainViewModel.Database is null
+            || MainViewModel.Database.User is null
+            || MessageBox.Show("If you delete the user database, you will lost all credentials.\nAre you sure you want to delete the database anyway?", "Confirmation required", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes
+            || MessageBox.Show("This procedure is non-reversible.\nPlease confirm to proceed the deletion.", "Confirmation required", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         {
+            return;
+         }
+
+         MainViewModel.Database.Delete();
+         _ = MessageBox.Show($"'{_viewModel.Username}' user database deleted successfully", "Success");
       }
 
       private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -77,9 +86,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          }
 
          string newFilename = MainViewModel.CryptographyCenter.GetHash(_viewModel.Username);
-         string databaseFile = Path.GetFullPath($"{newFilename}/{newFilename}.pku");
-         string autoSaveFile = Path.GetFullPath($"{newFilename}/{newFilename}.pks");
-         string logFile = Path.GetFullPath($"{newFilename}/{newFilename}.pkl");
+         string databaseFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pku");
+         string autoSaveFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pks");
+         string logFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pkl");
 
          if (MainViewModel.Database is null
             || MainViewModel.Database.User is null)
@@ -102,6 +111,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                _ = MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                return;
             }
+
+            _ = MessageBox.Show($"'{_viewModel.Username}' user database created successfully", "Success");
          }
          else
          {
@@ -127,7 +138,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
             if (credentialsChanged)
             {
-               _ = MessageBox.Show("User credentials has been updated.\nYou will be logged out.\nPlease login again.");
+               _ = MessageBox.Show("User credentials has been updated.\nYou will be logged out.\nPlease login again.", "Success");
 
                MainViewModel.Database.Close();
 
@@ -145,6 +156,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                {
                   File.Delete(logFile);
                }
+            }
+            else
+            {
+               _ = MessageBox.Show($"'{_viewModel.Username}' user settings updated successfully", "Success");
             }
          }
 
