@@ -11,14 +11,14 @@ using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
    /// <summary>
-   /// Interaction logic for UserView.xaml
+   /// Interaction logic for UserSettingsView.xaml
    /// </summary>
-   public partial class UserView : Window
+   public partial class UserSettingsView : Window
    {
-      private readonly UserViewModel _viewModel;
+      private readonly UserSettingsViewModel _viewModel;
       private readonly PasswordsContainer _passwordsContainer;
 
-      public UserView()
+      public UserSettingsView()
       {
          InitializeComponent();
 
@@ -26,7 +26,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _ = _credentials.Children.Add(_passwordsContainer);
          _deleteUser.Visibility = (MainViewModel.Database is null || MainViewModel.Database.User is null) ? Visibility.Hidden : Visibility.Visible;
 
-         DataContext = _viewModel = new UserViewModel();
+         DataContext = _viewModel = new UserSettingsViewModel();
 
          Loaded += _mainWindow_Loaded;
       }

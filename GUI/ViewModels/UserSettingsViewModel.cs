@@ -2,7 +2,7 @@
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
-   internal class UserViewModel : INotifyPropertyChanged
+   internal class UserSettingsViewModel : INotifyPropertyChanged
    {
       public string AppTitle { get; }
 
@@ -112,7 +112,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
-      public UserViewModel()
+      public UserSettingsViewModel()
       {
          AppTitle = MainViewModel.AppTitle;
 

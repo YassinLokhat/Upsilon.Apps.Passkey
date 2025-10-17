@@ -59,7 +59,7 @@ namespace Upsilon.Apps.Passkey.GUI
                "NewUser");
             MainViewModel.Database.Login("a");
             MainViewModel.Database.Login("b");
-         
+
             _newUser_MenuItem_Click(this, e);
          }
          catch { }
@@ -67,7 +67,7 @@ namespace Upsilon.Apps.Passkey.GUI
 
       private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         _ = new UserView()
+         _ = new UserSettingsView()
          {
             Owner = this
          }
@@ -130,7 +130,7 @@ namespace Upsilon.Apps.Passkey.GUI
                      _resetCredentials(resetDatabase: false);
 
                      /// TODO Open user services view
-                     _ = new UserView()
+                     _ = new UserSettingsView()
                      {
                         Owner = this
                      }
