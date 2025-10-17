@@ -8,17 +8,17 @@
       /// <summary>
       /// The letters used by the factory.
       /// </summary>
-      public string Alphabetic { get; }
+      string Alphabetic { get; }
 
       /// <summary>
       /// The digits used by the factory.
       /// </summary>
-      public string Numeric { get; }
+      string Numeric { get; }
 
       /// <summary>
       /// The special characters used by the factory.
       /// </summary>
-      public string SpecialChars { get; }
+      string SpecialChars { get; }
 
       /// <summary>
       /// Generate a random password.
@@ -31,7 +31,7 @@
       /// <param name="excludedChars">Exclude some specific characters.</param>
       /// <param name="checkIfLeaked">Ensure that the generated password has been already leaked.</param>
       /// <returns>The random geenrated password.</returns>
-      public string GeneratePassword(int length,
+      string GeneratePassword(int length,
          bool includeUpperCaseAlphabeticChars = true,
          bool includeLowerCaseAlphabeticChars = true,
          bool includeNumericChars = true,
@@ -46,7 +46,7 @@
       /// <param name="alphabet">The alphabet used.</param>
       /// <param name="checkIfLeaked">Ensure that the generated password has been already leaked.</param>
       /// <returns>The random geenrated password.</returns>
-      public string GeneratePassword(int length,
+      string GeneratePassword(int length,
          string alphabet,
          bool checkIfLeaked = true);
 
@@ -55,6 +55,6 @@
       /// </summary>
       /// <param name="password">The password to check.</param>
       /// <returns>Returns true if the password has been leaked.</returns>
-      public bool PasswordLeaked(string password);
+      bool PasswordLeaked(string password);
    }
 }

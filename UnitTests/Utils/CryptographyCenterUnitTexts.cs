@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using System.Diagnostics;
 using Upsilon.Apps.PassKey.Core.Public.Utils;
 
 namespace Upsilon.Apps.PassKey.UnitTests.Utils
@@ -6,6 +7,24 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
    [TestClass]
    public sealed class CryptographyCenterUnitTexts
    {
+      [TestMethod]
+      /*
+       * Signing an empty string returns the hash code of that empty string,
+       * Then checking the signature returns the empty string.
+      */
+      public void Case00_SlowHash()
+      {
+         // Given
+         Stopwatch _stopwatch = Stopwatch.StartNew();
+
+         // When
+         _ = UnitTestsHelper.CryptographicCenter.GetSlowHash(string.Empty);
+         _stopwatch.Stop();
+
+         // Then
+         _ = _stopwatch.ElapsedMilliseconds.Should().BeGreaterThan(500);
+      }
+
       [TestMethod]
       /*
        * Signing an empty string returns the hash code of that empty string,

@@ -1,4 +1,5 @@
 ﻿using Upsilon.Apps.PassKey.Core.Internal.Utils;
+using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.PassKey.Core.Internal.Models
 {
@@ -13,9 +14,12 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public Queue<Change> Changes { get; set; } = new();
 
-      internal T UpdateValue<T>(string itemId, string itemName, string fieldName, bool needsReview, T value, string readableValue) where T : notnull
+      internal T UpdateValue<T>(string itemId, string itemName, string fieldName, bool needsReview, T oldValue, T value, string readableValue) where T : notnull
       {
-         _addChange(itemId, itemName, string.Empty, fieldName, Database.SerializationCenter.Serialize(value), readableValue, needsReview, Change.Type.Update);
+         if (ISerializationCenter.AreDifferent(Database.SerializationCenter, oldValue, value))
+         {
+            _addChange(itemId, itemName, string.Empty, fieldName, Database.SerializationCenter.Serialize(value), readableValue, needsReview, Change.Type.Update);
+         }
 
          return value;
       }
@@ -50,22 +54,12 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          }
 
          Database.AutoSaveFileLocker.Save(this, Database.Passkeys);
-         string logMessage;
-
-         switch (action)
+         string logMessage = action switch
          {
-            case Change.Type.Add:
-               logMessage = $"{itemName} has been added to {containerName}";
-               break;
-            case Change.Type.Delete:
-               logMessage = $"{itemName} has been removed from {containerName}";
-               break;
-            case Change.Type.Update:
-            default:
-               logMessage = $"{itemName}'s {fieldName.ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(readableValue) ? $"updated" : $"set to {readableValue}")}";
-               break;
-         }
-
+            Change.Type.Add => $"{itemName} has been added to {containerName}",
+            Change.Type.Delete => $"{itemName} has been removed from {containerName}",
+            _ => $"{itemName}'s {fieldName.ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(readableValue) ? $"updated" : $"set to {readableValue}")}",
+         };
          Database.Logs.AddLog(logMessage, needsReview);
       }
 

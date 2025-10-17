@@ -14,11 +14,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
       }
 
       [JsonIgnore]
-      public ILog[]? Logs
-      {
-         get
-         {
-            return Database.User == null
+      public ILog[]? Logs => Database.User == null
                ? null
                : LogList.Select(x =>
                {
@@ -27,8 +23,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
                })
                .OrderByDescending(x => x.DateTime)
                .ToArray();
-         }
-      }
 
       public List<string> LogList { get; set; } = [];
       public string Username { get; set; } = string.Empty;

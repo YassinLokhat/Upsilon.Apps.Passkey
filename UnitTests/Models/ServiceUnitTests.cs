@@ -36,10 +36,13 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          service.ServiceName = newServiceName;
+         service.ServiceName = newServiceName;
          expectedLogs.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
          expectedLogWarnings.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
          service.Url = url;
+         service.Url = url;
          expectedLogs.Push($"Information : Service {newServiceName}'s url has been set to {url}");
+         service.Notes = notes;
          service.Notes = notes;
          expectedLogs.Push($"Information : Service {newServiceName}'s notes has been set to {notes}");
 
@@ -101,10 +104,13 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          // When
          service.ServiceName = newServiceName;
+         service.ServiceName = newServiceName;
          expectedLogs.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
          expectedLogWarnings.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
          service.Url = url;
+         service.Url = url;
          expectedLogs.Push($"Information : Service {newServiceName}'s url has been set to {url}");
+         service.Notes = notes;
          service.Notes = notes;
          expectedLogs.Push($"Information : Service {newServiceName}'s notes has been set to {notes}");
 

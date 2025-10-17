@@ -8,18 +8,18 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
       {
          int cleanedPasswordCount = 0;
 
-         var clipboardHistory = Clipboard.GetHistoryItemsAsync().AsTask().GetAwaiter().GetResult().Items;
+         IReadOnlyList<ClipboardHistoryItem> clipboardHistory = Clipboard.GetHistoryItemsAsync().AsTask().GetAwaiter().GetResult().Items;
 
-         foreach (var item in clipboardHistory)
+         foreach (ClipboardHistoryItem? item in clipboardHistory)
          {
-            var content = item.Content;
+            DataPackageView content = item.Content;
             if (content.Contains(StandardDataFormats.Text))
             {
                string text = content.GetTextAsync().AsTask().GetAwaiter().GetResult();
 
                if (removeList.Any(x => x == text))
                {
-                  Clipboard.DeleteItemFromHistory(item);
+                  _ = Clipboard.DeleteItemFromHistory(item);
                   cleanedPasswordCount++;
                }
             }

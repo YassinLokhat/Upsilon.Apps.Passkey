@@ -17,7 +17,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
       public string GetSlowHash(string source)
       {
-         long realTimeFactor = (long)Math.Pow(0b1000, 5);
+         long realTimeFactor = (long)Math.Pow(0b1001, 6);
 
          for (int i = 0; i < realTimeFactor; i++)
          {
@@ -113,7 +113,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          string aesKey = Encoding.UTF8.GetString(randomBytes);
          source = EncryptSymmetrically(source, [aesKey]);
          aesKey = _encryptRsa(aesKey, csp);
-         var s = new KeyValuePair<string, string>(aesKey, source);
+         KeyValuePair<string, string> s = new(aesKey, source);
          source = JsonSerializer.Serialize(s);
 
          Sign(ref source);
@@ -137,7 +137,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
          csp.ImportParameters(privKey);
 
-         var s = JsonSerializer.Deserialize<KeyValuePair<string, string>>(source);
+         KeyValuePair<string, string> s = JsonSerializer.Deserialize<KeyValuePair<string, string>>(source);
          string aesKey = _decryptRsa(s.Key, 0, csp);
          source = DecryptSymmetrically(s.Value, [aesKey]);
 
@@ -151,11 +151,9 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
             return plainText;
          }
 
-         MD5 mD5 = MD5.Create();
-
-         key = Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(mD5.ComputeHash(Encoding.ASCII.GetBytes(key)));
+         key = Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
+         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
+         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
 
          byte[] _key = Encoding.ASCII.GetBytes(key[..32]);
          byte[] IV = Encoding.ASCII.GetBytes(key.Substring(32, 16));
@@ -220,7 +218,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
       private string _encryptAes(string source, string[] passwords)
       {
-         passwords = passwords.Select(x => GetHash(x)).ToArray();
+         passwords = passwords.Select(GetHash).ToArray();
 
          for (int i = passwords.Length - 1; i >= 0; i--)
          {
@@ -236,7 +234,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
       private string _decryptAes(string source, string[] passwords)
       {
-         passwords = passwords.Select(x => GetHash(x)).ToArray();
+         passwords = passwords.Select(GetHash).ToArray();
 
          try
          {
