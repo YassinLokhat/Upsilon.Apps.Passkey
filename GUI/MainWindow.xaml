@@ -19,33 +19,28 @@
                     <DockPanel HorizontalAlignment="Stretch"/>
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
-            <MenuItem Margin="5"
-                        Header="_New User"
-                        Click="_newUser_MenuItem_Click"/>
-            <MenuItem Margin="5"
-                        Header="_Generate random Password"
-                        HorizontalAlignment="Right"
-                        Click="_generatePassword_MenuItem_Click"/>
+            <MenuItem Header="_New User"
+                      Click="_newUser_MenuItem_Click"/>
+            <MenuItem Header="_Generate random Password"
+                      HorizontalAlignment="Right"
+                      Click="_generatePassword_MenuItem_Click"/>
         </Menu>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Label Margin="5"
-                    Grid.Column="0"
-                    VerticalContentAlignment="Center"
-                    Content="{Binding Label}"/>
+            <Label Grid.Column="0"
+                   VerticalContentAlignment="Center"
+                   Content="{Binding Label}"/>
             <TextBox Name="_username_TB"
-                        Margin="5"
-                        VerticalAlignment="Center"
-                        Grid.Column="1"
-                        Visibility="Visible"/>
+                     VerticalAlignment="Center"
+                     Grid.Column="1"
+                     Visibility="Visible"/>
             <PasswordBox Name="_password_PB"
-                            Margin="5"
-                            VerticalAlignment="Center"
-                            Grid.Column="1"
-                            Visibility="Hidden"/>
+                         VerticalAlignment="Center"
+                         Grid.Column="1"
+                         Visibility="Hidden"/>
         </Grid>
     </StackPanel>
 </Window>

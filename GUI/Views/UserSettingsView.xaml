@@ -23,11 +23,9 @@
                     <DockPanel HorizontalAlignment="Stretch"/>
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
-            <MenuItem Margin="5"
-                      Header="_Save"
+            <MenuItem Header="_Save"
                       Click="_save_MenuItem_Click"/>
             <MenuItem Name="_deleteUser"
-                      Margin="5"
                       Header="_Delete User"
                       HorizontalAlignment="Right"
                       Click="_deleteUser_MenuItem_Click"/>
@@ -38,10 +36,8 @@
             <GroupBox Header="Credentials">
                 <StackPanel Name="_credentials">
                     <StackPanel Orientation="Horizontal">
-                        <Label Margin="5"
-                               VerticalAlignment="Center">Username :</Label>
-                        <TextBox Margin="5"
-                                 Width="400"
+                        <Label VerticalAlignment="Center">Username :</Label>
+                        <TextBox Width="400"
                                  VerticalAlignment="Center"
                                  Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
@@ -50,36 +46,34 @@
             <GroupBox Header="Settings">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <Label VerticalContentAlignment="Center">Log out after</Label>
-                        <TextBox Margin="5"
-                                 Width="25"
+                        <Label Margin="0" VerticalContentAlignment="Center">Log out after</Label>
+                        <TextBox Width="25"
                                  VerticalContentAlignment="Center"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding LogoutTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label VerticalContentAlignment="Center">minutes. *</Label>
+                        <Label Margin="0" VerticalContentAlignment="Center">minutes. *</Label>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <Label VerticalContentAlignment="Center">Clean any passwords in clipboard every</Label>
-                        <TextBox Margin="5"
-                                 Width="35"
+                        <Label Margin="0" VerticalContentAlignment="Center">Clean any passwords in clipboard every</Label>
+                        <TextBox Width="35"
                                  VerticalContentAlignment="Center"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding CleaningClipboardTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label VerticalContentAlignment="Center">seconds. *</Label>
+                        <Label Margin="0" VerticalContentAlignment="Center">seconds. *</Label>
                     </StackPanel>
                     <Label VerticalContentAlignment="Center">* Put '0' value to disable the option.</Label>
                     <GroupBox Header="Warnings">
                         <StackPanel>
-                            <CheckBox Margin="5" IsChecked="{Binding NotifyLogReview}">Notify Log Review</CheckBox>
-                            <CheckBox Margin="5" IsChecked="{Binding NotifyDuplicatedPasswords}">Notify Duplicated Passwords</CheckBox>
-                            <CheckBox Margin="5" IsChecked="{Binding NotifyPasswordUpdateReminder}">Notify Password Update Reminder</CheckBox>
-                            <CheckBox Margin="5" IsChecked="{Binding NotifyPasswordLeaked}">Notify Password Leaked</CheckBox>
+                            <CheckBox IsChecked="{Binding NotifyLogReview}">Notify Log Review</CheckBox>
+                            <CheckBox IsChecked="{Binding NotifyDuplicatedPasswords}">Notify Duplicated Passwords</CheckBox>
+                            <CheckBox IsChecked="{Binding NotifyPasswordUpdateReminder}">Notify Password Update Reminder</CheckBox>
+                            <CheckBox IsChecked="{Binding NotifyPasswordLeaked}">Notify Password Leaked</CheckBox>
                         </StackPanel>
                     </GroupBox>
                 </StackPanel>

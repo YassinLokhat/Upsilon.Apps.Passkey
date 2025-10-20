@@ -14,19 +14,13 @@
                     <DockPanel HorizontalAlignment="Stretch"/>
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
-            <MenuItem Margin="5"
-                        Header="_Save"/>
-            <MenuItem Margin="5"
-                        Header="_User settings"/>
-            <MenuItem Margin="5"
-                        Header="_Generate random Password"/>
-            <MenuItem Margin="5"
-                        Header="_Show warnings"/>
-            <MenuItem Margin="5"
-                        Header="_Show logs"/>
-            <MenuItem Margin="5"
-                        Header="_Logout"
-                        HorizontalAlignment="Right"/>
+            <MenuItem Header="_Save"/>
+            <MenuItem Header="_User settings"/>
+            <MenuItem Header="_Generate random Password"/>
+            <MenuItem Header="_Show warnings"/>
+            <MenuItem Header="_Show logs"/>
+            <MenuItem Header="_Logout"
+                      HorizontalAlignment="Right"/>
         </Menu>
         <GroupBox Header="Filters">
             <Grid>
@@ -40,26 +34,19 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Label Margin="5"
-                       Grid.Column="0"
+                <Label Grid.Column="0"
                        VerticalContentAlignment="Center"
                        Content="Service :"/>
-                <TextBox Margin="5"
-                         Grid.Column="1"/>
-                <Label Margin="5"
-                       Grid.Column="2"
+                <TextBox Grid.Column="1"/>
+                <Label Grid.Column="2"
                        VerticalContentAlignment="Center"
                        Content="Indentifiant :"/>
-                <TextBox Margin="5"
-                         Grid.Column="3"/>
-                <Label Margin="5"
-                       Grid.Column="4"
+                <TextBox Grid.Column="3"/>
+                <Label Grid.Column="4"
                        VerticalContentAlignment="Center"
                        Content="Text :"/>
-                <TextBox Margin="5"
-                         Grid.Column="5"/>
-                <Button Margin="5"
-                        Grid.Column="6"
+                <TextBox Grid.Column="5"/>
+                <Button Grid.Column="6"
                         Content="✕"/>
             </Grid>
         </GroupBox>
