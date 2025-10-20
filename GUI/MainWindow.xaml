@@ -12,7 +12,7 @@
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         Height="120" Width="400">
-    <StackPanel FocusManager.FocusedElement="{Binding ElementName=Username}">
+    <StackPanel>
         <Menu>
             <Menu.ItemsPanel>
                 <ItemsPanelTemplate>

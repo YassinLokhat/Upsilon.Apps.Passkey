@@ -27,6 +27,8 @@ namespace Upsilon.Apps.Passkey.GUI
             Interval = new TimeSpan(0, 0, 5),
          };
 
+         _resetCredentials(resetDatabase: true);
+
          _username_TB.KeyUp += _credential_TB_KeyUp;
          _password_PB.KeyUp += _credential_TB_KeyUp;
          _timer.Tick += _timer_Elapsed;
