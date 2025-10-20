@@ -114,9 +114,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          }
 
          string newFilename = MainViewModel.CryptographyCenter.GetHash(_viewModel.Username);
-         string databaseFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pku");
-         string autoSaveFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pks");
-         string logFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pkl");
+         string newDatabaseFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pku");
+         string newAutoSaveFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pks");
+         string newLogFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pkl");
 
          bool newUser = false;
          bool credentialsChanged = false;
@@ -132,9 +132,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                MainViewModel.Database = IDatabase.Create(MainViewModel.CryptographyCenter,
                   MainViewModel.SerializationCenter,
                   MainViewModel.PasswordFactory,
-                  databaseFile,
-                  autoSaveFile,
-                  logFile,
+                  newDatabaseFile,
+                  newAutoSaveFile,
+                  newLogFile,
                   _viewModel.Username,
                   _passwordsContainer.Passkeys);
 
@@ -187,19 +187,32 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             message = $"'{_viewModel.Username}' user's credentials has been updated.\nYou will be logged out.\nPlease login again.";
             MainViewModel.Database.Close();
 
+            string oldDatabaseDirectory = Path.GetDirectoryName(oldDatabaseFile) ?? string.Empty;
+            string newDatabaseDirectory = Path.GetDirectoryName(newDatabaseFile) ?? string.Empty;
+
+            if (!Directory.Exists(newDatabaseDirectory))
+            {
+               Directory.CreateDirectory(newDatabaseDirectory);
+            }
+
             if (File.Exists(oldDatabaseFile))
             {
-               File.Delete(oldDatabaseFile);
+               File.Move(oldDatabaseFile, newDatabaseFile);
             }
 
             if (File.Exists(oldAutoSaveFile))
             {
-               File.Delete(oldAutoSaveFile);
+               File.Move(oldAutoSaveFile, newAutoSaveFile);
             }
 
             if (File.Exists(oldLogFile))
             {
-               File.Delete(oldLogFile);
+               File.Move(oldLogFile, newLogFile);
+            }
+
+            if (Directory.Exists(oldDatabaseDirectory))
+            {
+               Directory.Delete(oldDatabaseDirectory, true);
             }
          }
          else if (newUser)
