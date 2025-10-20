@@ -64,7 +64,9 @@
             </Grid>
         </GroupBox>
         <StackPanel Orientation="Horizontal">
-            <ListBoxItem/>
+            <ListBox Name="_services_LB">
+                
+            </ListBox>
         </StackPanel>
     </StackPanel>
 </Window>

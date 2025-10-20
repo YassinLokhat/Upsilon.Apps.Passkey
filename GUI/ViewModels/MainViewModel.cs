@@ -23,6 +23,17 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 
       public static IDatabase? Database = null;
 
+      public static IUser User
+      {
+         get
+         {
+            if (Database is null || Database.User is null)
+               throw new NullReferenceException(nameof(User));
+
+            return Database.User;
+         }
+      }
+
       private string _label = "Username :";
       public string Label
       {

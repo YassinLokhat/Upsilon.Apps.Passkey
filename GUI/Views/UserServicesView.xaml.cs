@@ -13,6 +13,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private readonly DispatcherTimer _timer;
       private readonly string _title;
 
+      private string[] _services = ["S1", "S2"];
+
       private UserServicesView()
       {
          InitializeComponent();
@@ -23,7 +25,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             IsEnabled = true,
          };
 
-         Title = _title = $"{MainViewModel.AppTitle} - User '{MainViewModel.Database?.User?.Username}'";
+         Title = _title = $"{MainViewModel.AppTitle} - User '{MainViewModel.User.Username}'";
+
+         _services_LB.ItemsSource = _services;
 
          _timer.Tick += _timer_Elapsed;
          Loaded += _userServicesView_Loaded;
@@ -31,8 +35,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _timer_Elapsed(object? sender, EventArgs e)
       {
-         int sessionLeftTime = MainViewModel.Database?.User?.SessionLeftTime ?? 0;
-         Title = $"{_title} - Left session time : {sessionLeftTime / 60:D2}:{sessionLeftTime % 60:D2}s";
+         Title = $"{_title} - Left session time : {MainViewModel.User.SessionLeftTime / 60:D2}:{MainViewModel.User.SessionLeftTime % 60:D2}s";
       }
 
       public static void ShowUser(Window owner)
