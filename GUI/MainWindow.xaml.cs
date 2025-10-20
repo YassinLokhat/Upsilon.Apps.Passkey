@@ -22,7 +22,7 @@ namespace Upsilon.Apps.Passkey.GUI
 
          DataContext = _mainViewModel = new MainViewModel();
 
-         _timer = new DispatcherTimer()
+         _timer = new()
          {
             Interval = new TimeSpan(0, 0, 5),
          };
@@ -45,24 +45,26 @@ namespace Upsilon.Apps.Passkey.GUI
          DarkMode.SetDarkMode(this);
 
          /// TODO : To be removed
-         //try
-         //{
-         //   string filename = MainViewModel.CryptographyCenter.GetHash("NewUser");
-         //   string databaseFile = Path.GetFullPath($"raw/{filename}/{filename}.pku");
-         //   string autoSaveFile = Path.GetFullPath($"raw/{filename}/{filename}.pks");
-         //   string logFile = Path.GetFullPath($"raw/{filename}/{filename}.pkl");
-         //
-         //   MainViewModel.Database = IDatabase.Open(MainViewModel.CryptographyCenter,
-         //      MainViewModel.SerializationCenter,
-         //      MainViewModel.PasswordFactory,
-         //      databaseFile,
-         //      autoSaveFile,
-         //      logFile,
-         //      "NewUser");
-         //   _ = MainViewModel.Database.Login("a");
-         //   _ = MainViewModel.Database.Login("b");
-         //}
-         //catch { }
+         try
+         {
+            string filename = MainViewModel.CryptographyCenter.GetHash("_");
+            string databaseFile = Path.GetFullPath($"raw/{filename}/{filename}.pku");
+            string autoSaveFile = Path.GetFullPath($"raw/{filename}/{filename}.pks");
+            string logFile = Path.GetFullPath($"raw/{filename}/{filename}.pkl");
+
+            MainViewModel.Database = IDatabase.Open(MainViewModel.CryptographyCenter,
+               MainViewModel.SerializationCenter,
+               MainViewModel.PasswordFactory,
+               databaseFile,
+               autoSaveFile,
+               logFile,
+               "_");
+            _ = MainViewModel.Database.Login("a");
+            _ = MainViewModel.Database.Login("b");
+            _resetCredentials(resetDatabase: false);
+            UserServicesView.ShowUser(this);
+         }
+         catch { }
       }
 
       private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
