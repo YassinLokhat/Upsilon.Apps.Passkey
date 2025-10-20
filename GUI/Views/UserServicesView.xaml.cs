@@ -20,11 +20,20 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    /// </summary>
    public partial class UserServicesView : Window
    {
-      public UserServicesView()
+      private UserServicesView()
       {
          InitializeComponent();
 
          Loaded += _userServicesView_Loaded;
+      }
+
+      public static void ShowUser(Window owner)
+      {
+         _ = new UserServicesView()
+         {
+            Owner = owner,
+         }
+         .ShowDialog();
       }
 
       private void _userServicesView_Loaded(object sender, RoutedEventArgs e)

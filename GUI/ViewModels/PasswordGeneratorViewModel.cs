@@ -5,7 +5,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
    internal class PasswordGeneratorViewModel : INotifyPropertyChanged
    {
-      public static string AppTitle => MainViewModel.AppTitle + " - Password Generator";
+      public static string Title => MainViewModel.AppTitle + " - Password Generator";
 
       private bool _checkIfLeaked = true;
       public bool CheckIfLeaked

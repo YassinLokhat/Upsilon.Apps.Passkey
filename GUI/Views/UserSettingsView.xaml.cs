@@ -36,6 +36,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          Loaded += _mainWindow_Loaded;
       }
+
       public static void ShowUserSettings(Window owner)
       {
          _ = new UserSettingsView()

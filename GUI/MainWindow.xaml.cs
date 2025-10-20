@@ -45,26 +45,24 @@ namespace Upsilon.Apps.Passkey.GUI
          DarkMode.SetDarkMode(this);
 
          /// TODO : To be removed
-         try
-         {
-            string filename = MainViewModel.CryptographyCenter.GetHash("NewUser");
-            string databaseFile = Path.GetFullPath($"raw/{filename}/{filename}.pku");
-            string autoSaveFile = Path.GetFullPath($"raw/{filename}/{filename}.pks");
-            string logFile = Path.GetFullPath($"raw/{filename}/{filename}.pkl");
-
-            MainViewModel.Database = IDatabase.Open(MainViewModel.CryptographyCenter,
-               MainViewModel.SerializationCenter,
-               MainViewModel.PasswordFactory,
-               databaseFile,
-               autoSaveFile,
-               logFile,
-               "NewUser");
-            _ = MainViewModel.Database.Login("a");
-            _ = MainViewModel.Database.Login("b");
-
-            _newUser_MenuItem_Click(this, e);
-         }
-         catch { }
+         //try
+         //{
+         //   string filename = MainViewModel.CryptographyCenter.GetHash("NewUser");
+         //   string databaseFile = Path.GetFullPath($"raw/{filename}/{filename}.pku");
+         //   string autoSaveFile = Path.GetFullPath($"raw/{filename}/{filename}.pks");
+         //   string logFile = Path.GetFullPath($"raw/{filename}/{filename}.pkl");
+         //
+         //   MainViewModel.Database = IDatabase.Open(MainViewModel.CryptographyCenter,
+         //      MainViewModel.SerializationCenter,
+         //      MainViewModel.PasswordFactory,
+         //      databaseFile,
+         //      autoSaveFile,
+         //      logFile,
+         //      "NewUser");
+         //   _ = MainViewModel.Database.Login("a");
+         //   _ = MainViewModel.Database.Login("b");
+         //}
+         //catch { }
       }
 
       private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -123,8 +121,7 @@ namespace Upsilon.Apps.Passkey.GUI
                   {
                      _resetCredentials(resetDatabase: false);
 
-                     /// TODO Open user services view
-                     UserSettingsView.ShowUserSettings(this);
+                     UserServicesView.ShowUser(this);
                   }
                }
             }

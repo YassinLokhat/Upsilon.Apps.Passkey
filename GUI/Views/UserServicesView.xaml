@@ -1,14 +1,14 @@
-﻿<Window x:Class="Upsilon.Apps.Passkey.GUI.Views.UserServicesView"
+﻿<Window xmlns:Controls="clr-namespace:Upsilon.Apps.Passkey.GUI.Views.Controls"  x:Class="Upsilon.Apps.Passkey.GUI.Views.UserServicesView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.Views"
         mc:Ignorable="d"
-        Title="{Binding AppTitle}"
+        Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen">
-    <Grid>
+    <StackPanel>
         <Menu>
             <Menu.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -29,5 +29,44 @@
                         Header="_Logout"
                         HorizontalAlignment="Right"/>
         </Menu>
-    </Grid>
+        <GroupBox Header="Filters">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Margin="5"
+                       Grid.Column="0"
+                       VerticalContentAlignment="Center"
+                       Content="Service :"/>
+                <TextBox Margin="5"
+                         Grid.Column="1"/>
+                <Label Margin="5"
+                       Grid.Column="2"
+                       VerticalContentAlignment="Center"
+                       Content="Indentifiant :"/>
+                <TextBox Margin="5"
+                         Grid.Column="3"/>
+                <Label Margin="5"
+                       Grid.Column="4"
+                       VerticalContentAlignment="Center"
+                       Content="Text :"/>
+                <TextBox Margin="5"
+                         Grid.Column="5"/>
+                <Button Margin="5"
+                        Grid.Column="6"
+                        Content="✕"/>
+            </Grid>
+        </GroupBox>
+        <StackPanel Orientation="Horizontal">
+            <ListBoxItem/>
+            <Controls:ServiceView />
+        </StackPanel>
+    </StackPanel>
 </Window>

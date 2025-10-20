@@ -4,7 +4,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
    internal class UserSettingsViewModel : INotifyPropertyChanged
    {
-      public string AppTitle { get; }
+      public string Title { get; }
 
       private string _username = "NewUser";
       public string Username
@@ -114,15 +114,15 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 
       public UserSettingsViewModel()
       {
-         AppTitle = MainViewModel.AppTitle;
+         Title = MainViewModel.AppTitle;
 
          if (MainViewModel.Database is null || MainViewModel.Database.User is null)
          {
-            AppTitle += " - New user";
+            Title += " - New user";
          }
          else
          {
-            AppTitle += " - User settings";
+            Title += " - User settings";
 
             Username = MainViewModel.Database.User.Username;
 
