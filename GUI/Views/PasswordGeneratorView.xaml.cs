@@ -13,26 +13,15 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    {
       private readonly PasswordGeneratorViewModel _viewModel;
 
-      private string? _generatedPassword = null;
-      public string? GeneratedPassword
-      {
-         get => _generatedPassword;
-         private set
-         {
-            _generatedPassword = value;
+      public string? GeneratedPassword { get; private set; } = null;
 
-            if (_generatedPassword != null)
-            {
-               _insert.Visibility = Visibility.Visible;
-            }
-         }
-      }
-
-      public PasswordGenerator()
+      private PasswordGenerator()
       {
          InitializeComponent();
 
          DataContext = _viewModel = new PasswordGeneratorViewModel();
+         _insert.Visibility = (MainViewModel.Database is not null
+               && MainViewModel.Database.User is not null) ? Visibility.Visible : Visibility.Hidden;
 
          Loaded += _passwordGenerator_Loaded;
       }
@@ -42,7 +31,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          PasswordGenerator _passwordGenerator = new()
          {
             Owner = owner,
-            GeneratedPassword = string.Empty
          };
 
          return _passwordGenerator.ShowDialog() ?? false ? _passwordGenerator.GeneratedPassword : null;

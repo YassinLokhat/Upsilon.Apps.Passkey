@@ -28,7 +28,26 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          DataContext = _viewModel = new UserSettingsViewModel();
 
+         if (MainViewModel.Database is not null
+            && MainViewModel.Database.User is not null)
+         {
+            MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
+         }
+
          Loaded += _mainWindow_Loaded;
+      }
+      public static void ShowUserSettings(Window owner)
+      {
+         _ = new UserSettingsView()
+         {
+            Owner = owner
+         }
+         .ShowDialog();
+      }
+
+      private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
+      {
+         DialogResult = true;
       }
 
       private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -82,8 +101,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          }
 
          _ = MessageBox.Show($"'{_viewModel.Username}' user database deleted successfully", "Success");
-
-         DialogResult = true;
       }
 
       private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -122,7 +139,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
                foreach (string passkey in _passwordsContainer.Passkeys)
                {
-                  MainViewModel.Database.Login(passkey);
+                  _ = MainViewModel.Database.Login(passkey);
                }
             }
             catch (Exception ex)
@@ -192,11 +209,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          else
          {
             message += $"updated successfully";
+            DialogResult = true;
          }
 
          _ = MessageBox.Show(message, "Success");
-
-         DialogResult = true;
       }
 
       private static bool _credentialsChanged(string oldFileName, string[] oldPasskeys, string newFilename, string[] newPasskeys)

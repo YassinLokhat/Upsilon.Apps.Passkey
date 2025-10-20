@@ -57,8 +57,8 @@ namespace Upsilon.Apps.Passkey.GUI
                autoSaveFile,
                logFile,
                "NewUser");
-            MainViewModel.Database.Login("a");
-            MainViewModel.Database.Login("b");
+            _ = MainViewModel.Database.Login("a");
+            _ = MainViewModel.Database.Login("b");
 
             _newUser_MenuItem_Click(this, e);
          }
@@ -67,20 +67,12 @@ namespace Upsilon.Apps.Passkey.GUI
 
       private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         _ = new UserSettingsView()
-         {
-            Owner = this
-         }
-         .ShowDialog();
+         UserSettingsView.ShowUserSettings(this);
       }
 
       private void _generatePassword_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         _ = new PasswordGenerator
-         {
-            Owner = this
-         }
-         .ShowDialog();
+         _ = PasswordGenerator.ShowGeneratePasswordDialog(this);
       }
 
       private void _credential_TB_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
@@ -123,18 +115,14 @@ namespace Upsilon.Apps.Passkey.GUI
 
                if (MainViewModel.Database is not null)
                {
-                  MainViewModel.Database.Login(_password_PB.Password);
+                  _ = MainViewModel.Database.Login(_password_PB.Password);
 
                   if (MainViewModel.Database.User is not null)
                   {
                      _resetCredentials(resetDatabase: false);
 
                      /// TODO Open user services view
-                     _ = new UserSettingsView()
-                     {
-                        Owner = this
-                     }
-                     .ShowDialog();
+                     UserSettingsView.ShowUserSettings(this);
                   }
                }
             }
