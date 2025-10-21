@@ -15,25 +15,35 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       string IUser.Username
       {
          get => Database.Get(Username);
-         set => Username = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
-            fieldName: nameof(Username),
-            needsReview: true,
-            oldValue: Username,
-            value: value,
-            readableValue: value);
+         set
+         {
+            CredentialChanged |= Username != value;
+
+            Username = Database.AutoSave.UpdateValue(ItemId,
+               itemName: ToString(),
+               fieldName: nameof(Username),
+               needsReview: true,
+               oldValue: Username,
+               value: value,
+               readableValue: value);
+         }
       }
 
       string[] IUser.Passkeys
       {
          get => Database.Get(Passkeys);
-         set => Passkeys = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
-            fieldName: nameof(Passkeys),
-            needsReview: true,
-            oldValue: Passkeys,
-            value: value,
-            readableValue: string.Empty);
+         set
+         {
+            CredentialChanged |= ISerializationCenter.AreDifferent(Database.SerializationCenter, Passkeys, value);
+
+            Passkeys = Database.AutoSave.UpdateValue(ItemId,
+               itemName: ToString(),
+               fieldName: nameof(Passkeys),
+               needsReview: true,
+               oldValue: Passkeys,
+               value: value,
+               readableValue: string.Empty);
+         }
       }
 
       int IUser.LogoutTimeout
@@ -120,6 +130,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public string Username { get; set; } = string.Empty;
       public string[] Passkeys { get; set; } = [];
+      public bool CredentialChanged { get; set; } = false;
       public int LogoutTimeout { get; set; } = 0;
       public int CleaningClipboardTimeout { get; set; } = 0;
       public WarningType WarningsToNotify { get; set; }
@@ -217,9 +228,11 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                switch (change.FieldName)
                {
                   case nameof(Username):
+                     CredentialChanged = true;
                      Username = Database.SerializationCenter.Deserialize<string>(change.Value);
                      break;
                   case nameof(Passkeys):
+                     CredentialChanged = true;
                      Passkeys = Database.SerializationCenter.Deserialize<string[]>(change.Value);
                      break;
                   case nameof(LogoutTimeout):
