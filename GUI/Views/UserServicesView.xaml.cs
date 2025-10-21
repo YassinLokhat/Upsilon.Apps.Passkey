@@ -35,7 +35,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _timer_Elapsed(object? sender, EventArgs e)
       {
-         Title = $"{_title} - Left session time : {MainViewModel.User.SessionLeftTime / 60:D2}:{MainViewModel.User.SessionLeftTime % 60:D2}s";
+         Title = $"{_title} - Left session time : {MainViewModel.User.SessionLeftTime / 60:D2}:{MainViewModel.User.SessionLeftTime % 60:D2}";
       }
 
       public static void ShowUser(Window owner)

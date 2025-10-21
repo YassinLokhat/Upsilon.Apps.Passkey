@@ -31,14 +31,11 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Label Grid.Column="0"
-                   VerticalContentAlignment="Center"
                    Content="{Binding Label}"/>
             <TextBox Name="_username_TB"
-                     VerticalAlignment="Center"
                      Grid.Column="1"
                      Visibility="Visible"/>
             <PasswordBox Name="_password_PB"
-                         VerticalAlignment="Center"
                          Grid.Column="1"
                          Visibility="Hidden"/>
         </Grid>

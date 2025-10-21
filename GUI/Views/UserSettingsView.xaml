@@ -36,9 +36,8 @@
             <GroupBox Header="Credentials">
                 <StackPanel Name="_credentials">
                     <StackPanel Orientation="Horizontal">
-                        <Label VerticalAlignment="Center">Username :</Label>
+                        <Label>Username :</Label>
                         <TextBox Width="400"
-                                 VerticalAlignment="Center"
                                  Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
                 </StackPanel>
@@ -46,28 +45,26 @@
             <GroupBox Header="Settings">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <Label Margin="0" VerticalContentAlignment="Center">Log out after</Label>
+                        <Label Margin="0">Log out after</Label>
                         <TextBox Width="25"
-                                 VerticalContentAlignment="Center"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding LogoutTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label Margin="0" VerticalContentAlignment="Center">minutes. *</Label>
+                        <Label Margin="0">minutes. *</Label>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <Label Margin="0" VerticalContentAlignment="Center">Clean any passwords in clipboard every</Label>
+                        <Label Margin="0">Clean any passwords in clipboard every</Label>
                         <TextBox Width="35"
-                                 VerticalContentAlignment="Center"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding CleaningClipboardTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label Margin="0" VerticalContentAlignment="Center">seconds. *</Label>
+                        <Label Margin="0">seconds. *</Label>
                     </StackPanel>
-                    <Label VerticalContentAlignment="Center">* Put '0' value to disable the option.</Label>
+                    <Label>* Put '0' value to disable the option.</Label>
                     <GroupBox Header="Warnings">
                         <StackPanel>
                             <CheckBox IsChecked="{Binding NotifyLogReview}">Notify Log Review</CheckBox>
