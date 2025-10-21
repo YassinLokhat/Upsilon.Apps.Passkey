@@ -212,15 +212,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          database._save(logSaveEvent: false);
 
-         database.Close(logCloseEvent: false, loginTimeoutReached: false);
-
-         return Open(cryptographicCenter,
-            serializationCenter,
-            passwordFactory,
-            databaseFile,
-            autoSaveFile,
-            logFile,
-            username);
+         return database;
       }
 
       internal static IDatabase Open(ICryptographyCenter cryptographicCenter,

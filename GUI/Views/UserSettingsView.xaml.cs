@@ -137,11 +137,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                   newLogFile,
                   _viewModel.Username,
                   _passwordsContainer.Passkeys);
-
-               foreach (string passkey in _passwordsContainer.Passkeys)
-               {
-                  _ = MainViewModel.Database.Login(passkey);
-               }
             }
             catch (Exception ex)
             {

@@ -37,11 +37,6 @@ namespace Upsilon.Apps.PassKey.UnitTests
             username,
             passkeys);
 
-         foreach (string passkey in passkeys)
-         {
-            _ = database.Login(passkey);
-         }
-
          return database;
       }
 

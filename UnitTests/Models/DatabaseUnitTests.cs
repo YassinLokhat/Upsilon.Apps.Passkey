@@ -28,8 +28,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          // When
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          expectedLogs.Push($"Information : User {username}'s database created");
-         expectedLogs.Push($"Information : User {username}'s database opened");
-         expectedLogs.Push($"Information : User {username} logged in");
 
          // Then
          _ = databaseCreated.DatabaseFile.Should().Be(databaseFile);
@@ -270,11 +268,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
             passkeys);
 
          database.DatabaseClosed += (s, e) => { closedDueToTimeout = e.LoginTimeoutReached; };
-
-         foreach (string passkey in passkeys)
-         {
-            _ = database.Login(passkey);
-         }
 
          database.User.LogoutTimeout = 1;
          database.Save();
