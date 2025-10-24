@@ -13,11 +13,21 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private readonly DispatcherTimer _timer;
       private readonly string _title;
 
-      private string[] _services = ["S1", "S2"];
+      private string[] _services =
+         [
+            "S1",
+            "S2",
+            "S2",
+            "S2",
+            "S2",
+            "S2",
+         ];
 
       private UserServicesView()
       {
          InitializeComponent();
+
+         if (MainViewModel.Database is null) throw new NullReferenceException(nameof(MainViewModel.Database));
 
          _timer = new()
          {
@@ -29,8 +39,18 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          _services_LB.ItemsSource = _services;
 
+         MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          _timer.Tick += _timer_Elapsed;
          Loaded += _userServicesView_Loaded;
+      }
+
+      private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
+      {
+         _timer.Stop();
+         this.Dispatcher.Invoke(() =>
+         {
+            DialogResult = true;
+         });
       }
 
       private void _timer_Elapsed(object? sender, EventArgs e)

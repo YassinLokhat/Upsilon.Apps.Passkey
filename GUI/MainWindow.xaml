@@ -11,7 +11,7 @@
         Title="{Binding AppTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="120" Width="400">
+        Height="100" Width="400">
     <StackPanel>
         <Menu>
             <Menu.ItemsPanel>

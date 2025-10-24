@@ -7,50 +7,58 @@
         mc:Ignorable="d"
         WindowState="Maximized"
         WindowStartupLocation="CenterScreen">
-    <StackPanel>
-        <Menu>
-            <Menu.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <DockPanel HorizontalAlignment="Stretch"/>
-                </ItemsPanelTemplate>
-            </Menu.ItemsPanel>
-            <MenuItem Header="_Save"/>
-            <MenuItem Header="_User settings"/>
-            <MenuItem Header="_Generate random Password"/>
-            <MenuItem Header="_Show warnings"/>
-            <MenuItem Header="_Show logs"/>
-            <MenuItem Header="_Logout"
-                      HorizontalAlignment="Right"/>
-        </Menu>
-        <GroupBox Header="Filters">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <Menu>
+                <Menu.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <DockPanel HorizontalAlignment="Stretch"/>
+                    </ItemsPanelTemplate>
+                </Menu.ItemsPanel>
+                <MenuItem Header="_Save"/>
+                <MenuItem Header="_User settings"/>
+                <MenuItem Header="_Generate random Password"/>
+                <MenuItem Header="_Show warnings"/>
+                <MenuItem Header="_Show logs"/>
+                <MenuItem Header="_Logout"
+                          HorizontalAlignment="Right"/>
+            </Menu>
+            <GroupBox Header="Filters">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <Label Grid.Column="0"
-                       Content="Service :"/>
-                <TextBox Grid.Column="1"/>
-                <Label Grid.Column="2"
-                       Content="Indentifiant :"/>
-                <TextBox Grid.Column="3"/>
-                <Label Grid.Column="4"
-                       Content="Text :"/>
-                <TextBox Grid.Column="5"/>
-                <Button Grid.Column="6"
-                        Content="✕"/>
-            </Grid>
-        </GroupBox>
-        <StackPanel Orientation="Horizontal">
-            <ListBox Name="_services_LB">
+                    <Label Grid.Column="0"
+                           Content="Service :"/>
+                    <TextBox Grid.Column="1"/>
+                    <Label Grid.Column="2"
+                           Content="Indentifiant :"/>
+                    <TextBox Grid.Column="3"/>
+                    <Label Grid.Column="4"
+                           Content="Text :"/>
+                    <TextBox Grid.Column="5"/>
+                    <Button Grid.Column="6"
+                            Content="✕"/>
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal">
+            <ListBox Name="_services_LB"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
                 
             </ListBox>
         </StackPanel>
-    </StackPanel>
+    </Grid>
 </Window>

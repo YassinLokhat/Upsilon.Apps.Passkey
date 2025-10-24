@@ -99,6 +99,8 @@ namespace Upsilon.Apps.Passkey.GUI
                      autoSaveFile,
                      logFile,
                      _username_TB.Text);
+   
+                  MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
                }
                catch { }
 
@@ -136,6 +138,11 @@ namespace Upsilon.Apps.Passkey.GUI
          {
             _resetCredentials(resetDatabase: true);
          }
+      }
+
+      private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
+      {
+         _resetCredentials(resetDatabase: true);
       }
 
       private void _resetCredentials(bool resetDatabase)
