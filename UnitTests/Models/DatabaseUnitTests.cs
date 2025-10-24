@@ -6,6 +6,60 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
    [TestClass]
    public sealed class DatabaseUnitTests
    {
+      [TestMethod, Ignore]
+      public void Case00_GenerateNewDatabase()
+      {
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(["a", "b"], "_");
+         IUser user = database.User;
+         user.LogoutTimeout = 10;
+         user.CleaningClipboardTimeout = 15;
+         user.WarningsToNotify = (Core.Public.Enums.WarningType)0;
+
+         for (int i = 0; i < 10; i++)
+         {
+            IService service = user.AddService($"Service{i} ({UnitTestsHelper.GetRandomString(min: 10, max: 15)})");
+            service.Url = $"www.service{i}.xyz";
+            int random = UnitTestsHelper.GetRandomInt(100) % 10;
+            service.Notes = random == 0 ? $"Service{i} notes : \n{UnitTestsHelper.GetRandomString(min: 10, max: 150)}" : "";
+
+            int accountNumber = UnitTestsHelper.GetRandomInt(min: 1, max: 5);
+
+            for (int j = 0; j < accountNumber; j++)
+            {
+               random = UnitTestsHelper.GetRandomInt(10) + 1;
+
+               IAccount account;
+               switch (random % 4)
+               {
+                  case 1:
+                     account = service.AddAccount(label: $"Account{j}",
+                        identifiants: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"));
+                     break;
+                  case 2:
+                     account = service.AddAccount(identifiants: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"),
+                        password: UnitTestsHelper.GetRandomString(min: 20, max: 25));
+                     break;
+                  case 3:
+                     account = service.AddAccount(identifiants: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"));
+                     break;
+                  default:
+                     account = service.AddAccount(label: $"Account{j}",
+                        identifiants: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"),
+                        password: UnitTestsHelper.GetRandomString(min: 20, max: 25));
+                     break;
+               }
+
+               random = UnitTestsHelper.GetRandomInt(100);
+               account.Notes = random % 10 == 0 ? $"Service{i}'s Account{j} notes : \n{UnitTestsHelper.GetRandomString(min: 10, max: 150)}" : "";
+               account.PasswordUpdateReminderDelay = random < 10 ? random : 0;
+               account.Options = random % 2 == 0 ? Core.Public.Enums.AccountOption.WarnIfPasswordLeaked : Core.Public.Enums.AccountOption.None;
+            }
+         }
+
+         database.Save();
+         database.Close();
+      }
+
       [TestMethod]
       /*
        * Database.Create creates an empty database file,

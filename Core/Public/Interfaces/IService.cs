@@ -40,6 +40,29 @@
       IAccount AddAccount(string label, IEnumerable<string> identifiants, string password);
 
       /// <summary>
+      /// Add a new account to this service.
+      /// </summary>
+      /// <param name="label">The label of the account.</param>
+      /// <param name="identifiants">The identifiants.</param>
+      /// <returns>The created account.</returns>
+      IAccount AddAccount(string label, IEnumerable<string> identifiants);
+
+      /// <summary>
+      /// Add a new account to this service.
+      /// </summary>
+      /// <param name="identifiants">The identifiants.</param>
+      /// <param name="password">The password.</param>
+      /// <returns>The created account.</returns>
+      IAccount AddAccount(IEnumerable<string> identifiants, string password);
+
+      /// <summary>
+      /// Add a new account to this service.
+      /// </summary>
+      /// <param name="identifiants">The identifiants.</param>
+      /// <returns>The created account.</returns>
+      IAccount AddAccount(IEnumerable<string> identifiants);
+
+      /// <summary>
       /// Delete the given account from this service. 
       /// </summary>
       /// <param name="account">The account to delete.</param>

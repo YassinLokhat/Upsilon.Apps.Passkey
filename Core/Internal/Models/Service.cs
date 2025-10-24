@@ -47,7 +47,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             readableValue: value);
       }
 
-      IAccount IService.AddAccount(string label, IEnumerable<string> identifiants, string password)
+      public IAccount AddAccount(string label, IEnumerable<string> identifiants, string password)
       {
          Account account = new()
          {
@@ -62,6 +62,21 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          Accounts.Add(Database.AutoSave.AddValue(ItemId, itemName: account.ToString(), containerName: ToString(), needsReview: false, account));
 
          return account;
+      }
+
+      public IAccount AddAccount(string label, IEnumerable<string> identifiants)
+      {
+         return AddAccount(label, identifiants, password: string.Empty);
+      }
+
+      public IAccount AddAccount(IEnumerable<string> identifiants, string password)
+      {
+         return AddAccount(label: string.Empty, identifiants, password);
+      }
+
+      public IAccount AddAccount(IEnumerable<string> identifiants)
+      {
+         return AddAccount(label: string.Empty, identifiants, password: string.Empty);
       }
 
       void IService.DeleteAccount(IAccount account)
