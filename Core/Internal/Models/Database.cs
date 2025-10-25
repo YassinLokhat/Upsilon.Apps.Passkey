@@ -31,7 +31,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public void Delete()
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullReferenceException(nameof(User));
 
          DatabaseFileLocker?.Delete();
          LogFileLocker?.Delete();
@@ -80,21 +80,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                _handleAutoSave(eventArg.MergeBehavior);
             }
 
-            Warning[] logWarnings = _lookAtLogWarnings();
-            Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
-            Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
-            Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
-
-            Warnings = [..logWarnings,
-               ..passwordUpdateReminderWarnings,
-               ..passwordLeakedWarnings,
-               ..duplicatedPasswordsWarnings];
-
-            WarningDetected?.Invoke(this, new WarningDetectedEventArgs(
-               [..User.WarningsToNotify.ContainsFlag(WarningType.LogReviewWarning) ? logWarnings : [],
-               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
-               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
-               ..User.WarningsToNotify.ContainsFlag(WarningType.DuplicatedPasswordsWarning) ? duplicatedPasswordsWarnings : []]));
+            _ = Task.Run(_lookAtWarnings);
 
             User.ResetTimer();
          }
@@ -246,7 +232,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private void _save(bool logSaveEvent)
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullReferenceException(nameof(User));
          if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
          Username = User.Username;
@@ -312,7 +298,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private void _handleAutoSave(AutoSaveMergeBehavior mergeAutoSave)
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullReferenceException(nameof(User));
 
          if (!File.Exists(AutoSaveFile))
          {
@@ -337,9 +323,30 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          }
       }
 
+      private void _lookAtWarnings()
+      {
+         if (User is null) return;
+
+         Warning[] logWarnings = _lookAtLogWarnings();
+         Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
+         Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
+         Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
+
+         Warnings = [..logWarnings,
+               ..passwordUpdateReminderWarnings,
+               ..passwordLeakedWarnings,
+               ..duplicatedPasswordsWarnings];
+
+         WarningDetected?.Invoke(this, new WarningDetectedEventArgs(
+            [..User.WarningsToNotify.ContainsFlag(WarningType.LogReviewWarning) ? logWarnings : [],
+               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
+               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
+               ..User.WarningsToNotify.ContainsFlag(WarningType.DuplicatedPasswordsWarning) ? duplicatedPasswordsWarnings : []]));
+      }
+
       private Warning[] _lookAtLogWarnings()
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullReferenceException(nameof(User));
          if (Logs.Logs == null) throw new NullReferenceException(nameof(Logs.Logs));
 
          List<Log> logs = Logs.Logs.Cast<Log>().ToList();
@@ -359,7 +366,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private Warning[] _lookAtPasswordUpdateReminderWarnings()
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) return [];
 
          Account[] accounts = User.Services
             .SelectMany(x => x.Accounts)
@@ -371,7 +378,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private Warning[] _lookAtPasswordLeakedWarnings()
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) return [];
 
          Account[] accounts = User.Services
             .SelectMany(x => x.Accounts)
@@ -383,7 +390,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private Warning[] _lookAtDuplicatedPasswordsWarnings()
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) return [];
 
          IGrouping<string, Account>[] duplicatedPasswords = User.Services
             .SelectMany(x => x.Accounts)
