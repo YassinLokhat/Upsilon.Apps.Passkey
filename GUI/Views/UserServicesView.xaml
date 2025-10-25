@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.Views"
         mc:Ignorable="d"
         WindowState="Maximized"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Closed="_window_Closed">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

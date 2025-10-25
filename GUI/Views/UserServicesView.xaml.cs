@@ -37,10 +37,15 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
       {
          _timer.Stop();
-         Dispatcher.Invoke(() =>
+
+         try
          {
-            DialogResult = true;
-         });
+            Dispatcher.Invoke(() =>
+            {
+               DialogResult = true;
+            });
+         }
+         catch { }
       }
 
       private void _timer_Elapsed(object? sender, EventArgs e)
@@ -74,6 +79,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _logout_MenuItem_Click(object sender, RoutedEventArgs e)
       {
+         _window_Closed(this, e);
+      }
+
+      private void _window_Closed(object sender, EventArgs e)
+      {
+         if (MainViewModel.Database is null || MainViewModel.Database.User is null) return;
+
          MainViewModel.Database?.Close();
       }
    }

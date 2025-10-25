@@ -48,10 +48,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
       {
-         Dispatcher.Invoke(() =>
+         try
          {
-            DialogResult = true;
-         });
+            Dispatcher.Invoke(() =>
+            {
+               DialogResult = true;
+            });
+         }
+         catch { }
       }
 
       private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
