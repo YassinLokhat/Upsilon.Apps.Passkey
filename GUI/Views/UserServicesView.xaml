@@ -20,12 +20,15 @@
                     </ItemsPanelTemplate>
                 </Menu.ItemsPanel>
                 <MenuItem Header="_Save"/>
-                <MenuItem Header="_User settings"/>
-                <MenuItem Header="_Generate random Password"/>
+                <MenuItem Header="_User settings"
+                          Click="_userSettings_MenuItem_Click"/>
+                <MenuItem Header="_Generate random Password"
+                          Click="_generateRandomPassword_MenuItem_Click"/>
                 <MenuItem Header="_Show warnings"/>
                 <MenuItem Header="_Show logs"/>
                 <MenuItem Header="_Logout"
-                          HorizontalAlignment="Right"/>
+                          HorizontalAlignment="Right"
+                          Click="_logout_MenuItem_Click"/>
             </Menu>
             <GroupBox Header="Filters">
                 <Grid>
@@ -53,12 +56,23 @@
                 </Grid>
             </GroupBox>
         </StackPanel>
-        <StackPanel Grid.Row="1"
-                    Orientation="Horizontal">
-            <ListBox Name="_services_LB"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
                 
-            </ListBox>
-        </StackPanel>
+            </Grid.ColumnDefinitions>
+
+            <ListBox Grid.Row="0"
+                     Grid.Column="0"
+                     Name="_services_LB"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+
+            <Button Grid.Row="1"
+                    Grid.Column="0"
+                    Content="+"/>
+        </Grid>
     </Grid>
 </Window>

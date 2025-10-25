@@ -13,16 +13,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private readonly DispatcherTimer _timer;
       private readonly string _title;
 
-      private string[] _services =
-         [
-            "S1",
-            "S2",
-            "S2",
-            "S2",
-            "S2",
-            "S2",
-         ];
-
       private UserServicesView()
       {
          InitializeComponent();
@@ -37,7 +27,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          Title = _title = $"{MainViewModel.AppTitle} - User '{MainViewModel.User.Username}'";
 
-         _services_LB.ItemsSource = _services;
+         _services_LB.ItemsSource = MainViewModel.User.Services;
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          _timer.Tick += _timer_Elapsed;
@@ -47,7 +37,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
       {
          _timer.Stop();
-         this.Dispatcher.Invoke(() =>
+         Dispatcher.Invoke(() =>
          {
             DialogResult = true;
          });
@@ -70,6 +60,21 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _userServicesView_Loaded(object sender, RoutedEventArgs e)
       {
          DarkMode.SetDarkMode(this);
+      }
+
+      private void _userSettings_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         UserSettingsView.ShowUserSettings(this);
+      }
+
+      private void _generateRandomPassword_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         _ = PasswordGenerator.ShowGeneratePasswordDialog(this);
+      }
+
+      private void _logout_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         MainViewModel.Database?.Close();
       }
    }
 }
