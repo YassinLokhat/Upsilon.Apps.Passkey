@@ -99,7 +99,7 @@ namespace Upsilon.Apps.Passkey.GUI
                      autoSaveFile,
                      logFile,
                      _username_TB.Text);
-   
+
                   MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
                }
                catch { }

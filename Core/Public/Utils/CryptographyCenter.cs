@@ -144,7 +144,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          return source;
       }
 
-      private string _cipherAes(string plainText, string key)
+      private static string _cipherAes(string plainText, string key)
       {
          if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(plainText))
          {
@@ -160,10 +160,10 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
          byte[] bytes = _cipherAes(plainText, _key, IV);
 
-         return new string(bytes.Select(x => (char)x).ToArray());
+         return new string([.. bytes.Select(x => (char)x)]);
       }
 
-      private byte[] _cipherAes(string plainText, byte[] key, byte[] IV)
+      private static byte[] _cipherAes(string plainText, byte[] key, byte[] IV)
       {
          using Aes aesAlg = Aes.Create();
          aesAlg.Key = key;
@@ -181,7 +181,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          return msEncrypt.ToArray();
       }
 
-      private string _uncipherAes(string cipherText, string key)
+      private static string _uncipherAes(string cipherText, string key)
       {
          if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(cipherText))
          {
@@ -196,12 +196,12 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          byte[] _key = Encoding.ASCII.GetBytes(key[..32]);
          byte[] IV = Encoding.ASCII.GetBytes(key.Substring(32, 16));
 
-         byte[] bytes = cipherText.Select(x => (byte)x).ToArray();
+         byte[] bytes = [.. cipherText.Select(x => (byte)x)];
 
          return _uncitherAes(bytes, _key, IV);
       }
 
-      private string _uncitherAes(byte[] cipherText, byte[] key, byte[] IV)
+      private static string _uncitherAes(byte[] cipherText, byte[] key, byte[] IV)
       {
          using Aes aesAlg = Aes.Create();
          aesAlg.Key = key;
@@ -218,7 +218,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
       private string _encryptAes(string source, string[] passwords)
       {
-         passwords = passwords.Select(GetHash).ToArray();
+         passwords = [.. passwords.Select(GetHash)];
 
          for (int i = passwords.Length - 1; i >= 0; i--)
          {
@@ -234,7 +234,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
       private string _decryptAes(string source, string[] passwords)
       {
-         passwords = passwords.Select(GetHash).ToArray();
+         passwords = [.. passwords.Select(GetHash)];
 
          try
          {
@@ -270,7 +270,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          return source;
       }
 
-      private string _encryptRsa(string source, RSACryptoServiceProvider csp)
+      private static string _encryptRsa(string source, RSACryptoServiceProvider csp)
       {
          byte[] bytesPlainTextData = Encoding.Unicode.GetBytes(source);
          byte[] bytesCypherText = csp.Encrypt(bytesPlainTextData, true);
@@ -280,7 +280,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
          return source;
       }
 
-      private string _decryptRsa(string source, int level, RSACryptoServiceProvider csp)
+      private static string _decryptRsa(string source, int level, RSACryptoServiceProvider csp)
       {
          try
          {

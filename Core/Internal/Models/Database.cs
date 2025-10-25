@@ -349,7 +349,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          if (User is null) throw new NullReferenceException(nameof(User));
          if (Logs.Logs == null) throw new NullReferenceException(nameof(Logs.Logs));
 
-         List<Log> logs = Logs.Logs.Cast<Log>().ToList();
+         List<Log> logs = [.. Logs.Logs.Cast<Log>()];
 
          for (int i = 0; i < logs.Count && logs[i].Message != $"User {Username} logged in"; i++)
          {
@@ -368,10 +368,9 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          if (User is null) return [];
 
-         Account[] accounts = User.Services
+         Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
-            .Where(x => x.PasswordExpired)
-            .ToArray();
+            .Where(x => x.PasswordExpired)];
 
          return accounts.Length != 0 ? [new Warning(WarningType.PasswordUpdateReminderWarning, accounts)] : [];
       }
@@ -380,10 +379,9 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          if (User is null) return [];
 
-         Account[] accounts = User.Services
+         Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
-            .Where(x => x.PasswordLeaked)
-            .ToArray();
+            .Where(x => x.PasswordLeaked)];
 
          return accounts.Length != 0 ? [new Warning(WarningType.PasswordLeakedWarning, accounts)] : [];
       }
@@ -392,11 +390,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          if (User is null) return [];
 
-         IGrouping<string, Account>[] duplicatedPasswords = User.Services
+         IGrouping<string, Account>[] duplicatedPasswords = [.. User.Services
             .SelectMany(x => x.Accounts)
             .GroupBy(x => x.Password)
-            .Where(x => x.Count() > 1)
-            .ToArray();
+            .Where(x => x.Count() > 1)];
 
          List<Warning> warnings = [];
 

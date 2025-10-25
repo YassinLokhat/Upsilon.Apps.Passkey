@@ -172,7 +172,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             MainViewModel.Database.User.Passkeys = _passwordsContainer.Passkeys;
             MainViewModel.Database.User.LogoutTimeout = _viewModel.LogoutTimeout;
             MainViewModel.Database.User.CleaningClipboardTimeout = _viewModel.CleaningClipboardTimeout;
-            WarningType warningsToNotify = (WarningType)0;
+            WarningType warningsToNotify = 0;
             if (_viewModel.NotifyLogReview) warningsToNotify |= WarningType.LogReviewWarning;
             if (_viewModel.NotifyDuplicatedPasswords) warningsToNotify |= WarningType.DuplicatedPasswordsWarning;
             if (_viewModel.NotifyPasswordUpdateReminder) warningsToNotify |= WarningType.PasswordUpdateReminderWarning;
@@ -194,7 +194,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
             if (!Directory.Exists(newDatabaseDirectory))
             {
-               Directory.CreateDirectory(newDatabaseDirectory);
+               _ = Directory.CreateDirectory(newDatabaseDirectory);
             }
 
             if (File.Exists(oldDatabaseFile))
