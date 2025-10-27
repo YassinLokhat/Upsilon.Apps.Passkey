@@ -1,4 +1,7 @@
-﻿using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+﻿using System.IO.Compression;
+using System.Text;
+using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.PassKey.Core.Public.Utils;
 
 namespace Upsilon.Apps.PassKey.Core.Internal.Utils
 {
@@ -39,7 +42,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
       {
          Unlock();
 
-         string text = File.ReadAllText(FilePath);
+         string text = _decompressString(File.ReadAllText(FilePath));
 
          Lock();
 
@@ -62,7 +65,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
       {
          Unlock();
 
-         File.WriteAllText(FilePath, text);
+         File.WriteAllText(FilePath, _compressString(text));
 
          Lock();
       }
@@ -94,5 +97,37 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
          Unlock();
          FilePath = string.Empty;
       }
+
+      private static string _compressString(string text)
+      {
+         var bytes = Encoding.UTF8.GetBytes(text);
+         using var msi = new MemoryStream(bytes);
+         using var mso = new MemoryStream();
+         using (var gs = new GZipStream(mso, CompressionLevel.SmallestSize))
+         {
+            msi.CopyTo(gs);
+         }
+         return Convert.ToBase64String(mso.ToArray());
+      }
+
+      private static string _decompressString(string compressedText)
+      {
+         try
+         {
+            var bytes = Convert.FromBase64String(compressedText);
+            using var msi = new MemoryStream(bytes);
+            using var mso = new MemoryStream();
+            using (var gs = new GZipStream(msi, CompressionMode.Decompress))
+            {
+               gs.CopyTo(mso);
+            }
+            return Encoding.UTF8.GetString(mso.ToArray());
+         }
+         catch
+         {
+            throw new CorruptedSourceException();
+         }
+      }
+
    }
 }
