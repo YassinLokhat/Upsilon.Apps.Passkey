@@ -100,10 +100,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
 
       private static string _compressString(string text)
       {
-         var bytes = Encoding.UTF8.GetBytes(text);
-         using var msi = new MemoryStream(bytes);
-         using var mso = new MemoryStream();
-         using (var gs = new GZipStream(mso, CompressionLevel.SmallestSize))
+         byte[] bytes = Encoding.UTF8.GetBytes(text);
+         using MemoryStream msi = new(bytes);
+         using MemoryStream mso = new();
+         using (GZipStream gs = new(mso, CompressionLevel.SmallestSize))
          {
             msi.CopyTo(gs);
          }
@@ -114,10 +114,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
       {
          try
          {
-            var bytes = Convert.FromBase64String(compressedText);
-            using var msi = new MemoryStream(bytes);
-            using var mso = new MemoryStream();
-            using (var gs = new GZipStream(msi, CompressionMode.Decompress))
+            byte[] bytes = Convert.FromBase64String(compressedText);
+            using MemoryStream msi = new(bytes);
+            using MemoryStream mso = new();
+            using (GZipStream gs = new(msi, CompressionMode.Decompress))
             {
                gs.CopyTo(mso);
             }
