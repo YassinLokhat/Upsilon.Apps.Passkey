@@ -119,10 +119,10 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          _ = File.Exists(autoSaveFile).Should().BeFalse();
 
-         _ = databaseLoaded.Warnings.Should().NotBeEmpty();
-
          UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
          UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+
+         _ = databaseLoaded.Warnings.Should().NotBeEmpty();
 
          // Finaly
          databaseLoaded.Close();
@@ -195,7 +195,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
-         _ = databaseLoaded.Warnings.Should().NotBeEmpty();
          _ = warnings.Should().BeEmpty();
 
          // When
@@ -223,10 +222,11 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          _ = databaseLoaded.User.Passkeys.Should().BeEquivalentTo(newPasskeys);
          _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
-         _ = databaseLoaded.Warnings.Should().NotBeEmpty();
 
          UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
          UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+
+         _ = databaseLoaded.Warnings.Should().NotBeEmpty();
 
          // Finaly
          databaseLoaded.Close();

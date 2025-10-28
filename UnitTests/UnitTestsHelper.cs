@@ -139,6 +139,11 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
       public static void LastLogWarningsShouldMatch(IDatabase database, string[] expectedLogs)
       {
+         while (database.Warnings == null)
+         {
+            Thread.Sleep(200);
+         }
+
          IWarning logWarning = database.Warnings.First(x => x.WarningType == WarningType.LogReviewWarning);
 
          string[] actualLogs = logWarning.Logs
