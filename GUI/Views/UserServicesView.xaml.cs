@@ -88,5 +88,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          MainViewModel.Database?.Close();
       }
+
+      private void _services_LB_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+      {
+         _ = MainViewModel.User.ItemId;
+      }
    }
 }
