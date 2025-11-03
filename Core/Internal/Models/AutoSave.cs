@@ -40,13 +40,29 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private void _addChange(string itemId, string itemName, string containerName, string fieldName, string value, string readableValue, bool needsReview, Change.Type action)
       {
-         Changes.Enqueue(new Change
+         Queue<Change> changes = new();
+
+         while (Changes.Count != 0)
+         {
+            Change change = Changes.Dequeue();
+            
+            if (change.ItemId != itemId
+               || change.FieldName != fieldName
+               || change.ActionType != action)
+            {
+               changes.Enqueue(change);
+            }
+         }
+
+         changes.Enqueue(new Change
          {
             ActionType = action,
             ItemId = itemId,
             FieldName = fieldName,
             Value = value,
          });
+
+         Changes = changes;
 
          if (Database.AutoSaveFileLocker == null)
          {
