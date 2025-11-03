@@ -9,6 +9,11 @@
              mc:Ignorable="d" d:DesignHeight="49.315" d:DesignWidth="80.658">
     <GroupBox Header="{Binding ServiceId}">
         <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -19,6 +24,20 @@
             <TextBox Grid.Row="0"
                      Grid.Column="1"
                      Text="{Binding ServiceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <Label Grid.Row="1"
+                   Grid.Column="0"
+                   Content="Url : "/>
+            <TextBox Grid.Row="1"
+                     Grid.Column="1"
+                     Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <Label Grid.Row="2"
+                   Grid.Column="0"
+                   Content="Notes : "/>
+            <TextBox Grid.Row="2"
+                     Grid.Column="1"
+                     Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     AcceptsReturn="True"
+                     AcceptsTab="True"/>
         </Grid>
     </GroupBox>
 </UserControl>

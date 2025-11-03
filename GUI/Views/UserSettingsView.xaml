@@ -34,12 +34,13 @@
         <StackPanel Grid.Row="1"
                     Orientation="Horizontal">
             <GroupBox Header="Credentials">
-                <StackPanel Name="_credentials">
+                <StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <Label>Username :</Label>
                         <TextBox Width="400"
                                  Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
+                    <Controls:PasswordsContainer x:Name="_passwordsContainer" />
                 </StackPanel>
             </GroupBox>
             <GroupBox Header="Settings">

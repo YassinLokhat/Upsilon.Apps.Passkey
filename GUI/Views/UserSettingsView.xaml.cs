@@ -16,14 +16,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    public partial class UserSettingsView : Window
    {
       private readonly UserSettingsViewModel _viewModel;
-      private readonly PasswordsContainer _passwordsContainer;
 
       public UserSettingsView()
       {
          InitializeComponent();
 
-         _passwordsContainer = new(MainViewModel.Database?.User?.Passkeys);
-         _ = _credentials.Children.Add(_passwordsContainer);
          _deleteUser.Visibility = (MainViewModel.Database is null || MainViewModel.Database.User is null) ? Visibility.Hidden : Visibility.Visible;
 
          DataContext = _viewModel = new UserSettingsViewModel();

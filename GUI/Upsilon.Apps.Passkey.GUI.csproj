@@ -37,6 +37,9 @@
     <None Update="raw\vidpll-sVqi93MN9TymqpQ==UGOcrUlBjHsiPMUpOVwOKjiSUBw=\vidpll-sVqi93MN9TymqpQ==UGOcrUlBjHsiPMUpOVwOKjiSUBw=.pkl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="raw\vidpll-sVqi93MN9TymqpQ==UGOcrUlBjHsiPMUpOVwOKjiSUBw=\vidpll-sVqi93MN9TymqpQ==UGOcrUlBjHsiPMUpOVwOKjiSUBw=.pks">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="raw\vidpll-sVqi93MN9TymqpQ==UGOcrUlBjHsiPMUpOVwOKjiSUBw=\vidpll-sVqi93MN9TymqpQ==UGOcrUlBjHsiPMUpOVwOKjiSUBw=.pku">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

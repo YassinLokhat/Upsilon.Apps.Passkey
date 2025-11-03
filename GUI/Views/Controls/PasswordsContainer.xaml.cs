@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using Upsilon.Apps.Passkey.GUI.ViewModels;
 
 namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 {
@@ -12,15 +13,15 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private readonly List<PasswordItem> _passwords;
 
-      public PasswordsContainer(string[]? passkeys)
+      public PasswordsContainer()
       {
          InitializeComponent();
 
          _passwords = [];
 
-         if (passkeys != null)
+         if (MainViewModel.Database?.User?.Passkeys is not null)
          {
-            foreach (string password in passkeys)
+            foreach (string password in MainViewModel.Database.User.Passkeys)
             {
                _addPassword(password);
             }

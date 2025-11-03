@@ -75,11 +75,12 @@
             <Button Grid.Row="1"
                     Grid.Column="0"
                     Content="+"/>
-            
-            <Controls:ServiceView x:Name="_service"
-                                  Grid.Row="0"
-                                  Grid.RowSpan="2"
-                                  Grid.Column="1"/>
+
+            <StackPanel Grid.Row="0"
+                        Grid.RowSpan="2"
+                        Grid.Column="1">
+                <Controls:ServiceView x:Name="_service"/>
+            </StackPanel>
         </Grid>
     </Grid>
 </Window>
