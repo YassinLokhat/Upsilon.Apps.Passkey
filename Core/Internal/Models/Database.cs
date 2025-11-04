@@ -327,21 +327,25 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          if (User is null) return;
 
-         Warning[] logWarnings = _lookAtLogWarnings();
-         Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
-         Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
-         Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
+         try
+         {
+            Warning[] logWarnings = _lookAtLogWarnings();
+            Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
+            Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
+            Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
 
-         Warnings = [..logWarnings,
+            Warnings = [..logWarnings,
                ..passwordUpdateReminderWarnings,
                ..passwordLeakedWarnings,
                ..duplicatedPasswordsWarnings];
 
-         WarningDetected?.Invoke(this, new WarningDetectedEventArgs(
-            [..User.WarningsToNotify.ContainsFlag(WarningType.LogReviewWarning) ? logWarnings : [],
+            WarningDetected?.Invoke(this, new WarningDetectedEventArgs(
+               [..User.WarningsToNotify.ContainsFlag(WarningType.LogReviewWarning) ? logWarnings : [],
                ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
                ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
                ..User.WarningsToNotify.ContainsFlag(WarningType.DuplicatedPasswordsWarning) ? duplicatedPasswordsWarnings : []]));
+         }
+         catch { }
       }
 
       private Warning[] _lookAtLogWarnings()

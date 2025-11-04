@@ -59,6 +59,9 @@ namespace Upsilon.Apps.Passkey.GUI
                autoSaveFile,
                logFile,
                "_");
+            MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
+            MainViewModel.Database.AutoSaveDetected += _database_AutoSaveDetected;
+            MainViewModel.Database.WarningDetected += _database_WarningDetected;
             _ = MainViewModel.Database.Login("a");
             _ = MainViewModel.Database.Login("b");
             _resetCredentials(resetDatabase: false);
@@ -101,6 +104,8 @@ namespace Upsilon.Apps.Passkey.GUI
                      _username_TB.Text);
 
                   MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
+                  MainViewModel.Database.AutoSaveDetected += _database_AutoSaveDetected;
+                  MainViewModel.Database.WarningDetected += _database_WarningDetected;
                }
                catch { }
 
@@ -138,6 +143,23 @@ namespace Upsilon.Apps.Passkey.GUI
          {
             _resetCredentials(resetDatabase: true);
          }
+      }
+
+      private void _database_WarningDetected(object? sender, PassKey.Core.Public.Events.WarningDetectedEventArgs e)
+      {
+         /// TODO : Pending implement
+      }
+
+      private void _database_AutoSaveDetected(object? sender, PassKey.Core.Public.Events.AutoSaveDetectedEventArgs e)
+      {
+         MessageBoxResult result = MessageBox.Show("Unsaved changes have been detected.\nClick Yes to apply these changes.\nClick No to discard them.\nClick Cancel to ignore and keep the save file.", "Autosave detected", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+
+         e.MergeBehavior = result switch
+         {
+            MessageBoxResult.Cancel => PassKey.Core.Public.Enums.AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile,
+            MessageBoxResult.No => PassKey.Core.Public.Enums.AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile,
+            _ => PassKey.Core.Public.Enums.AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile,
+         };
       }
 
       private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
