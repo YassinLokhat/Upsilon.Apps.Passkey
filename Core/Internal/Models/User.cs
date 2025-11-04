@@ -58,8 +58,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             readableValue: value.ToString());
       }
 
-      int IUser.SessionLeftTime => _sessionLeftTime;
-
       int IUser.CleaningClipboardTimeout
       {
          get => Database.Get(CleaningClipboardTimeout);
@@ -146,7 +144,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          Interval = 1000,
       };
 
-      private int _sessionLeftTime = 0;
+      public int SessionLeftTime = 0;
       private int _clipboardLeftTime = 0;
 
       public User()
@@ -158,9 +156,9 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          if (LogoutTimeout != 0)
          {
-            _sessionLeftTime--;
+            SessionLeftTime--;
 
-            if (_sessionLeftTime == 0)
+            if (SessionLeftTime == 0)
             {
                Database.Logs.AddLog($"User {Username}'s login session timeout reached", needsReview: true);
                Database.Close(logCloseEvent: true, loginTimeoutReached: true);
@@ -197,7 +195,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public void ResetTimer()
       {
-         _sessionLeftTime = LogoutTimeout * 60;
+         SessionLeftTime = LogoutTimeout * 60;
          _clipboardLeftTime = CleaningClipboardTimeout;
       }
 

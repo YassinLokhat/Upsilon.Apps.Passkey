@@ -14,7 +14,8 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       public string AutoSaveFile { get; set; }
       public string LogFile { get; set; }
 
-      IUser? IDatabase.User => User;
+      IUser? IDatabase.User => Get(User);
+      int? IDatabase.SessionLeftTime => User?.SessionLeftTime;
 
       ILog[]? IDatabase.Logs => Get(Logs.Logs);
 

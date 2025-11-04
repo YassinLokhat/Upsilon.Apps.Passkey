@@ -28,6 +28,11 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       IUser? User { get; }
 
       /// <summary>
+      /// The number of seconds left before the session ended.
+      /// </summary>
+      int? SessionLeftTime { get; }
+
+      /// <summary>
       /// The logs.
       /// </summary>
       ILog[]? Logs { get; }
