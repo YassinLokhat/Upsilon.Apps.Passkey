@@ -19,7 +19,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(ServiceName),
             needsReview: true,
             oldValue: ServiceName,
-            value: value,
+            newValue: value,
             readableValue: value);
       }
 
@@ -31,7 +31,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(Url),
             needsReview: false,
             oldValue: Url,
-            value: value,
+            newValue: value,
             readableValue: value);
       }
 
@@ -43,7 +43,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(Notes),
             needsReview: false,
             oldValue: Notes,
-            value: value,
+            newValue: value,
             readableValue: value);
       }
 
@@ -141,25 +141,25 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                switch (change.FieldName)
                {
                   case nameof(ServiceName):
-                     ServiceName = Database.SerializationCenter.Deserialize<string>(change.Value);
+                     ServiceName = Database.SerializationCenter.Deserialize<string>(change.NewValue);
                      break;
                   case nameof(Url):
-                     Url = Database.SerializationCenter.Deserialize<string>(change.Value);
+                     Url = Database.SerializationCenter.Deserialize<string>(change.NewValue);
                      break;
                   case nameof(Notes):
-                     Notes = Database.SerializationCenter.Deserialize<string>(change.Value);
+                     Notes = Database.SerializationCenter.Deserialize<string>(change.NewValue);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
             case Change.Type.Add:
-               Account accountToAdd = Database.SerializationCenter.Deserialize<Account>(change.Value);
+               Account accountToAdd = Database.SerializationCenter.Deserialize<Account>(change.NewValue);
                accountToAdd.Service = this;
                Accounts.Add(accountToAdd);
                break;
             case Change.Type.Delete:
-               Account accountToDelete = Database.SerializationCenter.Deserialize<Account>(change.Value);
+               Account accountToDelete = Database.SerializationCenter.Deserialize<Account>(change.NewValue);
                _ = Accounts.RemoveAll(x => x.ItemId == accountToDelete.ItemId);
                break;
             default:

@@ -14,55 +14,91 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public Queue<Change> Changes { get; set; } = new();
 
-      internal T UpdateValue<T>(string itemId, string itemName, string fieldName, bool needsReview, T oldValue, T value, string readableValue) where T : notnull
+      internal T UpdateValue<T>(string itemId,
+         string itemName,
+         string fieldName,
+         bool needsReview,
+         T oldValue,
+         T newValue,
+         string readableValue) where T : notnull
       {
-         if (ISerializationCenter.AreDifferent(Database.SerializationCenter, oldValue, value))
+         if (ISerializationCenter.AreDifferent(Database.SerializationCenter, oldValue, newValue))
          {
-            _addChange(itemId, itemName, string.Empty, fieldName, Database.SerializationCenter.Serialize(value), readableValue, needsReview, Change.Type.Update);
+            _addChange(itemId,
+               itemName,
+               string.Empty,
+               fieldName,
+               Database.SerializationCenter.Serialize(oldValue),
+               Database.SerializationCenter.Serialize(newValue),
+               readableValue,
+               needsReview,
+               Change.Type.Update);
          }
 
-         return value;
+         return newValue;
       }
 
-      internal T AddValue<T>(string itemId, string itemName, string containerName, bool needsReview, T value) where T : notnull
+      internal T AddValue<T>(string itemId,
+         string itemName,
+         string containerName,
+         bool needsReview,
+         T value) where T : notnull
       {
          _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, Change.Type.Add);
 
          return value;
       }
 
-      internal T DeleteValue<T>(string itemId, string itemName, string containerName, bool needsReview, T value) where T : notnull
+      internal T DeleteValue<T>(string itemId,
+         string itemName,
+         string containerName,
+         bool needsReview,
+         T value) where T : notnull
       {
          _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, Change.Type.Delete);
 
          return value;
       }
 
-      private void _addChange(string itemId, string itemName, string containerName, string fieldName, string value, string readableValue, bool needsReview, Change.Type action)
+      private void _addChange(string itemId,
+         string itemName,
+         string containerName,
+         string fieldName,
+         string newValue,
+         string readableValue,
+         bool needsReview,
+         Change.Type action)
       {
-         Queue<Change> changes = new();
+         _addChange(itemId,
+            itemName,
+            containerName,
+            fieldName,
+            null,
+            newValue,
+            readableValue,
+            needsReview,
+            action);
+      }
 
-         while (Changes.Count != 0)
+      private void _addChange(string itemId,
+         string itemName,
+         string containerName,
+         string fieldName,
+         string? oldValue,
+         string newValue,
+         string readableValue,
+         bool needsReview,
+         Change.Type action)
+      {
+         Changes.Enqueue(new Change
          {
-            Change change = Changes.Dequeue();
-            
-            if (change.ItemId != itemId
-               || change.FieldName != fieldName
-               || change.ActionType != action)
-            {
-               changes.Enqueue(change);
-            }
-         }
-
-         changes.Enqueue(new Change
-         {
+            Index = DateTime.Now.Ticks,
             ActionType = action,
             ItemId = itemId,
             FieldName = fieldName,
-            Value = value,
+            OldValue = oldValue,
+            NewValue = newValue,
          });
-
-         Changes = changes;
 
          if (Database.AutoSaveFileLocker == null)
          {
@@ -79,7 +115,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          Database.Logs.AddLog(logMessage, needsReview);
       }
 
-      internal void MergeChange()
+      internal void ApplyChanges()
       {
          while (Changes.Count != 0)
          {

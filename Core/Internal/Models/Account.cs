@@ -20,7 +20,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(Label),
             needsReview: false,
             oldValue: Label,
-            value: value,
+            newValue: value,
             readableValue: value);
       }
 
@@ -32,7 +32,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(Identifiants),
             needsReview: true,
             oldValue: Identifiants,
-            value: value,
+            newValue: value,
             readableValue: $"({string.Join(", ", value)})");
       }
 
@@ -54,7 +54,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                      fieldName: nameof(Password),
                      needsReview: true,
                      oldValue: oldPasswords,
-                     value: Passwords,
+                     newValue: Passwords,
                      readableValue: string.Empty);
                }
             }
@@ -71,7 +71,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(Notes),
             needsReview: false,
             oldValue: Notes,
-            value: value,
+            newValue: value,
             readableValue: value);
       }
 
@@ -83,7 +83,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(PasswordUpdateReminderDelay),
             needsReview: false,
             oldValue: PasswordUpdateReminderDelay,
-            value: value,
+            newValue: value,
             readableValue: value.ToString());
       }
 
@@ -95,7 +95,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(Options),
             needsReview: false,
             oldValue: Options,
-            value: value,
+            newValue: value,
             readableValue: value.ToString());
       }
 
@@ -144,23 +144,23 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                switch (change.FieldName)
                {
                   case nameof(Label):
-                     Label = Database.SerializationCenter.Deserialize<string>(change.Value);
+                     Label = Database.SerializationCenter.Deserialize<string>(change.NewValue);
                      break;
                   case nameof(Identifiants):
-                     Identifiants = Database.SerializationCenter.Deserialize<string[]>(change.Value);
+                     Identifiants = Database.SerializationCenter.Deserialize<string[]>(change.NewValue);
                      break;
                   case nameof(Notes):
-                     Notes = Database.SerializationCenter.Deserialize<string>(change.Value);
+                     Notes = Database.SerializationCenter.Deserialize<string>(change.NewValue);
                      break;
                   case nameof(Password):
-                     Passwords = Database.SerializationCenter.Deserialize<Dictionary<DateTime, string>>(change.Value);
+                     Passwords = Database.SerializationCenter.Deserialize<Dictionary<DateTime, string>>(change.NewValue);
                      Password = Passwords.Count != 0 ? Passwords[Passwords.Keys.Max()] : string.Empty;
                      break;
                   case nameof(PasswordUpdateReminderDelay):
-                     PasswordUpdateReminderDelay = Database.SerializationCenter.Deserialize<int>(change.Value);
+                     PasswordUpdateReminderDelay = Database.SerializationCenter.Deserialize<int>(change.NewValue);
                      break;
                   case nameof(Options):
-                     Options = Database.SerializationCenter.Deserialize<AccountOption>(change.Value);
+                     Options = Database.SerializationCenter.Deserialize<AccountOption>(change.NewValue);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");

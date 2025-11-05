@@ -309,7 +309,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          switch (mergeAutoSave)
          {
             case AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile:
-               AutoSave.MergeChange();
+               AutoSave.ApplyChanges();
                Logs.AddLog($"User {Username}'s autosave merged", needsReview: true);
                _save(logSaveEvent: false);
                break;

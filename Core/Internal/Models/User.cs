@@ -24,7 +24,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                fieldName: nameof(Username),
                needsReview: true,
                oldValue: Username,
-               value: value,
+               newValue: value,
                readableValue: value);
          }
       }
@@ -41,7 +41,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                fieldName: nameof(Passkeys),
                needsReview: true,
                oldValue: Passkeys,
-               value: value,
+               newValue: value,
                readableValue: string.Empty);
          }
       }
@@ -54,7 +54,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(LogoutTimeout),
             needsReview: false,
             oldValue: LogoutTimeout,
-            value: value,
+            newValue: value,
             readableValue: value.ToString());
       }
 
@@ -66,7 +66,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(CleaningClipboardTimeout),
             needsReview: false,
             oldValue: CleaningClipboardTimeout,
-            value: value,
+            newValue: value,
             readableValue: value.ToString());
       }
 
@@ -78,7 +78,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(WarningsToNotify),
             needsReview: true,
             oldValue: WarningsToNotify,
-            value: value,
+            newValue: value,
             readableValue: value.ToString());
       }
 
@@ -227,32 +227,32 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                {
                   case nameof(Username):
                      CredentialChanged = true;
-                     Username = Database.SerializationCenter.Deserialize<string>(change.Value);
+                     Username = Database.SerializationCenter.Deserialize<string>(change.NewValue);
                      break;
                   case nameof(Passkeys):
                      CredentialChanged = true;
-                     Passkeys = Database.SerializationCenter.Deserialize<string[]>(change.Value);
+                     Passkeys = Database.SerializationCenter.Deserialize<string[]>(change.NewValue);
                      break;
                   case nameof(LogoutTimeout):
-                     LogoutTimeout = Database.SerializationCenter.Deserialize<int>(change.Value);
+                     LogoutTimeout = Database.SerializationCenter.Deserialize<int>(change.NewValue);
                      break;
                   case nameof(CleaningClipboardTimeout):
-                     CleaningClipboardTimeout = Database.SerializationCenter.Deserialize<int>(change.Value);
+                     CleaningClipboardTimeout = Database.SerializationCenter.Deserialize<int>(change.NewValue);
                      break;
                   case nameof(WarningsToNotify):
-                     WarningsToNotify = Database.SerializationCenter.Deserialize<WarningType>(change.Value);
+                     WarningsToNotify = Database.SerializationCenter.Deserialize<WarningType>(change.NewValue);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
             case Change.Type.Add:
-               Service serviceToAdd = Database.SerializationCenter.Deserialize<Service>(change.Value);
+               Service serviceToAdd = Database.SerializationCenter.Deserialize<Service>(change.NewValue);
                serviceToAdd.User = this;
                Services.Add(serviceToAdd);
                break;
             case Change.Type.Delete:
-               Service serviceToDelete = Database.SerializationCenter.Deserialize<Service>(change.Value);
+               Service serviceToDelete = Database.SerializationCenter.Deserialize<Service>(change.NewValue);
                _ = Services.RemoveAll(x => x.ItemId == serviceToDelete.ItemId);
                break;
             default:
