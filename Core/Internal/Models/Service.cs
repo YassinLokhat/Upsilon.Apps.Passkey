@@ -8,6 +8,9 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       #region IService interface explicit Internal
 
       string IItem.ItemId => Database.Get(ItemId);
+
+      IDatabase IItem.Database => Database;
+
       IUser IService.User => Database.Get(User);
       IAccount[] IService.Accounts => [.. Database.Get(Accounts)];
 

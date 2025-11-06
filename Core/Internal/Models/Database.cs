@@ -91,6 +91,16 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public void Close() => Dispose();
 
+      public bool HasChanged(string itemId)
+      {
+         return AutoSave.Changes.Any(x => x.Key.StartsWith(itemId));
+      }
+
+      public bool HasChanged(string itemId, string fieldName)
+      {
+         return AutoSave.Changes.Any(x => x.Key == $"{itemId}\t{fieldName}");
+      }
+
       #endregion
 
       internal User? User;

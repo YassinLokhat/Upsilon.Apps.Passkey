@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 using Upsilon.Apps.PassKey.Core.Public.Enums;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
@@ -38,6 +39,9 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)}) has been added to Service {service.ServiceName}");
 
          // Then
+         databaseCreated.User.HasChanged().Should().BeTrue();
+         service.HasChanged().Should().BeTrue();
+         account.HasChanged().Should().BeFalse();
          _ = service.Accounts.Length.Should().Be(1);
          _ = account.Label.Should().Be(oldAccountLabel);
          _ = account.Identifiants.Should().BeEquivalentTo(oldIdentifiants);
@@ -65,6 +69,19 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          account.Options = options;
          expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiants)})'s options has been set to {options}");
 
+         // Then
+         databaseCreated.User.HasChanged().Should().BeTrue();
+         service.HasChanged().Should().BeTrue();
+         service.HasChanged().Should().BeTrue();
+         account.HasChanged().Should().BeTrue();
+         account.HasChanged(nameof(account.Label)).Should().BeTrue();
+         account.HasChanged(nameof(account.Identifiants)).Should().BeTrue();
+         account.HasChanged(nameof(account.Password)).Should().BeTrue();
+         account.HasChanged(nameof(account.Notes)).Should().BeTrue();
+         account.HasChanged(nameof(account.PasswordUpdateReminderDelay)).Should().BeTrue();
+         account.HasChanged(nameof(account.Options)).Should().BeTrue();
+
+         // When
          databaseCreated.Save();
          expectedLogs.Push($"Information : User {username}'s database saved");
          databaseCreated.Close();

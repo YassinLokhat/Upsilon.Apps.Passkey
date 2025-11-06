@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 using Upsilon.Apps.PassKey.Core.Public.Enums;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
@@ -32,6 +33,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          expectedLogs.Push($"Information : Service {oldServiceName} has been added to User {username}");
 
          // Then
+         databaseCreated.User.HasChanged().Should().BeTrue();
+         service.HasChanged().Should().BeFalse();
          _ = databaseCreated.User.Services.Length.Should().Be(1);
 
          // When
@@ -46,6 +49,14 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          service.Notes = notes;
          expectedLogs.Push($"Information : Service {newServiceName}'s notes has been set to {notes}");
 
+         // Then
+         databaseCreated.User.HasChanged().Should().BeTrue();
+         service.HasChanged().Should().BeTrue();
+         service.HasChanged(nameof(service.ServiceName)).Should().BeTrue();
+         service.HasChanged(nameof(service.Url)).Should().BeTrue();
+         service.HasChanged(nameof(service.Notes)).Should().BeTrue();
+
+         // When
          databaseCreated.Save();
          expectedLogs.Push($"Information : User {username}'s database saved");
          databaseCreated.Close();

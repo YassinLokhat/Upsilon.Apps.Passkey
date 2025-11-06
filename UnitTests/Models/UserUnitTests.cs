@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Upsilon.Apps.PassKey.Core.Public.Enums;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 
 namespace Upsilon.Apps.PassKey.UnitTests.Models
 {
@@ -31,6 +32,15 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          databaseLoaded.User.Passkeys = newPasskeys;
          databaseLoaded.User.LogoutTimeout = logoutTimeout;
          databaseLoaded.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
+
+         // Then
+         databaseLoaded.User.HasChanged().Should().BeTrue();
+         databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.Username)).Should().BeTrue();
+         databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.Passkeys)).Should().BeTrue();
+         databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.LogoutTimeout)).Should().BeTrue();
+         databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.CleaningClipboardTimeout)).Should().BeTrue();
+
+         // When
          databaseLoaded.Close();
 
          // Then

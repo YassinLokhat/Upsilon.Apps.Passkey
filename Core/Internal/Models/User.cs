@@ -10,6 +10,9 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       #region IUser interface explicit Internal
 
       string IItem.ItemId => Database.Get(ItemId);
+
+      IDatabase IItem.Database => Database;
+
       IService[] IUser.Services => [.. Database.Get(Services)];
 
       string IUser.Username

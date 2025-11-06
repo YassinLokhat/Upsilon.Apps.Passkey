@@ -102,6 +102,21 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       void Close();
 
       /// <summary>
+      /// Check if the given item has changed.
+      /// </summary>
+      /// <param name="itemId">The item id to check.</param>
+      /// <returns>True if the item changed, False else.</returns>
+      bool HasChanged(string itemId);
+
+      /// <summary>
+      /// Check if the field of the given item has changed.
+      /// </summary>
+      /// <param name="itemId">The item id to check.</param>
+      /// <param name="fieldName">The field name to check.</param>
+      /// <returns>True if the field changed, False else.</returns>
+      bool HasChanged(string itemId, string fieldName);
+
+      /// <summary>
       /// Create a new user database and returns the database.
       /// After creating, the User should be loaded with the Login method.
       /// </summary>
