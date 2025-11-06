@@ -268,6 +268,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                {
                   logoutLog += " without saving";
                }
+               else
+               {
+                  AutoSave.Clear();
+               }
 
                Logs.AddLog(logoutLog, needsReview);
             }

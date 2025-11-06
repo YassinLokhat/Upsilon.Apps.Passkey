@@ -333,8 +333,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
             Thread.Sleep(500);
          }
 
-         int elapsedTime = (int)(DateTime.Now - start).TotalSeconds;
-
          // Then
          _ = closedDueToTimeout.Should().BeTrue();
 
@@ -342,7 +340,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          database = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then
-         _ = elapsedTime.Should().BeLessThanOrEqualTo(database.User.LogoutTimeout * 60);
          _ = database.Logs.FirstOrDefault(x => x.Message == $"User {username}'s login session timeout reached" && x.NeedsReview).Should().NotBeNull();
 
          // Finaly

@@ -52,6 +52,8 @@ namespace Upsilon.Apps.Passkey.GUI
             string autoSaveFile = Path.GetFullPath($"raw/{filename}/{filename}.pks");
             string logFile = Path.GetFullPath($"raw/{filename}/{filename}.pkl");
 
+            Hide();
+
             MainViewModel.Database = IDatabase.Open(MainViewModel.CryptographyCenter,
                MainViewModel.SerializationCenter,
                MainViewModel.PasswordFactory,
@@ -67,7 +69,10 @@ namespace Upsilon.Apps.Passkey.GUI
             _resetCredentials(resetDatabase: false);
             UserServicesView.ShowUser(this);
          }
-         catch { }
+         catch
+         {
+            MainViewModel.Database?.Close();
+         }
       }
 
       private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -128,6 +133,8 @@ namespace Upsilon.Apps.Passkey.GUI
 
                   if (MainViewModel.Database.User is not null)
                   {
+                     Hide();
+
                      _resetCredentials(resetDatabase: false);
 
                      UserServicesView.ShowUser(this);
@@ -165,6 +172,7 @@ namespace Upsilon.Apps.Passkey.GUI
       private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
       {
          _resetCredentials(resetDatabase: true);
+         Show();
       }
 
       private void _resetCredentials(bool resetDatabase)
