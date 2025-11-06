@@ -81,7 +81,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
       public void GenerateRandomKeys(out string publicKey, out string privateKey)
       {
-         using var rsa = RSA.Create(4096);
+         using RSA rsa = RSA.Create(4096);
 
          privateKey = rsa.ExportRSAPrivateKeyPem();
          publicKey = rsa.ExportRSAPublicKeyPem();
@@ -243,7 +243,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
 
       private static string _encryptRsa(string source, string publicKeyPem)
       {
-         using var rsa = RSA.Create();
+         using RSA rsa = RSA.Create();
          rsa.ImportFromPem(publicKeyPem);
 
          byte[] bytesPlainTextData = Encoding.Unicode.GetBytes(source);
@@ -258,7 +258,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
       {
          try
          {
-            using var rsa = RSA.Create();
+            using RSA rsa = RSA.Create();
             rsa.ImportFromPem(privateKeyPem);
 
             byte[] bytesCypherText = Convert.FromBase64String(source);

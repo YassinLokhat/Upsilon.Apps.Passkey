@@ -11,7 +11,9 @@ namespace Upsilon.Apps.Passkey.GUI.Themes
          nint hwnd = new WindowInteropHelper(window).Handle;
 
          if (hwnd == IntPtr.Zero)
+         {
             return;
+         }
 
          int attribute = 20; // DWMWA_USE_IMMERSIVE_DARK_MODE
          int useImmersiveDarkMode = 1;

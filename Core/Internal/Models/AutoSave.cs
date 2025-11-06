@@ -134,7 +134,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             return;
          }
 
-         Changes[changeKey].Remove(lastUpdate);
+         _ = Changes[changeKey].Remove(lastUpdate);
          currentChange.OldValue = lastUpdate.OldValue;
 
          if (currentChange.OldValue != currentChange.NewValue)
@@ -143,13 +143,13 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          }
          else if (Changes[changeKey].Count == 0)
          {
-            Changes.Remove(changeKey);
+            _ = Changes.Remove(changeKey);
          }
       }
 
       internal void ApplyChanges()
       {
-         var changes = Changes.Values.SelectMany(x => x).OrderBy(x => x.Index).ToList();
+         List<Change> changes = Changes.Values.SelectMany(x => x).OrderBy(x => x.Index).ToList();
 
          foreach (Change change in changes)
          {

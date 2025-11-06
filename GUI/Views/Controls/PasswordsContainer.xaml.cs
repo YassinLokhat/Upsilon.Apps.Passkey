@@ -36,7 +36,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       {
          if (sender is not PasswordItem passwordItem
             || _passwords.Count == 1)
+         {
             return;
+         }
 
          int index = passwordItem.ViewModel.Index;
          _stackPanel.Children.Remove(passwordItem);
@@ -52,7 +54,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       {
          if (sender is not PasswordItem passwordItem
             || passwordItem.ViewModel.Index == 0)
+         {
             return;
+         }
 
          _movePassword(passwordItem, passwordItem.ViewModel.Index - 1);
       }
@@ -61,7 +65,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       {
          if (sender is not PasswordItem passwordItem
             || passwordItem.ViewModel.Index == _passwords.Count - 1)
+         {
             return;
+         }
 
          _movePassword(passwordItem, passwordItem.ViewModel.Index + 1);
       }

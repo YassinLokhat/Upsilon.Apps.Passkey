@@ -91,7 +91,10 @@ namespace Upsilon.Apps.Passkey.GUI
          {
             if (sender == _username_TB)
             {
-               if (string.IsNullOrEmpty(_username_TB.Text)) return;
+               if (string.IsNullOrEmpty(_username_TB.Text))
+               {
+                  return;
+               }
 
                string filename = MainViewModel.CryptographyCenter.GetHash(_username_TB.Text);
                string databaseFile = Path.GetFullPath($"raw/{filename}/{filename}.pku");
@@ -125,7 +128,10 @@ namespace Upsilon.Apps.Passkey.GUI
             }
             else
             {
-               if (string.IsNullOrEmpty(_password_PB.Password)) return;
+               if (string.IsNullOrEmpty(_password_PB.Password))
+               {
+                  return;
+               }
 
                if (MainViewModel.Database is not null)
                {

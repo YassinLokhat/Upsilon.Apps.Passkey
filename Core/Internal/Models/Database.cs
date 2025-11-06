@@ -247,7 +247,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
          Username = User.Username;
-         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x))];
+         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(CryptographyCenter.GetSlowHash)];
          DatabaseFileLocker.Save(User, Passkeys);
 
          Logs.Username = Username;
