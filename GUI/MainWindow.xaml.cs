@@ -67,7 +67,14 @@ namespace Upsilon.Apps.Passkey.GUI
             _ = MainViewModel.Database.Login("a");
             _ = MainViewModel.Database.Login("b");
             _resetCredentials(resetDatabase: false);
-            UserServicesView.ShowUser(this);
+            if (!UserServicesView.ShowUser(this))
+            {
+               Close();
+            }
+            else
+            {
+               Show();
+            }
          }
          catch
          {
@@ -143,7 +150,14 @@ namespace Upsilon.Apps.Passkey.GUI
 
                      _resetCredentials(resetDatabase: false);
 
-                     UserServicesView.ShowUser(this);
+                     if (!UserServicesView.ShowUser(this))
+                     {
+                        Close();
+                     }
+                     else
+                     {
+                        Show();
+                     }
                   }
                }
             }
@@ -178,7 +192,6 @@ namespace Upsilon.Apps.Passkey.GUI
       private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
       {
          _resetCredentials(resetDatabase: true);
-         Show();
       }
 
       private void _resetCredentials(bool resetDatabase)

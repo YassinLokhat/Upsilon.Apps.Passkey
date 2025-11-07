@@ -71,7 +71,15 @@
                      Grid.Column="0"
                      Name="_services_LB"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     SelectionChanged="_services_LB_SelectionChanged"/>
+                     SelectionChanged="_services_LB_SelectionChanged">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Label Margin="0"
+                               Content="{Binding ServiceDisplay}"
+                               Background="{Binding ServiceDisplayBackground}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
             <Button Grid.Row="1"
                     Grid.Column="0"
                     Content="+"/>

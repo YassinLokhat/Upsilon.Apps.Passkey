@@ -9,12 +9,16 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
    {
       private readonly IService _service = service;
 
-      private static Brush _unchangedBrush => new SolidColorBrush(Color.FromRgb(0x2D, 0x2D, 0x30));
+      private static Brush _unchangedBrush1 => new SolidColorBrush(Color.FromRgb(0x1E, 0x1E, 0x1E));
+      private static Brush _unchangedBrush2 => new SolidColorBrush(Color.FromRgb(0x2D, 0x2D, 0x30));
       private static Brush _changedBrush => new SolidColorBrush(Color.FromRgb(0x60, 0x60, 0x60));
+
+      public string ServiceDisplay => $"{(_service.HasChanged() ? "* " : string.Empty)}{_service}";
+      public Brush ServiceDisplayBackground => _service.HasChanged() ? _changedBrush : _unchangedBrush1;
 
       public string ServiceId => $"Service Id : {_service.ItemId.Replace(_service.User.ItemId, string.Empty)}";
 
-      public Brush ServiceNameBackground => _service.HasChanged(nameof(ServiceName)) ? _changedBrush : _unchangedBrush;
+      public Brush ServiceNameBackground => _service.HasChanged(nameof(ServiceName)) ? _changedBrush : _unchangedBrush2;
       public string ServiceName
       {
          get => _service.ServiceName;
@@ -24,12 +28,11 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             {
                _service.ServiceName = value;
                OnPropertyChanged(nameof(ServiceName));
-               OnPropertyChanged(nameof(ServiceNameBackground));
             }
          }
       }
 
-      public Brush UrlBackground => _service.HasChanged(nameof(Url)) ? _changedBrush : _unchangedBrush;
+      public Brush UrlBackground => _service.HasChanged(nameof(Url)) ? _changedBrush : _unchangedBrush2;
       public string Url
       {
          get => _service.Url;
@@ -39,12 +42,11 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             {
                _service.Url = value;
                OnPropertyChanged(nameof(Url));
-               OnPropertyChanged(nameof(UrlBackground));
             }
          }
       }
 
-      public Brush NotesBackground => _service.HasChanged(nameof(Notes)) ? _changedBrush : _unchangedBrush;
+      public Brush NotesBackground => _service.HasChanged(nameof(Notes)) ? _changedBrush : _unchangedBrush2;
       public string Notes
       {
          get => _service.Notes;
@@ -54,7 +56,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             {
                _service.Notes = value;
                OnPropertyChanged(nameof(Notes));
-               OnPropertyChanged(nameof(NotesBackground));
             }
          }
       }
@@ -64,6 +65,9 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       protected virtual void OnPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplay)));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplayBackground)));
       }
    }
 }

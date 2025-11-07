@@ -3,7 +3,6 @@ using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
@@ -29,7 +28,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          Title = _title = $"{MainViewModel.AppTitle} - User '{MainViewModel.User.Username}'";
 
-         _services_LB.ItemsSource = MainViewModel.User.Services;
+         _services_LB.ItemsSource = MainViewModel.User.Services.Select(x => new ServiceViewModel(x));
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          _timer.Tick += _timer_Elapsed;
@@ -68,13 +67,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          Title = title;
       }
 
-      public static void ShowUser(Window owner)
+      public static bool ShowUser(Window owner)
       {
-         _ = new UserServicesView()
+         return new UserServicesView()
          {
             Owner = owner,
          }
-         .ShowDialog();
+         .ShowDialog()
+         ?? true;
       }
 
       private void _userServicesView_Loaded(object sender, RoutedEventArgs e)
@@ -94,7 +94,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _logout_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         _window_Closed(this, e);
+         DialogResult = true;
       }
 
       private void _window_Closed(object sender, EventArgs e)
@@ -107,7 +107,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _services_LB_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
       {
          _ = MainViewModel.User.ItemId;
-         _service.DataContext = new ServiceViewModel((IService)_services_LB.SelectedItem);
+         _service.DataContext = (ServiceViewModel)_services_LB.SelectedItem;
       }
    }
 }
