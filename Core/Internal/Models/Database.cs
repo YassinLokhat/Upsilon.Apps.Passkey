@@ -91,6 +91,13 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public void Close() => Dispose();
 
+      public bool HasChanged()
+      {
+         if (User is null) return false;
+
+         return HasChanged(User.ItemId);
+      }
+
       public bool HasChanged(string itemId)
       {
          return AutoSave.Changes.Any(x => x.Key.StartsWith(itemId));
