@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using Upsilon.Apps.Passkey.GUI.Helper;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
@@ -10,98 +11,49 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       public string Username
       {
          get => _username;
-         set
-         {
-            if (_username != value)
-            {
-               _username = value;
-               OnPropertyChanged(nameof(Username));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _username, value, this, PropertyChanged);
       }
 
       private int _logoutTimeout = 5;
       public int LogoutTimeout
       {
          get => _logoutTimeout;
-         set
-         {
-            if (_logoutTimeout != value)
-            {
-               _logoutTimeout = value;
-               OnPropertyChanged(nameof(LogoutTimeout));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _logoutTimeout, value, this, PropertyChanged);
       }
 
       private int _cleaningClipboardTimeout = 30;
       public int CleaningClipboardTimeout
       {
          get => _cleaningClipboardTimeout;
-         set
-         {
-            if (_cleaningClipboardTimeout != value)
-            {
-               _cleaningClipboardTimeout = value;
-               OnPropertyChanged(nameof(CleaningClipboardTimeout));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _cleaningClipboardTimeout, value, this, PropertyChanged);
       }
 
       private bool _notifyLogReview = true;
       public bool NotifyLogReview
       {
          get => _notifyLogReview;
-         set
-         {
-            if (_notifyLogReview != value)
-            {
-               _notifyLogReview = value;
-               OnPropertyChanged(nameof(NotifyLogReview));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _notifyLogReview, value, this, PropertyChanged);
       }
 
       private bool _notifyPasswordUpdateReminder = true;
       public bool NotifyPasswordUpdateReminder
       {
          get => _notifyPasswordUpdateReminder;
-         set
-         {
-            if (_notifyPasswordUpdateReminder != value)
-            {
-               _notifyPasswordUpdateReminder = value;
-               OnPropertyChanged(nameof(NotifyPasswordUpdateReminder));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _notifyPasswordUpdateReminder, value, this, PropertyChanged);
       }
 
       private bool _notifyDuplicatedPasswords = true;
       public bool NotifyDuplicatedPasswords
       {
          get => _notifyDuplicatedPasswords;
-         set
-         {
-            if (_notifyDuplicatedPasswords != value)
-            {
-               _notifyDuplicatedPasswords = value;
-               OnPropertyChanged(nameof(NotifyDuplicatedPasswords));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _notifyDuplicatedPasswords, value, this, PropertyChanged);
       }
 
       private bool _notifyPasswordLeaked = true;
       public bool NotifyPasswordLeaked
       {
          get => _notifyPasswordLeaked;
-         set
-         {
-            if (_notifyPasswordLeaked != value)
-            {
-               _notifyPasswordLeaked = value;
-               OnPropertyChanged(nameof(NotifyPasswordLeaked));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _notifyPasswordLeaked, value, this, PropertyChanged);
       }
 
 

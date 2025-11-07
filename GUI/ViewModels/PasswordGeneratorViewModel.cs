@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text;
+using Upsilon.Apps.Passkey.GUI.Helper;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
@@ -40,14 +41,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       public string GeneratedPassword
       {
          get => _generatedPassword;
-         set
-         {
-            if (_generatedPassword != value)
-            {
-               _generatedPassword = value;
-               OnPropertyChanged(nameof(GeneratedPassword));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _generatedPassword, value, this, PropertyChanged);
       }
 
       private bool _includeNumerics = true;

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Windows;
+using Upsilon.Apps.Passkey.GUI.Helper;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
@@ -9,56 +10,28 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       public string Password
       {
          get => _password;
-         set
-         {
-            if (_password != value)
-            {
-               _password = value;
-               OnPropertyChanged(nameof(Password));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _password, value, this, PropertyChanged);
       }
 
       private Visibility _passwordVisibility = Visibility.Visible;
       public Visibility PasswordVisibility
       {
          get => _passwordVisibility;
-         set
-         {
-            if (_passwordVisibility != value)
-            {
-               _passwordVisibility = value;
-               OnPropertyChanged(nameof(PasswordVisibility));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _passwordVisibility, value, this, PropertyChanged);
       }
 
       private Visibility _textVisibility = Visibility.Hidden;
       public Visibility TextVisibility
       {
          get => _textVisibility;
-         set
-         {
-            if (_textVisibility != value)
-            {
-               _textVisibility = value;
-               OnPropertyChanged(nameof(TextVisibility));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _textVisibility, value, this, PropertyChanged);
       }
 
       private Visibility _buttonVisibility = Visibility.Visible;
       public Visibility ButtonVisibility
       {
          get => _buttonVisibility;
-         set
-         {
-            if (_buttonVisibility != value)
-            {
-               _buttonVisibility = value;
-               OnPropertyChanged(nameof(ButtonVisibility));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _buttonVisibility, value, this, PropertyChanged);
       }
 
       public bool PasswordIsVisible => PasswordVisibility == System.Windows.Visibility.Hidden;

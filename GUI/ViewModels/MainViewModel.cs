@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 using Upsilon.Apps.PassKey.Core.Public.Utils;
 
@@ -29,14 +31,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       public string Label
       {
          get => _label;
-         set
-         {
-            if (_label != value)
-            {
-               _label = value;
-               OnPropertyChanged(nameof(Label));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _label, value, this, PropertyChanged);
       }
 
       public event PropertyChangedEventHandler? PropertyChanged;

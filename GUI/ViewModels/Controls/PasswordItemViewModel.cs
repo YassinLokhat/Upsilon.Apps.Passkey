@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using Upsilon.Apps.Passkey.GUI.Helper;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
@@ -8,28 +9,14 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       public int Index
       {
          get => _index;
-         set
-         {
-            if (_index != value)
-            {
-               _index = value;
-               OnPropertyChanged(nameof(Index));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _index, value, this, PropertyChanged);
       }
 
       private string _password = string.Empty;
       public string Password
       {
          get => _password;
-         set
-         {
-            if (_password != value)
-            {
-               _password = value;
-               OnPropertyChanged(nameof(Password));
-            }
-         }
+         set => PropertyHelper.SetProperty(ref _password, value, this, PropertyChanged);
       }
 
       public event PropertyChangedEventHandler? PropertyChanged;
