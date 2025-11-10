@@ -56,6 +56,12 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          set => PropertyHelper.SetProperty(ref _notifyPasswordLeaked, value, this, PropertyChanged);
       }
 
+      private bool _isEnabled = true;
+      public bool IsEnabled
+      {
+         get => _isEnabled;
+         set => PropertyHelper.SetProperty(ref _isEnabled, value, this, PropertyChanged);
+      }
 
       public event PropertyChangedEventHandler? PropertyChanged;
 

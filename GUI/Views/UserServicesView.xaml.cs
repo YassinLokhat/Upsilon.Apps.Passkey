@@ -12,9 +12,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    /// </summary>
    public partial class UserServicesView : Window
    {
-      private readonly DispatcherTimer _timer;
-      private readonly string _title;
-      private ObservableCollection<ServiceViewModel> _services;
+      private readonly UserServicesViewModel _viewModel;
+      private readonly ObservableCollection<ServiceViewModel> _services;
 
       private UserServicesView()
       {
@@ -22,26 +21,17 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          if (MainViewModel.Database is null) throw new NullReferenceException(nameof(MainViewModel.Database));
 
-         _timer = new()
-         {
-            Interval = new TimeSpan(0, 0, 1),
-            IsEnabled = true,
-         };
-
-         Title = _title = $"{MainViewModel.AppTitle} - User '{MainViewModel.User.Username}'";
+         DataContext = _viewModel = new($"{MainViewModel.AppTitle} - User '{MainViewModel.User.Username}'");
 
          _services = [.. MainViewModel.User.Services.OrderBy(x => x.ServiceName).Select(x => new ServiceViewModel(x))];
          _services_LB.ItemsSource = _services;
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
-         _timer.Tick += _timer_Elapsed;
          Loaded += _userServicesView_Loaded;
       }
 
       private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
       {
-         _timer.Stop();
-
          try
          {
             Dispatcher.Invoke(() =>
@@ -50,24 +40,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             });
          }
          catch { }
-      }
-
-      private void _timer_Elapsed(object? sender, EventArgs e)
-      {
-         string title = _title;
-
-         if (MainViewModel.Database is not null)
-         {
-            if (MainViewModel.Database.HasChanged())
-            {
-               title += " - *";
-            }
-
-            int sessionLeftTime = MainViewModel.Database.SessionLeftTime ?? 0;
-            title += $" - Left session time : {sessionLeftTime / 60:D2}:{sessionLeftTime % 60:D2}";
-         }
-
-         Title = title;
       }
 
       public static bool ShowUser(Window owner)
@@ -115,16 +87,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         IsEnabled = false;
+         _viewModel.IsEnabled = false;
 
-         Task.Run(() => 
+         _ = Task.Run(() =>
          {
             MainViewModel.Database?.Save();
 
-            Dispatcher.Invoke(() =>
-            {
-               IsEnabled = true;
-            });
+            _viewModel.IsEnabled = true;
          });
       }
    }

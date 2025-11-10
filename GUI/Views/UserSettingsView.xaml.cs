@@ -239,7 +239,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       {
          IsEnabled = false;
 
-         Task.Run(_save);
+         _ = Task.Run(_save);
       }
 
       private static bool _credentialsChanged(string oldFileName, string[] oldPasskeys, string newFilename, string[] newPasskeys)

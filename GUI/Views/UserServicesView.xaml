@@ -4,10 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.Views"
+        xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.ViewModels"
+        d:DataContext="{d:DesignInstance Type=viewmodels:UserServicesViewModel}"
         mc:Ignorable="d"
         WindowState="Maximized"
         WindowStartupLocation="CenterScreen"
-        Closed="_window_Closed">
+        Closed="_window_Closed"
+        Title="{Binding Title}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -21,14 +24,20 @@
                     </ItemsPanelTemplate>
                 </Menu.ItemsPanel>
                 <MenuItem Header="_Save"
+                          IsEnabled="{Binding IsEnabled}"
                           Click="_save_MenuItem_Click"/>
                 <MenuItem Header="_User settings"
+                          IsEnabled="{Binding IsEnabled}"
                           Click="_userSettings_MenuItem_Click"/>
                 <MenuItem Header="_Generate random Password"
+                          IsEnabled="{Binding IsEnabled}"
                           Click="_generateRandomPassword_MenuItem_Click"/>
-                <MenuItem Header="_Show warnings"/>
-                <MenuItem Header="_Show logs"/>
+                <MenuItem Header="_Show warnings"
+                          IsEnabled="{Binding IsEnabled}"/>
+                <MenuItem Header="_Show logs"
+                          IsEnabled="{Binding IsEnabled}"/>
                 <MenuItem Header="_Logout"
+                          IsEnabled="{Binding IsEnabled}"
                           HorizontalAlignment="Right"
                           Click="_logout_MenuItem_Click"/>
             </Menu>
@@ -76,6 +85,7 @@
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Label Margin="0"
+                               IsEnabled="{Binding IsEnabled}"
                                Content="{Binding ServiceDisplay}"
                                Background="{Binding ServiceDisplayBackground}"/>
                     </DataTemplate>
@@ -83,12 +93,14 @@
             </ListBox>
             <Button Grid.Row="1"
                     Grid.Column="0"
+                    IsEnabled="{Binding IsEnabled}"
                     Content="+"/>
 
             <StackPanel Grid.Row="0"
                         Grid.RowSpan="2"
                         Grid.Column="1">
-                <Controls:ServiceView x:Name="_service_SV"/>
+                <Controls:ServiceView x:Name="_service_SV"
+                                      IsEnabled="{Binding IsEnabled}"/>
             </StackPanel>
         </Grid>
     </Grid>

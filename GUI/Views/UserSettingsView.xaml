@@ -24,8 +24,10 @@
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
             <MenuItem Header="_Save"
+                      IsEnabled="{Binding IsEnabled}"
                       Click="_save_MenuItem_Click"/>
             <MenuItem Name="_deleteUser"
+                      IsEnabled="{Binding IsEnabled}"
                       Header="_Delete User"
                       HorizontalAlignment="Right"
                       Click="_deleteUser_MenuItem_Click"/>
@@ -38,9 +40,11 @@
                     <StackPanel Orientation="Horizontal">
                         <Label>Username :</Label>
                         <TextBox Width="400"
+                                 IsEnabled="{Binding IsEnabled}"
                                  Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
-                    <Controls:PasswordsContainer x:Name="_passwordsContainer" />
+                    <Controls:PasswordsContainer x:Name="_passwordsContainer"
+                                                 IsEnabled="{Binding IsEnabled}"/>
                 </StackPanel>
             </GroupBox>
             <GroupBox Header="Settings">
@@ -48,6 +52,7 @@
                     <StackPanel Orientation="Horizontal">
                         <Label Margin="0">Log out after</Label>
                         <TextBox Width="25"
+                                 IsEnabled="{Binding IsEnabled}"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
@@ -58,6 +63,7 @@
                     <StackPanel Orientation="Horizontal">
                         <Label Margin="0">Clean any passwords in clipboard every</Label>
                         <TextBox Width="35"
+                                 IsEnabled="{Binding IsEnabled}"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
@@ -68,10 +74,18 @@
                     <Label>* Put '0' value to disable the option.</Label>
                     <GroupBox Header="Warnings">
                         <StackPanel>
-                            <CheckBox IsChecked="{Binding NotifyLogReview}">Notify Log Review</CheckBox>
-                            <CheckBox IsChecked="{Binding NotifyDuplicatedPasswords}">Notify Duplicated Passwords</CheckBox>
-                            <CheckBox IsChecked="{Binding NotifyPasswordUpdateReminder}">Notify Password Update Reminder</CheckBox>
-                            <CheckBox IsChecked="{Binding NotifyPasswordLeaked}">Notify Password Leaked</CheckBox>
+                            <CheckBox
+                                IsEnabled="{Binding IsEnabled}"
+                                IsChecked="{Binding NotifyLogReview}">Notify Log Review</CheckBox>
+                            <CheckBox
+                                IsEnabled="{Binding IsEnabled}"
+                                IsChecked="{Binding NotifyDuplicatedPasswords}">Notify Duplicated Passwords</CheckBox>
+                            <CheckBox
+                                IsEnabled="{Binding IsEnabled}"
+                                IsChecked="{Binding NotifyPasswordUpdateReminder}">Notify Password Update Reminder</CheckBox>
+                            <CheckBox
+                                IsEnabled="{Binding IsEnabled}"
+                                IsChecked="{Binding NotifyPasswordLeaked}">Notify Password Leaked</CheckBox>
                         </StackPanel>
                     </GroupBox>
                 </StackPanel>
