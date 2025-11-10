@@ -156,17 +156,24 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             Database.User?.Apply(change);
          }
 
-         Clear();
+         Clear(deleteFile: true);
       }
 
-      internal void Clear()
+      internal bool Any() => Any(string.Empty);
+
+      internal bool Any(string itemId) => Changes.Any(x => x.Key.StartsWith(itemId));
+
+      internal bool Any(string itemId, string fieldName) => Changes.Any(x => x.Key == $"{itemId}\t{fieldName}");
+
+      internal void Clear(bool deleteFile)
       {
          Changes.Clear();
 
          Database.AutoSaveFileLocker?.Dispose();
          Database.AutoSaveFileLocker = null;
 
-         if (File.Exists(Database.AutoSaveFile))
+         if (deleteFile
+            && File.Exists(Database.AutoSaveFile))
          {
             File.Delete(Database.AutoSaveFile);
          }

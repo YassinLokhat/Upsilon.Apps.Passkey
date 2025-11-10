@@ -91,22 +91,11 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public void Close() => Dispose();
 
-      public bool HasChanged()
-      {
-         if (User is null) return false;
+      public bool HasChanged() => User is not null && HasChanged(User.ItemId);
 
-         return HasChanged(User.ItemId);
-      }
+      public bool HasChanged(string itemId) => AutoSave.Any(itemId);
 
-      public bool HasChanged(string itemId)
-      {
-         return AutoSave.Changes.Any(x => x.Key.StartsWith(itemId));
-      }
-
-      public bool HasChanged(string itemId, string fieldName)
-      {
-         return AutoSave.Changes.Any(x => x.Key == $"{itemId}\t{fieldName}");
-      }
+      public bool HasChanged(string itemId, string fieldName) => AutoSave.Any(itemId, fieldName);
 
       #endregion
 
@@ -265,7 +254,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             Logs.AddLog($"User {Username}'s database saved", needsReview: false);
          }
 
-         AutoSave.Clear();
+         AutoSave.Clear(deleteFile: true);
 
          User.ResetTimer();
 
@@ -279,7 +268,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             if (User != null)
             {
                string logoutLog = $"User {Username} logged out";
-               bool needsReview = AutoSave.Changes.Count != 0;
+               bool needsReview = AutoSave.Any();
 
                if (needsReview)
                {
@@ -287,7 +276,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                }
                else
                {
-                  AutoSave.Clear();
+                  AutoSave.Clear(deleteFile: true);
                }
 
                Logs.AddLog(logoutLog, needsReview);
@@ -297,7 +286,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          }
 
          User = null;
-         AutoSave.Changes.Clear();
          Username = string.Empty;
          Passkeys = [];
          Warnings = null;
@@ -308,8 +296,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          LogFileLocker?.Dispose();
          LogFileLocker = null;
 
-         AutoSaveFileLocker?.Dispose();
-         AutoSaveFileLocker = null;
+         AutoSave.Clear(deleteFile: false);
 
          DatabaseFile = string.Empty;
          AutoSaveFile = string.Empty;
@@ -335,7 +322,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                _save(logSaveEvent: false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
-               AutoSave.Clear();
+               AutoSave.Clear(deleteFile: true);
                Logs.AddLog($"User {Username}'s autosave not merged and removed", needsReview: true);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
