@@ -7,7 +7,7 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
    {
       public static bool SetProperty<T>(ref T field,
          T newValue,
-         object sender,
+         INotifyPropertyChanged sender,
          PropertyChangedEventHandler? PropertyChanged,
          [CallerMemberName] string? propertyName = null)
       {

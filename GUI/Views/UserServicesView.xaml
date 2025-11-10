@@ -20,7 +20,8 @@
                         <DockPanel HorizontalAlignment="Stretch"/>
                     </ItemsPanelTemplate>
                 </Menu.ItemsPanel>
-                <MenuItem Header="_Save"/>
+                <MenuItem Header="_Save"
+                          Click="_save_MenuItem_Click"/>
                 <MenuItem Header="_User settings"
                           Click="_userSettings_MenuItem_Click"/>
                 <MenuItem Header="_Generate random Password"
@@ -87,7 +88,7 @@
             <StackPanel Grid.Row="0"
                         Grid.RowSpan="2"
                         Grid.Column="1">
-                <Controls:ServiceView x:Name="_service"/>
+                <Controls:ServiceView x:Name="_service_SV"/>
             </StackPanel>
         </Grid>
     </Grid>

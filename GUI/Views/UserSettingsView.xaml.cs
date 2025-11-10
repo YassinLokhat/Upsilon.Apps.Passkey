@@ -107,7 +107,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _ = MessageBox.Show($"'{_viewModel.Username}' user database deleted successfully", "Success");
       }
 
-      private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
+      private void _save()
       {
          string error = _canSave();
          if (!string.IsNullOrEmpty(error))
@@ -221,10 +221,25 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          else
          {
             message += $"updated successfully";
-            DialogResult = true;
+            Dispatcher.Invoke(() =>
+            {
+               DialogResult = true;
+            });
          }
 
          _ = MessageBox.Show(message, "Success");
+
+         Dispatcher.Invoke(() =>
+         {
+            IsEnabled = true;
+         });
+      }
+
+      private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         IsEnabled = false;
+
+         Task.Run(_save);
       }
 
       private static bool _credentialsChanged(string oldFileName, string[] oldPasskeys, string newFilename, string[] newPasskeys)

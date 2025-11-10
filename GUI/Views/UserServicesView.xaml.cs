@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
@@ -13,6 +14,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    {
       private readonly DispatcherTimer _timer;
       private readonly string _title;
+      private ObservableCollection<ServiceViewModel> _services;
 
       private UserServicesView()
       {
@@ -28,7 +30,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          Title = _title = $"{MainViewModel.AppTitle} - User '{MainViewModel.User.Username}'";
 
-         _services_LB.ItemsSource = MainViewModel.User.Services.Select(x => new ServiceViewModel(x));
+         _services = [.. MainViewModel.User.Services.OrderBy(x => x.ServiceName).Select(x => new ServiceViewModel(x))];
+         _services_LB.ItemsSource = _services;
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          _timer.Tick += _timer_Elapsed;
@@ -107,7 +110,22 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _services_LB_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
       {
          _ = MainViewModel.User.ItemId;
-         _service.DataContext = (ServiceViewModel)_services_LB.SelectedItem;
+         _service_SV.DataContext = (ServiceViewModel)_services_LB.SelectedItem;
+      }
+
+      private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         IsEnabled = false;
+
+         Task.Run(() => 
+         {
+            MainViewModel.Database?.Save();
+
+            Dispatcher.Invoke(() =>
+            {
+               IsEnabled = true;
+            });
+         });
       }
    }
 }
