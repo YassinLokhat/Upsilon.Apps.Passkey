@@ -1,11 +1,16 @@
 ﻿using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media;
 
 namespace Upsilon.Apps.Passkey.GUI.Themes
 {
    public static class DarkMode
    {
+      public static Brush UnchangedBrush1 => new SolidColorBrush(Color.FromRgb(0x1E, 0x1E, 0x1E));
+      public static Brush UnchangedBrush2 => new SolidColorBrush(Color.FromRgb(0x2D, 0x2D, 0x30));
+      public static Brush ChangedBrush => new SolidColorBrush(Color.FromRgb(0x60, 0x60, 0x60));
+
       public static void SetDarkMode(Window window)
       {
          nint hwnd = new WindowInteropHelper(window).Handle;
