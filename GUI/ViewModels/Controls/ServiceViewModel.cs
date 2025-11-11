@@ -69,5 +69,56 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplay)));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplayBackground)));
       }
+
+      internal bool MeetFilterConditions(string serviceFilter, string identifiantFilter, string textFilter)
+         => _matchServiceFilter(serviceFilter.ToLower())
+            && _matchIdentifiantFilter(identifiantFilter.ToLower())
+            && _matchTextFilter(textFilter.ToLower());
+
+      private bool _matchServiceFilter(string serviceFilter)
+      {
+         if (string.IsNullOrWhiteSpace(serviceFilter)) return true;
+
+         string serviceId = _service.ItemId.ToLower();
+         string serviceName = _service.ServiceName.ToLower();
+
+         if (serviceId.StartsWith(serviceFilter)
+            || serviceName.Contains(serviceFilter))
+            return true;
+
+         return false;
+      }
+
+      private bool _matchIdentifiantFilter(string identifiantFilter)
+      {
+         if (string.IsNullOrWhiteSpace(identifiantFilter)) return true;
+
+         string serviceId = _service.ItemId.ToLower();
+         string serviceName = _service.ServiceName.ToLower();
+
+         if (serviceId.StartsWith(identifiantFilter)
+            || serviceName.Contains(identifiantFilter))
+            return true;
+
+         return false;
+      }
+
+      private bool _matchTextFilter(string textFilter)
+      {
+         if (string.IsNullOrWhiteSpace(textFilter)) return true;
+
+         string serviceId = _service.ItemId.ToLower();
+         string serviceName = _service.ServiceName.ToLower();
+         string serviceUrl = _service.Url.ToLower();
+         string serviceNote = _service.Notes.ToLower();
+
+         if (serviceId.Contains(textFilter)
+            || serviceName.Contains(textFilter)
+            || serviceUrl.Contains(textFilter)
+            || serviceNote.Contains(textFilter))
+            return true;
+
+         return false;
+      }
    }
 }

@@ -13,7 +13,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    public partial class UserServicesView : Window
    {
       private readonly UserServicesViewModel _viewModel;
-      private readonly ObservableCollection<ServiceViewModel> _services;
 
       private UserServicesView()
       {
@@ -23,8 +22,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          DataContext = _viewModel = new($"{MainViewModel.AppTitle} - User '{MainViewModel.User.Username}'");
 
-         _services = [.. MainViewModel.User.Services.OrderBy(x => x.ServiceName).Select(x => new ServiceViewModel(x))];
-         _services_LB.ItemsSource = _services;
+         _services_LB.ItemsSource = _viewModel.Services;
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          Loaded += _userServicesView_Loaded;
@@ -89,12 +87,41 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       {
          _viewModel.IsEnabled = false;
 
+         string? serviceId = ((ServiceViewModel?)_services_LB.SelectedItem)?.ServiceId;
+
          _ = Task.Run(() =>
          {
             MainViewModel.Database?.Save();
 
+            _viewModel.Services = [.. MainViewModel.User.Services.OrderBy(x => x.ServiceName).Select(x => new ServiceViewModel(x))];
+            ServiceViewModel? service = _viewModel.Services.FirstOrDefault(x => x.ServiceId == serviceId);
+
+            Dispatcher.Invoke(() =>
+            {
+               _services_LB.ItemsSource = _viewModel.Services;
+               _services_LB.SelectedItem = service;
+            });
+
             _viewModel.IsEnabled = true;
          });
+      }
+
+      private void _addService_Button_Click(object sender, RoutedEventArgs e)
+      {
+         ServiceViewModel? service = _viewModel.Services.FirstOrDefault(x => x.ServiceName == string.Empty);
+
+         if (service == null)
+         {
+            service = new(MainViewModel.User.AddService(string.Empty));
+            _viewModel.Services.Insert(0, service);
+         }
+
+         _services_LB.SelectedItem = service;
+      }
+
+      private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
+      {
+         _viewModel.ServiceFilter = _viewModel.TextFilter = _viewModel.IdentifiantFilter = string.Empty;
       }
    }
 }
