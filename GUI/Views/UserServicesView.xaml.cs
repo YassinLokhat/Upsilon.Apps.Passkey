@@ -21,7 +21,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          if (MainViewModel.Database is null) throw new NullReferenceException(nameof(MainViewModel.Database));
 
-         DataContext = _viewModel = new($"{MainViewModel.AppTitle} - User '{MainViewModel.User.Username}'");
+         DataContext = _viewModel = new($"{MainViewModel.AppTitle} - '{MainViewModel.User}'");
 
          _services_LB.ItemsSource = _viewModel.Services;
 
@@ -81,7 +81,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _services_LB_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
       {
          _ = MainViewModel.User.ItemId;
-         _service_SV.DataContext = (ServiceViewModel)_services_LB.SelectedItem;
+         _service_SV.SetDataContext((ServiceViewModel)_services_LB.SelectedItem);
       }
 
       private void _save_MenuItem_Click(object sender, RoutedEventArgs e)

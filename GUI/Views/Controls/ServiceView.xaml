@@ -8,39 +8,55 @@
              d:DataContext="{d:DesignInstance Type=controls:ServiceViewModel}"
              mc:Ignorable="d" d:DesignHeight="49.315" d:DesignWidth="80.658">
     <GroupBox Header="{Binding ServiceId}">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Grid.Row="0"
-                   Grid.Column="0"
-                   Content="Service name : "/>
-            <TextBox Grid.Row="0"
-                     Grid.Column="1"
-                     Text="{Binding ServiceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Background="{Binding ServiceNameBackground}"/>
-            <Label Grid.Row="1"
-                   Grid.Column="0"
-                   Content="Url : "/>
-            <TextBox Grid.Row="1"
-                     Grid.Column="1"
-                     Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Background="{Binding UrlBackground}"/>
-            <Label Grid.Row="2"
-                   Grid.Column="0"
-                   Content="Notes : "/>
-            <TextBox Grid.Row="2"
-                     Grid.Column="1"
-                     Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Background="{Binding NotesBackground}"
-                     AcceptsReturn="True"
-                     AcceptsTab="True"/>
-        </Grid>
+        <StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="0"
+                       Grid.Column="0"
+                       Content="Service name : "/>
+                <TextBox Grid.Row="0"
+                         Grid.Column="1"
+                         Text="{Binding ServiceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Background="{Binding ServiceNameBackground}"/>
+                <Label Grid.Row="1"
+                       Grid.Column="0"
+                       Content="Url : "/>
+                <TextBox Grid.Row="1"
+                         Grid.Column="1"
+                         Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Background="{Binding UrlBackground}"/>
+                <Label Grid.Row="2"
+                       Grid.Column="0"
+                       Content="Notes : "/>
+                <TextBox Grid.Row="2"
+                         Grid.Column="1"
+                         Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Background="{Binding NotesBackground}"
+                         AcceptsReturn="True"
+                         AcceptsTab="True"/>
+            </Grid>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <ListBox Grid.Row="0"
+                         Grid.Column="0"
+                         Name="_accounts_LB"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                </ListBox>
+            </Grid>
+        </StackPanel>
     </GroupBox>
 </UserControl>

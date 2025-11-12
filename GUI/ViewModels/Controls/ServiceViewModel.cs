@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.Core.Public.Utils;
 using Upsilon.Apps.Passkey.GUI.Themes;
@@ -6,11 +7,11 @@ using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
-   internal class ServiceViewModel(IService service) : INotifyPropertyChanged
+   internal class ServiceViewModel : INotifyPropertyChanged
    {
-      private readonly IService _service = service;
+      private readonly IService _service;
 
-      public string ServiceDisplay => $"{(_service.HasChanged() ? "* " : string.Empty)}{_service}";
+      public string ServiceDisplay => $"{(_service.HasChanged() ? "* " : string.Empty)}{_service.ServiceName}";
 
       public string ServiceId => $"Service Id : {_service.ItemId.Replace(_service.User.ItemId, string.Empty)}";
 
@@ -56,6 +57,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          }
       }
 
+      public ObservableCollection<IAccount> Accounts;
+
       public event PropertyChangedEventHandler? PropertyChanged;
 
       protected virtual void OnPropertyChanged(string propertyName)
@@ -63,6 +66,12 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplay)));
+      }
+
+      public ServiceViewModel(IService service)
+      {
+         _service = service;
+         Accounts = [.. _service.Accounts];
       }
 
       internal bool MeetFilterConditions(string serviceFilter, string identifiantFilter, string textFilter)
