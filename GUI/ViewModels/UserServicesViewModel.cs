@@ -18,13 +18,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          set => PropertyHelper.SetProperty(ref _title, value, this, PropertyChanged);
       }
 
-      private bool _isEnabled = true;
-      public bool IsEnabled
-      {
-         get => _isEnabled;
-         set => PropertyHelper.SetProperty(ref _isEnabled, value, this, PropertyChanged);
-      }
-
       private string _serviceFilter = string.Empty;
       public string ServiceFilter
       {
@@ -36,7 +29,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
                _serviceFilter = value;
                OnPropertyChanged(nameof(ServiceFilter));
 
-               Refresh();
+               RefreshFilters();
             }
          }
       }
@@ -52,7 +45,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
                _identifiantFilter = value;
                OnPropertyChanged(nameof(IdentifiantFilter));
 
-               Refresh();
+               RefreshFilters();
             }
          }
       }
@@ -68,7 +61,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
                _textFilter = value;
                OnPropertyChanged(nameof(TextFilter));
 
-               Refresh();
+               RefreshFilters();
             }
          }
       }
@@ -86,7 +79,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       {
          _title = _defaultTitle = defaultTitle;
          
-         Refresh();
+         RefreshFilters();
 
          DispatcherTimer timer = new()
          {
@@ -97,7 +90,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          timer.Tick += _timer_Elapsed;
       }
 
-      public void Refresh()
+      public void RefreshFilters()
       {
          Services.Clear();
 

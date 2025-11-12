@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
@@ -85,24 +86,23 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         _viewModel.IsEnabled = false;
-
          string? serviceId = ((ServiceViewModel?)_services_LB.SelectedItem)?.ServiceId;
+         Cursor = Cursors.Wait;
 
          _ = Task.Run(() =>
          {
             MainViewModel.Database?.Save();
 
-            _viewModel.Services = [.. MainViewModel.User.Services.OrderBy(x => x.ServiceName).Select(x => new ServiceViewModel(x))];
-            ServiceViewModel? service = _viewModel.Services.FirstOrDefault(x => x.ServiceId == serviceId);
-
             Dispatcher.Invoke(() =>
             {
+               _viewModel.RefreshFilters();
+               ServiceViewModel? service = _viewModel.Services.FirstOrDefault(x => x.ServiceId == serviceId);
+
                _services_LB.ItemsSource = _viewModel.Services;
                _services_LB.SelectedItem = service;
-            });
 
-            _viewModel.IsEnabled = true;
+               Cursor = Cursors.Arrow;
+            });
          });
       }
 

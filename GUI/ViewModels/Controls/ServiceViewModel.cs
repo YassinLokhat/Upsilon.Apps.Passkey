@@ -10,7 +10,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
    {
       private readonly IService _service = service;
 
-      public Brush ServiceDisplayBackground => _service.HasChanged() ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush1;
       public string ServiceDisplay => $"{(_service.HasChanged() ? "* " : string.Empty)}{_service}";
 
       public string ServiceId => $"Service Id : {_service.ItemId.Replace(_service.User.ItemId, string.Empty)}";
@@ -64,7 +63,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplay)));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplayBackground)));
       }
 
       internal bool MeetFilterConditions(string serviceFilter, string identifiantFilter, string textFilter)
@@ -117,5 +115,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 
          return false;
       }
+
+      public override string ToString() => $"{(_service.HasChanged() ? "* " : string.Empty)}{_service}";
    }
 }

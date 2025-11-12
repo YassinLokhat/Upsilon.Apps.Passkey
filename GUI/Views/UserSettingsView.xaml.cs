@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
@@ -228,16 +229,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          }
 
          _ = MessageBox.Show(message, "Success");
-
-         Dispatcher.Invoke(() =>
-         {
-            IsEnabled = true;
-         });
       }
 
       private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         IsEnabled = false;
+         Cursor = Cursors.Wait;
 
          _ = Task.Run(_save);
       }
