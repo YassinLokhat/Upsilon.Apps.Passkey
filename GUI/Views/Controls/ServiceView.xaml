@@ -6,75 +6,81 @@
              xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.Views.Controls"
              xmlns:controls="clr-namespace:Upsilon.Apps.Passkey.GUI.ViewModels.Controls"
              d:DataContext="{d:DesignInstance Type=controls:ServiceViewModel}"
-             mc:Ignorable="d" d:DesignHeight="49.315" d:DesignWidth="80.658">
-    <GroupBox Header="{Binding ServiceId}">
-        <StackPanel>
+             mc:Ignorable="d">
+    <DockPanel VerticalAlignment="Stretch">
+        <GroupBox Header="{Binding ServiceId}"
+                  DockPanel.Dock="Top">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Grid.Row="0"
-                       Grid.Column="0"
-                       Content="Service name : "/>
-                <TextBox Grid.Row="0"
-                         Grid.Column="1"
-                         Text="{Binding ServiceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Background="{Binding ServiceNameBackground}"/>
-                <Label Grid.Row="1"
-                       Grid.Column="0"
-                       Content="Url : "/>
-                <TextBox Grid.Row="1"
-                         Grid.Column="1"
-                         Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Background="{Binding UrlBackground}"/>
-                <Label Grid.Row="2"
-                       Grid.Column="0"
-                       Content="Notes : "/>
-                <TextBox Grid.Row="2"
-                         Grid.Column="1"
-                         Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Background="{Binding NotesBackground}"
-                         AcceptsReturn="True"
-                         AcceptsTab="True"/>
-            </Grid>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <ListBox Grid.Row="0"
-                         Grid.Column="0"
-                         Name="_accounts_LB"
-                         ScrollViewer.VerticalScrollBarVisibility="Auto"
-                         SelectionChanged="_accounts_LB_SelectionChanged">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Label Margin="0"
-                               Content="{Binding AccountDisplay}"
-                               Background="Transparent"/>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-                <Button Grid.Row="1"
-                    Grid.Column="0"
-                    Click="_addAccount_Button_Click"
-                    Content="+"/>
-                <StackPanel Grid.Row="0"
-                        Grid.RowSpan="2"
-                        Grid.Column="1">
-                    <local:AccountView x:Name="_account_AV" />
-                </StackPanel>
+                <Grid Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Row="0"
+                           Grid.Column="0"
+                           Content="Service name : "/>
+                    <TextBox Grid.Row="0"
+                             Grid.Column="1"
+                             Text="{Binding ServiceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Background="{Binding ServiceNameBackground}"/>
+                    <Label Grid.Row="1"
+                           Grid.Column="0"
+                           Content="Url : "/>
+                    <TextBox Grid.Row="1"
+                             Grid.Column="1"
+                             Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Background="{Binding UrlBackground}"/>
+                    <Label Grid.Row="2"
+                           Grid.Column="0"
+                           Content="Notes : "/>
+                    <TextBox Grid.Row="2"
+                             Grid.Column="1"
+                             Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Background="{Binding NotesBackground}"
+                             AcceptsReturn="True"
+                             AcceptsTab="True"/>
+                </Grid>
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <ListBox Grid.Row="0"
+                             Grid.Column="0"
+                             Name="_accounts_LB"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             SelectionChanged="_accounts_LB_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Label Margin="0"
+                                       Content="{Binding AccountDisplay}"
+                                       Background="Transparent"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Button Grid.Row="1"
+                            Grid.Column="0"
+                            Click="_addAccount_Button_Click"
+                            Content="+"/>
+                    <local:AccountView x:Name="_account_AV"
+                                       Grid.Row="0"
+                                       Grid.RowSpan="2"
+                                       Grid.Column="1"/>
+                </Grid>
             </Grid>
-        </StackPanel>
-    </GroupBox>
+        </GroupBox>
+    </DockPanel>
 </UserControl>

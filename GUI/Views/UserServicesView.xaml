@@ -22,7 +22,6 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        
         <StackPanel Grid.Row="0">
             <Menu>
                 <Menu.ItemsPanel>
@@ -83,7 +82,6 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-
             <ListBox Grid.Row="0"
                      Grid.Column="0"
                      Name="_services_LB"
@@ -101,11 +99,10 @@
                     Grid.Column="0"
                     Click="_addService_Button_Click"
                     Content="+"/>
-            <StackPanel Grid.Row="0"
-                        Grid.RowSpan="2"
-                        Grid.Column="1">
-                <Controls:ServiceView x:Name="_service_SV"/>
-            </StackPanel>
+            <Controls:ServiceView x:Name="_service_SV"
+                                  Grid.Row="0"
+                                  Grid.RowSpan="2"
+                                  Grid.Column="1"/>
         </Grid>
     </Grid>
 </Window>

@@ -13,6 +13,10 @@
         <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
     </Style>
 
+    <Style TargetType="DockPanel">
+        <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
+    </Style>
+
     <Style TargetType="GroupBox">
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
     </Style>
@@ -52,11 +56,6 @@
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
         <Setter Property="Margin" Value="5"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
-    </Style>
-    
-    <Style TargetType="Window">
-        <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
     </Style>
 
     <Style TargetType="Button">
