@@ -14,8 +14,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          InitializeComponent();
       }
 
-      internal void SetDataContext(ServiceViewModel serviceViewModel)
+      internal void SetDataContext(ServiceViewModel? serviceViewModel)
       {
+         if (serviceViewModel is null) return;
+
          DataContext = serviceViewModel;
          _accounts_LB.ItemsSource = serviceViewModel.Accounts;
       }

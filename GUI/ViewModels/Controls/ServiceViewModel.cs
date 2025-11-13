@@ -57,7 +57,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          }
       }
 
-      public ObservableCollection<AccountViewModel> Accounts;
+      public ObservableCollection<AccountViewModel> Accounts = [];
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -71,7 +71,18 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       public ServiceViewModel(IService service)
       {
          _service = service;
-         Accounts = [.. _service.Accounts.Select(x => new AccountViewModel(x))];
+
+         foreach (IAccount account in _service.Accounts)
+         {
+            AccountViewModel accountViewModel = new(account);
+            accountViewModel.PropertyChanged += _accountViewModel_PropertyChanged;
+            Accounts.Add(accountViewModel);
+         }
+      }
+
+      private void _accountViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+      {
+         OnPropertyChanged(string.Empty);
       }
 
       internal bool MeetFilterConditions(string serviceFilter, string identifiantFilter, string textFilter)

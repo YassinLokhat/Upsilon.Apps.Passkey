@@ -2,16 +2,25 @@
 using System.ComponentModel;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
+using Upsilon.Apps.PassKey.Core.Public.Enums;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
-   internal class AccountViewModel(IAccount Account) : INotifyPropertyChanged
+   internal class AccountViewModel(IAccount account) : INotifyPropertyChanged
    {
-      private readonly IAccount _account = Account;
+      private readonly IAccount _account = account;
 
-      public string AccountDisplay => $"{(_account.HasChanged() ? "* " : string.Empty)}{_account}";
+      public string AccountDisplay
+      {
+         get
+         {
+            string accountDisplay = $"{_account.Label} {_account.Identifiants.First()}";
+            return $"{(_account.HasChanged() ? "* " : string.Empty)}{accountDisplay.Trim()}";
+         }
+      }
 
       public string AccountId => $"Account Id : {_account.ItemId.Replace(_account.Service.ItemId, string.Empty)}";
 
@@ -39,6 +48,55 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             {
                _account.Notes = value;
                OnPropertyChanged(nameof(Notes));
+            }
+         }
+      }
+
+      public int RemindPasswordUpdateDelay
+      {
+         get => _account.PasswordUpdateReminderDelay;
+         set
+         {
+            if (_account.PasswordUpdateReminderDelay != value)
+            {
+               _account.PasswordUpdateReminderDelay = value;
+
+               OnPropertyChanged(nameof(RemindPasswordUpdateDelay));
+               OnPropertyChanged(nameof(RemindPasswordUpdate));
+            }
+         }
+      }
+
+      public bool RemindPasswordUpdate
+      {
+         get => RemindPasswordUpdateDelay != 0;
+         set
+         {
+            if (RemindPasswordUpdate != value)
+            {
+               RemindPasswordUpdateDelay = value ? 2 : 0;
+               OnPropertyChanged(nameof(RemindPasswordUpdate));
+            }
+         }
+      }
+
+      public bool WarnPasswordLeak
+      {
+         get => _account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked);
+         set
+         {
+            if (WarnPasswordLeak != value)
+            {
+               if (value)
+               {
+                  _account.Options |= AccountOption.WarnIfPasswordLeaked;
+               }
+               else
+               {
+                  _account.Options &= ~AccountOption.WarnIfPasswordLeaked;
+               }
+
+               OnPropertyChanged(nameof(WarnPasswordLeak));
             }
          }
       }
