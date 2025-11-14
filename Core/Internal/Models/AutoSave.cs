@@ -147,7 +147,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          }
       }
 
-      internal void ApplyChanges()
+      internal void ApplyChanges(bool deleteFile)
       {
          List<Change> changes = Changes.Values.SelectMany(x => x).OrderBy(x => x.Index).ToList();
 
@@ -156,7 +156,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             Database.User?.Apply(change);
          }
 
-         Clear(deleteFile: true);
+         if (deleteFile)
+         {
+            Clear(deleteFile: true);
+         }
       }
 
       internal bool Any() => Any(string.Empty);

@@ -120,7 +120,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
       /*
        * Service.AddAccount adds the new account,
        * Then updating the account without saving will create the autosave file,
-       * Then Database.Open with AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile loads correctly the updated database file with the updated account.
+       * Then Database.Open with AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile loads correctly the updated database file with the updated account.
       */
       public void Case02_AddAccountUpdateAutoSave()
       {
@@ -179,11 +179,11 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : User {username} logged out without saving");
          expectedLogs.Push($"Information : User {username}'s database closed");
 
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
          expectedLogs.Push($"Information : User {username}'s database opened");
          expectedLogs.Push($"Information : User {username} logged in");
-         expectedLogs.Push($"Warning : User {username}'s autosave merged");
-         expectedLogWarnings.Push($"Warning : User {username}'s autosave merged");
+         expectedLogs.Push($"Warning : User {username}'s autosave merged and saved");
+         expectedLogWarnings.Push($"Warning : User {username}'s autosave merged and saved");
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
@@ -270,7 +270,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
       [TestMethod]
       /*
        * Service.DeleteAccount adeletes the account,
-       * Then Database.Open with AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile loads correctly the updated database file with the updated account.
+       * Then Database.Open with AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile loads correctly the updated database file with the updated account.
       */
       public void Case04_DeleteAccountUpdateAutoSave()
       {
@@ -307,11 +307,11 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : User {username} logged out without saving");
          expectedLogs.Push($"Information : User {username}'s database closed");
 
-         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
          expectedLogs.Push($"Information : User {username}'s database opened");
          expectedLogs.Push($"Information : User {username} logged in");
-         expectedLogs.Push($"Warning : User {username}'s autosave merged");
-         expectedLogWarnings.Push($"Warning : User {username}'s autosave merged");
+         expectedLogs.Push($"Warning : User {username}'s autosave merged and saved");
+         expectedLogWarnings.Push($"Warning : User {username}'s autosave merged and saved");
 
          serviceLoaded = databaseLoaded.User.Services.First();
 

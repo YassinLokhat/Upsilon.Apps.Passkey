@@ -183,9 +183,9 @@ namespace Upsilon.Apps.Passkey.GUI
 
          e.MergeBehavior = result switch
          {
-            MessageBoxResult.Cancel => PassKey.Core.Public.Enums.AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile,
+            MessageBoxResult.Cancel => PassKey.Core.Public.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile,
             MessageBoxResult.No => PassKey.Core.Public.Enums.AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile,
-            _ => PassKey.Core.Public.Enums.AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile,
+            _ => PassKey.Core.Public.Enums.AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile,
          };
       }
 

@@ -11,6 +11,6 @@ namespace Upsilon.Apps.PassKey.Core.Public.Events
       /// The behavior selected.
       /// By default it will merge then remove the auto-save file.
       /// </summary>
-      public AutoSaveMergeBehavior MergeBehavior { get; set; } = AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile;
+      public AutoSaveMergeBehavior MergeBehavior { get; set; } = AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile;
    }
 }

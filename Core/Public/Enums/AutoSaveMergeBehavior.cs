@@ -6,9 +6,13 @@
    public enum AutoSaveMergeBehavior
    {
       /// <summary>
-      /// The auto-save will be merged into the database then the auto-save file will be removed.
+      /// The auto-save will be merged into the database and saved then the auto-save file will be removed.
       /// </summary>
-      MergeThenRemoveAutoSaveFile,
+      MergeAndSaveThenRemoveAutoSaveFile,
+      /// <summary>
+      /// The auto-save will be merged into the database without saving and the auto-save file will be keeped.
+      /// </summary>
+      MergeWithoutSavingAndKeepAutoSaveFile,
       /// <summary>
       /// The auto-save will not be merged into the database but the auto-save file will be removed.
       /// </summary>

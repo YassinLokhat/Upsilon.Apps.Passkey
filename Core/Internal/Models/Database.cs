@@ -239,15 +239,18 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private void _save(bool logSaveEvent)
       {
+         _saveLogs();
+         _saveDatabase(logSaveEvent);
+      }
+
+      private void _saveDatabase(bool logSaveEvent)
+      {
          if (User is null) throw new NullReferenceException(nameof(User));
          if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
          Username = User.Username;
          Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(CryptographyCenter.GetSlowHash)];
          DatabaseFileLocker.Save(User, Passkeys);
-
-         Logs.Username = Username;
-         LogFileLocker?.Save(Logs, [CryptographyCenter.GetHash(User.Username)]);
 
          if (logSaveEvent)
          {
@@ -259,6 +262,14 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          User.ResetTimer();
 
          DatabaseSaved?.Invoke(this, EventArgs.Empty);
+      }
+
+      private void _saveLogs()
+      {
+         if (User is null) throw new NullReferenceException(nameof(User));
+
+         Logs.Username = User.Username;
+         LogFileLocker?.Save(Logs, [CryptographyCenter.GetHash(User.Username)]);
       }
 
       internal void Close(bool logCloseEvent, bool loginTimeoutReached)
@@ -316,10 +327,15 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          switch (mergeAutoSave)
          {
-            case AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile:
-               AutoSave.ApplyChanges();
-               Logs.AddLog($"User {Username}'s autosave merged", needsReview: true);
+            case AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile:
+               AutoSave.ApplyChanges(deleteFile: true);
+               Logs.AddLog($"User {Username}'s autosave merged and saved", needsReview: true);
                _save(logSaveEvent: false);
+               break;
+            case AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile:
+               AutoSave.ApplyChanges(deleteFile: false);
+               Logs.AddLog($"User {Username}'s autosave merged without saving", needsReview: true);
+               _saveLogs();
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear(deleteFile: true);
