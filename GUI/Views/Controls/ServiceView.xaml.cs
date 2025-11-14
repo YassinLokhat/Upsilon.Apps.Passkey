@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       private void _accounts_LB_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
          _ = MainViewModel.User.ItemId;
-         _account_AV.DataContext = (AccountViewModel)_accounts_LB.SelectedItem;
+         _account_AV.SetDataContext((AccountViewModel)_accounts_LB.SelectedItem);
       }
 
       private void _addAccount_Button_Click(object sender, System.Windows.RoutedEventArgs e)

@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="Upsilon.Apps.Passkey.GUI.Views.Controls.AccountIdentifiantsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.Views.Controls"
+             mc:Ignorable="d">
+    <DockPanel VerticalAlignment="Stretch">
+        <GroupBox Header="Identifiants"
+                  DockPanel.Dock="Top">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0"
+                            Name="_stackPanel">
+                </StackPanel>
+                <Button Grid.Row="1"
+                        Content="+"
+                        Click="_addButton_Click"/>
+            </Grid>
+        </GroupBox>
+    </DockPanel>
+</UserControl>

@@ -15,6 +15,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          InitializeComponent();
       }
 
+      public void SetDataContext(AccountViewModel? dataContext)
+      {
+         if (dataContext is null) return;
+
+         DataContext = dataContext;
+         _identifiants_AIV.SetDataContext(dataContext.Account);
+      }
+
       private void _value_TextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
       {
          NumericTextBoxHelper.PreviewTextInput(sender, e);
