@@ -5,17 +5,17 @@ using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 {
    /// <summary>
-   /// Interaction logic for PasswordItem.xaml
+   /// Interaction logic for UserPasswordItem.xaml
    /// </summary>
-   public partial class PasswordItem : UserControl
+   public partial class UserPasswordItem : UserControl
    {
-      public readonly PasswordItemViewModel ViewModel;
+      public readonly UserPasswordItemViewModel ViewModel;
 
       public event EventHandler? UpClicked;
       public event EventHandler? DownClicked;
       public event EventHandler? DeleteClicked;
 
-      public PasswordItem(PasswordItemViewModel viewModel)
+      public UserPasswordItem(UserPasswordItemViewModel viewModel)
       {
          InitializeComponent();
 

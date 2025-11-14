@@ -5,15 +5,15 @@ using Upsilon.Apps.Passkey.GUI.ViewModels;
 namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 {
    /// <summary>
-   /// Interaction logic for PasswordsContainer.xaml
+   /// Interaction logic for UserPasswordsContainer.xaml
    /// </summary>
-   public partial class PasswordsContainer : UserControl
+   public partial class UserPasswordsContainer : UserControl
    {
       public string[] Passkeys => [.. _passwords.Select(x => x.ViewModel.Password)];
 
-      private readonly List<PasswordItem> _passwords;
+      private readonly List<UserPasswordItem> _passwords;
 
-      public PasswordsContainer()
+      public UserPasswordsContainer()
       {
          InitializeComponent();
 
@@ -34,7 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _passwordItem_DeleteClicked(object? sender, EventArgs e)
       {
-         if (sender is not PasswordItem passwordItem
+         if (sender is not UserPasswordItem passwordItem
             || _passwords.Count == 1)
          {
             return;
@@ -52,7 +52,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _passwordItem_UpClicked(object? sender, EventArgs e)
       {
-         if (sender is not PasswordItem passwordItem
+         if (sender is not UserPasswordItem passwordItem
             || passwordItem.ViewModel.Index == 0)
          {
             return;
@@ -63,7 +63,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _passwordItem_DownClicked(object? sender, EventArgs e)
       {
-         if (sender is not PasswordItem passwordItem
+         if (sender is not UserPasswordItem passwordItem
             || passwordItem.ViewModel.Index == _passwords.Count - 1)
          {
             return;
@@ -79,7 +79,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _addPassword(string password)
       {
-         PasswordItem passwordItem = new(new() { Index = _passwords.Count, Password = password });
+         UserPasswordItem passwordItem = new(new() { Index = _passwords.Count, Password = password });
          passwordItem.UpClicked += _passwordItem_UpClicked;
          passwordItem.DownClicked += _passwordItem_DownClicked;
          passwordItem.DeleteClicked += _passwordItem_DeleteClicked;
@@ -88,9 +88,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          _ = _stackPanel.Children.Add(passwordItem);
       }
 
-      private void _movePassword(PasswordItem passwordItem, int index)
+      private void _movePassword(UserPasswordItem passwordItem, int index)
       {
-         PasswordItem temp = _passwords[index];
+         UserPasswordItem temp = _passwords[index];
          _passwords[index] = passwordItem;
          _passwords[passwordItem.ViewModel.Index] = temp;
 

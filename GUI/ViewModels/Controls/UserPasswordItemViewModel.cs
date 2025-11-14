@@ -3,7 +3,7 @@ using Upsilon.Apps.Passkey.GUI.Helper;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
-   public class PasswordItemViewModel : INotifyPropertyChanged
+   public class UserPasswordItemViewModel : INotifyPropertyChanged
    {
       private int _index = 0;
       public int Index

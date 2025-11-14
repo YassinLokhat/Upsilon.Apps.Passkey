@@ -11,7 +11,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="500" Width="856">
+        Height="305" Width="856">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -40,7 +40,7 @@
                         <TextBox Width="400"
                                  Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
-                    <Controls:PasswordsContainer x:Name="_passwordsContainer"/>
+                    <Controls:UserPasswordsContainer x:Name="_passwordsContainer"/>
                 </StackPanel>
             </GroupBox>
             <GroupBox Header="Settings">
