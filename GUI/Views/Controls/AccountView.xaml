@@ -10,54 +10,52 @@
     <DockPanel VerticalAlignment="Stretch">
         <GroupBox Header="{Binding AccountId}"
                   DockPanel.Dock="Top">
-            <StackPanel>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Label Grid.Row="0"
-                           Grid.Column="0"
-                           Content="Label : "/>
-                    <TextBox Grid.Row="0"
-                             Grid.Column="1"
-                             Text="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Background="{Binding LabelBackground}"/>
-                    <Label Grid.Row="1"
-                           Grid.Column="0"
-                           Content="Notes : "/>
-                    <TextBox Grid.Row="1"
-                             Grid.Column="1"
-                             Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Background="{Binding NotesBackground}"
-                             AcceptsReturn="True"
-                             AcceptsTab="True"/>
-                    <GroupBox Header="Options"
-                              Grid.Row="2"
-                              Grid.Column="0"
-                              Grid.ColumnSpan="2">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <CheckBox IsChecked="{Binding RemindPasswordUpdate}"
-                                          Content="Remind to update password every"/>
-                                <TextBox Width="25"
-                                         HorizontalContentAlignment="Center"
-                                         TextChanged="_value_TextBox_TextChanged"
-                                         PreviewTextInput="_value_TextBox_PreviewTextInput"
-                                         DataObject.Pasting="_value_TextBox_Pasting"
-                                         Text="{Binding RemindPasswordUpdateDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                <Label Margin="0">months.</Label>
-                            </StackPanel>
-                            <CheckBox IsChecked="{Binding WarnPasswordLeak}">Warn if the password leaked.</CheckBox>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="0"
+                        Grid.Column="0"
+                        Content="Label : "/>
+                <TextBox Grid.Row="0"
+                            Grid.Column="1"
+                            Text="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Background="{Binding LabelBackground}"/>
+                <Label Grid.Row="1"
+                        Grid.Column="0"
+                        Content="Notes : "/>
+                <TextBox Grid.Row="1"
+                            Grid.Column="1"
+                            Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Background="{Binding NotesBackground}"
+                            AcceptsReturn="True"
+                            AcceptsTab="True"/>
+                <GroupBox Header="Options"
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding RemindPasswordUpdate}"
+                                        Content="Remind to update password every"/>
+                            <TextBox Width="25"
+                                        HorizontalContentAlignment="Center"
+                                        TextChanged="_value_TextBox_TextChanged"
+                                        PreviewTextInput="_value_TextBox_PreviewTextInput"
+                                        DataObject.Pasting="_value_TextBox_Pasting"
+                                        Text="{Binding RemindPasswordUpdateDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Label Margin="0">months.</Label>
                         </StackPanel>
-                    </GroupBox>
-                </Grid>
-            </StackPanel>
+                        <CheckBox IsChecked="{Binding WarnPasswordLeak}">Warn if the password leaked.</CheckBox>
+                    </StackPanel>
+                </GroupBox>
+            </Grid>
         </GroupBox>
     </DockPanel>
 </UserControl>

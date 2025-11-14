@@ -191,7 +191,14 @@ namespace Upsilon.Apps.Passkey.GUI
 
       private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
       {
-         _resetCredentials(resetDatabase: true);
+         try
+         {
+            Dispatcher.Invoke(() =>
+            {
+               _resetCredentials(resetDatabase: true);
+            });
+         }
+         catch { }
       }
 
       private void _resetCredentials(bool resetDatabase)
