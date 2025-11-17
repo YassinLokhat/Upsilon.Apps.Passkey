@@ -13,15 +13,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       public AccountView()
       {
          InitializeComponent();
-
-         _identifiants_AIV.PropertyChanged += _identifiants_AIV_PropertyChanged;
-      }
-
-      private void _identifiants_AIV_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-      {
-         if (DataContext is not AccountViewModel viewModel) return;
-
-         viewModel.Refresh();
       }
 
       public void SetDataContext(AccountViewModel? dataContext)

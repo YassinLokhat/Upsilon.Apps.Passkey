@@ -13,12 +13,41 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0"
-                            Name="_stackPanel">
-                </StackPanel>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ListBox Grid.Row="0"
+                         Grid.Column="0"
+                         Grid.ColumnSpan="5"
+                         Name="_identifiants_LB">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBox Background="{Binding IdentifiantBackground}"
+                                     Text="{Binding Identifiant, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
                 <Button Grid.Row="1"
+                        Grid.Column="0"
                         Content="+"
                         Click="_addButton_Click"/>
+                <Button Grid.Row="1"
+                        Grid.Column="1"
+                                        Content="🠉"
+                                        Click="_identifiantItem_UpClicked"/>
+                <Button Grid.Row="1"
+                        Grid.Column="2"
+                                        Content="🠋"/>
+                <Button Grid.Row="1"
+                        Grid.Column="3"
+                                        Content="✕"/>
+                <Button Grid.Row="1"
+                        Grid.Column="4"
+                                        Content="▣"/>
             </Grid>
         </GroupBox>
     </DockPanel>

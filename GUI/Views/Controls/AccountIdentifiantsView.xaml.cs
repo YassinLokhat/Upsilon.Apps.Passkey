@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
+using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.Views.Controls
@@ -23,18 +26,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
    /// </summary>
    public partial class AccountIdentifiantsView : UserControl
    {
-      private readonly List<AccountIdentifiantItem> _identifiants = [];
-
-      public event PropertyChangedEventHandler? PropertyChanged;
-
-      protected virtual void OnPropertyChanged(string propertyName)
-      {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-      }
+      private ObservableCollection<AccountIdentifiantItemViewModel> _identifiants = [];
 
       public AccountIdentifiantsView()
       {
          InitializeComponent();
+
+         _identifiants_LB.ItemsSource = _identifiants;
       }
 
       public void SetDataContext(IAccount? account)
@@ -44,7 +42,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          DataContext = account;
 
          _identifiants.Clear();
-         _stackPanel.Children.Clear();
 
          if (account.Identifiants.Length == 0)
          {
@@ -61,13 +58,12 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _identifiantItem_DeleteClicked(object? sender, EventArgs e)
       {
-         if (sender is not AccountIdentifiantItem IdentifiantItem
+         if (sender is not AccountIdentifiantItemViewModel IdentifiantItem
             || _identifiants.Count == 1)
          {
             return;
          }
 
-         _stackPanel.Children.Remove(IdentifiantItem);
          _ = _identifiants.Remove(IdentifiantItem);
       }
 
@@ -75,10 +71,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       {
          if (sender is null) return;
 
-         int index = _identifiants.IndexOf((AccountIdentifiantItem)sender);
-
+         int index = _identifiants.IndexOf((AccountIdentifiantItemViewModel)sender);
+         
          if (index == 0) return;
-
+         
          _moveIdentifiant(index, index - 1);
       }
 
@@ -86,10 +82,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       {
          if (sender is null) return;
 
-         int index = _identifiants.IndexOf((AccountIdentifiantItem)sender);
-
+         int index = _identifiants.IndexOf((AccountIdentifiantItemViewModel)sender);
+         
          if (index == _identifiants.Count - 1) return;
-
+         
          _moveIdentifiant(index, index + 1);
       }
 
@@ -100,35 +96,18 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _addIdentifiant(string identifiant)
       {
-         AccountIdentifiantItem identifiantItem = new(new((IAccount)DataContext, identifiant));
-         identifiantItem.UpClicked += _identifiantItem_UpClicked;
-         identifiantItem.DownClicked += _identifiantItem_DownClicked;
-         identifiantItem.DeleteClicked += _identifiantItem_DeleteClicked;
-         identifiantItem.ViewModel.PropertyChanged += _viewModel_PropertyChanged;
+         IAccount account = (IAccount)DataContext;
+         _identifiants.Add(new(account, identifiant));
 
-         _identifiants.Add(identifiantItem);
-         _ = _stackPanel.Children.Add(identifiantItem);
-      }
-
-      private void _viewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-      {
-         if (DataContext is not IAccount account) return;
-
-         account.Identifiants = [.. _identifiants.Select(x => x.ViewModel.Identifiant)];
-
-         OnPropertyChanged(nameof(account.Identifiants));
+         account.Identifiants = [.. _identifiants.Select(x => x.Identifiant)];
       }
 
       private void _moveIdentifiant(int oldIndex, int newIndex)
       {
          (_identifiants[newIndex], _identifiants[oldIndex]) = (_identifiants[oldIndex], _identifiants[newIndex]);
 
-         _stackPanel.Children.Clear();
-
-         for (int i = 0; i < _identifiants.Count; i++)
-         {
-            _ = _stackPanel.Children.Add(_identifiants[i]);
-         }
+         IAccount account = (IAccount)DataContext;
+         account.Identifiants = [.. _identifiants.Select(x => x.Identifiant)];
       }
    }
 }
