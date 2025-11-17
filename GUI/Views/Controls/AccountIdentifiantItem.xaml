@@ -8,29 +8,27 @@
              d:DataContext="{d:DesignInstance Type=controls:AccountIdentifiantItemViewModel}"
              mc:Ignorable="d">
     <Grid>
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0"
-                     Background="{Binding IdentifiantBackground}"
-                     Text="{Binding Identifiant, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <Button Grid.Column="1"
-                    Content="🠉"
-                    Click="_upButton_Click"/>
-            <Button Grid.Column="2"
-                    Content="🠋"
-                    Click="_downButton_Click"/>
-            <Button Grid.Column="3"
-                    Content="✕"
-                    Click="_deleteButton_Click"/>
-            <Button Grid.Column="4"
-                    Content="▣"
-                    Click="_qrCodeButton_Click"/>
-        </Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBox Grid.Column="0"
+                    Background="{Binding IdentifiantBackground}"
+                    Text="{Binding Identifiant, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <Button Grid.Column="1"
+                Content="🠉"
+                Click="_upButton_Click"/>
+        <Button Grid.Column="2"
+                Content="🠋"
+                Click="_downButton_Click"/>
+        <Button Grid.Column="3"
+                Content="✕"
+                Click="_deleteButton_Click"/>
+        <Button Grid.Column="4"
+                Content="▣"
+                Click="_qrCodeButton_Click"/>
     </Grid>
 </UserControl>

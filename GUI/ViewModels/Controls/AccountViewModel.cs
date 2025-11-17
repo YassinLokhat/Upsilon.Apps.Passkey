@@ -110,6 +110,11 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountDisplay)));
       }
 
+      public void Refresh()
+      {
+         OnPropertyChanged(string.Empty);
+      }
+
       internal bool MeetFilterConditions(string AccountFilter, string identifiantFilter, string textFilter)
          => _matchAccountFilter(AccountFilter.ToLower())
             && _matchIdentifiantFilter(identifiantFilter.ToLower())

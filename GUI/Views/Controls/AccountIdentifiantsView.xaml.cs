@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
    public partial class AccountIdentifiantsView : UserControl
    {
       private readonly List<AccountIdentifiantItem> _identifiants = [];
+
+      public event PropertyChangedEventHandler? PropertyChanged;
+
+      protected virtual void OnPropertyChanged(string propertyName)
+      {
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+      }
 
       public AccountIdentifiantsView()
       {
@@ -92,13 +100,23 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _addIdentifiant(string identifiant)
       {
-         AccountIdentifiantItem IdentifiantItem = new(new((IAccount)DataContext, identifiant));
-         IdentifiantItem.UpClicked += _identifiantItem_UpClicked;
-         IdentifiantItem.DownClicked += _identifiantItem_DownClicked;
-         IdentifiantItem.DeleteClicked += _identifiantItem_DeleteClicked;
+         AccountIdentifiantItem identifiantItem = new(new((IAccount)DataContext, identifiant));
+         identifiantItem.UpClicked += _identifiantItem_UpClicked;
+         identifiantItem.DownClicked += _identifiantItem_DownClicked;
+         identifiantItem.DeleteClicked += _identifiantItem_DeleteClicked;
+         identifiantItem.ViewModel.PropertyChanged += _viewModel_PropertyChanged;
 
-         _identifiants.Add(IdentifiantItem);
-         _ = _stackPanel.Children.Add(IdentifiantItem);
+         _identifiants.Add(identifiantItem);
+         _ = _stackPanel.Children.Add(identifiantItem);
+      }
+
+      private void _viewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+      {
+         if (DataContext is not IAccount account) return;
+
+         account.Identifiants = [.. _identifiants.Select(x => x.ViewModel.Identifiant)];
+
+         OnPropertyChanged(nameof(account.Identifiants));
       }
 
       private void _moveIdentifiant(int oldIndex, int newIndex)
