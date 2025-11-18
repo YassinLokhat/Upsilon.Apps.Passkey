@@ -37,5 +37,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       {
          throw new NotImplementedException();
       }
+
+      private void _deleteAccount_Button_Click(object sender, System.Windows.RoutedEventArgs e)
+      {
+         throw new NotImplementedException();
+      }
    }
 }

@@ -5,6 +5,7 @@ using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
+using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
@@ -113,15 +114,23 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _addService_Button_Click(object sender, RoutedEventArgs e)
       {
-         ServiceViewModel? service = _viewModel.Services.FirstOrDefault(x => x.ServiceName == string.Empty);
+         ServiceViewModel? serviceModel = _viewModel.Services.FirstOrDefault(x => x.ServiceName == "New Service");
 
-         if (service == null)
+         if (serviceModel == null)
          {
-            service = new(MainViewModel.User.AddService(string.Empty));
-            _viewModel.Services.Insert(0, service);
+            IService service = MainViewModel.User.AddService("New Service");
+            service.AddAccount(["NewAccount"]);
+
+            serviceModel = new(service);
+            _viewModel.Services.Insert(0, serviceModel);
          }
 
-         _services_LB.SelectedItem = service;
+         _services_LB.SelectedItem = serviceModel;
+      }
+
+      private void _deleteService_Button_Click(object sender, RoutedEventArgs e)
+      {
+         throw new NotImplementedException();
       }
 
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)

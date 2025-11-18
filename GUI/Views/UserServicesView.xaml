@@ -73,36 +73,49 @@
                 </Grid>
             </GroupBox>
         </StackPanel>
-        <Grid Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <ListBox Grid.Row="0"
-                     Grid.Column="0"
-                     Name="_services_LB"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     SelectionChanged="_services_LB_SelectionChanged">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Label Margin="0"
-                               Content="{Binding ServiceDisplay}"
-                               Background="Transparent"/>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-            <Button Grid.Row="1"
-                    Grid.Column="0"
-                    Click="_addService_Button_Click"
-                    Content="+"/>
-            <Controls:ServiceView x:Name="_service_SV"
-                                  Grid.Row="0"
-                                  Grid.RowSpan="2"
-                                  Grid.Column="1"/>
-        </Grid>
+        <DockPanel Grid.Row="1">
+            <GroupBox Header="Services">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <ListBox Grid.Row="0"
+                             Grid.Column="0"
+                             Name="_services_LB"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             SelectionChanged="_services_LB_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Label Margin="0"
+                                       Content="{Binding ServiceDisplay}"
+                                       Background="Transparent"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Grid Grid.Row="1"
+                          Grid.Column="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0"
+                            Click="_addService_Button_Click"
+                            Content="+"/>
+                        <Button Grid.Column="1"
+                            Click="_deleteService_Button_Click"
+                            Content="✕"/>
+                    </Grid>
+                    <Controls:ServiceView x:Name="_service_SV"
+                                          Grid.Row="0"
+                                          Grid.RowSpan="2"
+                                          Grid.Column="1"/>
+                </Grid>
+            </GroupBox>
+        </DockPanel>
     </Grid>
 </Window>
