@@ -24,19 +24,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          if (dataContext is null) return;
 
          DataContext = _viewModel = dataContext;
-         _viewModel.Identifiants.Clear();
-
-         if (_viewModel.Account.Identifiants.Length == 0)
-         {
-            _viewModel.AddIdentifiant(string.Empty);
-         }
-         else
-         {
-            foreach (string identifiant in _viewModel.Account.Identifiants)
-            {
-               _viewModel.AddIdentifiant(identifiant);
-            }
-         }
+         _viewModel.AddIdentifiants();
  
          _identifiants_LB.ItemsSource = _viewModel.Identifiants;
          _identifiants_LB.SelectedIndex = 0;

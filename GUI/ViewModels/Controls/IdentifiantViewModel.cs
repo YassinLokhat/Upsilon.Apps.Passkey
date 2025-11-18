@@ -44,5 +44,10 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          _account = account;
          Identifiant = identifiant;
       }
+
+      public void Refresh()
+      {
+         OnPropertyChanged(nameof(IdentifiantBackground));
+      }
    }
 }
