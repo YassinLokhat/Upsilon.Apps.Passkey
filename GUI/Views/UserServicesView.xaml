@@ -10,7 +10,11 @@
         WindowState="Maximized"
         WindowStartupLocation="CenterScreen"
         Closed="_window_Closed"
-        Title="{Binding Title}">
+        Title="{Binding Title}"
+        Height="700"
+        Width="1000"
+        MinHeight="700"
+        MinWidth="1000">
     <Window.CommandBindings>
         <CommandBinding Command="Save" Executed="_save_MenuItem_Click"/>
     </Window.CommandBindings>

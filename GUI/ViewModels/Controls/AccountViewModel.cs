@@ -11,28 +11,28 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
    public class AccountViewModel(IAccount account) : INotifyPropertyChanged
    {
-      private readonly IAccount _account = account;
+      public readonly IAccount Account = account;
 
       public string AccountDisplay
       {
          get
          {
-            string accountDisplay = $"{_account.Label} {_account.Identifiants.First()}";
-            return $"{(_account.HasChanged() ? "* " : string.Empty)}{accountDisplay.Trim()}";
+            string accountDisplay = $"{Account.Label} {Account.Identifiants.First()}";
+            return $"{(Account.HasChanged() ? "* " : string.Empty)}{accountDisplay.Trim()}";
          }
       }
 
-      public string AccountId => $"_account Id : {_account.ItemId.Replace(_account.Service.ItemId, string.Empty)}";
+      public string AccountId => $"Account Id : {Account.ItemId.Replace(Account.Service.ItemId, string.Empty)}";
 
-      public Brush LabelBackground => _account.HasChanged(nameof(Label)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush LabelBackground => Account.HasChanged(nameof(Label)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Label
       {
-         get => _account.Label;
+         get => Account.Label;
          set
          {
-            if (_account.Label != value)
+            if (Account.Label != value)
             {
-               _account.Label = value;
+               Account.Label = value;
                OnPropertyChanged(nameof(Label));
             }
          }
@@ -40,15 +40,15 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 
       public readonly ObservableCollection<IdentifiantViewModel> Identifiants = [];
 
-      public Brush NotesBackground => _account.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush NotesBackground => Account.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Notes
       {
-         get => _account.Notes;
+         get => Account.Notes;
          set
          {
-            if (_account.Notes != value)
+            if (Account.Notes != value)
             {
-               _account.Notes = value;
+               Account.Notes = value;
                OnPropertyChanged(nameof(Notes));
             }
          }
@@ -56,12 +56,12 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 
       public int RemindPasswordUpdateDelay
       {
-         get => _account.PasswordUpdateReminderDelay;
+         get => Account.PasswordUpdateReminderDelay;
          set
          {
-            if (_account.PasswordUpdateReminderDelay != value)
+            if (Account.PasswordUpdateReminderDelay != value)
             {
-               _account.PasswordUpdateReminderDelay = value;
+               Account.PasswordUpdateReminderDelay = value;
 
                OnPropertyChanged(nameof(RemindPasswordUpdateDelay));
                OnPropertyChanged(nameof(RemindPasswordUpdate));
@@ -84,18 +84,18 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 
       public bool WarnPasswordLeak
       {
-         get => _account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked);
+         get => Account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked);
          set
          {
             if (WarnPasswordLeak != value)
             {
                if (value)
                {
-                  _account.Options |= AccountOption.WarnIfPasswordLeaked;
+                  Account.Options |= AccountOption.WarnIfPasswordLeaked;
                }
                else
                {
-                  _account.Options &= ~AccountOption.WarnIfPasswordLeaked;
+                  Account.Options &= ~AccountOption.WarnIfPasswordLeaked;
                }
 
                OnPropertyChanged(nameof(WarnPasswordLeak));
@@ -119,9 +119,9 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             return;
          }
 
-         _account.Identifiants = [.. Identifiants.Select(x => x.Identifiant)];
+         Account.Identifiants = [.. Identifiants.Select(x => x.Identifiant)];
 
-         foreach (IdentifiantViewModel? identifiant in Identifiants.Except([sender]))
+         foreach (IdentifiantViewModel? identifiant in Identifiants.Except([sender]).Cast<IdentifiantViewModel?>())
          {
             identifiant?.Refresh();
          }
@@ -133,13 +133,13 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          Identifiants.Clear();
 
-         if (_account.Identifiants.Length == 0)
+         if (Account.Identifiants.Length == 0)
          {
             AddIdentifiant(string.Empty);
          }
          else
          {
-            foreach (string identifiant in _account.Identifiants)
+            foreach (string identifiant in Account.Identifiants)
             {
                AddIdentifiant(identifiant);
             }
@@ -148,7 +148,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 
       public void AddIdentifiant(string identifiant)
       {
-         IdentifiantViewModel identifiantViewModel = new(_account, identifiant);
+         IdentifiantViewModel identifiantViewModel = new(Account, identifiant);
          identifiantViewModel.PropertyChanged += _identifiantViewModel_PropertyChanged;
 
          Identifiants.Add(identifiantViewModel);
@@ -195,8 +195,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          if (string.IsNullOrWhiteSpace(AccountFilter)) return true;
 
-         string AccountId = _account.ItemId.ToLower();
-         string AccountName = _account.Label.ToLower();
+         string AccountId = Account.ItemId.ToLower();
+         string AccountName = Account.Label.ToLower();
 
          if (AccountId.StartsWith(AccountFilter)
             || AccountName.Contains(AccountFilter))
@@ -209,8 +209,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          if (string.IsNullOrWhiteSpace(identifiantFilter)) return true;
 
-         string AccountId = _account.ItemId.ToLower();
-         string AccountName = _account.Label.ToLower();
+         string AccountId = Account.ItemId.ToLower();
+         string AccountName = Account.Label.ToLower();
 
          if (AccountId.StartsWith(identifiantFilter)
             || AccountName.Contains(identifiantFilter))
@@ -223,9 +223,9 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          if (string.IsNullOrWhiteSpace(textFilter)) return true;
 
-         string AccountId = _account.ItemId.ToLower();
-         string AccountName = _account.Label.ToLower();
-         string AccountNote = _account.Notes.ToLower();
+         string AccountId = Account.ItemId.ToLower();
+         string AccountName = Account.Label.ToLower();
+         string AccountNote = Account.Notes.ToLower();
 
          if (AccountId.Contains(textFilter)
             || AccountName.Contains(textFilter)
@@ -235,6 +235,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          return false;
       }
 
-      public override string ToString() => $"{(_account.HasChanged() ? "* " : string.Empty)}{_account}";
+      public override string ToString() => $"{(Account.HasChanged() ? "* " : string.Empty)}{Account}";
    }
 }

@@ -46,6 +46,8 @@
                              Grid.Column="1"
                              Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              Background="{Binding NotesBackground}"
+                             MaxHeight="75"
+                             VerticalScrollBarVisibility="Auto"
                              AcceptsReturn="True"
                              AcceptsTab="True"/>
                 </Grid>

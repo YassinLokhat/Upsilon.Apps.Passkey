@@ -132,13 +132,17 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       {
          if (_viewModel.Services.Count == 1
             || _services_LB.SelectedItem is not ServiceViewModel serviceModel
-            || MessageBox.Show($"Are you sure you want to delete the service '{serviceModel.ServiceName}'", "Delete Service", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            || MessageBox.Show($"Are you sure you want to delete the service '{serviceModel.ServiceDisplay}'", "Delete Service", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
          {
             return;
          }
 
+         int index = _services_LB.SelectedIndex;
+
          _viewModel.Services.Remove(serviceModel);
          MainViewModel.User.DeleteService(serviceModel.Service);
+
+         _services_LB.SelectedIndex = index < _viewModel.Services.Count ? index : _viewModel.Services.Count - 1;
       }
 
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)

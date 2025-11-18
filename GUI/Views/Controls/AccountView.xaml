@@ -15,7 +15,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -45,9 +45,9 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <ListBox Grid.Row="0"
-                         Grid.Column="0"
-                         Grid.ColumnSpan="5"
-                         Name="_identifiants_LB">
+                                 Grid.Column="0"
+                                 Grid.ColumnSpan="5"
+                                 Name="_identifiants_LB">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBox MinWidth="250"
@@ -85,6 +85,8 @@
                             Grid.Column="1"
                             Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Background="{Binding NotesBackground}"
+                            MaxHeight="75"
+                            VerticalScrollBarVisibility="Auto"
                             AcceptsReturn="True"
                             AcceptsTab="True"/>
                 <GroupBox Header="Options"
