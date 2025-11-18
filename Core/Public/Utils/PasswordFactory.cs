@@ -75,10 +75,6 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
       {
          string hash = Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(password)));
 
-         ServicePointManager.Expect100Continue = true;
-         ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
-         ServicePointManager.DefaultConnectionLimit = 9999;
-
          using HttpClient httpClient = new();
          HttpRequestMessage request = new(HttpMethod.Get, $"https://api.pwnedpasswords.com/range/{hash[..5]}");
          HttpResponseMessage response = httpClient.Send(request);
