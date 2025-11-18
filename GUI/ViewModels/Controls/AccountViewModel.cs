@@ -9,9 +9,9 @@ using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
-   public class AccountViewModel : INotifyPropertyChanged
+   public class AccountViewModel(IAccount account) : INotifyPropertyChanged
    {
-      public readonly IAccount Account;
+      public readonly IAccount Account = account;
 
       public string AccountDisplay
       {
@@ -38,7 +38,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          }
       }
 
-      public ObservableCollection<IdentifiantViewModel> Identifiants;
+      public readonly ObservableCollection<IdentifiantViewModel> Identifiants = [];
 
       public Brush NotesBackground => Account.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Notes
@@ -112,16 +112,56 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountDisplay)));
       }
 
-      public AccountViewModel(IAccount account)
+      public void AddIdentifiant(string identifiant)
       {
-         Account = account;
-         Identifiants = [];
-      }
+         IdentifiantViewModel identifiantViewModel = new(Account, identifiant);
+         identifiantViewModel.PropertyChanged += _identifiantViewModel_PropertyChanged;
 
-      public void Refresh()
-      {
+         Identifiants.Add(identifiantViewModel);
+         Account.Identifiants = [.. Identifiants.Select(x => x.Identifiant)];
+
          OnPropertyChanged(string.Empty);
       }
+
+      private void _identifiantViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+      {
+         Account.Identifiants = [.. Identifiants.Select(x => x.Identifiant)];
+
+         OnPropertyChanged(string.Empty);
+      }
+
+      public bool RemoveIdentifiant(IdentifiantViewModel identifiant)
+      {
+         if (Identifiants.Count == 1)
+         {
+            return false;
+         }
+
+         _ = Identifiants.Remove(identifiant);
+         Account.Identifiants = [.. Identifiants.Select(x => x.Identifiant)];
+     
+         OnPropertyChanged(string.Empty);
+
+         return true;
+      }
+
+      public bool MoveIdentifiant(int oldIndex, int newIndex)
+      {
+         if (oldIndex < 0
+            || newIndex < 0
+            || newIndex >= Identifiants.Count)
+         {
+            return false;
+         }
+
+         (Identifiants[newIndex], Identifiants[oldIndex]) = (Identifiants[oldIndex], Identifiants[newIndex]);
+         Account.Identifiants = [.. Identifiants.Select(x => x.Identifiant)];
+
+         OnPropertyChanged(string.Empty);
+
+         return true;
+      }
+
 
       internal bool MeetFilterConditions(string AccountFilter, string identifiantFilter, string textFilter)
          => _matchAccountFilter(AccountFilter.ToLower())
