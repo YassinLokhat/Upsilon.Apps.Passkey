@@ -9,49 +9,49 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
    internal class ServiceViewModel : INotifyPropertyChanged
    {
-      private readonly IService _service;
+      public readonly IService Service;
 
-      public string ServiceDisplay => $"{(_service.HasChanged() ? "* " : string.Empty)}{_service.ServiceName}";
+      public string ServiceDisplay => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service.ServiceName}";
 
-      public string ServiceId => $"Service Id : {_service.ItemId.Replace(_service.User.ItemId, string.Empty)}";
+      public string ServiceId => $"Service Id : {Service.ItemId.Replace(Service.User.ItemId, string.Empty)}";
 
-      public Brush ServiceNameBackground => _service.HasChanged(nameof(ServiceName)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush ServiceNameBackground => Service.HasChanged(nameof(ServiceName)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string ServiceName
       {
-         get => _service.ServiceName;
+         get => Service.ServiceName;
          set
          {
-            if (_service.ServiceName != value)
+            if (Service.ServiceName != value)
             {
-               _service.ServiceName = value;
+               Service.ServiceName = value;
                OnPropertyChanged(nameof(ServiceName));
             }
          }
       }
 
-      public Brush UrlBackground => _service.HasChanged(nameof(Url)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush UrlBackground => Service.HasChanged(nameof(Url)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Url
       {
-         get => _service.Url;
+         get => Service.Url;
          set
          {
-            if (_service.Url != value)
+            if (Service.Url != value)
             {
-               _service.Url = value;
+               Service.Url = value;
                OnPropertyChanged(nameof(Url));
             }
          }
       }
 
-      public Brush NotesBackground => _service.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush NotesBackground => Service.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Notes
       {
-         get => _service.Notes;
+         get => Service.Notes;
          set
          {
-            if (_service.Notes != value)
+            if (Service.Notes != value)
             {
-               _service.Notes = value;
+               Service.Notes = value;
                OnPropertyChanged(nameof(Notes));
             }
          }
@@ -70,9 +70,9 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 
       public ServiceViewModel(IService service)
       {
-         _service = service;
+         Service = service;
 
-         foreach (IAccount account in _service.Accounts)
+         foreach (IAccount account in Service.Accounts)
          {
             AccountViewModel accountViewModel = new(account);
             accountViewModel.PropertyChanged += _accountViewModel_PropertyChanged;
@@ -94,8 +94,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          if (string.IsNullOrWhiteSpace(serviceFilter)) return true;
 
-         string serviceId = _service.ItemId.ToLower();
-         string serviceName = _service.ServiceName.ToLower();
+         string serviceId = Service.ItemId.ToLower();
+         string serviceName = Service.ServiceName.ToLower();
 
          if (serviceId.StartsWith(serviceFilter)
             || serviceName.Contains(serviceFilter))
@@ -108,8 +108,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          if (string.IsNullOrWhiteSpace(identifiantFilter)) return true;
 
-         string serviceId = _service.ItemId.ToLower();
-         string serviceName = _service.ServiceName.ToLower();
+         string serviceId = Service.ItemId.ToLower();
+         string serviceName = Service.ServiceName.ToLower();
 
          if (serviceId.StartsWith(identifiantFilter)
             || serviceName.Contains(identifiantFilter))
@@ -122,10 +122,10 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          if (string.IsNullOrWhiteSpace(textFilter)) return true;
 
-         string serviceId = _service.ItemId.ToLower();
-         string serviceName = _service.ServiceName.ToLower();
-         string serviceUrl = _service.Url.ToLower();
-         string serviceNote = _service.Notes.ToLower();
+         string serviceId = Service.ItemId.ToLower();
+         string serviceName = Service.ServiceName.ToLower();
+         string serviceUrl = Service.Url.ToLower();
+         string serviceNote = Service.Notes.ToLower();
 
          if (serviceId.Contains(textFilter)
             || serviceName.Contains(textFilter)
@@ -136,6 +136,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          return false;
       }
 
-      public override string ToString() => $"{(_service.HasChanged() ? "* " : string.Empty)}{_service}";
+      public override string ToString() => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service}";
    }
 }

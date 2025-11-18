@@ -130,7 +130,15 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _deleteService_Button_Click(object sender, RoutedEventArgs e)
       {
-         throw new NotImplementedException();
+         if (_viewModel.Services.Count == 1
+            || _services_LB.SelectedItem is not ServiceViewModel serviceModel
+            || MessageBox.Show($"Are you sure you want to delete the service '{serviceModel.ServiceName}'", "Delete Service", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+         {
+            return;
+         }
+
+         _viewModel.Services.Remove(serviceModel);
+         MainViewModel.User.DeleteService(serviceModel.Service);
       }
 
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
