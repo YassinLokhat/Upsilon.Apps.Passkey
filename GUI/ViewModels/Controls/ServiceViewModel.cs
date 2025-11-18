@@ -97,11 +97,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          string serviceId = Service.ItemId.ToLower();
          string serviceName = Service.ServiceName.ToLower();
 
-         if (serviceId.StartsWith(serviceFilter)
-            || serviceName.Contains(serviceFilter))
-            return true;
-
-         return false;
+         return serviceId.StartsWith(serviceFilter)
+            || serviceName.Contains(serviceFilter);
       }
 
       private bool _matchIdentifiantFilter(string identifiantFilter)
@@ -111,11 +108,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          string serviceId = Service.ItemId.ToLower();
          string serviceName = Service.ServiceName.ToLower();
 
-         if (serviceId.StartsWith(identifiantFilter)
-            || serviceName.Contains(identifiantFilter))
-            return true;
-
-         return false;
+         return serviceId.StartsWith(identifiantFilter)
+            || serviceName.Contains(identifiantFilter);
       }
 
       private bool _matchTextFilter(string textFilter)
@@ -127,13 +121,10 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          string serviceUrl = Service.Url.ToLower();
          string serviceNote = Service.Notes.ToLower();
 
-         if (serviceId.Contains(textFilter)
+         return serviceId.Contains(textFilter)
             || serviceName.Contains(textFilter)
             || serviceUrl.Contains(textFilter)
-            || serviceNote.Contains(textFilter))
-            return true;
-
-         return false;
+            || serviceNote.Contains(textFilter);
       }
 
       public override string ToString() => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service}";

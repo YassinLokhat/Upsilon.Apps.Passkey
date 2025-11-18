@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
@@ -78,7 +77,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       public UserServicesViewModel(string defaultTitle)
       {
          _title = _defaultTitle = defaultTitle;
-         
+
          RefreshFilters();
 
          DispatcherTimer timer = new()

@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Themes;
@@ -119,7 +118,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          if (serviceModel == null)
          {
             IService service = MainViewModel.User.AddService("New Service");
-            service.AddAccount(["NewAccount"]);
+            _ = service.AddAccount(["NewAccount"]);
 
             serviceModel = new(service);
             _viewModel.Services.Insert(0, serviceModel);
@@ -139,7 +138,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          int index = _services_LB.SelectedIndex;
 
-         _viewModel.Services.Remove(serviceModel);
+         _ = _viewModel.Services.Remove(serviceModel);
          MainViewModel.User.DeleteService(serviceModel.Service);
 
          _services_LB.SelectedIndex = index < _viewModel.Services.Count ? index : _viewModel.Services.Count - 1;

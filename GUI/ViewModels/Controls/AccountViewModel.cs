@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.Core.Public.Utils;
-using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.PassKey.Core.Public.Enums;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
@@ -198,11 +197,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          string AccountId = Account.ItemId.ToLower();
          string AccountName = Account.Label.ToLower();
 
-         if (AccountId.StartsWith(AccountFilter)
-            || AccountName.Contains(AccountFilter))
-            return true;
-
-         return false;
+         return AccountId.StartsWith(AccountFilter)
+            || AccountName.Contains(AccountFilter);
       }
 
       private bool _matchIdentifiantFilter(string identifiantFilter)
@@ -212,11 +208,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          string AccountId = Account.ItemId.ToLower();
          string AccountName = Account.Label.ToLower();
 
-         if (AccountId.StartsWith(identifiantFilter)
-            || AccountName.Contains(identifiantFilter))
-            return true;
-
-         return false;
+         return AccountId.StartsWith(identifiantFilter)
+            || AccountName.Contains(identifiantFilter);
       }
 
       private bool _matchTextFilter(string textFilter)
@@ -227,12 +220,9 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          string AccountName = Account.Label.ToLower();
          string AccountNote = Account.Notes.ToLower();
 
-         if (AccountId.Contains(textFilter)
+         return AccountId.Contains(textFilter)
             || AccountName.Contains(textFilter)
-            || AccountNote.Contains(textFilter))
-            return true;
-
-         return false;
+            || AccountNote.Contains(textFilter);
       }
 
       public override string ToString() => $"{(Account.HasChanged() ? "* " : string.Empty)}{Account}";

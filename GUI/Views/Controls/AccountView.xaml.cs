@@ -1,9 +1,7 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 {
@@ -25,7 +23,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
          DataContext = _viewModel = dataContext;
          _viewModel.AddIdentifiants();
- 
+
          _identifiants_LB.ItemsSource = _viewModel.Identifiants;
          _identifiants_LB.SelectedIndex = 0;
       }

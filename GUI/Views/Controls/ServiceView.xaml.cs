@@ -2,7 +2,6 @@
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 {
@@ -64,7 +63,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
          int index = _accounts_LB.SelectedIndex;
 
-         _viewModel.Accounts.Remove(accountModel);
+         _ = _viewModel.Accounts.Remove(accountModel);
          _viewModel.Service.DeleteAccount(accountModel.Account);
 
          _accounts_LB.SelectedIndex = index < _viewModel.Accounts.Count ? index : _viewModel.Accounts.Count - 1;

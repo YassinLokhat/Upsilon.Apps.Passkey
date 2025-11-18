@@ -179,7 +179,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             if (MainViewModel.Database.User.Services.Length == 0)
             {
                IService service = MainViewModel.User.AddService("New Service");
-               service.AddAccount(["NewAccount"]);
+               _ = service.AddAccount(["NewAccount"]);
             }
 
             MainViewModel.Database.Save();
