@@ -25,6 +25,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          _services_LB.ItemsSource = _viewModel.Services;
 
+         if (_viewModel.Services.Count != 0)
+         {
+            _services_LB.SelectedIndex = 0;
+         }
+
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          Loaded += _userServicesView_Loaded;
       }

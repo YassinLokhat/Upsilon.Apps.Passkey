@@ -20,6 +20,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
          DataContext = serviceViewModel;
          _accounts_LB.ItemsSource = serviceViewModel.Accounts;
+
+         if (serviceViewModel.Accounts.Count != 0)
+         {
+            _accounts_LB.SelectedIndex = 0;
+         }
       }
 
       private void _accounts_LB_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -12,7 +12,7 @@ using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
-   public class AccountIdentifiantItemViewModel : INotifyPropertyChanged
+   public class IdentifiantViewModel : INotifyPropertyChanged
    {
       private readonly IAccount _account;
 
@@ -39,7 +39,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
       }
 
-      public AccountIdentifiantItemViewModel(IAccount account, string identifiant)
+      public IdentifiantViewModel(IAccount account, string identifiant)
       {
          _account = account;
          Identifiant = identifiant;

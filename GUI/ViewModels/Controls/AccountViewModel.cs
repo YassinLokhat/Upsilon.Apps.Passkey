@@ -9,9 +9,9 @@ using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
-   public class AccountViewModel(IAccount account) : INotifyPropertyChanged
+   public class AccountViewModel : INotifyPropertyChanged
    {
-      public readonly IAccount Account = account;
+      public readonly IAccount Account;
 
       public string AccountDisplay
       {
@@ -37,6 +37,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             }
          }
       }
+
+      public ObservableCollection<IdentifiantViewModel> Identifiants;
 
       public Brush NotesBackground => Account.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Notes
@@ -108,6 +110,12 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountDisplay)));
+      }
+
+      public AccountViewModel(IAccount account)
+      {
+         Account = account;
+         Identifiants = [];
       }
 
       public void Refresh()
