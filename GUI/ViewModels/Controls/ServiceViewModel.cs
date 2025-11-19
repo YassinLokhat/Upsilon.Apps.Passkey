@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Security.Principal;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.Core.Public.Utils;
 using Upsilon.Apps.Passkey.GUI.Themes;
@@ -78,6 +79,34 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             accountViewModel.PropertyChanged += _accountViewModel_PropertyChanged;
             Accounts.Add(accountViewModel);
          }
+      }
+
+      public AccountViewModel AddAccount()
+      {
+         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiants.Any(y => y.Identifiant == "NewAccount"));
+
+         if (accountViewModel == null)
+         {
+            accountViewModel = new(Service.AddAccount(["NewAccount"]));
+            accountViewModel.PropertyChanged += _accountViewModel_PropertyChanged;
+            Accounts.Insert(0, accountViewModel);
+
+            OnPropertyChanged(string.Empty);
+         }
+
+         return accountViewModel;
+      }
+
+      public int DeleteAccount(AccountViewModel accountViewModel)
+      {
+         int index = Accounts.IndexOf(accountViewModel);
+
+         _ = Accounts.Remove(accountViewModel);
+         Service.DeleteAccount(accountViewModel.Account);
+
+         OnPropertyChanged(string.Empty);
+
+         return index < Accounts.Count ? index : Accounts.Count - 1;
       }
 
       private void _accountViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)

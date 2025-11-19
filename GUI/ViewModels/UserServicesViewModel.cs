@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
+using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
@@ -87,6 +88,29 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          };
 
          timer.Tick += _timer_Elapsed;
+      }
+
+      public ServiceViewModel AddService()
+      {
+         ServiceViewModel? serviceViewModel = Services.FirstOrDefault(x => x.ServiceName == "New Service");
+
+         if (serviceViewModel == null)
+         {
+            serviceViewModel = new(MainViewModel.User.AddService("New Service"));
+            Services.Insert(0, serviceViewModel);
+         }
+
+         return serviceViewModel;
+      }
+
+      public int DeleteService(ServiceViewModel serviceViewModel)
+      {
+         int index = Services.IndexOf(serviceViewModel);
+
+         _ = Services.Remove(serviceViewModel);
+         MainViewModel.User.DeleteService(serviceViewModel.Service);
+
+         return index < Services.Count ? index : Services.Count - 1;
       }
 
       public void RefreshFilters()

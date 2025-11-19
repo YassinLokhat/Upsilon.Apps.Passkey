@@ -19,7 +19,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       internal void SetDataContext(ServiceViewModel? serviceViewModel)
       {
-         if (serviceViewModel is null) return;
+         if (serviceViewModel is null)
+         {
+            DataContext = null;
+            _viewModel = null;
+            _accounts_LB.ItemsSource = null;
+
+            return;
+         }
 
          DataContext = _viewModel = serviceViewModel;
          _accounts_LB.ItemsSource = serviceViewModel.Accounts;
@@ -40,33 +47,19 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       {
          if (_viewModel is null) return;
 
-         AccountViewModel? accountModel = _viewModel.Accounts.FirstOrDefault(x => x.Identifiants.Any(y => y.Identifiant == "NewAccount"));
-
-         if (accountModel == null)
-         {
-            accountModel = new(_viewModel.Service.AddAccount(["NewAccount"]));
-            _viewModel.Accounts.Insert(0, accountModel);
-         }
-
-         _accounts_LB.SelectedItem = accountModel;
+         _accounts_LB.SelectedItem = _viewModel.AddAccount();
       }
 
       private void _deleteAccount_Button_Click(object sender, System.Windows.RoutedEventArgs e)
       {
          if (_viewModel is null
-            || _viewModel.Accounts.Count == 1
-            || _accounts_LB.SelectedItem is not AccountViewModel accountModel
-            || MessageBox.Show($"Are you sure you want to delete the account '{accountModel.AccountDisplay}'", "Delete Account", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            || _accounts_LB.SelectedItem is not AccountViewModel accountViewModel
+            || MessageBox.Show($"Are you sure you want to delete the account '{accountViewModel.AccountDisplay}'", "Delete Account", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
          {
             return;
          }
 
-         int index = _accounts_LB.SelectedIndex;
-
-         _ = _viewModel.Accounts.Remove(accountModel);
-         _viewModel.Service.DeleteAccount(accountModel.Account);
-
-         _accounts_LB.SelectedIndex = index < _viewModel.Accounts.Count ? index : _viewModel.Accounts.Count - 1;
+         _accounts_LB.SelectedIndex = _viewModel.DeleteAccount(accountViewModel);
       }
    }
 }

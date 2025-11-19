@@ -19,7 +19,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       public void SetDataContext(AccountViewModel? dataContext)
       {
-         if (dataContext is null) return;
+         if (dataContext is null)
+         {
+            DataContext = null;
+            _viewModel = null;
+            _identifiants_LB.ItemsSource = null;
+
+            return;
+         }
 
          DataContext = _viewModel = dataContext;
          _viewModel.AddIdentifiants();

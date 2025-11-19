@@ -176,12 +176,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             if (_viewModel.NotifyPasswordLeaked) warningsToNotify |= WarningType.PasswordLeakedWarning;
             MainViewModel.Database.User.WarningsToNotify = warningsToNotify;
 
-            if (MainViewModel.Database.User.Services.Length == 0)
-            {
-               IService service = MainViewModel.User.AddService("New Service");
-               _ = service.AddAccount(["NewAccount"]);
-            }
-
             MainViewModel.Database.Save();
          }
 

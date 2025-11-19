@@ -113,35 +113,18 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _addService_Button_Click(object sender, RoutedEventArgs e)
       {
-         ServiceViewModel? serviceModel = _viewModel.Services.FirstOrDefault(x => x.ServiceName == "New Service");
-
-         if (serviceModel == null)
-         {
-            IService service = MainViewModel.User.AddService("New Service");
-            _ = service.AddAccount(["NewAccount"]);
-
-            serviceModel = new(service);
-            _viewModel.Services.Insert(0, serviceModel);
-         }
-
-         _services_LB.SelectedItem = serviceModel;
+         _services_LB.SelectedItem = _viewModel.AddService();
       }
 
       private void _deleteService_Button_Click(object sender, RoutedEventArgs e)
       {
-         if (_viewModel.Services.Count == 1
-            || _services_LB.SelectedItem is not ServiceViewModel serviceModel
-            || MessageBox.Show($"Are you sure you want to delete the service '{serviceModel.ServiceDisplay}'", "Delete Service", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+         if (_services_LB.SelectedItem is not ServiceViewModel serviceViewModel
+            || MessageBox.Show($"Are you sure you want to delete the service '{serviceViewModel.ServiceDisplay}'", "Delete Service", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
          {
             return;
          }
 
-         int index = _services_LB.SelectedIndex;
-
-         _ = _viewModel.Services.Remove(serviceModel);
-         MainViewModel.User.DeleteService(serviceModel.Service);
-
-         _services_LB.SelectedIndex = index < _viewModel.Services.Count ? index : _viewModel.Services.Count - 1;
+         _services_LB.SelectedIndex = _viewModel.DeleteService(serviceViewModel);
       }
 
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
