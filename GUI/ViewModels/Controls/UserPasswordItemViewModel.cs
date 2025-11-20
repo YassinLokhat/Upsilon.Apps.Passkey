@@ -5,19 +5,16 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
    public class UserPasswordItemViewModel : INotifyPropertyChanged
    {
-      private int _index = 0;
       public int Index
       {
-         get => _index;
-         set => PropertyHelper.SetProperty(ref _index, value, this, PropertyChanged);
-      }
-
-      private string _password = string.Empty;
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = 0;
       public string Password
       {
-         get => _password;
-         set => PropertyHelper.SetProperty(ref _password, value, this, PropertyChanged);
-      }
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = string.Empty;
 
       public event PropertyChangedEventHandler? PropertyChanged;
 

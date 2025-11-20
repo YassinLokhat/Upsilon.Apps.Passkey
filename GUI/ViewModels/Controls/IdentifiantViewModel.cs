@@ -11,19 +11,19 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       private readonly IAccount _account;
 
       public Brush IdentifiantBackground => _account.HasChanged("Identifiants") ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
-      private string _identifiant = string.Empty;
+
       public string Identifiant
       {
-         get => _identifiant;
+         get;
          set
          {
-            if (_identifiant != value)
+            if (field != value)
             {
-               _identifiant = value;
+               field = value;
                OnPropertyChanged(nameof(Identifiant));
             }
          }
-      }
+      } = string.Empty;
 
       public event PropertyChangedEventHandler? PropertyChanged;
 

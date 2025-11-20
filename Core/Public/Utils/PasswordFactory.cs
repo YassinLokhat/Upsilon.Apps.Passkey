@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 

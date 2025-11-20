@@ -97,13 +97,12 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public string ItemId { get; set; } = string.Empty;
 
-      private User? _user;
       internal User User
       {
-         get => _user ?? throw new NullReferenceException(nameof(User));
+         get => field ?? throw new NullReferenceException(nameof(User));
          set
          {
-            _user = value;
+            field = value;
 
             foreach (Account account in Accounts)
             {

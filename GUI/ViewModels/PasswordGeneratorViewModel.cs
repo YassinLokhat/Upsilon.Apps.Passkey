@@ -8,97 +8,90 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
    {
       public static string Title => MainViewModel.AppTitle + " - Password Generator";
 
-      private bool _checkIfLeaked = true;
       public bool CheckIfLeaked
       {
-         get => _checkIfLeaked;
+         get;
          set
          {
-            if (_checkIfLeaked != value)
+            if (field != value)
             {
-               _checkIfLeaked = value;
+               field = value;
                _includeCharactersChanged(nameof(CheckIfLeaked));
             }
          }
-      }
+      } = true;
 
-      private int _passwordLength = 20;
       public int PasswordLength
       {
-         get => _passwordLength;
+         get;
          set
          {
-            if (_passwordLength != value)
+            if (field != value)
             {
-               _passwordLength = value;
+               field = value;
                OnPropertyChanged(nameof(PasswordLength));
                GeneratePassword();
             }
          }
-      }
+      } = 20;
 
-      private string _generatedPassword = string.Empty;
       public string GeneratedPassword
       {
-         get => _generatedPassword;
-         set => PropertyHelper.SetProperty(ref _generatedPassword, value, this, PropertyChanged);
-      }
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = string.Empty;
 
-      private bool _includeNumerics = true;
       public bool IncludeNumerics
       {
-         get => _includeNumerics;
+         get;
          set
          {
-            if (_includeNumerics != value)
+            if (field != value)
             {
-               _includeNumerics = value;
+               field = value;
                _includeCharactersChanged(nameof(IncludeNumerics));
             }
          }
-      }
+      } = true;
 
-      private bool _includeSpecialCharacters = true;
       public bool IncludeSpecialCharacters
       {
-         get => _includeSpecialCharacters;
+         get;
          set
          {
-            if (_includeSpecialCharacters != value)
+            if (field != value)
             {
-               _includeSpecialCharacters = value;
+               field = value;
                _includeCharactersChanged(nameof(IncludeSpecialCharacters));
             }
          }
-      }
+      } = true;
 
-      private bool _includeLowerCaseAlphabet = true;
       public bool IncludeLowerCaseAlphabet
       {
-         get => _includeLowerCaseAlphabet;
+         get;
          set
          {
-            if (_includeLowerCaseAlphabet != value)
+            if (field != value)
             {
-               _includeLowerCaseAlphabet = value;
+               field = value;
                _includeCharactersChanged(nameof(IncludeLowerCaseAlphabet));
             }
          }
-      }
+      } = true;
 
-      private bool _includeUpperCaseAlphabet = true;
       public bool IncludeUpperCaseAlphabet
       {
-         get => _includeUpperCaseAlphabet;
+         get;
          set
          {
-            if (_includeUpperCaseAlphabet != value)
+            if (field != value)
             {
-               _includeUpperCaseAlphabet = value;
+               field = value;
                _includeCharactersChanged(nameof(IncludeUpperCaseAlphabet));
             }
          }
-      }
+      } = true;
 
       private string _alphabet;
       public string Alphabet

@@ -109,13 +109,12 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       #endregion
 
-      private Database? _database;
       internal Database Database
       {
-         get => _database ?? throw new NullReferenceException(nameof(Database));
+         get => field ?? throw new NullReferenceException(nameof(Database));
          set
          {
-            _database = value;
+            field = value;
 
             foreach (Service service in Services)
             {

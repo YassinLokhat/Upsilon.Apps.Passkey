@@ -26,12 +26,11 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 
       public static IUser User => Database is null || Database.User is null ? throw new NullReferenceException(nameof(User)) : Database.User;
 
-      private string _label = "Username :";
       public string Label
       {
-         get => _label;
-         set => PropertyHelper.SetProperty(ref _label, value, this, PropertyChanged);
-      }
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = "Username :";
 
       public event PropertyChangedEventHandler? PropertyChanged;
 

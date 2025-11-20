@@ -6,33 +6,26 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
    public class VisiblePasswordBoxViewModel : INotifyPropertyChanged
    {
-      private string _password = string.Empty;
       public string Password
       {
-         get => _password;
-         set => PropertyHelper.SetProperty(ref _password, value, this, PropertyChanged);
-      }
-
-      private Visibility _passwordVisibility = Visibility.Visible;
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = string.Empty;
       public Visibility PasswordVisibility
       {
-         get => _passwordVisibility;
-         set => PropertyHelper.SetProperty(ref _passwordVisibility, value, this, PropertyChanged);
-      }
-
-      private Visibility _textVisibility = Visibility.Hidden;
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = Visibility.Visible;
       public Visibility TextVisibility
       {
-         get => _textVisibility;
-         set => PropertyHelper.SetProperty(ref _textVisibility, value, this, PropertyChanged);
-      }
-
-      private Visibility _buttonVisibility = Visibility.Visible;
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = Visibility.Hidden;
       public Visibility ButtonVisibility
       {
-         get => _buttonVisibility;
-         set => PropertyHelper.SetProperty(ref _buttonVisibility, value, this, PropertyChanged);
-      }
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = Visibility.Visible;
 
       public bool PasswordIsVisible => PasswordVisibility == System.Windows.Visibility.Hidden;
 

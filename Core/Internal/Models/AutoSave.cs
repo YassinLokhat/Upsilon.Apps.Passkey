@@ -5,11 +5,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 {
    internal sealed class AutoSave
    {
-      private Database? _database;
       internal Database Database
       {
-         get => _database ?? throw new NullReferenceException(nameof(Database));
-         set => _database = value;
+         get => field ?? throw new NullReferenceException(nameof(Database));
+         set;
       }
 
       public Dictionary<string, List<Change>> Changes { get; set; } = [];

@@ -6,11 +6,10 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
 {
    internal class LogCenter
    {
-      private Database? _database;
       internal Database Database
       {
-         get => _database ?? throw new NullReferenceException(nameof(Database));
-         set => _database = value;
+         get => field ?? throw new NullReferenceException(nameof(Database));
+         set;
       }
 
       [JsonIgnore]

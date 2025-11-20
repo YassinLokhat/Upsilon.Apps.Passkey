@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
@@ -18,53 +17,50 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          set => PropertyHelper.SetProperty(ref _title, value, this, PropertyChanged);
       }
 
-      private string _serviceFilter = string.Empty;
       public string ServiceFilter
       {
-         get => _serviceFilter;
+         get;
          set
          {
-            if (_serviceFilter != value)
+            if (field != value)
             {
-               _serviceFilter = value;
+               field = value;
                OnPropertyChanged(nameof(ServiceFilter));
 
                RefreshFilters();
             }
          }
-      }
+      } = string.Empty;
 
-      private string _identifiantFilter = string.Empty;
       public string IdentifiantFilter
       {
-         get => _identifiantFilter;
+         get;
          set
          {
-            if (_identifiantFilter != value)
+            if (field != value)
             {
-               _identifiantFilter = value;
+               field = value;
                OnPropertyChanged(nameof(IdentifiantFilter));
 
                RefreshFilters();
             }
          }
-      }
+      } = string.Empty;
 
-      private string _textFilter = string.Empty;
       public string TextFilter
       {
-         get => _textFilter;
+         get;
          set
          {
-            if (_textFilter != value)
+            if (field != value)
             {
-               _textFilter = value;
+               field = value;
                OnPropertyChanged(nameof(TextFilter));
 
                RefreshFilters();
             }
          }
-      }
+      } = string.Empty;
 
       public ObservableCollection<ServiceViewModel> Services = [];
 
