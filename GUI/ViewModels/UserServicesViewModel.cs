@@ -62,7 +62,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          }
       } = string.Empty;
 
-      public ObservableCollection<ServiceViewModel> Services = [];
+      public ObservableCollection<ServiceViewModel> Services { get; set; } = [];
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -114,9 +114,9 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          Services.Clear();
 
          ServiceViewModel[] services = [.. MainViewModel.User.Services
+            .Where(x => x.MeetsFilterConditions(ServiceFilter, IdentifiantFilter, TextFilter))
             .OrderBy(x => x.ServiceName)
-            .Select(x => new ServiceViewModel(x))
-            .Where(x => x.MeetFilterConditions(ServiceFilter, IdentifiantFilter, TextFilter))];
+            .Select(x => new ServiceViewModel(x, IdentifiantFilter, TextFilter))];
 
          foreach (ServiceViewModel service in services)
          {

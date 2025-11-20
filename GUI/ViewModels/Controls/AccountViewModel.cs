@@ -185,46 +185,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          return true;
       }
 
-      internal bool MeetFilterConditions(string AccountFilter, string identifiantFilter, string textFilter)
-         => _matchAccountFilter(AccountFilter.ToLower())
-            && _matchIdentifiantFilter(identifiantFilter.ToLower())
-            && _matchTextFilter(textFilter.ToLower());
-
-      private bool _matchAccountFilter(string AccountFilter)
-      {
-         if (string.IsNullOrWhiteSpace(AccountFilter)) return true;
-
-         string AccountId = Account.ItemId.ToLower();
-         string AccountName = Account.Label.ToLower();
-
-         return AccountId.StartsWith(AccountFilter)
-            || AccountName.Contains(AccountFilter);
-      }
-
-      private bool _matchIdentifiantFilter(string identifiantFilter)
-      {
-         if (string.IsNullOrWhiteSpace(identifiantFilter)) return true;
-
-         string AccountId = Account.ItemId.ToLower();
-         string AccountName = Account.Label.ToLower();
-
-         return AccountId.StartsWith(identifiantFilter)
-            || AccountName.Contains(identifiantFilter);
-      }
-
-      private bool _matchTextFilter(string textFilter)
-      {
-         if (string.IsNullOrWhiteSpace(textFilter)) return true;
-
-         string AccountId = Account.ItemId.ToLower();
-         string AccountName = Account.Label.ToLower();
-         string AccountNote = Account.Notes.ToLower();
-
-         return AccountId.Contains(textFilter)
-            || AccountName.Contains(textFilter)
-            || AccountNote.Contains(textFilter);
-      }
-
       public override string ToString() => $"{(Account.HasChanged() ? "* " : string.Empty)}{Account}";
    }
 }

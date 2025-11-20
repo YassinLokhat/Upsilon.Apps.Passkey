@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.PassKey.Core.Public.Interfaces;
 
@@ -68,11 +69,11 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplay)));
       }
 
-      public ServiceViewModel(IService service)
+      public ServiceViewModel(IService service, string identifiantFilter = "", string textFilter = "")
       {
          Service = service;
 
-         foreach (IAccount account in Service.Accounts)
+         foreach (IAccount account in Service.Accounts.Where(x => x.MeetsFilterConditions(identifiantFilter, textFilter)))
          {
             AccountViewModel accountViewModel = new(account);
             accountViewModel.PropertyChanged += _accountViewModel_PropertyChanged;
@@ -111,48 +112,6 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       private void _accountViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
       {
          OnPropertyChanged(string.Empty);
-      }
-
-      internal bool MeetFilterConditions(string serviceFilter, string identifiantFilter, string textFilter)
-         => _matchServiceFilter(serviceFilter.ToLower())
-            && _matchIdentifiantFilter(identifiantFilter.ToLower())
-            && _matchTextFilter(textFilter.ToLower());
-
-      private bool _matchServiceFilter(string serviceFilter)
-      {
-         if (string.IsNullOrWhiteSpace(serviceFilter)) return true;
-
-         string serviceId = Service.ItemId.ToLower();
-         string serviceName = Service.ServiceName.ToLower();
-
-         return serviceId.StartsWith(serviceFilter)
-            || serviceName.Contains(serviceFilter);
-      }
-
-      private bool _matchIdentifiantFilter(string identifiantFilter)
-      {
-         if (string.IsNullOrWhiteSpace(identifiantFilter)) return true;
-
-         string serviceId = Service.ItemId.ToLower();
-         string serviceName = Service.ServiceName.ToLower();
-
-         return serviceId.StartsWith(identifiantFilter)
-            || serviceName.Contains(identifiantFilter);
-      }
-
-      private bool _matchTextFilter(string textFilter)
-      {
-         if (string.IsNullOrWhiteSpace(textFilter)) return true;
-
-         string serviceId = Service.ItemId.ToLower();
-         string serviceName = Service.ServiceName.ToLower();
-         string serviceUrl = Service.Url.ToLower();
-         string serviceNote = Service.Notes.ToLower();
-
-         return serviceId.Contains(textFilter)
-            || serviceName.Contains(textFilter)
-            || serviceUrl.Contains(textFilter)
-            || serviceNote.Contains(textFilter);
       }
 
       public override string ToString() => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service}";
