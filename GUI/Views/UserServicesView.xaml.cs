@@ -21,7 +21,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          if (MainViewModel.Database is null) throw new NullReferenceException(nameof(MainViewModel.Database));
 
          DataContext = _viewModel = new($"{MainViewModel.AppTitle} - '{MainViewModel.User}'");
-            _viewModel.FiltersRefreshed += _viewModel_FiltersRefreshed;
+         _viewModel.FiltersRefreshed += _viewModel_FiltersRefreshed;
 
          _services_LB.ItemsSource = _viewModel.Services;
 
