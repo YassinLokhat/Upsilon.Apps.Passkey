@@ -15,7 +15,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          user.CleaningClipboardTimeout = 15;
          user.WarningsToNotify = (Core.Public.Enums.WarningType)0;
 
-         for (int i = 0; i < 10; i++)
+         for (int i = 0; i < 50; i++)
          {
             IService service = user.AddService($"Service{i} ({UnitTestsHelper.GetRandomString(min: 10, max: 15)})");
             service.Url = $"www.service{i}.xyz";
