@@ -37,7 +37,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          }
       }
 
-      public readonly ObservableCollection<IdentifiantViewModel> Identifiants = [];
+      public ObservableCollection<IdentifiantViewModel> Identifiants = [];
 
       public Brush NotesBackground => Account.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Notes
@@ -128,21 +128,11 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          OnPropertyChanged(string.Empty);
       }
 
-      public void AddIdentifiants()
+      public void AddIdentifiant(IdentifiantViewModel identifiantViewModel)
       {
-         Identifiants.Clear();
+         identifiantViewModel.PropertyChanged += _identifiantViewModel_PropertyChanged;
 
-         if (Account.Identifiants.Length == 0)
-         {
-            AddIdentifiant(string.Empty);
-         }
-         else
-         {
-            foreach (string identifiant in Account.Identifiants)
-            {
-               AddIdentifiant(identifiant);
-            }
-         }
+         _identifiantViewModel_PropertyChanged(null, new("Identifiant"));
       }
 
       public void AddIdentifiant(string identifiant)
