@@ -73,7 +73,14 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          Service = service;
 
-         foreach (IAccount account in Service.Accounts.Where(x => x.MeetsFilterConditions(identifiantFilter, textFilter)))
+         IAccount[] accounts = Service.Accounts.Where(x => x.MeetsFilterConditions(identifiantFilter, textFilter)).ToArray();
+
+         if (accounts.Length == 0)
+         {
+            accounts = Service.Accounts;
+         }
+
+         foreach (IAccount account in accounts)
          {
             AccountViewModel accountViewModel = new(account);
             accountViewModel.PropertyChanged += _accountViewModel_PropertyChanged;

@@ -21,6 +21,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          if (MainViewModel.Database is null) throw new NullReferenceException(nameof(MainViewModel.Database));
 
          DataContext = _viewModel = new($"{MainViewModel.AppTitle} - '{MainViewModel.User}'");
+            _viewModel.FiltersRefreshed += _viewModel_FiltersRefreshed;
 
          _services_LB.ItemsSource = _viewModel.Services;
 
@@ -31,6 +32,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          Loaded += _userServicesView_Loaded;
+      }
+
+      private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
+      {
+         if (_viewModel.Services.Count != 0)
+         {
+            _services_LB.SelectedIndex = 0;
+         }
       }
 
       private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)

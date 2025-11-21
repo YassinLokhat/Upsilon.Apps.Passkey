@@ -66,6 +66,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
+      public event EventHandler? FiltersRefreshed;
+
       protected virtual void OnPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -122,6 +124,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          {
             Services.Add(service);
          }
+
+         FiltersRefreshed?.Invoke(this, EventArgs.Empty);
       }
 
       private void _timer_Elapsed(object? sender, EventArgs e)

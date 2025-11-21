@@ -8,66 +8,47 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
 {
    public static class IItemHelper
    {
-      public static bool MeetsFilterConditions(this IService service, string serviceFilter, string identifiantFilter, string textFilter)
+      public static bool MeetsFilterConditions(this IService service, string serviceFilter, string identifiantFilter, string globalTextFilter)
       {
-         return service.Accounts.Any(x => x.MeetsFilterConditions(identifiantFilter, textFilter))
-         || (_matchServiceFilter(service, serviceFilter.ToLower())
-            && _matchIdentifiantFilter(service, identifiantFilter.ToLower())
-            && _matchTextFilter(service, textFilter.ToLower()));
+         serviceFilter = serviceFilter.ToLower().Trim();
+         identifiantFilter = identifiantFilter.ToLower().Trim();
+         globalTextFilter = globalTextFilter.ToLower().Trim();
+
+         string serviceId = service.ItemId.Replace(service.User.ItemId, string.Empty).ToLower().Trim();
+         string serviceName = service.ServiceName.ToLower().Trim();
+         string url = service.Url.ToLower().Trim();
+         string notes = service.Notes.ToLower().Trim();
+
+         return !string.IsNullOrWhiteSpace(globalTextFilter)
+            ? serviceId == globalTextFilter
+               || serviceName.Contains(globalTextFilter)
+               || url.Contains(globalTextFilter)
+               || notes.Contains(globalTextFilter)
+               || service.Accounts.Any(x => x.MeetsFilterConditions(string.Empty, globalTextFilter))
+            : (string.IsNullOrWhiteSpace(serviceFilter)
+                  || (!string.IsNullOrWhiteSpace(serviceFilter) && serviceName.Contains(serviceFilter)))
+               && (string.IsNullOrWhiteSpace(identifiantFilter)
+                  || service.Accounts.Any(x => x.MeetsFilterConditions(identifiantFilter, globalTextFilter)));
       }
 
-      private static bool _matchServiceFilter(IService service, string serviceFilter)
+      public static bool MeetsFilterConditions(this IAccount account, string identifiantFilter, string globalTextFilter)
       {
-         if (string.IsNullOrWhiteSpace(serviceFilter)) return true;
+         identifiantFilter = identifiantFilter.ToLower().Trim();
+         globalTextFilter = globalTextFilter.ToLower().Trim();
 
-         string serviceId = service.ItemId.ToLower();
-         string serviceName = service.ServiceName.ToLower();
+         string accountId = account.ItemId.Replace(account.Service.ItemId, string.Empty).ToLower().Trim();
+         string label = account.Label.ToLower().Trim();
+         string notes = account.Notes.ToLower().Trim();
+         string identifiants = string.Join("\n", account.Identifiants.Select(x => x.ToLower().Trim()));
 
-         return serviceId.StartsWith(serviceFilter)
-            || serviceName.Contains(serviceFilter);
-      }
-
-      private static bool _matchIdentifiantFilter(IService service, string identifiantFilter)
-      {
-         if (string.IsNullOrWhiteSpace(identifiantFilter)) return true;
-
-         string serviceId = service.ItemId.ToLower();
-         string serviceName = service.ServiceName.ToLower();
-
-         return serviceId.StartsWith(identifiantFilter)
-            || serviceName.Contains(identifiantFilter);
-      }
-
-      private static bool _matchTextFilter(IService service, string textFilter)
-      {
-         if (string.IsNullOrWhiteSpace(textFilter)) return true;
-
-         string serviceId = service.ItemId.ToLower();
-         string serviceName = service.ServiceName.ToLower();
-         string url = service.Url.ToLower();
-         string note = service.Notes.ToLower();
-
-         return serviceId.Contains(textFilter)
-            || serviceName.Contains(textFilter)
-            || url.Contains(textFilter)
-            || note.Contains(textFilter);
-      }
-
-      public static bool MeetsFilterConditions(this IAccount account, string identifiantFilter, string textFilter)
-         => _matchTextFilter(account, identifiantFilter.ToLower())
-            && _matchTextFilter(account, textFilter.ToLower());
-
-      private static bool _matchTextFilter(IAccount account, string textFilter)
-      {
-         if (string.IsNullOrWhiteSpace(textFilter)) return true;
-
-         string accountId = account.ItemId.ToLower();
-         string label = account.Label.ToLower();
-         string[] identifiants = [.. account.Identifiants.Select(x => x.ToLower())];
-
-         return accountId.StartsWith(textFilter)
-            || label.Contains(textFilter)
-            || identifiants.Any(x => x.Contains(textFilter));
+         return !string.IsNullOrWhiteSpace(globalTextFilter)
+            ? accountId == globalTextFilter
+               || identifiants.Contains(globalTextFilter)
+               || label.ToLower().Contains(globalTextFilter)
+               || notes.ToLower().Contains(globalTextFilter)
+            : string.IsNullOrWhiteSpace(identifiantFilter)
+               || identifiants.Contains(identifiantFilter)
+               || label.Contains(identifiantFilter);
       }
    }
 }
