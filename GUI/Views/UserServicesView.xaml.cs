@@ -77,7 +77,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _generateRandomPassword_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         _ = PasswordGenerator.ShowGeneratePasswordDialog(this);
+         string? password = PasswordGenerator.ShowGeneratePasswordDialog(this);
+
+         if (password is null) return;
+         if (_services_LB.SelectedIndex == -1) return;
+
+         ServiceViewModel serviceViewModel = (ServiceViewModel)_services_LB.SelectedItem;
+
+         /// TODO : Get current account and insert the new password
       }
 
       private void _logout_MenuItem_Click(object sender, RoutedEventArgs e)

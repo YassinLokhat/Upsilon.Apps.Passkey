@@ -48,10 +48,11 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <ListBox Grid.Row="0"
                                  Grid.Column="0"
-                                 Grid.ColumnSpan="5"
+                                 Grid.ColumnSpan="6"
                                  Name="_identifiants_LB">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
@@ -79,6 +80,9 @@
                                 Content="✕"/>
                             <Button Grid.Row="1"
                                 Grid.Column="4"
+                                Content="📋"/>
+                            <Button Grid.Row="1"
+                                Grid.Column="5"
                                 Content="▣"/>
                         </Grid>
                     </GroupBox>
@@ -92,6 +96,7 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <local:VisiblePasswordBox x:Name="_password_VPB"
                                                       Grid.Row="0"
@@ -101,6 +106,9 @@
                                                       Validated="_password_VPB_Validated"/>
                             <Button Grid.Row="0"
                                 Grid.Column="1"
+                                Content="📋"/>
+                            <Button Grid.Row="0"
+                                Grid.Column="2"
                                 Content="▣"/>
                             <ListBox Grid.Row="1"
                                  Grid.Column="0"
@@ -113,6 +121,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <Label Grid.Column="0"
                                                    Content="{Binding UpdateDate}"
@@ -122,6 +131,8 @@
                                                                       ReadOnly="True"
                                                                       Loaded="_passwords_VPB_Loaded"/>
                                             <Button Grid.Column="2"
+                                                    Content="📋"/>
+                                            <Button Grid.Column="3"
                                                     Content="▣"/>
                                         </Grid>
                                     </DataTemplate>
