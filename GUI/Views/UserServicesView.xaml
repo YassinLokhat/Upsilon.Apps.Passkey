@@ -12,9 +12,9 @@
         Closed="_window_Closed"
         Title="{Binding Title}"
         Height="700"
-        Width="1000"
+        Width="1200"
         MinHeight="700"
-        MinWidth="1000">
+        MinWidth="1200">
     <Window.CommandBindings>
         <CommandBinding Command="Save" Executed="_save_MenuItem_Click"/>
     </Window.CommandBindings>

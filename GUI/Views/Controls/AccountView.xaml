@@ -28,55 +28,93 @@
                             Grid.Column="1"
                             Text="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Background="{Binding LabelBackground}"/>
-                <GroupBox Grid.Row="1"
-                          Grid.Column="0"
-                          Grid.ColumnSpan="2"
-                          Header="Identifiants">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <ListBox Grid.Row="0"
+                <Grid Grid.Row="1"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <GroupBox Header="Identifiants"
+                              Grid.Column="0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ListBox Grid.Row="0"
                                  Grid.Column="0"
                                  Grid.ColumnSpan="5"
                                  Name="_identifiants_LB">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBox MinWidth="250"
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBox MinWidth="250"
                                              Background="{Binding IdentifiantBackground}"
                                              Text="{Binding Identifiant, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                        <Button Grid.Row="1"
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <Button Grid.Row="1"
                                 Grid.Column="0"
                                 Content="+"
                                 Click="_addButton_Click"/>
-                        <Button Grid.Row="1"
+                            <Button Grid.Row="1"
                                 Grid.Column="1"
                                 Content="🠉"
                                 Click="_identifiant_UpClicked"/>
-                        <Button Grid.Row="1"
+                            <Button Grid.Row="1"
                                 Grid.Column="2"
                                 Click="_identifiant_DownClicked"
                                 Content="🠋"/>
-                        <Button Grid.Row="1"
+                            <Button Grid.Row="1"
                                 Grid.Column="3"
                                 Click="_identifiant_DeleteClicked"
                                 Content="✕"/>
-                        <Button Grid.Row="1"
+                            <Button Grid.Row="1"
                                 Grid.Column="4"
                                 Content="▣"/>
-                    </Grid>
-                </GroupBox>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Password"
+                              Grid.Column="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <local:VisiblePasswordBox x:Name="_password_VPB"
+                                                      Grid.Row="0"
+                                                      Grid.Column="0"
+                                                      Validated="_password_VPB_Validated"/>
+                            <Button Grid.Row="0"
+                                Grid.Column="1"
+                                Content="▣"/>
+                            <ListBox Grid.Row="1"
+                                 Grid.Column="0"
+                                 Grid.ColumnSpan="2"
+                                 Name="_passwords_LB">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBox MinWidth="250"
+                                             Background="{Binding IdentifiantBackground}"
+                                             Text="{Binding Identifiant, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
 
                 <Label Grid.Row="2"
                         Grid.Column="0"

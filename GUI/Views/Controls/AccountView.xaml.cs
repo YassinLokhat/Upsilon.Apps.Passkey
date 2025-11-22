@@ -45,9 +45,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
             }
          }
 
-
          _identifiants_LB.ItemsSource = _viewModel.Identifiants;
          _identifiants_LB.SelectedIndex = 0;
+
+         _password_VPB.Password = _viewModel.Password;
       }
 
       private void _identifiant_DeleteClicked(object? sender, EventArgs e)
@@ -105,6 +106,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       private void _value_TextBox_TextChanged(object sender, TextChangedEventArgs e)
       {
          NumericTextBoxHelper.TextChanged(sender, e);
+      }
+
+      private void _password_VPB_Validated(object sender, EventArgs e)
+      {
+         if (_viewModel is null) return;
+
+         _viewModel.Password = _password_VPB.Password;
       }
    }
 }
