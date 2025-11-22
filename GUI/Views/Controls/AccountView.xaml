@@ -119,6 +119,7 @@
                                                    Background="Transparent"/>
                                             <local:VisiblePasswordBox Grid.Column="1"
                                                                       MinWidth="200"
+                                                                      ReadOnly="True"
                                                                       Loaded="_passwords_VPB_Loaded"/>
                                             <Button Grid.Column="2"
                                                     Content="▣"/>

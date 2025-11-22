@@ -27,6 +27,12 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = Visibility.Visible;
 
+      public bool IsEnabled
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = true;
+
       public bool PasswordIsVisible => PasswordVisibility == System.Windows.Visibility.Hidden;
 
       public event PropertyChangedEventHandler? PropertyChanged;

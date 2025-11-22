@@ -16,6 +16,12 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          set => _viewModel.Password = value;
       }
 
+      public bool ReadOnly
+      {
+         get => !_viewModel.IsEnabled;
+         set => _viewModel.IsEnabled = !value;
+      }
+
       public event EventHandler? PasswordChanged;
       public event EventHandler? Validated;
       public event EventHandler? Aborded;
