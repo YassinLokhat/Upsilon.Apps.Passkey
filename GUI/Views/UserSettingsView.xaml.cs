@@ -28,6 +28,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          if (MainViewModel.Database is not null
             && MainViewModel.Database.User is not null)
          {
+            MainViewModel.User.Shake();
             MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          }
 

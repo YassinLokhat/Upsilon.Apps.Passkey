@@ -4,6 +4,11 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
 {
    public static class IItemHelper
    {
+      public static void Shake(this IUser user)
+      {
+         _ = user.ItemId;
+      }
+
       public static bool MeetsFilterConditions(this IService service, string serviceFilter, string identifiantFilter, string globalTextFilter)
       {
          serviceFilter = serviceFilter.ToLower().Trim();

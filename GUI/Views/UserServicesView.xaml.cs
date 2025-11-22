@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
@@ -93,7 +94,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _services_LB_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
       {
-         _ = MainViewModel.User.ItemId;
+         MainViewModel.User.Shake();
          _service_SV.SetDataContext((ServiceViewModel)_services_LB.SelectedItem);
       }
 

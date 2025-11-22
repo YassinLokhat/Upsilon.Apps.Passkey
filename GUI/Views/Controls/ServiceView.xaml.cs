@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 
@@ -39,7 +40,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _accounts_LB_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
-         _ = MainViewModel.User.ItemId;
+         MainViewModel.User.Shake();
          _account_AV.SetDataContext((AccountViewModel)_accounts_LB.SelectedItem);
       }
 

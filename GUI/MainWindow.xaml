@@ -31,6 +31,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Label Grid.Column="0"
+                   MinWidth="70"
                    Content="{Binding Label}"/>
             <TextBox Name="_username_TB"
                      Grid.Column="1"
