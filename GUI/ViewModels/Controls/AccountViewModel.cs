@@ -39,7 +39,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 
       public ObservableCollection<IdentifiantViewModel> Identifiants = [];
 
-      public Brush PasswordBackground => Account.HasChanged(nameof(Passwords)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush PasswordBackground => Account.HasChanged(nameof(Password)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Password
       {
          get => Account.Password;

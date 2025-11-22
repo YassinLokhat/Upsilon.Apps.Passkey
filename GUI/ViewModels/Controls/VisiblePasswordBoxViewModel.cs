@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Windows;
+using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.Helper;
+using Upsilon.Apps.Passkey.GUI.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
@@ -32,6 +34,12 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = true;
+
+      public Brush Background
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = DarkMode.UnchangedBrush2;
 
       public bool PasswordIsVisible => PasswordVisibility == System.Windows.Visibility.Hidden;
 
