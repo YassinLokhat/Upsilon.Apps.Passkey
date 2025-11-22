@@ -49,6 +49,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          _identifiants_LB.SelectedIndex = 0;
 
          _password_VPB.Password = _viewModel.Password;
+         _passwords_LB.ItemsSource = _viewModel.Passwords;
       }
 
       private void _identifiant_DeleteClicked(object? sender, EventArgs e)
@@ -113,6 +114,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          if (_viewModel is null) return;
 
          _viewModel.Password = _password_VPB.Password;
+         _passwords_LB.ItemsSource = _viewModel.Passwords;
+      }
+
+      private void _passwords_VPB_Loaded(object sender, RoutedEventArgs e)
+      {
+         if (sender is not VisiblePasswordBox passwordBox) return;
+
+         passwordBox.Password = ((PasswordViewModel)((ContentPresenter)passwordBox.TemplatedParent).Content).Password;
       }
    }
 }

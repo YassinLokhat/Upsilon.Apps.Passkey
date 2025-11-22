@@ -96,6 +96,8 @@
                             <local:VisiblePasswordBox x:Name="_password_VPB"
                                                       Grid.Row="0"
                                                       Grid.Column="0"
+                                                      Margin="5"
+                                                      Background="{Binding PasswordBackground}"
                                                       Validated="_password_VPB_Validated"/>
                             <Button Grid.Row="0"
                                 Grid.Column="1"
@@ -106,9 +108,21 @@
                                  Name="_passwords_LB">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBox MinWidth="250"
-                                             Background="{Binding IdentifiantBackground}"
-                                             Text="{Binding Identifiant, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Grid.Column="0"
+                                                   Content="{Binding UpdateDate}"
+                                                   Background="Transparent"/>
+                                            <local:VisiblePasswordBox Grid.Column="1"
+                                                                      MinWidth="200"
+                                                                      Loaded="_passwords_VPB_Loaded"/>
+                                            <Button Grid.Column="2"
+                                                    Content="▣"/>
+                                        </Grid>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>

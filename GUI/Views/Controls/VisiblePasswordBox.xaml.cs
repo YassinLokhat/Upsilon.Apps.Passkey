@@ -16,6 +16,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          set => _viewModel.Password = value;
       }
 
+      public event EventHandler? PasswordChanged;
       public event EventHandler? Validated;
       public event EventHandler? Aborded;
 
@@ -28,7 +29,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          _viewModel.PropertyChanged += _viewModel_PropertyChanged;
 
          _passwordBox.PasswordChanged += _passwordBox_PasswordChanged;
+         _passwordBox.LostFocus += _passwordBox_LostFocus;
          _passwordBox.KeyUp += _passwordBox_KeyUp;
+      }
+
+      private void _passwordBox_LostFocus(object sender, System.Windows.RoutedEventArgs e)
+      {
+         Validated?.Invoke(this, EventArgs.Empty);
       }
 
       private void _viewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -52,7 +59,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       private void _passwordBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
       {
          _viewModel.Password = _passwordBox.Password;
-         Validated?.Invoke(this, EventArgs.Empty);
+         PasswordChanged?.Invoke(this, EventArgs.Empty);
       }
 
       private void _viewButton_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)

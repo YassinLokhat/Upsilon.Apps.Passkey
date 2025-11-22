@@ -39,6 +39,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 
       public ObservableCollection<IdentifiantViewModel> Identifiants = [];
 
+      public Brush PasswordBackground => Account.HasChanged(nameof(Passwords)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Password
       {
          get => Account.Password;
@@ -51,6 +52,10 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             }
          }
       }
+
+      public PasswordViewModel[] Passwords => [.. Account.Passwords
+            .OrderByDescending(x => x.Key)
+            .Select(x => new PasswordViewModel(x.Key.ToShortDateString(), x.Value))];
 
       public Brush NotesBackground => Account.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Notes
