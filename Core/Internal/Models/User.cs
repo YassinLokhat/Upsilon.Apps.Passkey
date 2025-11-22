@@ -73,6 +73,18 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             readableValue: value.ToString());
       }
 
+      int IUser.ShowPasswordDelay
+      {
+         get => Database.Get(ShowPasswordDelay);
+         set => ShowPasswordDelay = Database.AutoSave.UpdateValue(ItemId,
+            itemName: ToString(),
+            fieldName: nameof(ShowPasswordDelay),
+            needsReview: false,
+            oldValue: ShowPasswordDelay,
+            newValue: value,
+            readableValue: value.ToString());
+      }
+
       WarningType IUser.WarningsToNotify
       {
          get => Database.Get(WarningsToNotify);
@@ -133,6 +145,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       public bool CredentialChanged { get; set; } = false;
       public int LogoutTimeout { get; set; } = 0;
       public int CleaningClipboardTimeout { get; set; } = 0;
+      public int ShowPasswordDelay { get; set; } = 0;
       public WarningType WarningsToNotify { get; set; }
          = WarningType.LogReviewWarning
          | WarningType.PasswordUpdateReminderWarning

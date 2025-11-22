@@ -14,13 +14,80 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       public int LogoutTimeout
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set
+         {
+            if (field != value)
+            {
+               field = value;
+
+               OnPropertyChanged(nameof(LogoutTimeout));
+               OnPropertyChanged(nameof(LogoutTimeoutChecked));
+            }
+         }
       } = 5;
+      public bool LogoutTimeoutChecked
+      {
+         get => LogoutTimeout != 0;
+         set
+         {
+            if (LogoutTimeoutChecked != value)
+            {
+               LogoutTimeout = value ? 5 : 0;
+               OnPropertyChanged(nameof(LogoutTimeoutChecked));
+            }
+         }
+      }
       public int CleaningClipboardTimeout
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set
+         {
+            if (field != value)
+            {
+               field = value;
+
+               OnPropertyChanged(nameof(CleaningClipboardTimeout));
+               OnPropertyChanged(nameof(CleaningClipboardTimeoutChecked));
+            }
+         }
       } = 30;
+      public bool CleaningClipboardTimeoutChecked
+      {
+         get => CleaningClipboardTimeout != 0;
+         set
+         {
+            if (CleaningClipboardTimeoutChecked != value)
+            {
+               CleaningClipboardTimeout = value ? 30 : 0;
+               OnPropertyChanged(nameof(CleaningClipboardTimeoutChecked));
+            }
+         }
+      }
+      public int ShowPasswordDelay
+      {
+         get;
+         set
+         {
+            if (field != value)
+            {
+               field = value;
+               OnPropertyChanged(nameof(ShowPasswordDelay));
+               OnPropertyChanged(nameof(ShowPasswordDelayChecked));
+            }
+         }
+      } = 500;
+      public bool ShowPasswordDelayChecked
+      {
+         get => ShowPasswordDelay != 0;
+         set
+         {
+            if (ShowPasswordDelayChecked != value)
+            {
+               ShowPasswordDelay = value ? 500 : 0;
+               OnPropertyChanged(nameof(ShowPasswordDelayChecked));
+            }
+         }
+      }
       public bool NotifyLogReview
       {
          get;

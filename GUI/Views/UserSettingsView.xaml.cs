@@ -170,6 +170,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             MainViewModel.Database.User.Passkeys = _passwordsContainer.Passkeys;
             MainViewModel.Database.User.LogoutTimeout = _viewModel.LogoutTimeout;
             MainViewModel.Database.User.CleaningClipboardTimeout = _viewModel.CleaningClipboardTimeout;
+            MainViewModel.Database.User.ShowPasswordDelay = _viewModel.ShowPasswordDelay;
             WarningType warningsToNotify = 0;
             if (_viewModel.NotifyLogReview) warningsToNotify |= WarningType.LogReviewWarning;
             if (_viewModel.NotifyDuplicatedPasswords) warningsToNotify |= WarningType.DuplicatedPasswordsWarning;

@@ -11,7 +11,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="305" Width="856">
+        Height="295" Width="870">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -46,26 +46,38 @@
             <GroupBox Header="Settings">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <Label Margin="0">Log out after</Label>
+                        <CheckBox IsChecked="{Binding LogoutTimeoutChecked}"
+                                  Content="Log out after"/>
                         <TextBox Width="25"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding LogoutTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label Margin="0">minutes. *</Label>
+                        <Label Margin="0">minutes.</Label>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <Label Margin="0">Clean any passwords in clipboard every</Label>
+                        <CheckBox IsChecked="{Binding CleaningClipboardTimeoutChecked}"
+                                  Content="Clean any passwords in clipboard every"/>
                         <TextBox Width="35"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding CleaningClipboardTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label Margin="0">seconds. *</Label>
+                        <Label Margin="0">seconds.</Label>
                     </StackPanel>
-                    <Label>* Put '0' value to disable the option.</Label>
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding ShowPasswordDelayChecked}"
+                                  Content="Show QR Code during"/>
+                        <TextBox Width="40"
+                                 HorizontalContentAlignment="Center"
+                                 TextChanged="_value_TextBox_TextChanged"
+                                 PreviewTextInput="_value_TextBox_PreviewTextInput"
+                                 DataObject.Pasting="_value_TextBox_Pasting"
+                                 Text="{Binding ShowPasswordDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Label Margin="0">milliseconds.</Label>
+                    </StackPanel>
                     <GroupBox Header="Warnings">
                         <StackPanel>
                             <CheckBox IsChecked="{Binding NotifyLogReview}">Notify Log Review</CheckBox>

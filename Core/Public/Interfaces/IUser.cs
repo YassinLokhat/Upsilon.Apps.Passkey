@@ -28,6 +28,11 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       int CleaningClipboardTimeout { get; set; }
 
       /// <summary>
+      /// The delay to keep password visible.
+      /// </summary>
+      int ShowPasswordDelay { get; set; }
+
+      /// <summary>
       /// The warnings types which will be notified if detected.
       /// </summary>
       WarningType WarningsToNotify { get; set; }

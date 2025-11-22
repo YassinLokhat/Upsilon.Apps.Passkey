@@ -1,7 +1,5 @@
 ﻿using System.Windows.Controls;
 using System.Windows.Media;
-using Upsilon.Apps.Passkey.GUI.Helper;
-using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.Views.Controls
