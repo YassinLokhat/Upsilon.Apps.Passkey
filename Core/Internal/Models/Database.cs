@@ -97,6 +97,16 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public bool HasChanged(string itemId, string fieldName) => AutoSave.Any(itemId, fieldName);
 
+      public void ImportFromFile(string filePath)
+      {
+
+      }
+
+      public void ExportToFile(string filePath)
+      {
+
+      }
+
       #endregion
 
       internal User? User;
