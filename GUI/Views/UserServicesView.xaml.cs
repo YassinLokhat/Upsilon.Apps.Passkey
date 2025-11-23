@@ -80,11 +80,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          string? password = PasswordGenerator.ShowGeneratePasswordDialog(this);
 
          if (password is null) return;
-         if (_services_LB.SelectedIndex == -1) return;
 
-         ServiceViewModel serviceViewModel = (ServiceViewModel)_services_LB.SelectedItem;
-
-         /// TODO : Get current account and insert the new password
+         _service_SV.SetSelectedPassword(password);
       }
 
       private void _logout_MenuItem_Click(object sender, RoutedEventArgs e)

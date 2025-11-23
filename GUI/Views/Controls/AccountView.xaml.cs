@@ -17,6 +17,26 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          InitializeComponent();
       }
 
+      public string? GetIdentifiant()
+      {
+         if (_identifiants_LB.SelectedItem is not IdentifiantViewModel identifiantViewModel) return null;
+
+         return identifiantViewModel.Identifiant;
+      }
+
+      public string? GetPassword() => _viewModel?.Password;
+
+      public void SetPassword(string password)
+      {
+         if (_viewModel is null) return;
+
+         _viewModel.Password = password;
+
+         _password_VPB.Password = _viewModel.Password;
+         _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
+         _passwords_LB.ItemsSource = _viewModel.Passwords;
+      }
+
       public void SetDataContext(AccountViewModel? dataContext)
       {
          if (dataContext is null)

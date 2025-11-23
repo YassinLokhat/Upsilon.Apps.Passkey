@@ -92,7 +92,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiants.Any(y => y.Identifiant == "NewAccount"));
 
-         if (accountViewModel == null)
+         if (accountViewModel is null)
          {
             accountViewModel = new(Service.AddAccount(["NewAccount"]));
             accountViewModel.PropertyChanged += _accountViewModel_PropertyChanged;

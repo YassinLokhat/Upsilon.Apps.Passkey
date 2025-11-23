@@ -92,7 +92,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       {
          ServiceViewModel? serviceViewModel = Services.FirstOrDefault(x => x.ServiceName == "New Service");
 
-         if (serviceViewModel == null)
+         if (serviceViewModel is null)
          {
             serviceViewModel = new(MainViewModel.User.AddService("New Service"));
             Services.Insert(0, serviceViewModel);
