@@ -66,14 +66,11 @@ namespace Upsilon.Apps.Passkey.GUI
             MainViewModel.Database.WarningDetected += _database_WarningDetected;
             _ = MainViewModel.Database.Login("a");
             _ = MainViewModel.Database.Login("b");
+            _ = MainViewModel.Database.Login("c");
             _resetCredentials(resetDatabase: false);
             if (!UserServicesView.ShowUser(this))
             {
                Close();
-            }
-            else
-            {
-               Show();
             }
          }
          catch
@@ -154,10 +151,6 @@ namespace Upsilon.Apps.Passkey.GUI
                      {
                         Close();
                      }
-                     else
-                     {
-                        Show();
-                     }
                   }
                }
             }
@@ -196,6 +189,7 @@ namespace Upsilon.Apps.Passkey.GUI
             Dispatcher.Invoke(() =>
             {
                _resetCredentials(resetDatabase: true);
+               Show();
             });
          }
          catch { }

@@ -191,29 +191,32 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             string oldDatabaseDirectory = Path.GetDirectoryName(oldDatabaseFile) ?? string.Empty;
             string newDatabaseDirectory = Path.GetDirectoryName(newDatabaseFile) ?? string.Empty;
 
-            if (!Directory.Exists(newDatabaseDirectory))
+            if (oldDatabaseDirectory != newDatabaseDirectory)
             {
-               _ = Directory.CreateDirectory(newDatabaseDirectory);
-            }
+               if (!Directory.Exists(newDatabaseDirectory))
+               {
+                  _ = Directory.CreateDirectory(newDatabaseDirectory);
+               }
 
-            if (File.Exists(oldDatabaseFile))
-            {
-               File.Move(oldDatabaseFile, newDatabaseFile);
-            }
+               if (File.Exists(oldDatabaseFile))
+               {
+                  File.Move(oldDatabaseFile, newDatabaseFile);
+               }
 
-            if (File.Exists(oldAutoSaveFile))
-            {
-               File.Move(oldAutoSaveFile, newAutoSaveFile);
-            }
+               if (File.Exists(oldAutoSaveFile))
+               {
+                  File.Move(oldAutoSaveFile, newAutoSaveFile);
+               }
 
-            if (File.Exists(oldLogFile))
-            {
-               File.Move(oldLogFile, newLogFile);
-            }
+               if (File.Exists(oldLogFile))
+               {
+                  File.Move(oldLogFile, newLogFile);
+               }
 
-            if (Directory.Exists(oldDatabaseDirectory))
-            {
-               Directory.Delete(oldDatabaseDirectory, true);
+               if (Directory.Exists(oldDatabaseDirectory))
+               {
+                  Directory.Delete(oldDatabaseDirectory, true);
+               }
             }
          }
          else if (newUser)
