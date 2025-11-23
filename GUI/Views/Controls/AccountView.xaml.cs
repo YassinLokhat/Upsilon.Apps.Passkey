@@ -19,9 +19,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       public string? GetIdentifiant()
       {
-         if (_identifiants_LB.SelectedItem is not IdentifiantViewModel identifiantViewModel) return null;
-
-         return identifiantViewModel.Identifiant;
+         return _identifiants_LB.SelectedItem is not IdentifiantViewModel identifiantViewModel ? null : identifiantViewModel.Identifiant;
       }
 
       public string? GetPassword() => _viewModel?.Password;
