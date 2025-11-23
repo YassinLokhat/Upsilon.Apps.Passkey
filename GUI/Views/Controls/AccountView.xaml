@@ -26,7 +26,7 @@
                         Content="Label : "/>
                 <TextBox Grid.Row="0"
                             Grid.Column="1"
-                            Text="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Text="{Binding Label, Mode=TwoWay}"
                             Background="{Binding LabelBackground}"/>
                 <Grid Grid.Row="1"
                       Grid.Column="0"
@@ -59,7 +59,7 @@
                                         <TextBox MinWidth="250"
                                                  Background="{Binding IdentifiantBackground}"
                                                  FontFamily="Courier New"
-                                                 Text="{Binding Identifiant, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                                 Text="{Binding Identifiant, Mode=TwoWay}"/>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
@@ -149,7 +149,7 @@
                         Content="Notes : "/>
                 <TextBox Grid.Row="2"
                             Grid.Column="1"
-                            Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Text="{Binding Notes, Mode=TwoWay}"
                             Background="{Binding NotesBackground}"
                             MaxHeight="75"
                             VerticalScrollBarVisibility="Auto"
@@ -168,7 +168,7 @@
                                         TextChanged="_value_TextBox_TextChanged"
                                         PreviewTextInput="_value_TextBox_PreviewTextInput"
                                         DataObject.Pasting="_value_TextBox_Pasting"
-                                        Text="{Binding RemindPasswordUpdateDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        Text="{Binding RemindPasswordUpdateDelay, Mode=TwoWay}"/>
                             <Label Margin="0">months.</Label>
                         </StackPanel>
                         <CheckBox IsChecked="{Binding WarnPasswordLeak}">Warn if the password leaked.</CheckBox>

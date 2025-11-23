@@ -30,21 +30,21 @@
                            Content="Service name : "/>
                     <TextBox Grid.Row="0"
                              Grid.Column="1"
-                             Text="{Binding ServiceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Text="{Binding ServiceName, Mode=TwoWay}"
                              Background="{Binding ServiceNameBackground}"/>
                     <Label Grid.Row="1"
                            Grid.Column="0"
                            Content="Url : "/>
                     <TextBox Grid.Row="1"
                              Grid.Column="1"
-                             Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Text="{Binding Url, Mode=TwoWay}"
                              Background="{Binding UrlBackground}"/>
                     <Label Grid.Row="2"
                            Grid.Column="0"
                            Content="Notes : "/>
                     <TextBox Grid.Row="2"
                              Grid.Column="1"
-                             Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Text="{Binding Notes, Mode=TwoWay}"
                              Background="{Binding NotesBackground}"
                              MaxHeight="75"
                              VerticalScrollBarVisibility="Auto"
