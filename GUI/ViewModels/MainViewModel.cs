@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.Helper;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {

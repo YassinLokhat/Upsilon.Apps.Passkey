@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Utils
+namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 {
    internal static class StaticMethods
    {

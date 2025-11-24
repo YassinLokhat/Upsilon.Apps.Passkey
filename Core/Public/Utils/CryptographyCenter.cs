@@ -1,9 +1,9 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Utils
+namespace Upsilon.Apps.Passkey.Core.Public.Utils
 {
    public class CryptographyCenter : ICryptographyCenter
    {

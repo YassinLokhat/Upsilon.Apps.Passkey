@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Internal.Models
+﻿namespace Upsilon.Apps.Passkey.Core.Internal.Models
 {
    internal sealed class Change
    {

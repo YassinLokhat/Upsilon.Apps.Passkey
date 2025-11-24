@@ -43,7 +43,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          }
       }
 
-      private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
+      private void _database_DatabaseClosed(object? sender, Passkey.Core.Public.Events.LogoutEventArgs e)
       {
          try
          {

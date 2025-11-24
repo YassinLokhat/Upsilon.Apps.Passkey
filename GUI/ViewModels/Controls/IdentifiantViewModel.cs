@@ -2,7 +2,7 @@
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.Core.Public.Utils;
 using Upsilon.Apps.Passkey.GUI.Themes;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {

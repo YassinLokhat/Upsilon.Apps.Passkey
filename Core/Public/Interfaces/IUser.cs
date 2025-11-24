@@ -1,6 +1,6 @@
-﻿using Upsilon.Apps.PassKey.Core.Public.Enums;
+﻿using Upsilon.Apps.Passkey.Core.Public.Enums;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
+namespace Upsilon.Apps.Passkey.Core.Public.Interfaces
 {
    /// <summary>
    /// Represent an user.

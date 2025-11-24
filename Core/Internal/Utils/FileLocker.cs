@@ -1,9 +1,9 @@
 ﻿using System.IO.Compression;
 using System.Text;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Utils
+namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 {
    internal class FileLocker : IDisposable
    {

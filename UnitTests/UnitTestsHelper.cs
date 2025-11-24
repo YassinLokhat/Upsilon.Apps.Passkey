@@ -1,11 +1,11 @@
 ﻿using FluentAssertions;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using Upsilon.Apps.PassKey.Core.Public.Enums;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.Core.Public.Enums;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 
-namespace Upsilon.Apps.PassKey.UnitTests
+namespace Upsilon.Apps.Passkey.UnitTests
 {
    internal static class UnitTestsHelper
    {

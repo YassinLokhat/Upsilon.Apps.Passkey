@@ -5,8 +5,8 @@ using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
-using Upsilon.Apps.PassKey.Core.Public.Enums;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Enums;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
@@ -44,7 +44,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          .ShowDialog();
       }
 
-      private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
+      private void _database_DatabaseClosed(object? sender, Passkey.Core.Public.Events.LogoutEventArgs e)
       {
          try
          {

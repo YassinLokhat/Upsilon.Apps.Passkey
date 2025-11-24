@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using System.Diagnostics;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 
-namespace Upsilon.Apps.PassKey.UnitTests.Utils
+namespace Upsilon.Apps.Passkey.UnitTests.Utils
 {
    [TestClass]
    public sealed class CryptographyCenterUnitTexts

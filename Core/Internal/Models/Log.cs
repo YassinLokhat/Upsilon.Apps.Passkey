@@ -1,6 +1,6 @@
-﻿using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+﻿using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Models
+namespace Upsilon.Apps.Passkey.Core.Internal.Models
 {
    internal class Log : ILog
    {

@@ -4,7 +4,7 @@ using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.Views;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI
 {
@@ -62,7 +62,7 @@ namespace Upsilon.Apps.Passkey.GUI
                logFile,
                "_");
             MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
-            MainViewModel.Database.AutoSaveDetected += (s, e) => e.MergeBehavior = PassKey.Core.Public.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile;
+            MainViewModel.Database.AutoSaveDetected += (s, e) => e.MergeBehavior = Passkey.Core.Public.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile;
             MainViewModel.Database.WarningDetected += _database_WarningDetected;
             _ = MainViewModel.Database.Login("a");
             _ = MainViewModel.Database.Login("b");
@@ -165,24 +165,24 @@ namespace Upsilon.Apps.Passkey.GUI
          }
       }
 
-      private void _database_WarningDetected(object? sender, PassKey.Core.Public.Events.WarningDetectedEventArgs e)
+      private void _database_WarningDetected(object? sender, Passkey.Core.Public.Events.WarningDetectedEventArgs e)
       {
          /// TODO : Pending implement
       }
 
-      private void _database_AutoSaveDetected(object? sender, PassKey.Core.Public.Events.AutoSaveDetectedEventArgs e)
+      private void _database_AutoSaveDetected(object? sender, Passkey.Core.Public.Events.AutoSaveDetectedEventArgs e)
       {
          MessageBoxResult result = MessageBox.Show("Unsaved changes have been detected.\nClick Yes to apply these changes.\nClick No to discard them.\nClick Cancel to ignore and keep the save file.", "Autosave detected", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
 
          e.MergeBehavior = result switch
          {
-            MessageBoxResult.Cancel => PassKey.Core.Public.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile,
-            MessageBoxResult.No => PassKey.Core.Public.Enums.AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile,
-            _ => PassKey.Core.Public.Enums.AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile,
+            MessageBoxResult.Cancel => Passkey.Core.Public.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile,
+            MessageBoxResult.No => Passkey.Core.Public.Enums.AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile,
+            _ => Passkey.Core.Public.Enums.AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile,
          };
       }
 
-      private void _database_DatabaseClosed(object? sender, PassKey.Core.Public.Events.LogoutEventArgs e)
+      private void _database_DatabaseClosed(object? sender, Passkey.Core.Public.Events.LogoutEventArgs e)
       {
          try
          {

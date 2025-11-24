@@ -1,6 +1,6 @@
-﻿using Upsilon.Apps.PassKey.Core.Public.Enums;
+﻿using Upsilon.Apps.Passkey.Core.Public.Enums;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Events
+namespace Upsilon.Apps.Passkey.Core.Public.Events
 {
    /// <summary>
    /// Represent the behavior of auto-save handling event argument.

@@ -133,10 +133,10 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
             LogoutTimeout = MainViewModel.Database.User.LogoutTimeout;
             CleaningClipboardTimeout = MainViewModel.Database.User.CleaningClipboardTimeout;
 
-            NotifyLogReview = (MainViewModel.Database.User.WarningsToNotify & PassKey.Core.Public.Enums.WarningType.LogReviewWarning) != 0;
-            NotifyPasswordUpdateReminder = (MainViewModel.Database.User.WarningsToNotify & PassKey.Core.Public.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
-            NotifyDuplicatedPasswords = (MainViewModel.Database.User.WarningsToNotify & PassKey.Core.Public.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
-            NotifyPasswordLeaked = (MainViewModel.Database.User.WarningsToNotify & PassKey.Core.Public.Enums.WarningType.PasswordLeakedWarning) != 0;
+            NotifyLogReview = (MainViewModel.Database.User.WarningsToNotify & Passkey.Core.Public.Enums.WarningType.LogReviewWarning) != 0;
+            NotifyPasswordUpdateReminder = (MainViewModel.Database.User.WarningsToNotify & Passkey.Core.Public.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
+            NotifyDuplicatedPasswords = (MainViewModel.Database.User.WarningsToNotify & Passkey.Core.Public.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
+            NotifyPasswordLeaked = (MainViewModel.Database.User.WarningsToNotify & Passkey.Core.Public.Enums.WarningType.PasswordLeakedWarning) != 0;
          }
       }
    }
