@@ -1,0 +1,106 @@
+﻿using ABI.System;
+using FluentAssertions;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Upsilon.Apps.Passkey.Core.Public.Enums;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.UnitTests;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
+
+namespace UnitTests.Models
+{
+   [TestClass]
+   public class ImportExportUnitTests
+   {
+      [TestMethod]
+      public void Case01_ImportCSV_OK()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
+         string logFile = UnitTestsHelper.ComputeLogFilePath();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<string> expectedLogs = new();
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedLogs.Push($"Information : User {username}'s database saved");
+         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
+
+         expectedLogs.Push($"Information : Service Service0 has been added to User {username}");
+         expectedLogs.Push($"Information : Service Service0's url has been set to www.service0.xyz");
+         expectedLogs.Push($"Information : Service Service0's notes has been set to Service0's notes");
+
+         expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
+         expectedLogs.Push($"Warning : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
+         expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to Service0's Account0's notes");
+
+         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz) has been added to Service Service0");
+         expectedLogs.Push($"Warning : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
+         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to Service0's Account1's notes");
+
+         expectedLogs.Push($"Information : Service Service1 has been added to User {username}");
+         expectedLogs.Push($"Information : Service Service1's url has been set to www.service1.xyz");
+         expectedLogs.Push($"Information : Service Service1's notes has been set to Service1's notes");
+
+         expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
+         expectedLogs.Push($"Warning : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
+         expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to Service1's Account0's notes");
+
+         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz) has been added to Service Service1");
+         expectedLogs.Push($"Warning : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
+         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to Service1's Account1's notes");
+
+         expectedLogs.Push($"Warning : Import completed successfully");
+         expectedLogs.Push($"Information : User {username}'s database saved");
+
+         // Then
+         database.User.Services.Length.Should().Be(2);
+
+         database.User.Services[0].ServiceName.Should().Be("Service0");
+         database.User.Services[0].Url.Should().Be("www.service0.xyz");
+         database.User.Services[0].Notes.Should().Be("Service0's notes");
+
+         database.User.Services[0].Accounts.Length.Should().Be(2);
+
+         database.User.Services[0].Accounts[0].Label.Should().Be("Account0");
+         database.User.Services[0].Accounts[0].Identifiants.Should().BeEquivalentTo(new[]{ "account0@service0.xyz", "account0_backup@service0.xyz" });
+         database.User.Services[0].Accounts[0].Password.Should().Be("0000");
+         database.User.Services[0].Accounts[0].Notes.Should().Be("Service0's Account0's notes");
+
+         database.User.Services[0].Accounts[1].Label.Should().Be("Account1");
+         database.User.Services[0].Accounts[1].Identifiants.Should().BeEquivalentTo(new[]{ "account1@service0.xyz", "account1_backup@service0.xyz" });
+         database.User.Services[0].Accounts[1].Password.Should().Be("1111");
+         database.User.Services[0].Accounts[1].Notes.Should().Be("Service0's Account1's notes");
+
+         database.User.Services[1].ServiceName.Should().Be("Service1");
+         database.User.Services[1].Url.Should().Be("www.service1.xyz");
+         database.User.Services[1].Notes.Should().Be("Service1's notes");
+
+         database.User.Services[1].Accounts.Length.Should().Be(2);
+
+         database.User.Services[1].Accounts[0].Label.Should().Be("Account0");
+         database.User.Services[1].Accounts[0].Identifiants.Should().BeEquivalentTo(new[]{ "account0@service1.xyz", "account0_backup@service1.xyz" });
+         database.User.Services[1].Accounts[0].Password.Should().Be("AAAA");
+         database.User.Services[1].Accounts[0].Notes.Should().Be("Service1's Account0's notes");
+
+         database.User.Services[1].Accounts[1].Label.Should().Be("Account1");
+         database.User.Services[1].Accounts[1].Identifiants.Should().BeEquivalentTo(new[]{ "account1@service1.xyz", "account1_backup@service1.xyz" });
+         database.User.Services[1].Accounts[1].Password.Should().Be("BBBB");
+         database.User.Services[1].Accounts[1].Notes.Should().Be("Service1's Account1's notes");
+
+         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+
+         // Finaly
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+   }
+}

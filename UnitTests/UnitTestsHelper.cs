@@ -20,6 +20,8 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public static string ComputeAutoSaveFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographicCenter.GetHash(username)}.pka";
       public static string ComputeLogFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographicCenter.GetHash(username)}.pkl";
 
+      public static string GetTestFilePath(string fileName) => $"./TestFiles/{fileName}";
+
       public static IDatabase CreateTestDatabase(string[] passkeys = null, [CallerMemberName] string username = "")
       {
          string databaseFile = ComputeDatabaseFilePath(username);
