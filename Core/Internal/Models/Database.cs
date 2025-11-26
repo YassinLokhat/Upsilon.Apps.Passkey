@@ -99,12 +99,47 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
 
       public void ImportFromFile(string filePath)
       {
+         _save(logSaveEvent: true);
+         Logs.AddLog($"Importing data from file : '{filePath}'.", needsReview: true);
 
+         string importContent = string.Empty;
+         string errorLog = string.Empty;
+
+         try
+         {
+            importContent = File.ReadAllText(filePath);
+         }
+         catch
+         {
+            errorLog = $"import file is not accessible";
+         }
+
+         if (string.IsNullOrWhiteSpace(errorLog))
+         {
+            string extention = Path.GetExtension(filePath);
+
+            errorLog = extention switch
+            {
+               ".json" => this.ImportJson(importContent),
+               ".csv" => this.ImportCSV(importContent),
+               _ => $"'{extention}' extention type is not handled",
+            };
+
+            if (string.IsNullOrWhiteSpace(errorLog))
+            {
+               Logs.AddLog($"Import completed successfully.", needsReview: true);
+               _save(logSaveEvent: true);
+            }
+            else
+            {
+               Logs.AddLog($"Import failed because {errorLog}.", needsReview: true);
+            }
+         }
       }
 
       public void ExportToFile(string filePath)
       {
-
+         this.Export(filePath);
       }
 
       #endregion
