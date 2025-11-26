@@ -211,11 +211,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
          expectedLogs.Push($"Warning : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
          expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to Service0's Account0's notes");
+         expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to None");
+         expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
          expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz) has been added to Service Service0");
          expectedLogs.Push($"Warning : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
          expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to Service0's Account1's notes");
-         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 1");
+         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to None");
+         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
          expectedLogs.Push($"Information : Service Service1 has been added to User {username}");
          expectedLogs.Push($"Information : Service Service1's url has been set to www.service1.xyz");
@@ -224,11 +227,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
          expectedLogs.Push($"Warning : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
          expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to Service1's Account0's notes");
+         expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to None");
+         expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to 3");
 
          expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz) has been added to Service Service1");
          expectedLogs.Push($"Warning : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
          expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to Service1's Account1's notes");
-         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to 1");
+         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to None");
+         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to 3");
 
          expectedLogs.Push($"Warning : Import completed successfully");
          expectedLogs.Push($"Information : User {username}'s database saved");
@@ -246,11 +252,15 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Services[0].Accounts[0].Identifiants.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
          database.User.Services[0].Accounts[0].Password.Should().Be("0000");
          database.User.Services[0].Accounts[0].Notes.Should().Be("Service0's Account0's notes");
+         database.User.Services[0].Accounts[0].Options.Should().Be(AccountOption.None);
+         database.User.Services[0].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
 
          database.User.Services[0].Accounts[1].Label.Should().Be("Account1");
          database.User.Services[0].Accounts[1].Identifiants.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
          database.User.Services[0].Accounts[1].Password.Should().Be("1111");
          database.User.Services[0].Accounts[1].Notes.Should().Be("Service0's Account1's notes");
+         database.User.Services[0].Accounts[1].Options.Should().Be(AccountOption.None);
+         database.User.Services[0].Accounts[1].PasswordUpdateReminderDelay.Should().Be(3);
 
          database.User.Services[1].ServiceName.Should().Be("Service1");
          database.User.Services[1].Url.Should().Be("www.service1.xyz");
@@ -262,11 +272,15 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Services[1].Accounts[0].Identifiants.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
          database.User.Services[1].Accounts[0].Password.Should().Be("AAAA");
          database.User.Services[1].Accounts[0].Notes.Should().Be("Service1's Account0's notes");
+         database.User.Services[1].Accounts[0].Options.Should().Be(AccountOption.None);
+         database.User.Services[1].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
 
          database.User.Services[1].Accounts[1].Label.Should().Be("Account1");
          database.User.Services[1].Accounts[1].Identifiants.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
          database.User.Services[1].Accounts[1].Password.Should().Be("BBBB");
          database.User.Services[1].Accounts[1].Notes.Should().Be("Service1's Account1's notes");
+         database.User.Services[1].Accounts[1].Options.Should().Be(AccountOption.None);
+         database.User.Services[1].Accounts[1].PasswordUpdateReminderDelay.Should().Be(3);
 
          UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
 
