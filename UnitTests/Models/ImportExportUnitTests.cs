@@ -104,6 +104,70 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       }
 
       [TestMethod]
+      public void Case02_ImportCSV_MissingFile()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
+         string logFile = UnitTestsHelper.ComputeLogFilePath();
+         string importFile = UnitTestsHelper.GetTestFilePath("missing_import.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<string> expectedLogs = new();
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedLogs.Push($"Information : User {username}'s database saved");
+         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedLogs.Push($"Warning : Import failed because import file is not accessible");
+
+         // Then
+         database.User.Services.Should().BeEmpty();
+
+         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+
+         // Finaly
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      public void Case02_ImportCSV_WrongExtention()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
+         string logFile = UnitTestsHelper.ComputeLogFilePath();
+         string importFile = UnitTestsHelper.GetTestFilePath($"{username}/import.txt", createIfNotExists: true);
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<string> expectedLogs = new();
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedLogs.Push($"Information : User {username}'s database saved");
+         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedLogs.Push($"Warning : Import failed because '.txt' extention type is not handled");
+
+         // Then
+         database.User.Services.Should().BeEmpty();
+
+         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+
+         // Finaly
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
       public void Case01_ImportJson_OK()
       {
          // Given

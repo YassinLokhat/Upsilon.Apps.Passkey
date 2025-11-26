@@ -124,16 +124,16 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
                ".csv" => this.ImportCSV(importContent),
                _ => $"'{extention}' extention type is not handled",
             };
+         }
 
-            if (string.IsNullOrWhiteSpace(errorLog))
-            {
-               Logs.AddLog($"Import completed successfully", needsReview: true);
-               _save(logSaveEvent: true);
-            }
-            else
-            {
-               Logs.AddLog($"Import failed because {errorLog}", needsReview: true);
-            }
+         if (string.IsNullOrWhiteSpace(errorLog))
+         {
+            Logs.AddLog($"Import completed successfully", needsReview: true);
+            _save(logSaveEvent: true);
+         }
+         else
+         {
+            Logs.AddLog($"Import failed because {errorLog}", needsReview: true);
          }
       }
 
