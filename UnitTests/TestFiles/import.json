@@ -1,0 +1,60 @@
+[
+  {
+    "ServiceName": "Service0",
+    "Url": "www.service0.xyz",
+    "Notes": "Service0's notes",
+    "Accounts": [
+      {
+        "Label": "Account0",
+        "Identifiants": [
+          "account0@service0.xyz",
+          "account0_backup@service0.xyz"
+        ],
+        "Password": "0000",
+        "Notes": "Service0's Account0's notes",
+        "PasswordUpdateReminderDelay": 0,
+        "Options": 2
+      },
+      {
+        "Label": "Account1",
+        "Identifiants": [
+          "account1@service0.xyz",
+          "account1_backup@service0.xyz"
+        ],
+        "Password": "1111",
+        "Notes": "Service0's Account1's notes",
+        "PasswordUpdateReminderDelay": 1,
+        "Options": 2
+      }
+    ]
+  },
+  {
+    "ServiceName": "Service1",
+    "Url": "www.service1.xyz",
+    "Notes": "Service1's notes",
+    "Accounts": [
+      {
+        "Label": "Account0",
+        "Identifiants": [
+          "account0@service1.xyz",
+          "account0_backup@service1.xyz"
+        ],
+        "Password": "AAAA",
+        "Notes": "Service1's Account0's notes",
+        "PasswordUpdateReminderDelay": 0,
+        "Options": 2
+      },
+      {
+        "Label": "Account1",
+        "Identifiants": [
+          "account1@service1.xyz",
+          "account1_backup@service1.xyz"
+        ],
+        "Password": "BBBB",
+        "Notes": "Service1's Account1's notes",
+        "PasswordUpdateReminderDelay": 1,
+        "Options": 2
+      }
+    ]
+  }
+]

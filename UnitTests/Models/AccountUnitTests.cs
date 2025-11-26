@@ -37,11 +37,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          IAccount account = service.AddAccount(oldAccountLabel, oldIdentifiants, oldPassword);
          expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)}) has been added to Service {service.ServiceName}");
+         expectedLogs.Push($"Warning : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)})'s password has been updated");
+         expectedLogWarnings.Push($"Warning : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)})'s password has been updated");
 
          // Then
          databaseCreated.User.HasChanged().Should().BeTrue();
          service.HasChanged().Should().BeTrue();
-         account.HasChanged().Should().BeFalse();
+         account.HasChanged().Should().BeTrue();
          _ = service.Accounts.Length.Should().Be(1);
          _ = account.Label.Should().Be(oldAccountLabel);
          _ = account.Identifiants.Should().BeEquivalentTo(oldIdentifiants);
@@ -145,6 +147,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          IAccount account = service.AddAccount(oldAccountLabel, oldIdentifiants, oldPassword);
          expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)}) has been added to Service {service.ServiceName}");
+         expectedLogs.Push($"Warning : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)})'s password has been updated");
+         expectedLogWarnings.Push($"Warning : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiants)})'s password has been updated");
 
          // Then
          _ = service.Accounts.Length.Should().Be(1);
