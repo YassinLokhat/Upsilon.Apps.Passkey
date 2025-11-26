@@ -1,4 +1,5 @@
 ﻿using Upsilon.Apps.Passkey.Core.Internal.Models;
+using Upsilon.Apps.Passkey.Core.Public.Enums;
 using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 using Windows.UI.Composition;
 
@@ -15,6 +16,8 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
          Identifiants,
          Password,
          AccountNotes,
+         AccountOptions,
+         PasswordUpdateReminderDelay,
       }
 
       public static string ImportCSV(this IDatabase database, string importContent)
@@ -36,6 +39,8 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
             headersIndexes[Headers.Identifiants] = headers.IndexOf(Headers.Identifiants.ToString());
             headersIndexes[Headers.Password] = headers.IndexOf(Headers.Password.ToString());
             headersIndexes[Headers.AccountNotes] = headers.IndexOf(Headers.AccountNotes.ToString());
+            headersIndexes[Headers.AccountOptions] = headers.IndexOf(Headers.AccountOptions.ToString());
+            headersIndexes[Headers.PasswordUpdateReminderDelay] = headers.IndexOf(Headers.PasswordUpdateReminderDelay.ToString());
 
             if (headersIndexes.Values.Any(x => x == -1)) return $"the CSV headers should be : {string.Join(", ", headersIndexes.Keys.Select(x => $"'{x}'"))}";
 
@@ -52,6 +57,8 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
                string identifiants = database.SerializationCenter.Deserialize<string>(csvColumns[headersIndexes[Headers.Identifiants]]);
                string password = database.SerializationCenter.Deserialize<string>(csvColumns[headersIndexes[Headers.Password]]);
                string accountNotes = database.SerializationCenter.Deserialize<string>(csvColumns[headersIndexes[Headers.AccountNotes]]);
+               AccountOption accountOptions = database.SerializationCenter.Deserialize<AccountOption>(csvColumns[headersIndexes[Headers.AccountOptions]]);
+               int passwordUpdateReminderDelay = database.SerializationCenter.Deserialize<int>(csvColumns[headersIndexes[Headers.PasswordUpdateReminderDelay]]);
 
                if (service is null
                   || service.ServiceName != serviceName)
@@ -72,6 +79,8 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
                   Identifiants = [.. identifiants.Split('|').Where(x => !string.IsNullOrWhiteSpace(x))],
                   Password = password,
                   Notes = accountNotes,
+                  Options = accountOptions,
+                  PasswordUpdateReminderDelay = passwordUpdateReminderDelay
                };
 
                service.Accounts.Add(account);
@@ -111,6 +120,12 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
          if (service is not null)
          {
             return $"service '{service.ServiceName}' already exists";
+         }
+
+         service = services.FirstOrDefault(x => string.IsNullOrWhiteSpace(x.ServiceName) || x.Accounts.Any(y => y.Identifiants.Any(z => string.IsNullOrWhiteSpace(z))));
+         if (service is not null)
+         {
+            return $"service name or account identifiant cannot be blank";
          }
 
          foreach (Service s in services)
