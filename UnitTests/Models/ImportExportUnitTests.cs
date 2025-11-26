@@ -8,7 +8,7 @@ using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 using Upsilon.Apps.Passkey.UnitTests;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
-namespace UnitTests.Models
+namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
    [TestClass]
    public class ImportExportUnitTests

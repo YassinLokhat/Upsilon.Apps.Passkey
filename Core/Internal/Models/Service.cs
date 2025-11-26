@@ -60,9 +60,16 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
             Identifiants = [.. identifiants],
             Password = password,
          };
-         account.Passwords[DateTime.Now] = password;
 
          Accounts.Add(Database.AutoSave.AddValue(ItemId, itemName: account.ToString(), containerName: ToString(), needsReview: false, account));
+
+         account.Passwords[DateTime.Now] = Database.AutoSave.UpdateValue(account.ItemId,
+            itemName: account.ToString(),
+            fieldName: nameof(account.Password),
+            needsReview: true,
+            oldValue: string.Empty,
+            newValue: account.Password,
+            readableValue: string.Empty);
 
          return account;
       }

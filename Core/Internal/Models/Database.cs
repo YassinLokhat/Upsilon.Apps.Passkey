@@ -100,7 +100,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
       public void ImportFromFile(string filePath)
       {
          _save(logSaveEvent: true);
-         Logs.AddLog($"Importing data from file : '{filePath}'.", needsReview: true);
+         Logs.AddLog($"Importing data from file : '{filePath}'", needsReview: true);
 
          string importContent = string.Empty;
          string errorLog = string.Empty;
@@ -127,12 +127,12 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
 
             if (string.IsNullOrWhiteSpace(errorLog))
             {
-               Logs.AddLog($"Import completed successfully.", needsReview: true);
+               Logs.AddLog($"Import completed successfully", needsReview: true);
                _save(logSaveEvent: true);
             }
             else
             {
-               Logs.AddLog($"Import failed because {errorLog}.", needsReview: true);
+               Logs.AddLog($"Import failed because {errorLog}", needsReview: true);
             }
          }
       }

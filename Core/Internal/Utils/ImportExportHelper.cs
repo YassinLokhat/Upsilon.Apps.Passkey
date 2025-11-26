@@ -19,11 +19,11 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 
       public static string ImportCSV(this IDatabase database, string importContent)
       {
-         List<IService> services = [];
+         List<Service> services = [];
 
          try
          {
-            string[] csvLines = importContent.Split('\n');
+            string[] csvLines = [.. importContent.Split('\n').Select(x => x.Replace("\r", ""))];
 
             string[] headers = csvLines[0].Split("\t");
 
@@ -87,11 +87,11 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 
       public static string ImportJson(this IDatabase database, string importContent)
       {
-         IService[] services;
+         Service[] services;
 
          try
          {
-            services = database.SerializationCenter.Deserialize<IService[]>(importContent);
+            services = database.SerializationCenter.Deserialize<Service[]>(importContent);
          }
          catch
          {
@@ -101,7 +101,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
          return _importServices(database, services);
       }
 
-      private static string _importServices(IDatabase database, IEnumerable<IService> services)
+      private static string _importServices(IDatabase database, IEnumerable<Service> services)
       {
          if (database.User is null) return string.Empty;
 
@@ -113,13 +113,13 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
             return $"service '{service.ServiceName}' already exists";
          }
 
-         foreach (IService s in services)
+         foreach (Service s in services)
          {
             service = database.User.AddService(s.ServiceName);
             service.Url = s.Url;
             service.Notes = s.Notes;
 
-            foreach (IAccount a in service.Accounts)
+            foreach (Account a in s.Accounts)
             {
                IAccount account = service.AddAccount(a.Label, a.Identifiants, a.Password);
                account.Notes = a.Notes;
