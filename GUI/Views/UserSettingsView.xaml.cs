@@ -2,11 +2,11 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Upsilon.Apps.Passkey.Core.Public.Enums;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
-using Upsilon.Apps.Passkey.Core.Public.Enums;
-using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {

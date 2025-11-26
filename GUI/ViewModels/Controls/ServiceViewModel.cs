@@ -1,10 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 using Upsilon.Apps.Passkey.Core.Public.Utils;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
-using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
