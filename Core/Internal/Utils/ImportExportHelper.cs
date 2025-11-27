@@ -75,7 +75,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
                Account account = new()
                {
                   Label = accountLabel,
-                  Identifiants = [.. identifiants.Split('|').Where(x => !string.IsNullOrWhiteSpace(x))],
+                  Identifiants = [.. identifiants.Split('|').Select(x => x.Trim())],
                   Password = password,
                   Notes = accountNotes,
                   Options = accountOptions,
@@ -115,21 +115,21 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 
          if (!services.Any()) return "there is no data to import";
 
-         IService? service = services.FirstOrDefault(x => database.User.Services.Any(y => y.ServiceName == x.ServiceName));
-         if (service is not null)
+         Service? s0 = services.FirstOrDefault(x => database.User.Services.Any(y => y.ServiceName == x.ServiceName));
+         if (s0 is not null)
          {
-            return $"service '{service.ServiceName}' already exists";
+            return $"service '{s0.ServiceName}' already exists";
          }
 
-         service = services.FirstOrDefault(x => string.IsNullOrWhiteSpace(x.ServiceName) || x.Accounts.Any(y => y.Identifiants.Any(z => string.IsNullOrWhiteSpace(z))));
-         if (service is not null)
+         s0 = services.FirstOrDefault(x => string.IsNullOrWhiteSpace(x.ServiceName) || x.Accounts.Any(y => y.Identifiants.Any(z => string.IsNullOrWhiteSpace(z))));
+         if (s0 is not null)
          {
             return $"service name or account identifiant cannot be blank";
          }
 
          foreach (Service s in services)
          {
-            service = database.User.AddService(s.ServiceName);
+            IService service = database.User.AddService(s.ServiceName);
             service.Url = s.Url;
             service.Notes = s.Notes;
 
