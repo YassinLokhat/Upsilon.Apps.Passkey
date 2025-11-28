@@ -81,10 +81,12 @@
                                 Content="✕"/>
                             <Button Grid.Row="1"
                                 Grid.Column="4"
-                                Content="📋"/>
+                                Content="📋"
+                                Click="_copyIdentifiant_Clicked"/>
                             <Button Grid.Row="1"
                                 Grid.Column="5"
-                                Content="▣"/>
+                                Content="▣"
+                                Click="_showQrCodeIdentifiant_Clicked"/>
                         </Grid>
                     </GroupBox>
                     <GroupBox Header="Password"
@@ -107,10 +109,12 @@
                                                       Validated="_password_VPB_Validated"/>
                             <Button Grid.Row="0"
                                 Grid.Column="1"
-                                Content="📋"/>
+                                Content="📋"
+                                Click="_copyPassword_Clicked"/>
                             <Button Grid.Row="0"
                                 Grid.Column="2"
-                                Content="▣"/>
+                                Content="▣"
+                                Click="_showQrCodePassword_Clicked"/>
                             <ListBox Grid.Row="1"
                                  Grid.Column="0"
                                  Grid.ColumnSpan="3"
@@ -133,9 +137,11 @@
                                                                       ReadOnly="True"
                                                                       Loaded="_passwords_VPB_Loaded"/>
                                             <Button Grid.Column="2"
-                                                    Content="📋"/>
+                                                    Content="📋"
+                                                    Click="_copyPasswords_Clicked"/>
                                             <Button Grid.Column="3"
-                                                    Content="▣"/>
+                                                    Content="▣"
+                                                    Click="_showQrCodePasswords_Clicked"/>
                                         </Grid>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>

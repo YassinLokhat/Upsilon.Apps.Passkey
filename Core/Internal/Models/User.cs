@@ -199,7 +199,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
 
       private void _cleanClipboard()
       {
-         string[] passwords = [.. Services.SelectMany(x => x.Accounts).Select(x => x.Password)];
+         string[] passwords = [.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)];
 
          int cleanedPasswordsCount = ClipboardManager.RemoveAllOccurence(passwords);
 

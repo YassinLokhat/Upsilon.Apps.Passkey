@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Windows;
 
 namespace Upsilon.Apps.Passkey.GUI.Helper
 {
@@ -30,6 +31,16 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
          qrCodeImage.SaveQRCodeToImageFile(ms, ImageFormat.Bmp);
 
          return (Bitmap)Image.FromStream(ms);
+      }
+
+      public static void CopyToClipboard(string text)
+      {
+         Clipboard.SetText(text);
+      }
+
+      public static void ShowQrCode(string text, int delay)
+      {
+         throw new NotImplementedException();
       }
    }
 }

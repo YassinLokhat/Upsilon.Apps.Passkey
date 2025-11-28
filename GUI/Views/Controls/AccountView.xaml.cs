@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.Helper;
+using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.Views.Controls
@@ -142,6 +143,40 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          if (sender is not VisiblePasswordBox passwordBox) return;
 
          passwordBox.Password = ((PasswordViewModel)((ContentPresenter)passwordBox.TemplatedParent).Content).Password;
+      }
+
+      private void _copyIdentifiant_Clicked(object sender, RoutedEventArgs e)
+      {
+         QrCodeHelper.CopyToClipboard(((IdentifiantViewModel)_identifiants_LB.SelectedItem).Identifiant);
+      }
+
+      private void _showQrCodeIdentifiant_Clicked(object sender, RoutedEventArgs e)
+      {
+         QrCodeHelper.ShowQrCode(((IdentifiantViewModel)_identifiants_LB.SelectedItem).Identifiant, MainViewModel.User.ShowPasswordDelay);
+      }
+
+      private void _copyPassword_Clicked(object sender, RoutedEventArgs e)
+      {
+         if (_viewModel is null) return;
+         QrCodeHelper.CopyToClipboard(_viewModel.Password);
+      }
+
+      private void _showQrCodePassword_Clicked(object sender, RoutedEventArgs e)
+      {
+         if (_viewModel is null) return;
+         QrCodeHelper.ShowQrCode(_viewModel.Password, MainViewModel.User.ShowPasswordDelay);
+      }
+
+      private void _copyPasswords_Clicked(object sender, RoutedEventArgs e)
+      {
+         if (sender is not Button button) return;
+         QrCodeHelper.CopyToClipboard(((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password);
+      }
+
+      private void _showQrCodePasswords_Clicked(object sender, RoutedEventArgs e)
+      {
+         if (sender is not Button button) return;
+         QrCodeHelper.ShowQrCode(((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password, MainViewModel.User.ShowPasswordDelay);
       }
    }
 }
