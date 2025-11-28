@@ -5,8 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.Views"
         mc:Ignorable="d"
-        Title="QrCodeView" Height="500" Width="500">
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Height="500" Width="500">
     <Grid>
-        
+        <Image Name="_qrCode_I" Stretch="Fill" />
     </Grid>
 </Window>

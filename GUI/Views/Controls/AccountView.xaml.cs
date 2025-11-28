@@ -147,36 +147,42 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _copyIdentifier_Clicked(object sender, RoutedEventArgs e)
       {
-         QrCodeHelper.CopyToClipboard(((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier);
+         QrCodeView.CopyToClipboard(((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier);
       }
 
       private void _showQrCodeIdentifier_Clicked(object sender, RoutedEventArgs e)
       {
-         QrCodeHelper.ShowQrCode(((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier, MainViewModel.User.ShowPasswordDelay);
+         QrCodeView.ShowQrCode(Window.GetWindow(this),
+            ((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier, 
+            MainViewModel.User.ShowPasswordDelay);
       }
 
       private void _copyPassword_Clicked(object sender, RoutedEventArgs e)
       {
          if (_viewModel is null) return;
-         QrCodeHelper.CopyToClipboard(_viewModel.Password);
+         QrCodeView.CopyToClipboard(_viewModel.Password);
       }
 
       private void _showQrCodePassword_Clicked(object sender, RoutedEventArgs e)
       {
          if (_viewModel is null) return;
-         QrCodeHelper.ShowQrCode(_viewModel.Password, MainViewModel.User.ShowPasswordDelay);
+         QrCodeView.ShowQrCode(Window.GetWindow(this),
+            _viewModel.Password,
+            MainViewModel.User.ShowPasswordDelay);
       }
 
       private void _copyPasswords_Clicked(object sender, RoutedEventArgs e)
       {
          if (sender is not Button button) return;
-         QrCodeHelper.CopyToClipboard(((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password);
+         QrCodeView.CopyToClipboard(((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password);
       }
 
       private void _showQrCodePasswords_Clicked(object sender, RoutedEventArgs e)
       {
          if (sender is not Button button) return;
-         QrCodeHelper.ShowQrCode(((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password, MainViewModel.User.ShowPasswordDelay);
+         QrCodeView.ShowQrCode(Window.GetWindow(this),
+            ((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password,
+            MainViewModel.User.ShowPasswordDelay);
       }
    }
 }

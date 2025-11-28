@@ -71,7 +71,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _copyMenuItem_Click(object sender, RoutedEventArgs e)
       {
-         QrCodeHelper.CopyToClipboard(_viewModel.GeneratedPassword);
+         QrCodeView.CopyToClipboard(_viewModel.GeneratedPassword);
       }
    }
 }
