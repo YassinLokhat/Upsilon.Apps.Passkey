@@ -44,11 +44,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       public static void ShowQrCode(Window owner, string qrCode, int delay)
       {
-         _ = new QrCodeView(qrCode, delay)
+         if (!string.IsNullOrEmpty(qrCode))
          {
-            Owner = owner
+            _ = new QrCodeView(qrCode, delay)
+            {
+               Owner = owner
+            }
+            .ShowDialog();
          }
-         .ShowDialog();
       }
 
       public static void CopyToClipboard(string text)
@@ -61,7 +64,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          DarkMode.SetDarkMode(this);
       }
 
-      private static BitmapSource _getBitmap(string content)
+      private static BitmapImage _getBitmap(string content)
       {
          QREncoder qrGenerator = new()
          {
@@ -78,7 +81,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          MemoryStream ms = new();
          qrCodeImage.SaveQRCodeToImageFile(ms, ImageFormat.Bmp);
 
-         Bitmap bitmap = (Bitmap)System.Drawing.Image.FromStream(ms);
+         Bitmap bitmap = (Bitmap)Image.FromStream(ms);
 
          using MemoryStream memory = new();
          bitmap.Save(memory, ImageFormat.Png);
