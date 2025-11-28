@@ -6,13 +6,13 @@ using Upsilon.Apps.Passkey.GUI.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
-   public class IdentifiantViewModel : INotifyPropertyChanged
+   public class IdentifierViewModel : INotifyPropertyChanged
    {
       private readonly IAccount _account;
 
-      public Brush IdentifiantBackground => _account.HasChanged("Identifiants") ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush IdentifierBackground => _account.HasChanged("Identifiers") ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
 
-      public string Identifiant
+      public string Identifier
       {
          get;
          set
@@ -20,7 +20,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(Identifiant));
+               OnPropertyChanged(nameof(Identifier));
             }
          }
       } = string.Empty;
@@ -33,15 +33,15 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
       }
 
-      public IdentifiantViewModel(IAccount account, string identifiant)
+      public IdentifierViewModel(IAccount account, string identifier)
       {
          _account = account;
-         Identifiant = identifiant;
+         Identifier = identifier;
       }
 
       public void Refresh()
       {
-         OnPropertyChanged(nameof(IdentifiantBackground));
+         OnPropertyChanged(nameof(IdentifierBackground));
       }
    }
 }

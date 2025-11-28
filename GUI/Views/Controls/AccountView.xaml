@@ -35,7 +35,7 @@
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="3*"/>
                     </Grid.ColumnDefinitions>
-                    <GroupBox Header="Identifiants"
+                    <GroupBox Header="Identifiers"
                               Grid.Column="0">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -53,13 +53,13 @@
                             <ListBox Grid.Row="0"
                                  Grid.Column="0"
                                  Grid.ColumnSpan="6"
-                                 Name="_identifiants_LB">
+                                 Name="_identifiers_LB">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBox MinWidth="250"
-                                                 Background="{Binding IdentifiantBackground}"
+                                                 Background="{Binding IdentifierBackground}"
                                                  FontFamily="Courier New"
-                                                 Text="{Binding Identifiant, Mode=TwoWay}"/>
+                                                 Text="{Binding Identifier, Mode=TwoWay}"/>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
@@ -70,23 +70,23 @@
                             <Button Grid.Row="1"
                                 Grid.Column="1"
                                 Content="🠉"
-                                Click="_identifiant_UpClicked"/>
+                                Click="_identifier_UpClicked"/>
                             <Button Grid.Row="1"
                                 Grid.Column="2"
-                                Click="_identifiant_DownClicked"
+                                Click="_identifier_DownClicked"
                                 Content="🠋"/>
                             <Button Grid.Row="1"
                                 Grid.Column="3"
-                                Click="_identifiant_DeleteClicked"
+                                Click="_identifier_DeleteClicked"
                                 Content="✕"/>
                             <Button Grid.Row="1"
                                 Grid.Column="4"
                                 Content="📋"
-                                Click="_copyIdentifiant_Clicked"/>
+                                Click="_copyIdentifier_Clicked"/>
                             <Button Grid.Row="1"
                                 Grid.Column="5"
                                 Content="▣"
-                                Click="_showQrCodeIdentifiant_Clicked"/>
+                                Click="_showQrCodeIdentifier_Clicked"/>
                         </Grid>
                     </GroupBox>
                     <GroupBox Header="Password"

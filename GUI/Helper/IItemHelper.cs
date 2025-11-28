@@ -9,10 +9,10 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
          _ = user.ItemId;
       }
 
-      public static bool MeetsFilterConditions(this IService service, string serviceFilter, string identifiantFilter, string globalTextFilter)
+      public static bool MeetsFilterConditions(this IService service, string serviceFilter, string identifierFilter, string globalTextFilter)
       {
          serviceFilter = serviceFilter.ToLower().Trim();
-         identifiantFilter = identifiantFilter.ToLower().Trim();
+         identifierFilter = identifierFilter.ToLower().Trim();
          globalTextFilter = globalTextFilter.ToLower().Trim();
 
          string serviceId = service.ItemId.Replace(service.User.ItemId, string.Empty).ToLower().Trim();
@@ -28,28 +28,28 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
                || service.Accounts.Any(x => x.MeetsFilterConditions(string.Empty, globalTextFilter))
             : (string.IsNullOrWhiteSpace(serviceFilter)
                   || (!string.IsNullOrWhiteSpace(serviceFilter) && serviceName.Contains(serviceFilter)))
-               && (string.IsNullOrWhiteSpace(identifiantFilter)
-                  || service.Accounts.Any(x => x.MeetsFilterConditions(identifiantFilter, globalTextFilter)));
+               && (string.IsNullOrWhiteSpace(identifierFilter)
+                  || service.Accounts.Any(x => x.MeetsFilterConditions(identifierFilter, globalTextFilter)));
       }
 
-      public static bool MeetsFilterConditions(this IAccount account, string identifiantFilter, string globalTextFilter)
+      public static bool MeetsFilterConditions(this IAccount account, string identifierFilter, string globalTextFilter)
       {
-         identifiantFilter = identifiantFilter.ToLower().Trim();
+         identifierFilter = identifierFilter.ToLower().Trim();
          globalTextFilter = globalTextFilter.ToLower().Trim();
 
          string accountId = account.ItemId.Replace(account.Service.ItemId, string.Empty).ToLower().Trim();
          string label = account.Label.ToLower().Trim();
          string notes = account.Notes.ToLower().Trim();
-         string identifiants = string.Join("\n", account.Identifiants.Select(x => x.ToLower().Trim()));
+         string identifiers = string.Join("\n", account.Identifiers.Select(x => x.ToLower().Trim()));
 
          return !string.IsNullOrWhiteSpace(globalTextFilter)
             ? accountId == globalTextFilter
-               || identifiants.Contains(globalTextFilter)
+               || identifiers.Contains(globalTextFilter)
                || label.ToLower().Contains(globalTextFilter)
                || notes.ToLower().Contains(globalTextFilter)
-            : string.IsNullOrWhiteSpace(identifiantFilter)
-               || identifiants.Contains(identifiantFilter)
-               || label.Contains(identifiantFilter);
+            : string.IsNullOrWhiteSpace(identifierFilter)
+               || identifiers.Contains(identifierFilter)
+               || label.Contains(identifierFilter);
       }
    }
 }

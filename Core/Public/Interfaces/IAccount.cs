@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.Core.Public.Interfaces
       /// <summary>
       /// The identifants.
       /// </summary>
-      string[] Identifiants { get; set; }
+      string[] Identifiers { get; set; }
 
       /// <summary>
       /// The actual password.

@@ -34,33 +34,33 @@
       /// Add a new account to this service.
       /// </summary>
       /// <param name="label">The label of the account.</param>
-      /// <param name="identifiants">The identifiants.</param>
+      /// <param name="identifiers">The identifiers.</param>
       /// <param name="password">The password.</param>
       /// <returns>The created account.</returns>
-      IAccount AddAccount(string label, IEnumerable<string> identifiants, string password);
+      IAccount AddAccount(string label, IEnumerable<string> identifiers, string password);
 
       /// <summary>
       /// Add a new account to this service.
       /// </summary>
       /// <param name="label">The label of the account.</param>
-      /// <param name="identifiants">The identifiants.</param>
+      /// <param name="identifiers">The identifiers.</param>
       /// <returns>The created account.</returns>
-      IAccount AddAccount(string label, IEnumerable<string> identifiants);
+      IAccount AddAccount(string label, IEnumerable<string> identifiers);
 
       /// <summary>
       /// Add a new account to this service.
       /// </summary>
-      /// <param name="identifiants">The identifiants.</param>
+      /// <param name="identifiers">The identifiers.</param>
       /// <param name="password">The password.</param>
       /// <returns>The created account.</returns>
-      IAccount AddAccount(IEnumerable<string> identifiants, string password);
+      IAccount AddAccount(IEnumerable<string> identifiers, string password);
 
       /// <summary>
       /// Add a new account to this service.
       /// </summary>
-      /// <param name="identifiants">The identifiants.</param>
+      /// <param name="identifiers">The identifiers.</param>
       /// <returns>The created account.</returns>
-      IAccount AddAccount(IEnumerable<string> identifiants);
+      IAccount AddAccount(IEnumerable<string> identifiers);
 
       /// <summary>
       /// Delete the given account from this service. 

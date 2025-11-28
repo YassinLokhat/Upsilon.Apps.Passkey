@@ -51,14 +51,14 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
             readableValue: value);
       }
 
-      public IAccount AddAccount(string label, IEnumerable<string> identifiants, string password)
+      public IAccount AddAccount(string label, IEnumerable<string> identifiers, string password)
       {
          Account account = new()
          {
             Service = this,
-            ItemId = ItemId + Database.CryptographyCenter.GetHash(label + string.Join(string.Empty, identifiants)),
+            ItemId = ItemId + Database.CryptographyCenter.GetHash(label + string.Join(string.Empty, identifiers)),
             Label = label,
-            Identifiants = [.. identifiants],
+            Identifiers = [.. identifiers],
             Password = password,
          };
 
@@ -75,19 +75,19 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
          return account;
       }
 
-      public IAccount AddAccount(string label, IEnumerable<string> identifiants)
+      public IAccount AddAccount(string label, IEnumerable<string> identifiers)
       {
-         return AddAccount(label, identifiants, password: string.Empty);
+         return AddAccount(label, identifiers, password: string.Empty);
       }
 
-      public IAccount AddAccount(IEnumerable<string> identifiants, string password)
+      public IAccount AddAccount(IEnumerable<string> identifiers, string password)
       {
-         return AddAccount(label: string.Empty, identifiants, password);
+         return AddAccount(label: string.Empty, identifiers, password);
       }
 
-      public IAccount AddAccount(IEnumerable<string> identifiants)
+      public IAccount AddAccount(IEnumerable<string> identifiers)
       {
-         return AddAccount(label: string.Empty, identifiants, password: string.Empty);
+         return AddAccount(label: string.Empty, identifiers, password: string.Empty);
       }
 
       void IService.DeleteAccount(IAccount account)

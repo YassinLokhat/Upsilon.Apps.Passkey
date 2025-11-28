@@ -17,7 +17,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
          ServiceUrl,
          ServiceNotes,
          AccountLabel,
-         Identifiants,
+         Identifiers,
          Password,
          AccountNotes,
          AccountOptions,
@@ -48,7 +48,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
             headersIndexes[Headers.ServiceUrl] = headers.IndexOf(Headers.ServiceUrl.ToString());
             headersIndexes[Headers.ServiceNotes] = headers.IndexOf(Headers.ServiceNotes.ToString());
             headersIndexes[Headers.AccountLabel] = headers.IndexOf(Headers.AccountLabel.ToString());
-            headersIndexes[Headers.Identifiants] = headers.IndexOf(Headers.Identifiants.ToString());
+            headersIndexes[Headers.Identifiers] = headers.IndexOf(Headers.Identifiers.ToString());
             headersIndexes[Headers.Password] = headers.IndexOf(Headers.Password.ToString());
             headersIndexes[Headers.AccountNotes] = headers.IndexOf(Headers.AccountNotes.ToString());
             headersIndexes[Headers.AccountOptions] = headers.IndexOf(Headers.AccountOptions.ToString());
@@ -66,7 +66,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
                string serviceUrl = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.ServiceUrl]]);
                string serviceNotes = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.ServiceNotes]]);
                string accountLabel = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.AccountLabel]]);
-               string identifiants = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.Identifiants]]);
+               string identifiers = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.Identifiers]]);
                string password = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.Password]]);
                string accountNotes = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.AccountNotes]]);
                AccountOption accountOptions = _jsonDeserializeAs<AccountOption>(csvColumns[headersIndexes[Headers.AccountOptions]]);
@@ -88,7 +88,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
                Account account = new()
                {
                   Label = accountLabel,
-                  Identifiants = [.. identifiants.Split('|').Select(x => x.Trim())],
+                  Identifiers = [.. identifiers.Split('|').Select(x => x.Trim())],
                   Password = password,
                   Notes = accountNotes,
                   Options = accountOptions,
@@ -134,10 +134,10 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
             return $"service '{s0.ServiceName}' already exists";
          }
 
-         s0 = services.FirstOrDefault(x => string.IsNullOrWhiteSpace(x.ServiceName) || x.Accounts.Any(y => y.Identifiants.Any(z => string.IsNullOrWhiteSpace(z))));
+         s0 = services.FirstOrDefault(x => string.IsNullOrWhiteSpace(x.ServiceName) || x.Accounts.Any(y => y.Identifiers.Any(z => string.IsNullOrWhiteSpace(z))));
          if (s0 is not null)
          {
-            return $"service name or account identifiant cannot be blank";
+            return $"service name or account identifier cannot be blank";
          }
 
          foreach (Service s in services)
@@ -148,7 +148,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 
             foreach (Account a in s.Accounts)
             {
-               IAccount account = service.AddAccount(a.Label, a.Identifiants, a.Password);
+               IAccount account = service.AddAccount(a.Label, a.Identifiers, a.Password);
                account.Notes = a.Notes;
                account.Options = a.Options;
                account.PasswordUpdateReminderDelay = a.PasswordUpdateReminderDelay;
@@ -172,11 +172,11 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 
             foreach (Account account in service.Accounts)
             {
-               string identifiants = string.Join("|", account.Identifiants.Where(x => !string.IsNullOrWhiteSpace(x)));
+               string identifiers = string.Join("|", account.Identifiers.Where(x => !string.IsNullOrWhiteSpace(x)));
 
                sb.Append(serviceLine);
                sb.Append($"{_jsonSerialize(account.Label.Trim())}\t" +
-                  $"{_jsonSerialize(identifiants)}\t" +
+                  $"{_jsonSerialize(identifiers)}\t" +
                   $"{_jsonSerialize(account.Password.Trim())}\t" +
                   $"{_jsonSerialize(account.Notes.Trim())}\t" +
                   $"{_jsonSerialize(account.Options)}\t" +

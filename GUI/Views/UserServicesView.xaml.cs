@@ -142,7 +142,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
       {
-         _viewModel.ServiceFilter = _viewModel.TextFilter = _viewModel.IdentifiantFilter = string.Empty;
+         _viewModel.ServiceFilter = _viewModel.TextFilter = _viewModel.IdentifierFilter = string.Empty;
       }
    }
 }

@@ -16,7 +16,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          get
          {
-            string accountDisplay = $"{Account.Label} {Account.Identifiants.First()}";
+            string accountDisplay = $"{Account.Label} {Account.Identifiers.First()}";
             return $"{(Account.HasChanged() ? "* " : string.Empty)}{accountDisplay.Trim()}";
          }
       }
@@ -37,7 +37,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          }
       }
 
-      public ObservableCollection<IdentifiantViewModel> Identifiants = [];
+      public ObservableCollection<IdentifierViewModel> Identifiers = [];
 
       public Brush PasswordBackground => Account.HasChanged(nameof(Password)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Password
@@ -129,66 +129,66 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountDisplay)));
       }
 
-      private void _identifiantViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+      private void _identifierViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
       {
-         if (e.PropertyName != "Identifiant")
+         if (e.PropertyName != "Identifier")
          {
             return;
          }
 
-         Account.Identifiants = [.. Identifiants.Select(x => x.Identifiant)];
+         Account.Identifiers = [.. Identifiers.Select(x => x.Identifier)];
 
-         foreach (IdentifiantViewModel? identifiant in Identifiants.Except([sender]).Cast<IdentifiantViewModel?>())
+         foreach (IdentifierViewModel? identifier in Identifiers.Except([sender]).Cast<IdentifierViewModel?>())
          {
-            identifiant?.Refresh();
+            identifier?.Refresh();
          }
 
          OnPropertyChanged(string.Empty);
       }
 
-      public void AddIdentifiant(IdentifiantViewModel identifiantViewModel)
+      public void AddIdentifier(IdentifierViewModel identifierViewModel)
       {
-         identifiantViewModel.PropertyChanged += _identifiantViewModel_PropertyChanged;
+         identifierViewModel.PropertyChanged += _identifierViewModel_PropertyChanged;
 
-         _identifiantViewModel_PropertyChanged(null, new("Identifiant"));
+         _identifierViewModel_PropertyChanged(null, new("Identifier"));
       }
 
-      public void AddIdentifiant(string identifiant)
+      public void AddIdentifier(string identifier)
       {
-         IdentifiantViewModel identifiantViewModel = new(Account, identifiant);
-         identifiantViewModel.PropertyChanged += _identifiantViewModel_PropertyChanged;
+         IdentifierViewModel identifierViewModel = new(Account, identifier);
+         identifierViewModel.PropertyChanged += _identifierViewModel_PropertyChanged;
 
-         Identifiants.Add(identifiantViewModel);
+         Identifiers.Add(identifierViewModel);
 
-         _identifiantViewModel_PropertyChanged(null, new("Identifiant"));
+         _identifierViewModel_PropertyChanged(null, new("Identifier"));
       }
 
-      public bool RemoveIdentifiant(IdentifiantViewModel identifiantViewModel)
+      public bool RemoveIdentifier(IdentifierViewModel identifierViewModel)
       {
-         if (Identifiants.Count == 1)
+         if (Identifiers.Count == 1)
          {
             return false;
          }
 
-         _ = Identifiants.Remove(identifiantViewModel);
+         _ = Identifiers.Remove(identifierViewModel);
 
-         _identifiantViewModel_PropertyChanged(null, new("Identifiant"));
+         _identifierViewModel_PropertyChanged(null, new("Identifier"));
 
          return true;
       }
 
-      public bool MoveIdentifiant(int oldIndex, int newIndex)
+      public bool MoveIdentifier(int oldIndex, int newIndex)
       {
          if (oldIndex < 0
             || newIndex < 0
-            || newIndex >= Identifiants.Count)
+            || newIndex >= Identifiers.Count)
          {
             return false;
          }
 
-         (Identifiants[newIndex], Identifiants[oldIndex]) = (Identifiants[oldIndex], Identifiants[newIndex]);
+         (Identifiers[newIndex], Identifiers[oldIndex]) = (Identifiers[oldIndex], Identifiers[newIndex]);
 
-         _identifiantViewModel_PropertyChanged(null, new("Identifiant"));
+         _identifierViewModel_PropertyChanged(null, new("Identifier"));
 
          return true;
       }

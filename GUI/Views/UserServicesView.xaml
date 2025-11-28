@@ -64,9 +64,9 @@
                     <TextBox Grid.Column="1"
                              Text="{Binding ServiceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Column="2"
-                           Content="Indentifiant :"/>
+                           Content="Indentifier :"/>
                     <TextBox Grid.Column="3"
-                             Text="{Binding IdentifiantFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{Binding IdentifierFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Column="4"
                            Content="Text :"/>
                     <TextBox Grid.Column="5"

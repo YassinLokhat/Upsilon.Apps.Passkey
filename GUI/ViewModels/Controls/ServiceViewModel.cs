@@ -69,11 +69,11 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplay)));
       }
 
-      public ServiceViewModel(IService service, string identifiantFilter = "", string textFilter = "")
+      public ServiceViewModel(IService service, string identifierFilter = "", string textFilter = "")
       {
          Service = service;
 
-         IAccount[] accounts = Service.Accounts.Where(x => x.MeetsFilterConditions(identifiantFilter, textFilter)).ToArray();
+         IAccount[] accounts = Service.Accounts.Where(x => x.MeetsFilterConditions(identifierFilter, textFilter)).ToArray();
 
          if (accounts.Length == 0)
          {
@@ -90,7 +90,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 
       public AccountViewModel AddAccount()
       {
-         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiants.Any(y => y.Identifiant == "NewAccount"));
+         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier == "NewAccount"));
 
          if (accountViewModel is null)
          {

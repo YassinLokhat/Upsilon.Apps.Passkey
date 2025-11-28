@@ -27,14 +27,14 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
             readableValue: value);
       }
 
-      string[] IAccount.Identifiants
+      string[] IAccount.Identifiers
       {
-         get => Database.Get(Identifiants);
-         set => Identifiants = Database.AutoSave.UpdateValue(ItemId,
+         get => Database.Get(Identifiers);
+         set => Identifiers = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
-            fieldName: nameof(Identifiants),
+            fieldName: nameof(Identifiers),
             needsReview: true,
-            oldValue: Identifiants,
+            oldValue: Identifiers,
             newValue: value,
             readableValue: $"({string.Join(", ", value)})");
       }
@@ -116,7 +116,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
       }
 
       public string Label { get; set; } = string.Empty;
-      public string[] Identifiants { get; set; } = [];
+      public string[] Identifiers { get; set; } = [];
       public string Password { get; set; } = string.Empty;
       public Dictionary<DateTime, string> Passwords { get; set; } = [];
       public string Notes { get; set; } = string.Empty;
@@ -149,8 +149,8 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
                   case nameof(Label):
                      Label = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
-                  case nameof(Identifiants):
-                     Identifiants = change.NewValue.DeserializeTo<string[]>(Database.SerializationCenter);
+                  case nameof(Identifiers):
+                     Identifiers = change.NewValue.DeserializeTo<string[]>(Database.SerializationCenter);
                      break;
                   case nameof(Notes):
                      Notes = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
@@ -183,7 +183,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
             account += $"{Label} ";
          }
 
-         return account + $"({string.Join(", ", Identifiants)})";
+         return account + $"({string.Join(", ", Identifiers)})";
       }
    }
 }

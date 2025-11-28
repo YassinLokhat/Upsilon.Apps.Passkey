@@ -13,7 +13,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
    {
       private ServiceViewModel? _viewModel;
 
-      public string? GetSelectedIdentifiant() => _account_AV.GetIdentifiant();
+      public string? GetSelectedIdentifier() => _account_AV.GetIdentifier();
 
       public string? GetSelectedPassword() => _account_AV.GetPassword();
 

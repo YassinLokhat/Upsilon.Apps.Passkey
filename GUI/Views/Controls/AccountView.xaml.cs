@@ -18,9 +18,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          InitializeComponent();
       }
 
-      public string? GetIdentifiant()
+      public string? GetIdentifier()
       {
-         return _identifiants_LB.SelectedItem is not IdentifiantViewModel identifiantViewModel ? null : identifiantViewModel.Identifiant;
+         return _identifiers_LB.SelectedItem is not IdentifierViewModel identifierViewModel ? null : identifierViewModel.Identifier;
       }
 
       public string? GetPassword() => _viewModel?.Password;
@@ -42,76 +42,76 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          {
             DataContext = null;
             _viewModel = null;
-            _identifiants_LB.ItemsSource = null;
+            _identifiers_LB.ItemsSource = null;
 
             return;
          }
 
          DataContext = _viewModel = dataContext;
 
-         _viewModel.Identifiants.Clear();
+         _viewModel.Identifiers.Clear();
 
-         if (_viewModel.Account.Identifiants.Length == 0)
+         if (_viewModel.Account.Identifiers.Length == 0)
          {
-            _viewModel.AddIdentifiant(string.Empty);
+            _viewModel.AddIdentifier(string.Empty);
          }
          else
          {
-            _viewModel.Identifiants = [.. _viewModel.Account.Identifiants.Select(x => new IdentifiantViewModel(_viewModel.Account, x))];
-            foreach (IdentifiantViewModel identifiant in _viewModel.Identifiants)
+            _viewModel.Identifiers = [.. _viewModel.Account.Identifiers.Select(x => new IdentifierViewModel(_viewModel.Account, x))];
+            foreach (IdentifierViewModel identifier in _viewModel.Identifiers)
             {
-               _viewModel.AddIdentifiant(identifiant);
+               _viewModel.AddIdentifier(identifier);
             }
          }
 
-         _identifiants_LB.ItemsSource = _viewModel.Identifiants;
-         _identifiants_LB.SelectedIndex = 0;
+         _identifiers_LB.ItemsSource = _viewModel.Identifiers;
+         _identifiers_LB.SelectedIndex = 0;
 
          _password_VPB.Password = _viewModel.Password;
          _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
          _passwords_LB.ItemsSource = _viewModel.Passwords;
       }
 
-      private void _identifiant_DeleteClicked(object? sender, EventArgs e)
+      private void _identifier_DeleteClicked(object? sender, EventArgs e)
       {
          if (_viewModel is null) return;
 
-         int index = _identifiants_LB.SelectedIndex;
+         int index = _identifiers_LB.SelectedIndex;
 
-         if (_viewModel.RemoveIdentifiant((IdentifiantViewModel)_identifiants_LB.SelectedItem))
+         if (_viewModel.RemoveIdentifier((IdentifierViewModel)_identifiers_LB.SelectedItem))
          {
-            _identifiants_LB.SelectedIndex = index < _viewModel.Identifiants.Count ? index : _viewModel.Identifiants.Count - 1;
+            _identifiers_LB.SelectedIndex = index < _viewModel.Identifiers.Count ? index : _viewModel.Identifiers.Count - 1;
          }
       }
 
-      private void _identifiant_UpClicked(object? sender, EventArgs e)
+      private void _identifier_UpClicked(object? sender, EventArgs e)
       {
          if (_viewModel is null) return;
 
-         int newIndex = _identifiants_LB.SelectedIndex - 1;
+         int newIndex = _identifiers_LB.SelectedIndex - 1;
 
-         if (_viewModel.MoveIdentifiant(_identifiants_LB.SelectedIndex, newIndex))
+         if (_viewModel.MoveIdentifier(_identifiers_LB.SelectedIndex, newIndex))
          {
-            _identifiants_LB.SelectedIndex = newIndex;
+            _identifiers_LB.SelectedIndex = newIndex;
          }
       }
 
-      private void _identifiant_DownClicked(object? sender, EventArgs e)
+      private void _identifier_DownClicked(object? sender, EventArgs e)
       {
          if (_viewModel is null) return;
 
-         int newIndex = _identifiants_LB.SelectedIndex + 1;
+         int newIndex = _identifiers_LB.SelectedIndex + 1;
 
-         if (_viewModel.MoveIdentifiant(_identifiants_LB.SelectedIndex, newIndex))
+         if (_viewModel.MoveIdentifier(_identifiers_LB.SelectedIndex, newIndex))
          {
-            _identifiants_LB.SelectedIndex = newIndex;
+            _identifiers_LB.SelectedIndex = newIndex;
          }
       }
 
       private void _addButton_Click(object sender, RoutedEventArgs e)
       {
-         _viewModel?.AddIdentifiant(string.Empty);
-         _identifiants_LB.SelectedIndex = _identifiants_LB.Items.Count - 1;
+         _viewModel?.AddIdentifier(string.Empty);
+         _identifiers_LB.SelectedIndex = _identifiers_LB.Items.Count - 1;
       }
 
       private void _value_TextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
@@ -145,14 +145,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          passwordBox.Password = ((PasswordViewModel)((ContentPresenter)passwordBox.TemplatedParent).Content).Password;
       }
 
-      private void _copyIdentifiant_Clicked(object sender, RoutedEventArgs e)
+      private void _copyIdentifier_Clicked(object sender, RoutedEventArgs e)
       {
-         QrCodeHelper.CopyToClipboard(((IdentifiantViewModel)_identifiants_LB.SelectedItem).Identifiant);
+         QrCodeHelper.CopyToClipboard(((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier);
       }
 
-      private void _showQrCodeIdentifiant_Clicked(object sender, RoutedEventArgs e)
+      private void _showQrCodeIdentifier_Clicked(object sender, RoutedEventArgs e)
       {
-         QrCodeHelper.ShowQrCode(((IdentifiantViewModel)_identifiants_LB.SelectedItem).Identifiant, MainViewModel.User.ShowPasswordDelay);
+         QrCodeHelper.ShowQrCode(((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier, MainViewModel.User.ShowPasswordDelay);
       }
 
       private void _copyPassword_Clicked(object sender, RoutedEventArgs e)

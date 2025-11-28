@@ -163,7 +163,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          expectedLogs.Push($"Information : User {username}'s database saved");
          expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because service name or account identifiant cannot be blank");
+         expectedLogs.Push($"Warning : Import failed because service name or account identifier cannot be blank");
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -176,7 +176,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       }
     
       [TestMethod]
-      public void Case06_ImportBlanckIdentifiant()
+      public void Case06_ImportBlanckIdentifier()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
@@ -186,7 +186,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
          string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
          string logFile = UnitTestsHelper.ComputeLogFilePath();
-         string importFile = UnitTestsHelper.GetTestFilePath($"import_blanckIdentifiant.json");
+         string importFile = UnitTestsHelper.GetTestFilePath($"import_blanckIdentifier.json");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedLogs = new();
 
@@ -195,7 +195,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          expectedLogs.Push($"Information : User {username}'s database saved");
          expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because service name or account identifiant cannot be blank");
+         expectedLogs.Push($"Warning : Import failed because service name or account identifier cannot be blank");
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -274,14 +274,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Services[0].Accounts.Length.Should().Be(2);
 
          database.User.Services[0].Accounts[0].Label.Should().Be("Account0");
-         database.User.Services[0].Accounts[0].Identifiants.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
+         database.User.Services[0].Accounts[0].Identifiers.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
          database.User.Services[0].Accounts[0].Password.Should().Be("0000");
          database.User.Services[0].Accounts[0].Notes.Should().Be("Service0's Account0's notes");
          database.User.Services[0].Accounts[0].Options.Should().Be(AccountOption.None);
          database.User.Services[0].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
 
          database.User.Services[0].Accounts[1].Label.Should().Be("Account1");
-         database.User.Services[0].Accounts[1].Identifiants.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
+         database.User.Services[0].Accounts[1].Identifiers.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
          database.User.Services[0].Accounts[1].Password.Should().Be("1111");
          database.User.Services[0].Accounts[1].Notes.Should().Be("Service0's Account1's notes");
          database.User.Services[0].Accounts[1].Options.Should().Be(AccountOption.None);
@@ -294,14 +294,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Services[1].Accounts.Length.Should().Be(2);
 
          database.User.Services[1].Accounts[0].Label.Should().Be("Account0");
-         database.User.Services[1].Accounts[0].Identifiants.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
+         database.User.Services[1].Accounts[0].Identifiers.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
          database.User.Services[1].Accounts[0].Password.Should().Be("AAAA");
          database.User.Services[1].Accounts[0].Notes.Should().Be("Service1's Account0's notes");
          database.User.Services[1].Accounts[0].Options.Should().Be(AccountOption.None);
          database.User.Services[1].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
 
          database.User.Services[1].Accounts[1].Label.Should().Be("Account1");
-         database.User.Services[1].Accounts[1].Identifiants.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
+         database.User.Services[1].Accounts[1].Identifiers.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
          database.User.Services[1].Accounts[1].Password.Should().Be("BBBB");
          database.User.Services[1].Accounts[1].Notes.Should().Be("Service1's Account1's notes");
          database.User.Services[1].Accounts[1].Options.Should().Be(AccountOption.None);
@@ -343,7 +343,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          expectedLogs.Push($"Information : User {username}'s database saved");
          expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because the CSV headers should be : 'ServiceName', 'ServiceUrl', 'ServiceNotes', 'AccountLabel', 'Identifiants', 'Password', 'AccountNotes', 'AccountOptions', 'PasswordUpdateReminderDelay'");
+         expectedLogs.Push($"Warning : Import failed because the CSV headers should be : 'ServiceName', 'ServiceUrl', 'ServiceNotes', 'AccountLabel', 'Identifiers', 'Password', 'AccountNotes', 'AccountOptions', 'PasswordUpdateReminderDelay'");
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -453,14 +453,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Services[0].Accounts.Length.Should().Be(2);
 
          database.User.Services[0].Accounts[0].Label.Should().Be("Account0");
-         database.User.Services[0].Accounts[0].Identifiants.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
+         database.User.Services[0].Accounts[0].Identifiers.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
          database.User.Services[0].Accounts[0].Password.Should().Be("0000");
          database.User.Services[0].Accounts[0].Notes.Should().Be("Service0's Account0's notes");
          database.User.Services[0].Accounts[0].Options.Should().Be(AccountOption.None);
          database.User.Services[0].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
 
          database.User.Services[0].Accounts[1].Label.Should().Be("Account1");
-         database.User.Services[0].Accounts[1].Identifiants.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
+         database.User.Services[0].Accounts[1].Identifiers.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
          database.User.Services[0].Accounts[1].Password.Should().Be("1111");
          database.User.Services[0].Accounts[1].Notes.Should().Be("Service0's Account1's notes");
          database.User.Services[0].Accounts[1].Options.Should().Be(AccountOption.None);
@@ -473,14 +473,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Services[1].Accounts.Length.Should().Be(2);
 
          database.User.Services[1].Accounts[0].Label.Should().Be("Account0");
-         database.User.Services[1].Accounts[0].Identifiants.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
+         database.User.Services[1].Accounts[0].Identifiers.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
          database.User.Services[1].Accounts[0].Password.Should().Be("AAAA");
          database.User.Services[1].Accounts[0].Notes.Should().Be("Service1's Account0's notes");
          database.User.Services[1].Accounts[0].Options.Should().Be(AccountOption.None);
          database.User.Services[1].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
 
          database.User.Services[1].Accounts[1].Label.Should().Be("Account1");
-         database.User.Services[1].Accounts[1].Identifiants.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
+         database.User.Services[1].Accounts[1].Identifiers.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
          database.User.Services[1].Accounts[1].Password.Should().Be("BBBB");
          database.User.Services[1].Accounts[1].Notes.Should().Be("Service1's Account1's notes");
          database.User.Services[1].Accounts[1].Options.Should().Be(AccountOption.None);

@@ -32,7 +32,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          }
       } = string.Empty;
 
-      public string IdentifiantFilter
+      public string IdentifierFilter
       {
          get;
          set
@@ -40,7 +40,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(IdentifiantFilter));
+               OnPropertyChanged(nameof(IdentifierFilter));
 
                RefreshFilters();
             }
@@ -116,9 +116,9 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          Services.Clear();
 
          ServiceViewModel[] services = [.. MainViewModel.User.Services
-            .Where(x => x.MeetsFilterConditions(ServiceFilter, IdentifiantFilter, TextFilter))
+            .Where(x => x.MeetsFilterConditions(ServiceFilter, IdentifierFilter, TextFilter))
             .OrderBy(x => x.ServiceName)
-            .Select(x => new ServiceViewModel(x, IdentifiantFilter, TextFilter))];
+            .Select(x => new ServiceViewModel(x, IdentifierFilter, TextFilter))];
 
          foreach (ServiceViewModel service in services)
          {
