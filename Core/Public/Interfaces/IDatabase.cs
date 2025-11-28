@@ -126,13 +126,15 @@ namespace Upsilon.Apps.Passkey.Core.Public.Interfaces
       /// Import services and/or accounts from a file.
       /// </summary>
       /// <param name="filePath">The file path.</param>
-      void ImportFromFile(string filePath);
+      /// <returns>True if the import succeded, False else.</returns>
+      bool ImportFromFile(string filePath);
 
       /// <summary>
       /// Export services and accounts to a file.
       /// </summary>
       /// <param name="filePath">The file path.</param>
-      void ExportToFile(string filePath);
+      /// <returns>True if the export succeded, False else.</returns>
+      bool ExportToFile(string filePath);
 
       /// <summary>
       /// Create a new user database and returns the database.

@@ -73,6 +73,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _userSettings_MenuItem_Click(object sender, RoutedEventArgs e)
       {
          UserSettingsView.ShowUserSettings(this);
+         _viewModel.RefreshFilters();
       }
 
       private void _generateRandomPassword_MenuItem_Click(object sender, RoutedEventArgs e)

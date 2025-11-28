@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Microsoft.Win32;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,7 +22,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       {
          InitializeComponent();
 
-         _deleteUser.Visibility = (MainViewModel.Database is null || MainViewModel.Database.User is null) ? Visibility.Hidden : Visibility.Visible;
+         _deleteUser_MI.Visibility
+            = _import_MI.Visibility
+            = _export_MI.Visibility
+            = (MainViewModel.Database is null || MainViewModel.Database.User is null) ? Visibility.Hidden : Visibility.Visible;
 
          DataContext = _viewModel = new UserSettingsViewModel();
 
@@ -246,6 +250,62 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private static bool _credentialsChanged(string oldFileName, string[] oldPasskeys, string newFilename, string[] newPasskeys)
       {
          return oldFileName != newFilename || ISerializationCenter.AreDifferent(MainViewModel.SerializationCenter, oldPasskeys, newPasskeys);
+      }
+
+      private void _import_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         if (MainViewModel.Database is null) return;
+
+         if (MessageBox.Show("Before importing data, all unsaved changes will be saved.", "Import data", MessageBoxButton.OKCancel) != MessageBoxResult.OK) return;
+
+         OpenFileDialog dialog = new()
+         {
+            Title = "Import data from a file",
+            Filter = "Tab delimited CSV file|*.csv|json file|*.json",
+         };
+
+         if (!(dialog.ShowDialog() ?? false)) return;
+
+         Cursor = Cursors.Wait;
+         _ = Task.Run(() =>
+         {
+            _ = MainViewModel.Database.ImportFromFile(dialog.FileName)
+               ? MessageBox.Show("Import data has been completed successfully.\nMore details in the logs.", "Import success")
+               : MessageBox.Show("Import data failed.\nMore details in the logs.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
+
+            Dispatcher.Invoke(() =>
+            {
+               Cursor = Cursors.Arrow;
+            });
+         });
+      }
+
+      private void _export_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         if (MainViewModel.Database is null) return;
+
+         if (MessageBox.Show("Before exporting data, all unsaved changes will be saved.", "Export data", MessageBoxButton.OKCancel) != MessageBoxResult.OK) return;
+
+         SaveFileDialog dialog = new()
+         {
+            Title = "Export data to a file",
+            Filter = "Tab delimited CSV file|*.csv|json file|*.json",
+         };
+
+         if (!(dialog.ShowDialog() ?? false)) return;
+
+         Cursor = Cursors.Wait;
+         _ = Task.Run(() =>
+         {
+            _ = MainViewModel.Database.ExportToFile(dialog.FileName)
+               ? MessageBox.Show("Export data has been completed successfully.\nMore details in the logs.", "Export success")
+               : MessageBox.Show("Export data failed.\nMore details in the logs.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
+
+            Dispatcher.Invoke(() =>
+            {
+               Cursor = Cursors.Arrow;
+            });
+         });
       }
    }
 }

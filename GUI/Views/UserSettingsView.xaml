@@ -25,7 +25,13 @@
             </Menu.ItemsPanel>
             <MenuItem Header="_Save"
                       Click="_save_MenuItem_Click"/>
-            <MenuItem Name="_deleteUser"
+            <MenuItem Name="_import_MI"
+                      Header="_Import"
+                      Click="_import_MenuItem_Click"/>
+            <MenuItem Name="_export_MI"
+                      Header="_Export"
+                      Click="_export_MenuItem_Click"/>
+            <MenuItem Name="_deleteUser_MI"
                       Header="_Delete User"
                       HorizontalAlignment="Right"
                       Click="_deleteUser_MenuItem_Click"/>

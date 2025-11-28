@@ -97,7 +97,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
 
       public bool HasChanged(string itemId, string fieldName) => AutoSave.Any(itemId, fieldName);
 
-      public void ImportFromFile(string filePath)
+      public bool ImportFromFile(string filePath)
       {
          _save(logSaveEvent: true);
          Logs.AddLog($"Importing data from file : '{filePath}'", needsReview: true);
@@ -135,9 +135,11 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
          {
             Logs.AddLog($"Import failed because {errorLog}", needsReview: true);
          }
+
+         return string.IsNullOrWhiteSpace(errorLog);
       }
 
-      public void ExportToFile(string filePath)
+      public bool ExportToFile(string filePath)
       {
          _save(logSaveEvent: true);
          Logs.AddLog($"Exporting data to file : '{filePath}'", needsReview: true);
@@ -169,6 +171,8 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
          {
             Logs.AddLog($"Export failed because {errorLog}", needsReview: true);
          }
+
+         return string.IsNullOrWhiteSpace(errorLog);
       }
 
       #endregion
