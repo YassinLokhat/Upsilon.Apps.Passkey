@@ -76,7 +76,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
-    
+
       [TestMethod]
       public void Case03_Import_NoData()
       {
@@ -108,7 +108,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
-    
+
       [TestMethod]
       public void Case04_Import_ServiceAlreadyExists()
       {
@@ -142,7 +142,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
-    
+
       [TestMethod]
       public void Case05_ImportBlanckService()
       {
@@ -174,7 +174,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
-    
+
       [TestMethod]
       public void Case06_ImportBlanckIdentifier()
       {
@@ -206,7 +206,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
-    
+
       [TestMethod]
       public void Case07_ImportCSV_OK()
       {

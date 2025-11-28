@@ -153,7 +153,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       private void _showQrCodeIdentifier_Clicked(object sender, RoutedEventArgs e)
       {
          QrCodeView.ShowQrCode(Window.GetWindow(this),
-            ((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier, 
+            ((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier,
             MainViewModel.User.ShowPasswordDelay);
       }
 
