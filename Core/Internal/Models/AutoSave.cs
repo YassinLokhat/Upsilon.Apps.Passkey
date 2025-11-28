@@ -27,8 +27,8 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
                itemName,
                string.Empty,
                fieldName,
-               Database.SerializationCenter.Serialize(oldValue),
-               Database.SerializationCenter.Serialize(newValue),
+               oldValue.SerializeWith(Database.SerializationCenter),
+               newValue.SerializeWith(Database.SerializationCenter),
                readableValue,
                needsReview,
                Change.Type.Update);
@@ -43,7 +43,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
          bool needsReview,
          T value) where T : notnull
       {
-         _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, Change.Type.Add);
+         _addChange(itemId, itemName, containerName, string.Empty, value.SerializeWith(Database.SerializationCenter), string.Empty, needsReview, Change.Type.Add);
 
          return value;
       }
@@ -54,7 +54,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
          bool needsReview,
          T value) where T : notnull
       {
-         _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, Change.Type.Delete);
+         _addChange(itemId, itemName, containerName, string.Empty, value.SerializeWith(Database.SerializationCenter), string.Empty, needsReview, Change.Type.Delete);
 
          return value;
       }

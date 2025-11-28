@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using Upsilon.Apps.Passkey.Core.Internal.Utils;
 using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.Core.Internal.Models
@@ -150,25 +151,25 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
                switch (change.FieldName)
                {
                   case nameof(ServiceName):
-                     ServiceName = Database.SerializationCenter.Deserialize<string>(change.NewValue);
+                     ServiceName = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
                   case nameof(Url):
-                     Url = Database.SerializationCenter.Deserialize<string>(change.NewValue);
+                     Url = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
                   case nameof(Notes):
-                     Notes = Database.SerializationCenter.Deserialize<string>(change.NewValue);
+                     Notes = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
             case Change.Type.Add:
-               Account accountToAdd = Database.SerializationCenter.Deserialize<Account>(change.NewValue);
+               Account accountToAdd = change.NewValue.DeserializeTo<Account>(Database.SerializationCenter);
                accountToAdd.Service = this;
                Accounts.Add(accountToAdd);
                break;
             case Change.Type.Delete:
-               Account accountToDelete = Database.SerializationCenter.Deserialize<Account>(change.NewValue);
+               Account accountToDelete = change.NewValue.DeserializeTo<Account>(Database.SerializationCenter);
                _ = Accounts.RemoveAll(x => x.ItemId == accountToDelete.ItemId);
                break;
             default:

@@ -147,23 +147,23 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
                switch (change.FieldName)
                {
                   case nameof(Label):
-                     Label = Database.SerializationCenter.Deserialize<string>(change.NewValue);
+                     Label = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
                   case nameof(Identifiants):
-                     Identifiants = Database.SerializationCenter.Deserialize<string[]>(change.NewValue);
+                     Identifiants = change.NewValue.DeserializeTo<string[]>(Database.SerializationCenter);
                      break;
                   case nameof(Notes):
-                     Notes = Database.SerializationCenter.Deserialize<string>(change.NewValue);
+                     Notes = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
                   case nameof(Password):
-                     Passwords = Database.SerializationCenter.Deserialize<Dictionary<DateTime, string>>(change.NewValue);
+                     Passwords = change.NewValue.DeserializeTo<Dictionary<DateTime, string>>(Database.SerializationCenter);
                      Password = Passwords.Count != 0 ? Passwords[Passwords.Keys.Max()] : string.Empty;
                      break;
                   case nameof(PasswordUpdateReminderDelay):
-                     PasswordUpdateReminderDelay = Database.SerializationCenter.Deserialize<int>(change.NewValue);
+                     PasswordUpdateReminderDelay = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
                      break;
                   case nameof(Options):
-                     Options = Database.SerializationCenter.Deserialize<AccountOption>(change.NewValue);
+                     Options = change.NewValue.DeserializeTo<AccountOption>(Database.SerializationCenter);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");

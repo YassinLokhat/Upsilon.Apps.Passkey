@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using Upsilon.Apps.Passkey.Core.Internal.Utils;
 using Upsilon.Apps.Passkey.Core.Public.Enums;
 using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 using Upsilon.Apps.Passkey.Core.Public.Utils;
@@ -242,32 +243,32 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
                {
                   case nameof(Username):
                      CredentialChanged = true;
-                     Username = Database.SerializationCenter.Deserialize<string>(change.NewValue);
+                     Username = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
                   case nameof(Passkeys):
                      CredentialChanged = true;
-                     Passkeys = Database.SerializationCenter.Deserialize<string[]>(change.NewValue);
+                     Passkeys = change.NewValue.DeserializeTo<string[]>(Database.SerializationCenter);
                      break;
                   case nameof(LogoutTimeout):
-                     LogoutTimeout = Database.SerializationCenter.Deserialize<int>(change.NewValue);
+                     LogoutTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
                      break;
                   case nameof(CleaningClipboardTimeout):
-                     CleaningClipboardTimeout = Database.SerializationCenter.Deserialize<int>(change.NewValue);
+                     CleaningClipboardTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
                      break;
                   case nameof(WarningsToNotify):
-                     WarningsToNotify = Database.SerializationCenter.Deserialize<WarningType>(change.NewValue);
+                     WarningsToNotify = change.NewValue.DeserializeTo<WarningType>(Database.SerializationCenter);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
             case Change.Type.Add:
-               Service serviceToAdd = Database.SerializationCenter.Deserialize<Service>(change.NewValue);
+               Service serviceToAdd = change.NewValue.DeserializeTo<Service>(Database.SerializationCenter);
                serviceToAdd.User = this;
                Services.Add(serviceToAdd);
                break;
             case Change.Type.Delete:
-               Service serviceToDelete = Database.SerializationCenter.Deserialize<Service>(change.NewValue);
+               Service serviceToDelete = change.NewValue.DeserializeTo<Service>(Database.SerializationCenter);
                _ = Services.RemoveAll(x => x.ItemId == serviceToDelete.ItemId);
                break;
             default:

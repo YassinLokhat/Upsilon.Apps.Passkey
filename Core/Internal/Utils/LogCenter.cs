@@ -15,11 +15,9 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
       [JsonIgnore]
       public ILog[]? Logs => Database.User == null
                ? null
-               : LogList.Select(x =>
-               {
-                  string textLog = Database.CryptographyCenter.DecryptAsymmetrically(x, Database.User.PrivateKey);
-                  return Database.SerializationCenter.Deserialize<Log>(textLog);
-               })
+               : LogList.Select(x => Database.CryptographyCenter
+                     .DecryptAsymmetrically(x, Database.User.PrivateKey)
+                     .DeserializeTo<Log>(Database.SerializationCenter))
                .OrderByDescending(x => x.DateTime)
                .ToArray();
 
@@ -36,7 +34,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
             NeedsReview = needsReview,
          };
 
-         string textLog = Database.SerializationCenter.Serialize(log);
+         string textLog = log.SerializeWith(Database.SerializationCenter);
          LogList.Add(Database.CryptographyCenter.EncryptAsymmetrically(textLog, PublicKey));
 
          _save();

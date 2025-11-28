@@ -58,7 +58,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 
       internal T Open<T>(string[] passkeys) where T : notnull
       {
-         return _serializationCenter.Deserialize<T>(ReadAllText(passkeys));
+         return ReadAllText(passkeys).DeserializeTo<T>(_serializationCenter);
       }
 
       internal void WriteAllText(string text)
@@ -79,7 +79,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 
       internal void Save<T>(T obj, string[] passkeys) where T : notnull
       {
-         WriteAllText(_serializationCenter.Serialize(obj), passkeys);
+         WriteAllText(obj.SerializeWith(_serializationCenter), passkeys);
       }
 
       internal void Delete()
