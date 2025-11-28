@@ -219,6 +219,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
          string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath("import.csv");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedLogs = new();
 
@@ -306,6 +307,15 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Services[1].Accounts[1].Options.Should().Be(AccountOption.None);
          database.User.Services[1].Accounts[1].PasswordUpdateReminderDelay.Should().Be(3);
 
+         // When
+         database.ExportToFile(exportFile);
+         expectedLogs.Push($"Information : User {username}'s database saved");
+         expectedLogs.Push($"Warning : Exporting data to file : '{exportFile}'");
+         expectedLogs.Push($"Warning : Export completed successfully");
+
+         // Then
+         File.ReadAllText(importFile).Should().Be(File.ReadAllText(exportFile));
+
          UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
 
          // Finaly
@@ -324,7 +334,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
          string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
          string logFile = UnitTestsHelper.ComputeLogFilePath();
-         string importFile = UnitTestsHelper.GetTestFilePath($"{username}/import_MissingHearder.csv", createIfNotExists: true);
+         string importFile = UnitTestsHelper.GetTestFilePath($"import_MissingHearder.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedLogs = new();
 
@@ -507,6 +517,76 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // Then
          database.User.Services.Should().BeEmpty();
+
+         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+
+         // Finaly
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+
+      [TestMethod]
+      public void Case12_Export_FileAlreadyExists()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
+         string logFile = UnitTestsHelper.ComputeLogFilePath();
+         string importFile = UnitTestsHelper.GetTestFilePath($"import.json");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export.json", createIfNotExists: true);
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<string> expectedLogs = new();
+         database.ImportFromFile(importFile);
+
+         // When
+         database.ExportToFile(exportFile);
+
+         expectedLogs.Push($"Information : User {username}'s database saved");
+         expectedLogs.Push($"Warning : Exporting data to file : '{exportFile}'");
+         expectedLogs.Push($"Warning : Export failed because export file already exists");
+
+         // Then
+         File.Exists(exportFile).Should().BeTrue();
+
+         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+
+         // Finaly
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+
+      [TestMethod]
+      public void Case13_Export_FileAlreadyExists()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
+         string logFile = UnitTestsHelper.ComputeLogFilePath();
+         string importFile = UnitTestsHelper.GetTestFilePath($"import.json");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export.txt");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<string> expectedLogs = new();
+         database.ImportFromFile(importFile);
+
+         // When
+         database.ExportToFile(exportFile);
+
+         expectedLogs.Push($"Information : User {username}'s database saved");
+         expectedLogs.Push($"Warning : Exporting data to file : '{exportFile}'");
+         expectedLogs.Push($"Warning : Export failed because '.txt' extention type is not handled");
+
+         // Then
+         File.Exists(exportFile).Should().BeFalse();
 
          UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
 

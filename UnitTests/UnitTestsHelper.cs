@@ -15,7 +15,8 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
       public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
 
-      public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}/{CryptographicCenter.GetHash(username)}";
+      public static string ComputeTestDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
+      public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"{ComputeTestDirectory(username)}/{CryptographicCenter.GetHash(username)}";
       public static string ComputeDatabaseFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographicCenter.GetHash(username)}.pku";
       public static string ComputeAutoSaveFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographicCenter.GetHash(username)}.pka";
       public static string ComputeLogFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographicCenter.GetHash(username)}.pkl";
@@ -90,7 +91,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
       public static void ClearTestEnvironment([CallerMemberName] string username = "")
       {
-         string directory = ComputeDatabaseFileDirectory(username);
+         string directory = ComputeTestDirectory(username);
 
          if (Directory.Exists(directory))
          {

@@ -38,7 +38,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 
          try
          {
-            string[] csvLines = [.. importContent.Split('\n').Select(x => x.Replace("\r", ""))];
+            string[] csvLines = [.. importContent.Split('\n').Select(x => x.Replace("\r", "")).Where(x => !string.IsNullOrWhiteSpace(x))];
 
             string[] headers = csvLines[0].Split("\t");
 
@@ -172,13 +172,11 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 
             foreach (Account account in service.Accounts)
             {
-               string identifiants = string.Join("|", account.Identifiants
-                  .Where(x => string.IsNullOrWhiteSpace(x))
-                  .Select(x => _jsonSerialize(x)));
+               string identifiants = string.Join("|", account.Identifiants.Where(x => !string.IsNullOrWhiteSpace(x)));
 
                sb.Append(serviceLine);
                sb.Append($"{_jsonSerialize(account.Label.Trim())}\t" +
-                  $"{identifiants}\t" +
+                  $"{_jsonSerialize(identifiants)}\t" +
                   $"{_jsonSerialize(account.Password.Trim())}\t" +
                   $"{_jsonSerialize(account.Notes.Trim())}\t" +
                   $"{_jsonSerialize(account.Options)}\t" +

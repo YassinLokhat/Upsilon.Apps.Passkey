@@ -164,7 +164,6 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
          if (string.IsNullOrWhiteSpace(errorLog))
          {
             Logs.AddLog($"Export completed successfully", needsReview: true);
-            _save(logSaveEvent: true);
          }
          else
          {
