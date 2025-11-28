@@ -139,7 +139,37 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
 
       public void ExportToFile(string filePath)
       {
-         this.Export(filePath);
+         _save(logSaveEvent: true);
+         Logs.AddLog($"Exporting data to file : '{filePath}'", needsReview: true);
+
+         string errorLog = string.Empty;
+
+         if (File.Exists(filePath))
+         {
+            errorLog = $"export file already exists";
+         }
+
+         if (string.IsNullOrWhiteSpace(errorLog))
+         {
+            string extention = Path.GetExtension(filePath);
+
+            errorLog = extention switch
+            {
+               ".json" => this.ExportJson(filePath),
+               ".csv" => this.ExportCSV(filePath),
+               _ => $"'{extention}' extention type is not handled",
+            };
+         }
+
+         if (string.IsNullOrWhiteSpace(errorLog))
+         {
+            Logs.AddLog($"Export completed successfully", needsReview: true);
+            _save(logSaveEvent: true);
+         }
+         else
+         {
+            Logs.AddLog($"Export failed because {errorLog}", needsReview: true);
+         }
       }
 
       #endregion

@@ -1,6 +1,11 @@
-﻿using Upsilon.Apps.Passkey.Core.Internal.Models;
+﻿using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Xml.Serialization;
+using Upsilon.Apps.Passkey.Core.Internal.Models;
 using Upsilon.Apps.Passkey.Core.Public.Enums;
 using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Windows.System;
 
 namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 {
@@ -18,6 +23,14 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
          AccountOptions,
          PasswordUpdateReminderDelay,
       }
+
+      private static string _jsonSerialize<T>(T obj)
+         => JsonSerializer.Serialize(obj, _options);
+
+      private static T _jsonDeserializeAs<T>(string json)
+         => JsonSerializer.Deserialize<T>(json, _options) ?? throw new NullReferenceException();
+
+      private static readonly JsonSerializerOptions _options = new() { Converters = { new JsonStringEnumConverter() }, WriteIndented = true, };
 
       public static string ImportCSV(this IDatabase database, string importContent)
       {
@@ -49,15 +62,15 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
             {
                string csvLine = csvLines[i];
                string[] csvColumns = csvLine.Split('\t');
-               string serviceName = database.SerializationCenter.Deserialize<string>(csvColumns[headersIndexes[Headers.ServiceName]]);
-               string serviceUrl = database.SerializationCenter.Deserialize<string>(csvColumns[headersIndexes[Headers.ServiceUrl]]);
-               string serviceNotes = database.SerializationCenter.Deserialize<string>(csvColumns[headersIndexes[Headers.ServiceNotes]]);
-               string accountLabel = database.SerializationCenter.Deserialize<string>(csvColumns[headersIndexes[Headers.AccountLabel]]);
-               string identifiants = database.SerializationCenter.Deserialize<string>(csvColumns[headersIndexes[Headers.Identifiants]]);
-               string password = database.SerializationCenter.Deserialize<string>(csvColumns[headersIndexes[Headers.Password]]);
-               string accountNotes = database.SerializationCenter.Deserialize<string>(csvColumns[headersIndexes[Headers.AccountNotes]]);
-               AccountOption accountOptions = database.SerializationCenter.Deserialize<AccountOption>(csvColumns[headersIndexes[Headers.AccountOptions]]);
-               int passwordUpdateReminderDelay = database.SerializationCenter.Deserialize<int>(csvColumns[headersIndexes[Headers.PasswordUpdateReminderDelay]]);
+               string serviceName = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.ServiceName]]);
+               string serviceUrl = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.ServiceUrl]]);
+               string serviceNotes = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.ServiceNotes]]);
+               string accountLabel = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.AccountLabel]]);
+               string identifiants = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.Identifiants]]);
+               string password = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.Password]]);
+               string accountNotes = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.AccountNotes]]);
+               AccountOption accountOptions = _jsonDeserializeAs<AccountOption>(csvColumns[headersIndexes[Headers.AccountOptions]]);
+               int passwordUpdateReminderDelay = _jsonDeserializeAs<int>(csvColumns[headersIndexes[Headers.PasswordUpdateReminderDelay]]);
 
                if (service is null
                   || service.ServiceName != serviceName)
@@ -99,7 +112,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 
          try
          {
-            services = database.SerializationCenter.Deserialize<Service[]>(importContent);
+            services = _jsonDeserializeAs<Service[]>(importContent);
          }
          catch
          {
@@ -145,9 +158,46 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
          return string.Empty;
       }
 
-      public static void Export(this Database database, string filePath)
+      public static string ExportCSV(this Database database, string filePath)
       {
-         throw new NotImplementedException();
+         if (database.User is null) return string.Empty;
+
+         StringBuilder sb = new(string.Join("\t", Enum.GetNames<Headers>()) + "\n");
+
+         foreach (Service service in database.User.Services)
+         {
+            string serviceLine = $"{_jsonSerialize(service.ServiceName.Trim())}\t" +
+               $"{_jsonSerialize(service.Url.Trim())}\t" +
+               $"{_jsonSerialize(service.Notes.Trim())}\t";
+
+            foreach (Account account in service.Accounts)
+            {
+               string identifiants = string.Join("|", account.Identifiants
+                  .Where(x => string.IsNullOrWhiteSpace(x))
+                  .Select(x => _jsonSerialize(x)));
+
+               sb.Append(serviceLine);
+               sb.Append($"{_jsonSerialize(account.Label.Trim())}\t" +
+                  $"{identifiants}\t" +
+                  $"{_jsonSerialize(account.Password.Trim())}\t" +
+                  $"{_jsonSerialize(account.Notes.Trim())}\t" +
+                  $"{_jsonSerialize(account.Options)}\t" +
+                  $"{_jsonSerialize(account.PasswordUpdateReminderDelay)}\n");
+            }
+         }
+
+         File.WriteAllText(filePath, sb.ToString());
+
+         return string.Empty;
+      }
+
+      public static string ExportJson(this Database database, string filePath)
+      {
+         if (database.User is null) return string.Empty;
+
+         File.WriteAllText(filePath, _jsonSerialize(database.User.Services));
+
+         return string.Empty;
       }
    }
 }

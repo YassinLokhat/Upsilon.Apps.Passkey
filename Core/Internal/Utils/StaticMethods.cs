@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
 namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 {
@@ -17,5 +18,11 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
          int intLookingForFlag = (int)(object)lookingForFlag;
          return (intValue & intLookingForFlag) == intLookingForFlag;
       }
+
+      public static string SerializeWith<T>(this T obj, ISerializationCenter serializationCenter) where T : notnull
+         => serializationCenter.Serialize(obj);
+
+      public static T DeserializeTo<T>(this string serializedString, ISerializationCenter serializationCenter) where T : notnull
+         => serializationCenter.Deserialize<T>(serializedString);
    }
 }
