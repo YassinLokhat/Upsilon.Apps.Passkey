@@ -86,6 +86,37 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
             readableValue: value.ToString());
       }
 
+      int IUser.NumberOfOldPasswordToKeep
+      {
+         get => Database.Get(NumberOfOldPasswordToKeep);
+         set
+         {
+            NumberOfOldPasswordToKeep = Database.AutoSave.UpdateValue(ItemId,
+               itemName: ToString(),
+               fieldName: nameof(NumberOfOldPasswordToKeep),
+               needsReview: true,
+               oldValue: NumberOfOldPasswordToKeep,
+               newValue: value,
+               readableValue: value.ToString());
+
+            if (NumberOfOldPasswordToKeep == 0) return;
+
+            Account[] accounts = [.. Services.SelectMany(x => x.Accounts).Where(x => x.Passwords.Count > NumberOfOldPasswordToKeep)];
+
+            foreach (Account account in accounts)
+            {
+               DateTime[] datesToRemove = [.. account.Passwords.Keys
+                  .OrderBy(x => x)
+                  .Take(account.Passwords.Count - NumberOfOldPasswordToKeep)];
+
+               foreach (var dateToRemove in datesToRemove)
+               {
+                  account.Passwords.Remove(dateToRemove);
+               }
+            }
+         }
+      }
+
       WarningType IUser.WarningsToNotify
       {
          get => Database.Get(WarningsToNotify);
@@ -147,6 +178,7 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
       public int LogoutTimeout { get; set; } = 0;
       public int CleaningClipboardTimeout { get; set; } = 0;
       public int ShowPasswordDelay { get; set; } = 0;
+      public int NumberOfOldPasswordToKeep { get; set; } = 0;
       public WarningType WarningsToNotify { get; set; }
          = WarningType.LogReviewWarning
          | WarningType.PasswordUpdateReminderWarning

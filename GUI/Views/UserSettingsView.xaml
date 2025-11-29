@@ -11,7 +11,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="295" Width="870">
+        Height="325" Width="870">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -83,6 +83,17 @@
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding ShowPasswordDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         <Label Margin="0">milliseconds.</Label>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding NumberOfOldPasswordToKeepChecked}"
+                                  Content="Keep the"/>
+                        <TextBox Width="40"
+                                 HorizontalContentAlignment="Center"
+                                 TextChanged="_value_TextBox_TextChanged"
+                                 PreviewTextInput="_value_TextBox_PreviewTextInput"
+                                 DataObject.Pasting="_value_TextBox_Pasting"
+                                 Text="{Binding NumberOfOldPasswordToKeep, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Label Margin="0">previous passwords.</Label>
                     </StackPanel>
                     <GroupBox Header="Warnings">
                         <StackPanel>

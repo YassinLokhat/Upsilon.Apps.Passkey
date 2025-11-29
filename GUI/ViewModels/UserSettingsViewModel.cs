@@ -88,6 +88,31 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
             }
          }
       }
+      public int NumberOfOldPasswordToKeep
+      {
+         get;
+         set
+         {
+            if (field != value)
+            {
+               field = value;
+               OnPropertyChanged(nameof(NumberOfOldPasswordToKeep));
+               OnPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
+            }
+         }
+      } = 10;
+      public bool NumberOfOldPasswordToKeepChecked
+      {
+         get => NumberOfOldPasswordToKeep != 0;
+         set
+         {
+            if (NumberOfOldPasswordToKeepChecked != value)
+            {
+               NumberOfOldPasswordToKeep = value ? 10 : 0;
+               OnPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
+            }
+         }
+      }
       public bool NotifyLogReview
       {
          get;
@@ -132,6 +157,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 
             LogoutTimeout = MainViewModel.Database.User.LogoutTimeout;
             CleaningClipboardTimeout = MainViewModel.Database.User.CleaningClipboardTimeout;
+            ShowPasswordDelay = MainViewModel.Database.User.ShowPasswordDelay;
+            NumberOfOldPasswordToKeep = MainViewModel.Database.User.NumberOfOldPasswordToKeep;
 
             NotifyLogReview = (MainViewModel.Database.User.WarningsToNotify & Passkey.Core.Public.Enums.WarningType.LogReviewWarning) != 0;
             NotifyPasswordUpdateReminder = (MainViewModel.Database.User.WarningsToNotify & Passkey.Core.Public.Enums.WarningType.PasswordUpdateReminderWarning) != 0;

@@ -23,7 +23,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          _password_VPB.Password = ViewModel.Password;
 
          ViewModel.PropertyChanged += _viewModel_PropertyChanged;
-         _password_VPB.PasswordChanged += _password_VPB_PasswordChanged;
+         _password_VPB.Validated += _password_VPB_Validated;
       }
 
       private void _viewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -35,7 +35,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          }
       }
 
-      private void _password_VPB_PasswordChanged(object? sender, EventArgs e)
+      private void _password_VPB_Validated(object? sender, EventArgs e)
       {
          ViewModel.Password = _password_VPB.Password;
       }

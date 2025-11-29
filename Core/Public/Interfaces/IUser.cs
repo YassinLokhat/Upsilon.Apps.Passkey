@@ -33,6 +33,11 @@ namespace Upsilon.Apps.Passkey.Core.Public.Interfaces
       int ShowPasswordDelay { get; set; }
 
       /// <summary>
+      /// The number of old paswords to keep.
+      /// </summary>
+      int NumberOfOldPasswordToKeep { get; set; }
+
+      /// <summary>
       /// The warnings types which will be notified if detected.
       /// </summary>
       WarningType WarningsToNotify { get; set; }
