@@ -119,6 +119,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          if (!string.IsNullOrEmpty(error))
          {
             _ = MessageBox.Show(error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            Dispatcher.Invoke(() =>
+            {
+               Cursor = Cursors.Arrow;
+            });
+
             return;
          }
 
@@ -146,10 +151,17 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                   newLogFile,
                   _viewModel.Username,
                   _passwordsContainer.Passkeys);
+
+               MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
             }
             catch (Exception ex)
             {
                _ = MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+               Dispatcher.Invoke(() =>
+               {
+                  Cursor = Cursors.Arrow;
+               });
+
                return;
             }
 

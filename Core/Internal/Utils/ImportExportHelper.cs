@@ -132,10 +132,10 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Utils
             return $"service '{s0.ServiceName}' already exists";
          }
 
-         s0 = services.FirstOrDefault(x => string.IsNullOrWhiteSpace(x.ServiceName) || x.Accounts.Any(y => y.Identifiers.Any(z => string.IsNullOrWhiteSpace(z))));
+         s0 = services.FirstOrDefault(x => string.IsNullOrWhiteSpace(x.ServiceName));
          if (s0 is not null)
          {
-            return $"service name or account identifier cannot be blank";
+            return $"service name cannot be blank";
          }
 
          foreach (Service s in services)
