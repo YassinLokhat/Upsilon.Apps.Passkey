@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Linq;
 using Upsilon.Apps.Passkey.Core.Internal.Utils;
 using Upsilon.Apps.Passkey.Core.Public.Enums;
 using Upsilon.Apps.Passkey.Core.Public.Interfaces;
@@ -61,9 +60,9 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
                            ? Passwords.Count - Service.User.NumberOfOldPasswordToKeep
                            : 0)];
 
-                     foreach (var dateToRemove in datesToRemove)
+                     foreach (DateTime dateToRemove in datesToRemove)
                      {
-                        Passwords.Remove(dateToRemove);
+                        _ = Passwords.Remove(dateToRemove);
                      }
                   }
 

@@ -109,9 +109,9 @@ namespace Upsilon.Apps.Passkey.Core.Internal.Models
                   .OrderBy(x => x)
                   .Take(account.Passwords.Count - NumberOfOldPasswordToKeep)];
 
-               foreach (var dateToRemove in datesToRemove)
+               foreach (DateTime dateToRemove in datesToRemove)
                {
-                  account.Passwords.Remove(dateToRemove);
+                  _ = account.Passwords.Remove(dateToRemove);
                }
             }
          }
