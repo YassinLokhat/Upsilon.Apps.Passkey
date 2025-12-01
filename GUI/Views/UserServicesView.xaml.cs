@@ -14,6 +14,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    public partial class UserServicesView : Window
    {
       private readonly UserServicesViewModel _viewModel;
+      private int _autoLoginHotkeyId = 0;
+      private int _autoPasswordHotkeyId = 0;
 
       private UserServicesView()
       {
@@ -67,7 +69,33 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _userServicesView_Loaded(object sender, RoutedEventArgs e)
       {
+         _autoLoginHotkeyId = HotkeyHelper.Register(this, ModifierKeys.Control | ModifierKeys.Shift, Key.L);
+         _autoPasswordHotkeyId = HotkeyHelper.Register(this, ModifierKeys.Control | ModifierKeys.Shift, Key.P);
+
+         HotkeyHelper.HotkeyPressed += _hotkeyHelper_HotkeyPressed;
+
          DarkMode.SetDarkMode(this);
+      }
+
+      private void _hotkeyHelper_HotkeyPressed(object? sender, HotkeyEventArgs e)
+      {
+         string? toInsert = null;
+
+         switch (e.Key)
+         {
+            case Key.L:
+               toInsert = _service_SV.GetSelectedIdentifier();
+               break;
+            case Key.P:
+               toInsert = _service_SV.GetSelectedPassword();
+               break;
+         }
+
+         if (!string.IsNullOrEmpty(toInsert))
+         {
+            QrCodeView.CopyToClipboard(toInsert);
+            HotkeyHelper.Send(ModifierKeys.Control, Key.V);
+         }
       }
 
       private void _userSettings_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -92,6 +120,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _window_Closed(object sender, EventArgs e)
       {
+         HotkeyHelper.Unregister(this, _autoLoginHotkeyId);
+         HotkeyHelper.Unregister(this, _autoPasswordHotkeyId);
+
          if (MainViewModel.Database is null || MainViewModel.Database.User is null) return;
 
          MainViewModel.Database?.Close();
