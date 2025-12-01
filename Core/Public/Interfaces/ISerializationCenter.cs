@@ -1,4 +1,6 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
+﻿using Upsilon.Apps.Passkey.Core.Internal.Utils;
+
+namespace Upsilon.Apps.Passkey.Core.Public.Interfaces
 {
    /// <summary>
    /// Represent a serialization center.
@@ -30,7 +32,7 @@
       /// <returns>True if the two objects are different, False else.</returns>
       static bool AreDifferent(ISerializationCenter serializationCenter, object object1, object object2)
       {
-         return serializationCenter.Serialize(object1) != serializationCenter.Serialize(object2);
+         return object1.SerializeWith(serializationCenter) != object2.SerializeWith(serializationCenter);
       }
 
       /// <summary>
@@ -42,7 +44,7 @@
       /// <returns>The clone of the object.</returns>
       static T Clone<T>(ISerializationCenter serializationCenter, T source) where T : notnull
       {
-         return serializationCenter.Deserialize<T>(serializationCenter.Serialize(source));
+         return source.SerializeWith(serializationCenter).DeserializeTo<T>(serializationCenter);
       }
    }
 }

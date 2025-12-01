@@ -1,39 +1,53 @@
 ﻿using System.ComponentModel;
-using Upsilon.Apps.PassKey.Core.Public.Enums;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.Core.Internal.Utils;
+using Upsilon.Apps.Passkey.Core.Public.Enums;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Models
+namespace Upsilon.Apps.Passkey.Core.Internal.Models
 {
    internal sealed class User : IUser
    {
       #region IUser interface explicit Internal
 
       string IItem.ItemId => Database.Get(ItemId);
+
+      IDatabase IItem.Database => Database;
+
       IService[] IUser.Services => [.. Database.Get(Services)];
 
       string IUser.Username
       {
          get => Database.Get(Username);
-         set => Username = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
-            fieldName: nameof(Username),
-            needsReview: true,
-            oldValue: Username,
-            value: value,
-            readableValue: value);
+         set
+         {
+            CredentialChanged |= Username != value;
+
+            Username = Database.AutoSave.UpdateValue(ItemId,
+               itemName: ToString(),
+               fieldName: nameof(Username),
+               needsReview: true,
+               oldValue: Username,
+               newValue: value,
+               readableValue: value);
+         }
       }
 
       string[] IUser.Passkeys
       {
          get => Database.Get(Passkeys);
-         set => Passkeys = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
-            fieldName: nameof(Passkeys),
-            needsReview: true,
-            oldValue: Passkeys,
-            value: value,
-            readableValue: string.Empty);
+         set
+         {
+            CredentialChanged |= ISerializationCenter.AreDifferent(Database.SerializationCenter, Passkeys, value);
+
+            Passkeys = Database.AutoSave.UpdateValue(ItemId,
+               itemName: ToString(),
+               fieldName: nameof(Passkeys),
+               needsReview: true,
+               oldValue: Passkeys,
+               newValue: value,
+               readableValue: string.Empty);
+         }
       }
 
       int IUser.LogoutTimeout
@@ -44,11 +58,9 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(LogoutTimeout),
             needsReview: false,
             oldValue: LogoutTimeout,
-            value: value,
+            newValue: value,
             readableValue: value.ToString());
       }
-
-      int IUser.SessionLeftTime => _sessionLeftTime;
 
       int IUser.CleaningClipboardTimeout
       {
@@ -58,8 +70,51 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(CleaningClipboardTimeout),
             needsReview: false,
             oldValue: CleaningClipboardTimeout,
-            value: value,
+            newValue: value,
             readableValue: value.ToString());
+      }
+
+      int IUser.ShowPasswordDelay
+      {
+         get => Database.Get(ShowPasswordDelay);
+         set => ShowPasswordDelay = Database.AutoSave.UpdateValue(ItemId,
+            itemName: ToString(),
+            fieldName: nameof(ShowPasswordDelay),
+            needsReview: false,
+            oldValue: ShowPasswordDelay,
+            newValue: value,
+            readableValue: value.ToString());
+      }
+
+      int IUser.NumberOfOldPasswordToKeep
+      {
+         get => Database.Get(NumberOfOldPasswordToKeep);
+         set
+         {
+            NumberOfOldPasswordToKeep = Database.AutoSave.UpdateValue(ItemId,
+               itemName: ToString(),
+               fieldName: nameof(NumberOfOldPasswordToKeep),
+               needsReview: true,
+               oldValue: NumberOfOldPasswordToKeep,
+               newValue: value,
+               readableValue: value.ToString());
+
+            if (NumberOfOldPasswordToKeep == 0) return;
+
+            Account[] accounts = [.. Services.SelectMany(x => x.Accounts).Where(x => x.Passwords.Count > NumberOfOldPasswordToKeep)];
+
+            foreach (Account account in accounts)
+            {
+               DateTime[] datesToRemove = [.. account.Passwords.Keys
+                  .OrderBy(x => x)
+                  .Take(account.Passwords.Count - NumberOfOldPasswordToKeep)];
+
+               foreach (DateTime dateToRemove in datesToRemove)
+               {
+                  _ = account.Passwords.Remove(dateToRemove);
+               }
+            }
+         }
       }
 
       WarningType IUser.WarningsToNotify
@@ -70,7 +125,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(WarningsToNotify),
             needsReview: true,
             oldValue: WarningsToNotify,
-            value: value,
+            newValue: value,
             readableValue: value.ToString());
       }
 
@@ -98,13 +153,12 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       #endregion
 
-      private Database? _database;
       internal Database Database
       {
-         get => _database ?? throw new NullReferenceException(nameof(Database));
+         get => field ?? throw new NullReferenceException(nameof(Database));
          set
          {
-            _database = value;
+            field = value;
 
             foreach (Service service in Services)
             {
@@ -120,8 +174,11 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public string Username { get; set; } = string.Empty;
       public string[] Passkeys { get; set; } = [];
+      public bool CredentialChanged { get; set; } = false;
       public int LogoutTimeout { get; set; } = 0;
       public int CleaningClipboardTimeout { get; set; } = 0;
+      public int ShowPasswordDelay { get; set; } = 0;
+      public int NumberOfOldPasswordToKeep { get; set; } = 0;
       public WarningType WarningsToNotify { get; set; }
          = WarningType.LogReviewWarning
          | WarningType.PasswordUpdateReminderWarning
@@ -135,7 +192,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          Interval = 1000,
       };
 
-      private int _sessionLeftTime = 0;
+      public int SessionLeftTime = 0;
       private int _clipboardLeftTime = 0;
 
       public User()
@@ -147,9 +204,9 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       {
          if (LogoutTimeout != 0)
          {
-            _sessionLeftTime--;
+            SessionLeftTime--;
 
-            if (_sessionLeftTime == 0)
+            if (SessionLeftTime == 0)
             {
                Database.Logs.AddLog($"User {Username}'s login session timeout reached", needsReview: true);
                Database.Close(logCloseEvent: true, loginTimeoutReached: true);
@@ -174,7 +231,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private void _cleanClipboard()
       {
-         string[] passwords = [.. Services.SelectMany(x => x.Accounts).Select(x => x.Password)];
+         string[] passwords = [.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)];
 
          int cleanedPasswordsCount = ClipboardManager.RemoveAllOccurence(passwords);
 
@@ -186,7 +243,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public void ResetTimer()
       {
-         _sessionLeftTime = LogoutTimeout * 60;
+         SessionLeftTime = LogoutTimeout * 60;
          _clipboardLeftTime = CleaningClipboardTimeout;
       }
 
@@ -217,31 +274,33 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                switch (change.FieldName)
                {
                   case nameof(Username):
-                     Username = Database.SerializationCenter.Deserialize<string>(change.Value);
+                     CredentialChanged = true;
+                     Username = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
                   case nameof(Passkeys):
-                     Passkeys = Database.SerializationCenter.Deserialize<string[]>(change.Value);
+                     CredentialChanged = true;
+                     Passkeys = change.NewValue.DeserializeTo<string[]>(Database.SerializationCenter);
                      break;
                   case nameof(LogoutTimeout):
-                     LogoutTimeout = Database.SerializationCenter.Deserialize<int>(change.Value);
+                     LogoutTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
                      break;
                   case nameof(CleaningClipboardTimeout):
-                     CleaningClipboardTimeout = Database.SerializationCenter.Deserialize<int>(change.Value);
+                     CleaningClipboardTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
                      break;
                   case nameof(WarningsToNotify):
-                     WarningsToNotify = Database.SerializationCenter.Deserialize<WarningType>(change.Value);
+                     WarningsToNotify = change.NewValue.DeserializeTo<WarningType>(Database.SerializationCenter);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
             case Change.Type.Add:
-               Service serviceToAdd = Database.SerializationCenter.Deserialize<Service>(change.Value);
+               Service serviceToAdd = change.NewValue.DeserializeTo<Service>(Database.SerializationCenter);
                serviceToAdd.User = this;
                Services.Add(serviceToAdd);
                break;
             case Change.Type.Delete:
-               Service serviceToDelete = Database.SerializationCenter.Deserialize<Service>(change.Value);
+               Service serviceToDelete = change.NewValue.DeserializeTo<Service>(Database.SerializationCenter);
                _ = Services.RemoveAll(x => x.ItemId == serviceToDelete.ItemId);
                break;
             default:

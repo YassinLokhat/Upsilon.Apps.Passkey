@@ -1,6 +1,6 @@
-﻿using Upsilon.Apps.PassKey.Core.Public.Enums;
+﻿using Upsilon.Apps.Passkey.Core.Public.Enums;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
+namespace Upsilon.Apps.Passkey.Core.Public.Interfaces
 {
    /// <summary>
    /// Represent an account.
@@ -25,7 +25,7 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       /// <summary>
       /// The identifants.
       /// </summary>
-      string[] Identifiants { get; set; }
+      string[] Identifiers { get; set; }
 
       /// <summary>
       /// The actual password.

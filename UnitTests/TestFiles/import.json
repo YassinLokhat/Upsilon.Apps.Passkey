@@ -1,0 +1,78 @@
+[
+  {
+    "ItemId": "eXZ6qTu9LwbPIRGL0YgYZQ==7Fo5YgcgzaCQbBFmigk1WbNgUwU=37RLlpzi9VX85YalKXG0cA==sbuNCB\u002B7gEqqz55oh0i3U9mTDPs=",
+    "Accounts": [
+      {
+        "ItemId": "eXZ6qTu9LwbPIRGL0YgYZQ==7Fo5YgcgzaCQbBFmigk1WbNgUwU=37RLlpzi9VX85YalKXG0cA==sbuNCB\u002B7gEqqz55oh0i3U9mTDPs=jHeUM0yDZ3766A6Q\u002BBuRGQ==b\u002B6nLTM-xoUZGm6mH8aLxJ5R1Ok=",
+        "Label": "Account0",
+        "Identifiers": [
+          "account0@service0.xyz",
+          "account0_backup@service0.xyz"
+        ],
+        "Password": "0000",
+        "Passwords": {
+          "2025-11-28T14:48:28.6023277+03:00": "0000"
+        },
+        "Notes": "Service0\u0027s Account0\u0027s notes",
+        "PasswordUpdateReminderDelay": 3,
+        "Options": "None"
+      },
+      {
+        "ItemId": "eXZ6qTu9LwbPIRGL0YgYZQ==7Fo5YgcgzaCQbBFmigk1WbNgUwU=37RLlpzi9VX85YalKXG0cA==sbuNCB\u002B7gEqqz55oh0i3U9mTDPs=WA6YxI54pKPhOViHyC37RA==talAus-d2TCHuNMcKrWtpgSmsss=",
+        "Label": "Account1",
+        "Identifiers": [
+          "account1@service0.xyz",
+          "account1_backup@service0.xyz"
+        ],
+        "Password": "1111",
+        "Passwords": {
+          "2025-11-28T14:48:28.9224604+03:00": "1111"
+        },
+        "Notes": "Service0\u0027s Account1\u0027s notes",
+        "PasswordUpdateReminderDelay": 3,
+        "Options": "None"
+      }
+    ],
+    "ServiceName": "Service0",
+    "Url": "www.service0.xyz",
+    "Notes": "Service0\u0027s notes"
+  },
+  {
+    "ItemId": "eXZ6qTu9LwbPIRGL0YgYZQ==7Fo5YgcgzaCQbBFmigk1WbNgUwU=jrxkc\u002BsJFH\u002BIFczozfFImQ==HjTPTnu9u2anbu8mhoHj2YSnGJY=",
+    "Accounts": [
+      {
+        "ItemId": "eXZ6qTu9LwbPIRGL0YgYZQ==7Fo5YgcgzaCQbBFmigk1WbNgUwU=jrxkc\u002BsJFH\u002BIFczozfFImQ==HjTPTnu9u2anbu8mhoHj2YSnGJY=TPIjH-MHbiYdF0c3smzJHQ==4N-tDXIlas1bY47AMMGvU1GtZjw=",
+        "Label": "Account0",
+        "Identifiers": [
+          "account0@service1.xyz",
+          "account0_backup@service1.xyz"
+        ],
+        "Password": "AAAA",
+        "Passwords": {
+          "2025-11-28T14:48:29.5464925+03:00": "AAAA"
+        },
+        "Notes": "Service1\u0027s Account0\u0027s notes",
+        "PasswordUpdateReminderDelay": 3,
+        "Options": "None"
+      },
+      {
+        "ItemId": "eXZ6qTu9LwbPIRGL0YgYZQ==7Fo5YgcgzaCQbBFmigk1WbNgUwU=jrxkc\u002BsJFH\u002BIFczozfFImQ==HjTPTnu9u2anbu8mhoHj2YSnGJY=34tP0ZDF29WU5eVpYJR0qw==ZBW4YjgfwYfRrpGaaTqmsLfcQNU=",
+        "Label": "Account1",
+        "Identifiers": [
+          "account1@service1.xyz",
+          "account1_backup@service1.xyz"
+        ],
+        "Password": "BBBB",
+        "Passwords": {
+          "2025-11-28T14:48:30.0815746+03:00": "BBBB"
+        },
+        "Notes": "Service1\u0027s Account1\u0027s notes",
+        "PasswordUpdateReminderDelay": 3,
+        "Options": "None"
+      }
+    ],
+    "ServiceName": "Service1",
+    "Url": "www.service1.xyz",
+    "Notes": "Service1\u0027s notes"
+  }
+]

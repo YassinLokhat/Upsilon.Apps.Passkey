@@ -1,6 +1,9 @@
-﻿using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+﻿using System.IO.Compression;
+using System.Text;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Utils
+namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 {
    internal class FileLocker : IDisposable
    {
@@ -39,7 +42,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
       {
          Unlock();
 
-         string text = File.ReadAllText(FilePath);
+         string text = _decompressString(File.ReadAllText(FilePath));
 
          Lock();
 
@@ -55,14 +58,14 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
 
       internal T Open<T>(string[] passkeys) where T : notnull
       {
-         return _serializationCenter.Deserialize<T>(ReadAllText(passkeys));
+         return ReadAllText(passkeys).DeserializeTo<T>(_serializationCenter);
       }
 
       internal void WriteAllText(string text)
       {
          Unlock();
 
-         File.WriteAllText(FilePath, text);
+         File.WriteAllText(FilePath, _compressString(text));
 
          Lock();
       }
@@ -76,7 +79,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
 
       internal void Save<T>(T obj, string[] passkeys) where T : notnull
       {
-         WriteAllText(_serializationCenter.Serialize(obj), passkeys);
+         WriteAllText(obj.SerializeWith(_serializationCenter), passkeys);
       }
 
       internal void Delete()
@@ -94,5 +97,37 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
          Unlock();
          FilePath = string.Empty;
       }
+
+      private static string _compressString(string text)
+      {
+         byte[] bytes = Encoding.UTF8.GetBytes(text);
+         using MemoryStream msi = new(bytes);
+         using MemoryStream mso = new();
+         using (GZipStream gs = new(mso, CompressionLevel.SmallestSize))
+         {
+            msi.CopyTo(gs);
+         }
+         return Convert.ToBase64String(mso.ToArray());
+      }
+
+      private static string _decompressString(string compressedText)
+      {
+         try
+         {
+            byte[] bytes = Convert.FromBase64String(compressedText);
+            using MemoryStream msi = new(bytes);
+            using MemoryStream mso = new();
+            using (GZipStream gs = new(msi, CompressionMode.Decompress))
+            {
+               gs.CopyTo(mso);
+            }
+            return Encoding.UTF8.GetString(mso.ToArray());
+         }
+         catch
+         {
+            throw new CorruptedSourceException();
+         }
+      }
+
    }
 }

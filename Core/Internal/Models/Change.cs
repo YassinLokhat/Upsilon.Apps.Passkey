@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Internal.Models
+﻿namespace Upsilon.Apps.Passkey.Core.Internal.Models
 {
    internal sealed class Change
    {
@@ -10,9 +10,11 @@
          Delete = 3,
       }
 
+      public long Index { get; set; } = long.MaxValue;
       public Type ActionType { get; set; } = Type.None;
       public string ItemId { get; set; } = string.Empty;
       public string FieldName { get; set; } = string.Empty;
-      public string Value { get; set; } = string.Empty;
+      public string? OldValue { get; set; } = null;
+      public string NewValue { get; set; } = string.Empty;
    }
 }

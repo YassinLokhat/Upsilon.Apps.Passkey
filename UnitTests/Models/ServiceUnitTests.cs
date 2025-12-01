@@ -1,8 +1,9 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.PassKey.Core.Public.Enums;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Enums;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 
-namespace Upsilon.Apps.PassKey.UnitTests.Models
+namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
    [TestClass]
    public sealed class ServiceUnitTests
@@ -32,6 +33,8 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          expectedLogs.Push($"Information : Service {oldServiceName} has been added to User {username}");
 
          // Then
+         databaseCreated.User.HasChanged().Should().BeTrue();
+         service.HasChanged().Should().BeFalse();
          _ = databaseCreated.User.Services.Length.Should().Be(1);
 
          // When
@@ -46,6 +49,14 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          service.Notes = notes;
          expectedLogs.Push($"Information : Service {newServiceName}'s notes has been set to {notes}");
 
+         // Then
+         databaseCreated.User.HasChanged().Should().BeTrue();
+         service.HasChanged().Should().BeTrue();
+         service.HasChanged(nameof(service.ServiceName)).Should().BeTrue();
+         service.HasChanged(nameof(service.Url)).Should().BeTrue();
+         service.HasChanged(nameof(service.Notes)).Should().BeTrue();
+
+         // When
          databaseCreated.Save();
          expectedLogs.Push($"Information : User {username}'s database saved");
          databaseCreated.Close();
@@ -79,7 +90,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
       /*
        * User.AddService adds the new service,
        * Then updating the service without saving will create the autosave file,
-       * Then Database.Open with AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile loads correctly the updated database file with the updated service.
+       * Then Database.Open with AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile loads correctly the updated database file with the updated service.
       */
       public void Case02_AddServiceUpdateAutoSave()
       {
@@ -119,11 +130,11 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : User {username} logged out without saving");
          expectedLogs.Push($"Information : User {username}'s database closed");
 
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
          expectedLogs.Push($"Information : User {username}'s database opened");
          expectedLogs.Push($"Information : User {username} logged in");
-         expectedLogs.Push($"Warning : User {username}'s autosave merged");
-         expectedLogWarnings.Push($"Warning : User {username}'s autosave merged");
+         expectedLogs.Push($"Warning : User {username}'s autosave merged and saved");
+         expectedLogWarnings.Push($"Warning : User {username}'s autosave merged and saved");
 
          // Then
          _ = databaseLoaded.User.Services.Length.Should().Be(1);
@@ -199,7 +210,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
       [TestMethod]
       /*
        * User.DeleteService adeletes the service,
-       * Then Database.Open with AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile loads correctly the updated database file with the updated service.
+       * Then Database.Open with AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile loads correctly the updated database file with the updated service.
       */
       public void Case04_DeleteServiceUpdateAutoSave()
       {
@@ -214,7 +225,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          Stack<string> expectedLogs = new();
          Stack<string> expectedLogWarnings = new();
 
-         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // When
@@ -231,11 +242,11 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : User {username} logged out without saving");
          expectedLogs.Push($"Information : User {username}'s database closed");
 
-         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
          expectedLogs.Push($"Information : User {username}'s database opened");
          expectedLogs.Push($"Information : User {username} logged in");
-         expectedLogs.Push($"Warning : User {username}'s autosave merged");
-         expectedLogWarnings.Push($"Warning : User {username}'s autosave merged");
+         expectedLogs.Push($"Warning : User {username}'s autosave merged and saved");
+         expectedLogWarnings.Push($"Warning : User {username}'s autosave merged and saved");
 
          // Then
          _ = databaseLoaded.User.Services.Length.Should().Be(0);

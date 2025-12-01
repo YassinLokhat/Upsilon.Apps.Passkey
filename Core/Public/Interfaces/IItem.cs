@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
+﻿namespace Upsilon.Apps.Passkey.Core.Public.Interfaces
 {
    /// <summary>
    /// Represent an item.
@@ -9,5 +9,10 @@
       /// The Id of the item.
       /// </summary>
       string ItemId { get; }
+
+      /// <summary>
+      /// The database that contains the item.
+      /// </summary>
+      IDatabase Database { get; }
    }
 }

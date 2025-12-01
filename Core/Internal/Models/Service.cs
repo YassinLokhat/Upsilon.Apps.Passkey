@@ -1,13 +1,17 @@
 ﻿using System.ComponentModel;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Internal.Utils;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Models
+namespace Upsilon.Apps.Passkey.Core.Internal.Models
 {
    internal sealed class Service : IService
    {
       #region IService interface explicit Internal
 
       string IItem.ItemId => Database.Get(ItemId);
+
+      IDatabase IItem.Database => Database;
+
       IUser IService.User => Database.Get(User);
       IAccount[] IService.Accounts => [.. Database.Get(Accounts)];
 
@@ -19,7 +23,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(ServiceName),
             needsReview: true,
             oldValue: ServiceName,
-            value: value,
+            newValue: value,
             readableValue: value);
       }
 
@@ -31,7 +35,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(Url),
             needsReview: false,
             oldValue: Url,
-            value: value,
+            newValue: value,
             readableValue: value);
       }
 
@@ -43,25 +47,47 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(Notes),
             needsReview: false,
             oldValue: Notes,
-            value: value,
+            newValue: value,
             readableValue: value);
       }
 
-      IAccount IService.AddAccount(string label, IEnumerable<string> identifiants, string password)
+      public IAccount AddAccount(string label, IEnumerable<string> identifiers, string password)
       {
          Account account = new()
          {
             Service = this,
-            ItemId = ItemId + Database.CryptographyCenter.GetHash(label + string.Join(string.Empty, identifiants)),
+            ItemId = ItemId + Database.CryptographyCenter.GetHash(label + string.Join(string.Empty, identifiers)),
             Label = label,
-            Identifiants = identifiants.ToArray(),
+            Identifiers = [.. identifiers],
             Password = password,
          };
-         account.Passwords[DateTime.Now] = password;
 
          Accounts.Add(Database.AutoSave.AddValue(ItemId, itemName: account.ToString(), containerName: ToString(), needsReview: false, account));
 
+         account.Passwords[DateTime.Now] = Database.AutoSave.UpdateValue(account.ItemId,
+            itemName: account.ToString(),
+            fieldName: nameof(account.Password),
+            needsReview: true,
+            oldValue: string.Empty,
+            newValue: account.Password,
+            readableValue: string.Empty);
+
          return account;
+      }
+
+      public IAccount AddAccount(string label, IEnumerable<string> identifiers)
+      {
+         return AddAccount(label, identifiers, password: string.Empty);
+      }
+
+      public IAccount AddAccount(IEnumerable<string> identifiers, string password)
+      {
+         return AddAccount(label: string.Empty, identifiers, password);
+      }
+
+      public IAccount AddAccount(IEnumerable<string> identifiers)
+      {
+         return AddAccount(label: string.Empty, identifiers, password: string.Empty);
       }
 
       void IService.DeleteAccount(IAccount account)
@@ -79,13 +105,12 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public string ItemId { get; set; } = string.Empty;
 
-      private User? _user;
       internal User User
       {
-         get => _user ?? throw new NullReferenceException(nameof(User));
+         get => field ?? throw new NullReferenceException(nameof(User));
          set
          {
-            _user = value;
+            field = value;
 
             foreach (Account account in Accounts)
             {
@@ -126,25 +151,25 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                switch (change.FieldName)
                {
                   case nameof(ServiceName):
-                     ServiceName = Database.SerializationCenter.Deserialize<string>(change.Value);
+                     ServiceName = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
                   case nameof(Url):
-                     Url = Database.SerializationCenter.Deserialize<string>(change.Value);
+                     Url = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
                   case nameof(Notes):
-                     Notes = Database.SerializationCenter.Deserialize<string>(change.Value);
+                     Notes = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
             case Change.Type.Add:
-               Account accountToAdd = Database.SerializationCenter.Deserialize<Account>(change.Value);
+               Account accountToAdd = change.NewValue.DeserializeTo<Account>(Database.SerializationCenter);
                accountToAdd.Service = this;
                Accounts.Add(accountToAdd);
                break;
             case Change.Type.Delete:
-               Account accountToDelete = Database.SerializationCenter.Deserialize<Account>(change.Value);
+               Account accountToDelete = change.NewValue.DeserializeTo<Account>(Database.SerializationCenter);
                _ = Accounts.RemoveAll(x => x.ItemId == accountToDelete.ItemId);
                break;
             default:

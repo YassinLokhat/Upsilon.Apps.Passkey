@@ -1,10 +1,10 @@
-﻿using Upsilon.Apps.PassKey.Core.Internal.Utils;
-using Upsilon.Apps.PassKey.Core.Public.Enums;
-using Upsilon.Apps.PassKey.Core.Public.Events;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+﻿using Upsilon.Apps.Passkey.Core.Internal.Utils;
+using Upsilon.Apps.Passkey.Core.Public.Enums;
+using Upsilon.Apps.Passkey.Core.Public.Events;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Models
+namespace Upsilon.Apps.Passkey.Core.Internal.Models
 {
    internal sealed class Database : IDatabase
    {
@@ -15,6 +15,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       public string LogFile { get; set; }
 
       IUser? IDatabase.User => Get(User);
+      int? IDatabase.SessionLeftTime => User?.SessionLeftTime;
 
       ILog[]? IDatabase.Logs => Get(Logs.Logs);
 
@@ -31,7 +32,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       public void Delete()
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullReferenceException(nameof(User));
 
          DatabaseFileLocker?.Delete();
          LogFileLocker?.Delete();
@@ -80,21 +81,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                _handleAutoSave(eventArg.MergeBehavior);
             }
 
-            Warning[] logWarnings = _lookAtLogWarnings();
-            Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
-            Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
-            Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
-
-            Warnings = [..logWarnings,
-               ..passwordUpdateReminderWarnings,
-               ..passwordLeakedWarnings,
-               ..duplicatedPasswordsWarnings];
-
-            WarningDetected?.Invoke(this, new WarningDetectedEventArgs(
-               [..User.WarningsToNotify.ContainsFlag(WarningType.LogReviewWarning) ? logWarnings : [],
-               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
-               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
-               ..User.WarningsToNotify.ContainsFlag(WarningType.DuplicatedPasswordsWarning) ? duplicatedPasswordsWarnings : []]));
+            _ = Task.Run(_lookAtWarnings);
 
             User.ResetTimer();
          }
@@ -103,6 +90,90 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       }
 
       public void Close() => Dispose();
+
+      public bool HasChanged() => User is not null && HasChanged(User.ItemId);
+
+      public bool HasChanged(string itemId) => AutoSave.Any(itemId);
+
+      public bool HasChanged(string itemId, string fieldName) => AutoSave.Any(itemId, fieldName);
+
+      public bool ImportFromFile(string filePath)
+      {
+         _save(logSaveEvent: true);
+         Logs.AddLog($"Importing data from file : '{filePath}'", needsReview: true);
+
+         string importContent = string.Empty;
+         string errorLog = string.Empty;
+
+         try
+         {
+            importContent = File.ReadAllText(filePath);
+         }
+         catch
+         {
+            errorLog = $"import file is not accessible";
+         }
+
+         if (string.IsNullOrWhiteSpace(errorLog))
+         {
+            string extention = Path.GetExtension(filePath);
+
+            errorLog = extention switch
+            {
+               ".json" => this.ImportJson(importContent),
+               ".csv" => this.ImportCSV(importContent),
+               _ => $"'{extention}' extention type is not handled",
+            };
+         }
+
+         if (string.IsNullOrWhiteSpace(errorLog))
+         {
+            Logs.AddLog($"Import completed successfully", needsReview: true);
+            _save(logSaveEvent: true);
+         }
+         else
+         {
+            Logs.AddLog($"Import failed because {errorLog}", needsReview: true);
+         }
+
+         return string.IsNullOrWhiteSpace(errorLog);
+      }
+
+      public bool ExportToFile(string filePath)
+      {
+         _save(logSaveEvent: true);
+         Logs.AddLog($"Exporting data to file : '{filePath}'", needsReview: true);
+
+         string errorLog = string.Empty;
+
+         if (File.Exists(filePath))
+         {
+            errorLog = $"export file already exists";
+         }
+
+         if (string.IsNullOrWhiteSpace(errorLog))
+         {
+            string extention = Path.GetExtension(filePath);
+
+            errorLog = extention switch
+            {
+               ".json" => this.ExportJson(filePath),
+               ".csv" => this.ExportCSV(filePath),
+               _ => $"'{extention}' extention type is not handled",
+            };
+         }
+
+         if (string.IsNullOrWhiteSpace(errorLog))
+         {
+            Logs.AddLog($"Export completed successfully", needsReview: true);
+         }
+         else
+         {
+            Logs.AddLog($"Export failed because {errorLog}", needsReview: true);
+         }
+
+         return string.IsNullOrWhiteSpace(errorLog);
+      }
 
       #endregion
 
@@ -212,15 +283,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          database._save(logSaveEvent: false);
 
-         database.Close(logCloseEvent: false, loginTimeoutReached: false);
-
-         return Open(cryptographicCenter,
-            serializationCenter,
-            passwordFactory,
-            databaseFile,
-            autoSaveFile,
-            logFile,
-            username);
+         return database;
       }
 
       internal static IDatabase Open(ICryptographyCenter cryptographicCenter,
@@ -254,26 +317,37 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private void _save(bool logSaveEvent)
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         _saveLogs();
+         _saveDatabase(logSaveEvent);
+      }
+
+      private void _saveDatabase(bool logSaveEvent)
+      {
+         if (User is null) throw new NullReferenceException(nameof(User));
          if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
          Username = User.Username;
-         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x))];
+         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(CryptographyCenter.GetSlowHash)];
          DatabaseFileLocker.Save(User, Passkeys);
-
-         Logs.Username = Username;
-         LogFileLocker?.Save(Logs, [CryptographyCenter.GetHash(User.Username)]);
 
          if (logSaveEvent)
          {
             Logs.AddLog($"User {Username}'s database saved", needsReview: false);
          }
 
-         AutoSave.Clear();
+         AutoSave.Clear(deleteFile: true);
 
          User.ResetTimer();
 
          DatabaseSaved?.Invoke(this, EventArgs.Empty);
+      }
+
+      private void _saveLogs()
+      {
+         if (User is null) throw new NullReferenceException(nameof(User));
+
+         Logs.Username = User.Username;
+         LogFileLocker?.Save(Logs, [CryptographyCenter.GetHash(User.Username)]);
       }
 
       internal void Close(bool logCloseEvent, bool loginTimeoutReached)
@@ -283,11 +357,15 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             if (User != null)
             {
                string logoutLog = $"User {Username} logged out";
-               bool needsReview = AutoSave.Changes.Count != 0;
+               bool needsReview = AutoSave.Any();
 
                if (needsReview)
                {
                   logoutLog += " without saving";
+               }
+               else
+               {
+                  AutoSave.Clear(deleteFile: true);
                }
 
                Logs.AddLog(logoutLog, needsReview);
@@ -297,7 +375,6 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          }
 
          User = null;
-         AutoSave.Changes.Clear();
          Username = string.Empty;
          Passkeys = [];
          Warnings = null;
@@ -308,8 +385,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          LogFileLocker?.Dispose();
          LogFileLocker = null;
 
-         AutoSaveFileLocker?.Dispose();
-         AutoSaveFileLocker = null;
+         AutoSave.Clear(deleteFile: false);
 
          DatabaseFile = string.Empty;
          AutoSaveFile = string.Empty;
@@ -320,7 +396,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private void _handleAutoSave(AutoSaveMergeBehavior mergeAutoSave)
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullReferenceException(nameof(User));
 
          if (!File.Exists(AutoSaveFile))
          {
@@ -329,13 +405,18 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
          switch (mergeAutoSave)
          {
-            case AutoSaveMergeBehavior.MergeThenRemoveAutoSaveFile:
-               AutoSave.MergeChange();
-               Logs.AddLog($"User {Username}'s autosave merged", needsReview: true);
+            case AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile:
+               AutoSave.ApplyChanges(deleteFile: true);
+               Logs.AddLog($"User {Username}'s autosave merged and saved", needsReview: true);
                _save(logSaveEvent: false);
                break;
+            case AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile:
+               AutoSave.ApplyChanges(deleteFile: false);
+               Logs.AddLog($"User {Username}'s autosave merged without saving", needsReview: true);
+               _saveLogs();
+               break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
-               AutoSave.Clear();
+               AutoSave.Clear(deleteFile: true);
                Logs.AddLog($"User {Username}'s autosave not merged and removed", needsReview: true);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
@@ -345,12 +426,37 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          }
       }
 
+      private void _lookAtWarnings()
+      {
+         if (User is null) return;
+
+         try
+         {
+            Warning[] logWarnings = _lookAtLogWarnings();
+            Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
+            Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
+            Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
+
+            Warnings = [..logWarnings,
+               ..passwordUpdateReminderWarnings,
+               ..passwordLeakedWarnings,
+               ..duplicatedPasswordsWarnings];
+
+            WarningDetected?.Invoke(this, new WarningDetectedEventArgs(
+               [..User.WarningsToNotify.ContainsFlag(WarningType.LogReviewWarning) ? logWarnings : [],
+               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
+               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
+               ..User.WarningsToNotify.ContainsFlag(WarningType.DuplicatedPasswordsWarning) ? duplicatedPasswordsWarnings : []]));
+         }
+         catch { }
+      }
+
       private Warning[] _lookAtLogWarnings()
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullReferenceException(nameof(User));
          if (Logs.Logs == null) throw new NullReferenceException(nameof(Logs.Logs));
 
-         List<Log> logs = Logs.Logs.Cast<Log>().ToList();
+         List<Log> logs = [.. Logs.Logs.Cast<Log>()];
 
          for (int i = 0; i < logs.Count && logs[i].Message != $"User {Username} logged in"; i++)
          {
@@ -367,37 +473,34 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
       private Warning[] _lookAtPasswordUpdateReminderWarnings()
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) return [];
 
-         Account[] accounts = User.Services
+         Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
-            .Where(x => x.PasswordExpired)
-            .ToArray();
+            .Where(x => x.PasswordExpired)];
 
          return accounts.Length != 0 ? [new Warning(WarningType.PasswordUpdateReminderWarning, accounts)] : [];
       }
 
       private Warning[] _lookAtPasswordLeakedWarnings()
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) return [];
 
-         Account[] accounts = User.Services
+         Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
-            .Where(x => x.PasswordLeaked)
-            .ToArray();
+            .Where(x => x.PasswordLeaked)];
 
          return accounts.Length != 0 ? [new Warning(WarningType.PasswordLeakedWarning, accounts)] : [];
       }
 
       private Warning[] _lookAtDuplicatedPasswordsWarnings()
       {
-         if (User == null) throw new NullReferenceException(nameof(User));
+         if (User is null) return [];
 
-         IGrouping<string, Account>[] duplicatedPasswords = User.Services
+         IGrouping<string, Account>[] duplicatedPasswords = [.. User.Services
             .SelectMany(x => x.Accounts)
             .GroupBy(x => x.Password)
-            .Where(x => x.Count() > 1)
-            .ToArray();
+            .Where(x => x.Count() > 1)];
 
          List<Warning> warnings = [];
 

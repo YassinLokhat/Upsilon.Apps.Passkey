@@ -1,9 +1,8 @@
-﻿using System.Net;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Utils
+namespace Upsilon.Apps.Passkey.Core.Public.Utils
 {
    public class PasswordFactory : IPasswordFactory
    {
@@ -74,10 +73,6 @@ namespace Upsilon.Apps.PassKey.Core.Public.Utils
       public bool PasswordLeaked(string password)
       {
          string hash = Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(password)));
-
-         ServicePointManager.Expect100Continue = true;
-         ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
-         ServicePointManager.DefaultConnectionLimit = 9999;
 
          using HttpClient httpClient = new();
          HttpRequestMessage request = new(HttpMethod.Get, $"https://api.pwnedpasswords.com/range/{hash[..5]}");

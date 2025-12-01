@@ -1,52 +1,111 @@
-﻿using Upsilon.Apps.PassKey.Core.Internal.Utils;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+﻿using Upsilon.Apps.Passkey.Core.Internal.Utils;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Models
+namespace Upsilon.Apps.Passkey.Core.Internal.Models
 {
    internal sealed class AutoSave
    {
-      private Database? _database;
       internal Database Database
       {
-         get => _database ?? throw new NullReferenceException(nameof(Database));
-         set => _database = value;
+         get => field ?? throw new NullReferenceException(nameof(Database));
+         set;
       }
 
-      public Queue<Change> Changes { get; set; } = new();
+      public Dictionary<string, List<Change>> Changes { get; set; } = [];
 
-      internal T UpdateValue<T>(string itemId, string itemName, string fieldName, bool needsReview, T oldValue, T value, string readableValue) where T : notnull
+      internal T UpdateValue<T>(string itemId,
+         string itemName,
+         string fieldName,
+         bool needsReview,
+         T oldValue,
+         T newValue,
+         string readableValue) where T : notnull
       {
-         if (ISerializationCenter.AreDifferent(Database.SerializationCenter, oldValue, value))
+         if (ISerializationCenter.AreDifferent(Database.SerializationCenter, oldValue, newValue))
          {
-            _addChange(itemId, itemName, string.Empty, fieldName, Database.SerializationCenter.Serialize(value), readableValue, needsReview, Change.Type.Update);
+            _addChange(itemId,
+               itemName,
+               string.Empty,
+               fieldName,
+               oldValue.SerializeWith(Database.SerializationCenter),
+               newValue.SerializeWith(Database.SerializationCenter),
+               readableValue,
+               needsReview,
+               Change.Type.Update);
          }
 
+         return newValue;
+      }
+
+      internal T AddValue<T>(string itemId,
+         string itemName,
+         string containerName,
+         bool needsReview,
+         T value) where T : notnull
+      {
+         _addChange(itemId, itemName, containerName, string.Empty, value.SerializeWith(Database.SerializationCenter), string.Empty, needsReview, Change.Type.Add);
+
          return value;
       }
 
-      internal T AddValue<T>(string itemId, string itemName, string containerName, bool needsReview, T value) where T : notnull
+      internal T DeleteValue<T>(string itemId,
+         string itemName,
+         string containerName,
+         bool needsReview,
+         T value) where T : notnull
       {
-         _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, Change.Type.Add);
+         _addChange(itemId, itemName, containerName, string.Empty, value.SerializeWith(Database.SerializationCenter), string.Empty, needsReview, Change.Type.Delete);
 
          return value;
       }
 
-      internal T DeleteValue<T>(string itemId, string itemName, string containerName, bool needsReview, T value) where T : notnull
+      private void _addChange(string itemId,
+         string itemName,
+         string containerName,
+         string fieldName,
+         string newValue,
+         string readableValue,
+         bool needsReview,
+         Change.Type action)
       {
-         _addChange(itemId, itemName, containerName, string.Empty, Database.SerializationCenter.Serialize(value), string.Empty, needsReview, Change.Type.Delete);
-
-         return value;
+         _addChange(itemId,
+            itemName,
+            containerName,
+            fieldName,
+            null,
+            newValue,
+            readableValue,
+            needsReview,
+            action);
       }
 
-      private void _addChange(string itemId, string itemName, string containerName, string fieldName, string value, string readableValue, bool needsReview, Change.Type action)
+      private void _addChange(string itemId,
+         string itemName,
+         string containerName,
+         string fieldName,
+         string? oldValue,
+         string newValue,
+         string readableValue,
+         bool needsReview,
+         Change.Type action)
       {
-         Changes.Enqueue(new Change
+         string changeKey = $"{itemId}\t{fieldName}";
+         if (!Changes.ContainsKey(changeKey))
          {
+            Changes[changeKey] = [];
+         }
+
+         Change currentChange = new()
+         {
+            Index = DateTime.Now.Ticks,
             ActionType = action,
             ItemId = itemId,
             FieldName = fieldName,
-            Value = value,
-         });
+            OldValue = oldValue,
+            NewValue = newValue,
+         };
+
+         _mergeChanges(changeKey, currentChange);
 
          if (Database.AutoSaveFileLocker == null)
          {
@@ -63,24 +122,60 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
          Database.Logs.AddLog(logMessage, needsReview);
       }
 
-      internal void MergeChange()
+      private void _mergeChanges(string changeKey, Change currentChange)
       {
-         while (Changes.Count != 0)
+         Change? lastUpdate = Changes[changeKey].LastOrDefault(x => x.ActionType == Change.Type.Update);
+
+         if (currentChange.ActionType != Change.Type.Update
+            || lastUpdate is null)
          {
-            Database.User?.Apply(Changes.Dequeue());
+            Changes[changeKey].Add(currentChange);
+            return;
          }
 
-         Clear();
+         _ = Changes[changeKey].Remove(lastUpdate);
+         currentChange.OldValue = lastUpdate.OldValue;
+
+         if (currentChange.OldValue != currentChange.NewValue)
+         {
+            Changes[changeKey].Add(currentChange);
+         }
+         else if (Changes[changeKey].Count == 0)
+         {
+            _ = Changes.Remove(changeKey);
+         }
       }
 
-      internal void Clear()
+      internal void ApplyChanges(bool deleteFile)
+      {
+         List<Change> changes = Changes.Values.SelectMany(x => x).OrderBy(x => x.Index).ToList();
+
+         foreach (Change change in changes)
+         {
+            Database.User?.Apply(change);
+         }
+
+         if (deleteFile)
+         {
+            Clear(deleteFile: true);
+         }
+      }
+
+      internal bool Any() => Any(string.Empty);
+
+      internal bool Any(string itemId) => Changes.Any(x => x.Key.StartsWith(itemId));
+
+      internal bool Any(string itemId, string fieldName) => Changes.Any(x => x.Key == $"{itemId}\t{fieldName}");
+
+      internal void Clear(bool deleteFile)
       {
          Changes.Clear();
 
          Database.AutoSaveFileLocker?.Dispose();
          Database.AutoSaveFileLocker = null;
 
-         if (File.Exists(Database.AutoSaveFile))
+         if (deleteFile
+            && File.Exists(Database.AutoSaveFile))
          {
             File.Delete(Database.AutoSaveFile);
          }

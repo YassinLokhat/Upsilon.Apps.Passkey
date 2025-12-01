@@ -1,6 +1,6 @@
-﻿using Upsilon.Apps.PassKey.Core.Public.Events;
+﻿using Upsilon.Apps.Passkey.Core.Public.Events;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
+namespace Upsilon.Apps.Passkey.Core.Public.Interfaces
 {
    /// <summary>
    /// Represent a database.
@@ -26,6 +26,11 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       /// The user loaded.
       /// </summary>
       IUser? User { get; }
+
+      /// <summary>
+      /// The number of seconds left before the session ended.
+      /// </summary>
+      int? SessionLeftTime { get; }
 
       /// <summary>
       /// The logs.
@@ -95,6 +100,41 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       /// Close the current user and database.
       /// </summary>
       void Close();
+
+      /// <summary>
+      /// Check if the database has changed.
+      /// </summary>
+      /// <returns>True if the database changed, False else.</returns>
+      bool HasChanged();
+
+      /// <summary>
+      /// Check if the given item has changed.
+      /// </summary>
+      /// <param name="itemId">The item id to check.</param>
+      /// <returns>True if the item changed, False else.</returns>
+      bool HasChanged(string itemId);
+
+      /// <summary>
+      /// Check if the field of the given item has changed.
+      /// </summary>
+      /// <param name="itemId">The item id to check.</param>
+      /// <param name="fieldName">The field name to check.</param>
+      /// <returns>True if the field changed, False else.</returns>
+      bool HasChanged(string itemId, string fieldName);
+
+      /// <summary>
+      /// Import services and/or accounts from a file.
+      /// </summary>
+      /// <param name="filePath">The file path.</param>
+      /// <returns>True if the import succeded, False else.</returns>
+      bool ImportFromFile(string filePath);
+
+      /// <summary>
+      /// Export services and accounts to a file.
+      /// </summary>
+      /// <param name="filePath">The file path.</param>
+      /// <returns>True if the export succeded, False else.</returns>
+      bool ExportToFile(string filePath);
 
       /// <summary>
       /// Create a new user database and returns the database.

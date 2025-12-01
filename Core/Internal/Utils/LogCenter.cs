@@ -1,26 +1,23 @@
 ﻿using System.Text.Json.Serialization;
-using Upsilon.Apps.PassKey.Core.Internal.Models;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Internal.Models;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Utils
+namespace Upsilon.Apps.Passkey.Core.Internal.Utils
 {
    internal class LogCenter
    {
-      private Database? _database;
       internal Database Database
       {
-         get => _database ?? throw new NullReferenceException(nameof(Database));
-         set => _database = value;
+         get => field ?? throw new NullReferenceException(nameof(Database));
+         set;
       }
 
       [JsonIgnore]
       public ILog[]? Logs => Database.User == null
                ? null
-               : LogList.Select(x =>
-               {
-                  string textLog = Database.CryptographyCenter.DecryptAsymmetrically(x, Database.User.PrivateKey);
-                  return Database.SerializationCenter.Deserialize<Log>(textLog);
-               })
+               : LogList.Select(x => Database.CryptographyCenter
+                     .DecryptAsymmetrically(x, Database.User.PrivateKey)
+                     .DeserializeTo<Log>(Database.SerializationCenter))
                .OrderByDescending(x => x.DateTime)
                .ToArray();
 
@@ -37,7 +34,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Utils
             NeedsReview = needsReview,
          };
 
-         string textLog = Database.SerializationCenter.Serialize(log);
+         string textLog = log.SerializeWith(Database.SerializationCenter);
          LogList.Add(Database.CryptographyCenter.EncryptAsymmetrically(textLog, PublicKey));
 
          _save();

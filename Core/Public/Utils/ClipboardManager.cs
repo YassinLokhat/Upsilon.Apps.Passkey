@@ -1,6 +1,6 @@
 ﻿using Windows.ApplicationModel.DataTransfer;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Utils
+namespace Upsilon.Apps.Passkey.Core.Public.Utils
 {
    public static class ClipboardManager
    {

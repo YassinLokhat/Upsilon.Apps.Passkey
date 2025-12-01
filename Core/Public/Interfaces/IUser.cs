@@ -1,6 +1,6 @@
-﻿using Upsilon.Apps.PassKey.Core.Public.Enums;
+﻿using Upsilon.Apps.Passkey.Core.Public.Enums;
 
-namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
+namespace Upsilon.Apps.Passkey.Core.Public.Interfaces
 {
    /// <summary>
    /// Represent an user.
@@ -23,14 +23,19 @@ namespace Upsilon.Apps.PassKey.Core.Public.Interfaces
       int LogoutTimeout { get; set; }
 
       /// <summary>
-      /// The number of seconds left before the session ended.
-      /// </summary>
-      int SessionLeftTime { get; }
-
-      /// <summary>
       /// The number of second to keep existing passwords in the clipboard.
       /// </summary>
       int CleaningClipboardTimeout { get; set; }
+
+      /// <summary>
+      /// The delay to keep password visible.
+      /// </summary>
+      int ShowPasswordDelay { get; set; }
+
+      /// <summary>
+      /// The number of old paswords to keep.
+      /// </summary>
+      int NumberOfOldPasswordToKeep { get; set; }
 
       /// <summary>
       /// The warnings types which will be notified if detected.

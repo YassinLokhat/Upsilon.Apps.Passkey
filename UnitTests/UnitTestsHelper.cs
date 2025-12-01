@@ -1,11 +1,11 @@
 ﻿using FluentAssertions;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using Upsilon.Apps.PassKey.Core.Public.Enums;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.Core.Public.Enums;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 
-namespace Upsilon.Apps.PassKey.UnitTests
+namespace Upsilon.Apps.Passkey.UnitTests
 {
    internal static class UnitTestsHelper
    {
@@ -15,10 +15,30 @@ namespace Upsilon.Apps.PassKey.UnitTests
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
       public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
 
-      public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
-      public static string ComputeDatabaseFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{username}.pku";
-      public static string ComputeAutoSaveFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{username}.pka";
-      public static string ComputeLogFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{username}.pkl";
+      public static string ComputeTestDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
+      public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"{ComputeTestDirectory(username)}/{CryptographicCenter.GetHash(username)}";
+      public static string ComputeDatabaseFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographicCenter.GetHash(username)}.pku";
+      public static string ComputeAutoSaveFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographicCenter.GetHash(username)}.pka";
+      public static string ComputeLogFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographicCenter.GetHash(username)}.pkl";
+
+      public static string GetTestFilePath(string fileName, bool createIfNotExists = false)
+      {
+         string filePath = $"./TestFiles/{fileName}";
+
+         if (!File.Exists(filePath)
+            && createIfNotExists)
+         {
+            string fileDirectory = Path.GetDirectoryName(filePath);
+            if (!Directory.Exists(fileDirectory))
+            {
+               Directory.CreateDirectory(fileDirectory);
+            }
+
+            File.Create(filePath).Close();
+         }
+
+         return filePath;
+      }
 
       public static IDatabase CreateTestDatabase(string[] passkeys = null, [CallerMemberName] string username = "")
       {
@@ -36,11 +56,6 @@ namespace Upsilon.Apps.PassKey.UnitTests
             logFile,
             username,
             passkeys);
-
-         foreach (string passkey in passkeys)
-         {
-            _ = database.Login(passkey);
-         }
 
          return database;
       }
@@ -76,7 +91,7 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
       public static void ClearTestEnvironment([CallerMemberName] string username = "")
       {
-         string directory = ComputeDatabaseFileDirectory(username);
+         string directory = ComputeTestDirectory(username);
 
          if (Directory.Exists(directory))
          {
@@ -144,6 +159,11 @@ namespace Upsilon.Apps.PassKey.UnitTests
 
       public static void LastLogWarningsShouldMatch(IDatabase database, string[] expectedLogs)
       {
+         while (database.Warnings == null)
+         {
+            Thread.Sleep(200);
+         }
+
          IWarning logWarning = database.Warnings.First(x => x.WarningType == WarningType.LogReviewWarning);
 
          string[] actualLogs = logWarning.Logs

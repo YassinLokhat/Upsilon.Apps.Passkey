@@ -1,15 +1,18 @@
 ﻿using System.ComponentModel;
-using Upsilon.Apps.PassKey.Core.Internal.Utils;
-using Upsilon.Apps.PassKey.Core.Public.Enums;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Internal.Utils;
+using Upsilon.Apps.Passkey.Core.Public.Enums;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
-namespace Upsilon.Apps.PassKey.Core.Internal.Models
+namespace Upsilon.Apps.Passkey.Core.Internal.Models
 {
    internal sealed class Account : IAccount
    {
       #region IAccount interface explicit Internal
 
       string IItem.ItemId => Database.Get(ItemId);
+
+      IDatabase IItem.Database => Database;
+
       IService IAccount.Service => Database.Get(Service);
 
       string IAccount.Label
@@ -20,19 +23,19 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(Label),
             needsReview: false,
             oldValue: Label,
-            value: value,
+            newValue: value,
             readableValue: value);
       }
 
-      string[] IAccount.Identifiants
+      string[] IAccount.Identifiers
       {
-         get => Database.Get(Identifiants);
-         set => Identifiants = Database.AutoSave.UpdateValue(ItemId,
+         get => Database.Get(Identifiers);
+         set => Identifiers = Database.AutoSave.UpdateValue(ItemId,
             itemName: ToString(),
-            fieldName: nameof(Identifiants),
+            fieldName: nameof(Identifiers),
             needsReview: true,
-            oldValue: Identifiants,
-            value: value,
+            oldValue: Identifiers,
+            newValue: value,
             readableValue: $"({string.Join(", ", value)})");
       }
 
@@ -49,12 +52,26 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
 
                if (_service != null)
                {
+                  if (Service.User.NumberOfOldPasswordToKeep != 0)
+                  {
+                     DateTime[] datesToRemove = [.. Passwords.Keys
+                        .OrderBy(x => x)
+                        .Take(Passwords.Count > Service.User.NumberOfOldPasswordToKeep
+                           ? Passwords.Count - Service.User.NumberOfOldPasswordToKeep
+                           : 0)];
+
+                     foreach (DateTime dateToRemove in datesToRemove)
+                     {
+                        _ = Passwords.Remove(dateToRemove);
+                     }
+                  }
+
                   _ = Database.AutoSave.UpdateValue(ItemId,
                      itemName: ToString(),
                      fieldName: nameof(Password),
                      needsReview: true,
                      oldValue: oldPasswords,
-                     value: Passwords,
+                     newValue: Passwords,
                      readableValue: string.Empty);
                }
             }
@@ -71,7 +88,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(Notes),
             needsReview: false,
             oldValue: Notes,
-            value: value,
+            newValue: value,
             readableValue: value);
       }
 
@@ -83,7 +100,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(PasswordUpdateReminderDelay),
             needsReview: false,
             oldValue: PasswordUpdateReminderDelay,
-            value: value,
+            newValue: value,
             readableValue: value.ToString());
       }
 
@@ -95,7 +112,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             fieldName: nameof(Options),
             needsReview: false,
             oldValue: Options,
-            value: value,
+            newValue: value,
             readableValue: value.ToString());
       }
 
@@ -113,7 +130,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
       }
 
       public string Label { get; set; } = string.Empty;
-      public string[] Identifiants { get; set; } = [];
+      public string[] Identifiers { get; set; } = [];
       public string Password { get; set; } = string.Empty;
       public Dictionary<DateTime, string> Passwords { get; set; } = [];
       public string Notes { get; set; } = string.Empty;
@@ -144,23 +161,23 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
                switch (change.FieldName)
                {
                   case nameof(Label):
-                     Label = Database.SerializationCenter.Deserialize<string>(change.Value);
+                     Label = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
-                  case nameof(Identifiants):
-                     Identifiants = Database.SerializationCenter.Deserialize<string[]>(change.Value);
+                  case nameof(Identifiers):
+                     Identifiers = change.NewValue.DeserializeTo<string[]>(Database.SerializationCenter);
                      break;
                   case nameof(Notes):
-                     Notes = Database.SerializationCenter.Deserialize<string>(change.Value);
+                     Notes = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
                   case nameof(Password):
-                     Passwords = Database.SerializationCenter.Deserialize<Dictionary<DateTime, string>>(change.Value);
+                     Passwords = change.NewValue.DeserializeTo<Dictionary<DateTime, string>>(Database.SerializationCenter);
                      Password = Passwords.Count != 0 ? Passwords[Passwords.Keys.Max()] : string.Empty;
                      break;
                   case nameof(PasswordUpdateReminderDelay):
-                     PasswordUpdateReminderDelay = Database.SerializationCenter.Deserialize<int>(change.Value);
+                     PasswordUpdateReminderDelay = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
                      break;
                   case nameof(Options):
-                     Options = Database.SerializationCenter.Deserialize<AccountOption>(change.Value);
+                     Options = change.NewValue.DeserializeTo<AccountOption>(Database.SerializationCenter);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
@@ -180,7 +197,7 @@ namespace Upsilon.Apps.PassKey.Core.Internal.Models
             account += $"{Label} ";
          }
 
-         return account + $"({string.Join(", ", Identifiants)})";
+         return account + $"({string.Join(", ", Identifiers)})";
       }
    }
 }

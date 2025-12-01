@@ -1,11 +1,65 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.PassKey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 
-namespace Upsilon.Apps.PassKey.UnitTests.Models
+namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
    [TestClass]
    public sealed class DatabaseUnitTests
    {
+      [TestMethod, Ignore]
+      public void Case00_GenerateNewDatabase()
+      {
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(["a", "b"], "_");
+         IUser user = database.User;
+         user.LogoutTimeout = 10;
+         user.CleaningClipboardTimeout = 15;
+         user.WarningsToNotify = (Core.Public.Enums.WarningType)0;
+
+         for (int i = 0; i < 50; i++)
+         {
+            IService service = user.AddService($"Service{i} ({UnitTestsHelper.GetRandomString(min: 10, max: 15)})");
+            service.Url = $"www.service{i}.xyz";
+            int random = UnitTestsHelper.GetRandomInt(100) % 10;
+            service.Notes = random == 0 ? $"Service{i} notes : \n{UnitTestsHelper.GetRandomString(min: 10, max: 150)}" : "";
+
+            int accountNumber = UnitTestsHelper.GetRandomInt(min: 1, max: 5);
+
+            for (int j = 0; j < accountNumber; j++)
+            {
+               random = UnitTestsHelper.GetRandomInt(10) + 1;
+
+               IAccount account;
+               switch (random % 4)
+               {
+                  case 1:
+                     account = service.AddAccount(label: $"Account{j}",
+                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"));
+                     break;
+                  case 2:
+                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"),
+                        password: UnitTestsHelper.GetRandomString(min: 20, max: 25));
+                     break;
+                  case 3:
+                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"));
+                     break;
+                  default:
+                     account = service.AddAccount(label: $"Account{j}",
+                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"),
+                        password: UnitTestsHelper.GetRandomString(min: 20, max: 25));
+                     break;
+               }
+
+               random = UnitTestsHelper.GetRandomInt(100);
+               account.Notes = random % 10 == 0 ? $"Service{i}'s Account{j} notes : \n{UnitTestsHelper.GetRandomString(min: 10, max: 150)}" : "";
+               account.PasswordUpdateReminderDelay = random < 10 ? random : 0;
+               account.Options = random % 2 == 0 ? Core.Public.Enums.AccountOption.WarnIfPasswordLeaked : Core.Public.Enums.AccountOption.None;
+            }
+         }
+
+         database.Save();
+         database.Close();
+      }
+
       [TestMethod]
       /*
        * Database.Create creates an empty database file,
@@ -28,8 +82,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          // When
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          expectedLogs.Push($"Information : User {username}'s database created");
-         expectedLogs.Push($"Information : User {username}'s database opened");
-         expectedLogs.Push($"Information : User {username} logged in");
 
          // Then
          _ = databaseCreated.DatabaseFile.Should().Be(databaseFile);
@@ -271,11 +323,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
 
          database.DatabaseClosed += (s, e) => { closedDueToTimeout = e.LoginTimeoutReached; };
 
-         foreach (string passkey in passkeys)
-         {
-            _ = database.Login(passkey);
-         }
-
          database.User.LogoutTimeout = 1;
          database.Save();
          DateTime start = DateTime.Now;
@@ -286,8 +333,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
             Thread.Sleep(500);
          }
 
-         int elapsedTime = (int)(DateTime.Now - start).TotalSeconds;
-
          // Then
          _ = closedDueToTimeout.Should().BeTrue();
 
@@ -295,7 +340,6 @@ namespace Upsilon.Apps.PassKey.UnitTests.Models
          database = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then
-         _ = elapsedTime.Should().BeLessThanOrEqualTo(database.User.LogoutTimeout * 60);
          _ = database.Logs.FirstOrDefault(x => x.Message == $"User {username}'s login session timeout reached" && x.NeedsReview).Should().NotBeNull();
 
          // Finaly

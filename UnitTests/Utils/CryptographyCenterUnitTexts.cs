@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
 using System.Diagnostics;
-using Upsilon.Apps.PassKey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.Core.Public.Utils;
 
-namespace Upsilon.Apps.PassKey.UnitTests.Utils
+namespace Upsilon.Apps.Passkey.UnitTests.Utils
 {
    [TestClass]
    public sealed class CryptographyCenterUnitTexts
@@ -12,7 +12,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
        * Signing an empty string returns the hash code of that empty string,
        * Then checking the signature returns the empty string.
       */
-      public void Case00_SlowHash()
+      public void Case01_SlowHash()
       {
          // Given
          Stopwatch _stopwatch = Stopwatch.StartNew();
@@ -27,10 +27,29 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
 
       [TestMethod]
       /*
+       * The length of any should be constantly equal to `HashLength`.
+      */
+      public void Case02_HashLength()
+      {
+         for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
+         {
+            // Given
+            string source = UnitTestsHelper.GetRandomString();
+
+            // When
+            string hash = UnitTestsHelper.CryptographicCenter.GetHash(source);
+
+            // Then
+            _ = hash.Length.Should().Be(UnitTestsHelper.CryptographicCenter.HashLength);
+         }
+      }
+
+      [TestMethod]
+      /*
        * Signing an empty string returns the hash code of that empty string,
        * Then checking the signature returns the empty string.
       */
-      public void Case01_SignEmptyString()
+      public void Case03_SignEmptyString()
       {
          // Given
          string source = string.Empty;
@@ -54,7 +73,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
       /*
        * Signing a random string then check the sign should rise no error.
       */
-      public void Case02_SignRandomString()
+      public void Case04_SignRandomString()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
@@ -77,7 +96,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
        * Encrypting symmetrically a random string then decrypting it should rise no error,
        * Then the decrypted string should be the same as the source.
       */
-      public void Case03_SymmetricEncryptionRandomString()
+      public void Case05_SymmetricEncryptionRandomString()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
@@ -98,7 +117,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
       /*
        * Decrypting symmetrically a corrupted string should rise an error.
       */
-      public void Case04_SymmetricEncryptionDecryptingCorruptedRandomString()
+      public void Case06_SymmetricEncryptionDecryptingCorruptedRandomString()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
@@ -133,7 +152,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
       /*
        * Decrypting symmetrically a random string with a wrong passkey should rise an error.
       */
-      public void Case05_SymmetricEncryptionDecryptingRandomStringWithWrongPasskey()
+      public void Case07_SymmetricEncryptionDecryptingRandomStringWithWrongPasskey()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
@@ -171,7 +190,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
        * Encrypting a random string then decrypting it should rise no error,
        * Then the decrypted string should be the same as the source.
       */
-      public void Case06_AsymmetricEncryptionRandomString()
+      public void Case08_AsymmetricEncryptionRandomString()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
@@ -192,7 +211,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
       /*
        * Decrypting a corrupted string should rise an error.
       */
-      public void Case07_AsymmetricEncryptionDecryptingCorruptedRandomString()
+      public void Case09_AsymmetricEncryptionDecryptingCorruptedRandomString()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
@@ -227,7 +246,7 @@ namespace Upsilon.Apps.PassKey.UnitTests.Utils
       /*
        * Decrypting a random string with a wrong passkey should rise an error.
       */
-      public void Case08_AsymmetricEncryptionDecryptingRandomStringWithWrongPasskey()
+      public void Case10_AsymmetricEncryptionDecryptingRandomStringWithWrongPasskey()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
