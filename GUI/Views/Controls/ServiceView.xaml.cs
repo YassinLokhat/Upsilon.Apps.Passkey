@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System.Windows;
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
@@ -67,6 +68,23 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          }
 
          _accounts_LB.SelectedIndex = _viewModel.DeleteAccount(accountViewModel);
+      }
+
+      private void _openUrl_Button_Click(object sender, RoutedEventArgs e)
+      {
+         if (_viewModel is null
+            || string.IsNullOrWhiteSpace(_viewModel.Url))
+         {
+            return; 
+         }
+
+         new Process()
+         {
+            StartInfo = new ProcessStartInfo(_viewModel.Url)
+            {
+               UseShellExecute = true,
+            },
+         }.Start();
       }
    }
 }
