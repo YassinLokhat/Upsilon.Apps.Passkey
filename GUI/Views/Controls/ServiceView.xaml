@@ -43,7 +43,7 @@
                              Background="{Binding UrlBackground}"/>
                     <Button Grid.Row="1"
                             Grid.Column="2"
-                            Content="Open"
+                            Content="🌐"
                             Click="_openUrl_Button_Click"/>
                     <Label Grid.Row="2"
                            Grid.Column="0"
