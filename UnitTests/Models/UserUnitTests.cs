@@ -1,7 +1,8 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.Passkey.Core.Public.Enums;
-using Upsilon.Apps.Passkey.Core.Public.Interfaces;
-using Upsilon.Apps.Passkey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.Interfaces;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
@@ -107,7 +108,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = File.Exists(autoSaveFile).Should().BeFalse();
 
          // When
-         IDatabase databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter,
+         IDatabase databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             databaseFile,
@@ -213,7 +214,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogs.Push($"Information : User {newUsername} logged out");
          expectedLogs.Push($"Information : User {newUsername}'s database closed");
 
-         databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter,
+         databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             databaseFile,
@@ -324,7 +325,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogs.Push($"Information : User {newUsername} logged out");
          expectedLogs.Push($"Information : User {newUsername}'s database closed");
 
-         databaseLoaded = IDatabase.Open(UnitTestsHelper.CryptographicCenter,
+         databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             databaseFile,

@@ -1,5 +1,7 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.Interfaces;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
@@ -13,7 +15,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IUser user = database.User;
          user.LogoutTimeout = 10;
          user.CleaningClipboardTimeout = 15;
-         user.WarningsToNotify = (Core.Public.Enums.WarningType)0;
+         user.WarningsToNotify = (WarningType)0;
 
          for (int i = 0; i < 50; i++)
          {
@@ -52,7 +54,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
                random = UnitTestsHelper.GetRandomInt(100);
                account.Notes = random % 10 == 0 ? $"Service{i}'s Account{j} notes : \n{UnitTestsHelper.GetRandomString(min: 10, max: 150)}" : "";
                account.PasswordUpdateReminderDelay = random < 10 ? random : 0;
-               account.Options = random % 2 == 0 ? Core.Public.Enums.AccountOption.WarnIfPasswordLeaked : Core.Public.Enums.AccountOption.None;
+               account.Options = random % 2 == 0 ? AccountOption.WarnIfPasswordLeaked : AccountOption.None;
             }
          }
 
@@ -312,7 +314,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          Stack<string> expectedLogWarnings = new();
 
          UnitTestsHelper.ClearTestEnvironment();
-         IDatabase database = IDatabase.Create(UnitTestsHelper.CryptographicCenter,
+         IDatabase database = Database.Create(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             databaseFile,
