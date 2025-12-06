@@ -232,7 +232,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          string[] passwords = [.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)];
 
-         int cleanedPasswordsCount = ClipboardManager.RemoveAllOccurence(passwords);
+         int cleanedPasswordsCount = Database.ClipboardManager.RemoveAllOccurence(passwords);
 
          if (cleanedPasswordsCount != 0)
          {

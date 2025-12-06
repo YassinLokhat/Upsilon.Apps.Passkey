@@ -1,10 +1,11 @@
-﻿using Windows.ApplicationModel.DataTransfer;
+﻿using Upsilon.Apps.Passkey.Interfaces;
+using Windows.ApplicationModel.DataTransfer;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
-   public static class ClipboardManager
+   public class ClipboardManager : IClipboardManager
    {
-      public static int RemoveAllOccurence(string[] removeList)
+      public int RemoveAllOccurence(string[] removeList)
       {
          int cleanedPasswordCount = 0;
 

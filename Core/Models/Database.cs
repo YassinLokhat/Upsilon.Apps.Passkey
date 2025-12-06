@@ -24,6 +24,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public ICryptographyCenter CryptographyCenter { get; private set; }
       public ISerializationCenter SerializationCenter { get; private set; }
       public IPasswordFactory PasswordFactory { get; private set; }
+      public IClipboardManager ClipboardManager { get; private set; }
 
       public event EventHandler<WarningDetectedEventArgs>? WarningDetected;
       public event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
@@ -192,6 +193,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
+         IClipboardManager clipboardManager,
          string databaseFile,
          string autoSaveFile,
          string logFile,
@@ -207,6 +209,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          CryptographyCenter = cryptographicCenter;
          SerializationCenter = serializationCenter;
          PasswordFactory = passwordFactory;
+         ClipboardManager = clipboardManager;
 
          Username = username;
          Passkeys = [CryptographyCenter.GetHash(username)];
@@ -239,6 +242,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public static IDatabase Create(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
+         IClipboardManager clipboardManager,
          string databaseFile,
          string autoSaveFile,
          string logFile,
@@ -262,6 +266,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Database database = new(cryptographicCenter,
             serializationCenter,
             passwordFactory,
+            clipboardManager,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -289,6 +294,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
+         IClipboardManager clipboardManager,
          string databaseFile,
          string autoSaveFile,
          string logFile,
@@ -297,6 +303,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Database database = new(cryptographicCenter,
             serializationCenter,
             passwordFactory,
+            clipboardManager,
             databaseFile,
             autoSaveFile,
             logFile,

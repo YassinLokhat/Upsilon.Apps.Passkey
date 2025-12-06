@@ -58,6 +58,11 @@ namespace Upsilon.Apps.Passkey.Interfaces
       IPasswordFactory PasswordFactory { get; }
 
       /// <summary>
+      /// The OS specific Clipboard manager implementation.
+      /// </summary>
+      IClipboardManager ClipboardManager { get; }
+
+      /// <summary>
       /// Occurs when a warning is detected.
       /// </summary>
       event EventHandler<WarningDetectedEventArgs>? WarningDetected;

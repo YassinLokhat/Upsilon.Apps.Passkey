@@ -317,6 +317,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase database = Database.Create(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.ClipboardManager,
             databaseFile,
             autoSaveFile,
             logFile,
