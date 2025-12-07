@@ -10,41 +10,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       public string Numeric => "0123456789";
       public string SpecialChars => "~!@#$%^&*()_-+={[}]\\|'\";:,<.>/?";
 
-      public string GeneratePassword(int length,
-         bool includeUpperCaseAlphabeticChars = true,
-         bool includeLowerCaseAlphabeticChars = true,
-         bool includeNumericChars = true,
-         bool includeSpecialChars = true,
-         string excludedChars = "",
-         bool checkIfLeaked = true)
-      {
-         string alphabet = "";
-
-         if (includeUpperCaseAlphabeticChars)
-         {
-            alphabet += Alphabetic.ToUpper();
-         }
-
-         if (includeLowerCaseAlphabeticChars)
-         {
-            alphabet += Alphabetic.ToLower();
-         }
-
-         if (includeNumericChars)
-         {
-            alphabet += Numeric;
-         }
-
-         if (includeSpecialChars)
-         {
-            alphabet += SpecialChars;
-         }
-
-         alphabet = string.Join("", alphabet.ToCharArray().Except(excludedChars.ToCharArray()));
-
-         return GeneratePassword(length, alphabet, checkIfLeaked);
-      }
-
       public string GeneratePassword(int length, string alphabet, bool checkIfLeaked = true)
       {
          if (string.IsNullOrWhiteSpace(alphabet)
