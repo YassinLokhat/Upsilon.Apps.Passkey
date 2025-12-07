@@ -152,7 +152,7 @@
       <FileName>Interfaces\IPasswordFactory.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Interface Name="Upsilon.Apps.Passkey.Interfaces.Interfaces.IClipboardManager">
+  <Interface Name="Upsilon.Apps.Passkey.Interfaces.IClipboardManager">
     <Position X="12.75" Y="9" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
