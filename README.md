@@ -28,112 +28,70 @@ This is a C# implementation of a local stored password manager. The application 
 ### Class diagram
 ```mermaid
 classDiagram
-   direction TB
+    direction TB
 
-   %% Main Interfaces
-   class IDatabase {
-      <<interface>>
-      +DatabaseFile : string
-      +AutoSaveFile : string
-      +LogFile : string
-      +User : IUser
-      +SessionLeftTime : int
-      +Logs : IEnumerable~ILog~
-      +Warnings : IEnumerable~IWarning~
-      +SerializationCenter : ISerializationCenter
-      +CryptographyCenter : ICryptographyCenter
-      +PasswordFactory : IPasswordFactory
-      +WarningDetected : EventHandler~WarningDetectedEventArgs~
-      +AutoSaveDetected : EventHandler~AutoSaveDetectedEventArgs~
-      +DatabaseSaved : EventHandler
-      +DatabaseClosed : EventHandler~LogoutEventArgs~
-      +Login(in passkey string) IUser
-      +Save() void
-      +Delete() void
-      +Close() void
-      +HasChanged() bool
-      +HasChanged(in itemId string) bool
-      +HasChanged(in itemId string, in fieldName string) bool
-      +ImportFromFile(in filePath string) bool
-      +ExportToFile(in filePath string) bool
-      +Create(in cryptographicCenter ICryptographyCenter, in serializationCenter ISerializationCenter, in passwordFactory IPasswordFactory, in databaseFile string, in autoSaveFile  string, in logFile string, in username string, in passkeys IEnumerable~string~) IDatabase
-   }
-    
-    class IItem {
-        <<interface>>
-        +ItemId : string
-        +Database : IDatabase
-    }
-    
-    class IUser {
-        <<interface>>
-        +Name
-        +Email
-        +MasterPassword
-        +CreatedDate
-        +LastModifiedDate
-        +IsLocked
-        +Services : IEnumerable~IService~
-    }
-    
-    class IService {
-        <<interface>>
-        +Name
-        +Url
-        +IconPath
-        +CreatedDate
-        +LastModifiedDate
-        +User : IUser
-        +Accounts : IEnumerable~IAccount~
-    }
-    
-    class IAccount {
-        <<interface>>
-        +Username
-        +Password
-        +Email
-        +Notes
-        +Service : IService
-        +Options : AccountOption
-    }
-    
-    class ILog {
-        <<interface>>
-        +Timestamp
-        +Message
-        +LogType
-    }
-    
-    class IWarning {
-        <<interface>>
-        +WarningType : WarningType
-        +Accounts : IEnumerable~IAccount~
-        +Logs : IEnumerable~ILog~
-        +Severity
-    }
-    
-    class ICryptographyCenter {
-        <<interface>>
-        +Encrypt()
-        +Decrypt()
-        +Hash()
-        +GenerateSalt()
-        +VerifyHash()
-        +GenerateKey()
-    }
-    
+    %% Main Interfaces
     class ISerializationCenter {
         <<interface>>
-        +Serialize()
-        +Deserialize()
+        +Serialize~T~(in toSerialize T) string
+        +Deserialize~T~(in toDeserialize string) T
     }
-    
+
+    class IClipboardManager {
+        <<interface>>
+        +RemoveAllOccurence(in removeList IEnumerable~string~) int
+    }
+
     class IPasswordFactory {
         <<interface>>
-        +GeneratePassword()
-        +ValidatePassword()
-        +GetPasswordStrength()
-        +GeneratePassphrase()
+        +Alphabetic : string
+        +Numeric : string
+        +SpecialChars : string
+
+        +GeneratePassword(in length int, in alphabet string, in checkIfLeaked bool) string
+        +PasswordLeaked(in password string) bool
+    }
+
+    class ICryptographyCenter {
+        <<interface>>
+        +HashLength : int
+
+        +GetHash(in source string) string
+        +GetSlowHash(in source string) string
+        +Sign(inout source string) void
+        +CheckSign(inout source string) bool
+        +EncryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
+        +DecryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
+        +GenerateRandomKeys(out publicKey string, out privateKey string) void
+        +EncryptAsymmetrically(inout source string, in key string) string
+        +DecryptAsymmetrically(inout source string, in key string) string
+    }
+
+    class IDatabase {
+        <<interface>>
+        +DatabaseFile : string
+        +AutoSaveFile : string
+        +LogFile : string
+        +User : IUser
+        +SessionLeftTime : int
+        +Logs : IEnumerable~ILog~
+        +Warnings : IEnumerable~IWarning~
+        +SerializationCenter : ISerializationCenter
+        +CryptographyCenter : ICryptographyCenter
+        +PasswordFactory : IPasswordFactory
+        +WarningDetected : EventHandler~WarningDetectedEventArgs~
+        +AutoSaveDetected : EventHandler~AutoSaveDetectedEventArgs~
+        +DatabaseSaved : EventHandler
+        +DatabaseClosed : EventHandler~LogoutEventArgs~
+        +Login(in passkey string) IUser
+        +Save() void
+        +Delete() void
+        +Close() void
+        +HasChanged() bool
+        +HasChanged(in itemId string) bool
+        +HasChanged(in itemId string, in fieldName string) bool
+        +ImportFromFile(in filePath string) bool
+        +ExportToFile(in filePath string) bool
     }
     
     %% Enums
@@ -143,24 +101,9 @@ classDiagram
         TwoFactorAuth
     }
     
-    class WarningType {
-        <<enumeration>>
-        WeakPassword
-        ReusedPassword
-        OldPassword
-    }
-    
     %% Event Args Classes
     class AutoSaveDetectedEventArgs {
         +Account
-    }
-    
-    class LogoutEventArgs {
-        +Reason
-    }
-    
-    class WarningDetectedEventArgs {
-        +Warning
     }
     
     %% Inheritance Relations
@@ -168,21 +111,6 @@ classDiagram
     
     %% Link Relations
     IUser "1" --> "*" IService : Services
-    IService "1" --> "*" IAccount : Accounts
-    IService --> IUser : User
-    IAccount --> IService : Service
-    IAccount --> AccountOption : Options
-    
-    IDatabase --> IUser : User
-    IDatabase --> "*" ILog : Logs
-    IDatabase --> "*" IWarning : Warnings
-    IDatabase --> ISerializationCenter : SerializationCenter
-    IDatabase --> ICryptographyCenter : CryptographyCenter
-    IDatabase --> IPasswordFactory : PasswordFactory
-    
-    IWarning --> WarningType : WarningType
-    IWarning --> "*" ILog : Logs
-    IWarning --> "*" IAccount : Accounts
 ```
 
 **Example Use Cases**
