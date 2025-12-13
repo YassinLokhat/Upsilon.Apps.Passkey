@@ -1,31 +1,34 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="Upsilon.Apps.Passkey.Interfaces.Events.AutoSaveDetectedEventArgs">
-    <Position X="4.25" Y="9" Width="2.25" />
+    <Position X="1" Y="7.5" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Events\AutoSaveDetectedEventArgs.cs</FileName>
     </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="MergeBehavior" />
+    </ShowAsAssociation>
   </Class>
   <Class Name="Upsilon.Apps.Passkey.Interfaces.Events.WarningDetectedEventArgs">
-    <Position X="1.5" Y="9" Width="2.25" />
+    <Position X="4" Y="9" Width="2.25" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Events\WarningDetectedEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Upsilon.Apps.Passkey.Interfaces.Events.LogoutEventArgs">
-    <Position X="1.75" Y="7.5" Width="2" />
+    <Position X="1.25" Y="9" Width="2" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Events\LogoutEventArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Interface Name="Upsilon.Apps.Passkey.Interfaces.IAccount">
-    <Position X="3.25" Y="2.25" Width="2.5" />
+    <Position X="3.5" Y="0.5" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAgAAAAEAAAAAAAAAAAAAAAAAAAQAACAAAAAAJAAAA=</HashCode>
-      <FileName>Interfaces\IAccount.cs</FileName>
+      <FileName>IAccount.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Property Name="Service" />
@@ -36,7 +39,7 @@
     <Position X="12.75" Y="2.5" Width="2" />
     <TypeIdentifier>
       <HashCode>AAACAAAAAAAAABAAAMAAAAAAAAAAAAASAAAAAABABAE=</HashCode>
-      <FileName>Interfaces\ICryptographyCenter.cs</FileName>
+      <FileName>ICryptographyCenter.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="Upsilon.Apps.Passkey.Interfaces.IDatabase">
@@ -65,7 +68,7 @@
     </AssociationLine>
     <TypeIdentifier>
       <HashCode>AgABAIgQAAAAgAAAYAAACCAggAGEAQAAEAARAACABAA=</HashCode>
-      <FileName>Interfaces\IDatabase.cs</FileName>
+      <FileName>IDatabase.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Property Name="User" />
@@ -80,31 +83,34 @@
     </ShowAsCollectionAssociation>
   </Interface>
   <Interface Name="Upsilon.Apps.Passkey.Interfaces.IItem">
-    <Position X="6.5" Y="0.5" Width="1.5" />
+    <Position X="6" Y="3.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAEAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Interfaces\IItem.cs</FileName>
+      <FileName>IItem.cs</FileName>
     </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Database" />
+    </ShowAsAssociation>
   </Interface>
   <Interface Name="Upsilon.Apps.Passkey.Interfaces.ILog">
     <Position X="4.5" Y="7" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAIAIAAAAAA=</HashCode>
-      <FileName>Interfaces\ILog.cs</FileName>
+      <FileName>ILog.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="Upsilon.Apps.Passkey.Interfaces.ISerializationCenter">
     <Position X="12.75" Y="0.5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACBAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Interfaces\ISerializationCenter.cs</FileName>
+      <FileName>ISerializationCenter.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="Upsilon.Apps.Passkey.Interfaces.IService">
-    <Position X="6.75" Y="2.25" Width="1.5" />
+    <Position X="6.75" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAhAAAAAAAAAAAAAAAAAAAAAAAAAACACAACAQAABAA=</HashCode>
-      <FileName>Interfaces\IService.cs</FileName>
+      <FileName>IService.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Property Name="User" />
@@ -114,10 +120,10 @@
     </ShowAsCollectionAssociation>
   </Interface>
   <Interface Name="Upsilon.Apps.Passkey.Interfaces.IUser">
-    <Position X="9.25" Y="2.25" Width="2.25" />
+    <Position X="9.25" Y="0.5" Width="2.25" />
     <TypeIdentifier>
       <HashCode>gABAAAEAAAAAAAAAAQAAAAAAAAAACAAIAAkAECAAAAA=</HashCode>
-      <FileName>Interfaces\IUser.cs</FileName>
+      <FileName>IUser.cs</FileName>
     </TypeIdentifier>
     <ShowAsCollectionAssociation>
       <Property Name="Services" />
@@ -129,13 +135,13 @@
       <Path>
         <Point X="5.188" Y="5.75" />
         <Point X="5.188" Y="5.375" />
-        <Point X="4.5" Y="5.375" />
-        <Point X="4.5" Y="4.444" />
+        <Point X="4.75" Y="5.375" />
+        <Point X="4.75" Y="2.694" />
       </Path>
     </AssociationLine>
     <TypeIdentifier>
       <HashCode>AAAAAAAQgAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAA=</HashCode>
-      <FileName>Interfaces\IWarning.cs</FileName>
+      <FileName>IWarning.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Property Name="WarningType" />
@@ -149,28 +155,35 @@
     <Position X="12.75" Y="6.25" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAAAQAAAAAAAAAAAAAAAAACAAAAAAQAgABAAAAAAAA=</HashCode>
-      <FileName>Interfaces\IPasswordFactory.cs</FileName>
+      <FileName>IPasswordFactory.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="Upsilon.Apps.Passkey.Interfaces.IClipboardManager">
     <Position X="12.75" Y="9" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Interfaces\IClipboardManager.cs</FileName>
+      <FileName>IClipboardManager.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Enum Name="Upsilon.Apps.Passkey.Interfaces.Enums.AccountOption">
-    <Position X="0.5" Y="2.75" Width="1.75" />
+    <Position X="0.75" Y="0.5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAA=</HashCode>
       <FileName>Enums\AccountOption.cs</FileName>
     </TypeIdentifier>
   </Enum>
   <Enum Name="Upsilon.Apps.Passkey.Interfaces.Enums.WarningType">
-    <Position X="0.5" Y="5.5" Width="2.5" />
+    <Position X="0.5" Y="2.5" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAAQAAAAABgAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Enums\WarningType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Upsilon.Apps.Passkey.Interfaces.Enums.AutoSaveMergeBehavior">
+    <Position X="0.5" Y="5.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAIBAgAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAA=</HashCode>
+      <FileName>Enums\AutoSaveMergeBehavior.cs</FileName>
     </TypeIdentifier>
   </Enum>
   <Font Name="Segoe UI" Size="9" />

@@ -67,6 +67,52 @@ classDiagram
         +DecryptAsymmetrically(inout source string, in key string) string
     }
 
+    class IItem {
+        <<interface>>
+        +ItemId : string
+        +Database : IDatabase
+    }
+
+    class IAccount {
+        <<interface>>
+        +Service : IService
+        +Label : string
+        +Notes : string
+        +Identifiers : IEnumerable~string~
+        +Password : string
+        +Passwords : IDictionary~DateTime, string~
+        +PasswordUpdateReminderDelay : int
+        +Options : AccountOption
+    }
+
+    class IService {
+        <<interface>>
+        +User : IUser
+        +ServiceName : string
+        +Url : string
+        +Notes : string
+        +Accounts : IEnumerable~IAccount~
+        +AddAccount(in label string, in identifiers IEnumerable~string~, in password string) IAccount
+        +AddAccount(in label string, in identifiers IEnumerable~string~) IAccount
+        +AddAccount(in identifiers IEnumerable~string~, in password string) IAccount
+        +AddAccount(in identifiers IEnumerable~string~) IAccount
+        +DeleteAccount(in account IAccount) void
+    }
+
+    class IUser {
+        <<interface>>
+        +Username : string
+        +Passkeys : IEnumerable~string~
+        +LogoutTimeout : int
+        +CleaningClipboardTimeout : int
+        +ShowPasswordDelay : int
+        +NumberOfOldPasswordToKeep : int
+        +WarningsToNotify : WarningType
+        +Services : IEnumerable~IService~
+        +AddService(in serviceName string) IService
+        +DeleteService(in service IService) void
+    }
+
     class IDatabase {
         <<interface>>
         +DatabaseFile : string
@@ -79,38 +125,99 @@ classDiagram
         +SerializationCenter : ISerializationCenter
         +CryptographyCenter : ICryptographyCenter
         +PasswordFactory : IPasswordFactory
+        +ClipboardManager : IClipboardManager
         +WarningDetected : EventHandler~WarningDetectedEventArgs~
         +AutoSaveDetected : EventHandler~AutoSaveDetectedEventArgs~
         +DatabaseSaved : EventHandler
         +DatabaseClosed : EventHandler~LogoutEventArgs~
         +Login(in passkey string) IUser
-        +Save() void
-        +Delete() void
-        +Close() void
-        +HasChanged() bool
+        +Save(void) void
+        +Delete(void) void
+        +Close(void) void
+        +HasChanged(void) bool
         +HasChanged(in itemId string) bool
         +HasChanged(in itemId string, in fieldName string) bool
         +ImportFromFile(in filePath string) bool
         +ExportToFile(in filePath string) bool
     }
+
+    class ILog {
+        <<interface>>
+        +DateTime : DateTime
+        +Message : string
+        +NeedsReview : bool
+    }
+
+    class IWarning {
+        <<interface>>
+        +WarningType : WarningType
+        +Logs : IEnumerable~ILog~
+        +Accounts : IEnumerable~IAccount~
+    }
     
     %% Enums
     class AccountOption {
         <<enumeration>>
-        AutoSave
-        TwoFactorAuth
+        None
+        WarnIfPasswordLeaked
+    }
+    
+    class WarningType {
+        <<enumeration>>
+        LogReviewWarning
+        PasswordUpdateReminderWarning
+        DuplicatedPasswordsWarning
+        PasswordLeakedWarning
+    }
+    
+    class AutoSaveMergeBehavior {
+        <<enumeration>>
+        MergeAndSaveThenRemoveAutoSaveFile
+        MergeWithoutSavingAndKeepAutoSaveFile
+        DontMergeAndRemoveAutoSaveFile
+        DontMergeAndKeepAutoSaveFile
     }
     
     %% Event Args Classes
     class AutoSaveDetectedEventArgs {
-        +Account
+        +MergeBehavior : AutoSaveMergeBehavior
+    }
+    
+    class WarningDetectedEventArgs {
+        +Warnings : IEnumerable~IWarning~
+    }
+    
+    class LogoutEventArgs {
+        +LoginTimeoutReached : bool
     }
     
     %% Inheritance Relations
     IUser --|> IItem
+    IService --|> IItem
+    IAccount --|> IItem
     
     %% Link Relations
-    IUser "1" --> "*" IService : Services
+    IItem --> IDatabase : Database
+    IAccount --> IService : Service
+    IAccount --> AccountOption : Options
+    IService "0" --> "*" IAccount : Accounts
+    IService --> IUser : User
+    IUser "0" --> "*" IService : Services
+    IDatabase --> ISerializationCenter : SerializationCenter
+    IDatabase --> ICryptographyCenter : CryptographyCenter
+    IDatabase --> IPasswordFactory : PasswordFactory
+    IDatabase --> IClipboardManager : ClipboardManager
+    IDatabase --> IUser : User
+    IDatabase "0" --> "*" IWarning : Warnings
+    IDatabase "0" --> "*" ILog : Logs
+    IDatabase --> WarningDetectedEventArgs : WarningDetected
+    IDatabase --> AutoSaveDetectedEventArgs : AutoSaveDetected
+    IDatabase --> LogoutEventArgs : DatabaseClosed
+    IWarning --> WarningType : WarningType
+    IWarning "0" --> "*" ILog : Logs
+    IWarning "0" --> "*" IAccount : Accounts
+    AutoSaveDetectedEventArgs --> AutoSaveMergeBehavior : MergeBehavior
+    WarningDetectedEventArgs "0" --> "*" IWarning : Warnings
 ```
 
 **Example Use Cases**
@@ -119,10 +226,10 @@ classDiagram
 
 ### Create a new database
 
-To create a new database, use the `IDatabase.Create` static method.
+To create a new database, use the `Upsilon.Apps.Passkey.Core.Models.Database.Create` static method.
 
-This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation and an `IPasswordFactory` implementation.
-The namespace `Upsilon.Apps.PassKey.Core.Public.Utils` already contains implementations for all of these intefaces.
+This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation and an `IClipboardManager` implementation.
+The namespace `Upsilon.Apps.Passkey.Core.Utils` already contains implementations for all of these intefaces except for the `IClipboardManager` which needs an OS specific implementation.
 
 The next parameters are a set of files : the database file itself, the autosave file and the log file.
 These files will be created during the process.
@@ -131,9 +238,10 @@ Finally, the method take the username and the passkeys.
 Note that the passkeys are used as master passwords to encrypt the database (and the other files).
 
 ```csharp
-IDatabase database = IDatabase.Create(new Upsilon.Apps.PassKey.Core.Public.Utils.CryptographyCenter(),
-   new Upsilon.Apps.PassKey.Core.Public.Utils.JsonSerializationCenter(),
-   new Upsilon.Apps.PassKey.Core.Public.Utils.PasswordFactory(),
+IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Create(new Upsilon.Apps.Passkey.Core.Utils.CryptographyCenter(),
+   new Upsilon.Apps.Passkey.Core.Utils.JsonSerializationCenter(),
+   new Upsilon.Apps.Passkey.Core.Utils.PasswordFactory(),
+   new OSSpecificClipboardManager(),
    "./database.pku",
    "./autosave.pks",
    "./log.pkl",
@@ -146,9 +254,9 @@ So to login, check the **Login to an user** use case.
 
 ### Open an existing database
 
-To open an existing database, use the `IDatabase.Open` static method.
+To open an existing database, use the `Upsilon.Apps.Passkey.Core.Models.Database.Open` static method.
 
-This method needs the same `ICryptographyCenter` implementation, `ISerializationCenter` implementation and `IPasswordFactory` implementation as in the creation step.
+This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation and an `IClipboardManager` implementation as in the creation step.
 
 The next parameters are a set of files : the database file itself, the autosave file and the log file.
 The database file must, obviously, exist, the autosave file and log files are optional but must be the same as provided during the creating process.
@@ -156,9 +264,10 @@ The database file must, obviously, exist, the autosave file and log files are op
 Finally, the method take the username.
 
 ```csharp
-IDatabase database = IDatabase.Open(new Upsilon.Apps.PassKey.Core.Public.Utils.CryptographyCenter(),
-   new Upsilon.Apps.PassKey.Core.Public.Utils.JsonSerializationCenter(),
-   new Upsilon.Apps.PassKey.Core.Public.Utils.PasswordFactory(),
+IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Open(new Upsilon.Apps.Passkey.Core.Utils.CryptographyCenter(),
+   new Upsilon.Apps.Passkey.Core.Utils.JsonSerializationCenter(),
+   new Upsilon.Apps.Passkey.Core.Utils.PasswordFactory(),
+   new OSSpecificClipboardManager(),
    "./database.pku",
    "./autosave.pks",
    "./log.pkl",
