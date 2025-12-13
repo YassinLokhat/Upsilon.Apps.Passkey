@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Interfaces/Upsilon.Apps.Passkey.Interfaces.csproj" />
+  <Project Path="Core/Upsilon.Apps.Passkey.Core.csproj" />
+</Solution>
