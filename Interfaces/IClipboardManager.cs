@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Upsilon.Apps.Passkey.Interfaces
+﻿namespace Upsilon.Apps.Passkey.Interfaces
 {
    /// <summary>
    /// Represent a OS specific Clipboard manager.
