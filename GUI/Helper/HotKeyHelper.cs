@@ -43,14 +43,11 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
 
       public static bool Unregister(Window window, int hotkeyId)
       {
-         if (window == null)
+         if (window is null)
             return false;
 
          IntPtr hWnd = new WindowInteropHelper(window).Handle;
-         if (hWnd == IntPtr.Zero)
-            return false;
-
-         return UnregisterHotKey(hWnd, hotkeyId);
+         return hWnd != nint.Zero && UnregisterHotKey(hWnd, hotkeyId);
       }
 
       public static void Send(ModifierKeys modifiers, Key key)
@@ -76,7 +73,7 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
       private static extern uint MapVirtualKey(uint uCode, uint uMapType);
 
       [DllImport("user32.dll")]
-      static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+      private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
    }
 
    public class HotkeyEventArgs : EventArgs

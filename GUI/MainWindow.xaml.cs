@@ -1,11 +1,10 @@
 ﻿using System.IO;
 using System.Windows;
 using System.Windows.Threading;
-using Upsilon.Apps.Passkey.Interfaces;
+using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.Views;
-using Upsilon.Apps.Passkey.Core.Models;
 
 namespace Upsilon.Apps.Passkey.GUI
 {

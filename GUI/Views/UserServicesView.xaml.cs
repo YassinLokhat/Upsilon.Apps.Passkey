@@ -120,8 +120,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _window_Closed(object sender, EventArgs e)
       {
-         HotkeyHelper.Unregister(this, _autoLoginHotkeyId);
-         HotkeyHelper.Unregister(this, _autoPasswordHotkeyId);
+         _ = HotkeyHelper.Unregister(this, _autoLoginHotkeyId);
+         _ = HotkeyHelper.Unregister(this, _autoPasswordHotkeyId);
 
          if (MainViewModel.Database is null || MainViewModel.Database.User is null) return;
 

@@ -13,7 +13,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       }
 
       [JsonIgnore]
-      public ILog[]? Logs => Database.User == null
+      public ILog[]? Logs => Database.User is null
                ? null
                : LogList.Select(x => Database.CryptographyCenter
                      .DecryptAsymmetrically(x, Database.User.PrivateKey)
@@ -42,7 +42,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private void _save()
       {
-         if (Database.LogFileLocker == null) throw new NullReferenceException(nameof(Database.LogFileLocker));
+         if (Database.LogFileLocker is null) throw new NullReferenceException(nameof(Database.LogFileLocker));
 
          Database.LogFileLocker.Save(this, [Database.CryptographyCenter.GetHash(Username)]);
       }

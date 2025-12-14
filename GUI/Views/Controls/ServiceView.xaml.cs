@@ -75,10 +75,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          if (_viewModel is null
             || string.IsNullOrWhiteSpace(_viewModel.Url))
          {
-            return; 
+            return;
          }
 
-         new Process()
+         _ = new Process()
          {
             StartInfo = new ProcessStartInfo(_viewModel.Url)
             {

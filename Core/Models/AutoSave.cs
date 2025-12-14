@@ -106,7 +106,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          _mergeChanges(changeKey, currentChange);
 
-         if (Database.AutoSaveFileLocker == null)
+         if (Database.AutoSaveFileLocker is null)
          {
             Database.AutoSaveFileLocker = new(Database.CryptographyCenter, Database.SerializationCenter, Database.AutoSaveFile, FileMode.OpenOrCreate);
          }

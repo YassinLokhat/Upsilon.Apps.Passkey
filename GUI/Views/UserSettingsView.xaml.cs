@@ -3,13 +3,12 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
-using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
-using Upsilon.Apps.Passkey.Core.Utils;
-using Upsilon.Apps.Passkey.Core.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
@@ -183,7 +182,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                newPasskeys: _passwordsContainer.Passkeys);
          }
 
-         if (MainViewModel.Database.User != null)
+         if (MainViewModel.Database.User is not null)
          {
             MainViewModel.Database.User.Username = _viewModel.Username;
             MainViewModel.Database.User.Passkeys = _passwordsContainer.Passkeys;

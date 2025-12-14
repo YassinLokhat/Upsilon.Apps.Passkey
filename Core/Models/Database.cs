@@ -19,7 +19,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       ILog[]? IDatabase.Logs => Get(Logs.Logs);
 
-      IWarning[]? IDatabase.Warnings => Get(User != null ? Warnings : null);
+      IWarning[]? IDatabase.Warnings => Get(User is not null ? Warnings : null);
 
       public ICryptographyCenter CryptographyCenter { get; private set; }
       public ISerializationCenter SerializationCenter { get; private set; }
@@ -48,7 +48,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public IUser? Login(string passkey)
       {
-         if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
+         if (DatabaseFileLocker is null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
          Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey)];
 
@@ -64,7 +64,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             }
          }
 
-         if (User != null)
+         if (User is not null)
          {
             User.Database = this;
 
@@ -214,7 +214,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Username = username;
          Passkeys = [CryptographyCenter.GetHash(username)];
 
-         if (passkeys != null)
+         if (passkeys is not null)
          {
             Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x))];
          }
@@ -331,7 +331,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       private void _saveDatabase(bool logSaveEvent)
       {
          if (User is null) throw new NullReferenceException(nameof(User));
-         if (DatabaseFileLocker == null) throw new NullReferenceException(nameof(DatabaseFileLocker));
+         if (DatabaseFileLocker is null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
          Username = User.Username;
          Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(CryptographyCenter.GetSlowHash)];
@@ -361,7 +361,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          if (logCloseEvent)
          {
-            if (User != null)
+            if (User is not null)
             {
                string logoutLog = $"User {Username} logged out";
                bool needsReview = AutoSave.Any();
@@ -461,7 +461,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       private Warning[] _lookAtLogWarnings()
       {
          if (User is null) throw new NullReferenceException(nameof(User));
-         if (Logs.Logs == null) throw new NullReferenceException(nameof(Logs.Logs));
+         if (Logs.Logs is null) throw new NullReferenceException(nameof(Logs.Logs));
 
          List<Log> logs = [.. Logs.Logs.Cast<Log>()];
 
