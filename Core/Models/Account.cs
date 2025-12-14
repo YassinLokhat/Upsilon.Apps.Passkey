@@ -50,7 +50,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                Dictionary<DateTime, string> oldPasswords = Passwords.CloneWith(Database.SerializationCenter);
                Passwords[DateTime.Now] = Password = value;
 
-               if (_service != null)
+               if (_service is not null)
                {
                   if (Service.User.NumberOfOldPasswordToKeep != 0)
                   {

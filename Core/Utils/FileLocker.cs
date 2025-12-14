@@ -31,7 +31,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       internal void Unlock()
       {
-         if (_stream == null) return;
+         if (_stream is null) return;
 
          _stream.Close();
          _stream.Dispose();

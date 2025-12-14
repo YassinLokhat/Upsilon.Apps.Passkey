@@ -163,7 +163,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
       public static void LastLogWarningsShouldMatch(IDatabase database, string[] expectedLogs)
       {
-         while (database.Warnings == null)
+         while (database.Warnings is null)
          {
             Thread.Sleep(200);
          }
