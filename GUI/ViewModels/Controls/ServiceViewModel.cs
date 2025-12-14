@@ -1,8 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
-using Upsilon.Apps.Passkey.Core.Public.Interfaces;
-using Upsilon.Apps.Passkey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.Interfaces;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 

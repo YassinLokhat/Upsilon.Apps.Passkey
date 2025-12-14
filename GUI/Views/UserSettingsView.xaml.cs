@@ -3,11 +3,13 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Upsilon.Apps.Passkey.Core.Public.Enums;
-using Upsilon.Apps.Passkey.Core.Public.Interfaces;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
+using Upsilon.Apps.Passkey.Interfaces;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.Core.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
@@ -48,7 +50,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          .ShowDialog();
       }
 
-      private void _database_DatabaseClosed(object? sender, Passkey.Core.Public.Events.LogoutEventArgs e)
+      private void _database_DatabaseClosed(object? sender, Passkey.Interfaces.Events.LogoutEventArgs e)
       {
          try
          {
@@ -143,9 +145,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          {
             try
             {
-               MainViewModel.Database = IDatabase.Create(MainViewModel.CryptographyCenter,
+               MainViewModel.Database = Database.Create(MainViewModel.CryptographyCenter,
                   MainViewModel.SerializationCenter,
                   MainViewModel.PasswordFactory,
+                  MainViewModel.ClipboardManager,
                   newDatabaseFile,
                   newAutoSaveFile,
                   newLogFile,
@@ -262,7 +265,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private static bool _credentialsChanged(string oldFileName, string[] oldPasskeys, string newFilename, string[] newPasskeys)
       {
-         return oldFileName != newFilename || ISerializationCenter.AreDifferent(MainViewModel.SerializationCenter, oldPasskeys, newPasskeys);
+         return oldFileName != newFilename || MainViewModel.SerializationCenter.AreDifferent(oldPasskeys, newPasskeys);
       }
 
       private void _import_MenuItem_Click(object sender, RoutedEventArgs e)

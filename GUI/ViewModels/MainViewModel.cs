@@ -1,7 +1,8 @@
 ﻿using System.ComponentModel;
-using Upsilon.Apps.Passkey.Core.Public.Interfaces;
-using Upsilon.Apps.Passkey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.Helper;
+using Upsilon.Apps.Passkey.GUI.OSSpecific;
+using Upsilon.Apps.Passkey.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
@@ -21,6 +22,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       public static readonly ICryptographyCenter CryptographyCenter = new CryptographyCenter();
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
       public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
+      public static readonly IClipboardManager ClipboardManager = new ClipboardManager();
 
       public static IDatabase? Database = null;
 

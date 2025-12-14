@@ -1,10 +1,11 @@
 ﻿using System.IO;
 using System.Windows;
 using System.Windows.Threading;
-using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.Views;
+using Upsilon.Apps.Passkey.Core.Models;
 
 namespace Upsilon.Apps.Passkey.GUI
 {
@@ -54,15 +55,16 @@ namespace Upsilon.Apps.Passkey.GUI
 
             Hide();
 
-            MainViewModel.Database = IDatabase.Open(MainViewModel.CryptographyCenter,
+            MainViewModel.Database = Database.Open(MainViewModel.CryptographyCenter,
                MainViewModel.SerializationCenter,
                MainViewModel.PasswordFactory,
+               MainViewModel.ClipboardManager,
                databaseFile,
                autoSaveFile,
                logFile,
                "_");
             MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
-            MainViewModel.Database.AutoSaveDetected += (s, e) => e.MergeBehavior = Passkey.Core.Public.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile;
+            MainViewModel.Database.AutoSaveDetected += (s, e) => e.MergeBehavior = Passkey.Interfaces.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile;
             MainViewModel.Database.WarningDetected += _database_WarningDetected;
             _ = MainViewModel.Database.Login("a");
             _ = MainViewModel.Database.Login("b");
@@ -107,9 +109,10 @@ namespace Upsilon.Apps.Passkey.GUI
 
                try
                {
-                  MainViewModel.Database = IDatabase.Open(MainViewModel.CryptographyCenter,
+                  MainViewModel.Database = Database.Open(MainViewModel.CryptographyCenter,
                      MainViewModel.SerializationCenter,
                      MainViewModel.PasswordFactory,
+                     MainViewModel.ClipboardManager,
                      databaseFile,
                      autoSaveFile,
                      logFile,
@@ -165,24 +168,24 @@ namespace Upsilon.Apps.Passkey.GUI
          }
       }
 
-      private void _database_WarningDetected(object? sender, Passkey.Core.Public.Events.WarningDetectedEventArgs e)
+      private void _database_WarningDetected(object? sender, Passkey.Interfaces.Events.WarningDetectedEventArgs e)
       {
          /// TODO : Pending implement
       }
 
-      private void _database_AutoSaveDetected(object? sender, Passkey.Core.Public.Events.AutoSaveDetectedEventArgs e)
+      private void _database_AutoSaveDetected(object? sender, Passkey.Interfaces.Events.AutoSaveDetectedEventArgs e)
       {
          MessageBoxResult result = MessageBox.Show("Unsaved changes have been detected.\nClick Yes to apply these changes.\nClick No to discard them.\nClick Cancel to ignore and keep the save file.", "Autosave detected", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
 
          e.MergeBehavior = result switch
          {
-            MessageBoxResult.Cancel => Passkey.Core.Public.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile,
-            MessageBoxResult.No => Passkey.Core.Public.Enums.AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile,
-            _ => Passkey.Core.Public.Enums.AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile,
+            MessageBoxResult.Cancel => Passkey.Interfaces.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile,
+            MessageBoxResult.No => Passkey.Interfaces.Enums.AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile,
+            _ => Passkey.Interfaces.Enums.AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile,
          };
       }
 
-      private void _database_DatabaseClosed(object? sender, Passkey.Core.Public.Events.LogoutEventArgs e)
+      private void _database_DatabaseClosed(object? sender, Passkey.Interfaces.Events.LogoutEventArgs e)
       {
          try
          {

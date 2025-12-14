@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
 using System.Diagnostics;
-using Upsilon.Apps.Passkey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Utils
 {

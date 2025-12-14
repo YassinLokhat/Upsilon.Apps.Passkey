@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <Title>$(AssemblyName)</Title>
     <Authors>Yassin Lokhat</Authors>
-    <Description>A local stored Password Manager Core.</Description>
+    <Description>A local stored Password Manager Interfaces.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -18,9 +18,5 @@
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <WarningLevel>9999</WarningLevel>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Interfaces\Upsilon.Apps.Passkey.Interfaces.csproj" />
-  </ItemGroup>
 
 </Project>

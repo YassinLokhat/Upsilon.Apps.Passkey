@@ -1,9 +1,10 @@
 ﻿using FluentAssertions;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using Upsilon.Apps.Passkey.Core.Public.Enums;
-using Upsilon.Apps.Passkey.Core.Public.Interfaces;
-using Upsilon.Apps.Passkey.Core.Public.Utils;
+using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.Interfaces;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.UnitTests
 {
@@ -14,6 +15,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public static readonly ICryptographyCenter CryptographicCenter = new CryptographyCenter();
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
       public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
+      public static readonly IClipboardManager ClipboardManager = new ClipboardManager();
 
       public static string ComputeTestDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
       public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"{ComputeTestDirectory(username)}/{CryptographicCenter.GetHash(username)}";
@@ -48,9 +50,10 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          passkeys ??= GetRandomStringArray();
 
-         IDatabase database = IDatabase.Create(CryptographicCenter,
+         IDatabase database = Database.Create(CryptographicCenter,
             SerializationCenter,
             PasswordFactory,
+            ClipboardManager,
             databaseFile,
             autoSaveFile,
             logFile,
@@ -68,9 +71,10 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          IWarning[] warnings = [];
 
-         IDatabase database = IDatabase.Open(CryptographicCenter,
+         IDatabase database = Database.Open(CryptographicCenter,
             SerializationCenter,
             PasswordFactory,
+            ClipboardManager,
             databaseFile,
             autoSaveFile,
             logFile,

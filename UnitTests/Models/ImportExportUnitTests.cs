@@ -3,8 +3,8 @@ using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Upsilon.Apps.Passkey.Core.Public.Enums;
-using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+using Upsilon.Apps.Passkey.Interfaces;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.UnitTests;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
@@ -163,7 +163,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          expectedLogs.Push($"Information : User {username}'s database saved");
          expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because service name or account identifier cannot be blank");
+         expectedLogs.Push($"Warning : Import failed because service name cannot be blank");
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -176,39 +176,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       }
 
       [TestMethod]
-      public void Case06_ImportBlanckIdentifier()
-      {
-         // Given
-         UnitTestsHelper.ClearTestEnvironment();
-
-         string username = UnitTestsHelper.GetUsername();
-         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
-         string importFile = UnitTestsHelper.GetTestFilePath($"import_blanckIdentifier.json");
-         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
-
-         // When
-         database.ImportFromFile(importFile);
-
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because service name or account identifier cannot be blank");
-
-         // Then
-         database.User.Services.Should().BeEmpty();
-
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
-
-         // Finaly
-         database.Close();
-         UnitTestsHelper.ClearTestEnvironment();
-      }
-
-      [TestMethod]
-      public void Case07_ImportCSV_OK()
+      public void Case06_ImportCSV_OK()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
@@ -314,7 +282,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogs.Push($"Warning : Export completed successfully");
 
          // Then
-         File.ReadAllText(importFile).Should().Be(File.ReadAllText(exportFile));
+         File.ReadAllText(importFile).Replace("\r", "").Should().Be(File.ReadAllText(exportFile).Replace("\r", ""));
 
          UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
 
@@ -324,7 +292,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       }
 
       [TestMethod]
-      public void Case08_ImportCSV_MissingHeader()
+      public void Case07_ImportCSV_MissingHeader()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
@@ -356,7 +324,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       }
 
       [TestMethod]
-      public void Case09_ImportCSV_MissingCollumn()
+      public void Case08_ImportCSV_MissingCollumn()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
@@ -388,7 +356,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       }
 
       [TestMethod]
-      public void Case10_ImportJson_OK()
+      public void Case09_ImportJson_OK()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
@@ -494,7 +462,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       }
 
       [TestMethod]
-      public void Case11_ImportJson_WrongFormat()
+      public void Case10_ImportJson_WrongFormat()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
@@ -527,7 +495,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
 
       [TestMethod]
-      public void Case12_Export_FileAlreadyExists()
+      public void Case11_Export_FileAlreadyExists()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
@@ -562,7 +530,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
 
       [TestMethod]
-      public void Case13_Export_FileAlreadyExists()
+      public void Case12_Export_FileExtensionNotHandled()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();

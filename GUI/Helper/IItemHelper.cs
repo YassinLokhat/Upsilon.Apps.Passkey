@@ -1,4 +1,4 @@
-﻿using Upsilon.Apps.Passkey.Core.Public.Interfaces;
+﻿using Upsilon.Apps.Passkey.Interfaces;
 
 namespace Upsilon.Apps.Passkey.GUI.Helper
 {
