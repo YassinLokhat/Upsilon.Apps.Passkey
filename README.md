@@ -28,167 +28,176 @@ This is a C# implementation of a local stored password manager in .Net 10. The a
 ### Class diagram
 ```mermaid
 classDiagram
-    direction TB
+    direction LR
 
     %% Main Interfaces
-    class ISerializationCenter {
-        <<interface>>
-        +Serialize~T~(in toSerialize T) string
-        +Deserialize~T~(in toDeserialize string) T
+
+    namespace Upsilon.Apps.Passkey.Interfaces.Utils {
+        class ISerializationCenter {
+            <<interface>>
+            +Serialize~T~(in toSerialize T) string
+            +Deserialize~T~(in toDeserialize string) T
+        }
+
+        class IClipboardManager {
+            <<interface>>
+            +RemoveAllOccurence(in removeList IEnumerable~string~) int
+        }
+
+        class IPasswordFactory {
+            <<interface>>
+            +Alphabetic : string
+            +Numeric : string
+            +SpecialChars : string
+
+            +GeneratePassword(in length int, in alphabet string, in checkIfLeaked bool) string
+            +PasswordLeaked(in password string) bool
+        }
+
+        class ICryptographyCenter {
+            <<interface>>
+            +HashLength : int
+
+            +GetHash(in source string) string
+            +GetSlowHash(in source string) string
+            +Sign(inout source string) void
+            +CheckSign(inout source string) bool
+            +EncryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
+            +DecryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
+            +GenerateRandomKeys(out publicKey string, out privateKey string) void
+            +EncryptAsymmetrically(inout source string, in key string) string
+            +DecryptAsymmetrically(inout source string, in key string) string
+        }
     }
 
-    class IClipboardManager {
-        <<interface>>
-        +RemoveAllOccurence(in removeList IEnumerable~string~) int
-    }
+    namespace Upsilon.Apps.Passkey.Interfaces.Models {
+        class IItem {
+            <<interface>>
+            +ItemId : string
+            +Database : IDatabase
+        }
 
-    class IPasswordFactory {
-        <<interface>>
-        +Alphabetic : string
-        +Numeric : string
-        +SpecialChars : string
+        class IAccount {
+            <<interface>>
+            +Service : IService
+            +Label : string
+            +Notes : string
+            +Identifiers : IEnumerable~string~
+            +Password : string
+            +Passwords : IDictionary~DateTime, string~
+            +PasswordUpdateReminderDelay : int
+            +Options : AccountOption
+        }
 
-        +GeneratePassword(in length int, in alphabet string, in checkIfLeaked bool) string
-        +PasswordLeaked(in password string) bool
-    }
+        class IService {
+            <<interface>>
+            +User : IUser
+            +ServiceName : string
+            +Url : string
+            +Notes : string
+            +Accounts : IEnumerable~IAccount~
+            +AddAccount(in label string, in identifiers IEnumerable~string~, in password string) IAccount
+            +AddAccount(in label string, in identifiers IEnumerable~string~) IAccount
+            +AddAccount(in identifiers IEnumerable~string~, in password string) IAccount
+            +AddAccount(in identifiers IEnumerable~string~) IAccount
+            +DeleteAccount(in account IAccount) void
+        }
 
-    class ICryptographyCenter {
-        <<interface>>
-        +HashLength : int
+        class IUser {
+            <<interface>>
+            +Username : string
+            +Passkeys : IEnumerable~string~
+            +LogoutTimeout : int
+            +CleaningClipboardTimeout : int
+            +ShowPasswordDelay : int
+            +NumberOfOldPasswordToKeep : int
+            +WarningsToNotify : WarningType
+            +Services : IEnumerable~IService~
+            +AddService(in serviceName string) IService
+            +DeleteService(in service IService) void
+        }
 
-        +GetHash(in source string) string
-        +GetSlowHash(in source string) string
-        +Sign(inout source string) void
-        +CheckSign(inout source string) bool
-        +EncryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
-        +DecryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
-        +GenerateRandomKeys(out publicKey string, out privateKey string) void
-        +EncryptAsymmetrically(inout source string, in key string) string
-        +DecryptAsymmetrically(inout source string, in key string) string
-    }
+        class IDatabase {
+            <<interface>>
+            +DatabaseFile : string
+            +User : IUser
+            +SessionLeftTime : int
+            +Logs : IEnumerable~ILog~
+            +Warnings : IEnumerable~IWarning~
+            +SerializationCenter : ISerializationCenter
+            +CryptographyCenter : ICryptographyCenter
+            +PasswordFactory : IPasswordFactory
+            +ClipboardManager : IClipboardManager
+            +WarningDetected : EventHandler~WarningDetectedEventArgs~
+            +AutoSaveDetected : EventHandler~AutoSaveDetectedEventArgs~
+            +DatabaseSaved : EventHandler
+            +DatabaseClosed : EventHandler~LogoutEventArgs~
+            +Login(in passkey string) IUser
+            +Save(void) void
+            +Delete(void) void
+            +Close(void) void
+            +HasChanged(void) bool
+            +HasChanged(in itemId string) bool
+            +HasChanged(in itemId string, in fieldName string) bool
+            +ImportFromFile(in filePath string) bool
+            +ExportToFile(in filePath string) bool
+        }
 
-    class IItem {
-        <<interface>>
-        +ItemId : string
-        +Database : IDatabase
-    }
+        class ILog {
+            <<interface>>
+            +DateTime : DateTime
+            +Message : string
+            +NeedsReview : bool
+        }
 
-    class IAccount {
-        <<interface>>
-        +Service : IService
-        +Label : string
-        +Notes : string
-        +Identifiers : IEnumerable~string~
-        +Password : string
-        +Passwords : IDictionary~DateTime, string~
-        +PasswordUpdateReminderDelay : int
-        +Options : AccountOption
-    }
-
-    class IService {
-        <<interface>>
-        +User : IUser
-        +ServiceName : string
-        +Url : string
-        +Notes : string
-        +Accounts : IEnumerable~IAccount~
-        +AddAccount(in label string, in identifiers IEnumerable~string~, in password string) IAccount
-        +AddAccount(in label string, in identifiers IEnumerable~string~) IAccount
-        +AddAccount(in identifiers IEnumerable~string~, in password string) IAccount
-        +AddAccount(in identifiers IEnumerable~string~) IAccount
-        +DeleteAccount(in account IAccount) void
-    }
-
-    class IUser {
-        <<interface>>
-        +Username : string
-        +Passkeys : IEnumerable~string~
-        +LogoutTimeout : int
-        +CleaningClipboardTimeout : int
-        +ShowPasswordDelay : int
-        +NumberOfOldPasswordToKeep : int
-        +WarningsToNotify : WarningType
-        +Services : IEnumerable~IService~
-        +AddService(in serviceName string) IService
-        +DeleteService(in service IService) void
-    }
-
-    class IDatabase {
-        <<interface>>
-        +DatabaseFile : string
-        +User : IUser
-        +SessionLeftTime : int
-        +Logs : IEnumerable~ILog~
-        +Warnings : IEnumerable~IWarning~
-        +SerializationCenter : ISerializationCenter
-        +CryptographyCenter : ICryptographyCenter
-        +PasswordFactory : IPasswordFactory
-        +ClipboardManager : IClipboardManager
-        +WarningDetected : EventHandler~WarningDetectedEventArgs~
-        +AutoSaveDetected : EventHandler~AutoSaveDetectedEventArgs~
-        +DatabaseSaved : EventHandler
-        +DatabaseClosed : EventHandler~LogoutEventArgs~
-        +Login(in passkey string) IUser
-        +Save(void) void
-        +Delete(void) void
-        +Close(void) void
-        +HasChanged(void) bool
-        +HasChanged(in itemId string) bool
-        +HasChanged(in itemId string, in fieldName string) bool
-        +ImportFromFile(in filePath string) bool
-        +ExportToFile(in filePath string) bool
-    }
-
-    class ILog {
-        <<interface>>
-        +DateTime : DateTime
-        +Message : string
-        +NeedsReview : bool
-    }
-
-    class IWarning {
-        <<interface>>
-        +WarningType : WarningType
-        +Logs : IEnumerable~ILog~
-        +Accounts : IEnumerable~IAccount~
+        class IWarning {
+            <<interface>>
+            +WarningType : WarningType
+            +Logs : IEnumerable~ILog~
+            +Accounts : IEnumerable~IAccount~
+        }
     }
     
     %% Enums
-    class AccountOption {
-        <<enumeration>>
-        None
-        WarnIfPasswordLeaked
-    }
-    
-    class WarningType {
-        <<enumeration>>
-        LogReviewWarning
-        PasswordUpdateReminderWarning
-        DuplicatedPasswordsWarning
-        PasswordLeakedWarning
-    }
-    
-    class AutoSaveMergeBehavior {
-        <<enumeration>>
-        MergeAndSaveThenRemoveAutoSaveFile
-        MergeWithoutSavingAndKeepAutoSaveFile
-        DontMergeAndRemoveAutoSaveFile
-        DontMergeAndKeepAutoSaveFile
+    namespace Upsilon.Apps.Passkey.Interfaces.Enums {
+        class AccountOption {
+            <<enumeration>>
+            None
+            WarnIfPasswordLeaked
+        }
+        
+        class WarningType {
+            <<enumeration>>
+            LogReviewWarning
+            PasswordUpdateReminderWarning
+            DuplicatedPasswordsWarning
+            PasswordLeakedWarning
+        }
+        
+        class AutoSaveMergeBehavior {
+            <<enumeration>>
+            MergeAndSaveThenRemoveAutoSaveFile
+            MergeWithoutSavingAndKeepAutoSaveFile
+            DontMergeAndRemoveAutoSaveFile
+            DontMergeAndKeepAutoSaveFile
+        }
     }
     
     %% Event Args Classes
-    class AutoSaveDetectedEventArgs {
-        +MergeBehavior : AutoSaveMergeBehavior
+    namespace Upsilon.Apps.Passkey.Interfaces.Events {
+        class AutoSaveDetectedEventArgs {
+            +MergeBehavior : AutoSaveMergeBehavior
+        }
+        
+        class WarningDetectedEventArgs {
+            +Warnings : IEnumerable~IWarning~
+        }
+        
+        class LogoutEventArgs {
+            +LoginTimeoutReached : bool
+        }
     }
-    
-    class WarningDetectedEventArgs {
-        +Warnings : IEnumerable~IWarning~
-    }
-    
-    class LogoutEventArgs {
-        +LoginTimeoutReached : bool
-    }
-    
+
     %% Inheritance Relations
     IUser --|> IItem
     IService --|> IItem

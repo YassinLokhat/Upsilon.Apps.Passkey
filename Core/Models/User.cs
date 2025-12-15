@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.Core.Utils;
-using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {

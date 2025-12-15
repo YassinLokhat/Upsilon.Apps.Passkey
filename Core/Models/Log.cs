@@ -1,4 +1,4 @@
-﻿using Upsilon.Apps.Passkey.Interfaces;
+﻿using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {

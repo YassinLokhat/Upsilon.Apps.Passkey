@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
