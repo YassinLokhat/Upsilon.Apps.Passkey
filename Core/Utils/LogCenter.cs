@@ -42,9 +42,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private void _save()
       {
-         if (Database.LogFileLocker is null) throw new NullReferenceException(nameof(Database.LogFileLocker));
-
-         Database.LogFileLocker.Save(this, [Database.CryptographyCenter.GetHash(Username)]);
+         Database.FileLocker.Save(this, Database.LogFileEntry, [Database.CryptographyCenter.GetHash(Username)]);
       }
    }
 }

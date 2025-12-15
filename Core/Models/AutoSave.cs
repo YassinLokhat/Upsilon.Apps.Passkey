@@ -106,12 +106,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          _mergeChanges(changeKey, currentChange);
 
-         if (Database.AutoSaveFileLocker is null)
-         {
-            Database.AutoSaveFileLocker = new(Database.CryptographyCenter, Database.SerializationCenter, Database.AutoSaveFile, FileMode.OpenOrCreate);
-         }
-
-         Database.AutoSaveFileLocker.Save(this, Database.Passkeys);
+         Database.FileLocker.Save(this, Database.AutoSaveFileEntry, Database.Passkeys);
          string logMessage = action switch
          {
             Change.Type.Add => $"{itemName} has been added to {containerName}",
@@ -170,13 +165,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          Changes.Clear();
 
-         Database.AutoSaveFileLocker?.Dispose();
-         Database.AutoSaveFileLocker = null;
-
          if (deleteFile
-            && File.Exists(Database.AutoSaveFile))
+            && Database.FileLocker.Exists(Database.AutoSaveFileEntry))
          {
-            File.Delete(Database.AutoSaveFile);
+            Database.FileLocker.Delete(Database.AutoSaveFileEntry);
          }
       }
    }

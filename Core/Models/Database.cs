@@ -11,8 +11,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       #region IUser interface explicit Internal
 
       public string DatabaseFile { get; set; }
-      public string AutoSaveFile { get; set; }
-      public string LogFile { get; set; }
 
       IUser? IDatabase.User => Get(User);
       int? IDatabase.SessionLeftTime => User?.SessionLeftTime;
@@ -35,9 +33,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          if (User is null) throw new NullReferenceException(nameof(User));
 
-         DatabaseFileLocker?.Delete();
-         LogFileLocker?.Delete();
-         AutoSaveFileLocker?.Delete();
+         FileLocker.Delete();
 
          Close(logCloseEvent: false, loginTimeoutReached: false);
       }
@@ -48,13 +44,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public IUser? Login(string passkey)
       {
-         if (DatabaseFileLocker is null) throw new NullReferenceException(nameof(DatabaseFileLocker));
-
          Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey)];
 
          try
          {
-            User = DatabaseFileLocker.Open<User>(Passkeys);
+            User = FileLocker.Open<User>(DatabaseFileEntry, Passkeys);
          }
          catch (Exception ex)
          {
@@ -70,11 +64,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             Logs.AddLog($"User {Username} logged in", needsReview: false);
 
-            if (File.Exists(AutoSaveFile))
+            if (FileLocker.Exists(AutoSaveFileEntry))
             {
-               AutoSaveFileLocker = new(CryptographyCenter, SerializationCenter, AutoSaveFile, FileMode.Open);
-
-               AutoSave = AutoSaveFileLocker.Open<AutoSave>(Passkeys);
+               AutoSave = FileLocker.Open<AutoSave>(AutoSaveFileEntry, Passkeys);
                AutoSave.Database = this;
 
                AutoSaveDetectedEventArgs eventArg = new();
@@ -186,25 +178,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal string Username { get; private set; }
       internal string[] Passkeys { get; private set; }
 
-      internal FileLocker? DatabaseFileLocker;
-      internal FileLocker? AutoSaveFileLocker;
-      internal FileLocker? LogFileLocker;
+      internal readonly string DatabaseFileEntry = "database";
+      internal readonly string AutoSaveFileEntry = "autosave";
+      internal readonly string LogFileEntry = "log";
+      internal FileLocker FileLocker;
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
          IClipboardManager clipboardManager,
          string databaseFile,
-         string autoSaveFile,
-         string logFile,
          FileMode fileMode,
          string username,
          string publicKey = "",
          string[]? passkeys = null)
       {
          DatabaseFile = databaseFile;
-         AutoSaveFile = autoSaveFile;
-         LogFile = logFile;
 
          CryptographyCenter = cryptographicCenter;
          SerializationCenter = serializationCenter;
@@ -224,9 +213,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             Database = this,
          };
 
-         DatabaseFileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
-
-         LogFileLocker = new(cryptographicCenter, serializationCenter, logFile, fileMode);
+         FileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
 
          Logs = fileMode == FileMode.Create
             ? new()
@@ -234,7 +221,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                Username = username,
                PublicKey = publicKey,
             }
-            : LogFileLocker.Open<LogCenter>([cryptographicCenter.GetHash(username)]);
+            : FileLocker.Open<LogCenter>(LogFileEntry, [cryptographicCenter.GetHash(username)]);
 
          Logs.Database = this;
       }
@@ -244,8 +231,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
          IPasswordFactory passwordFactory,
          IClipboardManager clipboardManager,
          string databaseFile,
-         string autoSaveFile,
-         string logFile,
          string username,
          string[] passkeys)
       {
@@ -268,8 +253,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
             passwordFactory,
             clipboardManager,
             databaseFile,
-            autoSaveFile,
-            logFile,
             FileMode.Create,
             username,
             publicKey,
@@ -296,8 +279,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
          IPasswordFactory passwordFactory,
          IClipboardManager clipboardManager,
          string databaseFile,
-         string autoSaveFile,
-         string logFile,
          string username)
       {
          Database database = new(cryptographicCenter,
@@ -305,8 +286,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
             passwordFactory,
             clipboardManager,
             databaseFile,
-            autoSaveFile,
-            logFile,
             FileMode.Open,
             username);
 
@@ -331,11 +310,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
       private void _saveDatabase(bool logSaveEvent)
       {
          if (User is null) throw new NullReferenceException(nameof(User));
-         if (DatabaseFileLocker is null) throw new NullReferenceException(nameof(DatabaseFileLocker));
 
          Username = User.Username;
          Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(CryptographyCenter.GetSlowHash)];
-         DatabaseFileLocker.Save(User, Passkeys);
+         FileLocker.Save(User, DatabaseFileEntry, Passkeys);
 
          if (logSaveEvent)
          {
@@ -354,7 +332,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (User is null) throw new NullReferenceException(nameof(User));
 
          Logs.Username = User.Username;
-         LogFileLocker?.Save(Logs, [CryptographyCenter.GetHash(User.Username)]);
+         FileLocker.Save(Logs, LogFileEntry, [CryptographyCenter.GetHash(User.Username)]);
       }
 
       internal void Close(bool logCloseEvent, bool loginTimeoutReached)
@@ -386,17 +364,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Passkeys = [];
          Warnings = null;
 
-         DatabaseFileLocker?.Dispose();
-         DatabaseFileLocker = null;
-
-         LogFileLocker?.Dispose();
-         LogFileLocker = null;
-
-         AutoSave.Clear(deleteFile: false);
-
-         DatabaseFile = string.Empty;
-         AutoSaveFile = string.Empty;
-         LogFile = string.Empty;
+         FileLocker.Dispose();
 
          DatabaseClosed?.Invoke(this, new(loginTimeoutReached));
       }
@@ -405,7 +373,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          if (User is null) throw new NullReferenceException(nameof(User));
 
-         if (!File.Exists(AutoSaveFile))
+         if (!FileLocker.Exists(AutoSaveFileEntry))
          {
             return;
          }

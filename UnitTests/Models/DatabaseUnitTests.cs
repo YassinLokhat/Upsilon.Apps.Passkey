@@ -75,8 +75,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          Stack<string> expectedLogs = new();
 
          UnitTestsHelper.ClearTestEnvironment();
@@ -88,12 +86,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // Then
          _ = databaseCreated.DatabaseFile.Should().Be(databaseFile);
          _ = File.Exists(databaseCreated.DatabaseFile).Should().BeTrue();
-
-         _ = databaseCreated.AutoSaveFile.Should().Be(autoSaveFile);
-         _ = File.Exists(databaseCreated.AutoSaveFile).Should().BeFalse();
-
-         _ = databaseCreated.LogFile.Should().Be(logFile);
-         _ = File.Exists(databaseCreated.LogFile).Should().BeTrue();
 
          _ = databaseCreated.User.Should().NotBeNull();
          _ = databaseCreated.User.Username.Should().Be(username);
@@ -109,8 +101,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // Then
          _ = databaseCreated.User.Should().BeNull();
          _ = File.Exists(databaseFile).Should().BeTrue();
-         _ = File.Exists(autoSaveFile).Should().BeFalse();
-         _ = File.Exists(logFile).Should().BeTrue();
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
@@ -121,12 +111,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = databaseLoaded.Should().NotBeNull();
          _ = databaseLoaded.DatabaseFile.Should().Be(databaseFile);
          _ = File.Exists(databaseLoaded.DatabaseFile).Should().BeTrue();
-
-         _ = databaseLoaded.AutoSaveFile.Should().Be(autoSaveFile);
-         _ = File.Exists(databaseLoaded.AutoSaveFile).Should().BeFalse();
-
-         _ = databaseLoaded.LogFile.Should().Be(logFile);
-         _ = File.Exists(databaseLoaded.LogFile).Should().BeTrue();
 
          _ = databaseLoaded.User.Should().NotBeNull();
          _ = databaseLoaded.User.Username.Should().Be(username);
@@ -142,8 +126,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // Then
          _ = databaseCreated.User.Should().BeNull();
          _ = File.Exists(databaseFile).Should().BeFalse();
-         _ = File.Exists(autoSaveFile).Should().BeFalse();
-         _ = File.Exists(logFile).Should().BeFalse();
 
          // Finaly
          UnitTestsHelper.ClearTestEnvironment();
@@ -197,8 +179,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -305,8 +285,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       {
          // Given
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          bool closedDueToTimeout = false;
@@ -319,8 +297,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
             databaseFile,
-            autoSaveFile,
-            logFile,
             username,
             passkeys);
 

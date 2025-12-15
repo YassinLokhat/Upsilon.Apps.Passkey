@@ -38,48 +38,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          _stream = null;
       }
 
-      internal string ReadAllText()
+      internal T Open<T>(string fileEntry, string[] passkeys) where T : notnull
       {
-         Unlock();
-
-         string text = _decompressString(File.ReadAllText(FilePath));
-
-         Lock();
-
-         return text;
+         return _readContent(fileEntry, passkeys).DeserializeTo<T>(_serializationCenter);
       }
 
-      internal string ReadAllText(string[] passkeys)
+      internal void Save<T>(T obj, string fileEntry, string[] passkeys) where T : notnull
       {
-         string text = ReadAllText();
-
-         return _cryptographicCenter.DecryptSymmetrically(text, passkeys);
-      }
-
-      internal T Open<T>(string[] passkeys) where T : notnull
-      {
-         return ReadAllText(passkeys).DeserializeTo<T>(_serializationCenter);
-      }
-
-      internal void WriteAllText(string text)
-      {
-         Unlock();
-
-         File.WriteAllText(FilePath, _compressString(text));
-
-         Lock();
-      }
-
-      internal void WriteAllText(string text, string[] passkeys)
-      {
-         text = _cryptographicCenter.EncryptSymmetrically(text, passkeys);
-
-         WriteAllText(text);
-      }
-
-      internal void Save<T>(T obj, string[] passkeys) where T : notnull
-      {
-         WriteAllText(obj.SerializeWith(_serializationCenter), passkeys);
+         _writeContent(obj.SerializeWith(_serializationCenter), fileEntry, passkeys);
       }
 
       internal void Delete()
@@ -90,6 +56,35 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             File.Delete(FilePath);
          }
+      }
+
+      internal void Delete(string fileEntry)
+      {
+         Unlock();
+
+         using (ZipArchive archive = ZipFile.Open(FilePath, ZipArchiveMode.Update, Encoding.UTF8))
+         {
+            ZipArchiveEntry? existingEntry = archive.GetEntry(fileEntry);
+            existingEntry?.Delete();
+         }
+
+         Lock();
+      }
+
+      internal bool Exists(string fileEntry)
+      {
+         Unlock();
+
+         bool exists = false;
+
+         using (ZipArchive archive = ZipFile.Open(FilePath, ZipArchiveMode.Update, Encoding.UTF8))
+         {
+            exists = archive.GetEntry(fileEntry) is not null;
+         }
+
+         Lock();
+
+         return exists;
       }
 
       public void Dispose()
@@ -129,5 +124,45 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
       }
 
+      private string _readContent(string fileEntry, string[] passkeys)
+      {
+         Unlock();
+         string content;
+
+         using (ZipArchive archive = ZipFile.OpenRead(FilePath))
+         {
+            ZipArchiveEntry zipEntry = archive.GetEntry(fileEntry)
+               ?? throw new FileNotFoundException($"The file entry '{fileEntry}' not found in the archive {FilePath}.", $"{FilePath}/{fileEntry}");
+
+            using Stream stream = zipEntry.Open();
+            using StreamReader reader = new(stream, Encoding.UTF8);
+
+            content = _cryptographicCenter.DecryptSymmetrically(_decompressString(reader.ReadToEnd()), passkeys);
+         }
+
+         Lock();
+
+         return content;
+      }
+
+      private void _writeContent(string content, string fileEntry, string[] passkeys)
+      {
+         Unlock();
+
+         using (ZipArchive archive = ZipFile.Open(FilePath, ZipArchiveMode.Update, Encoding.UTF8))
+         {
+            ZipArchiveEntry? existingEntry = archive.GetEntry(fileEntry);
+            existingEntry?.Delete();
+
+            ZipArchiveEntry newEntry = archive.CreateEntry(fileEntry);
+
+            using Stream stream = newEntry.Open();
+            using StreamWriter writer = new(stream, Encoding.UTF8);
+
+            writer.Write(_compressString(_cryptographicCenter.EncryptSymmetrically(content, passkeys)));
+         }
+
+         Lock();
+      }
    }
 }

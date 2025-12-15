@@ -4,7 +4,7 @@
 **Overview**
 ------------
 
-This is a C# implementation of a local stored password manager. The application provides a secure way to store and manage passwords locally on the user's device.
+This is a C# implementation of a local stored password manager in .Net 10. The application provides a secure way to store and manage passwords locally on the user's device.
 
 **Features**
 ------------
@@ -116,8 +116,6 @@ classDiagram
     class IDatabase {
         <<interface>>
         +DatabaseFile : string
-        +AutoSaveFile : string
-        +LogFile : string
         +User : IUser
         +SessionLeftTime : int
         +Logs : IEnumerable~ILog~
@@ -231,8 +229,7 @@ To create a new database, use the `Upsilon.Apps.Passkey.Core.Models.Database.Cre
 This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation and an `IClipboardManager` implementation.
 The namespace `Upsilon.Apps.Passkey.Core.Utils` already contains implementations for all of these intefaces except for the `IClipboardManager` which needs an OS specific implementation.
 
-The next parameters are a set of files : the database file itself, the autosave file and the log file.
-These files will be created during the process.
+The next parameter is the database file itself, which will be created during the process.
 
 Finally, the method take the username and the passkeys.
 Note that the passkeys are used as master passwords to encrypt the database (and the other files).
@@ -243,8 +240,6 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Create(new Upsilo
    new Upsilon.Apps.Passkey.Core.Utils.PasswordFactory(),
    new OSSpecificClipboardManager(),
    "./database.pku",
-   "./autosave.pks",
-   "./log.pkl",
    "username",
    new string[] { "master_password_1", "master_password_2", "master_password_3" });
 ```
@@ -258,8 +253,7 @@ To open an existing database, use the `Upsilon.Apps.Passkey.Core.Models.Database
 
 This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation and an `IClipboardManager` implementation as in the creation step.
 
-The next parameters are a set of files : the database file itself, the autosave file and the log file.
-The database file must, obviously, exist, the autosave file and log files are optional but must be the same as provided during the creating process.
+The next parameter is the database file itself and must, obviously, exist.
 
 Finally, the method take the username.
 
@@ -269,8 +263,6 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Open(new Upsilon.
    new Upsilon.Apps.Passkey.Core.Utils.PasswordFactory(),
    new OSSpecificClipboardManager(),
    "./database.pku",
-   "./autosave.pks",
-   "./log.pkl",
    "username");
 ```
 
@@ -292,17 +284,17 @@ Once the IUser retrieved, it allow a full access to all services and accounts, a
 ### Saving the changes
 
 Use the `IDatabase.Save` method to save the user's updates.
-Note that any update on the user, its services and/or accounts which is not saved will be keeped in the autosave file.
+Note that any update on the user, its services and/or accounts which is not saved will be keeped in a hiden autosave file.
 
 ```csharp
-user.LogoutTimeout = 5;	// Setting the logout timeout to 5 min will create an autosave file
-database.Save();		// Will save the new logout timeout in the database file and removed the autosave file
+user.LogoutTimeout = 5;	// Setting the logout timeout to 5 min will create a hiden autosave file
+database.Save();		// Will save the new logout timeout in the database file and remove the autosave file
 ```
 
 ### Logout/Close a database
 
 To logout and close the database, use the `IDatabase.Close` method.
-All unsaved updates are stored inside the autosave file.
+All unsaved updates are stored inside the hiden autosave file.
 
 ```csharp
 database.Close();
@@ -312,8 +304,8 @@ database.Close();
 -------------------
 
 1.  Clone the repository: `git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git`
-2.  Build the solution: `dotnet build`
-3.  Run the API: `dotnet run`
+2. 1. Build the solution for Windows users: `dotnet build Upsilon.Apps.Passkey.Windows.slnx`
+2. 2. Build the solution for Linux users: `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
 
 **Contributing**
 ------------

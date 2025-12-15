@@ -1,6 +1,8 @@
 ﻿using FluentAssertions;
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using System.Text;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces;
@@ -10,7 +12,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 {
    internal static class UnitTestsHelper
    {
-      public static readonly int RANDOMIZED_TESTS_LOOP = 100;
+      public static readonly int RANDOMIZED_TESTS_LOOP = 10;
 
       public static readonly ICryptographyCenter CryptographicCenter = new CryptographyCenter();
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
@@ -20,8 +22,18 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public static string ComputeTestDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
       public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"{ComputeTestDirectory(username)}/{CryptographicCenter.GetHash(username)}";
       public static string ComputeDatabaseFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographicCenter.GetHash(username)}.pku";
-      public static string ComputeAutoSaveFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographicCenter.GetHash(username)}.pka";
-      public static string ComputeLogFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographicCenter.GetHash(username)}.pkl";
+
+      public static string ReadFileZipEntry(string zipFile, string fileEntry)
+      {
+         using ZipArchive archive = ZipFile.OpenRead(zipFile);
+         ZipArchiveEntry zipEntry = archive.GetEntry(fileEntry)
+            ?? throw new FileNotFoundException($"The file entry '{fileEntry}' not found in the archive {zipFile}.", $"{zipFile}/{fileEntry}");
+
+         using Stream stream = zipEntry.Open();
+         using StreamReader reader = new(stream, Encoding.UTF8);
+
+         return reader.ReadToEnd();
+      }
 
       public static string GetTestFilePath(string fileName, bool createIfNotExists = false)
       {
@@ -45,8 +57,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public static IDatabase CreateTestDatabase(string[] passkeys = null, [CallerMemberName] string username = "")
       {
          string databaseFile = ComputeDatabaseFilePath(username);
-         string autoSaveFile = ComputeAutoSaveFilePath(username);
-         string logFile = ComputeLogFilePath(username);
 
          passkeys ??= GetRandomStringArray();
 
@@ -55,8 +65,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
             PasswordFactory,
             ClipboardManager,
             databaseFile,
-            autoSaveFile,
-            logFile,
             username,
             passkeys);
 
@@ -66,8 +74,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public static IDatabase OpenTestDatabase(string[] passkeys, out IWarning[] detectedWarnings, AutoSaveMergeBehavior mergeAutoSave = AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile, [CallerMemberName] string username = "")
       {
          string databaseFile = ComputeDatabaseFilePath(username);
-         string autoSaveFile = ComputeAutoSaveFilePath(username);
-         string logFile = ComputeLogFilePath(username);
 
          IWarning[] warnings = [];
 
@@ -76,8 +82,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
             PasswordFactory,
             ClipboardManager,
             databaseFile,
-            autoSaveFile,
-            logFile,
             username);
 
          database.AutoSaveDetected += (s, e) => { e.MergeBehavior = mergeAutoSave; };
