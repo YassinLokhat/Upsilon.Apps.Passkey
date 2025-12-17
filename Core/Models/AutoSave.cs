@@ -1,4 +1,5 @@
 ﻿using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -107,13 +108,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          _mergeChanges(changeKey, currentChange);
 
          Database.FileLocker.Save(this, Database.AutoSaveFileEntry, Database.Passkeys);
-         string logMessage = action switch
-         {
-            Change.Type.Add => $"{itemName} has been added to {containerName}",
-            Change.Type.Delete => $"{itemName} has been removed from {containerName}",
-            _ => $"{itemName}'s {fieldName.ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(readableValue) ? $"updated" : $"set to {readableValue}")}",
-         };
-         Database.Logs.AddLog(logMessage, needsReview);
+         Database.Logs.AddLog(source: itemId,
+            target: fieldName,
+            data: readableValue,
+            eventType: (LogEventType)action,
+            needsReview);
       }
 
       private void _mergeChanges(string changeKey, Change currentChange)

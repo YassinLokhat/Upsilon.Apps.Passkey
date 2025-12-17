@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.Core.Utils;
+﻿using System;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -15,7 +16,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       IUser? IDatabase.User => Get(User);
       int? IDatabase.SessionLeftTime => User?.SessionLeftTime;
 
-      ILog[]? IDatabase.Logs => Get(Logs.Logs);
+      ILog[]? IDatabase.Logs => Get(Logs.Logs.ToArray());
 
       IWarning[]? IDatabase.Warnings => Get(User is not null ? Warnings : null);
 
@@ -54,7 +55,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             if (ex is WrongPasswordException passwordException)
             {
-               Logs.AddLog($"User {Username} login failed at level {passwordException.PasswordLevel}", needsReview: true);
+               Logs.AddLog(source: Username,
+                  target: string.Empty,
+                  data: passwordException.PasswordLevel.ToString(),
+                  eventType: LogEventType.LoginFailed,
+                  needsReview: true);
             }
          }
 
@@ -62,7 +67,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             User.Database = this;
 
-            Logs.AddLog($"User {Username} logged in", needsReview: false);
+            Logs.LoadStringLogs();
+            Logs.AddLog(source: Username,
+               target: string.Empty,
+               data: string.Empty,
+               eventType: LogEventType.UserLoggedIn,
+               needsReview: false);
 
             if (FileLocker.Exists(AutoSaveFileEntry))
             {
@@ -93,7 +103,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public bool ImportFromFile(string filePath)
       {
          _save(logSaveEvent: true);
-         Logs.AddLog($"Importing data from file : '{filePath}'", needsReview: true);
+         Logs.AddLog(source: Username,
+            target: string.Empty,
+            data: filePath,
+            eventType: LogEventType.ImportingDataStarted,
+            needsReview: true);
 
          string importContent = string.Empty;
          string errorLog = string.Empty;
@@ -121,12 +135,20 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (string.IsNullOrWhiteSpace(errorLog))
          {
-            Logs.AddLog($"Import completed successfully", needsReview: true);
+            Logs.AddLog(source: Username,
+               target: string.Empty,
+               data: string.Empty,
+               eventType: LogEventType.ImportingDataSucceded,
+               needsReview: true);
             _save(logSaveEvent: true);
          }
          else
          {
-            Logs.AddLog($"Import failed because {errorLog}", needsReview: true);
+            Logs.AddLog(source: Username,
+               target: string.Empty,
+               data: errorLog,
+               eventType: LogEventType.ImportingDataFailed,
+               needsReview: true);
          }
 
          return string.IsNullOrWhiteSpace(errorLog);
@@ -135,7 +157,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public bool ExportToFile(string filePath)
       {
          _save(logSaveEvent: true);
-         Logs.AddLog($"Exporting data to file : '{filePath}'", needsReview: true);
+         Logs.AddLog(source: Username,
+            target: string.Empty,
+            data: filePath,
+            eventType: LogEventType.ExportingDataStarted,
+            needsReview: true);
 
          string errorLog = string.Empty;
 
@@ -158,11 +184,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (string.IsNullOrWhiteSpace(errorLog))
          {
-            Logs.AddLog($"Export completed successfully", needsReview: true);
+            Logs.AddLog(source: Username,
+               target: string.Empty,
+               data: string.Empty,
+               eventType: LogEventType.ExportingDataSucceded,
+               needsReview: true);
          }
          else
          {
-            Logs.AddLog($"Export failed because {errorLog}", needsReview: true);
+            Logs.AddLog(source: Username,
+               target: string.Empty,
+               data: errorLog,
+               eventType: LogEventType.ExportingDataFailed,
+               needsReview: true);
          }
 
          return string.IsNullOrWhiteSpace(errorLog);
@@ -221,7 +255,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                Username = username,
                PublicKey = publicKey,
             }
-            : FileLocker.Open<LogCenter>(LogFileEntry, [cryptographicCenter.GetHash(username)]);
+            : FileLocker.Open<LogCenter>(LogFileEntry);
 
          Logs.Database = this;
       }
@@ -267,7 +301,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
             Passkeys = [.. passkeys],
          };
 
-         database.Logs.AddLog($"User {username}'s database created", needsReview: false);
+         database.Logs.AddLog(source: username,
+            target: string.Empty,
+            data: string.Empty,
+            eventType: LogEventType.DatabaseCreated,
+            needsReview: false);
 
          database._save(logSaveEvent: false);
 
@@ -289,7 +327,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
             FileMode.Open,
             username);
 
-         database.Logs.AddLog($"User {username}'s database opened", needsReview: false);
+         database.Logs.AddLog(source: username,
+            target: string.Empty,
+            data: string.Empty,
+            eventType: LogEventType.DatabaseOpened,
+            needsReview: false);
 
          return database;
       }
@@ -317,7 +359,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (logSaveEvent)
          {
-            Logs.AddLog($"User {Username}'s database saved", needsReview: false);
+            Logs.AddLog(source: Username,
+               target: string.Empty,
+               data: string.Empty,
+               eventType: LogEventType.DatabaseSaved,
+               needsReview: false);
          }
 
          AutoSave.Clear(deleteFile: true);
@@ -341,22 +387,25 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             if (User is not null)
             {
-               string logoutLog = $"User {Username} logged out";
                bool needsReview = AutoSave.Any();
 
-               if (needsReview)
-               {
-                  logoutLog += " without saving";
-               }
-               else
+               if (!needsReview)
                {
                   AutoSave.Clear(deleteFile: true);
                }
 
-               Logs.AddLog(logoutLog, needsReview);
+               Logs.AddLog(source: Username,
+                  target: string.Empty,
+                  data: needsReview ? "1" : string.Empty,
+                  eventType: LogEventType.UserLoggedOut,
+                  needsReview);
             }
 
-            Logs.AddLog($"User {Username}'s database closed", needsReview: false);
+            Logs.AddLog(source: Username,
+               target: string.Empty,
+               data: string.Empty,
+               eventType: LogEventType.DatabaseClosed,
+               needsReview: false);
          }
 
          User = null;
@@ -382,23 +431,25 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             case AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile:
                AutoSave.ApplyChanges(deleteFile: true);
-               Logs.AddLog($"User {Username}'s autosave merged and saved", needsReview: true);
                _save(logSaveEvent: false);
                break;
             case AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile:
                AutoSave.ApplyChanges(deleteFile: false);
-               Logs.AddLog($"User {Username}'s autosave merged without saving", needsReview: true);
                _saveLogs();
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear(deleteFile: true);
-               Logs.AddLog($"User {Username}'s autosave not merged and removed", needsReview: true);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
-               Logs.AddLog($"User {Username}'s autosave not merged and keeped.", needsReview: true);
                break;
          }
+
+         Logs.AddLog(source: Username,
+            target: string.Empty,
+            data: string.Empty,
+            eventType: (LogEventType)mergeAutoSave,
+            needsReview: true);
       }
 
       private void _lookAtWarnings()

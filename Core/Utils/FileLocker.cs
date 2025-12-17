@@ -42,10 +42,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return _readContent(fileEntry, passkeys).DeserializeTo<T>(_serializationCenter);
       }
 
+      internal T Open<T>(string fileEntry) where T : notnull => Open<T>(fileEntry, []);
+
       internal void Save<T>(T obj, string fileEntry, string[] passkeys) where T : notnull
       {
          _writeContent(obj.SerializeWith(_serializationCenter), fileEntry, passkeys);
       }
+
+      internal void Save<T>(T obj, string fileEntry) where T : notnull => Save(obj, fileEntry, []);
 
       internal void Delete()
       {
@@ -136,7 +140,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             using Stream stream = zipEntry.Open();
             using StreamReader reader = new(stream, Encoding.UTF8);
 
-            content = _cryptographicCenter.DecryptSymmetrically(_decompressString(reader.ReadToEnd()), passkeys);
+            if (passkeys.Length != 0)
+               content = _cryptographicCenter.DecryptSymmetrically(_decompressString(reader.ReadToEnd()), passkeys);
+            else
+               content = _decompressString(reader.ReadToEnd());
          }
 
          Lock();
@@ -158,7 +165,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             using Stream stream = newEntry.Open();
             using StreamWriter writer = new(stream, Encoding.UTF8);
 
-            writer.Write(_compressString(_cryptographicCenter.EncryptSymmetrically(content, passkeys)));
+            if (passkeys.Length != 0)
+               writer.Write(_compressString(_cryptographicCenter.EncryptSymmetrically(content, passkeys)));
+            else
+               writer.Write(_compressString(content));
          }
 
          Lock();

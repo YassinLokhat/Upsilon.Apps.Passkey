@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
@@ -12,37 +13,47 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          set;
       }
 
-      [JsonIgnore]
-      public ILog[]? Logs => Database.User is null
-               ? null
-               : LogList.Select(x => Database.CryptographyCenter
-                     .DecryptAsymmetrically(x, Database.User.PrivateKey)
-                     .DeserializeTo<Log>(Database.SerializationCenter))
-               .OrderByDescending(x => x.DateTime)
-               .ToArray();
+      internal List<ILog> Logs = [];
 
       public List<string> LogList { get; set; } = [];
+
       public string Username { get; set; } = string.Empty;
+
       public string PublicKey { get; set; } = string.Empty;
 
-      public void AddLog(string message, bool needsReview)
+      public void AddLog(string source, string target, string data, LogEventType eventType, bool needsReview)
       {
          Log log = new()
          {
-            DateTime = DateTime.Now,
-            Message = message,
+            DateTimeTicks = DateTime.Now.Ticks,
+            Source = source,
+            Target = target,
+            Data = data,
+            EventType = eventType,
             NeedsReview = needsReview,
          };
 
-         string textLog = log.SerializeWith(Database.SerializationCenter);
-         LogList.Add(Database.CryptographyCenter.EncryptAsymmetrically(textLog, PublicKey));
+         Logs.Add(log);
+         LogList.Add(Database.CryptographyCenter.EncryptAsymmetrically(log.ToString(), PublicKey));
 
          _save();
       }
 
+      internal void LoadStringLogs()
+      {
+         Logs.Clear();
+
+         if (Database.User is null) return;
+
+         foreach (string log in LogList)
+         {
+            Logs.Add(new Log(Database.CryptographyCenter.DecryptAsymmetrically(log, Database.User.PrivateKey)));
+         }
+      }
+
       private void _save()
       {
-         Database.FileLocker.Save(this, Database.LogFileEntry, [Database.CryptographyCenter.GetHash(Username)]);
+         Database.FileLocker.Save(this, Database.LogFileEntry);
       }
    }
 }

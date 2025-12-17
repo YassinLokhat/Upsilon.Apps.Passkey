@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -207,7 +208,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (SessionLeftTime == 0)
             {
-               Database.Logs.AddLog($"User {Username}'s login session timeout reached", needsReview: true);
+               Database.Logs.AddLog(source: ItemId,
+                  target: string.Empty,
+                  data: string.Empty,
+                  eventType: LogEventType.LoginSessionTimeoutReached,
+                  needsReview: true);
                Database.Close(logCloseEvent: true, loginTimeoutReached: true);
 
                _timer.Stop();
@@ -221,22 +226,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (_clipboardLeftTime == 0)
             {
-               _cleanClipboard();
-
+               Database.ClipboardManager.RemoveAllOccurence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)]);
                _clipboardLeftTime = CleaningClipboardTimeout;
             }
-         }
-      }
-
-      private void _cleanClipboard()
-      {
-         string[] passwords = [.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)];
-
-         int cleanedPasswordsCount = Database.ClipboardManager.RemoveAllOccurence(passwords);
-
-         if (cleanedPasswordsCount != 0)
-         {
-            Database.Logs.AddLog($"{cleanedPasswordsCount} passwords was cleaned from User {Username}'s clipboard", needsReview: false);
          }
       }
 
