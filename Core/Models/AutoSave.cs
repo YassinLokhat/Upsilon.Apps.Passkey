@@ -101,7 +101,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (itemId == Database.User?.ItemId)
          {
-            itemId = $"User {Database.Username}";
+            if (Database.User is not null)
+            {
+               itemId = Database.User.ToString();
+            }
          }
          else if (itemId.StartsWith('S'))
          {
@@ -109,7 +112,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (s is not null)
             {
-               itemId = $"Service {s}";
+               itemId = s.ToString();
             }
          }
          else if (itemId.StartsWith('A'))
@@ -118,7 +121,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (a is not null)
             {
-               itemId = $"Account {a}";
+               itemId = a.ToString();
             }
          }
 
