@@ -1,5 +1,6 @@
 ﻿using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -14,7 +15,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public Dictionary<string, List<Change>> Changes { get; set; } = [];
 
       internal T UpdateValue<T>(string itemId,
-         string itemName,
          string fieldName,
          bool needsReview,
          T oldValue,
@@ -24,53 +24,45 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (Database.SerializationCenter.AreDifferent(oldValue, newValue))
          {
             _addChange(itemId,
-               itemName,
-               string.Empty,
                fieldName,
                oldValue.SerializeWith(Database.SerializationCenter),
                newValue.SerializeWith(Database.SerializationCenter),
                readableValue,
                needsReview,
-               Change.Type.Update);
+               LogEventType.ItemUpdated);
          }
 
          return newValue;
       }
 
       internal T AddValue<T>(string itemId,
-         string itemName,
-         string containerName,
+         string readableValue,
          bool needsReview,
          T value) where T : notnull
       {
-         _addChange(itemId, itemName, containerName, string.Empty, value.SerializeWith(Database.SerializationCenter), string.Empty, needsReview, Change.Type.Add);
+         _addChange(itemId, string.Empty, value.SerializeWith(Database.SerializationCenter), readableValue, needsReview, LogEventType.ItemAdded);
 
          return value;
       }
 
       internal T DeleteValue<T>(string itemId,
-         string itemName,
-         string containerName,
+         string readableValue,
          bool needsReview,
          T value) where T : notnull
       {
-         _addChange(itemId, itemName, containerName, string.Empty, value.SerializeWith(Database.SerializationCenter), string.Empty, needsReview, Change.Type.Delete);
+         _addChange(itemId, string.Empty, value.SerializeWith(Database.SerializationCenter), readableValue, needsReview, LogEventType.ItemDeleted);
 
          return value;
       }
 
       private void _addChange(string itemId,
-         string itemName,
-         string containerName,
          string fieldName,
          string newValue,
          string readableValue,
          bool needsReview,
-         Change.Type action)
+         LogEventType action)
       {
          _addChange(itemId,
-            itemName,
-            containerName,
             fieldName,
             null,
             newValue,
@@ -80,14 +72,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
       }
 
       private void _addChange(string itemId,
-         string itemName,
-         string containerName,
          string fieldName,
          string? oldValue,
          string newValue,
          string readableValue,
          bool needsReview,
-         Change.Type action)
+         LogEventType action)
       {
          string changeKey = $"{itemId}\t{fieldName}";
          if (!Changes.ContainsKey(changeKey))
@@ -108,18 +98,40 @@ namespace Upsilon.Apps.Passkey.Core.Models
          _mergeChanges(changeKey, currentChange);
 
          Database.FileLocker.Save(this, Database.AutoSaveFileEntry, Database.Passkeys);
-         Database.Logs.AddLog(source: itemId,
-            target: fieldName,
-            data: readableValue,
-            eventType: (LogEventType)action,
+
+         if (itemId == Database.User?.ItemId)
+         {
+            itemId = $"User {Database.Username}";
+         }
+         else if (itemId.StartsWith('S'))
+         {
+            Service? s = Database.User?.Services.FirstOrDefault(x => x.ItemId == itemId);
+
+            if (s is not null)
+            {
+               itemId = $"Service {s}";
+            }
+         }
+         else if (itemId.StartsWith('A'))
+         {
+            Account? a = Database.User?.Services.SelectMany(x => x.Accounts).FirstOrDefault(x => x.ItemId == itemId);
+
+            if (a is not null)
+            {
+               itemId = $"Account {a}";
+            }
+         }
+
+         Database.Logs.AddLog(data: [itemId, fieldName, readableValue],
+            eventType: action,
             needsReview);
       }
 
       private void _mergeChanges(string changeKey, Change currentChange)
       {
-         Change? lastUpdate = Changes[changeKey].LastOrDefault(x => x.ActionType == Change.Type.Update);
+         Change? lastUpdate = Changes[changeKey].LastOrDefault(x => x.ActionType == LogEventType.ItemUpdated);
 
-         if (currentChange.ActionType != Change.Type.Update
+         if (currentChange.ActionType != LogEventType.ItemUpdated
             || lastUpdate is null)
          {
             Changes[changeKey].Add(currentChange);
@@ -141,7 +153,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal void ApplyChanges(bool deleteFile)
       {
-         List<Change> changes = Changes.Values.SelectMany(x => x).OrderBy(x => x.Index).ToList();
+         List<Change> changes = [.. Changes.Values.SelectMany(x => x).OrderBy(x => x.Index)];
 
          foreach (Change change in changes)
          {

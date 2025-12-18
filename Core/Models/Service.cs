@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
@@ -19,7 +20,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get => Database.Get(ServiceName);
          set => ServiceName = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
             fieldName: nameof(ServiceName),
             needsReview: true,
             oldValue: ServiceName,
@@ -31,7 +31,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get => Database.Get(Url);
          set => Url = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
             fieldName: nameof(Url),
             needsReview: false,
             oldValue: Url,
@@ -43,7 +42,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get => Database.Get(Notes);
          set => Notes = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
             fieldName: nameof(Notes),
             needsReview: false,
             oldValue: Notes,
@@ -56,16 +54,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Account account = new()
          {
             Service = this,
-            ItemId = ItemId + Database.CryptographyCenter.GetHash(label + string.Join(string.Empty, identifiers)),
+            ItemId = "A" + Database.CryptographyCenter.GetHash(label + string.Join(string.Empty, identifiers)),
             Label = label,
             Identifiers = [.. identifiers],
             Password = password,
          };
 
-         Accounts.Add(Database.AutoSave.AddValue(ItemId, itemName: account.ToString(), containerName: ToString(), needsReview: false, account));
+         Accounts.Add(Database.AutoSave.AddValue(ItemId, readableValue: account.ToString(), needsReview: false, account));
 
          account.Passwords[DateTime.Now] = Database.AutoSave.UpdateValue(account.ItemId,
-            itemName: account.ToString(),
             fieldName: nameof(account.Password),
             needsReview: true,
             oldValue: string.Empty,
@@ -95,8 +92,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Account accountToRemove = Accounts.FirstOrDefault(x => x.ItemId == account.ItemId)
             ?? throw new KeyNotFoundException($"The '{account.ItemId}' account was not found into the '{ItemId}' service");
 
-         _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, itemName: accountToRemove.ToString(), containerName: ToString(), needsReview: true, accountToRemove));
-
+         _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, readableValue: accountToRemove.ToString(), needsReview: true, accountToRemove));
       }
 
       #endregion
@@ -147,7 +143,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          switch (change.ActionType)
          {
-            case Change.Type.Update:
+            case LogEventType.ItemUpdated:
                switch (change.FieldName)
                {
                   case nameof(ServiceName):
@@ -163,17 +159,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
-            case Change.Type.Add:
+            case LogEventType.ItemAdded:
                Account accountToAdd = change.NewValue.DeserializeTo<Account>(Database.SerializationCenter);
                accountToAdd.Service = this;
                Accounts.Add(accountToAdd);
                break;
-            case Change.Type.Delete:
+            case LogEventType.ItemDeleted:
                Account accountToDelete = change.NewValue.DeserializeTo<Account>(Database.SerializationCenter);
                _ = Accounts.RemoveAll(x => x.ItemId == accountToDelete.ItemId);
                break;
             default:
-               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(Change.Type));
+               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(LogEventType));
          }
       }
 

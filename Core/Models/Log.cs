@@ -1,4 +1,5 @@
 ﻿using System.Security.AccessControl;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -10,15 +11,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public DateTime DateTime => new(DateTimeTicks);
 
-      public string Source { get; set; } = string.Empty;
-
-      public string Target { get; set; } = string.Empty;
-
-      public string Data { get; set; } = string.Empty;
-
       public LogEventType EventType { get; set; } = LogEventType.None;
 
       public bool NeedsReview { get; set; } = true;
+
+      public string[] Data { get; set; } = [];
 
       public string Message => _buildMessage();
 
@@ -26,10 +23,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public long DateTimeTicks { get; set; }
 
+      private readonly Database? _database;
+
       public Log() { }
 
-      public Log(string log)
+      public Log(Database database, string log)
       {
+         _database = database;
+
          string[] info = log.Split('|');
 
          if (info.Length > 0
@@ -38,94 +39,57 @@ namespace Upsilon.Apps.Passkey.Core.Models
             DateTimeTicks = ticks;
          }
 
-         if (info.Length > 1)
-         {
-            Source = info[1].Trim();
-         }
-
-         if (info.Length > 2)
-         {
-            Target = info[2].Trim();
-         }
-
-         if (info.Length > 3)
-         {
-            Target = info[3].Trim();
-         }
-
-         if (info.Length > 4
-            && byte.TryParse(info[4], out byte eventType))
+         if (info.Length > 1
+            && byte.TryParse(info[1], out byte eventType))
          {
             EventType = (LogEventType)eventType;
          }
 
-         if (info.Length > 5)
+         if (info.Length > 2)
          {
-            NeedsReview = !string.IsNullOrEmpty(info[5]);
+            NeedsReview = !string.IsNullOrEmpty(info[2]);
+         }
+
+         if (info.Length > 3)
+         {
+            Data = info[3..];
          }
       }
 
       public override string ToString()
       {
-         return $"{DateTimeTicks}|{Source}|{Target}|{Data}|{((int)EventType)}|{(NeedsReview ? "1" : "")}";
+         return $"{DateTimeTicks}|{((int)EventType)}|{(NeedsReview ? "1" : "")}|{string.Join("|", Data)}";
       }
 
       private string _buildMessage()
       {
-         /*
-         string logMessage = action switch
-            {
-               Change.Type.Add => $"{itemName} has been added to {containerName}",
-               Change.Type.Delete => $"{itemName} has been removed from {containerName}",
-               _ => $"{itemName}'s {fieldName.ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(readableValue) ? $"updated" : $"set to {readableValue}")}",
-            };
-         Database.Logs.AddLog($"User {Username}'s login session timeout reached", needsReview: true);
-         Logs.AddLog($"User {Username} login failed at level {passwordException.PasswordLevel}", needsReview: true);
-         Logs.AddLog($"User {Username} logged in", needsReview: false);
-         Logs.AddLog($"Importing data from file : '{filePath}'", needsReview: true);
-         Logs.AddLog($"Import completed successfully", needsReview: true);
-         Logs.AddLog($"Import failed because {errorLog}", needsReview: true);
-         Logs.AddLog($"Exporting data to file : '{filePath}'", needsReview: true);
-         Logs.AddLog($"Export completed successfully", needsReview: true);
-         Logs.AddLog($"Export failed because {errorLog}", needsReview: true);
-         database.Logs.AddLog($"User {username}'s database created", needsReview: false);
-         database.Logs.AddLog($"User {username}'s database opened", needsReview: false);
-         Logs.AddLog($"User {Username}'s database saved", needsReview: false);
-         string logoutLog = $"User {Username} logged out";
-         bool needsReview = AutoSave.Any();
-         if (needsReview)
-            {
-               logoutLog += " without saving";
-               }
-               else
-               {
-                  AutoSave.Clear(deleteFile: true);
-               }
-               Logs.AddLog(logoutLog, needsReview);
-            }
-         Logs.AddLog($"User {Username}'s database closed", needsReview: false);
+         string message = EventType switch
+         {
+            LogEventType.MergeAndSaveThenRemoveAutoSaveFile => $"User {Data[0]}'s autosave merged and saved",
+            LogEventType.MergeWithoutSavingAndKeepAutoSaveFile => $"User {Data[0]}'s autosave merged without saving",
+            LogEventType.DontMergeAndRemoveAutoSaveFile => $"User {Data[0]}'s autosave not merged and removed",
+            LogEventType.DontMergeAndKeepAutoSaveFile => $"User {Data[0]}'s autosave not merged and keeped",
+            LogEventType.DatabaseCreated => $"User {Data[0]}'s database created",
+            LogEventType.DatabaseOpened => $"User {Data[0]}'s database opened",
+            LogEventType.DatabaseSaved => $"User {Data[0]}'s database saved",
+            LogEventType.DatabaseClosed => $"User {Data[0]}'s database closed",
+            LogEventType.LoginSessionTimeoutReached => $"User {Data[0]}'s login session timeout reached",
+            LogEventType.LoginFailed => $"User {Data[0]} login failed at level {Data[1]}",
+            LogEventType.UserLoggedIn => $"User {Data[0]} logged in",
+            LogEventType.UserLoggedOut => $"User {Data[0]} logged out {(!string.IsNullOrEmpty(Data[1]) ? "without saving" : "")}",
+            LogEventType.ImportingDataStarted => $"Importing data from file : '{Data[0]}'",
+            LogEventType.ImportingDataSucceded => $"Import completed successfully",
+            LogEventType.ImportingDataFailed => $"Import failed because {Data[0]}",
+            LogEventType.ExportingDataStarted => $"Exporting data to file : '{Data[0]}'",
+            LogEventType.ExportingDataSucceded => $"Export completed successfully",
+            LogEventType.ExportingDataFailed => $"Export failed because {Data[0]}",
+            LogEventType.ItemUpdated => $"{Data[0]}'s {Data[1].ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(Data[2]) ? $"updated" : $"set to {Data[2]}")}",
+            LogEventType.ItemAdded => $"{Data[2]} has been added to {Data[0]}",
+            LogEventType.ItemDeleted => $"{Data[2]} has been removed from {Data[0]}",
+            _ => ToString(),
+         };
 
-         case AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile:
-               AutoSave.ApplyChanges(deleteFile: true);
-               Logs.AddLog($"User {Username}'s autosave merged and saved", needsReview: true);
-               _save(logSaveEvent: false);
-               break;
-            case AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile:
-               AutoSave.ApplyChanges(deleteFile: false);
-               Logs.AddLog($"User {Username}'s autosave merged without saving", needsReview: true);
-               _saveLogs();
-               break;
-            case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
-               AutoSave.Clear(deleteFile: true);
-               Logs.AddLog($"User {Username}'s autosave not merged and removed", needsReview: true);
-               break;
-            case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
-            default:
-               Logs.AddLog($"User {Username}'s autosave not merged and keeped.", needsReview: true);
-               break;
-
-         */
-         return ToString();
+         return message.Trim();
       }
    }
 }

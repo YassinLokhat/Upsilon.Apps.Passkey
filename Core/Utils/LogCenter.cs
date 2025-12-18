@@ -21,13 +21,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string PublicKey { get; set; } = string.Empty;
 
-      public void AddLog(string source, string target, string data, LogEventType eventType, bool needsReview)
+      public void AddLog(string[] data, LogEventType eventType, bool needsReview)
       {
          Log log = new()
          {
             DateTimeTicks = DateTime.Now.Ticks,
-            Source = source,
-            Target = target,
             Data = data,
             EventType = eventType,
             NeedsReview = needsReview,
@@ -47,7 +45,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          foreach (string log in LogList)
          {
-            Logs.Add(new Log(Database.CryptographyCenter.DecryptAsymmetrically(log, Database.User.PrivateKey)));
+            Logs.Add(new Log(Database, Database.CryptographyCenter.DecryptAsymmetrically(log, Database.User.PrivateKey)));
          }
       }
 

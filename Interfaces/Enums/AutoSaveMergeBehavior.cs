@@ -8,18 +8,18 @@
       /// <summary>
       /// The auto-save will be merged into the database and saved then the auto-save file will be removed.
       /// </summary>
-      MergeAndSaveThenRemoveAutoSaveFile = 10,
+      MergeAndSaveThenRemoveAutoSaveFile = 1,
       /// <summary>
       /// The auto-save will be merged into the database without saving and the auto-save file will be keeped.
       /// </summary>
-      MergeWithoutSavingAndKeepAutoSaveFile = 11,
+      MergeWithoutSavingAndKeepAutoSaveFile = 2,
       /// <summary>
       /// The auto-save will not be merged into the database but the auto-save file will be removed.
       /// </summary>
-      DontMergeAndRemoveAutoSaveFile = 12,
+      DontMergeAndRemoveAutoSaveFile = 3,
       /// <summary>
       /// The auto-save will not be merged into the database and the auto-save file will be keeped.
       /// </summary>
-      DontMergeAndKeepAutoSaveFile = 13,
+      DontMergeAndKeepAutoSaveFile = 4,
    }
 }
