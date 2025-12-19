@@ -279,7 +279,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             Database = database,
             PrivateKey = privateKey,
-            ItemId = cryptographicCenter.GetHash(username),
+            ItemId = "U" + cryptographicCenter.GetHash(username),
             Username = username,
             Passkeys = [.. passkeys],
          };
@@ -453,22 +453,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (User is null) throw new NullReferenceException(nameof(User));
          if (Logs.Logs is null) throw new NullReferenceException(nameof(Logs.Logs));
 
-         List<Log> logs = [.. Logs.Logs.Cast<Log>()];
-
-         //for (int i = 0; i < logs.Count && logs[i].EventType != LogEventType.UserLoggedIn; i++)
-         //{
-         //   if (!logs[i].NeedsReview
-         //      || (logs[i].EventType != LogEventType.MergeAndSaveThenRemoveAutoSaveFile
-         //         && logs[i].EventType != LogEventType.MergeWithoutSavingAndKeepAutoSaveFile
-         //         && logs[i].EventType != LogEventType.DontMergeAndRemoveAutoSaveFile
-         //         && logs[i].EventType != LogEventType.DontMergeAndKeepAutoSaveFile))
-         //   {
-         //      logs.RemoveAt(i);
-         //      i--;
-         //   }
-         //}
-
-         return [new Warning([.. logs.Where(x => x.NeedsReview)])];
+         return [new Warning([.. Logs.Logs.Where(x => x.NeedsReview).Cast<Log>()])];
       }
 
       private Warning[] _lookAtPasswordUpdateReminderWarnings()

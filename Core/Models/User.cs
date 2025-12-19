@@ -138,7 +138,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       void IUser.DeleteService(IService service)
       {
          Service serviceToRemove = Services.FirstOrDefault(x => x.ItemId == service.ItemId)
-            ?? throw new KeyNotFoundException($"The '{service.ItemId}' service was not found into the '{ItemId}' user");
+            ?? throw new KeyNotFoundException($"The {service} was not found into the {this}'s services list");
 
          _ = Services.Remove(Database.AutoSave.DeleteValue(ItemId, readableValue: serviceToRemove.ToString(), needsReview: true, value: serviceToRemove));
       }
@@ -230,17 +230,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Apply(Change change)
       {
-         switch (change.ItemId.Length / Database.CryptographyCenter.HashLength)
+         switch (change.ItemId[0])
          {
-            case 1:
+            case 'U':
                _apply(change);
                break;
-            case 2:
-            case 3:
-               Service service = Services.FirstOrDefault(x => change.ItemId.StartsWith(x.ItemId))
-                  ?? throw new KeyNotFoundException($"The '{change.ItemId[..(2 * Database.CryptographyCenter.HashLength)]}' service was not found into the '{ItemId}' user");
+            case 'S':
+               Service service = Services.FirstOrDefault(x => change.ItemId == x.ItemId)
+                  ?? throw new KeyNotFoundException($"The Service '{change.ItemId}' was not found into the {this}'s services list");
 
                service.Apply(change);
+               break;
+            case 'A':
+               Account account = Services.SelectMany(x => x.Accounts).FirstOrDefault(x => change.ItemId == x.ItemId)
+                  ?? throw new KeyNotFoundException($"The Account {change.ItemId}' was not found into the {this}'s accounts list");
+
+               account.Apply(change);
                break;
             default:
                throw new InvalidDataException("ItemId not valid");

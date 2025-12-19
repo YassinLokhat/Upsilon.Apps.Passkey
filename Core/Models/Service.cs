@@ -90,7 +90,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       void IService.DeleteAccount(IAccount account)
       {
          Account accountToRemove = Accounts.FirstOrDefault(x => x.ItemId == account.ItemId)
-            ?? throw new KeyNotFoundException($"The '{account.ItemId}' account was not found into the '{ItemId}' service");
+            ?? throw new KeyNotFoundException($"The {account}' was not found into the {this}'s accounts list");
 
          _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, readableValue: accountToRemove.ToString(), needsReview: true, accountToRemove));
       }
@@ -122,24 +122,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public string Notes { get; set; } = string.Empty;
 
       public void Apply(Change change)
-      {
-         switch (change.ItemId.Length / Database.CryptographyCenter.HashLength)
-         {
-            case 2:
-               _apply(change);
-               break;
-            case 3:
-               Account account = Accounts.FirstOrDefault(x => change.ItemId.StartsWith(x.ItemId))
-                  ?? throw new KeyNotFoundException($"The '{change.ItemId}' account was not found into the '{ItemId}' service");
-
-               account.Apply(change);
-               break;
-            default:
-               throw new InvalidDataException("ItemId not valid");
-         }
-      }
-
-      private void _apply(Change change)
       {
          switch (change.ActionType)
          {

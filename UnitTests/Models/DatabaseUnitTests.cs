@@ -82,7 +82,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         expectedLogs.Push($"Information : User {username}'s database created");
+         expectedLogs.Push($"Information : {databaseCreated.User}'s database created");
 
          // Then
          _ = databaseCreated.DatabaseFile.Should().Be(databaseFile);
@@ -105,8 +105,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
-         expectedLogs.Push($"Information : User {username}'s database opened");
-         expectedLogs.Push($"Information : User {username} logged in");
+         expectedLogs.Push($"Information : {databaseLoaded.User}'s database opened");
+         expectedLogs.Push($"Information : {databaseLoaded.User} logged in");
 
          // Then
          _ = databaseLoaded.Should().NotBeNull();
