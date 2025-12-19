@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.Core.Utils;
-using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -23,7 +23,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
             CredentialChanged |= Username != value;
 
             Username = Database.AutoSave.UpdateValue(ItemId,
-               itemName: ToString(),
                fieldName: nameof(Username),
                needsReview: true,
                oldValue: Username,
@@ -40,7 +39,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
             CredentialChanged |= Database.SerializationCenter.AreDifferent(Passkeys, value);
 
             Passkeys = Database.AutoSave.UpdateValue(ItemId,
-               itemName: ToString(),
                fieldName: nameof(Passkeys),
                needsReview: true,
                oldValue: Passkeys,
@@ -53,7 +51,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get => Database.Get(LogoutTimeout);
          set => LogoutTimeout = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
             fieldName: nameof(LogoutTimeout),
             needsReview: false,
             oldValue: LogoutTimeout,
@@ -65,7 +62,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get => Database.Get(CleaningClipboardTimeout);
          set => CleaningClipboardTimeout = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
             fieldName: nameof(CleaningClipboardTimeout),
             needsReview: false,
             oldValue: CleaningClipboardTimeout,
@@ -77,7 +73,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get => Database.Get(ShowPasswordDelay);
          set => ShowPasswordDelay = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
             fieldName: nameof(ShowPasswordDelay),
             needsReview: false,
             oldValue: ShowPasswordDelay,
@@ -91,7 +86,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
          set
          {
             NumberOfOldPasswordToKeep = Database.AutoSave.UpdateValue(ItemId,
-               itemName: ToString(),
                fieldName: nameof(NumberOfOldPasswordToKeep),
                needsReview: true,
                oldValue: NumberOfOldPasswordToKeep,
@@ -120,7 +114,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get => Database.Get(WarningsToNotify);
          set => WarningsToNotify = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
             fieldName: nameof(WarningsToNotify),
             needsReview: true,
             oldValue: WarningsToNotify,
@@ -133,11 +126,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Service service = new()
          {
             User = this,
-            ItemId = ItemId + Database.CryptographyCenter.GetHash(serviceName),
+            ItemId = "S" + Database.CryptographyCenter.GetHash(serviceName),
             ServiceName = serviceName
          };
 
-         Services.Add(Database.AutoSave.AddValue(ItemId, itemName: service.ToString(), containerName: ToString(), needsReview: false, value: service));
+         Services.Add(Database.AutoSave.AddValue(ItemId, readableValue: service.ToString(), needsReview: false, value: service));
 
          return service;
       }
@@ -145,9 +138,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
       void IUser.DeleteService(IService service)
       {
          Service serviceToRemove = Services.FirstOrDefault(x => x.ItemId == service.ItemId)
-            ?? throw new KeyNotFoundException($"The '{service.ItemId}' service was not found into the '{ItemId}' user");
+            ?? throw new KeyNotFoundException($"The {service} was not found into the {this}'s services list");
 
-         _ = Services.Remove(Database.AutoSave.DeleteValue(ItemId, itemName: serviceToRemove.ToString(), containerName: ToString(), needsReview: true, value: serviceToRemove));
+         _ = Services.Remove(Database.AutoSave.DeleteValue(ItemId, readableValue: serviceToRemove.ToString(), needsReview: true, value: serviceToRemove));
       }
 
       #endregion
@@ -207,7 +200,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (SessionLeftTime == 0)
             {
-               Database.Logs.AddLog($"User {Username}'s login session timeout reached", needsReview: true);
+               Database.Logs.AddLog(data: [Username],
+                  eventType: LogEventType.LoginSessionTimeoutReached,
+                  needsReview: true);
                Database.Close(logCloseEvent: true, loginTimeoutReached: true);
 
                _timer.Stop();
@@ -221,22 +216,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (_clipboardLeftTime == 0)
             {
-               _cleanClipboard();
-
+               _ = Database.ClipboardManager.RemoveAllOccurence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)]);
                _clipboardLeftTime = CleaningClipboardTimeout;
             }
-         }
-      }
-
-      private void _cleanClipboard()
-      {
-         string[] passwords = [.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)];
-
-         int cleanedPasswordsCount = Database.ClipboardManager.RemoveAllOccurence(passwords);
-
-         if (cleanedPasswordsCount != 0)
-         {
-            Database.Logs.AddLog($"{cleanedPasswordsCount} passwords was cleaned from User {Username}'s clipboard", needsReview: false);
          }
       }
 
@@ -248,17 +230,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Apply(Change change)
       {
-         switch (change.ItemId.Length / Database.CryptographyCenter.HashLength)
+         switch (change.ItemId[0])
          {
-            case 1:
+            case 'U':
                _apply(change);
                break;
-            case 2:
-            case 3:
-               Service service = Services.FirstOrDefault(x => change.ItemId.StartsWith(x.ItemId))
-                  ?? throw new KeyNotFoundException($"The '{change.ItemId[..(2 * Database.CryptographyCenter.HashLength)]}' service was not found into the '{ItemId}' user");
+            case 'S':
+               Service service = Services.FirstOrDefault(x => change.ItemId == x.ItemId)
+                  ?? throw new KeyNotFoundException($"The Service '{change.ItemId}' was not found into the {this}'s services list");
 
                service.Apply(change);
+               break;
+            case 'A':
+               Account account = Services.SelectMany(x => x.Accounts).FirstOrDefault(x => change.ItemId == x.ItemId)
+                  ?? throw new KeyNotFoundException($"The Account {change.ItemId}' was not found into the {this}'s accounts list");
+
+               account.Apply(change);
                break;
             default:
                throw new InvalidDataException("ItemId not valid");
@@ -269,7 +256,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          switch (change.ActionType)
          {
-            case Change.Type.Update:
+            case LogEventType.ItemUpdated:
                switch (change.FieldName)
                {
                   case nameof(Username):
@@ -293,17 +280,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
-            case Change.Type.Add:
+            case LogEventType.ItemAdded:
                Service serviceToAdd = change.NewValue.DeserializeTo<Service>(Database.SerializationCenter);
                serviceToAdd.User = this;
                Services.Add(serviceToAdd);
                break;
-            case Change.Type.Delete:
+            case LogEventType.ItemDeleted:
                Service serviceToDelete = change.NewValue.DeserializeTo<Service>(Database.SerializationCenter);
                _ = Services.RemoveAll(x => x.ItemId == serviceToDelete.ItemId);
                break;
             default:
-               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(Change.Type));
+               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(LogEventType));
          }
       }
 

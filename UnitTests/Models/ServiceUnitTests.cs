@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
@@ -30,7 +31,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IService service = databaseCreated.User.AddService(oldServiceName);
-         expectedLogs.Push($"Information : Service {oldServiceName} has been added to User {username}");
+         expectedLogs.Push($"Information : {service} has been added to User {username}");
 
          // Then
          databaseCreated.User.HasChanged().Should().BeTrue();
@@ -44,10 +45,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
          service.Url = url;
          service.Url = url;
-         expectedLogs.Push($"Information : Service {newServiceName}'s url has been set to {url}");
+         expectedLogs.Push($"Information : {service}'s url has been set to {url}");
          service.Notes = notes;
          service.Notes = notes;
-         expectedLogs.Push($"Information : Service {newServiceName}'s notes has been set to {notes}");
+         expectedLogs.Push($"Information : {service}'s notes has been set to {notes}");
 
          // Then
          databaseCreated.User.HasChanged().Should().BeTrue();
@@ -108,7 +109,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IService service = databaseCreated.User.AddService(oldServiceName);
-         expectedLogs.Push($"Information : Service {oldServiceName} has been added to User {username}");
+         expectedLogs.Push($"Information : {service} has been added to User {username}");
 
          // Then
          _ = databaseCreated.User.Services.Length.Should().Be(1);
@@ -120,10 +121,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
          service.Url = url;
          service.Url = url;
-         expectedLogs.Push($"Information : Service {newServiceName}'s url has been set to {url}");
+         expectedLogs.Push($"Information : {service}'s url has been set to {url}");
          service.Notes = notes;
          service.Notes = notes;
-         expectedLogs.Push($"Information : Service {newServiceName}'s notes has been set to {notes}");
+         expectedLogs.Push($"Information : {service}'s notes has been set to {notes}");
 
          databaseCreated.Close();
          expectedLogs.Push($"Warning : User {username} logged out without saving");

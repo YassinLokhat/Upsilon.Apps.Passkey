@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.Passkey.Interfaces
+﻿namespace Upsilon.Apps.Passkey.Interfaces.Utils
 {
    /// <summary>
    /// Represent a Password factory engine.

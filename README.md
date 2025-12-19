@@ -4,7 +4,7 @@
 **Overview**
 ------------
 
-This is a C# implementation of a local stored password manager. The application provides a secure way to store and manage passwords locally on the user's device.
+This is a C# implementation of a local stored password manager in .Net 10. The application provides a secure way to store and manage passwords locally on the user's device.
 
 **Features**
 ------------
@@ -28,169 +28,176 @@ This is a C# implementation of a local stored password manager. The application 
 ### Class diagram
 ```mermaid
 classDiagram
-    direction TB
+    direction LR
 
     %% Main Interfaces
-    class ISerializationCenter {
-        <<interface>>
-        +Serialize~T~(in toSerialize T) string
-        +Deserialize~T~(in toDeserialize string) T
+
+    namespace Upsilon.Apps.Passkey.Interfaces.Utils {
+        class ISerializationCenter {
+            <<interface>>
+            +Serialize~T~(in toSerialize T) string
+            +Deserialize~T~(in toDeserialize string) T
+        }
+
+        class IClipboardManager {
+            <<interface>>
+            +RemoveAllOccurence(in removeList IEnumerable~string~) int
+        }
+
+        class IPasswordFactory {
+            <<interface>>
+            +Alphabetic : string
+            +Numeric : string
+            +SpecialChars : string
+
+            +GeneratePassword(in length int, in alphabet string, in checkIfLeaked bool) string
+            +PasswordLeaked(in password string) bool
+        }
+
+        class ICryptographyCenter {
+            <<interface>>
+            +HashLength : int
+
+            +GetHash(in source string) string
+            +GetSlowHash(in source string) string
+            +Sign(inout source string) void
+            +CheckSign(inout source string) bool
+            +EncryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
+            +DecryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
+            +GenerateRandomKeys(out publicKey string, out privateKey string) void
+            +EncryptAsymmetrically(inout source string, in key string) string
+            +DecryptAsymmetrically(inout source string, in key string) string
+        }
     }
 
-    class IClipboardManager {
-        <<interface>>
-        +RemoveAllOccurence(in removeList IEnumerable~string~) int
-    }
+    namespace Upsilon.Apps.Passkey.Interfaces.Models {
+        class IItem {
+            <<interface>>
+            +ItemId : string
+            +Database : IDatabase
+        }
 
-    class IPasswordFactory {
-        <<interface>>
-        +Alphabetic : string
-        +Numeric : string
-        +SpecialChars : string
+        class IAccount {
+            <<interface>>
+            +Service : IService
+            +Label : string
+            +Notes : string
+            +Identifiers : IEnumerable~string~
+            +Password : string
+            +Passwords : IDictionary~DateTime, string~
+            +PasswordUpdateReminderDelay : int
+            +Options : AccountOption
+        }
 
-        +GeneratePassword(in length int, in alphabet string, in checkIfLeaked bool) string
-        +PasswordLeaked(in password string) bool
-    }
+        class IService {
+            <<interface>>
+            +User : IUser
+            +ServiceName : string
+            +Url : string
+            +Notes : string
+            +Accounts : IEnumerable~IAccount~
+            +AddAccount(in label string, in identifiers IEnumerable~string~, in password string) IAccount
+            +AddAccount(in label string, in identifiers IEnumerable~string~) IAccount
+            +AddAccount(in identifiers IEnumerable~string~, in password string) IAccount
+            +AddAccount(in identifiers IEnumerable~string~) IAccount
+            +DeleteAccount(in account IAccount) void
+        }
 
-    class ICryptographyCenter {
-        <<interface>>
-        +HashLength : int
+        class IUser {
+            <<interface>>
+            +Username : string
+            +Passkeys : IEnumerable~string~
+            +LogoutTimeout : int
+            +CleaningClipboardTimeout : int
+            +ShowPasswordDelay : int
+            +NumberOfOldPasswordToKeep : int
+            +WarningsToNotify : WarningType
+            +Services : IEnumerable~IService~
+            +AddService(in serviceName string) IService
+            +DeleteService(in service IService) void
+        }
 
-        +GetHash(in source string) string
-        +GetSlowHash(in source string) string
-        +Sign(inout source string) void
-        +CheckSign(inout source string) bool
-        +EncryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
-        +DecryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
-        +GenerateRandomKeys(out publicKey string, out privateKey string) void
-        +EncryptAsymmetrically(inout source string, in key string) string
-        +DecryptAsymmetrically(inout source string, in key string) string
-    }
+        class IDatabase {
+            <<interface>>
+            +DatabaseFile : string
+            +User : IUser
+            +SessionLeftTime : int
+            +Logs : IEnumerable~ILog~
+            +Warnings : IEnumerable~IWarning~
+            +SerializationCenter : ISerializationCenter
+            +CryptographyCenter : ICryptographyCenter
+            +PasswordFactory : IPasswordFactory
+            +ClipboardManager : IClipboardManager
+            +WarningDetected : EventHandler~WarningDetectedEventArgs~
+            +AutoSaveDetected : EventHandler~AutoSaveDetectedEventArgs~
+            +DatabaseSaved : EventHandler
+            +DatabaseClosed : EventHandler~LogoutEventArgs~
+            +Login(in passkey string) IUser
+            +Save(void) void
+            +Delete(void) void
+            +Close(void) void
+            +HasChanged(void) bool
+            +HasChanged(in itemId string) bool
+            +HasChanged(in itemId string, in fieldName string) bool
+            +ImportFromFile(in filePath string) bool
+            +ExportToFile(in filePath string) bool
+        }
 
-    class IItem {
-        <<interface>>
-        +ItemId : string
-        +Database : IDatabase
-    }
+        class ILog {
+            <<interface>>
+            +DateTime : DateTime
+            +Message : string
+            +NeedsReview : bool
+        }
 
-    class IAccount {
-        <<interface>>
-        +Service : IService
-        +Label : string
-        +Notes : string
-        +Identifiers : IEnumerable~string~
-        +Password : string
-        +Passwords : IDictionary~DateTime, string~
-        +PasswordUpdateReminderDelay : int
-        +Options : AccountOption
-    }
-
-    class IService {
-        <<interface>>
-        +User : IUser
-        +ServiceName : string
-        +Url : string
-        +Notes : string
-        +Accounts : IEnumerable~IAccount~
-        +AddAccount(in label string, in identifiers IEnumerable~string~, in password string) IAccount
-        +AddAccount(in label string, in identifiers IEnumerable~string~) IAccount
-        +AddAccount(in identifiers IEnumerable~string~, in password string) IAccount
-        +AddAccount(in identifiers IEnumerable~string~) IAccount
-        +DeleteAccount(in account IAccount) void
-    }
-
-    class IUser {
-        <<interface>>
-        +Username : string
-        +Passkeys : IEnumerable~string~
-        +LogoutTimeout : int
-        +CleaningClipboardTimeout : int
-        +ShowPasswordDelay : int
-        +NumberOfOldPasswordToKeep : int
-        +WarningsToNotify : WarningType
-        +Services : IEnumerable~IService~
-        +AddService(in serviceName string) IService
-        +DeleteService(in service IService) void
-    }
-
-    class IDatabase {
-        <<interface>>
-        +DatabaseFile : string
-        +AutoSaveFile : string
-        +LogFile : string
-        +User : IUser
-        +SessionLeftTime : int
-        +Logs : IEnumerable~ILog~
-        +Warnings : IEnumerable~IWarning~
-        +SerializationCenter : ISerializationCenter
-        +CryptographyCenter : ICryptographyCenter
-        +PasswordFactory : IPasswordFactory
-        +ClipboardManager : IClipboardManager
-        +WarningDetected : EventHandler~WarningDetectedEventArgs~
-        +AutoSaveDetected : EventHandler~AutoSaveDetectedEventArgs~
-        +DatabaseSaved : EventHandler
-        +DatabaseClosed : EventHandler~LogoutEventArgs~
-        +Login(in passkey string) IUser
-        +Save(void) void
-        +Delete(void) void
-        +Close(void) void
-        +HasChanged(void) bool
-        +HasChanged(in itemId string) bool
-        +HasChanged(in itemId string, in fieldName string) bool
-        +ImportFromFile(in filePath string) bool
-        +ExportToFile(in filePath string) bool
-    }
-
-    class ILog {
-        <<interface>>
-        +DateTime : DateTime
-        +Message : string
-        +NeedsReview : bool
-    }
-
-    class IWarning {
-        <<interface>>
-        +WarningType : WarningType
-        +Logs : IEnumerable~ILog~
-        +Accounts : IEnumerable~IAccount~
+        class IWarning {
+            <<interface>>
+            +WarningType : WarningType
+            +Logs : IEnumerable~ILog~
+            +Accounts : IEnumerable~IAccount~
+        }
     }
     
     %% Enums
-    class AccountOption {
-        <<enumeration>>
-        None
-        WarnIfPasswordLeaked
-    }
-    
-    class WarningType {
-        <<enumeration>>
-        LogReviewWarning
-        PasswordUpdateReminderWarning
-        DuplicatedPasswordsWarning
-        PasswordLeakedWarning
-    }
-    
-    class AutoSaveMergeBehavior {
-        <<enumeration>>
-        MergeAndSaveThenRemoveAutoSaveFile
-        MergeWithoutSavingAndKeepAutoSaveFile
-        DontMergeAndRemoveAutoSaveFile
-        DontMergeAndKeepAutoSaveFile
+    namespace Upsilon.Apps.Passkey.Interfaces.Enums {
+        class AccountOption {
+            <<enumeration>>
+            None
+            WarnIfPasswordLeaked
+        }
+        
+        class WarningType {
+            <<enumeration>>
+            LogReviewWarning
+            PasswordUpdateReminderWarning
+            DuplicatedPasswordsWarning
+            PasswordLeakedWarning
+        }
+        
+        class AutoSaveMergeBehavior {
+            <<enumeration>>
+            MergeAndSaveThenRemoveAutoSaveFile
+            MergeWithoutSavingAndKeepAutoSaveFile
+            DontMergeAndRemoveAutoSaveFile
+            DontMergeAndKeepAutoSaveFile
+        }
     }
     
     %% Event Args Classes
-    class AutoSaveDetectedEventArgs {
-        +MergeBehavior : AutoSaveMergeBehavior
+    namespace Upsilon.Apps.Passkey.Interfaces.Events {
+        class AutoSaveDetectedEventArgs {
+            +MergeBehavior : AutoSaveMergeBehavior
+        }
+        
+        class WarningDetectedEventArgs {
+            +Warnings : IEnumerable~IWarning~
+        }
+        
+        class LogoutEventArgs {
+            +LoginTimeoutReached : bool
+        }
     }
-    
-    class WarningDetectedEventArgs {
-        +Warnings : IEnumerable~IWarning~
-    }
-    
-    class LogoutEventArgs {
-        +LoginTimeoutReached : bool
-    }
-    
+
     %% Inheritance Relations
     IUser --|> IItem
     IService --|> IItem
@@ -231,8 +238,7 @@ To create a new database, use the `Upsilon.Apps.Passkey.Core.Models.Database.Cre
 This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation and an `IClipboardManager` implementation.
 The namespace `Upsilon.Apps.Passkey.Core.Utils` already contains implementations for all of these intefaces except for the `IClipboardManager` which needs an OS specific implementation.
 
-The next parameters are a set of files : the database file itself, the autosave file and the log file.
-These files will be created during the process.
+The next parameter is the database file itself, which will be created during the process.
 
 Finally, the method take the username and the passkeys.
 Note that the passkeys are used as master passwords to encrypt the database (and the other files).
@@ -243,8 +249,6 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Create(new Upsilo
    new Upsilon.Apps.Passkey.Core.Utils.PasswordFactory(),
    new OSSpecificClipboardManager(),
    "./database.pku",
-   "./autosave.pks",
-   "./log.pkl",
    "username",
    new string[] { "master_password_1", "master_password_2", "master_password_3" });
 ```
@@ -258,8 +262,7 @@ To open an existing database, use the `Upsilon.Apps.Passkey.Core.Models.Database
 
 This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation and an `IClipboardManager` implementation as in the creation step.
 
-The next parameters are a set of files : the database file itself, the autosave file and the log file.
-The database file must, obviously, exist, the autosave file and log files are optional but must be the same as provided during the creating process.
+The next parameter is the database file itself and must, obviously, exist.
 
 Finally, the method take the username.
 
@@ -269,8 +272,6 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Open(new Upsilon.
    new Upsilon.Apps.Passkey.Core.Utils.PasswordFactory(),
    new OSSpecificClipboardManager(),
    "./database.pku",
-   "./autosave.pks",
-   "./log.pkl",
    "username");
 ```
 
@@ -292,17 +293,17 @@ Once the IUser retrieved, it allow a full access to all services and accounts, a
 ### Saving the changes
 
 Use the `IDatabase.Save` method to save the user's updates.
-Note that any update on the user, its services and/or accounts which is not saved will be keeped in the autosave file.
+Note that any update on the user, its services and/or accounts which is not saved will be keeped in a hiden autosave file.
 
 ```csharp
-user.LogoutTimeout = 5;	// Setting the logout timeout to 5 min will create an autosave file
-database.Save();		// Will save the new logout timeout in the database file and removed the autosave file
+user.LogoutTimeout = 5;	// Setting the logout timeout to 5 min will create a hiden autosave file
+database.Save();		// Will save the new logout timeout in the database file and remove the autosave file
 ```
 
 ### Logout/Close a database
 
 To logout and close the database, use the `IDatabase.Close` method.
-All unsaved updates are stored inside the autosave file.
+All unsaved updates are stored inside the hiden autosave file.
 
 ```csharp
 database.Close();
@@ -312,8 +313,8 @@ database.Close();
 -------------------
 
 1.  Clone the repository: `git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git`
-2.  Build the solution: `dotnet build`
-3.  Run the API: `dotnet run`
+2. 1. Build the solution for Windows users: `dotnet build Upsilon.Apps.Passkey.Windows.slnx`
+2. 2. Build the solution for Linux users: `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
 
 **Contributing**
 ------------

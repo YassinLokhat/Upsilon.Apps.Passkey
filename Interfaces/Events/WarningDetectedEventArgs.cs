@@ -1,4 +1,6 @@
-﻿namespace Upsilon.Apps.Passkey.Interfaces.Events
+﻿using Upsilon.Apps.Passkey.Interfaces.Models;
+
+namespace Upsilon.Apps.Passkey.Interfaces.Events
 {
    /// <summary>
    /// Represent a warning detected event argument.

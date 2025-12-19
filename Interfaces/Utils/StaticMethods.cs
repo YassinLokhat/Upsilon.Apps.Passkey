@@ -1,4 +1,6 @@
-﻿namespace Upsilon.Apps.Passkey.Interfaces.Utils
+﻿using Upsilon.Apps.Passkey.Interfaces.Models;
+
+namespace Upsilon.Apps.Passkey.Interfaces.Utils
 {
    public static class StaticMethods
    {
