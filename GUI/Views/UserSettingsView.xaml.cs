@@ -129,15 +129,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          }
 
          string newFilename = MainViewModel.CryptographyCenter.GetHash(_viewModel.Username);
-         string newDatabaseFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pku");
-         string newAutoSaveFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pks");
-         string newLogFile = Path.GetFullPath($"raw/{newFilename}/{newFilename}.pkl");
+         string newDatabaseFile = Path.GetFullPath($"raw/{newFilename}.pku");
 
          bool newUser = false;
          bool credentialsChanged = false;
          string oldDatabaseFile = string.Empty;
-         string oldAutoSaveFile = string.Empty;
-         string oldLogFile = string.Empty;
 
          if (MainViewModel.Database is null
             || MainViewModel.Database.User is null)
@@ -149,8 +145,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                   MainViewModel.PasswordFactory,
                   MainViewModel.ClipboardManager,
                   newDatabaseFile,
-                  newAutoSaveFile,
-                  newLogFile,
                   _viewModel.Username,
                   _passwordsContainer.Passkeys);
 
@@ -172,9 +166,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          else
          {
             string oldFileName = MainViewModel.CryptographyCenter.GetHash(MainViewModel.Database.User.Username);
-            oldDatabaseFile = Path.GetFullPath($"raw/{oldFileName}/{oldFileName}.pku");
-            oldAutoSaveFile = Path.GetFullPath($"raw/{oldFileName}/{oldFileName}.pks");
-            oldLogFile = Path.GetFullPath($"raw/{oldFileName}/{oldFileName}.pkl");
+            oldDatabaseFile = Path.GetFullPath($"raw/{oldFileName}.pku");
 
             credentialsChanged = _credentialsChanged(oldFileName,
                oldPasskeys: MainViewModel.Database.User.Passkeys,
@@ -220,16 +212,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                if (File.Exists(oldDatabaseFile))
                {
                   File.Move(oldDatabaseFile, newDatabaseFile);
-               }
-
-               if (File.Exists(oldAutoSaveFile))
-               {
-                  File.Move(oldAutoSaveFile, newAutoSaveFile);
-               }
-
-               if (File.Exists(oldLogFile))
-               {
-                  File.Move(oldLogFile, newLogFile);
                }
 
                if (Directory.Exists(oldDatabaseDirectory))

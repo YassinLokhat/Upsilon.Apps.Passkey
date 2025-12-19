@@ -1,4 +1,4 @@
-﻿using Upsilon.Apps.Passkey.Interfaces;
+﻿using Upsilon.Apps.Passkey.Interfaces.Utils;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace Upsilon.Apps.Passkey.GUI.OSSpecific

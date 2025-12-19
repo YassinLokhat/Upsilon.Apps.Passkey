@@ -48,9 +48,7 @@ namespace Upsilon.Apps.Passkey.GUI
          try
          {
             string filename = MainViewModel.CryptographyCenter.GetHash("_");
-            string databaseFile = Path.GetFullPath($"raw/{filename}/{filename}.pku");
-            string autoSaveFile = Path.GetFullPath($"raw/{filename}/{filename}.pks");
-            string logFile = Path.GetFullPath($"raw/{filename}/{filename}.pkl");
+            string databaseFile = Path.GetFullPath($"raw/{filename}.pku");
 
             Hide();
 
@@ -59,8 +57,6 @@ namespace Upsilon.Apps.Passkey.GUI
                MainViewModel.PasswordFactory,
                MainViewModel.ClipboardManager,
                databaseFile,
-               autoSaveFile,
-               logFile,
                "_");
             MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
             MainViewModel.Database.AutoSaveDetected += (s, e) => e.MergeBehavior = Passkey.Interfaces.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile;
@@ -102,9 +98,7 @@ namespace Upsilon.Apps.Passkey.GUI
                }
 
                string filename = MainViewModel.CryptographyCenter.GetHash(_username_TB.Text);
-               string databaseFile = Path.GetFullPath($"raw/{filename}/{filename}.pku");
-               string autoSaveFile = Path.GetFullPath($"raw/{filename}/{filename}.pks");
-               string logFile = Path.GetFullPath($"raw/{filename}/{filename}.pkl");
+               string databaseFile = Path.GetFullPath($"raw/{filename}.pku");
 
                try
                {
@@ -113,8 +107,6 @@ namespace Upsilon.Apps.Passkey.GUI
                      MainViewModel.PasswordFactory,
                      MainViewModel.ClipboardManager,
                      databaseFile,
-                     autoSaveFile,
-                     logFile,
                      _username_TB.Text);
 
                   MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
