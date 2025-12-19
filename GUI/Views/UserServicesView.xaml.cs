@@ -34,7 +34,15 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          }
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
+         MainViewModel.Database.WarningDetected += _database_WarningDetected;
          Loaded += _userServicesView_Loaded;
+      }
+
+      private void _database_WarningDetected(object? sender, Interfaces.Events.WarningDetectedEventArgs e)
+      {
+         int warningCount = e.Warnings.SelectMany(x => x.Logs ?? []).Count();
+
+         _viewModel.ShowWarning = warningCount != 0 ? $"Show {warningCount} warnings" : "Show warnings";
       }
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
@@ -45,7 +53,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          }
       }
 
-      private void _database_DatabaseClosed(object? sender, Passkey.Interfaces.Events.LogoutEventArgs e)
+      private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
       {
          try
          {

@@ -10,12 +10,17 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
    {
       private readonly string _defaultTitle;
 
-      private string _title;
       public string Title
       {
-         get => _title;
-         set => PropertyHelper.SetProperty(ref _title, value, this, PropertyChanged);
+         get => field;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       }
+
+      public string ShowWarning
+      {
+         get => field;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = "Show warnings";
 
       public string ServiceFilter
       {
@@ -75,7 +80,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 
       public UserServicesViewModel(string defaultTitle)
       {
-         _title = _defaultTitle = defaultTitle;
+         Title = _defaultTitle = defaultTitle;
 
          RefreshFilters();
 
