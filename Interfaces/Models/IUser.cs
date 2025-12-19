@@ -1,6 +1,6 @@
 ﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
 
-namespace Upsilon.Apps.Passkey.Interfaces
+namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
    /// <summary>
    /// Represent an user.

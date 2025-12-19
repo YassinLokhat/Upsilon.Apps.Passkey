@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
@@ -36,9 +37,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IAccount account = service.AddAccount(oldAccountLabel, oldIdentifiers, oldPassword);
-         expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiers)}) has been added to Service {service.ServiceName}");
-         expectedLogs.Push($"Warning : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiers)})'s password has been updated");
-         expectedLogWarnings.Push($"Warning : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiers)})'s password has been updated");
+         expectedLogs.Push($"Information : {account} has been added to Service {service.ServiceName}");
+         expectedLogs.Push($"Warning : {account}'s password has been updated");
+         expectedLogWarnings.Push($"Warning : {account}'s password has been updated");
 
          // Then
          databaseCreated.User.HasChanged().Should().BeTrue();
@@ -60,16 +61,16 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", oldIdentifiers)})'s identifiers has been set to ({string.Join(", ", newIdentifiers)})");
          account.Password = newPassword;
          account.Password = newPassword;
-         expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", newIdentifiers)})'s password has been updated");
-         expectedLogWarnings.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", newIdentifiers)})'s password has been updated");
+         expectedLogs.Push($"Warning : {account}'s password has been updated");
+         expectedLogWarnings.Push($"Warning : {account}'s password has been updated");
          account.Notes = notes;
          account.Notes = notes;
-         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiers)})'s notes has been set to {notes}");
+         expectedLogs.Push($"Information : {account}'s notes has been set to {notes}");
          account.PasswordUpdateReminderDelay = passwordUpdateReminderDelay;
-         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiers)})'s password update reminder delay has been set to {passwordUpdateReminderDelay}");
+         expectedLogs.Push($"Information : {account}'s password update reminder delay has been set to {passwordUpdateReminderDelay}");
          account.Options = options;
          account.Options = options;
-         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiers)})'s options has been set to {options}");
+         expectedLogs.Push($"Information : {account}'s options has been set to {options}");
 
          // Then
          databaseCreated.User.HasChanged().Should().BeTrue();
@@ -146,9 +147,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IAccount account = service.AddAccount(oldAccountLabel, oldIdentifiers, oldPassword);
-         expectedLogs.Push($"Information : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiers)}) has been added to Service {service.ServiceName}");
-         expectedLogs.Push($"Warning : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiers)})'s password has been updated");
-         expectedLogWarnings.Push($"Warning : Account {oldAccountLabel} ({string.Join(", ", oldIdentifiers)})'s password has been updated");
+         expectedLogs.Push($"Information : {account} has been added to Service {service.ServiceName}");
+         expectedLogs.Push($"Warning : {account}'s password has been updated");
+         expectedLogWarnings.Push($"Warning : {account}'s password has been updated");
 
          // Then
          _ = service.Accounts.Length.Should().Be(1);
@@ -167,16 +168,16 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", oldIdentifiers)})'s identifiers has been set to ({string.Join(", ", newIdentifiers)})");
          account.Password = newPassword;
          account.Password = newPassword;
-         expectedLogs.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", newIdentifiers)})'s password has been updated");
-         expectedLogWarnings.Push($"Warning : Account {newAccountLabel} ({string.Join(", ", newIdentifiers)})'s password has been updated");
+         expectedLogs.Push($"Warning : {account}'s password has been updated");
+         expectedLogWarnings.Push($"Warning : {account}'s password has been updated");
          account.Notes = notes;
          account.Notes = notes;
-         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiers)})'s notes has been set to {notes}");
+         expectedLogs.Push($"Information : {account}'s notes has been set to {notes}");
          account.PasswordUpdateReminderDelay = passwordUpdateReminderDelay;
-         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiers)})'s password update reminder delay has been set to {passwordUpdateReminderDelay}");
+         expectedLogs.Push($"Information : {account}'s password update reminder delay has been set to {passwordUpdateReminderDelay}");
          account.Options = options;
          account.Options = options;
-         expectedLogs.Push($"Information : Account {newAccountLabel} ({string.Join(", ", newIdentifiers)})'s options has been set to {options}");
+         expectedLogs.Push($"Information : {account}'s options has been set to {options}");
 
          databaseCreated.Close();
          expectedLogs.Push($"Warning : User {username} logged out without saving");

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.Core.Utils;
-using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -19,7 +19,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get => Database.Get(Label);
          set => Label = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
             fieldName: nameof(Label),
             needsReview: false,
             oldValue: Label,
@@ -31,7 +30,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get => Database.Get(Identifiers);
          set => Identifiers = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
             fieldName: nameof(Identifiers),
             needsReview: true,
             oldValue: Identifiers,
@@ -67,7 +65,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
                   }
 
                   _ = Database.AutoSave.UpdateValue(ItemId,
-                     itemName: ToString(),
                      fieldName: nameof(Password),
                      needsReview: true,
                      oldValue: oldPasswords,
@@ -84,7 +81,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get => Database.Get(Notes);
          set => Notes = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
             fieldName: nameof(Notes),
             needsReview: false,
             oldValue: Notes,
@@ -96,7 +92,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get => Database.Get(PasswordUpdateReminderDelay);
          set => PasswordUpdateReminderDelay = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
             fieldName: nameof(PasswordUpdateReminderDelay),
             needsReview: false,
             oldValue: PasswordUpdateReminderDelay,
@@ -108,7 +103,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get => Database.Get(Options);
          set => Options = Database.AutoSave.UpdateValue(ItemId,
-            itemName: ToString(),
             fieldName: nameof(Options),
             needsReview: false,
             oldValue: Options,
@@ -157,7 +151,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          switch (change.ActionType)
          {
-            case Change.Type.Update:
+            case LogEventType.ItemUpdated:
                switch (change.FieldName)
                {
                   case nameof(Label):
@@ -184,7 +178,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                }
                break;
             default:
-               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(Change.Type));
+               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(LogEventType));
          }
       }
 

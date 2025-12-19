@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
@@ -21,9 +22,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath("missing_import.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedLogs = new();
@@ -53,9 +51,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath($"{username}/import.txt", createIfNotExists: true);
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedLogs = new();
@@ -85,9 +80,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath($"import_noData.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedLogs = new();
@@ -117,9 +109,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath($"import.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedLogs = new();
@@ -151,9 +140,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath($"import_blanckService.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedLogs = new();
@@ -183,9 +169,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath("import.csv");
          string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -299,9 +282,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath($"import_MissingHearder.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedLogs = new();
@@ -331,9 +311,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath($"import_MissingCollumn.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedLogs = new();
@@ -363,9 +340,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath("import.json");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedLogs = new();
@@ -469,9 +443,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath($"import_WrongFormat.json");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedLogs = new();
@@ -502,9 +473,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath($"import.json");
          string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export.json", createIfNotExists: true);
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -537,9 +505,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string autoSaveFile = UnitTestsHelper.ComputeAutoSaveFilePath();
-         string logFile = UnitTestsHelper.ComputeLogFilePath();
          string importFile = UnitTestsHelper.GetTestFilePath($"import.json");
          string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export.txt");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
