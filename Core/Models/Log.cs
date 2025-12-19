@@ -1,5 +1,4 @@
-﻿using System.Security.AccessControl;
-using Upsilon.Apps.Passkey.Core.Utils;
+﻿using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -58,7 +57,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public override string ToString()
       {
-         return $"{DateTimeTicks}|{((int)EventType)}|{(NeedsReview ? "1" : "")}|{string.Join("|", Data)}";
+         return $"{DateTimeTicks}|{(int)EventType}|{(NeedsReview ? "1" : "")}|{string.Join("|", Data)}";
       }
 
       private string _buildMessage()

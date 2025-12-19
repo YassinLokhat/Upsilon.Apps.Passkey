@@ -140,10 +140,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             using Stream stream = zipEntry.Open();
             using StreamReader reader = new(stream, Encoding.UTF8);
 
-            if (passkeys.Length != 0)
-               content = _cryptographicCenter.DecryptSymmetrically(_decompressString(reader.ReadToEnd()), passkeys);
-            else
-               content = _decompressString(reader.ReadToEnd());
+            content = passkeys.Length != 0
+               ? _cryptographicCenter.DecryptSymmetrically(_decompressString(reader.ReadToEnd()), passkeys)
+               : _decompressString(reader.ReadToEnd());
          }
 
          Lock();

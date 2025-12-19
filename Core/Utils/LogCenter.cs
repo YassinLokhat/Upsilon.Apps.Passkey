@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using Upsilon.Apps.Passkey.Core.Models;
+﻿using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 

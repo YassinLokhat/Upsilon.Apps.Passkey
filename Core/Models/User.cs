@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -217,7 +216,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (_clipboardLeftTime == 0)
             {
-               Database.ClipboardManager.RemoveAllOccurence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)]);
+               _ = Database.ClipboardManager.RemoveAllOccurence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)]);
                _clipboardLeftTime = CleaningClipboardTimeout;
             }
          }
