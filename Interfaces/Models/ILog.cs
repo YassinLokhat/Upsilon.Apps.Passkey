@@ -23,11 +23,6 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       bool NeedsReview { get; set; }
 
       /// <summary>
-      /// The raw event data.
-      /// </summary>
-      string[] Data { get; }
-
-      /// <summary>
       /// The event message.
       /// </summary>
       string Message { get; }

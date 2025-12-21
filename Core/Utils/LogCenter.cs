@@ -22,13 +22,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public void AddLog(string[] data, LogEventType eventType, bool needsReview)
       {
-         Log log = new()
-         {
-            DateTimeTicks = DateTime.Now.Ticks,
-            Data = data,
-            EventType = eventType,
-            NeedsReview = needsReview,
-         };
+         Log log = new(DateTime.Now.Ticks, eventType, data, needsReview);
 
          Logs.Add(log);
          LogList.Add(Database.CryptographyCenter.EncryptAsymmetrically(log.ToString(), PublicKey));

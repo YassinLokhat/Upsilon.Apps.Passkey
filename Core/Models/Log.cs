@@ -14,17 +14,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public bool NeedsReview { get; set; } = true;
 
-      public string[] Data { get; set; } = [];
-
       public string Message => _buildMessage();
 
       #endregion
 
       public long DateTimeTicks { get; set; }
+      public string[] Data { get; set; } = [];
 
       private readonly Database? _database;
 
-      public Log() { }
+      public Log(long dateTimeTicks, LogEventType eventType, string[] data, bool needsReview)
+      {
+         DateTimeTicks = dateTimeTicks;
+         EventType = eventType;
+         Data = data;
+         NeedsReview = needsReview;
+      }
 
       public Log(Database database, string log)
       {
