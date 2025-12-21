@@ -83,6 +83,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          HotkeyHelper.HotkeyPressed += _hotkeyHelper_HotkeyPressed;
 
          DarkMode.SetDarkMode(this);
+
+         // TODO : To be removed
+         UserLogsView.ShowLogsDialog(this);
       }
 
       private void _hotkeyHelper_HotkeyPressed(object? sender, HotkeyEventArgs e)
@@ -183,6 +186,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
       {
          _viewModel.ServiceFilter = _viewModel.TextFilter = _viewModel.IdentifierFilter = string.Empty;
+      }
+
+      private void _showLogs_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         UserLogsView.ShowLogsDialog(this);
       }
    }
 }
