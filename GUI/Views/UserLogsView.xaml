@@ -4,16 +4,18 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.Views"
+        xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.ViewModels"
+        d:DataContext="{d:DesignInstance Type=viewmodels:UserLogsViewModel}"
         mc:Ignorable="d"
         WindowState="Maximized"
         WindowStartupLocation="CenterScreen"
-        Title="Logs"
+        Title="{Binding Title}"
         MinHeight="700"
         MinWidth="1300">
     <Grid>
         <StackPanel>
             <GroupBox Header="Filters">
-                <Grid Background="Black">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
@@ -28,19 +30,24 @@
 
                     <Label Grid.Column="0"
                            Content="From :"/>
-                    <DatePicker Grid.Column="1"/>
+                    <DatePicker Grid.Column="1"
+                                SelectedDate="{Binding FromDateFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Column="2"
                            Content="To :"/>
-                    <DatePicker Grid.Column="3"/>
+                    <DatePicker Grid.Column="3"
+                                SelectedDate="{Binding ToDateFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Column="4"
                            Content="Event type :"/>
-                    <ComboBox Grid.Column="5">
-                        <ComboBoxItem>1</ComboBoxItem>
-                        <ComboBoxItem>2</ComboBoxItem>
-                    </ComboBox>
+                    <ComboBox Name="_eventType_CB"
+                              SelectedItem="{Binding ReadableEventType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Grid.Column="5"/>
                     <Label Grid.Column="6"
                            Content="Message :"/>
-                    <TextBox Grid.Column="7"/>
+                    <TextBox Grid.Column="7"
+                             Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Button Grid.Column="8"
+                            Content="✕"
+                            Click="_filterClear_Button_Click"/>
                 </Grid>
             </GroupBox>
         </StackPanel>

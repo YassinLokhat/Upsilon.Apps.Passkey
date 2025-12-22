@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+﻿using System.Windows;
+using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
+using Upsilon.Apps.Passkey.GUI.ViewModels;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
@@ -18,9 +11,18 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    /// </summary>
    public partial class UserLogsView : Window
    {
+      private readonly UserLogsViewModel _viewModel;
+
       private UserLogsView()
       {
          InitializeComponent();
+
+         DataContext = _viewModel = new();
+
+         _eventType_CB.ItemsSource = Enum.GetValues<LogEventType>()
+            .Cast<LogEventType>()
+            .Select(x => x.ToReadableString());
+         _eventType_CB.SelectedIndex = 0;
 
          Loaded += _userLogsView_Loaded;
       }
@@ -40,5 +42,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _userLogsView.ShowDialog();
       }
 
+      private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
+      {
+         _viewModel.FromDateFilter = _viewModel.ToDateFilter = DateTime.Now.Date.AddDays(1);
+         _viewModel.EventType = LogEventType.None;
+         _viewModel.Message = string.Empty;
+      }
    }
 }
