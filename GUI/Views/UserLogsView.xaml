@@ -13,7 +13,11 @@
         MinHeight="700"
         MinWidth="1300">
     <Grid>
-        <StackPanel>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
             <GroupBox Header="Filters">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -25,6 +29,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
@@ -45,11 +50,44 @@
                            Content="Message :"/>
                     <TextBox Grid.Column="7"
                              Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                    <Button Grid.Column="8"
+                    <CheckBox Grid.Column="8"
+                              Content="Needs review only"
+                              IsChecked="{Binding NeedsReview}"/>
+                    <Button Grid.Column="9"
                             Content="✕"
                             Click="_filterClear_Button_Click"/>
                 </Grid>
             </GroupBox>
         </StackPanel>
+        <ListBox Grid.Row="1"
+                 Name="_logList_LB"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0"
+                               Content="{Binding DateTime}"
+                               Background="Transparent"/>
+                        <CheckBox Grid.Column="1"
+                                  IsChecked="{Binding NeedsReview}"
+                                  Content="{Binding NeedsReviewString}"/>
+                        <Label Grid.Column="2"
+                               Content="{Binding EventType}"
+                               Background="Transparent"/>
+                        <TextBox Grid.Column = "3"
+                                 Text="{Binding Message, Mode=OneWay}"
+                                 IsReadOnly="True"
+                                 TextWrapping="Wrap"
+                                 Background="Transparent"/>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
     </Grid>
 </Window>

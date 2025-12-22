@@ -71,7 +71,21 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          }
       } = "";
 
-      public ObservableCollection<ILog> Logs { get; set; } = [];
+      public bool NeedsReview
+      {
+         get;
+         set
+         {
+            if (field != value)
+            {
+               field = value;
+               OnPropertyChanged(nameof(NeedsReview));
+               RefreshFilters();
+            }
+         }
+      } = false;
+
+      public ObservableCollection<LogViewModel> Logs { get; set; } = [];
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -83,6 +97,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       public UserLogsViewModel()
       {
          Title = MainViewModel.AppTitle + " - Logs";
+         
+         RefreshFilters();
       }
 
       public void RefreshFilters()
@@ -91,37 +107,15 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 
          if (MainViewModel.Database?.Logs is null) return;
 
-         ILog[] logs = [.. MainViewModel.Database.Logs
-            .Where(x => _meetsConditions(x))
+         LogViewModel[] logs = [.. MainViewModel.Database.Logs
+            .Select(x => new LogViewModel(x))
+            .Where(x => x.MeetsConditions(FromDateFilter, ToDateFilter, EventType, Message, NeedsReview))
             .OrderByDescending(x => x.DateTime)];
          
-         foreach (ILog log in logs)
+         foreach (LogViewModel log in logs)
          {
             Logs.Add(log);
          }
-      }
-
-      private bool _meetsConditions(ILog log)
-      {
-         if (FromDateFilter.Date <= DateTime.Now.Date
-            && log.DateTime.Date < FromDateFilter.Date)
-         {
-            return false;
-         }
-
-         if (ToDateFilter.Date <= DateTime.Now.Date
-            && log.DateTime.Date > ToDateFilter.Date)
-         {
-            return false;
-         }
-
-         if (EventType != LogEventType.None
-            && log.EventType != EventType)
-         {
-            return false;
-         }
-
-         return log.Message.Contains(Message, StringComparison.CurrentCultureIgnoreCase);
       }
    }
 }

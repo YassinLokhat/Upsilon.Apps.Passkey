@@ -24,6 +24,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             .Select(x => x.ToReadableString());
          _eventType_CB.SelectedIndex = 0;
 
+         _logList_LB.ItemsSource = _viewModel.Logs;
+
          Loaded += _userLogsView_Loaded;
       }
 
@@ -47,6 +49,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _viewModel.FromDateFilter = _viewModel.ToDateFilter = DateTime.Now.Date.AddDays(1);
          _viewModel.EventType = LogEventType.None;
          _viewModel.Message = string.Empty;
+         _viewModel.NeedsReview = false;
       }
    }
 }
