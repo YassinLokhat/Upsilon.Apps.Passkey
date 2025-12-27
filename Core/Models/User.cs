@@ -200,8 +200,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (SessionLeftTime == 0)
             {
-               Database.Logs.AddLog(data: [Username],
+               Database.Logs.AddLog(itemId: ItemId,
                   eventType: LogEventType.LoginSessionTimeoutReached,
+                  data: [Username],
                   needsReview: true);
                Database.Close(logCloseEvent: true, loginTimeoutReached: true);
 

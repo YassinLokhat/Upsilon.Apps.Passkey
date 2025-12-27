@@ -142,7 +142,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       {
          if (sender is not VisiblePasswordBox passwordBox) return;
 
-         passwordBox.Password = ((PasswordViewModel)((ContentPresenter)passwordBox.TemplatedParent).Content).Password;
+         try
+         {
+            passwordBox.Password = ((PasswordViewModel)((ContentPresenter)passwordBox.TemplatedParent).Content).Password;
+         }
+         catch { }
       }
 
       private void _copyIdentifier_Clicked(object sender, RoutedEventArgs e)

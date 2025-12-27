@@ -10,18 +10,18 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 {
    internal class LogViewModel(ILog log) : INotifyPropertyChanged
    {
-      private readonly ILog _log = log;
-      public string DateTime => _log.DateTime.ToString("yyyy-MM-dd HH:mm");
-      public string EventType => _log.EventType.ToReadableString();
-      public string Message => _log.Message;
+      public readonly ILog Log = log;
+      public string DateTime => Log.DateTime.ToString("yyyy-MM-dd HH:mm");
+      public string EventType => Log.EventType.ToReadableString();
+      public string Message => Log.Message;
       public bool NeedsReview
       {
-         get => _log.NeedsReview;
+         get => Log.NeedsReview;
          set
          {
-            if (_log.NeedsReview != value)
+            if (Log.NeedsReview != value)
             {
-               _log.NeedsReview = value;
+               Log.NeedsReview = value;
                OnPropertyChanged(nameof(NeedsReview));
                OnPropertyChanged(nameof(NeedsReviewString));
             }
@@ -39,30 +39,30 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       public bool MeetsConditions(DateTime fromDateFilter, DateTime toDateFilter, LogEventType eventType, string message, bool needsReview)
       {
          if (fromDateFilter <= System.DateTime.Now.Date
-            && _log.DateTime.Date < fromDateFilter)
+            && Log.DateTime.Date < fromDateFilter)
          {
             return false;
          }
 
          if (toDateFilter <= System.DateTime.Now.Date
-            && _log.DateTime.Date > toDateFilter)
+            && Log.DateTime.Date > toDateFilter)
          {
             return false;
          }
 
          if (eventType != LogEventType.None
-            && _log.EventType != eventType)
+            && Log.EventType != eventType)
          {
             return false;
          }
 
          if (needsReview
-            && !_log.NeedsReview)
+            && !Log.NeedsReview)
          {
             return false;
          }
 
-         return _log.Message.Contains(message, StringComparison.CurrentCultureIgnoreCase);
+         return Log.Message.Contains(message, StringComparison.CurrentCultureIgnoreCase);
       }
    }
 }

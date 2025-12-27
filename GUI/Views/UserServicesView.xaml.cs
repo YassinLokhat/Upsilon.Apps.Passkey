@@ -5,6 +5,7 @@ using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
@@ -87,7 +88,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          DarkMode.SetDarkMode(this);
 
          // TODO : To be removed
-         UserLogsView.ShowLogsDialog(this);
+         string? itemId = UserLogsView.ShowLogsDialog(this);
+
+         if (itemId is null) return;
+
+         _goToItem(itemId);
       }
 
       private void _hotkeyHelper_HotkeyPressed(object? sender, HotkeyEventArgs e)
@@ -112,6 +117,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       }
 
       private void _userSettings_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         _openSettings();
+      }
+
+      private void _openSettings()
       {
          UserSettingsView.ShowUserSettings(this);
          _viewModel.RefreshFilters();
@@ -187,12 +197,60 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
       {
+         _clearFilter();
+      }
+
+      private void _clearFilter()
+      {
          _viewModel.ServiceFilter = _viewModel.TextFilter = _viewModel.IdentifierFilter = string.Empty;
       }
 
       private void _showLogs_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         UserLogsView.ShowLogsDialog(this);
+         string? itemId = UserLogsView.ShowLogsDialog(this);
+
+         if (itemId is null) return;
+
+         _goToItem(itemId);
+      }
+
+      private void _goToItem(string itemId)
+      {
+         if (MainViewModel.Database?.User is null) return;
+
+         if (string.IsNullOrEmpty(itemId)
+            || MainViewModel.Database.User.ItemId == itemId)
+         {
+            _openSettings();
+            return;
+         }
+
+         _clearFilter();
+
+         switch (itemId[0])
+         {
+            case 'S':
+               _services_LB.SelectedItem = _viewModel.Services.FirstOrDefault(x => x.Service.ItemId == itemId);
+               break;
+            case 'A':
+               _services_LB.SelectedItem = _viewModel.Services.FirstOrDefault(x => x.Service.Accounts.Any(y => y.ItemId == itemId));
+               if (!_service_SV.SelectAccount(itemId))
+               {
+                  _services_LB.SelectedItem = null;
+               }
+               break;
+            default:
+               break;
+         }
+
+         if (_services_LB.SelectedItem is not null)
+         {
+            _services_LB.ScrollIntoView(_services_LB.SelectedItem);
+         }
+         else
+         {
+            MessageBox.Show($"The item '{itemId}' was not found.\nIt has been deleted.", "Item not found", MessageBoxButton.OK, MessageBoxImage.Warning);
+         }
       }
    }
 }

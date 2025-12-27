@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.Core.Utils;
+﻿using System.Security.Cryptography.X509Certificates;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -9,6 +10,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
       #region ILog interface
 
       public DateTime DateTime => new(DateTimeTicks);
+
+      public string ItemId { get; } = string.Empty;
 
       public LogEventType EventType { get; set; } = LogEventType.None;
 
@@ -21,9 +24,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public long DateTimeTicks { get; set; }
       public string[] Data { get; set; } = [];
 
-      public Log(long dateTimeTicks, LogEventType eventType, string[] data, bool needsReview)
+      public Log(long dateTimeTicks, string itemId, LogEventType eventType, string[] data, bool needsReview)
       {
          DateTimeTicks = dateTimeTicks;
+         ItemId = itemId;
          EventType = eventType;
          Data = data;
          NeedsReview = needsReview;
@@ -39,26 +43,43 @@ namespace Upsilon.Apps.Passkey.Core.Models
             DateTimeTicks = ticks;
          }
 
-         if (info.Length > 1
-            && byte.TryParse(info[1], out byte eventType))
+         if (info.Length > 1)
+         {
+            ItemId = info[1];
+         }
+
+         if (info.Length > 2
+            && byte.TryParse(info[2], out byte eventType))
          {
             EventType = (LogEventType)eventType;
          }
 
-         if (info.Length > 2)
-         {
-            NeedsReview = !string.IsNullOrEmpty(info[2]);
-         }
-
          if (info.Length > 3)
          {
-            Data = info[3..];
+            NeedsReview = !string.IsNullOrEmpty(info[3]);
+         }
+
+         if (info.Length > 4)
+         {
+            log = string.Join("|", info[4..]);
+            log = log.Replace("|", "/|");
+            log = log.Replace("\\/|", "\\|");
+            info = log.Split("/|");
+            Data = [.. info.Select(x => x.Replace("\\|", "|"))];
          }
       }
 
       public override string ToString()
       {
-         return $"{DateTimeTicks}|{(int)EventType}|{(NeedsReview ? "1" : "")}|{string.Join("|", Data)}";
+         string log = $"{DateTimeTicks}|{ItemId}|{(int)EventType}|{(NeedsReview ? "1" : "")}";
+
+         string[] data = [.. Data.Select(x => x.Replace("|", "\\|"))];
+         if (data.Length != 0)
+         {
+            log += $"|{string.Join("|", data)}";
+         }
+
+         return log;
       }
 
       private string _buildMessage()

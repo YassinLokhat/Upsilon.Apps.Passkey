@@ -54,8 +54,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             if (ex is WrongPasswordException passwordException)
             {
-               Logs.AddLog(data: [Username, passwordException.PasswordLevel.ToString()],
+               Logs.AddLog(itemId: string.Empty,
                   eventType: LogEventType.LoginFailed,
+                  data: [Username, passwordException.PasswordLevel.ToString()],
                   needsReview: true);
             }
          }
@@ -65,8 +66,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
             User.Database = this;
 
             Logs.LoadStringLogs();
-            Logs.AddLog(data: [Username],
+            Logs.AddLog(itemId: string.Empty,
                eventType: LogEventType.UserLoggedIn,
+               data: [Username],
                needsReview: false);
 
             if (FileLocker.Exists(AutoSaveFileEntry))
@@ -96,8 +98,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public bool ImportFromFile(string filePath)
       {
          _save(logSaveEvent: true);
-         Logs.AddLog(data: [filePath],
+         Logs.AddLog(itemId: string.Empty,
             eventType: LogEventType.ImportingDataStarted,
+            data: [filePath],
             needsReview: true);
 
          string importContent = string.Empty;
@@ -126,15 +129,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (string.IsNullOrWhiteSpace(errorLog))
          {
-            Logs.AddLog(data: [],
+            Logs.AddLog(itemId: string.Empty,
                eventType: LogEventType.ImportingDataSucceded,
+               data: [],
                needsReview: true);
             _save(logSaveEvent: true);
          }
          else
          {
-            Logs.AddLog(data: [errorLog],
+            Logs.AddLog(itemId: string.Empty,
                eventType: LogEventType.ImportingDataFailed,
+               data: [errorLog],
                needsReview: true);
          }
 
@@ -144,8 +149,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public bool ExportToFile(string filePath)
       {
          _save(logSaveEvent: true);
-         Logs.AddLog(data: [filePath],
+         Logs.AddLog(itemId: string.Empty,
             eventType: LogEventType.ExportingDataStarted,
+            data: [filePath],
             needsReview: true);
 
          string errorLog = string.Empty;
@@ -169,14 +175,16 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (string.IsNullOrWhiteSpace(errorLog))
          {
-            Logs.AddLog(data: [],
+            Logs.AddLog(itemId: string.Empty,
                eventType: LogEventType.ExportingDataSucceded,
+               data: [],
                needsReview: true);
          }
          else
          {
-            Logs.AddLog(data: [errorLog],
+            Logs.AddLog(itemId: string.Empty,
                eventType: LogEventType.ExportingDataFailed,
+               data: [errorLog],
                needsReview: true);
          }
 
@@ -282,8 +290,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
             Passkeys = [.. passkeys],
          };
 
-         database.Logs.AddLog(data: [username],
+         database.Logs.AddLog(itemId: string.Empty,
             eventType: LogEventType.DatabaseCreated,
+            data: [username],
             needsReview: false);
 
          database._save(logSaveEvent: false);
@@ -306,8 +315,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
             FileMode.Open,
             username);
 
-         database.Logs.AddLog(data: [username],
+         database.Logs.AddLog(itemId: string.Empty,
             eventType: LogEventType.DatabaseOpened,
+            data: [username],
             needsReview: false);
 
          return database;
@@ -336,8 +346,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (logSaveEvent)
          {
-            Logs.AddLog(data: [Username],
+            Logs.AddLog(itemId: string.Empty,
                eventType: LogEventType.DatabaseSaved,
+               data: [Username],
                needsReview: false);
          }
 
@@ -369,13 +380,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
                   AutoSave.Clear(deleteFile: true);
                }
 
-               Logs.AddLog(data: [Username, needsReview ? "1" : string.Empty],
+               Logs.AddLog(itemId: string.Empty,
                   eventType: LogEventType.UserLoggedOut,
+                  data: [Username, needsReview ? "1" : string.Empty],
                   needsReview);
             }
 
-            Logs.AddLog(data: [Username],
+            Logs.AddLog(itemId: string.Empty,
                eventType: LogEventType.DatabaseClosed,
+               data: [Username],
                needsReview: false);
          }
 
@@ -416,8 +429,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
                break;
          }
 
-         Logs.AddLog(data: [Username],
+         Logs.AddLog(itemId: string.Empty,
             eventType: (LogEventType)mergeAutoSave,
+            data: [Username],
             needsReview: true);
       }
 

@@ -1,8 +1,11 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
+using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
@@ -12,6 +15,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    public partial class UserLogsView : Window
    {
       private readonly UserLogsViewModel _viewModel;
+      public string ItemId { get; private set; } = string.Empty;
 
       private UserLogsView()
       {
@@ -34,14 +38,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          DarkMode.SetDarkMode(this);
       }
 
-      public static void ShowLogsDialog(Window owner)
+      public static string? ShowLogsDialog(Window owner)
       {
          UserLogsView _userLogsView = new()
          {
             Owner = owner,
          };
 
-         _userLogsView.ShowDialog();
+         return (_userLogsView.ShowDialog() ?? false) ? _userLogsView.ItemId : null;
       }
 
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
@@ -50,6 +54,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _viewModel.EventType = LogEventType.None;
          _viewModel.Message = string.Empty;
          _viewModel.NeedsReview = false;
+      }
+
+      private void _viewItemButton_Click(object sender, RoutedEventArgs e)
+      {
+         ItemId = _viewModel.Logs[_logs_DGV.SelectedIndex].Log.ItemId;
+
+         DialogResult = true;
       }
    }
 }

@@ -97,12 +97,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
          _mergeChanges(changeKey, currentChange);
 
          Database.FileLocker.Save(this, Database.AutoSaveFileEntry, Database.Passkeys);
+         string itemName = string.Empty;
 
          if (itemId == Database.User?.ItemId)
          {
             if (Database.User is not null)
             {
-               itemId = Database.User.ToString();
+               itemName = Database.User.ToString();
             }
          }
          else if (itemId.StartsWith('S'))
@@ -111,7 +112,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (s is not null)
             {
-               itemId = s.ToString();
+               itemName = s.ToString();
             }
          }
          else if (itemId.StartsWith('A'))
@@ -120,12 +121,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (a is not null)
             {
-               itemId = a.ToString();
+               itemName = a.ToString();
             }
          }
 
-         Database.Logs.AddLog(data: [itemId, fieldName, readableValue],
+         Database.Logs.AddLog(itemId: itemId,
             eventType: action,
+            data: [itemName, fieldName, readableValue],
             needsReview);
       }
 

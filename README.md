@@ -146,6 +146,7 @@ classDiagram
         class ILog {
             <<interface>>
             +DateTime : DateTime
+            +ItemId : string
             +Message : string
             +NeedsReview : bool
         }

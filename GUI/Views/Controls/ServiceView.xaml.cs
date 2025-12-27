@@ -86,5 +86,17 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
             },
          }.Start();
       }
+
+      public bool SelectAccount(string itemId)
+      {
+         AccountViewModel? account = _viewModel?.Accounts.FirstOrDefault(x => x.Account.ItemId == itemId);
+
+         if (account is null) return false;
+
+         _accounts_LB.SelectedItem = account;
+         _accounts_LB.ScrollIntoView(account);
+
+         return true;
+      }
    }
 }

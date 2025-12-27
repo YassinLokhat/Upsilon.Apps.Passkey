@@ -13,6 +13,11 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       DateTime DateTime { get; }
 
       /// <summary>
+      /// The item id rizing the event.
+      /// </summary>
+      string ItemId { get; }
+
+      /// <summary>
       /// The event type.
       /// </summary>
       LogEventType EventType { get; }

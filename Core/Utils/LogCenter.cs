@@ -20,9 +20,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string PublicKey { get; set; } = string.Empty;
 
-      public void AddLog(string[] data, LogEventType eventType, bool needsReview)
+      public void AddLog(string itemId, LogEventType eventType, string[] data, bool needsReview)
       {
-         Log log = new(DateTime.Now.Ticks, eventType, data, needsReview);
+         Log log = new(DateTime.Now.Ticks, itemId, eventType, data, needsReview);
 
          Logs.Add(log);
          LogList.Add(Database.CryptographyCenter.EncryptAsymmetrically(log.ToString(), PublicKey));
