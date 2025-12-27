@@ -27,7 +27,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          Logs.Add(log);
          LogList.Add(Database.CryptographyCenter.EncryptAsymmetrically(log.ToString(), PublicKey));
 
-         _save();
+         Save(rebuildStringLogs: false);
       }
 
       internal void LoadStringLogs()
@@ -42,8 +42,17 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
       }
 
-      private void _save()
+      public void Save(bool rebuildStringLogs)
       {
+         if (rebuildStringLogs)
+         {
+            LogList.Clear();
+            LogList.AddRange(Logs
+               .OrderBy(x => x.DateTime)
+               .Cast<Log>()
+               .Select(x => Database.CryptographyCenter.EncryptAsymmetrically(x.ToString(), PublicKey)));
+         }
+
          Database.FileLocker.Save(this, Database.LogFileEntry);
       }
    }

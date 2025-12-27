@@ -355,7 +355,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (User is null) throw new NullReferenceException(nameof(User));
 
          Logs.Username = User.Username;
-         FileLocker.Save(Logs, LogFileEntry, [CryptographyCenter.GetHash(User.Username)]);
+         Logs.Save(rebuildStringLogs: true);
       }
 
       internal void Close(bool logCloseEvent, bool loginTimeoutReached)
