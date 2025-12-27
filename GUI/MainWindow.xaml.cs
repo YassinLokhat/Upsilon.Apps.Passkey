@@ -90,10 +90,13 @@ namespace Upsilon.Apps.Passkey.GUI
       {
          if (e.Key == System.Windows.Input.Key.Enter)
          {
+            _timer.Stop();
+
             if (sender == _username_TB)
             {
                if (string.IsNullOrEmpty(_username_TB.Text))
                {
+                  _timer.Start();
                   return;
                }
 
@@ -128,6 +131,7 @@ namespace Upsilon.Apps.Passkey.GUI
             {
                if (string.IsNullOrEmpty(_password_PB.Password))
                {
+                  _timer.Start();
                   return;
                }
 
@@ -150,7 +154,6 @@ namespace Upsilon.Apps.Passkey.GUI
             }
 
             _password_PB.Password = string.Empty;
-            _timer.Stop();
             _timer.Start();
          }
          else if (e.Key == System.Windows.Input.Key.Escape)

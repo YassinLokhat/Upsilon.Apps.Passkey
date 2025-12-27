@@ -21,8 +21,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public long DateTimeTicks { get; set; }
       public string[] Data { get; set; } = [];
 
-      private readonly Database? _database;
-
       public Log(long dateTimeTicks, LogEventType eventType, string[] data, bool needsReview)
       {
          DateTimeTicks = dateTimeTicks;
@@ -31,10 +29,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
          NeedsReview = needsReview;
       }
 
-      public Log(Database database, string log)
+      public Log(string log)
       {
-         _database = database;
-
          string[] info = log.Split('|');
 
          if (info.Length > 0

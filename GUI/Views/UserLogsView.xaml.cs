@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             .Select(x => x.ToReadableString());
          _eventType_CB.SelectedIndex = 0;
 
-         _logList_LB.ItemsSource = _viewModel.Logs;
+         _logs_DGV.ItemsSource = _viewModel.Logs;
 
          Loaded += _userLogsView_Loaded;
       }

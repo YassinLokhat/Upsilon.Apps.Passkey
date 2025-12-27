@@ -59,35 +59,58 @@
                 </Grid>
             </GroupBox>
         </StackPanel>
-        <ListBox Grid.Row="1"
-                 Name="_logList_LB"
-                 ScrollViewer.VerticalScrollBarVisibility="Auto">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="110"/>
-                            <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0"
-                               Content="{Binding DateTime}"
-                               Background="Transparent"/>
-                        <CheckBox Grid.Column="1"
-                                  IsChecked="{Binding NeedsReview}"
-                                  Content="{Binding NeedsReviewString}"/>
-                        <Label Grid.Column="2"
-                               Content="{Binding EventType}"
-                               Background="Transparent"/>
-                        <TextBox Grid.Column = "3"
-                                 Text="{Binding Message, Mode=OneWay}"
-                                 IsReadOnly="True"
-                                 TextWrapping="Wrap"
-                                 Background="Transparent"/>
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+        <DataGrid Name="_logs_DGV" Grid.Row="1" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Date and Time"
+                                    IsReadOnly="True"
+                                    Width="Auto"
+                                    Binding="{Binding DateTime}"
+                                    CanUserSort="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="Margin" Value="5"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridCheckBoxColumn Header="Needs review"
+                                        Width="Auto"
+                                        Binding="{Binding NeedsReview}"
+                                        CanUserSort="True">
+                    <DataGridCheckBoxColumn.ElementStyle>
+                        <Style TargetType="CheckBox">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                            <Setter Property="Margin" Value="5"/>
+                        </Style>
+                    </DataGridCheckBoxColumn.ElementStyle>
+                </DataGridCheckBoxColumn>
+                <DataGridTextColumn Header="Event type"
+                                    IsReadOnly="True"
+                                    Width="Auto"
+                                    Binding="{Binding EventType}"
+                                    CanUserSort="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="Margin" Value="5"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Message"
+                                    Width="*"
+                                    IsReadOnly="True"
+                                    Binding="{Binding Message}"
+                                    CanUserSort="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="TextWrapping" Value="Wrap" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="Margin" Value="5"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Window>

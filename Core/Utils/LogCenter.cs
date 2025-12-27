@@ -38,7 +38,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          foreach (string log in LogList)
          {
-            Logs.Add(new Log(Database, Database.CryptographyCenter.DecryptAsymmetrically(log, Database.User.PrivateKey)));
+            Logs.Add(new Log(Database.CryptographyCenter.DecryptAsymmetrically(log, Database.User.PrivateKey)));
          }
       }
 
