@@ -33,6 +33,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             _services_LB.SelectedIndex = 0;
          }
 
+         _serviceFilter_TB.Focus();
+
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          MainViewModel.Database.WarningDetected += _database_WarningDetected;
          Loaded += _userServicesView_Loaded;

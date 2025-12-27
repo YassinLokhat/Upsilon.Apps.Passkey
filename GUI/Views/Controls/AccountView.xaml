@@ -53,6 +53,7 @@
                             <ListBox Grid.Row="0"
                                  Grid.Column="0"
                                  Grid.ColumnSpan="6"
+                                 HorizontalContentAlignment="Stretch"
                                  Name="_identifiers_LB">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
@@ -118,6 +119,7 @@
                             <ListBox Grid.Row="1"
                                  Grid.Column="0"
                                  Grid.ColumnSpan="3"
+                                 HorizontalContentAlignment="Stretch"
                                  Name="_passwords_LB">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
