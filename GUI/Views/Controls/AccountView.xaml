@@ -57,10 +57,9 @@
                                  Name="_identifiers_LB">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBox MinWidth="250"
-                                                 Background="{Binding IdentifierBackground}"
-                                                 FontFamily="Courier New"
-                                                 Text="{Binding Identifier, Mode=TwoWay}"/>
+                                        <local:AutoCompleteTextBox ItemsSource="{Binding IdentifierAutoCompleteList}"
+                                                                   Background="{Binding IdentifierBackground}"
+                                                                   Text="{Binding Identifier, Mode=TwoWay}"/>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>

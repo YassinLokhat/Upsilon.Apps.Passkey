@@ -104,6 +104,7 @@
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
         <Setter Property="Margin" Value="5"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FontFamily" Value="Courier New"/>
     </Style>
 
     <Style TargetType="PasswordBox">

@@ -11,6 +11,12 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       private readonly IAccount _account;
 
       public Brush IdentifierBackground => _account.HasChanged("Identifiers") ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public string[] IdentifierAutoCompleteList => _account.Database.User?.Services
+         .SelectMany(x => x.Accounts)
+         .SelectMany(x => x.Identifiers)
+         .Distinct()
+         .OrderBy(x => x)
+         .ToArray() ?? [];
 
       public string Identifier
       {

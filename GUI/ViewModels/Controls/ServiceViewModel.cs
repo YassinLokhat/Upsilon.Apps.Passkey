@@ -73,7 +73,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          Service = service;
 
-         IAccount[] accounts = Service.Accounts.Where(x => x.MeetsFilterConditions(identifierFilter, textFilter)).ToArray();
+         IAccount[] accounts = [.. Service.Accounts.Where(x => x.MeetsFilterConditions(identifierFilter, textFilter))];
 
          if (accounts.Length == 0)
          {
