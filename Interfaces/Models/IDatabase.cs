@@ -98,12 +98,6 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       void Close();
 
       /// <summary>
-      /// Check if the database has changed.
-      /// </summary>
-      /// <returns>True if the database changed, False else.</returns>
-      bool HasChanged();
-
-      /// <summary>
       /// Check if the given item has changed.
       /// </summary>
       /// <param name="itemId">The item id to check.</param>

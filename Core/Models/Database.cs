@@ -89,8 +89,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Close() => Dispose();
 
-      public bool HasChanged() => User is not null && HasChanged(User.ItemId);
-
       public bool HasChanged(string itemId) => AutoSave.Any(itemId);
 
       public bool HasChanged(string itemId, string fieldName) => AutoSave.Any(itemId, fieldName);

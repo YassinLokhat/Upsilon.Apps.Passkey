@@ -228,7 +228,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          _clipboardLeftTime = CleaningClipboardTimeout;
       }
 
-      public void Apply(Change change)
+      internal void Apply(Change change)
       {
          switch (change.ItemId[0])
          {
@@ -295,5 +295,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       }
 
       public override string ToString() => $"User {Database.Username}";
+
+      public bool HasChanged() => Database.HasChanged(ItemId) || Services.Any(x => x.HasChanged());
    }
 }

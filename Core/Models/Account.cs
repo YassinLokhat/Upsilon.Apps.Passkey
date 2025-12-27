@@ -147,7 +147,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal bool PasswordLeaked => Options.ContainsFlag(AccountOption.WarnIfPasswordLeaked) && Database.PasswordFactory.PasswordLeaked(Password);
 
-      public void Apply(Change change)
+      internal void Apply(Change change)
       {
          switch (change.ActionType)
          {
@@ -193,5 +193,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          return account + $"({string.Join(", ", Identifiers)})";
       }
+
+      public bool HasChanged() => Database.HasChanged(ItemId);
    }
 }

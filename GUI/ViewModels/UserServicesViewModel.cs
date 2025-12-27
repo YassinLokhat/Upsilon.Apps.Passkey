@@ -137,9 +137,9 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       {
          string title = _defaultTitle;
 
-         if (MainViewModel.Database is not null)
+         if (MainViewModel.Database?.User is not null)
          {
-            if (MainViewModel.Database.HasChanged())
+            if (MainViewModel.Database.User.HasChanged())
             {
                title += " - *";
             }

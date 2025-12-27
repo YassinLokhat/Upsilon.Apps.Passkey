@@ -121,7 +121,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public string Url { get; set; } = string.Empty;
       public string Notes { get; set; } = string.Empty;
 
-      public void Apply(Change change)
+      internal void Apply(Change change)
       {
          switch (change.ActionType)
          {
@@ -156,5 +156,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       }
 
       public override string ToString() => $"Service {ServiceName}";
+
+      public bool HasChanged() => Database.HasChanged(ItemId) || Accounts.Any(x => x.HasChanged());
    }
 }
