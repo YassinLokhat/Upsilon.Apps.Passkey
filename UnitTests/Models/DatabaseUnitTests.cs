@@ -12,7 +12,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       [TestMethod, Ignore]
       public void Case00_GenerateNewDatabase()
       {
-         IDatabase database = UnitTestsHelper.CreateTestDatabase(["a", "b"], "_");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(["a", "b", "c"], "_");
          IUser user = database.User;
          user.LogoutTimeout = 10;
          user.CleaningClipboardTimeout = 15;

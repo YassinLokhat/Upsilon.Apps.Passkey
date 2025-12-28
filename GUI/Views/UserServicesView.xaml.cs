@@ -86,13 +86,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          HotkeyHelper.HotkeyPressed += _hotkeyHelper_HotkeyPressed;
 
          DarkMode.SetDarkMode(this);
-
-         // TODO : To be removed
-         string? itemId = UserLogsView.ShowLogsDialog(this);
-
-         if (itemId is null) return;
-
-         _goToItem(itemId);
       }
 
       private void _hotkeyHelper_HotkeyPressed(object? sender, HotkeyEventArgs e)

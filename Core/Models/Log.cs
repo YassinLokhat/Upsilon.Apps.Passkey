@@ -36,10 +36,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          string[] info = log.Split('|');
 
-         if (info.Length > 0
-            && long.TryParse(info[0], out long ticks))
+         if (info.Length > 0)
          {
-            DateTimeTicks = ticks;
+            DateTimeTicks = Convert.ToInt64(info[0], 16);
          }
 
          if (info.Length > 1)
@@ -60,9 +59,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (info.Length > 4)
          {
-            log = string.Join("|", info[4..]);
-            log = log.Replace("|", "/|");
-            log = log.Replace("\\/|", "\\|");
+            log = string.Join("|", info[4..])
+               .Replace("|", "/|")
+               .Replace("\\/|", "\\|");
             info = log.Split("/|");
             Data = [.. info.Select(x => x.Replace("\\|", "|"))];
          }
@@ -70,7 +69,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public override string ToString()
       {
-         string log = $"{DateTimeTicks}|{ItemId}|{(int)EventType}|{(NeedsReview ? "1" : "")}";
+         string log = $"{DateTimeTicks:X}|{ItemId}|{(int)EventType}|{(NeedsReview ? "1" : "")}";
 
          string[] data = [.. Data.Select(x => x.Replace("|", "\\|"))];
          if (data.Length != 0)
