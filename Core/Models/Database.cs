@@ -470,10 +470,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private Warning[] _lookAtLogWarnings()
       {
-         if (User is null) throw new NullReferenceException(nameof(User));
-         if (Logs.Logs is null) throw new NullReferenceException(nameof(Logs.Logs));
-
-         return [new Warning([.. Logs.Logs.Where(x => x.NeedsReview).Cast<Log>()])];
+         return User is null
+            ? throw new NullReferenceException(nameof(User))
+            : Logs.Logs is null
+            ? throw new NullReferenceException(nameof(Logs.Logs))
+            : [new Warning([.. Logs.Logs.Where(x => x.NeedsReview).Cast<Log>()])];
       }
 
       private Warning[] _lookAtPasswordUpdateReminderWarnings()

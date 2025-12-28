@@ -271,7 +271,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          if (!(dialog.ShowDialog() ?? false)) return;
 
          Cursor = Cursors.Wait;
-         
+
          if (_importTask is null
             || _importTask.IsCompleted)
          {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
+﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -38,31 +35,11 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 
       public bool MeetsConditions(DateTime fromDateFilter, DateTime toDateFilter, LogEventType eventType, string message, bool needsReview)
       {
-         if (fromDateFilter <= System.DateTime.Now.Date
-            && Log.DateTime.Date < fromDateFilter)
-         {
-            return false;
-         }
-
-         if (toDateFilter <= System.DateTime.Now.Date
-            && Log.DateTime.Date > toDateFilter)
-         {
-            return false;
-         }
-
-         if (eventType != LogEventType.None
-            && Log.EventType != eventType)
-         {
-            return false;
-         }
-
-         if (needsReview
-            && !Log.NeedsReview)
-         {
-            return false;
-         }
-
-         return Log.Message.Contains(message, StringComparison.CurrentCultureIgnoreCase);
+         return (fromDateFilter > System.DateTime.Now.Date
+            || Log.DateTime.Date >= fromDateFilter) && (toDateFilter > System.DateTime.Now.Date
+            || Log.DateTime.Date <= toDateFilter) && (eventType == LogEventType.None
+            || Log.EventType == eventType) && (!needsReview
+            || Log.NeedsReview) && Log.Message.Contains(message, StringComparison.CurrentCultureIgnoreCase);
       }
    }
 }

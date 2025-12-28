@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.Views.Controls
@@ -39,7 +30,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          {
             textBox.TextChanged -= _textBox_TextChanged;
 
-            if (e.NewValue != null)
+            if (e.NewValue is not null)
             {
                textBox.TextChanged += _textBox_TextChanged;
             }
@@ -49,16 +40,16 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private static void _textBox_TextChanged(object sender, TextChangedEventArgs e)
       {
-         var textBox = (TextBox)sender;
-         var popup = _getPopup(textBox);
-         if (popup == null) return;
+         TextBox textBox = (TextBox)sender;
+         Popup popup = _getPopup(textBox);
+         if (popup is null) return;
 
          popup.IsOpen = false;
 
-         var items = GetItemsSource(textBox)?.Cast<object>().Where(i =>
+         IEnumerable<object>? items = GetItemsSource(textBox)?.Cast<object>().Where(i =>
              i?.ToString()?.Contains(textBox.Text, StringComparison.OrdinalIgnoreCase) == true);
 
-         var listBox = (ListBox)popup.Child;
+         ListBox listBox = (ListBox)popup.Child;
          listBox.ItemsSource = items;
          popup.IsOpen = items?.Any() == true;
       }
@@ -67,31 +58,31 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private static Popup _getPopup(TextBox textBox)
       {
-         _popups.TryGetValue(textBox, out Popup? popup);
+         _ = _popups.TryGetValue(textBox, out Popup? popup);
 
          if (popup is null)
          {
             popup = new Popup { PlacementTarget = textBox, Placement = PlacementMode.Bottom };
-            var listBox = new ListBox { MaxHeight = 150 };
+            ListBox listBox = new() { MaxHeight = 150 };
             listBox.SelectionChanged += (s, args) =>
             {
-               if (listBox.SelectedItem != null)
+               if (listBox.SelectedItem is not null)
                {
-                  var viewModel = textBox.DataContext as IdentifierViewModel;
-                  viewModel?.Identifier = textBox.Text = listBox.SelectedItem.ToString() ?? string.Empty;
+                  IdentifierViewModel? viewModel = textBox.DataContext as IdentifierViewModel;
+                  _ = (viewModel?.Identifier = textBox.Text = listBox.SelectedItem.ToString() ?? string.Empty);
                   popup.IsOpen = false;
                   textBox.Select(textBox.Text?.Length ?? 0, 0);
                }
             };
             listBox.PreviewKeyDown += (s, args) =>
             {
-               if (args.Key == Key.Enter || args.Key == Key.Tab)
+               if (args.Key is Key.Enter or Key.Tab)
                {
-                  var listBox2 = (ListBox)s;
-                  if (listBox2.SelectedItem != null)
+                  ListBox listBox2 = (ListBox)s;
+                  if (listBox2.SelectedItem is not null)
                   {
-                     var viewModel = textBox.DataContext as IdentifierViewModel;
-                     viewModel?.Identifier = textBox.Text = listBox2.SelectedItem.ToString() ?? string.Empty;
+                     IdentifierViewModel? viewModel = textBox.DataContext as IdentifierViewModel;
+                     _ = (viewModel?.Identifier = textBox.Text = listBox2.SelectedItem.ToString() ?? string.Empty);
                      popup.IsOpen = false;
                   }
                   args.Handled = true;
@@ -116,7 +107,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       {
          textBox.KeyDown += (s, e) =>
          {
-            var popup = _getPopup(textBox);
+            Popup popup = _getPopup(textBox);
             if (e.Key == Key.Down) popup.IsOpen = true;
          };
          textBox.LostFocus += (s, e) => _getPopup(textBox)?.IsOpen = false;

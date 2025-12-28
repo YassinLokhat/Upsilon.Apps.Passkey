@@ -5,7 +5,6 @@ using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
-using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
@@ -35,7 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             _services_LB.SelectedIndex = 0;
          }
 
-         _serviceFilter_TB.Focus();
+         _ = _serviceFilter_TB.Focus();
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          MainViewModel.Database.WarningDetected += _database_WarningDetected;
@@ -256,7 +255,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          }
          else
          {
-            MessageBox.Show($"The item '{itemId}' was not found.\nIt has been deleted.", "Item not found", MessageBoxButton.OK, MessageBoxImage.Warning);
+            _ = MessageBox.Show($"The item '{itemId}' was not found.\nIt has been deleted.", "Item not found", MessageBoxButton.OK, MessageBoxImage.Warning);
          }
       }
    }

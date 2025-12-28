@@ -1,10 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
-using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
@@ -99,7 +97,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       public UserLogsViewModel()
       {
          Title = MainViewModel.AppTitle + " - Logs";
-         
+
          RefreshFilters();
       }
 
@@ -113,7 +111,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
             .Select(x => new LogViewModel(x))
             .Where(x => x.MeetsConditions(FromDateFilter, ToDateFilter, EventType, Message, NeedsReview))
             .OrderByDescending(x => x.DateTime)];
-         
+
          foreach (LogViewModel log in logs)
          {
             Logs.Add(log);
