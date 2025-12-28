@@ -24,8 +24,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          Log log = new(DateTime.Now.Ticks, itemId, eventType, data, needsReview);
 
-         Logs.Add(log);
-         LogList.Add(Database.CryptographyCenter.EncryptAsymmetrically(log.ToString(), PublicKey));
+         Logs.Insert(0, log);
+         LogList.Insert(0, Database.CryptographyCenter.EncryptAsymmetrically(log.ToString(), PublicKey));
 
          Save(rebuildStringLogs: false);
       }
@@ -40,6 +40,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             Logs.Add(new Log(Database.CryptographyCenter.DecryptAsymmetrically(log, Database.User.PrivateKey)));
          }
+
+         Logs = [.. Logs.OrderByDescending(x => x.DateTime)];
       }
 
       public void Save(bool rebuildStringLogs)
@@ -48,9 +50,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             LogList.Clear();
             LogList.AddRange(Logs
-               .OrderBy(x => x.DateTime)
-               .Cast<Log>()
-               .Select(x => Database.CryptographyCenter.EncryptAsymmetrically(x.ToString(), PublicKey)));
+               .OrderByDescending(x => x.DateTime)
+               .Select(x => ((Log)x).ToString())
+               .Distinct()
+               .Select(x => Database.CryptographyCenter.EncryptAsymmetrically(x, PublicKey)));
          }
 
          Database.FileLocker.Save(this, Database.LogFileEntry);

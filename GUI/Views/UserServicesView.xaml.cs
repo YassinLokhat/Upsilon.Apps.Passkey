@@ -17,6 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private readonly UserServicesViewModel _viewModel;
       private int _autoLoginHotkeyId = 0;
       private int _autoPasswordHotkeyId = 0;
+      private Task? _saveTask;
 
       private UserServicesView()
       {
@@ -162,7 +163,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          string? serviceId = ((ServiceViewModel?)_services_LB.SelectedItem)?.ServiceId;
          Cursor = Cursors.Wait;
 
-         _ = Task.Run(() =>
+         if (_saveTask is not null
+            && !_saveTask.IsCompleted)
+         {
+            return;
+         }
+
+         _saveTask = Task.Run(() =>
          {
             MainViewModel.Database?.Save();
 

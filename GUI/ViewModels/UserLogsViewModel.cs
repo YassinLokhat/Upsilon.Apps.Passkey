@@ -11,6 +11,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
    internal class UserLogsViewModel : INotifyPropertyChanged
    {
       public string Title { get; }
+
+      public string FiltersHeader => $"Filters : {Logs.Count} logs found over {MainViewModel.Database?.Logs?.Length}";
       public DateTime FromDateFilter
       {
          get;
@@ -116,6 +118,8 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          {
             Logs.Add(log);
          }
+
+         OnPropertyChanged(nameof(FiltersHeader));
       }
    }
 }
