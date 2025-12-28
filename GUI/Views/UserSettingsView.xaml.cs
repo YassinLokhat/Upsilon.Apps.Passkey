@@ -18,6 +18,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    public partial class UserSettingsView : Window
    {
       private readonly UserSettingsViewModel _viewModel;
+      private Task? _saveTask;
+      private Task? _importTask;
+      private Task? _exportTask;
 
       public UserSettingsView()
       {
@@ -241,7 +244,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       {
          Cursor = Cursors.Wait;
 
-         _ = Task.Run(_save);
+         if (_saveTask is null
+            || _saveTask.IsCompleted)
+         {
+            _saveTask = Task.Run(_save);
+         }
       }
 
       private static bool _credentialsChanged(string oldFileName, string[] oldPasskeys, string newFilename, string[] newPasskeys)
@@ -264,17 +271,22 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          if (!(dialog.ShowDialog() ?? false)) return;
 
          Cursor = Cursors.Wait;
-         _ = Task.Run(() =>
+         
+         if (_importTask is null
+            || _importTask.IsCompleted)
          {
-            _ = MainViewModel.Database.ImportFromFile(dialog.FileName)
-               ? MessageBox.Show("Import data has been completed successfully.\nMore details in the logs.", "Import success")
-               : MessageBox.Show("Import data failed.\nMore details in the logs.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
-
-            Dispatcher.Invoke(() =>
+            _importTask = Task.Run(() =>
             {
-               Cursor = Cursors.Arrow;
+               _ = MainViewModel.Database.ImportFromFile(dialog.FileName)
+                  ? MessageBox.Show("Import data has been completed successfully.\nMore details in the logs.", "Import success")
+                  : MessageBox.Show("Import data failed.\nMore details in the logs.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
+
+               Dispatcher.Invoke(() =>
+               {
+                  Cursor = Cursors.Arrow;
+               });
             });
-         });
+         }
       }
 
       private void _export_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -292,17 +304,22 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          if (!(dialog.ShowDialog() ?? false)) return;
 
          Cursor = Cursors.Wait;
-         _ = Task.Run(() =>
-         {
-            _ = MainViewModel.Database.ExportToFile(dialog.FileName)
-               ? MessageBox.Show("Export data has been completed successfully.\nMore details in the logs.", "Export success")
-               : MessageBox.Show("Export data failed.\nMore details in the logs.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
 
-            Dispatcher.Invoke(() =>
+         if (_exportTask is null
+            || _exportTask.IsCompleted)
+         {
+            _exportTask = Task.Run(() =>
             {
-               Cursor = Cursors.Arrow;
+               _ = MainViewModel.Database.ExportToFile(dialog.FileName)
+                  ? MessageBox.Show("Export data has been completed successfully.\nMore details in the logs.", "Export success")
+                  : MessageBox.Show("Export data failed.\nMore details in the logs.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
+
+               Dispatcher.Invoke(() =>
+               {
+                  Cursor = Cursors.Arrow;
+               });
             });
-         });
+         }
       }
    }
 }

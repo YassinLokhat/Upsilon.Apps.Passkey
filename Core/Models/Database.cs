@@ -81,7 +81,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
                _handleAutoSave(eventArg.MergeBehavior);
             }
 
-            _ = Task.Run(_lookAtWarnings);
+            if (_warningsTasks is null
+               || _warningsTasks.IsCompleted)
+            {
+               _warningsTasks = Task.Run(_lookAtWarnings);
+            }
 
             User.ResetTimer();
          }
@@ -205,6 +209,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal readonly string AutoSaveFileEntry = "autosave";
       internal readonly string LogFileEntry = "log";
       internal FileLocker FileLocker;
+
+      private Task? _warningsTasks;
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
@@ -369,6 +375,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal void Close(bool logCloseEvent, bool loginTimeoutReached)
       {
+         _warningsTasks?.Dispose();
+
          if (logCloseEvent)
          {
             if (User is not null)
