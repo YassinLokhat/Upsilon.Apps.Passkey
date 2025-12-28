@@ -50,8 +50,6 @@ namespace Upsilon.Apps.Passkey.GUI
             string filename = MainViewModel.CryptographyCenter.GetHash("_");
             string databaseFile = Path.GetFullPath($"raw/{filename}.pku");
 
-            Hide();
-
             MainViewModel.Database = Database.Open(MainViewModel.CryptographyCenter,
                MainViewModel.SerializationCenter,
                MainViewModel.PasswordFactory,
@@ -65,6 +63,12 @@ namespace Upsilon.Apps.Passkey.GUI
             _ = MainViewModel.Database.Login("b");
             _ = MainViewModel.Database.Login("c");
             _resetCredentials(resetDatabase: false);
+
+            if (MainViewModel.Database?.User is not null)
+            {
+               Hide();
+            }
+
             if (!UserServicesView.ShowUser(this))
             {
                Close();

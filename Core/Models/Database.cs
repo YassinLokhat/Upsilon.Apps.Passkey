@@ -84,7 +84,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             if (_warningsTasks is null
                || _warningsTasks.IsCompleted)
             {
-               _warningsTasks = Task.Run(_lookAtWarnings);
+               _warningsTasks = Task.Run(_lookAtWarnings, _cancellationToken.Token);
             }
 
             User.ResetTimer();
@@ -210,6 +210,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal readonly string LogFileEntry = "log";
       internal FileLocker FileLocker;
 
+      private readonly CancellationTokenSource _cancellationToken = new ();
       private Task? _warningsTasks;
 
       private Database(ICryptographyCenter cryptographicCenter,
@@ -375,7 +376,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal void Close(bool logCloseEvent, bool loginTimeoutReached)
       {
-         _warningsTasks?.Dispose();
+         _cancellationToken.Cancel();
+         _warningsTasks?.Wait();
 
          if (logCloseEvent)
          {
