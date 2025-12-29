@@ -1,6 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Upsilon.Apps.Passkey.GUI.Helper
 {
@@ -32,7 +33,7 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
          }
       }
 
-      public static void PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+      public static void PreviewTextInput(object sender, TextCompositionEventArgs e)
       {
          e.Handled = !_isTextAllowed(e.Text);
       }

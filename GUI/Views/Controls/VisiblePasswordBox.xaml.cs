@@ -1,4 +1,5 @@
 ﻿using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 
@@ -66,7 +67,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          }
       }
 
-      private void _passwordBox_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+      private void _passwordBox_KeyUp(object sender, KeyEventArgs e)
       {
          switch (e.Key)
          {
@@ -80,12 +81,12 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          }
       }
 
-      private void _viewButton_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+      private void _viewButton_MouseDown(object sender, MouseButtonEventArgs e)
       {
          _viewModel.TooglePasswordVisibility();
       }
 
-      private void _viewButton_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+      private void _viewButton_MouseUp(object sender, MouseButtonEventArgs e)
       {
          _viewModel.TooglePasswordVisibility();
       }

@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 
 namespace Upsilon.Apps.Passkey.GUI.Views.Controls
@@ -34,7 +35,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _passwordItem_DeleteClicked(object? sender, EventArgs e)
       {
-         if (sender is not UserPasswordItem passwordItem
+         if (this.GetIsBusy()
+            || sender is not UserPasswordItem passwordItem
             || _passwords.Count == 1)
          {
             return;
@@ -52,7 +54,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _passwordItem_UpClicked(object? sender, EventArgs e)
       {
-         if (sender is not UserPasswordItem passwordItem
+         if (this.GetIsBusy()
+            || sender is not UserPasswordItem passwordItem
             || passwordItem.ViewModel.Index == 0)
          {
             return;
@@ -63,7 +66,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _passwordItem_DownClicked(object? sender, EventArgs e)
       {
-         if (sender is not UserPasswordItem passwordItem
+         if (this.GetIsBusy()
+            || sender is not UserPasswordItem passwordItem
             || passwordItem.ViewModel.Index == _passwords.Count - 1)
          {
             return;
@@ -74,6 +78,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _addButton_Click(object sender, RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          _addPassword(string.Empty);
       }
 

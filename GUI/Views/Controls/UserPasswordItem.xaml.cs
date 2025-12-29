@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Windows.Controls;
+using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.Views.Controls
@@ -42,16 +43,22 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _upButton_Click(object sender, System.Windows.RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          UpClicked?.Invoke(this, EventArgs.Empty);
       }
 
       private void _downButton_Click(object sender, System.Windows.RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          DownClicked?.Invoke(this, EventArgs.Empty);
       }
 
       private void _deleteButton_Click(object sender, System.Windows.RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          DeleteClicked?.Invoke(this, EventArgs.Empty);
       }
    }

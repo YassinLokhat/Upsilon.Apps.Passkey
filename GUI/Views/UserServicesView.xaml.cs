@@ -43,6 +43,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _database_WarningDetected(object? sender, Interfaces.Events.WarningDetectedEventArgs e)
       {
+         while (this.GetIsBusy()) Task.Delay(100);
+
          int warningCount = e.Warnings.SelectMany(x => x.Logs ?? []).Count();
 
          _viewModel.ShowWarning = warningCount != 0 ? $"Show {warningCount} warnings" : "Show warnings";
@@ -90,6 +92,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _hotkeyHelper_HotkeyPressed(object? sender, HotkeyEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          string? toInsert = null;
 
          switch (e.Key)
@@ -116,12 +120,16 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _openSettings()
       {
+         if (this.GetIsBusy()) return;
+        
          UserSettingsView.ShowUserSettings(this);
          _viewModel.RefreshFilters();
       }
 
       private void _generateRandomPassword_MenuItem_Click(object sender, RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          string? password = PasswordGenerator.ShowGeneratePasswordDialog(this);
 
          if (password is null) return;
@@ -131,6 +139,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _logout_MenuItem_Click(object sender, RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          DialogResult = true;
       }
 
@@ -146,14 +156,18 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _services_LB_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          MainViewModel.User.Shake();
          _service_SV.SetDataContext((ServiceViewModel)_services_LB.SelectedItem);
       }
 
       private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          string? serviceId = ((ServiceViewModel?)_services_LB.SelectedItem)?.ServiceId;
-         Cursor = Cursors.Wait;
+         this.SetIsBusy(true);
 
          if (_saveTask is not null
             && !_saveTask.IsCompleted)
@@ -173,18 +187,22 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                _services_LB.ItemsSource = _viewModel.Services;
                _services_LB.SelectedItem = service;
 
-               Cursor = Cursors.Arrow;
+               this.SetIsBusy(false);
             });
          });
       }
 
       private void _addService_Button_Click(object sender, RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          _services_LB.SelectedItem = _viewModel.AddService();
       }
 
       private void _deleteService_Button_Click(object sender, RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          if (_services_LB.SelectedItem is not ServiceViewModel serviceViewModel
             || MessageBox.Show($"Are you sure you want to delete the service '{serviceViewModel.ServiceDisplay}'", "Delete Service", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
          {
@@ -201,11 +219,15 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _clearFilter()
       {
+         if (this.GetIsBusy()) return;
+
          _viewModel.ServiceFilter = _viewModel.TextFilter = _viewModel.IdentifierFilter = string.Empty;
       }
 
       private void _showLogs_MenuItem_Click(object sender, RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          string? itemId = UserLogsView.ShowLogsDialog(this);
 
          if (itemId is null) return;

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.Themes;
@@ -90,7 +91,7 @@ namespace Upsilon.Apps.Passkey.GUI
          _ = PasswordGenerator.ShowGeneratePasswordDialog(this);
       }
 
-      private void _credential_TB_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+      private void _credential_TB_KeyUp(object sender, KeyEventArgs e)
       {
          if (e.Key == System.Windows.Input.Key.Enter)
          {
@@ -166,12 +167,12 @@ namespace Upsilon.Apps.Passkey.GUI
          }
       }
 
-      private void _database_WarningDetected(object? sender, Passkey.Interfaces.Events.WarningDetectedEventArgs e)
+      private void _database_WarningDetected(object? sender, Interfaces.Events.WarningDetectedEventArgs e)
       {
          /// TODO : Pending implement
       }
 
-      private void _database_AutoSaveDetected(object? sender, Passkey.Interfaces.Events.AutoSaveDetectedEventArgs e)
+      private void _database_AutoSaveDetected(object? sender, Interfaces.Events.AutoSaveDetectedEventArgs e)
       {
          MessageBoxResult result = MessageBox.Show("Unsaved changes have been detected.\nClick Yes to apply these changes.\nClick No to discard them.\nClick Cancel to ignore and keep the save file.", "Autosave detected", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
 
@@ -183,7 +184,7 @@ namespace Upsilon.Apps.Passkey.GUI
          };
       }
 
-      private void _database_DatabaseClosed(object? sender, Passkey.Interfaces.Events.LogoutEventArgs e)
+      private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
       {
          try
          {

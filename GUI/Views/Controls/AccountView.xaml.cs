@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
@@ -74,7 +75,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _identifier_DeleteClicked(object? sender, EventArgs e)
       {
-         if (_viewModel is null) return;
+         if (this.GetIsBusy()
+            || _viewModel is null)
+         {
+            return;
+         }
 
          int index = _identifiers_LB.SelectedIndex;
 
@@ -86,7 +91,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _identifier_UpClicked(object? sender, EventArgs e)
       {
-         if (_viewModel is null) return;
+         if (this.GetIsBusy()
+            || _viewModel is null)
+         {
+            return;
+         }
 
          int newIndex = _identifiers_LB.SelectedIndex - 1;
 
@@ -98,7 +107,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _identifier_DownClicked(object? sender, EventArgs e)
       {
-         if (_viewModel is null) return;
+         if (this.GetIsBusy()
+            || _viewModel is null)
+         {
+            return;
+         }
 
          int newIndex = _identifiers_LB.SelectedIndex + 1;
 
@@ -110,11 +123,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _addButton_Click(object sender, RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          _viewModel?.AddIdentifier(string.Empty);
          _identifiers_LB.SelectedIndex = _identifiers_LB.Items.Count - 1;
       }
 
-      private void _value_TextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+      private void _value_TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
       {
          NumericTextBoxHelper.PreviewTextInput(sender, e);
       }
@@ -131,7 +146,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _password_VPB_Validated(object sender, EventArgs e)
       {
-         if (_viewModel is null) return;
+         if (this.GetIsBusy()
+            || _viewModel is null)
+         {
+            return;
+         }
 
          _viewModel.Password = _password_VPB.Password;
          _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
@@ -151,11 +170,15 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _copyIdentifier_Clicked(object sender, RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          QrCodeView.CopyToClipboard(((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier);
       }
 
       private void _showQrCodeIdentifier_Clicked(object sender, RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          QrCodeView.ShowQrCode(Window.GetWindow(this),
             ((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier,
             MainViewModel.User.ShowPasswordDelay);
@@ -163,13 +186,23 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _copyPassword_Clicked(object sender, RoutedEventArgs e)
       {
-         if (_viewModel is null) return;
+         if (this.GetIsBusy()
+            || _viewModel is null)
+         {
+            return;
+         }
+
          QrCodeView.CopyToClipboard(_viewModel.Password);
       }
 
       private void _showQrCodePassword_Clicked(object sender, RoutedEventArgs e)
       {
-         if (_viewModel is null) return;
+         if (this.GetIsBusy()
+            || _viewModel is null)
+         {
+            return;
+         }
+
          QrCodeView.ShowQrCode(Window.GetWindow(this),
             _viewModel.Password,
             MainViewModel.User.ShowPasswordDelay);
@@ -177,13 +210,23 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _copyPasswords_Clicked(object sender, RoutedEventArgs e)
       {
-         if (sender is not Button button) return;
+         if (this.GetIsBusy()
+            || sender is not Button button)
+         {
+            return;
+         }
+
          QrCodeView.CopyToClipboard(((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password);
       }
 
       private void _showQrCodePasswords_Clicked(object sender, RoutedEventArgs e)
       {
-         if (sender is not Button button) return;
+         if (this.GetIsBusy()
+            || sender is not Button button)
+         {
+            return;
+         }
+
          QrCodeView.ShowQrCode(Window.GetWindow(this),
             ((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password,
             MainViewModel.User.ShowPasswordDelay);

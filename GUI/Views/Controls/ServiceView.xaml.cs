@@ -47,20 +47,27 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _accounts_LB_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
+
          MainViewModel.User.Shake();
          _account_AV.SetDataContext((AccountViewModel)_accounts_LB.SelectedItem);
       }
 
       private void _addAccount_Button_Click(object sender, System.Windows.RoutedEventArgs e)
       {
-         if (_viewModel is null) return;
+         if (this.GetIsBusy()
+            || _viewModel is null)
+         {
+            return;
+         }
 
          _accounts_LB.SelectedItem = _viewModel.AddAccount();
       }
 
       private void _deleteAccount_Button_Click(object sender, System.Windows.RoutedEventArgs e)
       {
-         if (_viewModel is null
+         if (this.GetIsBusy()
+            || _viewModel is null
             || _accounts_LB.SelectedItem is not AccountViewModel accountViewModel
             || MessageBox.Show($"Are you sure you want to delete the account '{accountViewModel.AccountDisplay}'", "Delete Account", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
          {
@@ -72,7 +79,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
       private void _openUrl_Button_Click(object sender, RoutedEventArgs e)
       {
-         if (_viewModel is null
+         if (this.GetIsBusy()
+            || _viewModel is null
             || string.IsNullOrWhiteSpace(_viewModel.Url))
          {
             return;

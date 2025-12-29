@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
@@ -46,7 +47,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          NumericTextBoxHelper.TextChanged(sender, e);
       }
 
-      private void _length_TextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+      private void _length_TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
       {
          NumericTextBoxHelper.PreviewTextInput(sender, e);
       }

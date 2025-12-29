@@ -52,7 +52,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          .ShowDialog();
       }
 
-      private void _database_DatabaseClosed(object? sender, Passkey.Interfaces.Events.LogoutEventArgs e)
+      private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
       {
          try
          {
@@ -69,7 +69,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          DarkMode.SetDarkMode(this);
       }
 
-      private void _value_TextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+      private void _value_TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
       {
          NumericTextBoxHelper.PreviewTextInput(sender, e);
       }
@@ -97,7 +97,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _deleteUser_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         if (MainViewModel.Database is null
+         if (this.GetIsBusy()
+            || MainViewModel.Database is null
             || MainViewModel.Database.User is null
             || MessageBox.Show("If you delete the user database, you will lost all credentials.\nAre you sure you want to delete the database anyway?", "Confirmation required", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes
             || MessageBox.Show("This procedure is non-reversible.\nPlease confirm to proceed the deletion.", "Confirmation required", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) != MessageBoxResult.Yes)
@@ -125,7 +126,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             _ = MessageBox.Show(error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             Dispatcher.Invoke(() =>
             {
-               Cursor = Cursors.Arrow;
+               this.SetIsBusy(false);
             });
 
             return;
@@ -158,7 +159,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                _ = MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                Dispatcher.Invoke(() =>
                {
-                  Cursor = Cursors.Arrow;
+                  this.SetIsBusy(false);
                });
 
                return;
@@ -242,7 +243,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         Cursor = Cursors.Wait;
+         if (this.GetIsBusy()) return;
+
+         this.SetIsBusy(true);
 
          if (_saveTask is null
             || _saveTask.IsCompleted)
@@ -258,9 +261,12 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _import_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         if (MainViewModel.Database is null) return;
-
-         if (MessageBox.Show("Before importing data, all unsaved changes will be saved.", "Import data", MessageBoxButton.OKCancel) != MessageBoxResult.OK) return;
+         if (this.GetIsBusy()
+            || MainViewModel.Database is null
+            || MessageBox.Show("Before importing data, all unsaved changes will be saved.", "Import data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+         {
+            return;
+         }
 
          OpenFileDialog dialog = new()
          {
@@ -270,7 +276,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          if (!(dialog.ShowDialog() ?? false)) return;
 
-         Cursor = Cursors.Wait;
+         this.SetIsBusy(true);
 
          if (_importTask is null
             || _importTask.IsCompleted)
@@ -283,7 +289,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
                Dispatcher.Invoke(() =>
                {
-                  Cursor = Cursors.Arrow;
+                  this.SetIsBusy(false);
                });
             });
          }
@@ -291,10 +297,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _export_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         if (MainViewModel.Database is null) return;
-
-         if (MessageBox.Show("Before exporting data, all unsaved changes will be saved.", "Export data", MessageBoxButton.OKCancel) != MessageBoxResult.OK) return;
-
+         if (this.GetIsBusy()
+            || MainViewModel.Database is null
+            || MessageBox.Show("Before exporting data, all unsaved changes will be saved.", "Export data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+         {
+            return;
+         }
+         
          SaveFileDialog dialog = new()
          {
             Title = "Export data to a file",
@@ -304,7 +313,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          if (!(dialog.ShowDialog() ?? false)) return;
 
-         Cursor = Cursors.Wait;
+         this.SetIsBusy(true);
 
          if (_exportTask is null
             || _exportTask.IsCompleted)
@@ -317,7 +326,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
                Dispatcher.Invoke(() =>
                {
-                  Cursor = Cursors.Arrow;
+                  this.SetIsBusy(false);
                });
             });
          }
