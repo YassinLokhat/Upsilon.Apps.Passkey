@@ -34,20 +34,16 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             _services_LB.SelectedIndex = 0;
          }
 
+         if (MainViewModel.Database.Warnings is not null)
+         {
+            int warningCount = MainViewModel.Database.Warnings.SelectMany(x => x.Activities ?? []).Count();
+            _viewModel.ShowWarning = warningCount != 0 ? $"Show {warningCount} warnings" : "Show warnings";
+         }
+
          _ = _serviceFilter_TB.Focus();
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
-         MainViewModel.Database.WarningDetected += _database_WarningDetected;
          Loaded += _userServicesView_Loaded;
-      }
-
-      private void _database_WarningDetected(object? sender, Interfaces.Events.WarningDetectedEventArgs e)
-      {
-         while (this.GetIsBusy()) Task.Delay(100);
-
-         int warningCount = e.Warnings.SelectMany(x => x.Activities ?? []).Count();
-
-         _viewModel.ShowWarning = warningCount != 0 ? $"Show {warningCount} warnings" : "Show warnings";
       }
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)

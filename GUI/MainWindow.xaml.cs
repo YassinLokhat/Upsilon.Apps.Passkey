@@ -59,7 +59,6 @@ namespace Upsilon.Apps.Passkey.GUI
                "_");
             MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
             MainViewModel.Database.AutoSaveDetected += (s, e) => e.MergeBehavior = Passkey.Interfaces.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile;
-            MainViewModel.Database.WarningDetected += _database_WarningDetected;
             _ = MainViewModel.Database.Login("a");
             _ = MainViewModel.Database.Login("b");
             _ = MainViewModel.Database.Login("c");
@@ -119,7 +118,6 @@ namespace Upsilon.Apps.Passkey.GUI
 
                   MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
                   MainViewModel.Database.AutoSaveDetected += _database_AutoSaveDetected;
-                  MainViewModel.Database.WarningDetected += _database_WarningDetected;
                }
                catch { }
 
@@ -165,11 +163,6 @@ namespace Upsilon.Apps.Passkey.GUI
          {
             _resetCredentials(resetDatabase: true);
          }
-      }
-
-      private void _database_WarningDetected(object? sender, Interfaces.Events.WarningDetectedEventArgs e)
-      {
-         /// TODO : Pending implement
       }
 
       private void _database_AutoSaveDetected(object? sender, Interfaces.Events.AutoSaveDetectedEventArgs e)
