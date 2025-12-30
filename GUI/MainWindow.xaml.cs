@@ -28,7 +28,8 @@ namespace Upsilon.Apps.Passkey.GUI
             Interval = new TimeSpan(0, 0, 5),
          };
 
-         _resetCredentials(resetDatabase: true);
+         _resetCredentials();
+         MainViewModel.Database = null;
 
          _username_TB.KeyUp += _credential_TB_KeyUp;
          _password_PB.KeyUp += _credential_TB_KeyUp;
@@ -38,7 +39,8 @@ namespace Upsilon.Apps.Passkey.GUI
 
       private void _timer_Elapsed(object? sender, EventArgs e)
       {
-         _resetCredentials(resetDatabase: true);
+         _resetCredentials();
+         MainViewModel.Database = null;
       }
 
       private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -62,7 +64,7 @@ namespace Upsilon.Apps.Passkey.GUI
             _ = MainViewModel.Database.Login("a");
             _ = MainViewModel.Database.Login("b");
             _ = MainViewModel.Database.Login("c");
-            _resetCredentials(resetDatabase: false);
+            _resetCredentials();
 
             if (MainViewModel.Database?.User is not null)
             {
@@ -92,7 +94,7 @@ namespace Upsilon.Apps.Passkey.GUI
 
       private void _credential_TB_KeyUp(object sender, KeyEventArgs e)
       {
-         if (e.Key == System.Windows.Input.Key.Enter)
+         if (e.Key == Key.Enter)
          {
             _timer.Stop();
 
@@ -145,8 +147,7 @@ namespace Upsilon.Apps.Passkey.GUI
                   if (MainViewModel.Database.User is not null)
                   {
                      Hide();
-
-                     _resetCredentials(resetDatabase: false);
+                     _resetCredentials();
 
                      if (!UserServicesView.ShowUser(this))
                      {
@@ -159,9 +160,10 @@ namespace Upsilon.Apps.Passkey.GUI
             _password_PB.Password = string.Empty;
             _timer.Start();
          }
-         else if (e.Key == System.Windows.Input.Key.Escape)
+         else if (e.Key == Key.Escape)
          {
-            _resetCredentials(resetDatabase: true);
+            _resetCredentials();
+            MainViewModel.Database = null;
          }
       }
 
@@ -183,14 +185,15 @@ namespace Upsilon.Apps.Passkey.GUI
          {
             Dispatcher.Invoke(() =>
             {
-               _resetCredentials(resetDatabase: true);
+               _resetCredentials();
+               MainViewModel.Database = null;
                Show();
             });
          }
          catch { }
       }
 
-      private void _resetCredentials(bool resetDatabase)
+      private void _resetCredentials()
       {
          _mainViewModel.Label = "Username :";
 
@@ -200,11 +203,6 @@ namespace Upsilon.Apps.Passkey.GUI
 
          _password_PB.Password = string.Empty;
          _password_PB.Visibility = Visibility.Hidden;
-
-         if (resetDatabase)
-         {
-            MainViewModel.Database = null;
-         }
 
          _timer.Stop();
       }

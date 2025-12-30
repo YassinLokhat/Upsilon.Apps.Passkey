@@ -71,10 +71,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
       {
          switch (e.Key)
          {
-            case System.Windows.Input.Key.Enter:
+            case Key.Enter:
                Validated?.Invoke(this, EventArgs.Empty);
                break;
-            case System.Windows.Input.Key.Escape:
+            case Key.Escape:
                Password = string.Empty;
                Aborded?.Invoke(this, EventArgs.Empty);
                break;

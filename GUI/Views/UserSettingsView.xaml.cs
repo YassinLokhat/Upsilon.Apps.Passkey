@@ -308,7 +308,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          {
             Title = "Export data to a file",
             Filter = "Tab delimited CSV file|*.csv|json file|*.json",
-            FileName = MainViewModel.Database.User?.ItemId ?? string.Empty,
+            FileName = $"{MainViewModel.Database.User?.ItemId ?? string.Empty}-{DateTime.Now.ToString("yyyyMMddHHmm")}",
          };
 
          if (!(dialog.ShowDialog() ?? false)) return;
