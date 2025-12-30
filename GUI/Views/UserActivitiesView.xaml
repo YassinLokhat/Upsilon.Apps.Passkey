@@ -1,4 +1,4 @@
-﻿<Window x:Class="Upsilon.Apps.Passkey.GUI.Views.UserLogsView"
+﻿<Window x:Class="Upsilon.Apps.Passkey.GUI.Views.UserActivitiesView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -59,7 +59,7 @@
                 </Grid>
             </GroupBox>
         </StackPanel>
-        <DataGrid Name="_logs_DGV" Grid.Row="1" AutoGenerateColumns="False">
+        <DataGrid Name="_activities_DGV" Grid.Row="1" AutoGenerateColumns="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Date and Time"
                                     IsReadOnly="True"

@@ -7,11 +7,11 @@
    public enum WarningType
    {
       /// <summary>
-      /// A set of logs needs to be reviewed.
+      /// A set of activities needs to be reviewed.
       /// </summary>
-      LogReviewWarning = 0b0001,
+      ActivityReviewWarning = 0b0001,
       /// <summary>
-      /// A set of accounts password expired and need to be updated.
+      /// A set of accounts password expired.
       /// </summary>
       PasswordUpdateReminderWarning = 0b0010,
       /// <summary>
@@ -19,7 +19,7 @@
       /// </summary>
       DuplicatedPasswordsWarning = 0b0100,
       /// <summary>
-      /// Some passwords leaked and found on the ';--have i been pwned? database
+      /// Some passwords leaked.
       /// </summary>
       PasswordLeakedWarning = 0b1000,
    }

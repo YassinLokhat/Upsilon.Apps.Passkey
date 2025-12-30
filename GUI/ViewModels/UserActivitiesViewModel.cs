@@ -6,11 +6,11 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
-   internal class UserLogsViewModel : INotifyPropertyChanged
+   internal class UserActivitiesViewModel : INotifyPropertyChanged
    {
       public string Title { get; }
 
-      public string FiltersHeader => $"Filters : {Logs.Count} logs found over {MainViewModel.Database?.Logs?.Length}";
+      public string FiltersHeader => $"Filters : {Activities.Count} activities found over {MainViewModel.Database?.Activities?.Length}";
       public DateTime FromDateFilter
       {
          get;
@@ -41,9 +41,9 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
       public string ReadableEventType
       {
          get => EventType.ToReadableString();
-         set => EventType = EnumHelper.LogEventTypeFromReadableString(value);
+         set => EventType = EnumHelper.ActivityEventTypeFromReadableString(value);
       }
-      public LogEventType EventType
+      public ActivityEventType EventType
       {
          get;
          set
@@ -55,7 +55,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
                RefreshFilters();
             }
          }
-      } = LogEventType.None;
+      } = ActivityEventType.None;
 
       public string Message
       {
@@ -85,7 +85,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          }
       } = false;
 
-      public ObservableCollection<LogViewModel> Logs { get; set; } = [];
+      public ObservableCollection<ActivityViewModel> Activities { get; set; } = [];
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -94,27 +94,27 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
-      public UserLogsViewModel()
+      public UserActivitiesViewModel()
       {
-         Title = MainViewModel.AppTitle + " - Logs";
+         Title = MainViewModel.AppTitle + " - Activities";
 
          RefreshFilters();
       }
 
       public void RefreshFilters()
       {
-         Logs.Clear();
+         Activities.Clear();
 
-         if (MainViewModel.Database?.Logs is null) return;
+         if (MainViewModel.Database?.Activities is null) return;
 
-         LogViewModel[] logs = [.. MainViewModel.Database.Logs
-            .Select(x => new LogViewModel(x))
+         ActivityViewModel[] activities = [.. MainViewModel.Database.Activities
+            .Select(x => new ActivityViewModel(x))
             .Where(x => x.MeetsConditions(FromDateFilter, ToDateFilter, EventType, Message, NeedsReview))
             .OrderByDescending(x => x.DateTime)];
 
-         foreach (LogViewModel log in logs)
+         foreach (ActivityViewModel activity in activities)
          {
-            Logs.Add(log);
+            Activities.Add(activity);
          }
 
          OnPropertyChanged(nameof(FiltersHeader));

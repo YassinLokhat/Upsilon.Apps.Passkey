@@ -113,7 +113,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
             }
          }
       }
-      public bool NotifyLogReview
+      public bool NotifyActivityReview
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
@@ -160,7 +160,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
             ShowPasswordDelay = MainViewModel.Database.User.ShowPasswordDelay;
             NumberOfOldPasswordToKeep = MainViewModel.Database.User.NumberOfOldPasswordToKeep;
 
-            NotifyLogReview = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.LogReviewWarning) != 0;
+            NotifyActivityReview = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
             NotifyPasswordUpdateReminder = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
             NotifyDuplicatedPasswords = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
             NotifyPasswordLeaked = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;

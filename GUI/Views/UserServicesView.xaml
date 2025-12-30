@@ -42,8 +42,8 @@
                 <MenuItem Header="_Generate random Password"
                           Click="_generateRandomPassword_MenuItem_Click"/>
                 <MenuItem Header="{Binding ShowWarning}"/>
-                <MenuItem Header="_Show logs"
-                          Click="_showLogs_MenuItem_Click"/>
+                <MenuItem Header="_Show activities"
+                          Click="_showActivities_MenuItem_Click"/>
                 <MenuItem Header="_Logout"
                           HorizontalAlignment="Right"
                           Click="_logout_MenuItem_Click"/>

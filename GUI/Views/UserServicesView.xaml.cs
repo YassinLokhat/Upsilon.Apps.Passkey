@@ -45,7 +45,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       {
          while (this.GetIsBusy()) Task.Delay(100);
 
-         int warningCount = e.Warnings.SelectMany(x => x.Logs ?? []).Count();
+         int warningCount = e.Warnings.SelectMany(x => x.Activities ?? []).Count();
 
          _viewModel.ShowWarning = warningCount != 0 ? $"Show {warningCount} warnings" : "Show warnings";
       }
@@ -224,11 +224,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _viewModel.ServiceFilter = _viewModel.TextFilter = _viewModel.IdentifierFilter = string.Empty;
       }
 
-      private void _showLogs_MenuItem_Click(object sender, RoutedEventArgs e)
+      private void _showActivities_MenuItem_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy()) return;
 
-         string? itemId = UserLogsView.ShowLogsDialog(this);
+         string? itemId = UserActivitiesView.ShowActivitiesDialog(this);
 
          if (itemId is null) return;
 

@@ -53,7 +53,7 @@
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <CheckBox IsChecked="{Binding LogoutTimeoutChecked}"
-                                  Content="Log out after"/>
+                                  Content="Logout after"/>
                         <TextBox Width="25"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
@@ -97,7 +97,7 @@
                     </StackPanel>
                     <GroupBox Header="Warnings">
                         <StackPanel>
-                            <CheckBox IsChecked="{Binding NotifyLogReview}">Notify Log Review</CheckBox>
+                            <CheckBox IsChecked="{Binding NotifyActivityReview}">Notify Activity Review</CheckBox>
                             <CheckBox IsChecked="{Binding NotifyDuplicatedPasswords}">Notify Duplicated Passwords</CheckBox>
                             <CheckBox IsChecked="{Binding NotifyPasswordUpdateReminder}">Notify Password Update Reminder</CheckBox>
                             <CheckBox IsChecked="{Binding NotifyPasswordLeaked}">Notify Password Leaked</CheckBox>

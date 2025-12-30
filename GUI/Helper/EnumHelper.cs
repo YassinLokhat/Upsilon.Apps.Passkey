@@ -5,42 +5,42 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
 {
    internal static class EnumHelper
    {
-      public static string ToReadableString(this LogEventType eventType)
+      public static string ToReadableString(this ActivityEventType eventType)
       {
          return eventType switch
          {
-            LogEventType.None => "All",
-            LogEventType.MergeAndSaveThenRemoveAutoSaveFile => "Auto-save merged then saved",
-            LogEventType.MergeWithoutSavingAndKeepAutoSaveFile => "Auto-save merged but not saved",
-            LogEventType.DontMergeAndRemoveAutoSaveFile => "Auto-save discarded",
-            LogEventType.DontMergeAndKeepAutoSaveFile => "Auto-save not merged and keeped",
-            LogEventType.DatabaseCreated
-              or LogEventType.DatabaseOpened
-              or LogEventType.DatabaseSaved
-              or LogEventType.DatabaseClosed
-              or LogEventType.LoginSessionTimeoutReached
-              or LogEventType.LoginFailed
-              or LogEventType.UserLoggedIn
-              or LogEventType.UserLoggedOut
-              or LogEventType.ImportingDataStarted
-              or LogEventType.ImportingDataSucceded
-              or LogEventType.ImportingDataFailed
-              or LogEventType.ExportingDataStarted
-              or LogEventType.ExportingDataSucceded
-              or LogEventType.ExportingDataFailed
-              or LogEventType.ItemUpdated
-              or LogEventType.ItemAdded
-              or LogEventType.ItemDeleted => eventType.ToString().ToSentenceCase(),
+            ActivityEventType.None => "All",
+            ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile => "Auto-save merged then saved",
+            ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile => "Auto-save merged but not saved",
+            ActivityEventType.DontMergeAndRemoveAutoSaveFile => "Auto-save discarded",
+            ActivityEventType.DontMergeAndKeepAutoSaveFile => "Auto-save not merged and keeped",
+            ActivityEventType.DatabaseCreated
+              or ActivityEventType.DatabaseOpened
+              or ActivityEventType.DatabaseSaved
+              or ActivityEventType.DatabaseClosed
+              or ActivityEventType.LoginSessionTimeoutReached
+              or ActivityEventType.LoginFailed
+              or ActivityEventType.UserLoggedIn
+              or ActivityEventType.UserLoggedOut
+              or ActivityEventType.ImportingDataStarted
+              or ActivityEventType.ImportingDataSucceded
+              or ActivityEventType.ImportingDataFailed
+              or ActivityEventType.ExportingDataStarted
+              or ActivityEventType.ExportingDataSucceded
+              or ActivityEventType.ExportingDataFailed
+              or ActivityEventType.ItemUpdated
+              or ActivityEventType.ItemAdded
+              or ActivityEventType.ItemDeleted => eventType.ToString().ToSentenceCase(),
             _ => throw new InvalidOperationException($"'{eventType}' event type not handled"),
          };
       }
 
-      public static LogEventType LogEventTypeFromReadableString(string readableString)
+      public static ActivityEventType ActivityEventTypeFromReadableString(string readableString)
       {
          try
          {
-            return Enum.GetValues<LogEventType>()
-               .Cast<LogEventType>()
+            return Enum.GetValues<ActivityEventType>()
+               .Cast<ActivityEventType>()
                .First(x => x.ToReadableString() == readableString);
          }
          catch

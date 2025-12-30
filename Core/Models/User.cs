@@ -172,7 +172,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public int ShowPasswordDelay { get; set; } = 0;
       public int NumberOfOldPasswordToKeep { get; set; } = 0;
       public WarningType WarningsToNotify { get; set; }
-         = WarningType.LogReviewWarning
+         = WarningType.ActivityReviewWarning
          | WarningType.PasswordUpdateReminderWarning
          | WarningType.DuplicatedPasswordsWarning
          | WarningType.PasswordLeakedWarning;
@@ -200,8 +200,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (SessionLeftTime == 0)
             {
-               Database.Logs.AddLog(itemId: ItemId,
-                  eventType: LogEventType.LoginSessionTimeoutReached,
+               Database.ActivityCenter.AddActiivity(itemId: ItemId,
+                  eventType: ActivityEventType.LoginSessionTimeoutReached,
                   data: [Username],
                   needsReview: true);
                Database.Close(logCloseEvent: true, loginTimeoutReached: true);
@@ -257,7 +257,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          switch (change.ActionType)
          {
-            case LogEventType.ItemUpdated:
+            case ActivityEventType.ItemUpdated:
                switch (change.FieldName)
                {
                   case nameof(Username):
@@ -281,17 +281,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
-            case LogEventType.ItemAdded:
+            case ActivityEventType.ItemAdded:
                Service serviceToAdd = change.NewValue.DeserializeTo<Service>(Database.SerializationCenter);
                serviceToAdd.User = this;
                Services.Add(serviceToAdd);
                break;
-            case LogEventType.ItemDeleted:
+            case ActivityEventType.ItemDeleted:
                Service serviceToDelete = change.NewValue.DeserializeTo<Service>(Database.SerializationCenter);
                _ = Services.RemoveAll(x => x.ItemId == serviceToDelete.ItemId);
                break;
             default:
-               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(LogEventType));
+               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(ActivityEventType));
          }
       }
 

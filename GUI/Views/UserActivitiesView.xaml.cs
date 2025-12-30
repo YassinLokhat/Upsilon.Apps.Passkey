@@ -9,53 +9,53 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    /// <summary>
    /// Interaction logic for UserLogsView.xaml
    /// </summary>
-   public partial class UserLogsView : Window
+   public partial class UserActivitiesView : Window
    {
-      private readonly UserLogsViewModel _viewModel;
+      private readonly UserActivitiesViewModel _viewModel;
       public string ItemId { get; private set; } = string.Empty;
 
-      private UserLogsView()
+      private UserActivitiesView()
       {
          InitializeComponent();
 
          DataContext = _viewModel = new();
 
-         _eventType_CB.ItemsSource = Enum.GetValues<LogEventType>()
-            .Cast<LogEventType>()
+         _eventType_CB.ItemsSource = Enum.GetValues<ActivityEventType>()
+            .Cast<ActivityEventType>()
             .Select(x => x.ToReadableString());
          _eventType_CB.SelectedIndex = 0;
 
-         _logs_DGV.ItemsSource = _viewModel.Logs;
+         _activities_DGV.ItemsSource = _viewModel.Activities;
 
-         Loaded += _userLogsView_Loaded;
+         Loaded += _userActivitiesView_Loaded;
       }
 
-      private void _userLogsView_Loaded(object sender, RoutedEventArgs e)
+      private void _userActivitiesView_Loaded(object sender, RoutedEventArgs e)
       {
          DarkMode.SetDarkMode(this);
       }
 
-      public static string? ShowLogsDialog(Window owner)
+      public static string? ShowActivitiesDialog(Window owner)
       {
-         UserLogsView _userLogsView = new()
+         UserActivitiesView _userActivitiesView = new()
          {
             Owner = owner,
          };
 
-         return (_userLogsView.ShowDialog() ?? false) ? _userLogsView.ItemId : null;
+         return (_userActivitiesView.ShowDialog() ?? false) ? _userActivitiesView.ItemId : null;
       }
 
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
       {
          _viewModel.FromDateFilter = _viewModel.ToDateFilter = DateTime.Now.Date.AddDays(1);
-         _viewModel.EventType = LogEventType.None;
+         _viewModel.EventType = ActivityEventType.None;
          _viewModel.Message = string.Empty;
          _viewModel.NeedsReview = false;
       }
 
       private void _viewItemButton_Click(object sender, RoutedEventArgs e)
       {
-         ItemId = _viewModel.Logs[_logs_DGV.SelectedIndex].Log.ItemId;
+         ItemId = _viewModel.Activities[_activities_DGV.SelectedIndex].Activity.ItemId;
 
          DialogResult = true;
       }

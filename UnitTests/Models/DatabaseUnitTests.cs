@@ -76,13 +76,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
 
          UnitTestsHelper.ClearTestEnvironment();
 
          // When
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         expectedLogs.Push($"Information : {databaseCreated.User}'s database created");
+         expectedActivities.Push($"Information : {databaseCreated.User}'s database created");
 
          // Then
          _ = databaseCreated.DatabaseFile.Should().Be(databaseFile);
@@ -96,8 +96,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          databaseCreated.Close();
-         expectedLogs.Push($"Information : User {username} logged out");
-         expectedLogs.Push($"Information : User {username}'s database closed");
+         expectedActivities.Push($"Information : User {username} logged out");
+         expectedActivities.Push($"Information : User {username}'s database closed");
 
          // Then
          _ = databaseCreated.User.Should().BeNull();
@@ -105,8 +105,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
-         expectedLogs.Push($"Information : {databaseLoaded.User}'s database opened");
-         expectedLogs.Push($"Information : {databaseLoaded.User} logged in");
+         expectedActivities.Push($"Information : {databaseLoaded.User}'s database opened");
+         expectedActivities.Push($"Information : {databaseLoaded.User} logged in");
 
          // Then
          _ = databaseLoaded.Should().NotBeNull();
@@ -119,7 +119,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = databaseLoaded.User.LogoutTimeout.Should().Be(0);
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(0);
 
-         UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
 
          // When
          databaseLoaded.Delete();
@@ -243,7 +243,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] wrongPasskeys = [.. passkeys];
          int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
          wrongPasskeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
 
          UnitTestsHelper.ClearTestEnvironment();
@@ -252,10 +252,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(wrongPasskeys, out _);
-         expectedLogs.Push($"Information : User {username}'s database opened");
+         expectedActivities.Push($"Information : User {username}'s database opened");
          for (int i = wrongKeyIndex; i < wrongPasskeys.Length; i++)
          {
-            expectedLogs.Push($"Warning : User {username} login failed at level {wrongKeyIndex + 1}");
+            expectedActivities.Push($"Warning : User {username} login failed at level {wrongKeyIndex + 1}");
             expectedLogWarnings.Push($"Warning : User {username} login failed at level {wrongKeyIndex + 1}");
          }
 
@@ -264,14 +264,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          databaseLoaded.Close();
-         expectedLogs.Push($"Information : User {username}'s database closed");
+         expectedActivities.Push($"Information : User {username}'s database closed");
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
-         expectedLogs.Push($"Information : User {username}'s database opened");
-         expectedLogs.Push($"Information : User {username} logged in");
+         expectedActivities.Push($"Information : User {username}'s database opened");
+         expectedActivities.Push($"Information : User {username} logged in");
 
          // Then
-         UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
-         UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
+         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
@@ -289,7 +289,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          bool closedDueToTimeout = false;
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
 
          UnitTestsHelper.ClearTestEnvironment();
@@ -320,7 +320,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then
-         _ = database.Logs.FirstOrDefault(x => x.Message == $"User {username}'s login session timeout reached" && x.NeedsReview).Should().NotBeNull();
+         _ = database.Activities.FirstOrDefault(x => x.Message == $"User {username}'s login session timeout reached" && x.NeedsReview).Should().NotBeNull();
 
          // Finaly
          database.Close();

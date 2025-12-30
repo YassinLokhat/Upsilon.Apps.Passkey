@@ -15,7 +15,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       IUser? IDatabase.User => Get(User);
       int? IDatabase.SessionLeftTime => User?.SessionLeftTime;
 
-      ILog[]? IDatabase.Logs => Get(Logs.Logs.OrderByDescending(x => x.DateTime).ToArray());
+      IActivity[]? IDatabase.Activities => Get(ActivityCenter.Activities.OrderByDescending(x => x.DateTime).ToArray());
 
       IWarning[]? IDatabase.Warnings => Get(User is not null ? Warnings : null);
 
@@ -54,8 +54,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             if (ex is WrongPasswordException passwordException)
             {
-               Logs.AddLog(itemId: string.Empty,
-                  eventType: LogEventType.LoginFailed,
+               ActivityCenter.AddActiivity(itemId: string.Empty,
+                  eventType: ActivityEventType.LoginFailed,
                   data: [Username, passwordException.PasswordLevel.ToString()],
                   needsReview: true);
             }
@@ -65,9 +65,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             User.Database = this;
 
-            Logs.LoadStringLogs();
-            Logs.AddLog(itemId: string.Empty,
-               eventType: LogEventType.UserLoggedIn,
+            ActivityCenter.LoadStringActivities();
+            ActivityCenter.AddActiivity(itemId: string.Empty,
+               eventType: ActivityEventType.UserLoggedIn,
                data: [Username],
                needsReview: false);
 
@@ -102,8 +102,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public bool ImportFromFile(string filePath)
       {
          _save(logSaveEvent: true);
-         Logs.AddLog(itemId: string.Empty,
-            eventType: LogEventType.ImportingDataStarted,
+         ActivityCenter.AddActiivity(itemId: string.Empty,
+            eventType: ActivityEventType.ImportingDataStarted,
             data: [filePath],
             needsReview: true);
 
@@ -133,16 +133,16 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (string.IsNullOrWhiteSpace(errorLog))
          {
-            Logs.AddLog(itemId: string.Empty,
-               eventType: LogEventType.ImportingDataSucceded,
+            ActivityCenter.AddActiivity(itemId: string.Empty,
+               eventType: ActivityEventType.ImportingDataSucceded,
                data: [],
                needsReview: true);
             _save(logSaveEvent: true);
          }
          else
          {
-            Logs.AddLog(itemId: string.Empty,
-               eventType: LogEventType.ImportingDataFailed,
+            ActivityCenter.AddActiivity(itemId: string.Empty,
+               eventType: ActivityEventType.ImportingDataFailed,
                data: [errorLog],
                needsReview: true);
          }
@@ -153,8 +153,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public bool ExportToFile(string filePath)
       {
          _save(logSaveEvent: true);
-         Logs.AddLog(itemId: string.Empty,
-            eventType: LogEventType.ExportingDataStarted,
+         ActivityCenter.AddActiivity(itemId: string.Empty,
+            eventType: ActivityEventType.ExportingDataStarted,
             data: [filePath],
             needsReview: true);
 
@@ -179,15 +179,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (string.IsNullOrWhiteSpace(errorLog))
          {
-            Logs.AddLog(itemId: string.Empty,
-               eventType: LogEventType.ExportingDataSucceded,
+            ActivityCenter.AddActiivity(itemId: string.Empty,
+               eventType: ActivityEventType.ExportingDataSucceded,
                data: [],
                needsReview: true);
          }
          else
          {
-            Logs.AddLog(itemId: string.Empty,
-               eventType: LogEventType.ExportingDataFailed,
+            ActivityCenter.AddActiivity(itemId: string.Empty,
+               eventType: ActivityEventType.ExportingDataFailed,
                data: [errorLog],
                needsReview: true);
          }
@@ -199,7 +199,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal User? User;
       internal AutoSave AutoSave;
-      internal LogCenter Logs;
+      internal ActivityCenter ActivityCenter;
       internal Warning[]? Warnings;
 
       internal string Username { get; private set; }
@@ -207,7 +207,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal readonly string DatabaseFileEntry = "database";
       internal readonly string AutoSaveFileEntry = "autosave";
-      internal readonly string LogFileEntry = "log";
+      internal readonly string ActivityFileEntry = "activity";
       internal FileLocker FileLocker;
 
       private readonly CancellationTokenSource _cancellationToken = new ();
@@ -245,15 +245,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          FileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
 
-         Logs = fileMode == FileMode.Create
+         ActivityCenter = fileMode == FileMode.Create
             ? new()
             {
                Username = username,
                PublicKey = publicKey,
             }
-            : FileLocker.Open<LogCenter>(LogFileEntry);
+            : FileLocker.Open<ActivityCenter>(ActivityFileEntry);
 
-         Logs.Database = this;
+         ActivityCenter.Database = this;
       }
 
       public static IDatabase Create(ICryptographyCenter cryptographicCenter,
@@ -297,8 +297,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
             Passkeys = [.. passkeys],
          };
 
-         database.Logs.AddLog(itemId: string.Empty,
-            eventType: LogEventType.DatabaseCreated,
+         database.ActivityCenter.AddActiivity(itemId: string.Empty,
+            eventType: ActivityEventType.DatabaseCreated,
             data: [username],
             needsReview: false);
 
@@ -322,8 +322,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
             FileMode.Open,
             username);
 
-         database.Logs.AddLog(itemId: string.Empty,
-            eventType: LogEventType.DatabaseOpened,
+         database.ActivityCenter.AddActiivity(itemId: string.Empty,
+            eventType: ActivityEventType.DatabaseOpened,
             data: [username],
             needsReview: false);
 
@@ -339,7 +339,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _save(bool logSaveEvent)
       {
-         _saveLogs();
+         _saveActivities();
          _saveDatabase(logSaveEvent);
       }
 
@@ -353,8 +353,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (logSaveEvent)
          {
-            Logs.AddLog(itemId: string.Empty,
-               eventType: LogEventType.DatabaseSaved,
+            ActivityCenter.AddActiivity(itemId: string.Empty,
+               eventType: ActivityEventType.DatabaseSaved,
                data: [Username],
                needsReview: false);
          }
@@ -366,12 +366,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
          DatabaseSaved?.Invoke(this, EventArgs.Empty);
       }
 
-      private void _saveLogs()
+      private void _saveActivities()
       {
          if (User is null) throw new NullReferenceException(nameof(User));
 
-         Logs.Username = User.Username;
-         Logs.Save(rebuildStringLogs: true);
+         ActivityCenter.Username = User.Username;
+         ActivityCenter.Save(rebuildStringActivities: true);
       }
 
       internal void Close(bool logCloseEvent, bool loginTimeoutReached)
@@ -390,14 +390,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
                   AutoSave.Clear(deleteFile: true);
                }
 
-               Logs.AddLog(itemId: string.Empty,
-                  eventType: LogEventType.UserLoggedOut,
+               ActivityCenter.AddActiivity(itemId: string.Empty,
+                  eventType: ActivityEventType.UserLoggedOut,
                   data: [Username, needsReview ? "1" : string.Empty],
                   needsReview);
             }
 
-            Logs.AddLog(itemId: string.Empty,
-               eventType: LogEventType.DatabaseClosed,
+            ActivityCenter.AddActiivity(itemId: string.Empty,
+               eventType: ActivityEventType.DatabaseClosed,
                data: [Username],
                needsReview: false);
          }
@@ -429,7 +429,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                break;
             case AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile:
                AutoSave.ApplyChanges(deleteFile: false);
-               _saveLogs();
+               _saveActivities();
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear(deleteFile: true);
@@ -439,8 +439,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
                break;
          }
 
-         Logs.AddLog(itemId: string.Empty,
-            eventType: (LogEventType)mergeAutoSave,
+         ActivityCenter.AddActiivity(itemId: string.Empty,
+            eventType: (ActivityEventType)mergeAutoSave,
             data: [Username],
             needsReview: true);
       }
@@ -451,18 +451,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          try
          {
-            Warning[] logWarnings = _lookAtLogWarnings();
+            Warning[] activityWarnings = _lookAtActivityWarnings();
             Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
             Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
             Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
 
-            Warnings = [..logWarnings,
+            Warnings = [..activityWarnings,
                ..passwordUpdateReminderWarnings,
                ..passwordLeakedWarnings,
                ..duplicatedPasswordsWarnings];
 
             WarningDetected?.Invoke(this, new WarningDetectedEventArgs(
-               [..User.WarningsToNotify.ContainsFlag(WarningType.LogReviewWarning) ? logWarnings : [],
+               [..User.WarningsToNotify.ContainsFlag(WarningType.ActivityReviewWarning) ? activityWarnings : [],
                ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
                ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
                ..User.WarningsToNotify.ContainsFlag(WarningType.DuplicatedPasswordsWarning) ? duplicatedPasswordsWarnings : []]));
@@ -470,13 +470,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
          catch { }
       }
 
-      private Warning[] _lookAtLogWarnings()
+      private Warning[] _lookAtActivityWarnings()
       {
          return User is null
             ? throw new NullReferenceException(nameof(User))
-            : Logs.Logs is null
-            ? throw new NullReferenceException(nameof(Logs.Logs))
-            : [new Warning([.. Logs.Logs.Where(x => x.NeedsReview).Cast<Log>()])];
+            : ActivityCenter.Activities is null
+            ? throw new NullReferenceException(nameof(ActivityCenter.Activities))
+            : [new Warning([.. ActivityCenter.Activities.Where(x => x.NeedsReview).Cast<Activity>()])];
       }
 
       private Warning[] _lookAtPasswordUpdateReminderWarnings()

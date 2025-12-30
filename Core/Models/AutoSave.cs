@@ -28,7 +28,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                newValue.SerializeWith(Database.SerializationCenter),
                readableValue,
                needsReview,
-               LogEventType.ItemUpdated);
+               ActivityEventType.ItemUpdated);
          }
 
          return newValue;
@@ -39,7 +39,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          bool needsReview,
          T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, value.SerializeWith(Database.SerializationCenter), readableValue, needsReview, LogEventType.ItemAdded);
+         _addChange(itemId, string.Empty, value.SerializeWith(Database.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemAdded);
 
          return value;
       }
@@ -49,7 +49,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          bool needsReview,
          T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, value.SerializeWith(Database.SerializationCenter), readableValue, needsReview, LogEventType.ItemDeleted);
+         _addChange(itemId, string.Empty, value.SerializeWith(Database.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemDeleted);
 
          return value;
       }
@@ -59,7 +59,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          string newValue,
          string readableValue,
          bool needsReview,
-         LogEventType action)
+         ActivityEventType action)
       {
          _addChange(itemId,
             fieldName,
@@ -76,7 +76,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          string newValue,
          string readableValue,
          bool needsReview,
-         LogEventType action)
+         ActivityEventType action)
       {
          string changeKey = $"{itemId}\t{fieldName}";
          if (!Changes.ContainsKey(changeKey))
@@ -125,7 +125,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             }
          }
 
-         Database.Logs.AddLog(itemId: itemId,
+         Database.ActivityCenter.AddActiivity(itemId: itemId,
             eventType: action,
             data: [itemName, fieldName, readableValue],
             needsReview);
@@ -133,9 +133,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _mergeChanges(string changeKey, Change currentChange)
       {
-         Change? lastUpdate = Changes[changeKey].LastOrDefault(x => x.ActionType == LogEventType.ItemUpdated);
+         Change? lastUpdate = Changes[changeKey].LastOrDefault(x => x.ActionType == ActivityEventType.ItemUpdated);
 
-         if (currentChange.ActionType != LogEventType.ItemUpdated
+         if (currentChange.ActionType != ActivityEventType.ItemUpdated
             || lastUpdate is null)
          {
             Changes[changeKey].Add(currentChange);

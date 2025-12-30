@@ -151,7 +151,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          switch (change.ActionType)
          {
-            case LogEventType.ItemUpdated:
+            case ActivityEventType.ItemUpdated:
                switch (change.FieldName)
                {
                   case nameof(Label):
@@ -178,7 +178,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                }
                break;
             default:
-               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(LogEventType));
+               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(ActivityEventType));
          }
       }
 

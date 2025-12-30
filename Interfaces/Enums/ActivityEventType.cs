@@ -3,7 +3,7 @@
    /// <summary>
    /// Represent the event type.
    /// </summary>
-   public enum LogEventType
+   public enum ActivityEventType
    {
       /// <summary>
       /// No event type.

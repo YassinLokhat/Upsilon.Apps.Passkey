@@ -187,7 +187,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             MainViewModel.Database.User.ShowPasswordDelay = _viewModel.ShowPasswordDelay;
             MainViewModel.Database.User.NumberOfOldPasswordToKeep = _viewModel.NumberOfOldPasswordToKeep;
             WarningType warningsToNotify = 0;
-            if (_viewModel.NotifyLogReview) warningsToNotify |= WarningType.LogReviewWarning;
+            if (_viewModel.NotifyActivityReview) warningsToNotify |= WarningType.ActivityReviewWarning;
             if (_viewModel.NotifyDuplicatedPasswords) warningsToNotify |= WarningType.DuplicatedPasswordsWarning;
             if (_viewModel.NotifyPasswordUpdateReminder) warningsToNotify |= WarningType.PasswordUpdateReminderWarning;
             if (_viewModel.NotifyPasswordLeaked) warningsToNotify |= WarningType.PasswordLeakedWarning;
@@ -284,8 +284,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             _importTask = Task.Run(() =>
             {
                _ = MainViewModel.Database.ImportFromFile(dialog.FileName)
-                  ? MessageBox.Show("Import data has been completed successfully.\nMore details in the logs.", "Import success")
-                  : MessageBox.Show("Import data failed.\nMore details in the logs.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                  ? MessageBox.Show("Import data has been completed successfully.\nMore details in the activities.", "Import success")
+                  : MessageBox.Show("Import data failed.\nMore details in the activities.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
 
                Dispatcher.Invoke(() =>
                {
@@ -321,8 +321,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             _exportTask = Task.Run(() =>
             {
                _ = MainViewModel.Database.ExportToFile(dialog.FileName)
-                  ? MessageBox.Show("Export data has been completed successfully.\nMore details in the logs.", "Export success")
-                  : MessageBox.Show("Export data failed.\nMore details in the logs.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                  ? MessageBox.Show("Export data has been completed successfully.\nMore details in the activities.", "Export success")
+                  : MessageBox.Show("Export data failed.\nMore details in the activities.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
 
                Dispatcher.Invoke(() =>
                {

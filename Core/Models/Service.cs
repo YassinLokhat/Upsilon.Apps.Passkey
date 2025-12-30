@@ -125,7 +125,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          switch (change.ActionType)
          {
-            case LogEventType.ItemUpdated:
+            case ActivityEventType.ItemUpdated:
                switch (change.FieldName)
                {
                   case nameof(ServiceName):
@@ -141,17 +141,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
-            case LogEventType.ItemAdded:
+            case ActivityEventType.ItemAdded:
                Account accountToAdd = change.NewValue.DeserializeTo<Account>(Database.SerializationCenter);
                accountToAdd.Service = this;
                Accounts.Add(accountToAdd);
                break;
-            case LogEventType.ItemDeleted:
+            case ActivityEventType.ItemDeleted:
                Account accountToDelete = change.NewValue.DeserializeTo<Account>(Database.SerializationCenter);
                _ = Accounts.RemoveAll(x => x.ItemId == accountToDelete.ItemId);
                break;
             default:
-               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(LogEventType));
+               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(ActivityEventType));
          }
       }
 

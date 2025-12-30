@@ -24,9 +24,9 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       int? SessionLeftTime { get; }
 
       /// <summary>
-      /// The logs.
+      /// The activities.
       /// </summary>
-      ILog[]? Logs { get; }
+      IActivity[]? Activities { get; }
 
       /// <summary>
       /// The warnings detected.

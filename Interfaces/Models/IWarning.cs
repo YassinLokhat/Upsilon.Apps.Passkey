@@ -13,9 +13,9 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       WarningType WarningType { get; }
 
       /// <summary>
-      /// The logs concerned to the warning, if exists.
+      /// The activities concerned to the warning, if exists.
       /// </summary>
-      ILog[]? Logs { get; }
+      IActivity[]? Activities { get; }
 
       /// <summary>
       /// The accounts concerned to the warning, if exists.

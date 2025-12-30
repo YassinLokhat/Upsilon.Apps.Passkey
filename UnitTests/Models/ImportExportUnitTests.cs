@@ -24,19 +24,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string importFile = UnitTestsHelper.GetTestFilePath("missing_import.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
 
          // When
          database.ImportFromFile(importFile);
 
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because import file is not accessible");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedActivities.Push($"Warning : Import failed because import file is not accessible");
 
          // Then
          database.User.Services.Should().BeEmpty();
 
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
          // Finaly
          database.Close();
@@ -53,19 +53,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string importFile = UnitTestsHelper.GetTestFilePath($"{username}/import.txt", createIfNotExists: true);
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
 
          // When
          database.ImportFromFile(importFile);
 
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because '.txt' extention type is not handled");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedActivities.Push($"Warning : Import failed because '.txt' extention type is not handled");
 
          // Then
          database.User.Services.Should().BeEmpty();
 
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
          // Finaly
          database.Close();
@@ -82,19 +82,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string importFile = UnitTestsHelper.GetTestFilePath($"import_noData.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
 
          // When
          database.ImportFromFile(importFile);
 
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because there is no data to import");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedActivities.Push($"Warning : Import failed because there is no data to import");
 
          // Then
          database.User.Services.Should().BeEmpty();
 
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
          // Finaly
          database.Close();
@@ -111,21 +111,21 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string importFile = UnitTestsHelper.GetTestFilePath($"import.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
          database.User.AddService("Service1");
 
          // When
          database.ImportFromFile(importFile);
 
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because service 'Service1' already exists");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedActivities.Push($"Warning : Import failed because service 'Service1' already exists");
 
          // Then
          database.User.Services.Length.Should().Be(1);
          database.User.Services[0].Url.Should().BeEmpty();
 
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
          // Finaly
          database.Close();
@@ -142,19 +142,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string importFile = UnitTestsHelper.GetTestFilePath($"import_blanckService.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
 
          // When
          database.ImportFromFile(importFile);
 
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because service name cannot be blank");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedActivities.Push($"Warning : Import failed because service name cannot be blank");
 
          // Then
          database.User.Services.Should().BeEmpty();
 
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
          // Finaly
          database.Close();
@@ -172,48 +172,48 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string importFile = UnitTestsHelper.GetTestFilePath("import.csv");
          string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
 
          // When
          database.ImportFromFile(importFile);
 
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
 
-         expectedLogs.Push($"Information : Service Service0 has been added to User {username}");
-         expectedLogs.Push($"Information : Service Service0's url has been set to www.service0.xyz");
-         expectedLogs.Push($"Information : Service Service0's notes has been set to Service0's notes");
+         expectedActivities.Push($"Information : Service Service0 has been added to User {username}");
+         expectedActivities.Push($"Information : Service Service0's url has been set to www.service0.xyz");
+         expectedActivities.Push($"Information : Service Service0's notes has been set to Service0's notes");
 
-         expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
-         expectedLogs.Push($"Warning : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
-         expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to Service0's Account0's notes");
-         expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to None");
-         expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
+         expectedActivities.Push($"Warning : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to Service0's Account0's notes");
+         expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to None");
+         expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
-         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz) has been added to Service Service0");
-         expectedLogs.Push($"Warning : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
-         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to Service0's Account1's notes");
-         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to None");
-         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz) has been added to Service Service0");
+         expectedActivities.Push($"Warning : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to Service0's Account1's notes");
+         expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to None");
+         expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
-         expectedLogs.Push($"Information : Service Service1 has been added to User {username}");
-         expectedLogs.Push($"Information : Service Service1's url has been set to www.service1.xyz");
-         expectedLogs.Push($"Information : Service Service1's notes has been set to Service1's notes");
+         expectedActivities.Push($"Information : Service Service1 has been added to User {username}");
+         expectedActivities.Push($"Information : Service Service1's url has been set to www.service1.xyz");
+         expectedActivities.Push($"Information : Service Service1's notes has been set to Service1's notes");
 
-         expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
-         expectedLogs.Push($"Warning : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
-         expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to Service1's Account0's notes");
-         expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to None");
-         expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
+         expectedActivities.Push($"Warning : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to Service1's Account0's notes");
+         expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to None");
+         expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to 3");
 
-         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz) has been added to Service Service1");
-         expectedLogs.Push($"Warning : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
-         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to Service1's Account1's notes");
-         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to None");
-         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz) has been added to Service Service1");
+         expectedActivities.Push($"Warning : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to Service1's Account1's notes");
+         expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to None");
+         expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to 3");
 
-         expectedLogs.Push($"Warning : Import completed successfully");
-         expectedLogs.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Import completed successfully");
+         expectedActivities.Push($"Information : User {username}'s database saved");
 
          // Then
          database.User.Services.Length.Should().Be(2);
@@ -260,14 +260,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          database.ExportToFile(exportFile);
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Exporting data to file : '{exportFile}'");
-         expectedLogs.Push($"Warning : Export completed successfully");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Exporting data to file : '{exportFile}'");
+         expectedActivities.Push($"Warning : Export completed successfully");
 
          // Then
          File.ReadAllText(importFile).Replace("\r", "").Should().Be(File.ReadAllText(exportFile).Replace("\r", ""));
 
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
          // Finaly
          database.Close();
@@ -284,19 +284,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string importFile = UnitTestsHelper.GetTestFilePath($"import_MissingHearder.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
 
          // When
          database.ImportFromFile(importFile);
 
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because the CSV headers should be : 'ServiceName', 'ServiceUrl', 'ServiceNotes', 'AccountLabel', 'Identifiers', 'Password', 'AccountNotes', 'AccountOptions', 'PasswordUpdateReminderDelay'");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedActivities.Push($"Warning : Import failed because the CSV headers should be : 'ServiceName', 'ServiceUrl', 'ServiceNotes', 'AccountLabel', 'Identifiers', 'Password', 'AccountNotes', 'AccountOptions', 'PasswordUpdateReminderDelay'");
 
          // Then
          database.User.Services.Should().BeEmpty();
 
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
          // Finaly
          database.Close();
@@ -313,19 +313,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string importFile = UnitTestsHelper.GetTestFilePath($"import_MissingCollumn.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
 
          // When
          database.ImportFromFile(importFile);
 
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because the CSV data format is incorrect");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedActivities.Push($"Warning : Import failed because the CSV data format is incorrect");
 
          // Then
          database.User.Services.Should().BeEmpty();
 
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
          // Finaly
          database.Close();
@@ -342,48 +342,48 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string importFile = UnitTestsHelper.GetTestFilePath("import.json");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
 
          // When
          database.ImportFromFile(importFile);
 
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
 
-         expectedLogs.Push($"Information : Service Service0 has been added to User {username}");
-         expectedLogs.Push($"Information : Service Service0's url has been set to www.service0.xyz");
-         expectedLogs.Push($"Information : Service Service0's notes has been set to Service0's notes");
+         expectedActivities.Push($"Information : Service Service0 has been added to User {username}");
+         expectedActivities.Push($"Information : Service Service0's url has been set to www.service0.xyz");
+         expectedActivities.Push($"Information : Service Service0's notes has been set to Service0's notes");
 
-         expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
-         expectedLogs.Push($"Warning : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
-         expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to Service0's Account0's notes");
-         expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to None");
-         expectedLogs.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
+         expectedActivities.Push($"Warning : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to Service0's Account0's notes");
+         expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to None");
+         expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
-         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz) has been added to Service Service0");
-         expectedLogs.Push($"Warning : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
-         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to Service0's Account1's notes");
-         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to None");
-         expectedLogs.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz) has been added to Service Service0");
+         expectedActivities.Push($"Warning : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to Service0's Account1's notes");
+         expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to None");
+         expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
-         expectedLogs.Push($"Information : Service Service1 has been added to User {username}");
-         expectedLogs.Push($"Information : Service Service1's url has been set to www.service1.xyz");
-         expectedLogs.Push($"Information : Service Service1's notes has been set to Service1's notes");
+         expectedActivities.Push($"Information : Service Service1 has been added to User {username}");
+         expectedActivities.Push($"Information : Service Service1's url has been set to www.service1.xyz");
+         expectedActivities.Push($"Information : Service Service1's notes has been set to Service1's notes");
 
-         expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
-         expectedLogs.Push($"Warning : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
-         expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to Service1's Account0's notes");
-         expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to None");
-         expectedLogs.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
+         expectedActivities.Push($"Warning : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to Service1's Account0's notes");
+         expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to None");
+         expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to 3");
 
-         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz) has been added to Service Service1");
-         expectedLogs.Push($"Warning : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
-         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to Service1's Account1's notes");
-         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to None");
-         expectedLogs.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz) has been added to Service Service1");
+         expectedActivities.Push($"Warning : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to Service1's Account1's notes");
+         expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to None");
+         expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to 3");
 
-         expectedLogs.Push($"Warning : Import completed successfully");
-         expectedLogs.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Import completed successfully");
+         expectedActivities.Push($"Information : User {username}'s database saved");
 
          // Then
          database.User.Services.Length.Should().Be(2);
@@ -428,7 +428,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Services[1].Accounts[1].Options.Should().Be(AccountOption.None);
          database.User.Services[1].Accounts[1].PasswordUpdateReminderDelay.Should().Be(3);
 
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
          // Finaly
          database.Close();
@@ -445,19 +445,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string importFile = UnitTestsHelper.GetTestFilePath($"import_WrongFormat.json");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
 
          // When
          database.ImportFromFile(importFile);
 
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedLogs.Push($"Warning : Import failed because import file deserialization failed");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedActivities.Push($"Warning : Import failed because import file deserialization failed");
 
          // Then
          database.User.Services.Should().BeEmpty();
 
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
          // Finaly
          database.Close();
@@ -476,20 +476,20 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string importFile = UnitTestsHelper.GetTestFilePath($"import.json");
          string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export.json", createIfNotExists: true);
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
          database.ImportFromFile(importFile);
 
          // When
          database.ExportToFile(exportFile);
 
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Exporting data to file : '{exportFile}'");
-         expectedLogs.Push($"Warning : Export failed because export file already exists");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Exporting data to file : '{exportFile}'");
+         expectedActivities.Push($"Warning : Export failed because export file already exists");
 
          // Then
          File.Exists(exportFile).Should().BeTrue();
 
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
          // Finaly
          database.Close();
@@ -508,20 +508,20 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string importFile = UnitTestsHelper.GetTestFilePath($"import.json");
          string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export.txt");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
          database.ImportFromFile(importFile);
 
          // When
          database.ExportToFile(exportFile);
 
-         expectedLogs.Push($"Information : User {username}'s database saved");
-         expectedLogs.Push($"Warning : Exporting data to file : '{exportFile}'");
-         expectedLogs.Push($"Warning : Export failed because '.txt' extention type is not handled");
+         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Warning : Exporting data to file : '{exportFile}'");
+         expectedActivities.Push($"Warning : Export failed because '.txt' extention type is not handled");
 
          // Then
          File.Exists(exportFile).Should().BeFalse();
 
-         UnitTestsHelper.LastLogsShouldMatch(database, [.. expectedLogs]);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
          // Finaly
          database.Close();
