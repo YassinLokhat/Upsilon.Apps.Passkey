@@ -165,9 +165,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             using StreamWriter writer = new(stream, Encoding.UTF8);
 
             if (passkeys.Length != 0)
+            {
                writer.Write(_compressString(_cryptographicCenter.EncryptSymmetrically(content, passkeys)));
+            }
             else
+            {
                writer.Write(_compressString(content));
+            }
          }
 
          Lock();

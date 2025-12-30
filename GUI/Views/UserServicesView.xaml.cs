@@ -145,9 +145,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _ = HotkeyHelper.Unregister(this, _autoLoginHotkeyId);
          _ = HotkeyHelper.Unregister(this, _autoPasswordHotkeyId);
 
-         if (MainViewModel.Database is null || MainViewModel.Database.User is null) return;
-
          MainViewModel.Database?.Close();
+         MainViewModel.Database = null;
       }
 
       private void _services_LB_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)

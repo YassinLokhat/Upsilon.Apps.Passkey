@@ -60,7 +60,7 @@ namespace Upsilon.Apps.Passkey.GUI
                databaseFile,
                "_");
             MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
-            MainViewModel.Database.AutoSaveDetected += (s, e) => e.MergeBehavior = Passkey.Interfaces.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile;
+            MainViewModel.Database.AutoSaveDetected += (s, e) => e.MergeBehavior = Interfaces.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile;
             _ = MainViewModel.Database.Login("a");
             _ = MainViewModel.Database.Login("b");
             _ = MainViewModel.Database.Login("c");
@@ -69,16 +69,22 @@ namespace Upsilon.Apps.Passkey.GUI
             if (MainViewModel.Database?.User is not null)
             {
                Hide();
-            }
 
-            if (!UserServicesView.ShowUser(this))
+               if (!UserServicesView.ShowUser(this))
+               {
+                  Close();
+               }
+            }
+            else
             {
-               Close();
+               MainViewModel.Database?.Close();
+               MainViewModel.Database = null;
             }
          }
          catch
          {
             MainViewModel.Database?.Close();
+            MainViewModel.Database = null;
          }
       }
 
