@@ -328,12 +328,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       }
 
-      private void _expiredPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
-      {
-
-      }
-
-      private void _leakedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
+      private void _expiredOrLeakedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
       {
 
       }

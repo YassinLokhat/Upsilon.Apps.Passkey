@@ -57,11 +57,11 @@
                     <MenuItem Name="_expiredPasswordWarnings_MI"
                               Header="{Binding ShowExpiredPasswordWarnings}"
                               Foreground="Red"
-                              Click="_expiredPasswordWarnings_MI_Click"/>
+                              Click="_expiredOrLeakedPasswordWarnings_MI_Click"/>
                     <MenuItem Name="_leakedPasswordWarnings_MI"
                               Header="{Binding ShowLeakedPasswordWarnings}"
                               Foreground="Red"
-                              Click="_leakedPasswordWarnings_MI_Click"/>
+                              Click="_expiredOrLeakedPasswordWarnings_MI_Click"/>
                 </MenuItem>
                 <MenuItem Header="_Logout"
                           HorizontalAlignment="Right"

@@ -40,7 +40,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          }
 
-         Loaded += _mainWindow_Loaded;
+         Loaded += (s, e) => DarkMode.SetDarkMode(this);
       }
 
       public static void ShowUserSettings(Window owner)
@@ -62,11 +62,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             });
          }
          catch { }
-      }
-
-      private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
-      {
-         DarkMode.SetDarkMode(this);
       }
 
       private void _value_TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)

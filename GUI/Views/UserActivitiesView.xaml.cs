@@ -30,12 +30,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          _activities_DGV.ItemsSource = _viewModel.Activities;
 
-         Loaded += _userActivitiesView_Loaded;
-      }
-
-      private void _userActivitiesView_Loaded(object sender, RoutedEventArgs e)
-      {
-         DarkMode.SetDarkMode(this);
+         Loaded += (s, e) => DarkMode.SetDarkMode(this);
       }
 
       public static string? ShowActivitiesDialog(Window owner, bool needsReviewFilter)

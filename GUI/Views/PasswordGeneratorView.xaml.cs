@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _insert.Visibility = (MainViewModel.Database is not null
                && MainViewModel.Database.User is not null) ? Visibility.Visible : Visibility.Collapsed;
 
-         Loaded += _passwordGenerator_Loaded;
+         Loaded += (s, e) => DarkMode.SetDarkMode(this);
       }
 
       public static string? ShowGeneratePasswordDialog(Window owner)
@@ -35,11 +35,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          };
 
          return _passwordGenerator.ShowDialog() ?? false ? _passwordGenerator.GeneratedPassword : null;
-      }
-
-      private void _passwordGenerator_Loaded(object sender, RoutedEventArgs e)
-      {
-         DarkMode.SetDarkMode(this);
       }
 
       private void _length_TextBox_TextChanged(object sender, TextChangedEventArgs e)

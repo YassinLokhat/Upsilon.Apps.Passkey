@@ -33,7 +33,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             timer.Tick += _timer_Elapsed;
          }
 
-         Loaded += _mainWindow_Loaded;
+         Loaded += (s, e) => DarkMode.SetDarkMode(this);
       }
 
       private void _timer_Elapsed(object? sender, EventArgs e)
@@ -57,11 +57,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       public static void CopyToClipboard(string text)
       {
          Clipboard.SetText(text);
-      }
-
-      private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
-      {
-         DarkMode.SetDarkMode(this);
       }
 
       private static BitmapImage _getBitmap(string content)
