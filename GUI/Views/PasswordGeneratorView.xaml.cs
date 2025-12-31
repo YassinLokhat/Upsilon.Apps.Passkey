@@ -22,7 +22,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
          DataContext = _viewModel = new PasswordGeneratorViewModel();
          _insert.Visibility = (MainViewModel.Database is not null
-               && MainViewModel.Database.User is not null) ? Visibility.Visible : Visibility.Hidden;
+               && MainViewModel.Database.User is not null) ? Visibility.Visible : Visibility.Collapsed;
 
          Loaded += _passwordGenerator_Loaded;
       }

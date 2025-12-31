@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
@@ -16,11 +17,41 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       }
 
-      public string ShowWarning
+      public string ShowWarnings
       {
          get => field;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = "Show warnings";
+      } = string.Empty;
+
+      public Brush ShowWarningsColor
+      {
+         get => field;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = Brushes.White;
+
+      public string ShowActivityWarnings
+      {
+         get => field;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = string.Empty;
+
+      public string ShowExpiredPasswordWarnings
+      {
+         get => field;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = string.Empty;
+
+      public string ShowDuplicatedPasswordWarnings
+      {
+         get => field;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = string.Empty;
+
+      public string ShowLeakedPasswordWarnings
+      {
+         get => field;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = string.Empty;
 
       public string ServiceFilter
       {

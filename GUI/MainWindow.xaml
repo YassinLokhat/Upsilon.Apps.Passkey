@@ -38,7 +38,7 @@
                      Visibility="Visible"/>
             <PasswordBox Name="_password_PB"
                          Grid.Column="1"
-                         Visibility="Hidden"/>
+                         Visibility="Collapsed"/>
         </Grid>
     </StackPanel>
 </Window>

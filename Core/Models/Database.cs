@@ -354,6 +354,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          AutoSave.Clear(deleteFile: true);
 
+         _lookAtWarnings();
+
          User.ResetTimer();
 
          DatabaseSaved?.Invoke(this, EventArgs.Empty);

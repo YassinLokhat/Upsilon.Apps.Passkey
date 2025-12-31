@@ -1,10 +1,13 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
@@ -34,11 +37,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             _services_LB.SelectedIndex = 0;
          }
 
-         if (MainViewModel.Database.Warnings is not null)
-         {
-            int warningCount = MainViewModel.Database.Warnings.SelectMany(x => x.Activities ?? []).Count();
-            _viewModel.ShowWarning = warningCount != 0 ? $"Show {warningCount} warnings" : "Show warnings";
-         }
+         _updateWarningsMenu();
 
          _ = _serviceFilter_TB.Focus();
 
@@ -117,7 +116,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _openSettings()
       {
          if (this.GetIsBusy()) return;
-        
+
          UserSettingsView.ShowUserSettings(this);
          _viewModel.RefreshFilters();
       }
@@ -182,9 +181,53 @@ namespace Upsilon.Apps.Passkey.GUI.Views
                _services_LB.ItemsSource = _viewModel.Services;
                _services_LB.SelectedItem = service;
 
+               _updateWarningsMenu();
+
                this.SetIsBusy(false);
             });
          });
+      }
+
+      private void _updateWarningsMenu()
+      {
+         int totalWarningCount = 0;
+         int activityWarnings = 0;
+         int expiredPasswordWarnings = 0;
+         int duplicatedPasswordWarnings = 0;
+         int leakedPasswordWarnings = 0;
+
+         if (MainViewModel.Database?.Warnings is not null)
+         {
+            activityWarnings = MainViewModel.Database.Warnings
+               .Where(x => x.WarningType.ContainsFlag(WarningType.ActivityReviewWarning))
+               .SelectMany(x => x.Activities ?? [])
+               .Count();
+            expiredPasswordWarnings = MainViewModel.Database.Warnings
+               .Where(x => x.WarningType.ContainsFlag(WarningType.PasswordUpdateReminderWarning))
+               .SelectMany(x => x.Accounts ?? [])
+               .Count();
+            duplicatedPasswordWarnings = MainViewModel.Database.Warnings
+               .Where(x => x.WarningType.ContainsFlag(WarningType.DuplicatedPasswordsWarning))
+               .Count();
+            leakedPasswordWarnings = MainViewModel.Database.Warnings
+               .Where(x => x.WarningType.ContainsFlag(WarningType.PasswordLeakedWarning))
+               .SelectMany(x => x.Accounts ?? [])
+               .Count();
+
+            totalWarningCount = activityWarnings + expiredPasswordWarnings + duplicatedPasswordWarnings + leakedPasswordWarnings;
+            _viewModel.ShowWarnings = $"Show {totalWarningCount} warnings";
+            _viewModel.ShowWarningsColor = (expiredPasswordWarnings + leakedPasswordWarnings) == 0 ? Brushes.Yellow : Brushes.Red;
+            _viewModel.ShowActivityWarnings = $"Show {activityWarnings} activities to review";
+            _viewModel.ShowExpiredPasswordWarnings = $"Show {expiredPasswordWarnings} expired passwords";
+            _viewModel.ShowDuplicatedPasswordWarnings = $"Show {duplicatedPasswordWarnings} duplicated passwords";
+            _viewModel.ShowLeakedPasswordWarnings = $"Show {leakedPasswordWarnings} leaked passwords";
+         }
+
+         _warnings_MI.Visibility = totalWarningCount != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _activityWarnings_MI.Visibility = activityWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _expiredPasswordWarnings_MI.Visibility = expiredPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _duplicatedPasswordWarnings_MI.Visibility = duplicatedPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _leakedPasswordWarnings_MI.Visibility = leakedPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
       }
 
       private void _addService_Button_Click(object sender, RoutedEventArgs e)
@@ -223,7 +266,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       {
          if (this.GetIsBusy()) return;
 
-         string? itemId = UserActivitiesView.ShowActivitiesDialog(this);
+         string? itemId = UserActivitiesView.ShowActivitiesDialog(this, needsReviewFilter: false);
 
          if (itemId is null) return;
 
@@ -267,6 +310,32 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          {
             _ = MessageBox.Show($"The item '{itemId}' was not found.\nIt has been deleted.", "Item not found", MessageBoxButton.OK, MessageBoxImage.Warning);
          }
+      }
+
+      private void _activityWarnings_MI_Click(object sender, RoutedEventArgs e)
+      {
+         if (this.GetIsBusy()) return;
+
+         string? itemId = UserActivitiesView.ShowActivitiesDialog(this, needsReviewFilter: true);
+
+         if (itemId is null) return;
+
+         _goToItem(itemId);
+      }
+
+      private void _duplicatedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
+      {
+
+      }
+
+      private void _expiredPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
+      {
+
+      }
+
+      private void _leakedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
+      {
+
       }
    }
 }

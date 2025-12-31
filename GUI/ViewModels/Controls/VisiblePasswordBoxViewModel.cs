@@ -22,7 +22,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = Visibility.Hidden;
+      } = Visibility.Collapsed;
       public Visibility ButtonVisibility
       {
          get;
@@ -41,7 +41,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = DarkMode.UnchangedBrush2;
 
-      public bool PasswordIsVisible => PasswordVisibility == System.Windows.Visibility.Hidden;
+      public bool PasswordIsVisible => PasswordVisibility == System.Windows.Visibility.Collapsed;
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -54,13 +54,13 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
       {
          if (!PasswordIsVisible)
          {
-            PasswordVisibility = System.Windows.Visibility.Hidden;
+            PasswordVisibility = System.Windows.Visibility.Collapsed;
             TextVisibility = System.Windows.Visibility.Visible;
          }
          else
          {
             PasswordVisibility = System.Windows.Visibility.Visible;
-            TextVisibility = System.Windows.Visibility.Hidden;
+            TextVisibility = System.Windows.Visibility.Collapsed;
          }
       }
    }

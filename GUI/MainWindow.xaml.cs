@@ -132,7 +132,7 @@ namespace Upsilon.Apps.Passkey.GUI
                _mainViewModel.Label = "Password :";
 
                _username_TB.Text = string.Empty;
-               _username_TB.Visibility = Visibility.Hidden;
+               _username_TB.Visibility = Visibility.Collapsed;
 
                _password_PB.Password = string.Empty;
                _password_PB.Visibility = Visibility.Visible;
@@ -208,7 +208,7 @@ namespace Upsilon.Apps.Passkey.GUI
          _ = _username_TB.Focus();
 
          _password_PB.Password = string.Empty;
-         _password_PB.Visibility = Visibility.Hidden;
+         _password_PB.Visibility = Visibility.Collapsed;
 
          _timer.Stop();
       }

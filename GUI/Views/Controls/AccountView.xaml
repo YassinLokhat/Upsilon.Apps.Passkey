@@ -105,7 +105,7 @@
                                                       Grid.Row="0"
                                                       Grid.Column="0"
                                                       Margin="5"
-                                                      Background="{Binding PasswordBackground}"
+                                                      Background="{Binding Background}"
                                                       Validated="_password_VPB_Validated"/>
                             <Button Grid.Row="0"
                                 Grid.Column="1"

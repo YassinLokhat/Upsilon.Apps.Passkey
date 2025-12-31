@@ -29,7 +29,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _deleteUser_MI.Visibility
             = _import_MI.Visibility
             = _export_MI.Visibility
-            = (MainViewModel.Database is null || MainViewModel.Database.User is null) ? Visibility.Hidden : Visibility.Visible;
+            = (MainViewModel.Database is null || MainViewModel.Database.User is null) ? Visibility.Collapsed : Visibility.Visible;
 
          DataContext = _viewModel = new UserSettingsViewModel();
 

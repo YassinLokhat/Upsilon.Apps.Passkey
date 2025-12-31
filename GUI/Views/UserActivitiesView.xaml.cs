@@ -14,11 +14,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private readonly UserActivitiesViewModel _viewModel;
       public string ItemId { get; private set; } = string.Empty;
 
-      private UserActivitiesView()
+      private UserActivitiesView(bool needsReviewFilter)
       {
          InitializeComponent();
 
-         DataContext = _viewModel = new();
+         DataContext = _viewModel = new()
+         {
+            NeedsReview = needsReviewFilter,
+         };
 
          _eventType_CB.ItemsSource = Enum.GetValues<ActivityEventType>()
             .Cast<ActivityEventType>()
@@ -35,9 +38,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          DarkMode.SetDarkMode(this);
       }
 
-      public static string? ShowActivitiesDialog(Window owner)
+      public static string? ShowActivitiesDialog(Window owner, bool needsReviewFilter)
       {
-         UserActivitiesView _userActivitiesView = new()
+         UserActivitiesView _userActivitiesView = new(needsReviewFilter)
          {
             Owner = owner,
          };
