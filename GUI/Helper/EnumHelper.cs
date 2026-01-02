@@ -48,5 +48,27 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
             throw new InvalidOperationException($"'{readableString}' event type not handled");
          }
       }
+
+      public static string ToReadableString(this WarningType warningType)
+      {
+         return warningType switch
+         {
+            WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning => "All",
+            WarningType.PasswordUpdateReminderWarning => "Expired passwords",
+            WarningType.PasswordLeakedWarning => "Leaked passwords",
+            _ => throw new InvalidOperationException($"'{warningType}' warning type not handled"),
+         };
+      }
+
+      public static WarningType ActivityWarningTypeFromReadableString(string readableString)
+      {
+         return readableString switch
+         {
+            "All" => WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning,
+            "Expired passwords" => WarningType.PasswordUpdateReminderWarning,
+            "Leaked passwords" => WarningType.PasswordLeakedWarning,
+            _ => throw new InvalidOperationException($"'{readableString}' warning type not handled"),
+         };
+      }
    }
 }

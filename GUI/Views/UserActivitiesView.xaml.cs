@@ -12,7 +12,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    public partial class UserActivitiesView : Window
    {
       private readonly UserActivitiesViewModel _viewModel;
-      public string ItemId { get; private set; } = string.Empty;
+      private string _itemId = string.Empty;
 
       private UserActivitiesView(bool needsReviewFilter)
       {
@@ -40,7 +40,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             Owner = owner,
          };
 
-         return (_userActivitiesView.ShowDialog() ?? false) ? _userActivitiesView.ItemId : null;
+         return (_userActivitiesView.ShowDialog() ?? false) ? _userActivitiesView._itemId : null;
       }
 
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
@@ -53,7 +53,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _viewItemButton_Click(object sender, RoutedEventArgs e)
       {
-         ItemId = _viewModel.Activities[_activities_DGV.SelectedIndex].Activity.ItemId;
+         _itemId = _viewModel.Activities[_activities_DGV.SelectedIndex].Activity.ItemId;
 
          DialogResult = true;
       }

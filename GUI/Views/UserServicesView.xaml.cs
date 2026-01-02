@@ -8,6 +8,7 @@ using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.Views
 {
@@ -273,6 +274,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _goToItem(itemId);
       }
 
+      private void _goToItem(IAccount account) => _goToItem(account.ItemId);
+
       private void _goToItem(string itemId)
       {
          if (MainViewModel.Database?.User is null) return;
@@ -330,7 +333,14 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _expiredOrLeakedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
 
+         IAccount? account = AccountPasswordsWarningView.ShowAccountWarningsDialog(this,
+            sender == _expiredPasswordWarnings_MI ? WarningType.PasswordUpdateReminderWarning : WarningType.PasswordLeakedWarning);
+
+         if (account is null) return;
+
+         _goToItem(account);
       }
    }
 }
