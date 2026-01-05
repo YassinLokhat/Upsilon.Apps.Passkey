@@ -482,10 +482,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          if (User is null) return [];
 
+         string[] leakedPasswords = [.. User.Services
+            .SelectMany(x => x.Accounts)
+            .Where(x => x.Options.ContainsFlag(AccountOption.WarnIfPasswordLeaked))
+            .Select(x => x.Password)
+            .Distinct()
+            .AsParallel()
+            .Where(x => PasswordFactory.PasswordLeaked(x))];
+
          Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
-            .AsParallel()
-            .Where(x => x.PasswordLeaked)];
+            .Where(x => leakedPasswords.Contains(x.Password))];
+
+         foreach (Account account in accounts)
+         {
+            account.PasswordLeaked = true;
+         }
 
          return accounts.Length != 0 ? [new Warning(WarningType.PasswordLeakedWarning, accounts)] : [];
       }
