@@ -200,7 +200,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (SessionLeftTime == 0)
             {
-               Database.ActivityCenter.AddActiivity(itemId: ItemId,
+               Database.ActivityCenter.AddActivity(itemId: ItemId,
                   eventType: ActivityEventType.LoginSessionTimeoutReached,
                   data: [Username],
                   needsReview: true);

@@ -125,7 +125,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             }
          }
 
-         Database.ActivityCenter.AddActiivity(itemId: itemId,
+         Database.ActivityCenter.AddActivity(itemId: itemId,
             eventType: action,
             data: [itemName, fieldName, readableValue],
             needsReview);

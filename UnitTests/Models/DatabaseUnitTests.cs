@@ -12,13 +12,15 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       [TestMethod, Ignore]
       public void Case00_GenerateNewDatabase()
       {
+         UnitTestsHelper.ClearTestEnvironment("_");
+
          IDatabase database = UnitTestsHelper.CreateTestDatabase(["a", "b", "c"], "_");
          IUser user = database.User;
          user.LogoutTimeout = 10;
          user.CleaningClipboardTimeout = 15;
          user.WarningsToNotify = (WarningType)0;
 
-         for (int i = 0; i < 50; i++)
+         for (int i = 0; i < 100; i++)
          {
             IService service = user.AddService($"Service{i} ({UnitTestsHelper.GetRandomString(min: 10, max: 15)})");
             service.Url = $"www.service{i}.xyz";
@@ -32,6 +34,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
                random = UnitTestsHelper.GetRandomInt(10) + 1;
 
                IAccount account;
+               string password = UnitTestsHelper.GetRandomString(min: 20, max: 25);
                switch (random % 4)
                {
                   case 1:
@@ -40,7 +43,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
                      break;
                   case 2:
                      account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"),
-                        password: UnitTestsHelper.GetRandomString(min: 20, max: 25));
+                        password: password);
                      break;
                   case 3:
                      account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"));
@@ -48,14 +51,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
                   default:
                      account = service.AddAccount(label: $"Account{j}",
                         identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"),
-                        password: UnitTestsHelper.GetRandomString(min: 20, max: 25));
+                        password: password);
                      break;
                }
 
                random = UnitTestsHelper.GetRandomInt(100);
                account.Notes = random % 10 == 0 ? $"Service{i}'s Account{j} notes : \n{UnitTestsHelper.GetRandomString(min: 10, max: 150)}" : "";
                account.PasswordUpdateReminderDelay = random < 10 ? random : 0;
-               account.Options = random % 2 == 0 ? AccountOption.WarnIfPasswordLeaked : AccountOption.None;
+               account.Options = (!string.IsNullOrEmpty(account.Password) && random % 2 == 0) ? AccountOption.WarnIfPasswordLeaked : AccountOption.None;
             }
          }
 

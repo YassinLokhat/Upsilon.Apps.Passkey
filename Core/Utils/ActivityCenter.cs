@@ -20,7 +20,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string PublicKey { get; set; } = string.Empty;
 
-      public void AddActiivity(string itemId, ActivityEventType eventType, string[] data, bool needsReview)
+      public void AddActivity(string itemId, ActivityEventType eventType, string[] data, bool needsReview)
       {
          Activity activity = new(DateTime.Now.Ticks, itemId, eventType, data, needsReview);
 

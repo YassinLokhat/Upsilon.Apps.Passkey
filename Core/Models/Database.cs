@@ -54,7 +54,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             if (ex is WrongPasswordException passwordException)
             {
-               ActivityCenter.AddActiivity(itemId: string.Empty,
+               ActivityCenter.AddActivity(itemId: string.Empty,
                   eventType: ActivityEventType.LoginFailed,
                   data: [Username, passwordException.PasswordLevel.ToString()],
                   needsReview: true);
@@ -66,7 +66,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             User.Database = this;
 
             ActivityCenter.LoadStringActivities();
-            ActivityCenter.AddActiivity(itemId: string.Empty,
+            ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.UserLoggedIn,
                data: [Username],
                needsReview: false);
@@ -98,7 +98,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public bool ImportFromFile(string filePath)
       {
          _save(logSaveEvent: true);
-         ActivityCenter.AddActiivity(itemId: string.Empty,
+         ActivityCenter.AddActivity(itemId: string.Empty,
             eventType: ActivityEventType.ImportingDataStarted,
             data: [filePath],
             needsReview: true);
@@ -129,7 +129,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (string.IsNullOrWhiteSpace(errorLog))
          {
-            ActivityCenter.AddActiivity(itemId: string.Empty,
+            ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.ImportingDataSucceded,
                data: [],
                needsReview: true);
@@ -137,7 +137,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
          else
          {
-            ActivityCenter.AddActiivity(itemId: string.Empty,
+            ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.ImportingDataFailed,
                data: [errorLog],
                needsReview: true);
@@ -149,7 +149,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public bool ExportToFile(string filePath)
       {
          _save(logSaveEvent: true);
-         ActivityCenter.AddActiivity(itemId: string.Empty,
+         ActivityCenter.AddActivity(itemId: string.Empty,
             eventType: ActivityEventType.ExportingDataStarted,
             data: [filePath],
             needsReview: true);
@@ -175,14 +175,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (string.IsNullOrWhiteSpace(errorLog))
          {
-            ActivityCenter.AddActiivity(itemId: string.Empty,
+            ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.ExportingDataSucceded,
                data: [],
                needsReview: true);
          }
          else
          {
-            ActivityCenter.AddActiivity(itemId: string.Empty,
+            ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.ExportingDataFailed,
                data: [errorLog],
                needsReview: true);
@@ -290,7 +290,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             Passkeys = [.. passkeys],
          };
 
-         database.ActivityCenter.AddActiivity(itemId: string.Empty,
+         database.ActivityCenter.AddActivity(itemId: string.Empty,
             eventType: ActivityEventType.DatabaseCreated,
             data: [username],
             needsReview: false);
@@ -315,7 +315,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             FileMode.Open,
             username);
 
-         database.ActivityCenter.AddActiivity(itemId: string.Empty,
+         database.ActivityCenter.AddActivity(itemId: string.Empty,
             eventType: ActivityEventType.DatabaseOpened,
             data: [username],
             needsReview: false);
@@ -346,7 +346,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (logSaveEvent)
          {
-            ActivityCenter.AddActiivity(itemId: string.Empty,
+            ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.DatabaseSaved,
                data: [Username],
                needsReview: false);
@@ -382,13 +382,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
                   AutoSave.Clear(deleteFile: true);
                }
 
-               ActivityCenter.AddActiivity(itemId: string.Empty,
+               ActivityCenter.AddActivity(itemId: string.Empty,
                   eventType: ActivityEventType.UserLoggedOut,
                   data: [Username, needsReview ? "1" : string.Empty],
                   needsReview);
             }
 
-            ActivityCenter.AddActiivity(itemId: string.Empty,
+            ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.DatabaseClosed,
                data: [Username],
                needsReview: false);
@@ -431,7 +431,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                break;
          }
 
-         ActivityCenter.AddActiivity(itemId: string.Empty,
+         ActivityCenter.AddActivity(itemId: string.Empty,
             eventType: (ActivityEventType)mergeAutoSave,
             data: [Username],
             needsReview: true);
