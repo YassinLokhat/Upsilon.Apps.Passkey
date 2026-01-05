@@ -452,10 +452,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
                ..duplicatedPasswordsWarnings];
 
          WarningDetected?.Invoke(this, new WarningDetectedEventArgs(
-            [..User.WarningsToNotify.ContainsFlag(WarningType.ActivityReviewWarning) ? activityWarnings : [],
-               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
-               ..User.WarningsToNotify.ContainsFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
-               ..User.WarningsToNotify.ContainsFlag(WarningType.DuplicatedPasswordsWarning) ? duplicatedPasswordsWarnings : []]));
+            [..User.WarningsToNotify.HasFlag(WarningType.ActivityReviewWarning) ? activityWarnings : [],
+               ..User.WarningsToNotify.HasFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
+               ..User.WarningsToNotify.HasFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
+               ..User.WarningsToNotify.HasFlag(WarningType.DuplicatedPasswordsWarning) ? duplicatedPasswordsWarnings : []]));
       }
 
       private Warning[] _lookAtActivityWarnings()
@@ -484,7 +484,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          string[] leakedPasswords = [.. User.Services
             .SelectMany(x => x.Accounts)
-            .Where(x => x.Options.ContainsFlag(AccountOption.WarnIfPasswordLeaked))
+            .Where(x => x.Options.HasFlag(AccountOption.WarnIfPasswordLeaked))
             .Select(x => x.Password)
             .Distinct()
             .AsParallel()

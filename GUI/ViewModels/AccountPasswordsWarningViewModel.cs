@@ -69,7 +69,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
          if (MainViewModel.Database?.Warnings is null) return;
 
          AccountPasswordWarningViewModel[] warnings = [.. MainViewModel.Database.Warnings
-            .Where(x => WarningType.ContainsFlag(x.WarningType))
+            .Where(x => WarningType.HasFlag(x.WarningType))
             .SelectMany(x => x.Accounts?.Select(y => new AccountPasswordWarningViewModel(y, x.WarningType)) ?? [])
             .Where(x => x.MeetsConditions(WarningType, Text))];
 

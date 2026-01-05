@@ -200,18 +200,18 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          if (MainViewModel.Database?.Warnings is not null)
          {
             activityWarnings = MainViewModel.Database.Warnings
-               .Where(x => x.WarningType.ContainsFlag(WarningType.ActivityReviewWarning))
+               .Where(x => x.WarningType.HasFlag(WarningType.ActivityReviewWarning))
                .SelectMany(x => x.Activities ?? [])
                .Count();
             expiredPasswordWarnings = MainViewModel.Database.Warnings
-               .Where(x => x.WarningType.ContainsFlag(WarningType.PasswordUpdateReminderWarning))
+               .Where(x => x.WarningType.HasFlag(WarningType.PasswordUpdateReminderWarning))
                .SelectMany(x => x.Accounts ?? [])
                .Count();
             duplicatedPasswordWarnings = MainViewModel.Database.Warnings
-               .Where(x => x.WarningType.ContainsFlag(WarningType.DuplicatedPasswordsWarning))
+               .Where(x => x.WarningType.HasFlag(WarningType.DuplicatedPasswordsWarning))
                .Count();
             leakedPasswordWarnings = MainViewModel.Database.Warnings
-               .Where(x => x.WarningType.ContainsFlag(WarningType.PasswordLeakedWarning))
+               .Where(x => x.WarningType.HasFlag(WarningType.PasswordLeakedWarning))
                .SelectMany(x => x.Accounts ?? [])
                .Count();
 
