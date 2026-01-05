@@ -328,7 +328,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _duplicatedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
       {
+         if (this.GetIsBusy()) return;
 
+         IAccount? account = DuplicatedPasswordsWarningView.ShowDuplicatedPaswwordsWarningsDialog(this);
+
+         if (account is null) return;
+
+         _goToItem(account);
       }
 
       private void _expiredOrLeakedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)

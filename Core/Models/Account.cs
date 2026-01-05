@@ -141,7 +141,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             DateTime lastPassword = Passwords.Keys.Max();
             int delay = ((DateTime.Now.Year - lastPassword.Year) * 12) + DateTime.Now.Month - lastPassword.Month;
 
-            return delay >= PasswordUpdateReminderDelay;
+            return delay > PasswordUpdateReminderDelay;
          }
       }
 

@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private readonly AccountPasswordsWarningViewModel _viewModel;
       private IAccount? _account = null;
 
-      public AccountPasswordsWarningView(WarningType warningType)
+      private AccountPasswordsWarningView(WarningType warningType)
       {
          InitializeComponent();
 
