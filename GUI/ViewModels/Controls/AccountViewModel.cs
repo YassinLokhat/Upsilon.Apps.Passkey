@@ -39,7 +39,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
 
       public ObservableCollection<IdentifierViewModel> Identifiers = [];
 
-      public Brush PasswordBackground => Account.HasChanged(nameof(Password)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush PasswordBackground => Account.HasChanged(nameof(Password)) ? DarkMode.ChangedBrush : !PasswordLeaked ? DarkMode.UnchangedBrush2 : Brushes.Red;
       public string Password
       {
          get => Account.Password;
@@ -119,6 +119,12 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
             }
          }
       }
+
+      public bool PasswordLeaked
+         => Account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
+               && MainViewModel.Database?.Warnings is not null
+               && MainViewModel.Database.Warnings.Any(x => x.WarningType == WarningType.PasswordLeakedWarning
+                  && x.Accounts.Contains(Account));
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
