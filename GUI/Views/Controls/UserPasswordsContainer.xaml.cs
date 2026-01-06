@@ -92,6 +92,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
 
          _passwords.Add(passwordItem);
          _ = _stackPanel.Children.Add(passwordItem);
+         _stackPanel.UpdateLayout();
+
+         passwordItem.Focus();
       }
 
       private void _movePassword(UserPasswordItem passwordItem, int index)

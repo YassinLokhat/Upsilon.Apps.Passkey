@@ -27,6 +27,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          _password_VPB.PasswordChanged += _password_VPB_PasswordChanged;
       }
 
+      public new void Focus()
+      {
+         _password_VPB.Focus();
+      }
+
       private void _viewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
       {
          if (e.PropertyName == "Password"

@@ -47,6 +47,11 @@ namespace Upsilon.Apps.Passkey.GUI.Views.Controls
          _passwordBox.PasswordChanged += _passwordBox_PasswordChanged;
       }
 
+      public new void Focus()
+      {
+         _passwordBox.Focus();
+      }
+
       private void _passwordBox_LostFocus(object sender, System.Windows.RoutedEventArgs e)
       {
          Validated?.Invoke(this, EventArgs.Empty);
