@@ -34,12 +34,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
          while (iteration < length && checkIfLeaked && PasswordLeaked(stringBuilder.ToString()));
 
-         if (iteration == length)
-         {
-            return string.Empty;
-         }
-
-         return stringBuilder.ToString();
+         return iteration == length ? string.Empty : stringBuilder.ToString();
       }
 
       public bool PasswordLeaked(string password)

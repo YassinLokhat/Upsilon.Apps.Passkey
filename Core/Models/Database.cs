@@ -97,7 +97,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public bool ImportFromFile(string filePath)
       {
-         _save(logSaveEvent: true);
+         if (User is null) throw new NullReferenceException(nameof(User));
+
+         if (User.HasChanged())
+         {
+            _save(logSaveEvent: true);
+         }
+
          ActivityCenter.AddActivity(itemId: string.Empty,
             eventType: ActivityEventType.ImportingDataStarted,
             data: [filePath],
@@ -148,7 +154,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public bool ExportToFile(string filePath)
       {
-         _save(logSaveEvent: true);
+         if (User is null) throw new NullReferenceException(nameof(User));
+
+         if (User.HasChanged())
+         {
+            _save(logSaveEvent: true);
+         }
+
          ActivityCenter.AddActivity(itemId: string.Empty,
             eventType: ActivityEventType.ExportingDataStarted,
             data: [filePath],
@@ -489,7 +501,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             .Select(x => x.Password)
             .Distinct()
             .AsParallel()
-            .Where(x => PasswordFactory.PasswordLeaked(x))];
+            .Where(PasswordFactory.PasswordLeaked)];
 
          Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)

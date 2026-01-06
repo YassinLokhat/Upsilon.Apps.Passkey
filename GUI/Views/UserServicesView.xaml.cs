@@ -2,7 +2,6 @@
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
@@ -49,7 +48,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _database_WarningDetected(object? sender, Interfaces.Events.WarningDetectedEventArgs e)
       {
-         Dispatcher.BeginInvoke(_updateWarningsMenu);
+         _ = Dispatcher.BeginInvoke(_updateWarningsMenu);
       }
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)

@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+﻿using System.Windows;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.Themes;
 using Upsilon.Apps.Passkey.GUI.ViewModels;
@@ -34,9 +24,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             WarningType = warningType,
          };
 
-         _warningType_CB.Items.Add((WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning).ToReadableString());
-         _warningType_CB.Items.Add(WarningType.PasswordLeakedWarning.ToReadableString());
-         _warningType_CB.Items.Add(WarningType.PasswordUpdateReminderWarning.ToReadableString());
+         _ = _warningType_CB.Items.Add((WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning).ToReadableString());
+         _ = _warningType_CB.Items.Add(WarningType.PasswordLeakedWarning.ToReadableString());
+         _ = _warningType_CB.Items.Add(WarningType.PasswordUpdateReminderWarning.ToReadableString());
 
          _warnings_DGV.ItemsSource = _viewModel.Warnings;
 

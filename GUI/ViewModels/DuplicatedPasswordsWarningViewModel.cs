@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Text;
-using Upsilon.Apps.Passkey.GUI.Helper;
-using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
+﻿using Upsilon.Apps.Passkey.GUI.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.ViewModels
 {
-    internal class DuplicatedPasswordsWarningViewModel
+   internal class DuplicatedPasswordsWarningViewModel
    {
       public string Title { get; }
 

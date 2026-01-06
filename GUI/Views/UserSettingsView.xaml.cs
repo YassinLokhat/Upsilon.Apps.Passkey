@@ -257,8 +257,13 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _import_MenuItem_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy()
-            || MainViewModel.Database is null
-            || MessageBox.Show("Before importing data, all unsaved changes will be saved.", "Import data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+            || MainViewModel.Database?.User is null)
+         {
+            return;
+         }
+
+         if (MainViewModel.Database.User.HasChanged()
+            && MessageBox.Show("Before importing data, all unsaved changes will be saved.", "Import data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
          {
             return;
          }
@@ -293,17 +298,22 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private void _export_MenuItem_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy()
-            || MainViewModel.Database is null
-            || MessageBox.Show("Before exporting data, all unsaved changes will be saved.", "Export data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+            || MainViewModel.Database?.User is null)
          {
             return;
          }
-         
+
+         if (MainViewModel.Database.User.HasChanged()
+            && MessageBox.Show("Before exporting data, all unsaved changes will be saved.", "Export data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+         {
+            return;
+         }
+
          SaveFileDialog dialog = new()
          {
             Title = "Export data to a file",
             Filter = "Tab delimited CSV file|*.csv|json file|*.json",
-            FileName = $"{MainViewModel.Database.User?.ItemId ?? string.Empty}-{DateTime.Now.ToString("yyyyMMddHHmm")}",
+            FileName = $"{MainViewModel.Database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
          };
 
          if (!(dialog.ShowDialog() ?? false)) return;
