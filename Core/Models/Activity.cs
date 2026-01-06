@@ -102,7 +102,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             ActivityEventType.ExportingDataStarted => $"Exporting data to file : '{Data[0]}'",
             ActivityEventType.ExportingDataSucceded => $"Export completed successfully",
             ActivityEventType.ExportingDataFailed => $"Export failed because {Data[0]}",
-            ActivityEventType.ItemUpdated => $"{Data[0]}'s {Data[1].ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(Data[2]) ? $"updated" : $"set to {Data[2]}")}",
+            ActivityEventType.ItemUpdated => $"{(Data.Length > 3 ? $"{Data[3]}'s " : "")}{Data[0]}'s {Data[1].ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(Data[2]) ? $"updated" : $"set to {Data[2]}")}",
             ActivityEventType.ItemAdded => $"{Data[2]} has been added to {Data[0]}",
             ActivityEventType.ItemDeleted => $"{Data[2]} has been removed from {Data[0]}",
             _ => ToString(),

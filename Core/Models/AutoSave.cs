@@ -98,6 +98,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          Database.FileLocker.Save(this, Database.AutoSaveFileEntry, Database.Passkeys);
          string itemName = string.Empty;
+         string parentName = string.Empty;
 
          if (itemId == Database.User?.ItemId)
          {
@@ -122,12 +123,24 @@ namespace Upsilon.Apps.Passkey.Core.Models
             if (a is not null)
             {
                itemName = a.ToString();
+
+               if (action == ActivityEventType.ItemUpdated)
+               {
+                  parentName = a.Service.ToString();
+               }
             }
+         }
+
+         string[] data = [itemName, fieldName, readableValue];
+
+         if (!string.IsNullOrEmpty(parentName))
+         {
+            data = [.. data, parentName];
          }
 
          Database.ActivityCenter.AddActivity(itemId: itemId,
             eventType: action,
-            data: [itemName, fieldName, readableValue],
+            data,
             needsReview);
       }
 
