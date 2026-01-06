@@ -178,7 +178,10 @@
                                         Text="{Binding RemindPasswordUpdateDelay, Mode=TwoWay}"/>
                             <Label Margin="0">months.</Label>
                         </StackPanel>
-                        <CheckBox IsChecked="{Binding WarnPasswordLeak}">Warn if the password leaked.</CheckBox>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding WarnPasswordLeak}">Warn if the password leaked.</CheckBox>
+                            <CheckBox IsChecked="{Binding WarnIfDuplicatedPassword}">Warn if the password is same as another account's password.</CheckBox>
+                        </StackPanel>
                     </StackPanel>
                 </GroupBox>
             </Grid>

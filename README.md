@@ -165,6 +165,7 @@ classDiagram
             <<enumeration>>
             None
             WarnIfPasswordLeaked
+            WarnIfDuplicatedPassword
         }
         
         class WarningType {

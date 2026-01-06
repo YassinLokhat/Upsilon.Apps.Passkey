@@ -120,6 +120,27 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          }
       }
 
+      public bool WarnIfDuplicatedPassword
+      {
+         get => Account.Options.HasFlag(AccountOption.WarnIfDuplicatedPassword);
+         set
+         {
+            if (WarnIfDuplicatedPassword != value)
+            {
+               if (value)
+               {
+                  Account.Options |= AccountOption.WarnIfDuplicatedPassword;
+               }
+               else
+               {
+                  Account.Options &= ~AccountOption.WarnIfDuplicatedPassword;
+               }
+
+               OnPropertyChanged(nameof(WarnIfDuplicatedPassword));
+            }
+         }
+      }
+
       public bool PasswordLeaked
          => Account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
                && MainViewModel.Database?.Warnings is not null

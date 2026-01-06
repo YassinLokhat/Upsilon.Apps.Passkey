@@ -529,7 +529,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          foreach (IGrouping<string, Account> accounts in duplicatedPasswords)
          {
-            warnings.Add(new(WarningType.DuplicatedPasswordsWarning, [.. accounts.Cast<Account>()]));
+            if (accounts.Any(x => x.Options.HasFlag(AccountOption.WarnIfDuplicatedPassword)))
+            {
+               warnings.Add(new(WarningType.DuplicatedPasswordsWarning, [.. accounts.Cast<Account>()]));
+            }
          }
 
          return [.. warnings];
