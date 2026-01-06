@@ -54,7 +54,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Account account = new()
          {
             Service = this,
-            ItemId = "A" + Database.CryptographyCenter.GetHash(label + string.Join(string.Empty, identifiers)),
+            ItemId = "A" + Database.CryptographyCenter.GetHash(ItemId + label + string.Join(string.Empty, identifiers)),
             Label = label,
             Identifiers = [.. identifiers],
             Password = password,

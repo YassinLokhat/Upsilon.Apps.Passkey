@@ -126,7 +126,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Service service = new()
          {
             User = this,
-            ItemId = "S" + Database.CryptographyCenter.GetHash(serviceName),
+            ItemId = "S" + Database.CryptographyCenter.GetHash(ItemId + serviceName),
             ServiceName = serviceName
          };
 
