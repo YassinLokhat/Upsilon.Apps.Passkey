@@ -38,12 +38,18 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             _services_LB.SelectedIndex = 0;
          }
 
-         _updateWarningsMenu();
+         _warnings_MI.Visibility = Visibility.Collapsed;
 
          _ = _serviceFilter_TB.Focus();
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
+         MainViewModel.Database.WarningDetected += _database_WarningDetected;
          Loaded += _userServicesView_Loaded;
+      }
+
+      private void _database_WarningDetected(object? sender, Interfaces.Events.WarningDetectedEventArgs e)
+      {
+         Dispatcher.BeginInvoke(_updateWarningsMenu);
       }
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
@@ -181,8 +187,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
                _services_LB.ItemsSource = _viewModel.Services;
                _services_LB.SelectedItem = service;
-
-               _updateWarningsMenu();
 
                this.SetIsBusy(false);
             });

@@ -81,7 +81,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                _handleAutoSave(eventArg.MergeBehavior);
             }
 
-            _lookAtWarnings();
+            _ = Task.Run(_lookAtWarnings);
 
             User.ResetTimer();
          }
@@ -332,7 +332,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _save(bool logSaveEvent)
       {
-         _saveActivities();
+         _saveActivities(rebuildStringActivities: true);
          _saveDatabase(logSaveEvent);
       }
 
@@ -354,19 +354,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          AutoSave.Clear(deleteFile: true);
 
-         _lookAtWarnings();
+         _ = Task.Run(_lookAtWarnings);
 
          User.ResetTimer();
 
          DatabaseSaved?.Invoke(this, EventArgs.Empty);
       }
 
-      private void _saveActivities()
+      private void _saveActivities(bool rebuildStringActivities)
       {
          if (User is null) throw new NullReferenceException(nameof(User));
 
          ActivityCenter.Username = User.Username;
-         ActivityCenter.Save(rebuildStringActivities: true);
+         ActivityCenter.Save(rebuildStringActivities);
       }
 
       internal void Close(bool logCloseEvent, bool loginTimeoutReached)
@@ -421,7 +421,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                break;
             case AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile:
                AutoSave.ApplyChanges(deleteFile: false);
-               _saveActivities();
+               _saveActivities(rebuildStringActivities: false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear(deleteFile: true);
@@ -451,11 +451,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
                ..passwordLeakedWarnings,
                ..duplicatedPasswordsWarnings];
 
-         WarningDetected?.Invoke(this, new WarningDetectedEventArgs(
-            [..User.WarningsToNotify.HasFlag(WarningType.ActivityReviewWarning) ? activityWarnings : [],
-               ..User.WarningsToNotify.HasFlag(WarningType.PasswordUpdateReminderWarning) ? passwordUpdateReminderWarnings : [],
-               ..User.WarningsToNotify.HasFlag(WarningType.PasswordLeakedWarning) ? passwordLeakedWarnings : [],
-               ..User.WarningsToNotify.HasFlag(WarningType.DuplicatedPasswordsWarning) ? duplicatedPasswordsWarnings : []]));
+         IWarning[] warnings = [.. Warnings?.Where(x => User is not null && User.WarningsToNotify.HasFlag(x.WarningType)) ?? []];
+
+         if (warnings.Length != 0)
+         {
+            WarningDetected?.Invoke(this, new WarningDetectedEventArgs(warnings));
+         }
       }
 
       private Warning[] _lookAtActivityWarnings()
@@ -492,7 +493,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
-            .Where(x => leakedPasswords.Contains(x.Password))];
+            .Where(x => x.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
+               && leakedPasswords.Contains(x.Password))];
 
          foreach (Account account in accounts)
          {

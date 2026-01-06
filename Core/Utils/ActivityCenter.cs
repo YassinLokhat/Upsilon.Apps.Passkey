@@ -36,12 +36,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          if (Database.User is null) return;
 
-         foreach (string activity in ActivityList)
-         {
-            Activities.Add(new Activity(Database.CryptographyCenter.DecryptAsymmetrically(activity, Database.User.PrivateKey)));
-         }
-
-         Activities = [.. Activities.OrderByDescending(x => x.DateTime)];
+         Activities = [.. ActivityList.AsParallel()
+            .Select(x => new Activity(Database.CryptographyCenter.DecryptAsymmetrically(x, Database.User.PrivateKey)))
+            .OrderByDescending(x => x.DateTime)];
       }
 
       public void Save(bool rebuildStringActivities)
