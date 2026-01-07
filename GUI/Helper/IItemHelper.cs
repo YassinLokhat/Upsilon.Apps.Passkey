@@ -9,7 +9,7 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
          _ = user.ItemId;
       }
 
-      public static bool MeetsFilterConditions(this IService service, string serviceFilter, string identifierFilter, string globalTextFilter)
+      public static bool MeetsFilterConditions(this IService service, string serviceFilter, string identifierFilter, string globalTextFilter, bool changedItemsOnly)
       {
          serviceFilter = serviceFilter.ToLower().Trim();
          identifierFilter = identifierFilter.ToLower().Trim();
@@ -20,19 +20,20 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
          string url = service.Url.ToLower().Trim();
          string notes = service.Notes.ToLower().Trim();
 
-         return !string.IsNullOrWhiteSpace(globalTextFilter)
+         return (!string.IsNullOrWhiteSpace(globalTextFilter)
             ? serviceId == globalTextFilter
                || serviceName.Contains(globalTextFilter)
                || url.Contains(globalTextFilter)
                || notes.Contains(globalTextFilter)
-               || service.Accounts.Any(x => x.MeetsFilterConditions(string.Empty, globalTextFilter))
+               || service.Accounts.Any(x => x.MeetsFilterConditions(string.Empty, globalTextFilter, changedItemsOnly))
             : (string.IsNullOrWhiteSpace(serviceFilter)
                   || (!string.IsNullOrWhiteSpace(serviceFilter) && serviceName.Contains(serviceFilter)))
                && (string.IsNullOrWhiteSpace(identifierFilter)
-                  || service.Accounts.Any(x => x.MeetsFilterConditions(identifierFilter, globalTextFilter)));
+                  || service.Accounts.Any(x => x.MeetsFilterConditions(identifierFilter, globalTextFilter, changedItemsOnly))))
+            && (!changedItemsOnly || service.HasChanged());
       }
 
-      public static bool MeetsFilterConditions(this IAccount account, string identifierFilter, string globalTextFilter)
+      public static bool MeetsFilterConditions(this IAccount account, string identifierFilter, string globalTextFilter, bool changedItemsOnly)
       {
          identifierFilter = identifierFilter.ToLower().Trim();
          globalTextFilter = globalTextFilter.ToLower().Trim();
@@ -42,14 +43,15 @@ namespace Upsilon.Apps.Passkey.GUI.Helper
          string notes = account.Notes.ToLower().Trim();
          string identifiers = string.Join("\n", account.Identifiers.Select(x => x.ToLower().Trim()));
 
-         return !string.IsNullOrWhiteSpace(globalTextFilter)
+         return (!string.IsNullOrWhiteSpace(globalTextFilter)
             ? accountId == globalTextFilter
                || identifiers.Contains(globalTextFilter)
                || label.ToLower().Contains(globalTextFilter)
                || notes.ToLower().Contains(globalTextFilter)
             : string.IsNullOrWhiteSpace(identifierFilter)
                || identifiers.Contains(identifierFilter)
-               || label.Contains(identifierFilter);
+               || label.Contains(identifierFilter))
+            && (!changedItemsOnly || account.HasChanged());
       }
    }
 }

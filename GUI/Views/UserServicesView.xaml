@@ -77,6 +77,7 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <Label Grid.Column="0"
@@ -91,7 +92,10 @@
                            Content="Text :"/>
                     <TextBox Grid.Column="5"
                              Text="{Binding TextFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                    <Button Grid.Column="6"
+                    <CheckBox Grid.Column="6"
+                              Content="Unsaved items only"
+                              IsChecked="{Binding ChangedItemsOnly}"/>
+                    <Button Grid.Column="7"
                             Content="✕"
                             Click="_filterClear_Button_Click"/>
                 </Grid>

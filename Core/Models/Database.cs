@@ -453,22 +453,26 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          if (User is null) return;
 
-         Warning[] activityWarnings = _lookAtActivityWarnings();
-         Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
-         Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
-         Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
+         try
+         {
+            Warning[] activityWarnings = _lookAtActivityWarnings();
+            Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
+            Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
+            Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
 
-         Warnings = [..activityWarnings,
+            Warnings = [..activityWarnings,
                ..passwordUpdateReminderWarnings,
                ..passwordLeakedWarnings,
                ..duplicatedPasswordsWarnings];
 
-         IWarning[] warnings = [.. Warnings?.Where(x => User is not null && User.WarningsToNotify.HasFlag(x.WarningType)) ?? []];
+            IWarning[] warnings = [.. Warnings?.Where(x => User is not null && User.WarningsToNotify.HasFlag(x.WarningType)) ?? []];
 
-         if (warnings.Length != 0)
-         {
-            WarningDetected?.Invoke(this, new WarningDetectedEventArgs(warnings));
+            if (warnings.Length != 0)
+            {
+               WarningDetected?.Invoke(this, new WarningDetectedEventArgs(warnings));
+            }
          }
+         catch { }
       }
 
       private Warning[] _lookAtActivityWarnings()

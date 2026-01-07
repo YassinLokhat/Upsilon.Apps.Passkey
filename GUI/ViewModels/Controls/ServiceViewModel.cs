@@ -69,11 +69,11 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplay)));
       }
 
-      public ServiceViewModel(IService service, string identifierFilter = "", string textFilter = "")
+      public ServiceViewModel(IService service, string identifierFilter = "", string textFilter = "", bool changedItemsOnly = false)
       {
          Service = service;
 
-         IAccount[] accounts = [.. Service.Accounts.Where(x => x.MeetsFilterConditions(identifierFilter, textFilter))];
+         IAccount[] accounts = [.. Service.Accounts.Where(x => x.MeetsFilterConditions(identifierFilter, textFilter, changedItemsOnly))];
 
          if (accounts.Length == 0)
          {

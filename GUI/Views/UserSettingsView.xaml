@@ -86,18 +86,18 @@
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <CheckBox IsChecked="{Binding NumberOfOldPasswordToKeepChecked}"
-                                  Content="Keep the"/>
+                                  Content="Limit password history to the previous"/>
                         <TextBox Width="40"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding NumberOfOldPasswordToKeep, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label Margin="0">previous passwords.</Label>
+                        <Label Margin="0">entries.</Label>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <CheckBox IsChecked="{Binding NumberOfMonthActivitiesToKeepChecked}"
-                                  Content="Keep activities for"/>
+                                  Content="Limit activity history to the previous"/>
                         <TextBox Width="40"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
