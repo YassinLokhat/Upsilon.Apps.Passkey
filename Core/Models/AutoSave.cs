@@ -185,7 +185,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal bool Any() => Any(string.Empty);
 
-      internal bool Any(string itemId) => Changes.Any(x => x.Key.StartsWith($"{itemId}\t"));
+      internal bool Any(string itemId) => Changes.Any(x => x.Key.StartsWith(itemId));
 
       internal bool Any(string itemId, string fieldName) => Changes.Any(x => x.Key == $"{itemId}\t{fieldName}");
 
