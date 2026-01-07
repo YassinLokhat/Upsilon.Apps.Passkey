@@ -181,6 +181,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             MainViewModel.Database.User.CleaningClipboardTimeout = _viewModel.CleaningClipboardTimeout;
             MainViewModel.Database.User.ShowPasswordDelay = _viewModel.ShowPasswordDelay;
             MainViewModel.Database.User.NumberOfOldPasswordToKeep = _viewModel.NumberOfOldPasswordToKeep;
+            MainViewModel.Database.User.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
             WarningType warningsToNotify = 0;
             if (_viewModel.NotifyActivityReview) warningsToNotify |= WarningType.ActivityReviewWarning;
             if (_viewModel.NotifyDuplicatedPasswords) warningsToNotify |= WarningType.DuplicatedPasswordsWarning;

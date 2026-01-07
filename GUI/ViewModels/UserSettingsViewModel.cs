@@ -100,7 +100,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
                OnPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
             }
          }
-      } = 10;
+      } = 0;
       public bool NumberOfOldPasswordToKeepChecked
       {
          get => NumberOfOldPasswordToKeep != 0;
@@ -110,6 +110,31 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
             {
                NumberOfOldPasswordToKeep = value ? 10 : 0;
                OnPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
+            }
+         }
+      }
+      public int NumberOfMonthActivitiesToKeep
+      {
+         get;
+         set
+         {
+            if (field != value)
+            {
+               field = value;
+               OnPropertyChanged(nameof(NumberOfMonthActivitiesToKeep));
+               OnPropertyChanged(nameof(NumberOfMonthActivitiesToKeepChecked));
+            }
+         }
+      } = 0;
+      public bool NumberOfMonthActivitiesToKeepChecked
+      {
+         get => NumberOfMonthActivitiesToKeep != 0;
+         set
+         {
+            if (NumberOfMonthActivitiesToKeepChecked != value)
+            {
+               NumberOfMonthActivitiesToKeep = value ? 12 : 0;
+               OnPropertyChanged(nameof(NumberOfMonthActivitiesToKeepChecked));
             }
          }
       }
@@ -159,6 +184,7 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
             CleaningClipboardTimeout = MainViewModel.Database.User.CleaningClipboardTimeout;
             ShowPasswordDelay = MainViewModel.Database.User.ShowPasswordDelay;
             NumberOfOldPasswordToKeep = MainViewModel.Database.User.NumberOfOldPasswordToKeep;
+            NumberOfMonthActivitiesToKeep = MainViewModel.Database.User.NumberOfMonthActivitiesToKeep;
 
             NotifyActivityReview = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
             NotifyPasswordUpdateReminder = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;

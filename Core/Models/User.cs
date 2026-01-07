@@ -110,6 +110,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
+      int IUser.NumberOfMonthActivitiesToKeep
+      {
+         get => Database.Get(NumberOfMonthActivitiesToKeep);
+         set
+         {
+            NumberOfMonthActivitiesToKeep = Database.AutoSave.UpdateValue(ItemId,
+               fieldName: nameof(NumberOfMonthActivitiesToKeep),
+               needsReview: true,
+               oldValue: NumberOfMonthActivitiesToKeep,
+               newValue: value,
+               readableValue: value.ToString());
+
+            Database.ActivityCenter.Save(rebuildStringActivities: true);
+         }
+      }
+
       WarningType IUser.WarningsToNotify
       {
          get => Database.Get(WarningsToNotify);
@@ -171,6 +187,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public int CleaningClipboardTimeout { get; set; } = 0;
       public int ShowPasswordDelay { get; set; } = 0;
       public int NumberOfOldPasswordToKeep { get; set; } = 0;
+      public int NumberOfMonthActivitiesToKeep { get; set; } = 0;
       public WarningType WarningsToNotify { get; set; }
          = WarningType.ActivityReviewWarning
          | WarningType.PasswordUpdateReminderWarning
