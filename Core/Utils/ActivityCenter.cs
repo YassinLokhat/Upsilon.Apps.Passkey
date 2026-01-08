@@ -67,7 +67,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
 
          DateTime limitDate = DateTime.Now.AddMonths(-Database.User.NumberOfMonthActivitiesToKeep).Date.AddDays(-DateTime.Now.Day + 1);
-         Activities = [.. Activities.Where(x => x.DateTime >= limitDate)];
+         Activities = [.. Activities.Where(x => x.DateTime >= limitDate || x.NeedsReview)];
       }
    }
 }
