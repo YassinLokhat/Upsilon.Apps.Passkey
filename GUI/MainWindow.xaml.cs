@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Microsoft.Win32;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -31,61 +32,27 @@ namespace Upsilon.Apps.Passkey.GUI
          _resetCredentials();
          MainViewModel.Database = null;
 
+         try
+         {
+            string[] args = Environment.GetCommandLineArgs();
+            string databaseFile = Path.GetFullPath(Environment.GetCommandLineArgs()[1]);
+            if (File.Exists(databaseFile))
+            {
+               _mainViewModel.DatabaseFile = databaseFile;
+            }
+         }
+         catch { }
+
          _username_TB.KeyUp += _credential_TB_KeyUp;
          _password_PB.KeyUp += _credential_TB_KeyUp;
          _timer.Tick += _timer_Elapsed;
-         Loaded += _mainWindow_Loaded;
+         Loaded += (s, e) => DarkMode.SetDarkMode(this);
       }
 
       private void _timer_Elapsed(object? sender, EventArgs e)
       {
          _resetCredentials();
          MainViewModel.Database = null;
-      }
-
-      private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
-      {
-         DarkMode.SetDarkMode(this);
-
-         /// TODO : To be removed
-         try
-         {
-            string filename = MainViewModel.CryptographyCenter.GetHash("_");
-            string databaseFile = Path.GetFullPath($"raw/{filename}.pku");
-
-            MainViewModel.Database = Database.Open(MainViewModel.CryptographyCenter,
-               MainViewModel.SerializationCenter,
-               MainViewModel.PasswordFactory,
-               MainViewModel.ClipboardManager,
-               databaseFile,
-               "_");
-            MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
-            MainViewModel.Database.AutoSaveDetected += (s, e) => e.MergeBehavior = Interfaces.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile;
-            _ = MainViewModel.Database.Login("a");
-            _ = MainViewModel.Database.Login("b");
-            _ = MainViewModel.Database.Login("c");
-            _resetCredentials();
-
-            if (MainViewModel.Database?.User is not null)
-            {
-               Hide();
-
-               if (!UserServicesView.ShowUser(this))
-               {
-                  Close();
-               }
-            }
-            else
-            {
-               MainViewModel.Database?.Close();
-               MainViewModel.Database = null;
-            }
-         }
-         catch
-         {
-            MainViewModel.Database?.Close();
-            MainViewModel.Database = null;
-         }
       }
 
       private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -112,8 +79,11 @@ namespace Upsilon.Apps.Passkey.GUI
                   return;
                }
 
-               string filename = MainViewModel.CryptographyCenter.GetHash(_username_TB.Text);
-               string databaseFile = Path.GetFullPath($"raw/{filename}.pku");
+               if (!File.Exists(_mainViewModel.DatabaseFile))
+               {
+                  string filename = MainViewModel.CryptographyCenter.GetHash(_username_TB.Text);
+                  _mainViewModel.DatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{filename}.pku");
+               }
 
                try
                {
@@ -121,7 +91,7 @@ namespace Upsilon.Apps.Passkey.GUI
                      MainViewModel.SerializationCenter,
                      MainViewModel.PasswordFactory,
                      MainViewModel.ClipboardManager,
-                     databaseFile,
+                     _mainViewModel.DatabaseFile,
                      _username_TB.Text);
 
                   MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
@@ -129,7 +99,7 @@ namespace Upsilon.Apps.Passkey.GUI
                }
                catch { }
 
-               _mainViewModel.Label = "Password :";
+               _mainViewModel.CredentialsLabel = "Password :";
 
                _username_TB.Text = string.Empty;
                _username_TB.Visibility = Visibility.Collapsed;
@@ -171,6 +141,11 @@ namespace Upsilon.Apps.Passkey.GUI
             _resetCredentials();
             MainViewModel.Database = null;
          }
+         else
+         {
+            _timer.Stop();
+            _timer.Start();
+         }
       }
 
       private void _database_AutoSaveDetected(object? sender, Interfaces.Events.AutoSaveDetectedEventArgs e)
@@ -201,7 +176,8 @@ namespace Upsilon.Apps.Passkey.GUI
 
       private void _resetCredentials()
       {
-         _mainViewModel.Label = "Username :";
+         _mainViewModel.DatabaseFile = string.Empty;
+         _mainViewModel.CredentialsLabel = "Username :";
 
          _username_TB.Text = string.Empty;
          _username_TB.Visibility = Visibility.Visible;
@@ -211,6 +187,22 @@ namespace Upsilon.Apps.Passkey.GUI
          _password_PB.Visibility = Visibility.Collapsed;
 
          _timer.Stop();
+      }
+
+      private void _openDatabase_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         OpenFileDialog dialog = new()
+         {
+            Title = "Open user database file",
+            Filter = "Passkey user database file|*.pku",
+         };
+
+         if (!(dialog.ShowDialog() ?? false)) return;
+
+         _resetCredentials();
+         MainViewModel.Database?.Close();
+         MainViewModel.Database = null;
+         _mainViewModel.DatabaseFile = dialog.FileName;
       }
    }
 }

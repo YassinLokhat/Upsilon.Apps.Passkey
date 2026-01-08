@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Upsilon.Apps.Passkey.GUI": {
+      "commandName": "Project",
+      "commandLineArgs": "\"iGpytVa0BQ7NizjTv4Uorw==YqXvPnnhHz9PihmiuNScKOD-PPI=.pku\"",
+      "workingDirectory": "raw"
+    }
+  }
+}

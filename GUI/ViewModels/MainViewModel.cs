@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.IO;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.Helper;
 using Upsilon.Apps.Passkey.GUI.OSSpecific;
@@ -29,7 +30,15 @@ namespace Upsilon.Apps.Passkey.GUI.ViewModels
 
       public static IUser User => Database is null || Database.User is null ? throw new NullReferenceException(nameof(User)) : Database.User;
 
-      public string Label
+      public string DatabaseFile
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged, nameof(DatabaseLabel));
+      } = string.Empty;
+
+      public string DatabaseLabel => File.Exists(DatabaseFile) ? $"Database : {Path.GetFileName(DatabaseFile)}" : "No database loaded.";
+
+      public string CredentialsLabel
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);

@@ -11,7 +11,7 @@
         Title="{Binding AppTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="100" Width="400">
+        Height="140" Width="500">
     <StackPanel>
         <Menu>
             <Menu.ItemsPanel>
@@ -19,6 +19,8 @@
                     <DockPanel HorizontalAlignment="Stretch"/>
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
+            <MenuItem Header="_Open database"
+                      Click="_openDatabase_MenuItem_Click"/>
             <MenuItem Header="_New User"
                       Click="_newUser_MenuItem_Click"/>
             <MenuItem Header="_Generate random Password"
@@ -26,17 +28,31 @@
                       Click="_generatePassword_MenuItem_Click"/>
         </Menu>
         <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Column="0"
+            <Label Grid.Row="0"
+                   Grid.Column="0"
+                   Grid.ColumnSpan="2">
+                <TextBlock Text="{Binding DatabaseLabel}" 
+                    TextTrimming="CharacterEllipsis" 
+                    TextWrapping="NoWrap" />   
+            </Label>
+            <Label Grid.Row="1"
+                   Grid.Column="0"
                    MinWidth="70"
-                   Content="{Binding Label}"/>
+                   Content="{Binding CredentialsLabel}"/>
             <TextBox Name="_username_TB"
+                     Grid.Row="1"
                      Grid.Column="1"
                      Visibility="Visible"/>
             <PasswordBox Name="_password_PB"
+                         Grid.Row="1"
                          Grid.Column="1"
                          Visibility="Collapsed"/>
         </Grid>

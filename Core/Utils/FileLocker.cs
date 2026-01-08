@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          Unlock();
 
-         _stream = new FileStream(FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
+         _stream = new FileStream(FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Inheritable);
       }
 
       internal void Unlock()

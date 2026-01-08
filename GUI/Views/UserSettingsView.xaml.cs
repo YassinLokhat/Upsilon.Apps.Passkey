@@ -128,17 +128,32 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          }
 
          string newFilename = MainViewModel.CryptographyCenter.GetHash(_viewModel.Username);
-         string newDatabaseFile = Path.GetFullPath($"raw/{newFilename}.pku");
+         string newDatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{newFilename}.pku");
 
          bool newUser = false;
          bool credentialsChanged = false;
          string oldDatabaseFile = string.Empty;
 
-         if (MainViewModel.Database is null
-            || MainViewModel.Database.User is null)
+         if (MainViewModel.Database?.User is null)
          {
             try
             {
+               if (MessageBox.Show($"Use default database location :\n{newDatabaseFile}", "Use default location?", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+               {
+                  SaveFileDialog dialog = new()
+                  {
+                     Title = "New user database file",
+                     Filter = "Passkey user database file|*.pku",
+                     DefaultDirectory = Path.GetDirectoryName(newDatabaseFile),
+                     FileName = Path.GetFileName(newDatabaseFile),
+                  };
+
+                  if ((dialog.ShowDialog() ?? false))
+                  {
+                     newDatabaseFile = dialog.FileName;
+                  }
+               }
+
                MainViewModel.Database = Database.Create(MainViewModel.CryptographyCenter,
                   MainViewModel.SerializationCenter,
                   MainViewModel.PasswordFactory,
@@ -165,7 +180,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          else
          {
             string oldFileName = MainViewModel.CryptographyCenter.GetHash(MainViewModel.Database.User.Username);
-            oldDatabaseFile = Path.GetFullPath($"raw/{oldFileName}.pku");
+            oldDatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{oldFileName}.pku");
 
             credentialsChanged = _credentialsChanged(oldFileName,
                oldPasskeys: MainViewModel.Database.User.Passkeys,
