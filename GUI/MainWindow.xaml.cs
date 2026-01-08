@@ -129,6 +129,10 @@ namespace Upsilon.Apps.Passkey.GUI
                      {
                         Close();
                      }
+                     else
+                     {
+                        _resetCredentials();
+                     }
                   }
                }
             }

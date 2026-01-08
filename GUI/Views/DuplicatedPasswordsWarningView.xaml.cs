@@ -13,13 +13,16 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    public partial class DuplicatedPasswordsWarningView : Window
    {
       private readonly DuplicatedPasswordsWarningViewModel _viewModel;
-      private IAccount? _account = null;
+      private readonly Action<string> _goToItem;
 
-      private DuplicatedPasswordsWarningView()
+      internal DuplicatedPasswordsWarningView(Action<string> goToItem)
       {
          InitializeComponent();
 
          DataContext = _viewModel = new();
+
+         _goToItem = goToItem;
+
          _warnings_LB.ItemsSource = _viewModel.Warnings;
          _warnings_LB.SelectionChanged += _warnings_LB_SelectionChanged;
 
@@ -35,21 +38,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _warnings_DGV.ItemsSource = viewModel.Accounts;
       }
 
-      public static IAccount? ShowDuplicatedPaswwordsWarningsDialog(Window owner)
-      {
-         DuplicatedPasswordsWarningView duplicatedPasswordWarningView = new()
-         {
-            Owner = owner,
-         };
-
-         return (duplicatedPasswordWarningView.ShowDialog() ?? false) ? duplicatedPasswordWarningView._account : null;
-      }
-
       private void _viewItemButton_Click(object sender, RoutedEventArgs e)
       {
-         _account = _viewModel.Warnings[_warnings_LB.SelectedIndex].Accounts[_warnings_DGV.SelectedIndex].Account;
-
-         DialogResult = true;
+         _goToItem(_viewModel.Warnings[_warnings_LB.SelectedIndex].Accounts[_warnings_DGV.SelectedIndex].Account.ItemId);
       }
    }
 }

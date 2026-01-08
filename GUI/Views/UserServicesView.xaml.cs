@@ -20,6 +20,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       private int _autoLoginHotkeyId = 0;
       private int _autoPasswordHotkeyId = 0;
       private Task? _saveTask;
+      private AccountPasswordsWarningView? _accountPasswordsWarningView;
+      private DuplicatedPasswordsWarningView? _duplicatedPasswordsWarningView;
+      private UserActivitiesView? _userActivitiesView;
 
       private UserServicesView()
       {
@@ -152,6 +155,10 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          _ = HotkeyHelper.Unregister(this, _autoLoginHotkeyId);
          _ = HotkeyHelper.Unregister(this, _autoPasswordHotkeyId);
 
+         _accountPasswordsWarningView?.Close();
+         _duplicatedPasswordsWarningView?.Close();
+         _userActivitiesView?.Close();
+
          MainViewModel.Database?.Close();
          MainViewModel.Database = null;
       }
@@ -273,14 +280,19 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       {
          if (this.GetIsBusy()) return;
 
-         string? itemId = UserActivitiesView.ShowActivitiesDialog(this, needsReviewFilter: false);
+         if (_userActivitiesView is not null
+            && _userActivitiesView.IsLoaded)
+         {
+            UserActivitiesViewModel? vm = _userActivitiesView.DataContext as UserActivitiesViewModel;
+            vm?.NeedsReview = false;
 
-         if (itemId is null) return;
+            _userActivitiesView.Activate();
+            return;
+         }
 
-         _goToItem(itemId);
+         _userActivitiesView = new(needsReviewFilter: false, _goToItem);
+         _userActivitiesView.Show();
       }
-
-      private void _goToItem(IAccount account) => _goToItem(account.ItemId);
 
       private void _goToItem(string itemId)
       {
@@ -292,6 +304,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
             _openSettings();
             return;
          }
+
+         Activate();
 
          _clearFilter();
 
@@ -325,34 +339,54 @@ namespace Upsilon.Apps.Passkey.GUI.Views
       {
          if (this.GetIsBusy()) return;
 
-         string? itemId = UserActivitiesView.ShowActivitiesDialog(this, needsReviewFilter: true);
+         if (_userActivitiesView is not null
+            && _userActivitiesView.IsLoaded)
+         {
+            UserActivitiesViewModel? vm = _userActivitiesView.DataContext as UserActivitiesViewModel;
+            vm?.NeedsReview = true;
 
-         if (itemId is null) return;
+            _userActivitiesView.Activate();
+            return;
+         }
 
-         _goToItem(itemId);
+         _userActivitiesView = new(needsReviewFilter: true, _goToItem);
+         _userActivitiesView.Show();
       }
 
       private void _duplicatedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy()) return;
 
-         IAccount? account = DuplicatedPasswordsWarningView.ShowDuplicatedPaswwordsWarningsDialog(this);
+         if (_duplicatedPasswordsWarningView is not null
+            && _duplicatedPasswordsWarningView.IsLoaded)
+         {
+            _duplicatedPasswordsWarningView.Activate();
+            return;
+         }
 
-         if (account is null) return;
-
-         _goToItem(account);
+         _duplicatedPasswordsWarningView = new(_goToItem);
+         _duplicatedPasswordsWarningView.Show();
       }
 
       private void _expiredOrLeakedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy()) return;
 
-         IAccount? account = AccountPasswordsWarningView.ShowAccountWarningsDialog(this,
-            sender == _expiredPasswordWarnings_MI ? WarningType.PasswordUpdateReminderWarning : WarningType.PasswordLeakedWarning);
+         if (_accountPasswordsWarningView is not null
+            && _accountPasswordsWarningView.IsLoaded)
+         {
+            AccountPasswordsWarningViewModel? vm = _accountPasswordsWarningView.DataContext as AccountPasswordsWarningViewModel;
+            vm?.WarningType = sender == _expiredPasswordWarnings_MI
+            ? WarningType.PasswordUpdateReminderWarning : WarningType.PasswordLeakedWarning;
 
-         if (account is null) return;
+            _accountPasswordsWarningView.Activate();
+            return;
+         }
 
-         _goToItem(account);
+         _accountPasswordsWarningView = new(sender == _expiredPasswordWarnings_MI
+            ? WarningType.PasswordUpdateReminderWarning : WarningType.PasswordLeakedWarning,
+            _goToItem);
+         _accountPasswordsWarningView.Show();
       }
    }
 }

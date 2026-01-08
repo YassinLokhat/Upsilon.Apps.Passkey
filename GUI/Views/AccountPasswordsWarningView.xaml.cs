@@ -13,9 +13,9 @@ namespace Upsilon.Apps.Passkey.GUI.Views
    public partial class AccountPasswordsWarningView : Window
    {
       private readonly AccountPasswordsWarningViewModel _viewModel;
-      private IAccount? _account = null;
+      private readonly Action<string> _goToItem;
 
-      private AccountPasswordsWarningView(WarningType warningType)
+      internal AccountPasswordsWarningView(WarningType warningType, Action<string> goToItem)
       {
          InitializeComponent();
 
@@ -23,6 +23,8 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          {
             WarningType = warningType,
          };
+
+         _goToItem = goToItem;
 
          _ = _warningType_CB.Items.Add((WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning).ToReadableString());
          _ = _warningType_CB.Items.Add(WarningType.PasswordLeakedWarning.ToReadableString());
@@ -33,16 +35,6 @@ namespace Upsilon.Apps.Passkey.GUI.Views
          Loaded += (s, e) => DarkMode.SetDarkMode(this);
       }
 
-      public static IAccount? ShowAccountWarningsDialog(Window owner, WarningType warningType)
-      {
-         AccountPasswordsWarningView accountPasswordsWarningView = new(warningType)
-         {
-            Owner = owner,
-         };
-
-         return (accountPasswordsWarningView.ShowDialog() ?? false) ? accountPasswordsWarningView._account : null;
-      }
-
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
       {
          _viewModel.WarningType = WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning;
@@ -51,9 +43,7 @@ namespace Upsilon.Apps.Passkey.GUI.Views
 
       private void _viewItemButton_Click(object sender, RoutedEventArgs e)
       {
-         _account = _viewModel.Warnings[_warnings_DGV.SelectedIndex].Account;
-
-         DialogResult = true;
+         _goToItem(_viewModel.Warnings[_warnings_DGV.SelectedIndex].Account.ItemId);
       }
    }
 }
