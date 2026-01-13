@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Upsilon.Apps.Passkey.GUI.WPF": {
+      "commandName": "Project",
+      "commandLineArgs": "\"vidpll-sVqi93MN9TymqpQ==UGOcrUlBjHsiPMUpOVwOKjiSUBw=.pku\"",
+      "workingDirectory": "raw"
+    }
+  }
+}

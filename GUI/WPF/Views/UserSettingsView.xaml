@@ -1,0 +1,121 @@
+﻿<Window xmlns:Controls="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views.Controls"
+        x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.UserSettingsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views"
+        xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        d:DataContext="{d:DesignInstance Type=viewmodels:UserSettingsViewModel}"
+        mc:Ignorable="d"
+        Title="{Binding Title}"
+        ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen"
+        Height="345" Width="870">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0">
+            <Menu.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <DockPanel HorizontalAlignment="Stretch"/>
+                </ItemsPanelTemplate>
+            </Menu.ItemsPanel>
+            <MenuItem Header="_Save"
+                      Click="_save_MenuItem_Click"/>
+            <MenuItem Name="_import_MI"
+                      Header="_Import"
+                      Click="_import_MenuItem_Click"/>
+            <MenuItem Name="_export_MI"
+                      Header="_Export"
+                      Click="_export_MenuItem_Click"/>
+            <MenuItem Name="_deleteUser_MI"
+                      Header="_Delete User"
+                      HorizontalAlignment="Right"
+                      Click="_deleteUser_MenuItem_Click"/>
+        </Menu>
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal">
+            <GroupBox Header="Credentials">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Label>Username :</Label>
+                        <TextBox Width="400"
+                                 Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <Controls:UserPasswordsContainer x:Name="_passwordsContainer"/>
+                </StackPanel>
+            </GroupBox>
+            <GroupBox Header="Settings">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding LogoutTimeoutChecked}"
+                                  Content="Logout after"/>
+                        <TextBox Width="25"
+                                 HorizontalContentAlignment="Center"
+                                 TextChanged="_value_TextBox_TextChanged"
+                                 PreviewTextInput="_value_TextBox_PreviewTextInput"
+                                 DataObject.Pasting="_value_TextBox_Pasting"
+                                 Text="{Binding LogoutTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Label Margin="0">minutes.</Label>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding CleaningClipboardTimeoutChecked}"
+                                  Content="Clean any passwords in clipboard every"/>
+                        <TextBox Width="35"
+                                 HorizontalContentAlignment="Center"
+                                 TextChanged="_value_TextBox_TextChanged"
+                                 PreviewTextInput="_value_TextBox_PreviewTextInput"
+                                 DataObject.Pasting="_value_TextBox_Pasting"
+                                 Text="{Binding CleaningClipboardTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Label Margin="0">seconds.</Label>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding ShowPasswordDelayChecked}"
+                                  Content="Show QR Code during"/>
+                        <TextBox Width="40"
+                                 HorizontalContentAlignment="Center"
+                                 TextChanged="_value_TextBox_TextChanged"
+                                 PreviewTextInput="_value_TextBox_PreviewTextInput"
+                                 DataObject.Pasting="_value_TextBox_Pasting"
+                                 Text="{Binding ShowPasswordDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Label Margin="0">milliseconds.</Label>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding NumberOfOldPasswordToKeepChecked}"
+                                  Content="Limit password history to the previous"/>
+                        <TextBox Width="40"
+                                 HorizontalContentAlignment="Center"
+                                 TextChanged="_value_TextBox_TextChanged"
+                                 PreviewTextInput="_value_TextBox_PreviewTextInput"
+                                 DataObject.Pasting="_value_TextBox_Pasting"
+                                 Text="{Binding NumberOfOldPasswordToKeep, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Label Margin="0">entries.</Label>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding NumberOfMonthActivitiesToKeepChecked}"
+                                  Content="Limit activity history to the previous"/>
+                        <TextBox Width="40"
+                                 HorizontalContentAlignment="Center"
+                                 TextChanged="_value_TextBox_TextChanged"
+                                 PreviewTextInput="_value_TextBox_PreviewTextInput"
+                                 DataObject.Pasting="_value_TextBox_Pasting"
+                                 Text="{Binding NumberOfMonthActivitiesToKeep, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Label Margin="0">months.</Label>
+                    </StackPanel>
+                    <GroupBox Header="Warnings">
+                        <StackPanel>
+                            <CheckBox IsChecked="{Binding NotifyActivityReview}">Notify Activity Review</CheckBox>
+                            <CheckBox IsChecked="{Binding NotifyDuplicatedPasswords}">Notify Duplicated Passwords</CheckBox>
+                            <CheckBox IsChecked="{Binding NotifyPasswordUpdateReminder}">Notify Password Update Reminder</CheckBox>
+                            <CheckBox IsChecked="{Binding NotifyPasswordLeaked}">Notify Password Leaked</CheckBox>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </Grid>
+</Window>

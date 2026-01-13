@@ -1,6 +1,6 @@
 <Solution>
   <Project Path="Interfaces/Upsilon.Apps.Passkey.Interfaces.csproj" />
   <Project Path="Core/Upsilon.Apps.Passkey.Core.csproj" />
-  <Project Path="GUI/Upsilon.Apps.Passkey.GUI.csproj" />
+  <Project Path="GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj" />
   <Project Path="UnitTests/UnitTests.csproj" />
 </Solution>

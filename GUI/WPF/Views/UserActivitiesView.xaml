@@ -1,0 +1,121 @@
+﻿<Window x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.UserActivitiesView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views"
+        xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        d:DataContext="{d:DesignInstance Type=viewmodels:UserActivitiesViewModel}"
+        mc:Ignorable="d"
+        WindowState="Maximized"
+        WindowStartupLocation="CenterScreen"
+        Title="{Binding Title}"
+        MinHeight="700"
+        MinWidth="1300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <GroupBox Header="{Binding FiltersHeader}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0"
+                           Content="From :"/>
+                    <DatePicker Grid.Column="1"
+                                SelectedDate="{Binding FromDateFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Label Grid.Column="2"
+                           Content="To :"/>
+                    <DatePicker Grid.Column="3"
+                                SelectedDate="{Binding ToDateFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Label Grid.Column="4"
+                           Content="Event type :"/>
+                    <ComboBox Name="_eventType_CB"
+                              SelectedItem="{Binding ReadableEventType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Grid.Column="5"/>
+                    <Label Grid.Column="6"
+                           Content="Message :"/>
+                    <TextBox Grid.Column="7"
+                             Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <CheckBox Grid.Column="8"
+                              Content="Needs review only"
+                              IsChecked="{Binding NeedsReview}"/>
+                    <Button Grid.Column="9"
+                            Content="✕"
+                            Click="_filterClear_Button_Click"/>
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+        <DataGrid Name="_activities_DGV" Grid.Row="1" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Date and Time"
+                                    IsReadOnly="True"
+                                    Width="Auto"
+                                    Binding="{Binding DateTime}"
+                                    CanUserSort="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="Margin" Value="5"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTemplateColumn Header="Needs review"
+                                        Width="Auto"
+                                        CanUserSort="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding NeedsReview, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Content="{Binding NeedsReviewString}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Event type"
+                                    IsReadOnly="True"
+                                    Width="Auto"
+                                    Binding="{Binding EventType}"
+                                    CanUserSort="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="Margin" Value="5"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Message"
+                                    Width="*"
+                                    IsReadOnly="True"
+                                    Binding="{Binding Message}"
+                                    CanUserSort="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="TextWrapping" Value="Wrap" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="Margin" Value="5"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTemplateColumn Header="Go to item">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Go" Click="_viewItemButton_Click"  Margin="4"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
