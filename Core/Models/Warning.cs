@@ -7,14 +7,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
    {
       public WarningType WarningType { get; set; }
 
-      public ILog[]? Logs { get; set; }
+      public IActivity[]? Activities { get; set; }
 
       public IAccount[]? Accounts { get; set; }
 
-      public Warning(ILog[] logs)
+      public Warning(IActivity[] activities)
       {
-         WarningType = WarningType.LogReviewWarning;
-         Logs = logs;
+         WarningType = WarningType.ActivityReviewWarning;
+         Activities = activities;
       }
 
       public Warning(WarningType warningType, IAccount[] accounts)

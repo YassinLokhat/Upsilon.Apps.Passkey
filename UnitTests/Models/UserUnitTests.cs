@@ -70,45 +70,45 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] newPasskeys = UnitTestsHelper.GetRandomStringArray();
          int logoutTimeout = UnitTestsHelper.GetRandomInt(1, 60);
          int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
 
          // When
          databaseCreated.User.Username = newUsername;
          databaseCreated.User.Username = newUsername;
-         expectedLogs.Push($"Warning : {databaseCreated.User}'s username has been set to {newUsername}");
+         expectedActivities.Push($"Warning : {databaseCreated.User}'s username has been set to {newUsername}");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s username has been set to {newUsername}");
          databaseCreated.User.Passkeys = newPasskeys;
          databaseCreated.User.Passkeys = newPasskeys;
-         expectedLogs.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
+         expectedActivities.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
          databaseCreated.User.LogoutTimeout = logoutTimeout;
          databaseCreated.User.LogoutTimeout = logoutTimeout;
-         expectedLogs.Push($"Information : {databaseCreated.User}'s logout timeout has been set to {logoutTimeout}");
+         expectedActivities.Push($"Information : {databaseCreated.User}'s logout timeout has been set to {logoutTimeout}");
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
-         expectedLogs.Push($"Information : {databaseCreated.User}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
+         expectedActivities.Push($"Information : {databaseCreated.User}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
          databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
          databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
-         expectedLogs.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
+         expectedActivities.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
          databaseCreated.Save();
-         expectedLogs.Push($"Information : {databaseCreated.User}'s database saved");
+         expectedActivities.Push($"Information : {databaseCreated.User}'s database saved");
          databaseCreated.Close();
-         expectedLogs.Push($"Information : User {newUsername} logged out");
-         expectedLogs.Push($"Information : User {newUsername}'s database closed");
+         expectedActivities.Push($"Information : User {newUsername} logged out");
+         expectedActivities.Push($"Information : User {newUsername}'s database closed");
          IDatabase databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
             databaseFile,
             newUsername);
-         expectedLogs.Push($"Information : User {newUsername}'s database opened");
+         expectedActivities.Push($"Information : User {newUsername}'s database opened");
          foreach (string passkey in newPasskeys)
          {
             _ = databaseLoaded.Login(passkey);
          }
-         expectedLogs.Push($"Information : {databaseLoaded.User} logged in");
+         expectedActivities.Push($"Information : {databaseLoaded.User} logged in");
 
          // Then
          _ = databaseLoaded.User.Should().NotBeNull();
@@ -116,8 +116,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
-         UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
-         UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
+         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          _ = databaseLoaded.Warnings.Should().NotBeEmpty();
 
@@ -145,37 +145,37 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] newPasskeys = UnitTestsHelper.GetRandomStringArray();
          int logoutTimeout = UnitTestsHelper.GetRandomInt(1, 60);
          int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
 
          // When
          databaseCreated.User.Username = newUsername;
          databaseCreated.User.Username = newUsername;
-         expectedLogs.Push($"Warning : {databaseCreated.User}'s username has been set to {newUsername}");
+         expectedActivities.Push($"Warning : {databaseCreated.User}'s username has been set to {newUsername}");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s username has been set to {newUsername}");
          databaseCreated.User.Passkeys = newPasskeys;
          databaseCreated.User.Passkeys = newPasskeys;
-         expectedLogs.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
+         expectedActivities.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
          databaseCreated.User.LogoutTimeout = logoutTimeout;
          databaseCreated.User.LogoutTimeout = logoutTimeout;
-         expectedLogs.Push($"Information : {databaseCreated.User}'s logout timeout has been set to {logoutTimeout}");
+         expectedActivities.Push($"Information : {databaseCreated.User}'s logout timeout has been set to {logoutTimeout}");
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
-         expectedLogs.Push($"Information : {databaseCreated.User}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
+         expectedActivities.Push($"Information : {databaseCreated.User}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
          databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
          databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
-         expectedLogs.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
+         expectedActivities.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
 
          databaseCreated.Close();
-         expectedLogs.Push($"Warning : User {oldUsername} logged out without saving");
+         expectedActivities.Push($"Warning : User {oldUsername} logged out without saving");
          expectedLogWarnings.Push($"Warning : User {oldUsername} logged out without saving");
-         expectedLogs.Push($"Information : User {oldUsername}'s database closed");
+         expectedActivities.Push($"Information : User {oldUsername}'s database closed");
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(oldPasskeys, out IWarning[] warnings, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
-         expectedLogs.Push($"Information : User {oldUsername}'s database opened");
-         expectedLogs.Push($"Information : User {oldUsername} logged in");
-         expectedLogs.Push($"Warning : {databaseLoaded.User}'s autosave merged and saved");
+         expectedActivities.Push($"Information : User {oldUsername}'s database opened");
+         expectedActivities.Push($"Information : User {oldUsername} logged in");
+         expectedActivities.Push($"Warning : {databaseLoaded.User}'s autosave merged and saved");
          expectedLogWarnings.Push($"Warning : {databaseLoaded.User}'s autosave merged and saved");
 
          // Then
@@ -189,8 +189,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          databaseLoaded.Close();
-         expectedLogs.Push($"Information : User {newUsername} logged out");
-         expectedLogs.Push($"Information : User {newUsername}'s database closed");
+         expectedActivities.Push($"Information : User {newUsername} logged out");
+         expectedActivities.Push($"Information : User {newUsername}'s database closed");
 
          databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
@@ -198,12 +198,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.ClipboardManager,
             databaseFile,
             newUsername);
-         expectedLogs.Push($"Information : User {newUsername}'s database opened");
+         expectedActivities.Push($"Information : User {newUsername}'s database opened");
          foreach (string passkey in newPasskeys)
          {
             _ = databaseLoaded.Login(passkey);
          }
-         expectedLogs.Push($"Information : {databaseLoaded.User} logged in");
+         expectedActivities.Push($"Information : {databaseLoaded.User} logged in");
 
          // Then
          _ = databaseLoaded.User.Username.Should().Be(newUsername);
@@ -211,8 +211,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
-         UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
-         UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
+         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          _ = databaseLoaded.Warnings.Should().NotBeEmpty();
 
@@ -240,37 +240,37 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] newPasskeys = UnitTestsHelper.GetRandomStringArray();
          int logoutTimeout = UnitTestsHelper.GetRandomInt(1, 60);
          int cleaningClipboardTimeout = UnitTestsHelper.GetRandomInt(1, 60);
-         Stack<string> expectedLogs = new();
+         Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
 
          // When
          databaseCreated.User.Username = newUsername;
          databaseCreated.User.Username = newUsername;
-         expectedLogs.Push($"Warning : {databaseCreated.User}'s username has been set to {newUsername}");
+         expectedActivities.Push($"Warning : {databaseCreated.User}'s username has been set to {newUsername}");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s username has been set to {newUsername}");
          databaseCreated.User.Passkeys = newPasskeys;
          databaseCreated.User.Passkeys = newPasskeys;
-         expectedLogs.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
+         expectedActivities.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
          databaseCreated.User.LogoutTimeout = logoutTimeout;
          databaseCreated.User.LogoutTimeout = logoutTimeout;
-         expectedLogs.Push($"Information : {databaseCreated.User}'s logout timeout has been set to {logoutTimeout}");
+         expectedActivities.Push($"Information : {databaseCreated.User}'s logout timeout has been set to {logoutTimeout}");
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
          databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
-         expectedLogs.Push($"Information : {databaseCreated.User}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
+         expectedActivities.Push($"Information : {databaseCreated.User}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
          databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
          databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
-         expectedLogs.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
+         expectedActivities.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
 
          databaseCreated.Close();
-         expectedLogs.Push($"Warning : User {oldUsername} logged out without saving");
+         expectedActivities.Push($"Warning : User {oldUsername} logged out without saving");
          expectedLogWarnings.Push($"Warning : User {oldUsername} logged out without saving");
-         expectedLogs.Push($"Information : User {oldUsername}'s database closed");
+         expectedActivities.Push($"Information : User {oldUsername}'s database closed");
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(oldPasskeys, out IWarning[] warnings, AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile);
-         expectedLogs.Push($"Information : User {oldUsername}'s database opened");
-         expectedLogs.Push($"Information : User {oldUsername} logged in");
-         expectedLogs.Push($"Warning : {databaseLoaded.User}'s autosave merged without saving");
+         expectedActivities.Push($"Information : User {oldUsername}'s database opened");
+         expectedActivities.Push($"Information : User {oldUsername} logged in");
+         expectedActivities.Push($"Warning : {databaseLoaded.User}'s autosave merged without saving");
          expectedLogWarnings.Push($"Warning : {databaseLoaded.User}'s autosave merged without saving");
 
          // Then
@@ -288,10 +288,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          databaseLoaded.Save();
-         expectedLogs.Push($"Information : {databaseLoaded.User}'s database saved");
+         expectedActivities.Push($"Information : {databaseLoaded.User}'s database saved");
          databaseLoaded.Close();
-         expectedLogs.Push($"Information : User {newUsername} logged out");
-         expectedLogs.Push($"Information : User {newUsername}'s database closed");
+         expectedActivities.Push($"Information : User {newUsername} logged out");
+         expectedActivities.Push($"Information : User {newUsername}'s database closed");
 
          databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
@@ -299,12 +299,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.ClipboardManager,
             databaseFile,
             newUsername);
-         expectedLogs.Push($"Information : User {newUsername}'s database opened");
+         expectedActivities.Push($"Information : User {newUsername}'s database opened");
          foreach (string passkey in newPasskeys)
          {
             _ = databaseLoaded.Login(passkey);
          }
-         expectedLogs.Push($"Information : {databaseLoaded.User} logged in");
+         expectedActivities.Push($"Information : {databaseLoaded.User} logged in");
 
          // Then
          _ = databaseLoaded.User.Username.Should().Be(newUsername);
@@ -312,8 +312,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
          _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
-         UnitTestsHelper.LastLogsShouldMatch(databaseLoaded, [.. expectedLogs]);
-         UnitTestsHelper.LastLogWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
+         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          _ = databaseLoaded.Warnings.Should().NotBeEmpty();
 

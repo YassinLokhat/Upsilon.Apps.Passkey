@@ -24,9 +24,9 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       int? SessionLeftTime { get; }
 
       /// <summary>
-      /// The logs.
+      /// The activities.
       /// </summary>
-      ILog[]? Logs { get; }
+      IActivity[]? Activities { get; }
 
       /// <summary>
       /// The warnings detected.
@@ -96,12 +96,6 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// Close the current user and database.
       /// </summary>
       void Close();
-
-      /// <summary>
-      /// Check if the database has changed.
-      /// </summary>
-      /// <returns>True if the database changed, False else.</returns>
-      bool HasChanged();
 
       /// <summary>
       /// Check if the given item has changed.

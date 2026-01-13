@@ -54,7 +54,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Account account = new()
          {
             Service = this,
-            ItemId = "A" + Database.CryptographyCenter.GetHash(label + string.Join(string.Empty, identifiers)),
+            ItemId = "A" + Database.CryptographyCenter.GetHash(ItemId + label + string.Join(string.Empty, identifiers)),
             Label = label,
             Identifiers = [.. identifiers],
             Password = password,
@@ -121,11 +121,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public string Url { get; set; } = string.Empty;
       public string Notes { get; set; } = string.Empty;
 
-      public void Apply(Change change)
+      internal void Apply(Change change)
       {
          switch (change.ActionType)
          {
-            case LogEventType.ItemUpdated:
+            case ActivityEventType.ItemUpdated:
                switch (change.FieldName)
                {
                   case nameof(ServiceName):
@@ -141,20 +141,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
-            case LogEventType.ItemAdded:
+            case ActivityEventType.ItemAdded:
                Account accountToAdd = change.NewValue.DeserializeTo<Account>(Database.SerializationCenter);
                accountToAdd.Service = this;
                Accounts.Add(accountToAdd);
                break;
-            case LogEventType.ItemDeleted:
+            case ActivityEventType.ItemDeleted:
                Account accountToDelete = change.NewValue.DeserializeTo<Account>(Database.SerializationCenter);
                _ = Accounts.RemoveAll(x => x.ItemId == accountToDelete.ItemId);
                break;
             default:
-               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(LogEventType));
+               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(ActivityEventType));
          }
       }
 
       public override string ToString() => $"Service {ServiceName}";
+
+      public bool HasChanged() => Database.HasChanged(ItemId) || Accounts.Any(x => x.HasChanged());
    }
 }

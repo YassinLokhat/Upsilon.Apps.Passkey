@@ -13,6 +13,10 @@
       /// <summary>
       /// Warn if the password leaked.
       /// </summary>
-      WarnIfPasswordLeaked = 0b0010,
+      WarnIfPasswordLeaked = 0b0001,
+      /// <summary>
+      /// Warn if the password is same as another account's password.
+      /// </summary>
+      WarnIfDuplicatedPassword = 0b0010,
    }
 }
