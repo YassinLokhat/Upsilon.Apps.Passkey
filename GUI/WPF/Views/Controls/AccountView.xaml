@@ -1,0 +1,196 @@
+﻿<UserControl x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.Controls.AccountView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views.Controls"
+             xmlns:controls="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls"
+             d:DataContext="{d:DesignInstance Type=controls:AccountViewModel}"
+             mc:Ignorable="d">
+    <DockPanel VerticalAlignment="Stretch">
+        <GroupBox Header="{Binding AccountId}"
+                  DockPanel.Dock="Top">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Row="0"
+                        Grid.Column="0"
+                        Content="Label : "/>
+                <Button Grid.Row="0"
+                            Grid.Column="2"
+                            Content="👓"
+                            Click="_viewActivities_Button_Click"/>
+                <TextBox Grid.Row="0"
+                            Grid.Column="1"
+                            Text="{Binding Label, Mode=TwoWay}"
+                            Background="{Binding LabelBackground}"/>
+                <Grid Grid.Row="1"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="3*"/>
+                    </Grid.ColumnDefinitions>
+                    <GroupBox Header="Identifiers"
+                              Grid.Column="0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ListBox Grid.Row="0"
+                                 Grid.Column="0"
+                                 Grid.ColumnSpan="6"
+                                 HorizontalContentAlignment="Stretch"
+                                 Name="_identifiers_LB">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <local:AutoCompleteTextBox ItemsSource="{Binding IdentifierAutoCompleteList}"
+                                                                   Background="{Binding IdentifierBackground}"
+                                                                   Text="{Binding Identifier, Mode=TwoWay}"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <Button Grid.Row="1"
+                                Grid.Column="0"
+                                Content="+"
+                                Click="_addButton_Click"/>
+                            <Button Grid.Row="1"
+                                Grid.Column="1"
+                                Content="🠉"
+                                Click="_identifier_UpClicked"/>
+                            <Button Grid.Row="1"
+                                Grid.Column="2"
+                                Click="_identifier_DownClicked"
+                                Content="🠋"/>
+                            <Button Grid.Row="1"
+                                Grid.Column="3"
+                                Click="_identifier_DeleteClicked"
+                                Content="✕"/>
+                            <Button Grid.Row="1"
+                                Grid.Column="4"
+                                Content="📋"
+                                Click="_copyIdentifier_Clicked"/>
+                            <Button Grid.Row="1"
+                                Grid.Column="5"
+                                Content="▣"
+                                Click="_showQrCodeIdentifier_Clicked"/>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Password"
+                              Grid.Column="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <local:VisiblePasswordBox x:Name="_password_VPB"
+                                                      Grid.Row="0"
+                                                      Grid.Column="0"
+                                                      Margin="5"
+                                                      Background="{Binding PasswordBackground}"
+                                                      Validated="_password_VPB_Validated"/>
+                            <Button Grid.Row="0"
+                                Grid.Column="1"
+                                Content="📋"
+                                Click="_copyPassword_Clicked"/>
+                            <Button Grid.Row="0"
+                                Grid.Column="2"
+                                Content="▣"
+                                Click="_showQrCodePassword_Clicked"/>
+                            <ListBox Grid.Row="1"
+                                 Grid.Column="0"
+                                 Grid.ColumnSpan="3"
+                                 HorizontalContentAlignment="Stretch"
+                                 Name="_passwords_LB">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Label Grid.Column="0"
+                                                   Content="{Binding UpdateDate}"
+                                                   Background="Transparent"/>
+                                            <local:VisiblePasswordBox Grid.Column="1"
+                                                                      Margin="5"
+                                                                      MinWidth="230"
+                                                                      ReadOnly="True"
+                                                                      Loaded="_passwords_VPB_Loaded"/>
+                                            <Button Grid.Column="2"
+                                                    Content="📋"
+                                                    Click="_copyPasswords_Clicked"/>
+                                            <Button Grid.Column="3"
+                                                    Content="▣"
+                                                    Click="_showQrCodePasswords_Clicked"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+
+                <Label Grid.Row="2"
+                        Grid.Column="0"
+                        Content="Notes : "/>
+                <TextBox Grid.Row="2"
+                            Grid.Column="1"
+                            Grid.ColumnSpan="2"
+                            Text="{Binding Notes, Mode=TwoWay}"
+                            Background="{Binding NotesBackground}"
+                            MaxHeight="75"
+                            VerticalScrollBarVisibility="Auto"
+                            AcceptsReturn="True"
+                            AcceptsTab="True"/>
+                <GroupBox Header="Options"
+                            Grid.Row="3"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="3">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding RemindPasswordUpdate}"
+                                        Content="Remind to update password every"/>
+                            <TextBox Width="25"
+                                        HorizontalContentAlignment="Center"
+                                        TextChanged="_value_TextBox_TextChanged"
+                                        PreviewTextInput="_value_TextBox_PreviewTextInput"
+                                        DataObject.Pasting="_value_TextBox_Pasting"
+                                        Text="{Binding RemindPasswordUpdateDelay, Mode=TwoWay}"/>
+                            <Label Margin="0">months.</Label>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding WarnPasswordLeak}">Warn if the password leaked.</CheckBox>
+                            <CheckBox IsChecked="{Binding WarnIfDuplicatedPassword}">Warn if the password is same as another account's password.</CheckBox>
+                        </StackPanel>
+                    </StackPanel>
+                </GroupBox>
+            </Grid>
+        </GroupBox>
+    </DockPanel>
+</UserControl>
