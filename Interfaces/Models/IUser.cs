@@ -38,6 +38,11 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       int NumberOfOldPasswordToKeep { get; set; }
 
       /// <summary>
+      /// The number of months activities to keep.
+      /// </summary>
+      int NumberOfMonthActivitiesToKeep { get; set; }
+
+      /// <summary>
       /// The warnings types which will be notified if detected.
       /// </summary>
       WarningType WarningsToNotify { get; set; }

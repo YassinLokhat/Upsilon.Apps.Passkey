@@ -3,9 +3,9 @@
 namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
    /// <summary>
-   /// Represent an event log.
+   /// Represent an event activity.
    /// </summary>
-   public interface ILog
+   public interface IActivity
    {
       /// <summary>
       /// The date and time the event occured.
@@ -13,19 +13,19 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       DateTime DateTime { get; }
 
       /// <summary>
+      /// The item id rizing the event.
+      /// </summary>
+      string ItemId { get; }
+
+      /// <summary>
       /// The event type.
       /// </summary>
-      LogEventType EventType { get; }
+      ActivityEventType EventType { get; }
 
       /// <summary>
       /// Indicate if the current log needs review.
       /// </summary>
       bool NeedsReview { get; set; }
-
-      /// <summary>
-      /// The raw event data.
-      /// </summary>
-      string[] Data { get; }
 
       /// <summary>
       /// The event message.

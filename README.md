@@ -75,6 +75,7 @@ classDiagram
             <<interface>>
             +ItemId : string
             +Database : IDatabase
+            +HasChanged(void) bool
         }
 
         class IAccount {
@@ -136,7 +137,6 @@ classDiagram
             +Save(void) void
             +Delete(void) void
             +Close(void) void
-            +HasChanged(void) bool
             +HasChanged(in itemId string) bool
             +HasChanged(in itemId string, in fieldName string) bool
             +ImportFromFile(in filePath string) bool
@@ -146,6 +146,7 @@ classDiagram
         class ILog {
             <<interface>>
             +DateTime : DateTime
+            +ItemId : string
             +Message : string
             +NeedsReview : bool
         }
@@ -164,6 +165,7 @@ classDiagram
             <<enumeration>>
             None
             WarnIfPasswordLeaked
+            WarnIfDuplicatedPassword
         }
         
         class WarningType {

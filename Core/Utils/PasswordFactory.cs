@@ -20,9 +20,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          StringBuilder stringBuilder = new();
          Random random = new((int)DateTime.Now.Ticks);
+         byte iteration = 0;
 
          do
          {
+            iteration++;
             _ = stringBuilder.Clear();
 
             for (int i = 0; i < length; i++)
@@ -30,9 +32,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                _ = stringBuilder.Append(alphabet[random.Next(alphabet.Length)]);
             }
          }
-         while (checkIfLeaked && PasswordLeaked(stringBuilder.ToString()));
+         while (iteration < length && checkIfLeaked && PasswordLeaked(stringBuilder.ToString()));
 
-         return stringBuilder.ToString();
+         return iteration == length ? string.Empty : stringBuilder.ToString();
       }
 
       public bool PasswordLeaked(string password)

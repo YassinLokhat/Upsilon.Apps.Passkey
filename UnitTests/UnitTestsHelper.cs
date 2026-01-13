@@ -160,34 +160,34 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return (int)value;
       }
 
-      public static void LastLogsShouldMatch(IDatabase database, string[] expectedLogs)
+      public static void LastActivitiesShouldMatch(IDatabase database, string[] expectedActivities)
       {
-         string[] actualLogs = database.Logs.Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
+         string[] actualActivities = database.Activities.Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
 
-         _lastLogsShouldMatch(actualLogs, expectedLogs);
+         _lastActivitiesShouldMatch(actualActivities, expectedActivities);
       }
 
-      public static void LastLogWarningsShouldMatch(IDatabase database, string[] expectedLogs)
+      public static void LastActivityWarningsShouldMatch(IDatabase database, string[] expectedActivities)
       {
          while (database.Warnings is null)
          {
             Thread.Sleep(200);
          }
 
-         IWarning logWarning = database.Warnings.First(x => x.WarningType == WarningType.LogReviewWarning);
+         IWarning activityWarning = database.Warnings.First(x => x.WarningType == WarningType.ActivityReviewWarning);
 
-         string[] actualLogs = logWarning.Logs
+         string[] actualActivities = activityWarning.Activities
             .OrderByDescending(x => x.DateTime)
             .Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
 
-         _lastLogsShouldMatch(actualLogs, expectedLogs);
+         _lastActivitiesShouldMatch(actualActivities, expectedActivities);
       }
 
-      private static void _lastLogsShouldMatch(string[] actualLogs, string[] expectedLogs)
+      private static void _lastActivitiesShouldMatch(string[] actualActivities, string[] expectedActivities)
       {
-         for (int i = expectedLogs.Length - 1; i >= 0; i--)
+         for (int i = expectedActivities.Length - 1; i >= 0; i--)
          {
-            _ = actualLogs[i].Should().Be(expectedLogs[i]);
+            _ = actualActivities[i].Should().Be(expectedActivities[i]);
          }
       }
    }

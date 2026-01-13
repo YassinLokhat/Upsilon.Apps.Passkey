@@ -141,17 +141,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
             DateTime lastPassword = Passwords.Keys.Max();
             int delay = ((DateTime.Now.Year - lastPassword.Year) * 12) + DateTime.Now.Month - lastPassword.Month;
 
-            return delay >= PasswordUpdateReminderDelay;
+            return delay > PasswordUpdateReminderDelay;
          }
       }
 
-      internal bool PasswordLeaked => Options.ContainsFlag(AccountOption.WarnIfPasswordLeaked) && Database.PasswordFactory.PasswordLeaked(Password);
+      internal bool PasswordLeaked { get; set; } = false;
 
-      public void Apply(Change change)
+      internal void Apply(Change change)
       {
          switch (change.ActionType)
          {
-            case LogEventType.ItemUpdated:
+            case ActivityEventType.ItemUpdated:
                switch (change.FieldName)
                {
                   case nameof(Label):
@@ -178,7 +178,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                }
                break;
             default:
-               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(LogEventType));
+               throw new InvalidEnumArgumentException(nameof(change.ActionType), (int)change.ActionType, typeof(ActivityEventType));
          }
       }
 
@@ -193,5 +193,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          return account + $"({string.Join(", ", Identifiers)})";
       }
+
+      public bool HasChanged() => Database.HasChanged(ItemId);
    }
 }
