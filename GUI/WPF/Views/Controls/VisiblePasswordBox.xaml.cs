@@ -49,7 +49,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       public new void Focus()
       {
-         _passwordBox.Focus();
+         _ = _passwordBox.Focus();
       }
 
       private void _passwordBox_LostFocus(object sender, System.Windows.RoutedEventArgs e)

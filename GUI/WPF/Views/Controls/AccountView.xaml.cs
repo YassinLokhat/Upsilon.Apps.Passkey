@@ -245,9 +245,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          if (MainViewModel.UserActivitiesView is not null
             && MainViewModel.UserActivitiesView.IsLoaded)
          {
-            UserActivitiesViewModel? vm = MainViewModel.UserActivitiesView.DataContext as UserActivitiesViewModel;
             MainViewModel.UserActivitiesView.ViewModel.RefreshFilters(_viewModel.Account.ItemId);
-            MainViewModel.UserActivitiesView.Activate();
+            _ = MainViewModel.UserActivitiesView.Activate();
             return;
          }
 

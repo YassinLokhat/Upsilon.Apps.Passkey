@@ -7,7 +7,6 @@ using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
-using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -26,7 +25,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          InitializeComponent();
 
          if (MainViewModel.Database is null) throw new NullReferenceException(nameof(MainViewModel.Database));
-         
+
          MainViewModel.GoToItem = _goToItem;
 
          DataContext = _viewModel = new($"{MainViewModel.AppTitle} - '{MainViewModel.User}'");
@@ -161,7 +160,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          MainViewModel.DuplicatedPasswordsWarningView?.Close();
          MainViewModel.DuplicatedPasswordsWarningView = null;
-         
+
          MainViewModel.UserActivitiesView?.Close();
          MainViewModel.UserActivitiesView = null;
 
@@ -292,7 +291,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             UserActivitiesViewModel? vm = MainViewModel.UserActivitiesView.DataContext as UserActivitiesViewModel;
             vm?.NeedsReview = false;
 
-            MainViewModel.UserActivitiesView.Activate();
+            _ = MainViewModel.UserActivitiesView.Activate();
             return;
          }
 
@@ -311,7 +310,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         Activate();
+         _ = Activate();
 
          _clearFilter();
 
@@ -351,7 +350,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             UserActivitiesViewModel? vm = MainViewModel.UserActivitiesView.DataContext as UserActivitiesViewModel;
             vm?.NeedsReview = true;
 
-            MainViewModel.UserActivitiesView.Activate();
+            _ = MainViewModel.UserActivitiesView.Activate();
             return;
          }
 
@@ -366,7 +365,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (MainViewModel.DuplicatedPasswordsWarningView is not null
             && MainViewModel.DuplicatedPasswordsWarningView.IsLoaded)
          {
-            MainViewModel.DuplicatedPasswordsWarningView.Activate();
+            _ = MainViewModel.DuplicatedPasswordsWarningView.Activate();
             return;
          }
 
@@ -385,7 +384,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             vm?.WarningType = sender == _expiredPasswordWarnings_MI
             ? WarningType.PasswordUpdateReminderWarning : WarningType.PasswordLeakedWarning;
 
-            MainViewModel.AccountPasswordsWarningView.Activate();
+            _ = MainViewModel.AccountPasswordsWarningView.Activate();
             return;
          }
 

@@ -148,7 +148,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                      FileName = Path.GetFileName(newDatabaseFile),
                   };
 
-                  if ((dialog.ShowDialog() ?? false))
+                  if (dialog.ShowDialog() ?? false)
                   {
                      newDatabaseFile = dialog.FileName;
                   }
