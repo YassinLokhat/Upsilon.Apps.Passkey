@@ -11,41 +11,35 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// </summary>
    public partial class UserActivitiesView : Window
    {
-      private readonly UserActivitiesViewModel _viewModel;
-      private readonly Action<string> _goToItem;
+      internal readonly UserActivitiesViewModel ViewModel;
 
-      internal UserActivitiesView(bool needsReviewFilter, Action<string> goToItem)
+      internal UserActivitiesView(bool needsReviewFilter)
       {
          InitializeComponent();
 
-         DataContext = _viewModel = new()
+         DataContext = ViewModel = new()
          {
             NeedsReview = needsReviewFilter,
          };
-         
-         _goToItem = goToItem;
 
          _eventType_CB.ItemsSource = Enum.GetValues<ActivityEventType>()
             .Cast<ActivityEventType>()
             .Select(x => x.ToReadableString());
          _eventType_CB.SelectedIndex = 0;
 
-         _activities_DGV.ItemsSource = _viewModel.Activities;
+         _activities_DGV.ItemsSource = ViewModel.Activities;
 
          Loaded += (s, e) => DarkMode.SetDarkMode(this);
       }
 
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
       {
-         _viewModel.FromDateFilter = _viewModel.ToDateFilter = DateTime.Now.Date.AddDays(1);
-         _viewModel.EventType = ActivityEventType.None;
-         _viewModel.Message = string.Empty;
-         _viewModel.NeedsReview = false;
+         ViewModel.ClearFilters();
       }
 
       private void _viewItemButton_Click(object sender, RoutedEventArgs e)
       {
-         _goToItem(_viewModel.Activities[_activities_DGV.SelectedIndex].Activity.ItemId);
+         MainViewModel.GoToItem?.Invoke(ViewModel.Activities[_activities_DGV.SelectedIndex].Activity.ItemId);
       }
    }
 }

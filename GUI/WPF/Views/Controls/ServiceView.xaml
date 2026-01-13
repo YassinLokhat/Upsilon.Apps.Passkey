@@ -31,9 +31,12 @@
                            Content="Service name : "/>
                     <TextBox Grid.Row="0"
                              Grid.Column="1"
-                             Grid.ColumnSpan="2"
                              Text="{Binding ServiceName, Mode=TwoWay}"
                              Background="{Binding ServiceNameBackground}"/>
+                    <Button Grid.Row="0"
+                            Grid.Column="2"
+                            Content="👓"
+                            Click="_viewActivities_Button_Click"/>
                     <Label Grid.Row="1"
                            Grid.Column="0"
                            Content="Url : "/>

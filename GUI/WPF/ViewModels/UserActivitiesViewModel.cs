@@ -101,7 +101,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          RefreshFilters();
       }
 
-      public void RefreshFilters()
+      public void ClearFilters()
+      {
+         FromDateFilter = ToDateFilter = DateTime.Now.Date.AddDays(1);
+         EventType = ActivityEventType.None;
+         Message = string.Empty;
+         NeedsReview = false;
+      }
+
+      public void RefreshFilters(string itemId = "")
       {
          Activities.Clear();
 
@@ -109,7 +117,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          ActivityViewModel[] activities = [.. MainViewModel.Database.Activities
             .Select(x => new ActivityViewModel(x))
-            .Where(x => x.MeetsConditions(FromDateFilter, ToDateFilter, EventType, Message, NeedsReview))
+            .Where(x => x.MeetsConditions(itemId, FromDateFilter, ToDateFilter, EventType, Message, NeedsReview))
             .OrderByDescending(x => x.DateTime)];
 
          foreach (ActivityViewModel activity in activities)

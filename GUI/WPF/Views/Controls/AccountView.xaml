@@ -20,17 +20,22 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Label Grid.Row="0"
                         Grid.Column="0"
                         Content="Label : "/>
+                <Button Grid.Row="0"
+                            Grid.Column="2"
+                            Content="👓"
+                            Click="_viewActivities_Button_Click"/>
                 <TextBox Grid.Row="0"
                             Grid.Column="1"
                             Text="{Binding Label, Mode=TwoWay}"
                             Background="{Binding LabelBackground}"/>
                 <Grid Grid.Row="1"
                       Grid.Column="0"
-                      Grid.ColumnSpan="2">
+                      Grid.ColumnSpan="3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="3*"/>
@@ -156,6 +161,7 @@
                         Content="Notes : "/>
                 <TextBox Grid.Row="2"
                             Grid.Column="1"
+                            Grid.ColumnSpan="2"
                             Text="{Binding Notes, Mode=TwoWay}"
                             Background="{Binding NotesBackground}"
                             MaxHeight="75"
@@ -165,7 +171,7 @@
                 <GroupBox Header="Options"
                             Grid.Row="3"
                             Grid.Column="0"
-                            Grid.ColumnSpan="2">
+                            Grid.ColumnSpan="3">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <CheckBox IsChecked="{Binding RemindPasswordUpdate}"

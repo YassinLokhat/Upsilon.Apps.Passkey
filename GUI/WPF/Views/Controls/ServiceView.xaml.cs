@@ -106,5 +106,30 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          return true;
       }
+
+      private void _viewActivities_Button_Click(object sender, RoutedEventArgs e)
+      {
+         if (this.GetIsBusy()
+            || _viewModel is null)
+         {
+            return;
+         }
+
+         if (this.GetIsBusy()) return;
+
+         if (MainViewModel.UserActivitiesView is not null
+            && MainViewModel.UserActivitiesView.IsLoaded)
+         {
+            UserActivitiesViewModel? vm = MainViewModel.UserActivitiesView.DataContext as UserActivitiesViewModel;
+            MainViewModel.UserActivitiesView.ViewModel.RefreshFilters(_viewModel.Service.ItemId);
+            MainViewModel.UserActivitiesView.Activate();
+            return;
+         }
+
+         MainViewModel.UserActivitiesView = new(needsReviewFilter: false);
+         MainViewModel.UserActivitiesView.ViewModel.ClearFilters();
+         MainViewModel.UserActivitiesView.ViewModel.RefreshFilters(_viewModel.Service.ItemId);
+         MainViewModel.UserActivitiesView.Show();
+      }
    }
 }

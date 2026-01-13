@@ -13,9 +13,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    public partial class AccountPasswordsWarningView : Window
    {
       private readonly AccountPasswordsWarningViewModel _viewModel;
-      private readonly Action<string> _goToItem;
 
-      internal AccountPasswordsWarningView(WarningType warningType, Action<string> goToItem)
+      internal AccountPasswordsWarningView(WarningType warningType)
       {
          InitializeComponent();
 
@@ -23,8 +22,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             WarningType = warningType,
          };
-
-         _goToItem = goToItem;
 
          _ = _warningType_CB.Items.Add((WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning).ToReadableString());
          _ = _warningType_CB.Items.Add(WarningType.PasswordLeakedWarning.ToReadableString());
@@ -43,7 +40,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _viewItemButton_Click(object sender, RoutedEventArgs e)
       {
-         _goToItem(_viewModel.Warnings[_warnings_DGV.SelectedIndex].Account.ItemId);
+         MainViewModel.GoToItem?.Invoke(_viewModel.Warnings[_warnings_DGV.SelectedIndex].Account.ItemId);
       }
    }
 }

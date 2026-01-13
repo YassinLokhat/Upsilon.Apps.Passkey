@@ -33,13 +33,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
-      public bool MeetsConditions(DateTime fromDateFilter, DateTime toDateFilter, ActivityEventType eventType, string message, bool needsReview)
+      public bool MeetsConditions(string itemId, DateTime fromDateFilter, DateTime toDateFilter, ActivityEventType eventType, string message, bool needsReview)
       {
-         return (fromDateFilter > System.DateTime.Now.Date
-            || Activity.DateTime.Date >= fromDateFilter) && (toDateFilter > System.DateTime.Now.Date
-            || Activity.DateTime.Date <= toDateFilter) && (eventType == ActivityEventType.None
-            || Activity.EventType == eventType) && (!needsReview
-            || Activity.NeedsReview) && Activity.Message.Contains(message, StringComparison.CurrentCultureIgnoreCase);
+         return (string.IsNullOrEmpty(itemId) || Activity.ItemId == itemId)
+            && (fromDateFilter > System.DateTime.Now.Date
+               || Activity.DateTime.Date >= fromDateFilter) && (toDateFilter > System.DateTime.Now.Date
+               || Activity.DateTime.Date <= toDateFilter) && (eventType == ActivityEventType.None
+               || Activity.EventType == eventType) && (!needsReview
+               || Activity.NeedsReview) && Activity.Message.Contains(message, StringComparison.CurrentCultureIgnoreCase);
       }
    }
 }

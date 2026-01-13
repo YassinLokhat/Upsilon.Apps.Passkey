@@ -3,6 +3,7 @@ using System.IO;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
@@ -29,6 +30,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public static IDatabase? Database = null;
 
       public static IUser User => Database is null || Database.User is null ? throw new NullReferenceException(nameof(User)) : Database.User;
+
+      public static AccountPasswordsWarningView? AccountPasswordsWarningView;
+      public static DuplicatedPasswordsWarningView? DuplicatedPasswordsWarningView;
+      public static UserActivitiesView? UserActivitiesView;
+      public static Action<string>? GoToItem;
 
       public string DatabaseFile
       {

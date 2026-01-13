@@ -20,15 +20,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private int _autoLoginHotkeyId = 0;
       private int _autoPasswordHotkeyId = 0;
       private Task? _saveTask;
-      private AccountPasswordsWarningView? _accountPasswordsWarningView;
-      private DuplicatedPasswordsWarningView? _duplicatedPasswordsWarningView;
-      private UserActivitiesView? _userActivitiesView;
 
       private UserServicesView()
       {
          InitializeComponent();
 
          if (MainViewModel.Database is null) throw new NullReferenceException(nameof(MainViewModel.Database));
+         
+         MainViewModel.GoToItem = _goToItem;
 
          DataContext = _viewModel = new($"{MainViewModel.AppTitle} - '{MainViewModel.User}'");
          _viewModel.FiltersRefreshed += _viewModel_FiltersRefreshed;
@@ -155,9 +154,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = HotkeyHelper.Unregister(this, _autoLoginHotkeyId);
          _ = HotkeyHelper.Unregister(this, _autoPasswordHotkeyId);
 
-         _accountPasswordsWarningView?.Close();
-         _duplicatedPasswordsWarningView?.Close();
-         _userActivitiesView?.Close();
+         MainViewModel.GoToItem = null;
+
+         MainViewModel.AccountPasswordsWarningView?.Close();
+         MainViewModel.AccountPasswordsWarningView = null;
+
+         MainViewModel.DuplicatedPasswordsWarningView?.Close();
+         MainViewModel.DuplicatedPasswordsWarningView = null;
+         
+         MainViewModel.UserActivitiesView?.Close();
+         MainViewModel.UserActivitiesView = null;
 
          MainViewModel.Database?.Close();
          MainViewModel.Database = null;
@@ -280,18 +286,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          if (this.GetIsBusy()) return;
 
-         if (_userActivitiesView is not null
-            && _userActivitiesView.IsLoaded)
+         if (MainViewModel.UserActivitiesView is not null
+            && MainViewModel.UserActivitiesView.IsLoaded)
          {
-            UserActivitiesViewModel? vm = _userActivitiesView.DataContext as UserActivitiesViewModel;
+            UserActivitiesViewModel? vm = MainViewModel.UserActivitiesView.DataContext as UserActivitiesViewModel;
             vm?.NeedsReview = false;
 
-            _userActivitiesView.Activate();
+            MainViewModel.UserActivitiesView.Activate();
             return;
          }
 
-         _userActivitiesView = new(needsReviewFilter: false, _goToItem);
-         _userActivitiesView.Show();
+         MainViewModel.UserActivitiesView = new(needsReviewFilter: false);
+         MainViewModel.UserActivitiesView.Show();
       }
 
       private void _goToItem(string itemId)
@@ -339,54 +345,53 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          if (this.GetIsBusy()) return;
 
-         if (_userActivitiesView is not null
-            && _userActivitiesView.IsLoaded)
+         if (MainViewModel.UserActivitiesView is not null
+            && MainViewModel.UserActivitiesView.IsLoaded)
          {
-            UserActivitiesViewModel? vm = _userActivitiesView.DataContext as UserActivitiesViewModel;
+            UserActivitiesViewModel? vm = MainViewModel.UserActivitiesView.DataContext as UserActivitiesViewModel;
             vm?.NeedsReview = true;
 
-            _userActivitiesView.Activate();
+            MainViewModel.UserActivitiesView.Activate();
             return;
          }
 
-         _userActivitiesView = new(needsReviewFilter: true, _goToItem);
-         _userActivitiesView.Show();
+         MainViewModel.UserActivitiesView = new(needsReviewFilter: true);
+         MainViewModel.UserActivitiesView.Show();
       }
 
       private void _duplicatedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy()) return;
 
-         if (_duplicatedPasswordsWarningView is not null
-            && _duplicatedPasswordsWarningView.IsLoaded)
+         if (MainViewModel.DuplicatedPasswordsWarningView is not null
+            && MainViewModel.DuplicatedPasswordsWarningView.IsLoaded)
          {
-            _duplicatedPasswordsWarningView.Activate();
+            MainViewModel.DuplicatedPasswordsWarningView.Activate();
             return;
          }
 
-         _duplicatedPasswordsWarningView = new(_goToItem);
-         _duplicatedPasswordsWarningView.Show();
+         MainViewModel.DuplicatedPasswordsWarningView = new();
+         MainViewModel.DuplicatedPasswordsWarningView.Show();
       }
 
       private void _expiredOrLeakedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy()) return;
 
-         if (_accountPasswordsWarningView is not null
-            && _accountPasswordsWarningView.IsLoaded)
+         if (MainViewModel.AccountPasswordsWarningView is not null
+            && MainViewModel.AccountPasswordsWarningView.IsLoaded)
          {
-            AccountPasswordsWarningViewModel? vm = _accountPasswordsWarningView.DataContext as AccountPasswordsWarningViewModel;
+            AccountPasswordsWarningViewModel? vm = MainViewModel.AccountPasswordsWarningView.DataContext as AccountPasswordsWarningViewModel;
             vm?.WarningType = sender == _expiredPasswordWarnings_MI
             ? WarningType.PasswordUpdateReminderWarning : WarningType.PasswordLeakedWarning;
 
-            _accountPasswordsWarningView.Activate();
+            MainViewModel.AccountPasswordsWarningView.Activate();
             return;
          }
 
-         _accountPasswordsWarningView = new(sender == _expiredPasswordWarnings_MI
-            ? WarningType.PasswordUpdateReminderWarning : WarningType.PasswordLeakedWarning,
-            _goToItem);
-         _accountPasswordsWarningView.Show();
+         MainViewModel.AccountPasswordsWarningView = new(sender == _expiredPasswordWarnings_MI
+            ? WarningType.PasswordUpdateReminderWarning : WarningType.PasswordLeakedWarning);
+         MainViewModel.AccountPasswordsWarningView.Show();
       }
    }
 }
