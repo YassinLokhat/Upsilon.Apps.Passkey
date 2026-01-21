@@ -289,7 +289,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             && MainViewModel.UserActivitiesView.IsLoaded)
          {
             UserActivitiesViewModel? vm = MainViewModel.UserActivitiesView.DataContext as UserActivitiesViewModel;
-            vm?.NeedsReview = false;
+            _ = (vm?.NeedsReview = false);
 
             _ = MainViewModel.UserActivitiesView.Activate();
             return;
@@ -348,7 +348,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             && MainViewModel.UserActivitiesView.IsLoaded)
          {
             UserActivitiesViewModel? vm = MainViewModel.UserActivitiesView.DataContext as UserActivitiesViewModel;
-            vm?.NeedsReview = true;
+            _ = (vm?.NeedsReview = true);
 
             _ = MainViewModel.UserActivitiesView.Activate();
             return;
@@ -381,8 +381,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             && MainViewModel.AccountPasswordsWarningView.IsLoaded)
          {
             AccountPasswordsWarningViewModel? vm = MainViewModel.AccountPasswordsWarningView.DataContext as AccountPasswordsWarningViewModel;
-            vm?.WarningType = sender == _expiredPasswordWarnings_MI
-            ? WarningType.PasswordUpdateReminderWarning : WarningType.PasswordLeakedWarning;
+            _ = (vm?.WarningType = sender == _expiredPasswordWarnings_MI
+            ? WarningType.PasswordUpdateReminderWarning : WarningType.PasswordLeakedWarning);
 
             _ = MainViewModel.AccountPasswordsWarningView.Activate();
             return;

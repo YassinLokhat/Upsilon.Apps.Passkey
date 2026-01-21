@@ -4,30 +4,30 @@ namespace Upsilon.Apps.Passkey.Core.Utils;
 
 public enum ErrorCorrection
 {
-    L,
-    M,
-    Q,
-    H,
+   L,
+   M,
+   Q,
+   H,
 }
 
 internal enum EncodingMode
 {
-    Terminator,
-    Numeric,
-    AlphaNumeric,
-    Append,
-    Byte,
-    FNC1First,
-    Unknown6,
-    ECI,
-    Kanji,
-    FNC1Second,
-    Unknown10,
-    Unknown11,
-    Unknown12,
-    Unknown13,
-    Unknown14,
-    Unknown15,
+   Terminator,
+   Numeric,
+   AlphaNumeric,
+   Append,
+   Byte,
+   FNC1First,
+   Unknown6,
+   ECI,
+   Kanji,
+   FNC1Second,
+   Unknown10,
+   Unknown11,
+   Unknown12,
+   Unknown13,
+   Unknown14,
+   Unknown15,
 }
 
 public class QrCode
