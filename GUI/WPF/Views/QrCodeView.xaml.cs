@@ -61,11 +61,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private static BitmapImage _getBitmap(string content)
       {
-         QrCode qrCode = new(content);
-
          int unit = 20;
-         int height = qrCode.QRCodeMatrix.GetLength(0);
-         int width = qrCode.QRCodeMatrix.GetLength(1);
+         bool[,] qrCode = QrCode.Generate(content);
+         int height = qrCode.GetLength(0);
+         int width = qrCode.GetLength(1);
 
          Bitmap bitmap = new((height + 2) * unit, (width + 2) * unit);
 
@@ -77,7 +76,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             {
                for (int j = 0; j < width; j++)
                {
-                  if (qrCode.QRCodeMatrix[i, j])
+                  if (qrCode[i, j])
                   {
                      g.FillRectangle(Brushes.Black, (i + 1) * unit, (j + 1) * unit, unit, unit);
                   }
