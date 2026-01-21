@@ -24,12 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="QRCodeEncoderLibrary">
-      <HintPath>dll\QRCodeEncoderLibrary.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="raw\vidpll-sVqi93MN9TymqpQ==UGOcrUlBjHsiPMUpOVwOKjiSUBw=.pku">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
