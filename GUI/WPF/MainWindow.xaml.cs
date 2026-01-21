@@ -154,6 +154,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
       private void _database_AutoSaveDetected(object? sender, Interfaces.Events.AutoSaveDetectedEventArgs e)
       {
+         Hide();
+
          MessageBoxResult result = MessageBox.Show("Unsaved changes have been detected.\nClick Yes to apply these changes.\nClick No to discard them.\nClick Cancel to ignore and keep the save file.", "Autosave detected", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
 
          e.MergeBehavior = result switch
