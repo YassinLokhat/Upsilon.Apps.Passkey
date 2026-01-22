@@ -7,6 +7,8 @@
     <Title>$(AssemblyName)</Title>
     <Authors>Yassin Lokhat</Authors>
     <Description>A local stored Password Manager Core.</Description>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
+    <FileVersion>1.0.1</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

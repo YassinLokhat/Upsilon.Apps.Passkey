@@ -10,8 +10,8 @@
 	<Authors>Yassin Lokhat</Authors>
 	<Description>A local stored Password Manager GUI.</Description>
 	<Version>3.0.0</Version>
-	<AssemblyVersion>3.0.0</AssemblyVersion>
-	<FileVersion>3.0.0</FileVersion>
+	<AssemblyVersion>1.0.1</AssemblyVersion>
+	<FileVersion>1.0.1</FileVersion>
 	<ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -21,12 +21,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Upsilon.Apps.Passkey.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="QRCodeEncoderLibrary">
-      <HintPath>dll\QRCodeEncoderLibrary.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>

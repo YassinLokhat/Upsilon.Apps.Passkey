@@ -1,10 +1,10 @@
-﻿using QRCodeEncoderLibrary;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
@@ -61,22 +61,28 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private static BitmapImage _getBitmap(string content)
       {
-         QREncoder qrGenerator = new()
+         int unit = 20;
+         bool[,] qrCode = QrCode.Generate(content);
+         int height = qrCode.GetLength(0);
+         int width = qrCode.GetLength(1);
+
+         Bitmap bitmap = new((height + 2) * unit, (width + 2) * unit);
+
+         using (Graphics g = Graphics.FromImage(bitmap))
          {
-            ErrorCorrection = ErrorCorrection.H
-         };
-         bool[,] matrix = qrGenerator.Encode(content);
+            g.FillRectangle(Brushes.White, 0, 0, (height + 2) * unit, (width + 2) * unit);
 
-         QRSaveBitmapImage qrCodeImage = new(matrix)
-         {
-            ModuleSize = 100,
-            QuietZone = 50
-         };
-
-         MemoryStream ms = new();
-         qrCodeImage.SaveQRCodeToImageFile(ms, ImageFormat.Bmp);
-
-         Bitmap bitmap = (Bitmap)Image.FromStream(ms);
+            for (int i = 0; i < height; i++)
+            {
+               for (int j = 0; j < width; j++)
+               {
+                  if (qrCode[i, j])
+                  {
+                     g.FillRectangle(Brushes.Black, (i + 1) * unit, (j + 1) * unit, unit, unit);
+                  }
+               }
+            }
+         }
 
          using MemoryStream memory = new();
          bitmap.Save(memory, ImageFormat.Png);
