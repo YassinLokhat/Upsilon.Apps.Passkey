@@ -30,7 +30,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          };
 
          _resetCredentials();
-         MainViewModel.Database = null;
 
          try
          {
@@ -52,6 +51,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       private void _timer_Elapsed(object? sender, EventArgs e)
       {
          _resetCredentials();
+         MainViewModel.Database?.Close();
          MainViewModel.Database = null;
       }
 
@@ -143,6 +143,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          else if (e.Key == Key.Escape)
          {
             _resetCredentials();
+            MainViewModel.Database?.Close();
             MainViewModel.Database = null;
          }
          else
@@ -173,6 +174,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             Dispatcher.Invoke(() =>
             {
                _resetCredentials();
+               MainViewModel.Database?.Close();
                MainViewModel.Database = null;
                Show();
             });
