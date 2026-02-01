@@ -20,6 +20,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private int _autoPasswordHotkeyId = 0;
       private Task? _saveTask;
 
+      public static RoutedCommand FilterCommand = new();
+
       private UserServicesView()
       {
          InitializeComponent();
@@ -43,6 +45,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = _serviceFilter_TB.Focus();
 
          _updateWarningsMenu();
+
+         FilterCommand.InputGestures.Add(new KeyGesture(Key.F, ModifierKeys.Control));
+         FilterCommand.InputGestures.Add(new KeyGesture(Key.F3));
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          MainViewModel.Database.WarningDetected += _database_WarningDetected;
@@ -391,6 +396,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          MainViewModel.AccountPasswordsWarningView = new(sender == _expiredPasswordWarnings_MI
             ? WarningType.PasswordUpdateReminderWarning : WarningType.PasswordLeakedWarning);
          MainViewModel.AccountPasswordsWarningView.Show();
+      }
+
+      private void _filterCommand_CommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+      {
+         _serviceFilter_TB.SelectAll();
+         _ = _serviceFilter_TB.Focus();
       }
    }
 }

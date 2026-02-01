@@ -17,6 +17,8 @@
         MinWidth="1300">
     <Window.CommandBindings>
         <CommandBinding Command="Save" Executed="_save_MenuItem_Click"/>
+        <CommandBinding Command="{x:Static local:UserServicesView.FilterCommand}" 
+                     Executed="_filterCommand_CommandBinding_Executed"/>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="S" Modifiers="Control" Command="Save"/>
