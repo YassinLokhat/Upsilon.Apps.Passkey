@@ -174,7 +174,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             Dispatcher.Invoke(() =>
             {
                _resetCredentials();
-               MainViewModel.Database?.Close();
                MainViewModel.Database = null;
                Show();
             });
