@@ -257,5 +257,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          MainViewModel.UserActivitiesView.ViewModel.RefreshFilters(_viewModel.Account.ItemId);
          MainViewModel.UserActivitiesView.Show();
       }
+
+      private void _identifier_TextBox_KeyUp(object sender, KeyEventArgs e)
+      {
+         if (this.GetIsBusy()) return;
+
+         if (sender is not TextBox identifier_TB) return;
+
+         if (e.Key == Key.Enter
+            || e.Key == Key.Insert)
+         {
+            string? identifier = InsertIdentifierView.InsertIdentifierDialog(MainViewModel.User?.Services
+               .SelectMany(x => x.Accounts.SelectMany(y => y.Identifiers).Where(y => !string.IsNullOrEmpty(y))) ?? []);
+
+            if (string.IsNullOrEmpty(identifier)) return;
+
+            identifier_TB.Text = identifier;
+         }
+      }
    }
 }
