@@ -190,7 +190,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          if (this.GetIsBusy()) return;
 
-         string? serviceId = ((ServiceViewModel?)_services_LB.SelectedItem)?.ServiceId;
+         string? serviceId = _service_SV.GetServiceId();
+         string? accountId = _service_SV.GetAccountId();
          this.SetIsBusy(true);
 
          if (_saveTask is not null
@@ -206,12 +207,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             Dispatcher.Invoke(() =>
             {
                _viewModel.RefreshFilters();
-               ServiceViewModel? service = _viewModel.Services.FirstOrDefault(x => x.ServiceId == serviceId);
+               ServiceViewModel? service = _viewModel.Services.FirstOrDefault(x => x.Service.ItemId == serviceId);
+
+               this.SetIsBusy(false);
 
                _services_LB.ItemsSource = _viewModel.Services;
                _services_LB.SelectedItem = service;
-
-               this.SetIsBusy(false);
+               
+               if (!string.IsNullOrEmpty(accountId))
+               {
+                  _service_SV.SelectAccount(accountId);
+               }
             });
          });
       }

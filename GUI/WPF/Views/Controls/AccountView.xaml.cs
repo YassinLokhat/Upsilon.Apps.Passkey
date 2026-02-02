@@ -14,6 +14,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    {
       private AccountViewModel? _viewModel;
 
+      internal string? GetAccountId() => _viewModel?.Account.ItemId;
+
       public AccountView()
       {
          InitializeComponent();
