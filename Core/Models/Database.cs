@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public IPasswordFactory PasswordFactory { get; private set; }
       public IClipboardManager ClipboardManager { get; private set; }
 
-      public event EventHandler<WarningDetectedEventArgs>? WarningDetected;
+      public event EventHandler<WarningsUpdatedEventArgs>? WarningsUpdated;
       public event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
       public event EventHandler? DatabaseSaved;
       public event EventHandler<LogoutEventArgs>? DatabaseClosed;
@@ -465,23 +465,25 @@ namespace Upsilon.Apps.Passkey.Core.Models
                ..passwordLeakedWarnings,
                ..duplicatedPasswordsWarnings];
 
-            IWarning[] warnings = [.. Warnings?.Where(x => User is not null && User.WarningsToNotify.HasFlag(x.WarningType)) ?? []];
-
-            if (warnings.Length != 0)
-            {
-               WarningDetected?.Invoke(this, new WarningDetectedEventArgs(warnings));
-            }
+            WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => User.WarningsToNotify.HasFlag(x.WarningType))]));
          }
          catch { }
       }
 
       private Warning[] _lookAtActivityWarnings()
       {
-         return User is null
-            ? throw new NullReferenceException(nameof(User))
-            : ActivityCenter.Activities is null
-            ? throw new NullReferenceException(nameof(ActivityCenter.Activities))
-            : [new Warning([.. ActivityCenter.Activities.Where(x => x.NeedsReview).Cast<Activity>()])];
+         if (User is null) throw new NullReferenceException(nameof(User));
+         if (ActivityCenter.Activities is null) throw new NullReferenceException(nameof(ActivityCenter.Activities));
+
+         IActivity[] activities = [.. ActivityCenter.Activities.Where(x => x.NeedsReview)];
+
+         if (activities.Length != 0) {
+            return [new Warning([.. activities])];
+         }
+         else
+         {
+            return [];
+         }
       }
 
       private Warning[] _lookAtPasswordUpdateReminderWarnings()

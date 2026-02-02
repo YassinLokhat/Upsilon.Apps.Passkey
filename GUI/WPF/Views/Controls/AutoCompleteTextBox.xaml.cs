@@ -13,8 +13,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    public partial class AutoCompleteTextBox : TextBox
    {
       public static readonly DependencyProperty ItemsSourceProperty =
-    DependencyProperty.RegisterAttached("ItemsSource", typeof(IEnumerable), typeof(AutoCompleteTextBox),
-        new PropertyMetadata(null, _onItemsSourceChanged));
+         DependencyProperty.RegisterAttached("ItemsSource", typeof(IEnumerable), typeof(AutoCompleteTextBox),
+         new PropertyMetadata(null, _onItemsSourceChanged));
 
       public AutoCompleteTextBox()
       {

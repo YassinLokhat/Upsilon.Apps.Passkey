@@ -7,6 +7,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -19,8 +20,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private int _autoLoginHotkeyId = 0;
       private int _autoPasswordHotkeyId = 0;
       private Task? _saveTask;
-
-      public static RoutedCommand FilterCommand = new();
 
       private UserServicesView()
       {
@@ -44,19 +43,25 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _ = _serviceFilter_TB.Focus();
 
-         _updateWarningsMenu();
-
-         FilterCommand.InputGestures.Add(new KeyGesture(Key.F, ModifierKeys.Control));
-         FilterCommand.InputGestures.Add(new KeyGesture(Key.F3));
+         CommandBinding filterCommand = new(new RoutedCommand()
+         {
+            InputGestures =
+            {
+               new KeyGesture(Key.F, ModifierKeys.Control),
+               new KeyGesture(Key.F3),
+            },
+         });
+         filterCommand.Executed += _filterCommand_CommandBinding_Executed;
+         CommandBindings.Add(filterCommand);
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
-         MainViewModel.Database.WarningDetected += _database_WarningDetected;
+         MainViewModel.Database.WarningsUpdated += _database_WarningUpdated;
          Loaded += _userServicesView_Loaded;
       }
 
-      private void _database_WarningDetected(object? sender, Interfaces.Events.WarningDetectedEventArgs e)
+      private void _database_WarningUpdated(object? sender, Interfaces.Events.WarningsUpdatedEventArgs e)
       {
-         _ = Dispatcher.BeginInvoke(_updateWarningsMenu);
+         _ = Dispatcher.BeginInvoke(() => { _updateWarningsMenu(e.Warnings); });
       }
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
@@ -211,7 +216,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          });
       }
 
-      private void _updateWarningsMenu()
+      private void _updateWarningsMenu(IWarning[] warnings)
       {
          int totalWarningCount = 0;
          int activityWarnings = 0;
@@ -221,18 +226,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (MainViewModel.Database?.Warnings is not null)
          {
-            activityWarnings = MainViewModel.Database.Warnings
+            activityWarnings = warnings
                .Where(x => x.WarningType.HasFlag(WarningType.ActivityReviewWarning))
                .SelectMany(x => x.Activities ?? [])
                .Count();
-            expiredPasswordWarnings = MainViewModel.Database.Warnings
+            expiredPasswordWarnings = warnings
                .Where(x => x.WarningType.HasFlag(WarningType.PasswordUpdateReminderWarning))
                .SelectMany(x => x.Accounts ?? [])
                .Count();
-            duplicatedPasswordWarnings = MainViewModel.Database.Warnings
+            duplicatedPasswordWarnings = warnings
                .Where(x => x.WarningType.HasFlag(WarningType.DuplicatedPasswordsWarning))
                .Count();
-            leakedPasswordWarnings = MainViewModel.Database.Warnings
+            leakedPasswordWarnings = warnings
                .Where(x => x.WarningType.HasFlag(WarningType.PasswordLeakedWarning))
                .SelectMany(x => x.Accounts ?? [])
                .Count();
