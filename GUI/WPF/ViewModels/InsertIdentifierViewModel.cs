@@ -41,13 +41,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          Identifiers.Clear();
 
-         string[] identifiers = [.. _identifiers.Where(x => x.StartsWith(Identifier, StringComparison.CurrentCultureIgnoreCase)),
-            .. _identifiers.Where(x => x.Contains(Identifier, StringComparison.CurrentCultureIgnoreCase)
-               && !x.StartsWith(Identifier, StringComparison.CurrentCultureIgnoreCase))];
+         string identifier = Identifier.ToLower().Trim();
+         string[] identifiers = [.. _identifiers.Where(x => x.StartsWith(identifier, StringComparison.CurrentCultureIgnoreCase)),
+            .. _identifiers.Where(x => x.Contains(identifier, StringComparison.CurrentCultureIgnoreCase)
+               && !x.StartsWith(identifier, StringComparison.CurrentCultureIgnoreCase))];
 
-         foreach (string identifier in identifiers)
+         foreach (string id in identifiers)
          {
-            Identifiers.Add(identifier);
+            Identifiers.Add(id);
          }
       }
    }

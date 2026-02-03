@@ -267,8 +267,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          if (e.Key == Key.Enter
             || e.Key == Key.Insert)
          {
-            string? identifier = InsertIdentifierView.InsertIdentifierDialog(MainViewModel.User?.Services
-               .SelectMany(x => x.Accounts.SelectMany(y => y.Identifiers).Where(y => !string.IsNullOrEmpty(y))) ?? []);
+            string? identifier = InsertIdentifierView.InsertIdentifierDialog(_viewModel?.IdentifierAutoCompleteList ?? []);
 
             if (string.IsNullOrEmpty(identifier)) return;
 

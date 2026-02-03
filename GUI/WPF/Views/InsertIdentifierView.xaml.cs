@@ -51,6 +51,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             {
                _identifiers_LB.SelectedIndex = 0;
             }
+            else if (!_viewModel.Identifiers.Any())
+            {
+               _selectedIdentifier = _viewModel.Identifier;
+               DialogResult = true;
+            }
          }
       }
 
