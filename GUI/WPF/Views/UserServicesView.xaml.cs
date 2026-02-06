@@ -52,7 +52,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             },
          });
          filterCommand.Executed += _filterCommand_CommandBinding_Executed;
-         CommandBindings.Add(filterCommand);
+         _ = CommandBindings.Add(filterCommand);
 
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          MainViewModel.Database.WarningsUpdated += _database_WarningUpdated;
@@ -213,10 +213,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
                _services_LB.ItemsSource = _viewModel.Services;
                _services_LB.SelectedItem = service;
-               
+
                if (!string.IsNullOrEmpty(accountId))
                {
-                  _service_SV.SelectAccount(accountId);
+                  _ = _service_SV.SelectAccount(accountId);
                }
             });
          });

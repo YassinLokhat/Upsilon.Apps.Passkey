@@ -110,7 +110,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          EventType = ActivityEventType.None;
          Message = string.Empty;
          NeedsReview = false;
-         
+
          _locked = false;
 
          RefreshFilters();

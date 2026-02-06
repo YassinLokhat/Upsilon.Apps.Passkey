@@ -264,8 +264,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          if (sender is not TextBox identifier_TB) return;
 
-         if (e.Key == Key.Enter
-            || e.Key == Key.Insert)
+         if (e.Key is Key.Enter
+            or Key.Insert)
          {
             string? identifier = InsertIdentifierView.InsertIdentifierDialog(_viewModel?.IdentifierAutoCompleteList ?? []);
 

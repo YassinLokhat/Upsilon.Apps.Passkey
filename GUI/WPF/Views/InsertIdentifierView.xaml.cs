@@ -10,7 +10,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// </summary>
    public partial class InsertIdentifierView : Window
    {
-      private InsertIdentifierViewModel _viewModel;
+      private readonly InsertIdentifierViewModel _viewModel;
       private string? _selectedIdentifier;
 
       private InsertIdentifierView(IEnumerable<string> identifiers)
@@ -19,7 +19,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          DataContext = _viewModel = new(identifiers);
          _identifiers_LB.ItemsSource = _viewModel.Identifiers;
-         _identifier_TB.Focus();
+         _ = _identifier_TB.Focus();
 
          Loaded += (s, e) => DarkMode.SetDarkMode(this);
       }
@@ -28,7 +28,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          InsertIdentifierView insertIdentifierView = new(identifiers);
 
-         insertIdentifierView.ShowDialog();
+         _ = insertIdentifierView.ShowDialog();
 
          return insertIdentifierView._selectedIdentifier;
       }

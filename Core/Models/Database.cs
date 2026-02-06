@@ -477,13 +477,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          IActivity[] activities = [.. ActivityCenter.Activities.Where(x => x.NeedsReview)];
 
-         if (activities.Length != 0) {
-            return [new Warning([.. activities])];
-         }
-         else
-         {
-            return [];
-         }
+         return activities.Length != 0 ? [new Warning([.. activities])] : [];
       }
 
       private Warning[] _lookAtPasswordUpdateReminderWarnings()

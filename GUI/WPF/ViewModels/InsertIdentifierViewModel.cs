@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Text;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Windows.ApplicationModel.VoiceCommands;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -19,7 +15,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
             _refreshFilter();
          }
       } = string.Empty;
@@ -33,7 +29,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public InsertIdentifierViewModel(IEnumerable<string> identifiers)
       {
-         _identifiers = [..identifiers.OrderBy(x => x).Distinct()];
+         _identifiers = [.. identifiers.OrderBy(x => x).Distinct()];
          Identifiers = [.. _identifiers];
       }
 
