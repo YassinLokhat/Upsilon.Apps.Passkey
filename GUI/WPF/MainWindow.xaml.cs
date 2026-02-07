@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
@@ -45,7 +46,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _username_TB.KeyUp += _credential_TB_KeyUp;
          _password_PB.KeyUp += _credential_TB_KeyUp;
          _timer.Tick += _timer_Elapsed;
-         Loaded += (s, e) => DarkMode.SetDarkMode(this);
+         Loaded += (s, e) => this.PostLoadSetup();
       }
 
       private void _timer_Elapsed(object? sender, EventArgs e)

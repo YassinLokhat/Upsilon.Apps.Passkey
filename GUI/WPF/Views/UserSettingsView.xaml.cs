@@ -40,7 +40,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          }
 
-         Loaded += (s, e) => DarkMode.SetDarkMode(this);
+         Loaded += (s, e) => this.PostLoadSetup();
       }
 
       public static void ShowUserSettings(Window owner)

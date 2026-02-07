@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
@@ -21,7 +22,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _identifiers_LB.ItemsSource = _viewModel.Identifiers;
          _ = _identifier_TB.Focus();
 
-         Loaded += (s, e) => DarkMode.SetDarkMode(this);
+         Loaded += (s, e) => this.PostLoadSetup();
       }
 
       internal static string? InsertIdentifierDialog(IEnumerable<string> identifiers)

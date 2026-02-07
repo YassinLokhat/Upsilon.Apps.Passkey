@@ -28,7 +28,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _warnings_DGV.ItemsSource = _viewModel.Warnings;
 
-         Loaded += (s, e) => DarkMode.SetDarkMode(this);
+         Loaded += (s, e) => this.PostLoadSetup();
       }
 
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)

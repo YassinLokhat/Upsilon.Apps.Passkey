@@ -101,7 +101,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          HotkeyHelper.HotkeyPressed += _hotkeyHelper_HotkeyPressed;
 
-         DarkMode.SetDarkMode(this);
+         this.PostLoadSetup();
       }
 
       private void _hotkeyHelper_HotkeyPressed(object? sender, HotkeyEventArgs e)

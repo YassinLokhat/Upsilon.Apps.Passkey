@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _insert.Visibility = (MainViewModel.Database is not null
                && MainViewModel.Database.User is not null) ? Visibility.Visible : Visibility.Collapsed;
 
-         Loaded += (s, e) => DarkMode.SetDarkMode(this);
+         Loaded += (s, e) => this.PostLoadSetup();
       }
 
       public static string? ShowGeneratePasswordDialog(Window owner)

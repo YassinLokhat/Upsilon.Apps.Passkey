@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
@@ -33,7 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             timer.Tick += _timer_Elapsed;
          }
 
-         Loaded += (s, e) => DarkMode.SetDarkMode(this);
+         Loaded += (s, e) => this.PostLoadSetup();
       }
 
       private void _timer_Elapsed(object? sender, EventArgs e)
