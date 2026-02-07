@@ -12,6 +12,14 @@
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         Height="140" Width="500">
+    <Window.CommandBindings>
+        <CommandBinding Command="Open" Executed="_openDatabase_MenuItem_Click"/>
+        <CommandBinding Command="New" Executed="_newUser_MenuItem_Click"/>
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Key="O" Modifiers="Control" Command="Open"/>
+        <KeyBinding Key="N" Modifiers="Control" Command="New"/>
+    </Window.InputBindings>
     <StackPanel>
         <Menu>
             <Menu.ItemsPanel>
@@ -20,8 +28,12 @@
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
             <MenuItem Header="_Open database"
+                      Command="Open"
+                      InputGestureText="Ctrl+O"
                       Click="_openDatabase_MenuItem_Click"/>
             <MenuItem Header="_New User"
+                      Command="New"
+                      InputGestureText="Ctrl+N"
                       Click="_newUser_MenuItem_Click"/>
             <MenuItem Header="_Generate random Password"
                       HorizontalAlignment="Right"

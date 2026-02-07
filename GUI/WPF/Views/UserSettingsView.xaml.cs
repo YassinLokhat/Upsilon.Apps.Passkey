@@ -39,6 +39,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          }
 
+         _username_TB.SelectAll();
+         _ = _username_TB.Focus();
+
          Loaded += (s, e) => this.PostLoadSetup();
       }
 

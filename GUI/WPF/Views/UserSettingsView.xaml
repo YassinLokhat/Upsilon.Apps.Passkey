@@ -43,7 +43,8 @@
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <Label>Username :</Label>
-                        <TextBox Width="400"
+                        <TextBox Name="_username_TB"
+                                 Width="400"
                                  Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
                     <Controls:UserPasswordsContainer x:Name="_passwordsContainer"/>
