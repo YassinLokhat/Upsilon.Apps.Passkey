@@ -4,21 +4,23 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class InsertIdentifierViewModel : INotifyPropertyChanged
+   internal class InsertIdentifierViewModel(IEnumerable<string> identifiers, string identifier) : INotifyPropertyChanged
    {
-      private readonly string[] _identifiers;
+      private readonly string[] _identifiers = [.. identifiers];
 
-      public ObservableCollection<string> Identifiers;
+      public ObservableCollection<string> Identifiers = [.. identifiers.Where(x => x.StartsWith(identifier.Trim(), StringComparison.CurrentCultureIgnoreCase)),
+            .. identifiers.Where(x => x.Contains(identifier.Trim(), StringComparison.CurrentCultureIgnoreCase)
+               && !x.StartsWith(identifier.Trim(), StringComparison.CurrentCultureIgnoreCase))];
 
       public string Identifier
       {
-         get;
+         get => field.Trim();
          set
          {
-            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+            PropertyHelper.SetProperty(ref field, value.Trim(), this, PropertyChanged);
             _refreshFilter();
          }
-      } = string.Empty;
+      } = identifier;
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -27,24 +29,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
-      public InsertIdentifierViewModel(IEnumerable<string> identifiers)
-      {
-         _identifiers = [.. identifiers.OrderBy(x => x).Distinct()];
-         Identifiers = [.. _identifiers];
-      }
-
       private void _refreshFilter()
       {
          Identifiers.Clear();
 
-         string identifier = Identifier.ToLower().Trim();
-         string[] identifiers = [.. _identifiers.Where(x => x.StartsWith(identifier, StringComparison.CurrentCultureIgnoreCase)),
-            .. _identifiers.Where(x => x.Contains(identifier, StringComparison.CurrentCultureIgnoreCase)
-               && !x.StartsWith(identifier, StringComparison.CurrentCultureIgnoreCase))];
+         string[] identifiers = [.. _identifiers.Where(x => x.StartsWith(Identifier, StringComparison.CurrentCultureIgnoreCase)),
+            .. _identifiers.Where(x => x.Contains(Identifier, StringComparison.CurrentCultureIgnoreCase)
+               && !x.StartsWith(Identifier, StringComparison.CurrentCultureIgnoreCase))];
 
-         foreach (string id in identifiers)
+         foreach (string identifier in identifiers)
          {
-            Identifiers.Add(id);
+            Identifiers.Add(identifier);
          }
       }
    }

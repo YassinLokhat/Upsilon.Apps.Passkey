@@ -13,24 +13,25 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private readonly InsertIdentifierViewModel _viewModel;
       private string? _selectedIdentifier;
 
-      private InsertIdentifierView(IEnumerable<string> identifiers)
+      private InsertIdentifierView(IEnumerable<string> identifiers, string identifier)
       {
          InitializeComponent();
 
-         DataContext = _viewModel = new(identifiers);
+         DataContext = _viewModel = new(identifiers, identifier);
          _identifiers_LB.ItemsSource = _viewModel.Identifiers;
-         _ = _identifier_TB.Focus();
+         _identifier_TB.SelectAll();
+         _identifier_TB.Focus();
 
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
-      internal static string? InsertIdentifierDialog(IEnumerable<string> identifiers)
+      internal static string? InsertIdentifierDialog(IEnumerable<string> identifiers, string identifier)
       {
-         InsertIdentifierView insertIdentifierView = new(identifiers);
+         InsertIdentifierView insertIdentifierView = new(identifiers, identifier);
 
          _ = insertIdentifierView.ShowDialog();
 
-         return insertIdentifierView._selectedIdentifier;
+         return insertIdentifierView._selectedIdentifier?.Trim();
       }
 
       private void _identifier_TextBox_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
