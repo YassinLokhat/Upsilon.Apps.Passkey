@@ -16,7 +16,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get
          {
             System.Reflection.AssemblyName package = System.Reflection.Assembly.GetExecutingAssembly().GetName();
-            string? packageVersion = package.Version?.ToString(2);
+            string? packageVersion = package.Version?.ToString(3);
 
             return $"{package.Name} v{packageVersion}";
          }

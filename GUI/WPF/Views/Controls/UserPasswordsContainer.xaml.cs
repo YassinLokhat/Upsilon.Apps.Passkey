@@ -81,6 +81,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          if (this.GetIsBusy()) return;
 
          _addPassword(string.Empty);
+
+         Window.GetWindow(this).ComputeTabIndex();
       }
 
       private void _addPassword(string password)

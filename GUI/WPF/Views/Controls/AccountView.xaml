@@ -62,9 +62,9 @@
                                  Name="_identifiers_LB">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <local:AutoCompleteTextBox ItemsSource="{Binding IdentifierAutoCompleteList}"
-                                                                   Background="{Binding IdentifierBackground}"
-                                                                   Text="{Binding Identifier, Mode=TwoWay}"/>
+                                        <TextBox Background="{Binding IdentifierBackground}"
+                                                 Text="{Binding Identifier, Mode=TwoWay}"
+                                                 KeyUp="_identifier_TextBox_KeyUp"/>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>

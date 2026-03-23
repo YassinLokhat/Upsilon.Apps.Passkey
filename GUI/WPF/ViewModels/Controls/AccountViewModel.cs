@@ -147,6 +147,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                && MainViewModel.Database.Warnings.Any(x => x.WarningType == WarningType.PasswordLeakedWarning
                   && x.Accounts.Contains(Account));
 
+      public string[] IdentifierAutoCompleteList => MainViewModel.User?.Services
+         .SelectMany(x => x.Accounts)
+         .SelectMany(x => x.Identifiers)
+         .Distinct()
+         .Where(x => !string.IsNullOrEmpty(x))
+         .OrderBy(x => x)
+         .ToArray() ?? [];
+
       public event PropertyChangedEventHandler? PropertyChanged;
 
       protected virtual void OnPropertyChanged(string propertyName)

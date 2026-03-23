@@ -129,7 +129,7 @@ classDiagram
             +CryptographyCenter : ICryptographyCenter
             +PasswordFactory : IPasswordFactory
             +ClipboardManager : IClipboardManager
-            +WarningDetected : EventHandler~WarningDetectedEventArgs~
+            +WarningsUpdated : EventHandler~WarningsUpdatedEventArgs~
             +AutoSaveDetected : EventHandler~AutoSaveDetectedEventArgs~
             +DatabaseSaved : EventHandler
             +DatabaseClosed : EventHandler~LogoutEventArgs~
@@ -191,7 +191,7 @@ classDiagram
             +MergeBehavior : AutoSaveMergeBehavior
         }
         
-        class WarningDetectedEventArgs {
+        class WarningsUpdatedEventArgs {
             +Warnings : IEnumerable~IWarning~
         }
         
@@ -219,14 +219,14 @@ classDiagram
     IDatabase --> IUser : User
     IDatabase "0" --> "*" IWarning : Warnings
     IDatabase "0" --> "*" ILog : Logs
-    IDatabase --> WarningDetectedEventArgs : WarningDetected
+    IDatabase --> WarningsUpdatedEventArgs : WarningsUpdated
     IDatabase --> AutoSaveDetectedEventArgs : AutoSaveDetected
     IDatabase --> LogoutEventArgs : DatabaseClosed
     IWarning --> WarningType : WarningType
     IWarning "0" --> "*" ILog : Logs
     IWarning "0" --> "*" IAccount : Accounts
     AutoSaveDetectedEventArgs --> AutoSaveMergeBehavior : MergeBehavior
-    WarningDetectedEventArgs "0" --> "*" IWarning : Warnings
+    WarningsUpdatedEventArgs "0" --> "*" IWarning : Warnings
 ```
 
 **Example Use Cases**

@@ -14,11 +14,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    {
       private ServiceViewModel? _viewModel;
 
-      public string? GetSelectedIdentifier() => _account_AV.GetIdentifier();
+      internal string? GetServiceId() => _viewModel?.Service.ItemId;
+      internal string? GetAccountId() => _account_AV.GetAccountId();
 
-      public string? GetSelectedPassword() => _account_AV.GetPassword();
+      internal string? GetSelectedIdentifier() => _account_AV.GetIdentifier();
 
-      public void SetSelectedPassword(string password) => _account_AV.SetPassword(password);
+      internal string? GetSelectedPassword() => _account_AV.GetPassword();
+
+      internal void SetSelectedPassword(string password) => _account_AV.SetPassword(password);
 
       public ServiceView()
       {

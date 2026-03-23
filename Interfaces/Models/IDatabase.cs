@@ -56,7 +56,7 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// <summary>
       /// Occurs when a warning is detected.
       /// </summary>
-      event EventHandler<WarningDetectedEventArgs>? WarningDetected;
+      event EventHandler<WarningsUpdatedEventArgs>? WarningsUpdated;
 
       /// <summary>
       /// Occurs when an autosave is detected.

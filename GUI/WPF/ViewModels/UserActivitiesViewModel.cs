@@ -101,16 +101,25 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          RefreshFilters();
       }
 
+      private bool _locked = false;
       public void ClearFilters()
       {
+         _locked = true;
+
          FromDateFilter = ToDateFilter = DateTime.Now.Date.AddDays(1);
          EventType = ActivityEventType.None;
          Message = string.Empty;
          NeedsReview = false;
+
+         _locked = false;
+
+         RefreshFilters();
       }
 
       public void RefreshFilters(string itemId = "")
       {
+         if (_locked) return;
+
          Activities.Clear();
 
          if (MainViewModel.Database?.Activities is null) return;

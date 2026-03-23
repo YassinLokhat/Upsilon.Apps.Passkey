@@ -1,6 +1,5 @@
 ﻿using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
@@ -28,7 +27,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _warnings_DGV.ItemsSource = _viewModel.Warnings;
 
-         Loaded += (s, e) => DarkMode.SetDarkMode(this);
+         Loaded += (s, e) => this.PostLoadSetup();
       }
 
       private void _filterClear_Button_Click(object sender, RoutedEventArgs e)

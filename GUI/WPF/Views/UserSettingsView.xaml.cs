@@ -6,7 +6,6 @@ using System.Windows.Input;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
@@ -40,7 +39,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          }
 
-         Loaded += (s, e) => DarkMode.SetDarkMode(this);
+         _username_TB.SelectAll();
+         _ = _username_TB.Focus();
+
+         Loaded += (s, e) => this.PostLoadSetup();
       }
 
       public static void ShowUserSettings(Window owner)

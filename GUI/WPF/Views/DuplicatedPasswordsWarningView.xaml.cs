@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _warnings_LB.SelectedItem = _viewModel.Warnings.FirstOrDefault();
 
-         Loaded += (s, e) => DarkMode.SetDarkMode(this);
+         Loaded += (s, e) => this.PostLoadSetup();
       }
 
       private void _warnings_LB_SelectionChanged(object sender, SelectionChangedEventArgs e)
