@@ -132,7 +132,7 @@ public class QrCode
       get;
       set
       {
-         field = value is >= (-1) and <= 999999 ? value : throw new ArgumentException("ECI Assignment Value must be 0-999999 or -1 for none");
+         field = value is >= -1 and <= 999999 ? value : throw new ArgumentException("ECI Assignment Value must be 0-999999 or -1 for none");
       }
    } = -1;
 

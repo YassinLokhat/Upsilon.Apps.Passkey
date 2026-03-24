@@ -20,7 +20,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          DataContext = _viewModel = new(identifiers, identifier);
          _identifiers_LB.ItemsSource = _viewModel.Identifiers;
          _identifier_TB.SelectAll();
-         _identifier_TB.Focus();
+         _ = _identifier_TB.Focus();
 
          Loaded += (s, e) => this.PostLoadSetup();
       }
