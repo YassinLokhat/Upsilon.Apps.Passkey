@@ -17,7 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get => field.Trim();
          set
          {
-            PropertyHelper.SetProperty(ref field, value.Trim(), this, PropertyChanged);
+            _ = PropertyHelper.SetProperty(ref field, value.Trim(), this, PropertyChanged);
             _refreshFilter();
          }
       } = identifier;
