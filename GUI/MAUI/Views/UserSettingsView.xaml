@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MAUI.UserSettingsView"
+             Title="Créer un compte local">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Center">
+
+            <Label Text="Création de votre coffre-fort"
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="{StaticResource Primary}"/>
+
+            <Label Text="Ce compte sera stocké de manière 100% locale et chiffrée sur votre appareil."
+                   FontSize="14"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   Margin="0,0,0,20"/>
+
+            
+            <VerticalStackLayout Spacing="5" WidthRequest="300">
+                <Label Text="Nom d'utilisateur" FontAttributes="Bold" />
+                <Border StrokeThickness="1" StrokeShape="RoundRectangle 8">
+                    <Entry x:Name="_usernameEntry" Placeholder="Ex: Jean" Margin="10,0"/>
+                </Border>
+            </VerticalStackLayout>
+
+            
+            <VerticalStackLayout Spacing="5" WidthRequest="300">
+                <Label Text="Mot de passe principal" FontAttributes="Bold" />
+                <Border StrokeThickness="1" StrokeShape="RoundRectangle 8">
+                    <Entry x:Name="_passwordEntry" 
+                           Placeholder="Entrez un mot de passe fort" 
+                           IsPassword="True" 
+                           Margin="10,0"/>
+                </Border>
+            </VerticalStackLayout>
+
+            
+            <Button Text="Créer mon espace chiffré" 
+                    Clicked="OnRegisterSubmitted_Click" 
+                    WidthRequest="250"
+                    Margin="0,20,0,0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
