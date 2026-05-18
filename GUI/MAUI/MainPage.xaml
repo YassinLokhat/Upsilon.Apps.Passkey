@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MAUI.MainPage"
+             Title="Passkey Manager">
+
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="Fichier">
+            <MenuFlyoutItem Text="Ouvrir la base" Clicked="_openDatabase_MenuItem_Click" />
+        </MenuBarItem>
+    </ContentPage.MenuBarItems>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30" Spacing="25" VerticalOptions="Center">
+
+            <Image Source="dotnet_bot.png" HeightRequest="100" HorizontalOptions="Center" />
+
+            <Label Text="{Binding DatabaseLabel}" 
+                   FontSize="14" 
+                   HorizontalOptions="Center" 
+                   TextColor="{StaticResource Primary}"/>
+
+            <FlexLayout Direction="Column" AlignItems="Center">
+                <Label x:Name="_inputLabel" Text="Username" FontAttributes="Bold" />
+                <Border StrokeThickness="1" StrokeShape="RoundRectangle 8" WidthRequest="300">
+                    <Entry x:Name="_mainEntry" 
+                           Placeholder="Saisir ici..." 
+                           Completed="OnUsernameCompleted" 
+                           Margin="10,0"/>
+                </Border>
+            </FlexLayout>
+
+            <Button Text="Ouvrir la base" Clicked="_openDatabase_MenuItem_Click" WidthRequest="200" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
