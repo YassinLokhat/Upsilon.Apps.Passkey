@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Upsilon.Apps.Passkey.GUI.MAUI.ViewModels;
+
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace MAUI
@@ -7,8 +8,6 @@ namespace MAUI
     public partial class MainPage : ContentPage
     {
         private MainViewModel _viewModel;
-        private string? _username;
-        private string? _p1;
 
         public MainPage()
         {
@@ -17,15 +16,21 @@ namespace MAUI
             BindingContext = _viewModel;
         }
 
+        private async void OnNavigateToRegisterPage_Click(object sender, EventArgs e)
+        {
+           
+            await Navigation.PushAsync(new UserSettingsView());
+        }
+        
+
+        
         private async void _openDatabase_MenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                // 1. Sélection du fichier
-                var result = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Ouvrir .pku" });
+                var result = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Ouvrir votre fichier .pku" });
                 if (result == null) return;
 
-                // 2. Copie locale
                 string localPath = Path.Combine(FileSystem.AppDataDirectory, result.FileName);
                 using (var sourceStream = await result.OpenReadAsync())
                 using (var targetStream = File.Create(localPath))
@@ -33,17 +38,9 @@ namespace MAUI
                     await sourceStream.CopyToAsync(targetStream);
                 }
 
-                // 3. Identification
                 string? username = await DisplayPromptAsync("Connexion", "Utilisateur :");
                 if (string.IsNullOrWhiteSpace(username)) return;
 
-                string? p1 = await DisplayPromptAsync("Sécurité 1/2", "Mot de passe 1 :", keyboard: Keyboard.Password);
-                if (p1 == null) return;
-
-                string? p2 = await DisplayPromptAsync("Sécurité 2/2", "Mot de passe 2 :", keyboard: Keyboard.Password);
-                if (p2 == null) return;
-
-                // 4. Ouverture du fichier
                 MainViewModel.Database = Upsilon.Apps.Passkey.Core.Models.Database.Open(
                     MainViewModel.CryptographyCenter,
                     MainViewModel.SerializationCenter,
@@ -54,124 +51,79 @@ namespace MAUI
 
                 if (MainViewModel.Database == null)
                 {
-                    await DisplayAlertAsync("Erreur", "Impossible de charger le fichier.", "Fermer");
+                    await DisplayAlertAsync("Erreur", "Impossible de lire ce fichier.", "Fermer");
                     return;
                 }
 
-                // 5. LOGIN — Un appel par mot de passe séparément
-                try
-                {
-                    IUser? user = MainViewModel.Database.Login(p1); // Retourne null, normal
-                    user = MainViewModel.Database.Login(p2);         // Retourne IUser si correct
-
-                    if (user != null)
-                    {
-                        _viewModel.DatabaseLabel = $"🟢 Connecté : {result.FileName}";
-                        await DisplayAlertAsync("Succès", $"Bienvenue {user.Username} !", "OK");
-                    }
-                    else
-                    {
-                        await DisplayAlertAsync("Échec", "Mot de passe incorrect.", "Fermer");
-                        MainViewModel.Database = null;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    await DisplayAlertAsync("Erreur Login",
-                        $"Type: {ex.GetType().Name}\nMessage: {ex.Message}",
-                        "Fermer");
-                    MainViewModel.Database = null;
-                }
+               
+                await ProcessDynamicLogin(username);
             }
             catch (Exception ex)
             {
-                await DisplayAlertAsync("Erreur Technique",
-                    $"{ex.GetType().Name}: {ex.Message}",
-                    "Fermer");
+                await DisplayAlertAsync("Erreur Technique", $"{ex.GetType().Name}: {ex.Message}", "Fermer");
             }
         }
 
-        // Entry field — 3 étapes : username → p1 → p2 → login
-        private async void OnUsernameCompleted(object sender, EventArgs e)
+      
+        private async Task ProcessDynamicLogin(string username)
         {
-            string value = _mainEntry.Text?.Trim() ?? "";
-
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                await DisplayAlertAsync("Champ vide", "Veuillez saisir une valeur.", "OK");
-                return;
-            }
-
-            // Étape 1 — Username
-            if (!_mainEntry.IsPassword && _username == null)
-            {
-                _username = value;
-                _mainEntry.Text = string.Empty;
-                _mainEntry.IsPassword = true;
-                _inputLabel.Text = "Mot de passe 1";
-                _mainEntry.Placeholder = "Entrez le mot de passe 1";
-                _mainEntry.Focus();
-                return;
-            }
-
-            // Étape 2 — Mot de passe 1
-            if (_mainEntry.IsPassword && _p1 == null)
-            {
-                _p1 = value;
-                _mainEntry.Text = string.Empty;
-                _inputLabel.Text = "Mot de passe 2";
-                _mainEntry.Placeholder = "Entrez le mot de passe 2";
-                _mainEntry.Focus();
-                return;
-            }
-
-            // Étape 3 — Mot de passe 2 → Login
-            if (_mainEntry.IsPassword && _p1 != null)
-            {
-                string p2 = value;
-                await OnLoginSubmitted(_username!, _p1, p2);
-
-                // Reset
-                _username = null;
-                _p1 = null;
-                _mainEntry.Text = string.Empty;
-                _mainEntry.IsPassword = false;
-                _inputLabel.Text = "Username";
-                _mainEntry.Placeholder = "Saisir ici...";
-            }
-        }
-
-        private async Task OnLoginSubmitted(string username, string p1, string p2)
-        {
-            if (MainViewModel.Database == null)
-            {
-                await DisplayAlertAsync("Erreur", "Aucune base de données chargée.", "Fermer");
-                return;
-            }
+            if (MainViewModel.Database == null) return;
 
             try
             {
-                // Un appel Login() par mot de passe
-                IUser? user = MainViewModel.Database.Login(p1);
-                user = MainViewModel.Database.Login(p2);
+                IUser? user = null;
+                int step = 1;
 
-                if (user != null)
+                
+                while (true)
                 {
-                    _viewModel.DatabaseLabel = $"🟢 Connecté : {username}";
-                    await DisplayAlertAsync("Succès", $"Bienvenue {user.Username} !", "OK");
-                }
-                else
-                {
-                    await DisplayAlertAsync("Échec", "Mot de passe incorrect.", "Fermer");
+                    string? pwd = await DisplayPromptAsync(
+                        $"Authentification - Étape {step}",
+                        $"Entrez le mot de passe n°{step} :",
+                        keyboard: Keyboard.Password);
+
+                    if (string.IsNullOrWhiteSpace(pwd))
+                    {
+                        MainViewModel.Database = null; // Annulation
+                        return;
+                    }
+
+                    user = MainViewModel.Database.Login(pwd);
+
+                    
+                    if (user != null)
+                    {
+                        _viewModel.DatabaseLabel = $"🟢 Connecté : {username}";
+                        await DisplayAlertAsync("Succès", $"Ravi de vous revoir {user.Username} !", "Accéder au coffre");
+                        return;
+                    }
+
+                    
+                    step++;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                await DisplayAlertAsync("Erreur",
-                    $"{ex.GetType().Name}: {ex.Message}",
-                    "Fermer");
+                await DisplayAlertAsync("Échec", "Mot de passe incorrect ou erreur d'authentification.", "Fermer");
+                MainViewModel.Database = null;
             }
         }
-        private void _newUser_MenuItem_Click(object sender, EventArgs e) { /* Logique création */ }
+
+        
+        private async void OnUsernameCompleted(object sender, EventArgs e)
+        {
+            string username = _mainEntry.Text?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(username)) return;
+
+            
+            if (MainViewModel.Database == null)
+            {
+                await DisplayAlertAsync("Info", "Veuillez d'abord sélectionner ou ouvrir votre fichier de base.", "OK");
+                return;
+            }
+
+            await ProcessDynamicLogin(username);
+            _mainEntry.Text = string.Empty;
+        }
     }
 }
