@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MAUI.MainPage"
+             Title="Passkey Manager">
+
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="Fichier">
+            <MenuFlyoutItem Text="Ouvrir une base existante" Clicked="_openDatabase_MenuItem_Click" />
+            <MenuFlyoutItem Text="Créer un nouvel utilisateur" Clicked="OnNavigateToRegisterPage_Click" />
+        </MenuBarItem>
+    </ContentPage.MenuBarItems>
+
+   
+    <ScrollView HorizontalOptions="Fill">
+
+        
+        <VerticalStackLayout Padding="30" 
+                             Spacing="25" 
+                             VerticalOptions="Center"
+                             HorizontalOptions="Center"
+                             MaximumWidthRequest="450"
+                             WidthRequest="450">
+
+            <Image Source="dotnet_bot.png" HeightRequest="100" HorizontalOptions="Center" />
+
+            <Label Text="{Binding DatabaseLabel}" 
+                   FontSize="14" 
+                   HorizontalOptions="Center" 
+                   TextColor="{StaticResource Primary}"/>
+
+            
+            <FlexLayout Direction="Column" AlignItems="Center" HorizontalOptions="Fill">
+                <Label x:Name="_inputLabel" Text="Username" FontAttributes="Bold" Margin="0,0,0,5" />
+                <Border StrokeThickness="1" StrokeShape="RoundRectangle 8" HorizontalOptions="Fill" Margin="20,0">
+                    <Entry x:Name="_mainEntry" 
+                           Placeholder="Saisir ici..." 
+                           Completed="OnUsernameCompleted" 
+                           Margin="10,0"
+                           HorizontalTextAlignment="Center"/>
+                </Border>
+            </FlexLayout>
+
+            
+            <Button Text="Ouvrir une base" 
+                    Clicked="_openDatabase_MenuItem_Click" 
+                    WidthRequest="250" 
+                    HorizontalOptions="Center"/>
+
+            <Button Text="Nouvel Utilisateur" 
+                    Clicked="OnNavigateToRegisterPage_Click" 
+                    WidthRequest="250" 
+                    BackgroundColor="Transparent"
+                    TextColor="{StaticResource Primary}"
+                    BorderColor="{StaticResource Primary}"
+                    BorderWidth="1" 
+                    HorizontalOptions="Center"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
