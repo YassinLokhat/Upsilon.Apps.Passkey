@@ -90,11 +90,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public AccountViewModel AddAccount()
       {
-         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier == "NewAccount"));
+         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier.StartsWith("👤New Account #")));
 
          if (accountViewModel is null)
          {
-            accountViewModel = new(Service.AddAccount(["NewAccount"]));
+            accountViewModel = new(Service.AddAccount(["👤New Account #" + DateTime.Now.Ticks]));
             accountViewModel.PropertyChanged += _accountViewModel_PropertyChanged;
             Accounts.Insert(0, accountViewModel);
 

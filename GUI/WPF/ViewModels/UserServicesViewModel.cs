@@ -141,11 +141,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public ServiceViewModel AddService()
       {
-         ServiceViewModel? serviceViewModel = Services.FirstOrDefault(x => x.ServiceName == "New Service");
+         ServiceViewModel? serviceViewModel = Services.FirstOrDefault(x => x.ServiceName.StartsWith("New Service #"));
 
          if (serviceViewModel is null)
          {
-            serviceViewModel = new(MainViewModel.User.AddService("New Service"));
+            serviceViewModel = new(MainViewModel.User.AddService("New Service #" + DateTime.Now.Ticks));
             Services.Insert(0, serviceViewModel);
          }
 
