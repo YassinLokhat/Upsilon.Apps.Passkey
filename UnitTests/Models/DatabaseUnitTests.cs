@@ -9,12 +9,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
    [TestClass]
    public sealed class DatabaseUnitTests
    {
-      [TestMethod, Ignore]
+      [Ignore]
+      [TestMethod]
       public void Case00_GenerateNewDatabase()
       {
          UnitTestsHelper.ClearTestEnvironment("_");
 
-         IDatabase database = UnitTestsHelper.CreateTestDatabase(["a", "b", "c"], "_");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(["a", "b"], "_");
          IUser user = database.User;
          user.LogoutTimeout = 10;
          user.CleaningClipboardTimeout = 15;
@@ -39,18 +40,18 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
                {
                   case 1:
                      account = service.AddAccount(label: $"Account{j}",
-                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"));
+                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"👤{x}@test.te"));
                      break;
                   case 2:
-                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"),
+                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"👤{x}@test.te"),
                         password: password);
                      break;
                   case 3:
-                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"));
+                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"👤{x}@test.te"));
                      break;
                   default:
                      account = service.AddAccount(label: $"Account{j}",
-                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => x + "@test.te"),
+                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"👤{x}@test.te"),
                         password: password);
                      break;
                }
