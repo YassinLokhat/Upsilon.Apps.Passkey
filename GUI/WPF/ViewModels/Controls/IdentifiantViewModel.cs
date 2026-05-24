@@ -7,7 +7,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   public class IdentifierViewModel : INotifyPropertyChanged
+   public partial class IdentifierViewModel : INotifyPropertyChanged
    {
       private readonly IAccount _account;
 
@@ -63,10 +63,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          OnPropertyChanged(nameof(IdentifierBackground));
       }
 
+      [GeneratedRegex(@"^\+\d{1,3}[\d\s\-\.]{6,20}$")]
+      private static partial Regex _phoneRegex();
+      [GeneratedRegex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")]
+      private static partial Regex _mailRegex();
       private static string _getIdentifierType(string identifier)
       {
-         return Regex.IsMatch(identifier, @"^\+\d{1,3}[\d\s\-\.]{6,20}$") ? "🖁" + identifier
-            : Regex.IsMatch(identifier, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$") ? "📧" + identifier
+         return _phoneRegex().IsMatch(identifier) ? "🖁" + identifier
+            : _mailRegex().IsMatch(identifier) ? "📧" + identifier
             : "👤" + identifier;
       }
    }
