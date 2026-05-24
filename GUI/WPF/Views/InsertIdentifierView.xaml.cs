@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -64,6 +65,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          _selectedIdentifier = _identifiers_LB.SelectedItem as string;
          DialogResult = true;
+      }
+
+      private void _insertIdentifierType_Button_Click(object sender, RoutedEventArgs e)
+      {
+         string? idType = ((Button)sender).Content as string;
+
+         if (idType is not null)
+         {
+            _viewModel.Identifier = IdentifierViewModel.IdentifiersTypes[$"[{idType}]"] + _viewModel.Identifier;
+         }
+      }
+
+      private void _clearFilter_Button_Click(object sender, RoutedEventArgs e)
+      {
+         _viewModel.Identifier = string.Empty;
       }
    }
 }

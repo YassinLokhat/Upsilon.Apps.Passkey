@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Text.RegularExpressions;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -10,6 +11,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
    {
       private readonly IAccount _account;
 
+      public static readonly Dictionary<string, string> IdentifiersTypes = new() 
+      {
+         { "[Username]", "👤" },
+         { "[Email]", "📧" },
+         { "[Phone Number]", "🖁" },
+         { "[Passkey]", "🗝" },
+         { "[Authentificator App]", "📲" },
+      };
+
       public Brush IdentifierBackground => _account.HasChanged("Identifiers") ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
 
       public string Identifier
@@ -19,26 +29,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          {
             if (field != value)
             {
-               if (!value.StartsWith("[Username]", StringComparison.CurrentCultureIgnoreCase)
-                  && !value.StartsWith("👤", StringComparison.CurrentCultureIgnoreCase)
-                  && !value.StartsWith("[Email]", StringComparison.CurrentCultureIgnoreCase)
-                  && !value.StartsWith("[📧]", StringComparison.CurrentCultureIgnoreCase)
-                  && !value.StartsWith("[Phone Number]", StringComparison.CurrentCultureIgnoreCase)
-                  && !value.StartsWith("🖁", StringComparison.CurrentCultureIgnoreCase)
-                  && !value.StartsWith("[Passkey]", StringComparison.CurrentCultureIgnoreCase)
-                  && !value.StartsWith("🗝", StringComparison.CurrentCultureIgnoreCase)
-                  && !value.StartsWith("[Authentificator App]", StringComparison.CurrentCultureIgnoreCase)
-                  && !value.StartsWith("📲", StringComparison.CurrentCultureIgnoreCase))
+               if (IdentifiersTypes.Keys.Union(IdentifiersTypes.Values).All(x => !value.StartsWith(x, StringComparison.CurrentCultureIgnoreCase)))
                {
-                  value = "[Username]" + value;
+                  value = _getIdentifierType(value);
                }
 
-               field = value
-                  .Replace("[Username]", "👤", StringComparison.CurrentCultureIgnoreCase)
-                  .Replace("[Email]", "📧", StringComparison.CurrentCultureIgnoreCase)
-                  .Replace("[Phone Number]", "🖁", StringComparison.CurrentCultureIgnoreCase)
-                  .Replace("[Passkey]", "🗝", StringComparison.CurrentCultureIgnoreCase)
-                  .Replace("[Authentificator App]", "📲", StringComparison.CurrentCultureIgnoreCase);
+               foreach (var idType in IdentifiersTypes)
+               {
+                  field = value.Replace(idType.Key, idType.Value);
+               }
 
                OnPropertyChanged(nameof(Identifier));
             }
@@ -62,6 +61,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public void Refresh()
       {
          OnPropertyChanged(nameof(IdentifierBackground));
+      }
+
+      private static string _getIdentifierType(string identifier)
+      {
+         Regex phoneRegex = new(@"^\+\d{1,3}[\d\s\-\.]{6,20}$");
+         Regex emailRegex = new(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+
+         if (phoneRegex.IsMatch(identifier))
+         {
+            return "🖁" + identifier;
+         }
+         if (emailRegex.IsMatch(identifier))
+         {
+            return "📧" + identifier;
+         }
+         return "👤" + identifier;
       }
    }
 }
