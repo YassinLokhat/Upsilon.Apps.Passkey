@@ -19,7 +19,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          {
             if (field != value)
             {
-               field = value;
+               if (!value.StartsWith("[Username]", StringComparison.CurrentCultureIgnoreCase)
+                  && !value.StartsWith("👤", StringComparison.CurrentCultureIgnoreCase)
+                  && !value.StartsWith("[Email]", StringComparison.CurrentCultureIgnoreCase)
+                  && !value.StartsWith("[📧]", StringComparison.CurrentCultureIgnoreCase)
+                  && !value.StartsWith("[Phone Number]", StringComparison.CurrentCultureIgnoreCase)
+                  && !value.StartsWith("🖁", StringComparison.CurrentCultureIgnoreCase)
+                  && !value.StartsWith("[Passkey]", StringComparison.CurrentCultureIgnoreCase)
+                  && !value.StartsWith("🗝", StringComparison.CurrentCultureIgnoreCase)
+                  && !value.StartsWith("[Authentificator App]", StringComparison.CurrentCultureIgnoreCase)
+                  && !value.StartsWith("📲", StringComparison.CurrentCultureIgnoreCase))
+               {
+                  value = "[Username]" + value;
+               }
+
+               field = value
+                  .Replace("[Username]", "👤", StringComparison.CurrentCultureIgnoreCase)
+                  .Replace("[Email]", "📧", StringComparison.CurrentCultureIgnoreCase)
+                  .Replace("[Phone Number]", "🖁", StringComparison.CurrentCultureIgnoreCase)
+                  .Replace("[Passkey]", "🗝", StringComparison.CurrentCultureIgnoreCase)
+                  .Replace("[Authentificator App]", "📲", StringComparison.CurrentCultureIgnoreCase);
+
                OnPropertyChanged(nameof(Identifier));
             }
          }
