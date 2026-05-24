@@ -11,7 +11,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
    {
       private readonly IAccount _account;
 
-      public static readonly Dictionary<string, string> IdentifiersTypes = new() 
+      public static readonly Dictionary<string, string> IdentifiersTypes = new()
       {
          { "[Username]", "👤" },
          { "[Email]", "📧" },
@@ -34,7 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                   value = _getIdentifierType(value);
                }
 
-               foreach (var idType in IdentifiersTypes)
+               foreach (KeyValuePair<string, string> idType in IdentifiersTypes)
                {
                   field = value.Replace(idType.Key, idType.Value);
                }
@@ -65,18 +65,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       private static string _getIdentifierType(string identifier)
       {
-         Regex phoneRegex = new(@"^\+\d{1,3}[\d\s\-\.]{6,20}$");
-         Regex emailRegex = new(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
-
-         if (phoneRegex.IsMatch(identifier))
-         {
-            return "🖁" + identifier;
-         }
-         if (emailRegex.IsMatch(identifier))
-         {
-            return "📧" + identifier;
-         }
-         return "👤" + identifier;
+         return Regex.IsMatch(identifier, @"^\+\d{1,3}[\d\s\-\.]{6,20}$") ? "🖁" + identifier
+            : Regex.IsMatch(identifier, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$") ? "📧" + identifier
+            : "👤" + identifier;
       }
    }
 }
