@@ -42,17 +42,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _ = _serviceFilter_TB.Focus();
 
-         CommandBinding filterCommand = new(new RoutedCommand()
-         {
-            InputGestures =
-            {
-               new KeyGesture(Key.F, ModifierKeys.Control),
-               new KeyGesture(Key.F3),
-            },
-         });
-         filterCommand.Executed += _filterCommand_CommandBinding_Executed;
-         _ = CommandBindings.Add(filterCommand);
-
          MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
          MainViewModel.Database.WarningsUpdated += _database_WarningUpdated;
          Loaded += _userServicesView_Loaded;

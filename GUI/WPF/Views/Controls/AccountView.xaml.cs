@@ -23,7 +23,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       public string? GetIdentifier()
       {
-         return _identifiers_LB.SelectedItem is not IdentifierViewModel identifierViewModel ? null : identifierViewModel.Identifier;
+         string? identifier = _identifiers_LB.SelectedItem is not IdentifierViewModel identifierViewModel ? null : identifierViewModel.Identifier;
+
+         if (identifier is not null)
+         {
+            foreach (string idType in IdentifierViewModel.IdentifiersTypes.Values)
+            {
+               if (identifier.StartsWith(idType))
+               {
+                  identifier = identifier[idType.Length..];
+               }
+            }
+         }
+
+         return identifier;
       }
 
       public string? GetPassword() => _viewModel?.Password;

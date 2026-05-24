@@ -10,22 +10,37 @@
         Title="Insert identifier"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="200" Width="300">
+        Height="200" Width="483">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal">
             <TextBox Name="_identifier_TB"
-                     Width="230"
+                     Width="415"
                      Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      KeyUp="_identifier_TextBox_KeyUp"/>
-            <Button Content="✕"/>
+            <Button Content="✕"
+                    Click="_clearFilter_Button_Click"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal">
+            <Button Content="Username"
+                    Click="_insertIdentifierType_Button_Click"/>
+            <Button Content="Email"
+                    Click="_insertIdentifierType_Button_Click"/>
+            <Button Content="Phone Number"
+                    Click="_insertIdentifierType_Button_Click"/>
+            <Button Content="Passkey"
+                    Click="_insertIdentifierType_Button_Click"/>
+            <Button Content="Authentificator App" 
+                    Click="_insertIdentifierType_Button_Click"/>
         </StackPanel>
         <ListBox Name="_identifiers_LB"
-                 Grid.Row="1"
+                 Grid.Row="2"
                  SelectionChanged="_identifiers_LB_SelectionChanged"/>
     </Grid>
 </Window>

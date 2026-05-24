@@ -17,9 +17,17 @@
         MinWidth="1300">
     <Window.CommandBindings>
         <CommandBinding Command="Save" Executed="_save_MenuItem_Click"/>
+        <CommandBinding Command="Print" Executed="_generateRandomPassword_MenuItem_Click"/>
+        <CommandBinding Command="Find" Executed="_filterCommand_CommandBinding_Executed"/>
+        <CommandBinding Command="Stop" Executed="_filterClear_Button_Click"/>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="S" Modifiers="Control" Command="Save"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="Print"/>
+        <KeyBinding Key="F" Modifiers="Control" Command="Find"/>
+        <KeyBinding Key="F3" Command="Find"/>
+        <KeyBinding Key="F" Modifiers="Control+Shift" Command="Stop"/>
+        <KeyBinding Key="F3" Modifiers="Shift" Command="Stop"/>
     </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
@@ -34,13 +42,11 @@
                     </ItemsPanelTemplate>
                 </Menu.ItemsPanel>
                 <MenuItem Header="_Save"
-                          Click="_save_MenuItem_Click"
-                          Command="Save"
-                          InputGestureText="Ctrl+S"/>
+                          Command="Save"/>
                 <MenuItem Header="_User settings"
                           Click="_userSettings_MenuItem_Click"/>
                 <MenuItem Header="_Generate random Password"
-                          Click="_generateRandomPassword_MenuItem_Click"/>
+                          Command="Print"/>
                 <MenuItem Header="_Show activities"
                           Click="_showActivities_MenuItem_Click"/>
                 <MenuItem Name="_warnings_MI"
@@ -97,7 +103,7 @@
                               IsChecked="{Binding ChangedItemsOnly}"/>
                     <Button Grid.Column="7"
                             Content="✕"
-                            Click="_filterClear_Button_Click"/>
+                            Command="Stop"/>
                 </Grid>
             </GroupBox>
         </StackPanel>
