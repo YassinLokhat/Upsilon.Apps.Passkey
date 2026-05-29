@@ -53,9 +53,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public PasswordViewModel[] Passwords => [.. Account.Passwords
-            .OrderByDescending(x => x.Key)
-            .Select(x => new PasswordViewModel(x.Key.ToShortDateString(), x.Value))];
+      public PasswordViewModel[] Passwords
+      {
+         get
+         {
+            PasswordViewModel[] passwords = [.. Account.Passwords
+               .OrderByDescending(x => x.Key)
+               .Select(x => new PasswordViewModel(x.Key.ToShortDateString(), x.Value))];
+
+            if (passwords.Length != 0
+               && string.IsNullOrEmpty(passwords.Last().Password))
+            {
+               passwords = passwords[..(passwords.Length - 1)];
+            }
+
+            return passwords;
+         }
+      }
 
       public Brush NotesBackground => Account.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Notes
