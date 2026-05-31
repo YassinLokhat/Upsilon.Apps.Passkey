@@ -7,13 +7,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 {
    public class CryptographyCenter : ICryptographyCenter
    {
-      public string GetHash(string source)
-      {
-         string md5Hash = Convert.ToBase64String(MD5.HashData(Encoding.Unicode.GetBytes(source)));
-         string sha1Hash = Convert.ToBase64String(SHA1.HashData(Encoding.Unicode.GetBytes(source)));
-
-         return (md5Hash + sha1Hash).Replace("/", "-");
-      }
+      public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.Unicode.GetBytes(source))).Replace("/", "-");
 
       public string GetSlowHash(string source)
       {
