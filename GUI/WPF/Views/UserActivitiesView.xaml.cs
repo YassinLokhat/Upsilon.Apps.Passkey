@@ -32,11 +32,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
-      private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
-      {
-         ViewModel.ClearFilters();
-      }
-
       private void _viewItemButton_Click(object sender, RoutedEventArgs e)
       {
          AppServices.Navigation.RequestItem(ViewModel.Activities[_activities_DGV.SelectedIndex].Activity.ItemId);

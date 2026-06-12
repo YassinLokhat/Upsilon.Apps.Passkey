@@ -1,11 +1,13 @@
-﻿using System.ComponentModel;
-using System.Text;
+﻿using System.Text;
+using System.Windows;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class PasswordGeneratorViewModel : INotifyPropertyChanged
+   internal sealed class PasswordGeneratorViewModel : ObservableObject
    {
       public static string Title => AppInfo.Title + " - Password Generator";
 
@@ -14,10 +16,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _includeCharactersChanged(nameof(CheckIfLeaked));
+               _includeCharactersChanged();
             }
          }
       } = true;
@@ -27,10 +28,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               OnPropertyChanged(nameof(PasswordLength));
                GeneratePassword();
             }
          }
@@ -39,7 +38,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public string GeneratedPassword
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = string.Empty;
 
       public bool IncludeNumerics
@@ -47,10 +46,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _includeCharactersChanged(nameof(IncludeNumerics));
+               _includeCharactersChanged();
             }
          }
       } = true;
@@ -60,10 +58,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _includeCharactersChanged(nameof(IncludeSpecialCharacters));
+               _includeCharactersChanged();
             }
          }
       } = true;
@@ -73,10 +70,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _includeCharactersChanged(nameof(IncludeLowerCaseAlphabet));
+               _includeCharactersChanged();
             }
          }
       } = true;
@@ -86,40 +82,45 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _includeCharactersChanged(nameof(IncludeUpperCaseAlphabet));
+               _includeCharactersChanged();
             }
          }
       } = true;
 
-      private string _alphabet;
       public string Alphabet
       {
-         get => _alphabet;
+         get;
          set
          {
-            if (_alphabet != value)
+            if (SetProperty(ref field, value))
             {
-               _alphabet = value;
-               OnPropertyChanged(nameof(Alphabet));
                GeneratePassword();
             }
          }
-      }
+      } = string.Empty;
 
-      public event PropertyChangedEventHandler? PropertyChanged;
+      public Visibility InsertVisibility => AppServices.Session.User is not null ? Visibility.Visible : Visibility.Collapsed;
 
-      protected virtual void OnPropertyChanged(string propertyName)
-      {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-      }
+      public ICommand RegenerateCommand { get; }
+      public ICommand CopyCommand { get; }
+      public ICommand InsertCommand { get; }
+
+      public event EventHandler? InsertRequested;
 
       public PasswordGeneratorViewModel()
       {
-         _alphabet = _buildAlphabet();
+         Alphabet = _buildAlphabet();
          GeneratePassword();
+
+         RegenerateCommand = new RelayCommand(GeneratePassword);
+         CopyCommand = new RelayCommand(() => QrCodeView.CopyToClipboard(GeneratedPassword));
+         InsertCommand = new RelayCommand(() =>
+         {
+            QrCodeView.CopyToClipboard(GeneratedPassword);
+            InsertRequested?.Invoke(this, EventArgs.Empty);
+         });
       }
 
       internal void GeneratePassword()
@@ -132,10 +133,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          });
       }
 
-      private void _includeCharactersChanged(string propertyName)
+      private void _includeCharactersChanged()
       {
-         OnPropertyChanged(propertyName);
-
          Alphabet = _buildAlphabet();
       }
 

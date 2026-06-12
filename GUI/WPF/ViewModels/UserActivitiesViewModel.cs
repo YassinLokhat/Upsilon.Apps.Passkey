@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
@@ -88,6 +89,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public ObservableCollection<ActivityViewModel> Activities { get; set; } = [];
 
+      public ICommand ClearFiltersCommand { get; }
+
       public event PropertyChangedEventHandler? PropertyChanged;
 
       protected virtual void OnPropertyChanged(string propertyName)
@@ -98,6 +101,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public UserActivitiesViewModel()
       {
          Title = AppInfo.Title + " - Activities";
+
+         ClearFiltersCommand = new RelayCommand(ClearFilters);
 
          RefreshFilters();
       }

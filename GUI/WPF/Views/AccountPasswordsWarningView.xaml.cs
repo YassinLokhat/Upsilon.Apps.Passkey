@@ -31,12 +31,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
-      private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
-      {
-         _viewModel.WarningType = WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning;
-         _viewModel.Text = string.Empty;
-      }
-
       private void _viewItemButton_Click(object sender, RoutedEventArgs e)
       {
          AppServices.Navigation.RequestItem(_viewModel.Warnings[_warnings_DGV.SelectedIndex].Account.ItemId);
