@@ -55,7 +55,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       public static void CopyToClipboard(string text)
       {
-         Clipboard.SetText(text);
+         TimeSpan? autoClear = null;
+
+         int seconds = Services.AppServices.Session.User?.CleaningClipboardTimeout ?? 0;
+         if (seconds > 0)
+         {
+            autoClear = TimeSpan.FromSeconds(seconds);
+         }
+
+         SensitiveClipboard.SetText(text, autoClear);
       }
 
       private static BitmapImage _getBitmap(string content)

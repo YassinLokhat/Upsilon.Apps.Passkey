@@ -24,6 +24,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
       public void EndSession()
       {
+         SensitiveClipboard.ClearIfStillOwned();
+
          if (Database is null) return;
 
          try
