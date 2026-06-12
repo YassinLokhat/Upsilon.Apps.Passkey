@@ -79,7 +79,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
                _submitPassword();
             }
 
-            _password_PB.Password = string.Empty;
+            _password_PB.Clear();
             _timer.Start();
          }
          else if (e.Key == Key.Escape)
@@ -131,14 +131,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _username_TB.Text = string.Empty;
          _username_TB.Visibility = Visibility.Collapsed;
 
-         _password_PB.Password = string.Empty;
+         _password_PB.Clear();
          _password_PB.Visibility = Visibility.Visible;
          _ = _password_PB.Focus();
       }
 
       private void _submitPassword()
       {
-         if (string.IsNullOrEmpty(_password_PB.Password))
+         if (_password_PB.SecurePassword.Length == 0)
          {
             _timer.Start();
             return;
@@ -149,7 +149,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
-         _ = Session.Database.Login(_password_PB.Password);
+         _password_PB.SecurePassword.UseAsString(passkey =>
+         {
+            _ = Session.Database.Login(passkey);
+         });
+
+         // Erase the PasswordBox buffer right after submitting so the secret
+         // is not kept alive longer than necessary.
+         _password_PB.Clear();
 
          if (Session.Database.User is null)
          {
@@ -211,7 +218,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _username_TB.Visibility = Visibility.Visible;
          _ = _username_TB.Focus();
 
-         _password_PB.Password = string.Empty;
+         _password_PB.Clear();
          _password_PB.Visibility = Visibility.Collapsed;
 
          _timer.Stop();
