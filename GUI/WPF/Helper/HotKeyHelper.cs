@@ -37,9 +37,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             return -1;
          }
 
+         IntPtr expected = (IntPtr)hotkeyId;
          HwndSourceHook hook = (IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
          {
-            if (msg == WM_HOTKEY && (int)wParam == hotkeyId)
+            if (msg == WM_HOTKEY && wParam == expected)
             {
                HotkeyPressed?.Invoke(window, new HotkeyEventArgs(lParam));
                handled = true;
