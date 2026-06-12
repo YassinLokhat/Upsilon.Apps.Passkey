@@ -16,7 +16,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       public string? GeneratedPassword { get; private set; } = null;
 
-      private PasswordGenerator()
+      internal PasswordGenerator()
       {
          InitializeComponent();
 

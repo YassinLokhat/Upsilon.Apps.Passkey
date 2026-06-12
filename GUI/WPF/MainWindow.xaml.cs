@@ -26,10 +26,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          InitializeComponent();
 
          DataContext = _mainViewModel = new MainViewModel();
+         _mainViewModel.ResetRequested += (_, _) => _resetCredentials();
 
          _timer = new()
          {
-            Interval = new TimeSpan(0, 0, 5),
+            Interval = TimeSpan.FromSeconds(5),
          };
 
          _resetCredentials();
@@ -63,16 +64,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          Session.EndSession();
       }
 
-      private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         UserSettingsView.ShowUserSettings(this);
-      }
-
-      private void _generatePassword_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         _ = PasswordGenerator.ShowGeneratePasswordDialog(this);
-      }
-
       private void _credential_TB_KeyUp(object sender, KeyEventArgs e)
       {
          if (e.Key == Key.Enter)
@@ -81,72 +72,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
             if (sender == _username_TB)
             {
-               if (string.IsNullOrEmpty(_username_TB.Text))
-               {
-                  _timer.Start();
-                  return;
-               }
-
-               if (!File.Exists(_mainViewModel.DatabaseFile))
-               {
-                  string filename = AppServices.Cryptography.GetHash(_username_TB.Text);
-                  _mainViewModel.DatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{filename}.pku");
-               }
-
-               try
-               {
-                  IDatabase database = Database.Open(AppServices.Cryptography,
-                     AppServices.Serialization,
-                     AppServices.PasswordFactory,
-                     AppServices.Clipboard,
-                     _mainViewModel.DatabaseFile,
-                     _username_TB.Text);
-
-                  database.DatabaseClosed += _database_DatabaseClosed;
-                  database.AutoSaveDetected += _database_AutoSaveDetected;
-                  Session.StartSession(database);
-               }
-               catch (Exception ex)
-               {
-                  Log.Error(ex, "Failed to open database");
-               }
-
-               _mainViewModel.CredentialsLabel = "Password :";
-
-               _username_TB.Text = string.Empty;
-               _username_TB.Visibility = Visibility.Collapsed;
-
-               _password_PB.Password = string.Empty;
-               _password_PB.Visibility = Visibility.Visible;
-               _ = _password_PB.Focus();
+               _submitUsername();
             }
             else
             {
-               if (string.IsNullOrEmpty(_password_PB.Password))
-               {
-                  _timer.Start();
-                  return;
-               }
-
-               if (Session.Database is not null)
-               {
-                  _ = Session.Database.Login(_password_PB.Password);
-
-                  if (Session.Database.User is not null)
-                  {
-                     Hide();
-                     _resetCredentials();
-
-                     if (!UserServicesView.ShowUser(this))
-                     {
-                        Close();
-                     }
-                     else
-                     {
-                        _resetCredentials();
-                     }
-                  }
-               }
+               _submitPassword();
             }
 
             _password_PB.Password = string.Empty;
@@ -164,11 +94,90 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          }
       }
 
+      private void _submitUsername()
+      {
+         if (string.IsNullOrEmpty(_username_TB.Text))
+         {
+            _timer.Start();
+            return;
+         }
+
+         if (!File.Exists(_mainViewModel.DatabaseFile))
+         {
+            string filename = AppServices.Cryptography.GetHash(_username_TB.Text);
+            _mainViewModel.DatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{filename}.pku");
+         }
+
+         try
+         {
+            IDatabase database = Database.Open(AppServices.Cryptography,
+               AppServices.Serialization,
+               AppServices.PasswordFactory,
+               AppServices.Clipboard,
+               _mainViewModel.DatabaseFile,
+               _username_TB.Text);
+
+            database.DatabaseClosed += _database_DatabaseClosed;
+            database.AutoSaveDetected += _database_AutoSaveDetected;
+            Session.StartSession(database);
+         }
+         catch (Exception ex)
+         {
+            Log.Error(ex, "Failed to open database");
+         }
+
+         _mainViewModel.CredentialsLabel = "Password :";
+
+         _username_TB.Text = string.Empty;
+         _username_TB.Visibility = Visibility.Collapsed;
+
+         _password_PB.Password = string.Empty;
+         _password_PB.Visibility = Visibility.Visible;
+         _ = _password_PB.Focus();
+      }
+
+      private void _submitPassword()
+      {
+         if (string.IsNullOrEmpty(_password_PB.Password))
+         {
+            _timer.Start();
+            return;
+         }
+
+         if (Session.Database is null)
+         {
+            return;
+         }
+
+         _ = Session.Database.Login(_password_PB.Password);
+
+         if (Session.Database.User is null)
+         {
+            return;
+         }
+
+         Hide();
+         _resetCredentials();
+
+         if (!UserServicesView.ShowUser(this))
+         {
+            Close();
+         }
+         else
+         {
+            _resetCredentials();
+         }
+      }
+
       private void _database_AutoSaveDetected(object? sender, Interfaces.Events.AutoSaveDetectedEventArgs e)
       {
          Hide();
 
-         MessageBoxResult result = MessageBox.Show("Unsaved changes have been detected.\nClick Yes to apply these changes.\nClick No to discard them.\nClick Cancel to ignore and keep the save file.", "Autosave detected", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+         MessageBoxResult result = AppServices.Dialogs.Confirm(
+            "Unsaved changes have been detected.\nClick Yes to apply these changes.\nClick No to discard them.\nClick Cancel to ignore and keep the save file.",
+            "Autosave detected",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Question);
 
          e.MergeBehavior = result switch
          {
@@ -206,17 +215,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _password_PB.Visibility = Visibility.Collapsed;
 
          _timer.Stop();
-      }
-
-      private void _openDatabase_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         string? filename = AppServices.Dialogs.PickOpenFile("Passkey user database file|*.pku", "Open user database file");
-
-         if (filename is null) return;
-
-         _resetCredentials();
-         Session.EndSession();
-         _mainViewModel.DatabaseFile = filename;
       }
    }
 }
