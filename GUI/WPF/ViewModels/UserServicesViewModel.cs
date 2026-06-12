@@ -1,5 +1,5 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -9,52 +9,55 @@ using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class UserServicesViewModel : INotifyPropertyChanged, IDisposable
+   internal sealed class UserServicesViewModel : ObservableObject, IDisposable
    {
+      private static readonly TimeSpan _filterDebounce = TimeSpan.FromMilliseconds(250);
+
       private readonly string _defaultTitle;
       private readonly DispatcherTimer _titleTimer;
+      private readonly DispatcherTimer _filterDebounceTimer;
       private bool _disposed;
 
       public string Title
       {
-         get => field;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      }
+         get;
+         set => SetProperty(ref field, value);
+      } = string.Empty;
 
       public string ShowWarnings
       {
-         get => field;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         get;
+         set => SetProperty(ref field, value);
       } = string.Empty;
 
       public Brush ShowWarningsColor
       {
-         get => field;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         get;
+         set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
       public string ShowActivityWarnings
       {
-         get => field;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         get;
+         set => SetProperty(ref field, value);
       } = string.Empty;
 
       public string ShowExpiredPasswordWarnings
       {
-         get => field;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         get;
+         set => SetProperty(ref field, value);
       } = string.Empty;
 
       public string ShowDuplicatedPasswordWarnings
       {
-         get => field;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         get;
+         set => SetProperty(ref field, value);
       } = string.Empty;
 
       public string ShowLeakedPasswordWarnings
       {
-         get => field;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         get;
+         set => SetProperty(ref field, value);
       } = string.Empty;
 
       public string ServiceFilter
@@ -62,12 +65,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               OnPropertyChanged(nameof(ServiceFilter));
-
-               RefreshFilters();
+               _scheduleRefresh();
             }
          }
       } = string.Empty;
@@ -77,12 +77,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               OnPropertyChanged(nameof(IdentifierFilter));
-
-               RefreshFilters();
+               _scheduleRefresh();
             }
          }
       } = string.Empty;
@@ -92,12 +89,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               OnPropertyChanged(nameof(TextFilter));
-
-               RefreshFilters();
+               _scheduleRefresh();
             }
          }
       } = string.Empty;
@@ -107,40 +101,39 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               OnPropertyChanged(nameof(ChangedItemsOnly));
-
-               RefreshFilters();
+               _scheduleRefresh();
             }
          }
       } = false;
 
-      public ObservableCollection<ServiceViewModel> Services { get; set; } = [];
+      public ObservableCollection<ServiceViewModel> Services { get; } = [];
 
-      public event PropertyChangedEventHandler? PropertyChanged;
+      public ICommand ClearFiltersCommand { get; }
 
       public event EventHandler? FiltersRefreshed;
-
-      protected virtual void OnPropertyChanged(string propertyName)
-      {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-      }
 
       public UserServicesViewModel(string defaultTitle)
       {
          Title = _defaultTitle = defaultTitle;
 
+         ClearFiltersCommand = new RelayCommand(ClearFilters);
+
          RefreshFilters();
 
          _titleTimer = new DispatcherTimer
          {
-            Interval = new TimeSpan(0, 0, 0, 0, 500),
+            Interval = TimeSpan.FromMilliseconds(500),
             IsEnabled = true,
          };
+         _titleTimer.Tick += _onTitleTimerElapsed;
 
-         _titleTimer.Tick += _timer_Elapsed;
+         _filterDebounceTimer = new DispatcherTimer
+         {
+            Interval = _filterDebounce,
+         };
+         _filterDebounceTimer.Tick += _onFilterDebounceElapsed;
       }
 
       public void Dispose()
@@ -148,7 +141,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          if (_disposed) return;
 
          _titleTimer.Stop();
-         _titleTimer.Tick -= _timer_Elapsed;
+         _titleTimer.Tick -= _onTitleTimerElapsed;
+
+         _filterDebounceTimer.Stop();
+         _filterDebounceTimer.Tick -= _onFilterDebounceElapsed;
+
          _disposed = true;
          GC.SuppressFinalize(this);
       }
@@ -176,6 +173,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          return index < Services.Count ? index : Services.Count - 1;
       }
 
+      public void ClearFilters()
+      {
+         ServiceFilter = TextFilter = IdentifierFilter = string.Empty;
+         ChangedItemsOnly = false;
+      }
+
       public void RefreshFilters()
       {
          Services.Clear();
@@ -199,7 +202,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          FiltersRefreshed?.Invoke(this, EventArgs.Empty);
       }
 
-      private void _timer_Elapsed(object? sender, EventArgs e)
+      private void _scheduleRefresh()
+      {
+         // Coalesce rapid keystrokes into a single RefreshFilters call so the
+         // ServiceViewModel tree is not rebuilt on every character.
+         _filterDebounceTimer.Stop();
+         _filterDebounceTimer.Start();
+      }
+
+      private void _onFilterDebounceElapsed(object? sender, EventArgs e)
+      {
+         _filterDebounceTimer.Stop();
+         RefreshFilters();
+      }
+
+      private void _onTitleTimerElapsed(object? sender, EventArgs e)
       {
          string title = _defaultTitle;
 

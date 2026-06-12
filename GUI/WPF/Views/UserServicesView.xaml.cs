@@ -284,8 +284,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          if (this.GetIsBusy()) return;
 
-         _viewModel.ServiceFilter = _viewModel.TextFilter = _viewModel.IdentifierFilter = string.Empty;
-         _viewModel.ChangedItemsOnly = false;
+         _viewModel.ClearFilters();
       }
 
       private void _showActivities_MenuItem_Click(object sender, RoutedEventArgs e)
