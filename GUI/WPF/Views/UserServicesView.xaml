@@ -54,19 +54,19 @@
                           Foreground="{Binding ShowWarningsColor}">
                     <MenuItem Name="_activityWarnings_MI"
                               Header="{Binding ShowActivityWarnings}"
-                              Foreground="Yellow"
+                              Foreground="{StaticResource WarningBrush}"
                               Click="_activityWarnings_MI_Click"/>
                     <MenuItem Name="_duplicatedPasswordWarnings_MI"
                               Header="{Binding ShowDuplicatedPasswordWarnings}"
-                              Foreground="Yellow"
+                              Foreground="{StaticResource WarningBrush}"
                               Click="_duplicatedPasswordWarnings_MI_Click"/>
                     <MenuItem Name="_expiredPasswordWarnings_MI"
                               Header="{Binding ShowExpiredPasswordWarnings}"
-                              Foreground="Red"
+                              Foreground="{StaticResource DangerBrush}"
                               Click="_expiredOrLeakedPasswordWarnings_MI_Click"/>
                     <MenuItem Name="_leakedPasswordWarnings_MI"
                               Header="{Binding ShowLeakedPasswordWarnings}"
-                              Foreground="Red"
+                              Foreground="{StaticResource DangerBrush}"
                               Click="_expiredOrLeakedPasswordWarnings_MI_Click"/>
                 </MenuItem>
                 <MenuItem Header="_Logout"

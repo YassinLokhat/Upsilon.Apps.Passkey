@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
@@ -29,7 +30,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          get => field;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = Brushes.White;
+      } = SemanticBrushes.Info;
 
       public string ShowActivityWarnings
       {
