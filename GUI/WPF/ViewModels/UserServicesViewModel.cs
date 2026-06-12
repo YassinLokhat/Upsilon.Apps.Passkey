@@ -7,9 +7,11 @@ using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class UserServicesViewModel : INotifyPropertyChanged
+   internal class UserServicesViewModel : INotifyPropertyChanged, IDisposable
    {
       private readonly string _defaultTitle;
+      private readonly DispatcherTimer _titleTimer;
+      private bool _disposed;
 
       public string Title
       {
@@ -130,13 +132,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          RefreshFilters();
 
-         DispatcherTimer timer = new()
+         _titleTimer = new DispatcherTimer
          {
             Interval = new TimeSpan(0, 0, 0, 0, 500),
             IsEnabled = true,
          };
 
-         timer.Tick += _timer_Elapsed;
+         _titleTimer.Tick += _timer_Elapsed;
+      }
+
+      public void Dispose()
+      {
+         if (_disposed) return;
+
+         _titleTimer.Stop();
+         _titleTimer.Tick -= _timer_Elapsed;
+         _disposed = true;
+         GC.SuppressFinalize(this);
       }
 
       public ServiceViewModel AddService()

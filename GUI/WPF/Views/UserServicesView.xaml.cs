@@ -150,6 +150,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          _ = HotkeyHelper.Unregister(this, _autoLoginHotkeyId);
          _ = HotkeyHelper.Unregister(this, _autoPasswordHotkeyId);
+         HotkeyHelper.HotkeyPressed -= _hotkeyHelper_HotkeyPressed;
 
          MainViewModel.GoToItem = null;
 
@@ -164,6 +165,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          MainViewModel.Database?.Close();
          MainViewModel.Database = null;
+
+         _viewModel.Dispose();
       }
 
       private void _services_LB_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -289,8 +292,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          if (this.GetIsBusy()) return;
 
-         if (MainViewModel.UserActivitiesView is not null
-            && MainViewModel.UserActivitiesView.IsLoaded)
+         if (MainViewModel.UserActivitiesView is { IsLoaded: true })
          {
             UserActivitiesViewModel? vm = MainViewModel.UserActivitiesView.DataContext as UserActivitiesViewModel;
             _ = (vm?.NeedsReview = false);

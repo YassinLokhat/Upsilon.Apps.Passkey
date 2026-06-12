@@ -31,16 +31,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          _resetCredentials();
 
-         try
+         string[] args = Environment.GetCommandLineArgs();
+         if (args.Length > 1)
          {
-            string[] args = Environment.GetCommandLineArgs();
-            string databaseFile = Path.GetFullPath(Environment.GetCommandLineArgs()[1]);
-            if (File.Exists(databaseFile))
+            try
             {
-               _mainViewModel.DatabaseFile = databaseFile;
+               string databaseFile = Path.GetFullPath(args[1]);
+               if (File.Exists(databaseFile))
+               {
+                  _mainViewModel.DatabaseFile = databaseFile;
+               }
+            }
+            catch (Exception ex) when (ex is ArgumentException or PathTooLongException or NotSupportedException)
+            {
+               Log.Warn($"Ignored invalid database path from command line: {ex.Message}");
             }
          }
-         catch { }
 
          _username_TB.KeyUp += _credential_TB_KeyUp;
          _password_PB.KeyUp += _credential_TB_KeyUp;
@@ -97,7 +103,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
                   MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
                   MainViewModel.Database.AutoSaveDetected += _database_AutoSaveDetected;
                }
-               catch { }
+               catch (Exception ex)
+               {
+                  Log.Error(ex, "Failed to open database");
+               }
 
                _mainViewModel.CredentialsLabel = "Password :";
 
@@ -169,16 +178,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
       private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
       {
-         try
+         if (Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
          {
-            Dispatcher.Invoke(() =>
-            {
-               _resetCredentials();
-               MainViewModel.Database = null;
-               Show();
-            });
+            return;
          }
-         catch { }
+
+         _ = Dispatcher.BeginInvoke(() =>
+         {
+            _resetCredentials();
+            MainViewModel.Database = null;
+            Show();
+         });
       }
 
       private void _resetCredentials()

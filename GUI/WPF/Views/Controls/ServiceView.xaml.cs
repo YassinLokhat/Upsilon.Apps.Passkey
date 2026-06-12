@@ -118,10 +118,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         if (this.GetIsBusy()) return;
-
-         if (MainViewModel.UserActivitiesView is not null
-            && MainViewModel.UserActivitiesView.IsLoaded)
+         if (MainViewModel.UserActivitiesView is { IsLoaded: true })
          {
             MainViewModel.UserActivitiesView.ViewModel.RefreshFilters(_viewModel.Service.ItemId);
             _ = MainViewModel.UserActivitiesView.Activate();
