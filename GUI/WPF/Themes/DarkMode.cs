@@ -7,9 +7,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
 {
    public static class DarkMode
    {
-      public static Brush UnchangedBrush1 => new SolidColorBrush(Color.FromRgb(0x1E, 0x1E, 0x1E));
-      public static Brush UnchangedBrush2 => new SolidColorBrush(Color.FromRgb(0x2D, 0x2D, 0x30));
-      public static Brush ChangedBrush => new SolidColorBrush(Color.FromRgb(0x60, 0x60, 0x60));
+      /// <summary>Background brush used for the main window/panel surfaces (#1E1E1E).</summary>
+      public static readonly Brush UnchangedBrush1 = _freeze(Color.FromRgb(0x1E, 0x1E, 0x1E));
+
+      /// <summary>Background brush used for inputs that have not been modified (#2D2D30).</summary>
+      public static readonly Brush UnchangedBrush2 = _freeze(Color.FromRgb(0x2D, 0x2D, 0x30));
+
+      /// <summary>Background brush used to highlight inputs whose value has been modified (#606060).</summary>
+      public static readonly Brush ChangedBrush = _freeze(Color.FromRgb(0x60, 0x60, 0x60));
 
       public static void SetDarkMode(Window window)
       {
@@ -23,6 +28,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
          int attribute = 20; // DWMWA_USE_IMMERSIVE_DARK_MODE
          int useImmersiveDarkMode = 1;
          _ = DwmSetWindowAttribute(hwnd, attribute, ref useImmersiveDarkMode, sizeof(int));
+      }
+
+      private static Brush _freeze(Color color)
+      {
+         SolidColorBrush brush = new(color);
+         brush.Freeze();
+         return brush;
       }
 
       [DllImport("dwmapi.dll", PreserveSig = true)]
