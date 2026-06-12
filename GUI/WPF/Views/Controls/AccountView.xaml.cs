@@ -2,8 +2,9 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 {
@@ -196,7 +197,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          QrCodeView.ShowQrCode(Window.GetWindow(this),
             ((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier,
-            MainViewModel.User.ShowPasswordDelay);
+            AppServices.Session.User?.ShowPasswordDelay ?? 0);
       }
 
       private void _copyPassword_Clicked(object sender, RoutedEventArgs e)
@@ -220,7 +221,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          QrCodeView.ShowQrCode(Window.GetWindow(this),
             _viewModel.Password,
-            MainViewModel.User.ShowPasswordDelay);
+            AppServices.Session.User?.ShowPasswordDelay ?? 0);
       }
 
       private void _copyPasswords_Clicked(object sender, RoutedEventArgs e)
@@ -244,7 +245,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          QrCodeView.ShowQrCode(Window.GetWindow(this),
             ((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password,
-            MainViewModel.User.ShowPasswordDelay);
+            AppServices.Session.User?.ShowPasswordDelay ?? 0);
       }
 
       private void _viewActivities_Button_Click(object sender, RoutedEventArgs e)
@@ -255,20 +256,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         if (this.GetIsBusy()) return;
+         string itemId = _viewModel.Account.ItemId;
 
-         if (MainViewModel.UserActivitiesView is not null
-            && MainViewModel.UserActivitiesView.IsLoaded)
-         {
-            MainViewModel.UserActivitiesView.ViewModel.RefreshFilters(_viewModel.Account.ItemId);
-            _ = MainViewModel.UserActivitiesView.Activate();
-            return;
-         }
-
-         MainViewModel.UserActivitiesView = new(needsReviewFilter: false);
-         MainViewModel.UserActivitiesView.ViewModel.ClearFilters();
-         MainViewModel.UserActivitiesView.ViewModel.RefreshFilters(_viewModel.Account.ItemId);
-         MainViewModel.UserActivitiesView.Show();
+         _ = AppServices.Dialogs.ShowSingleton(
+            factory: () =>
+            {
+               UserActivitiesView view = new(needsReviewFilter: false);
+               view.ViewModel.ClearFilters();
+               view.ViewModel.RefreshFilters(itemId);
+               return view;
+            },
+            configure: view => view.ViewModel.RefreshFilters(itemId));
       }
 
       private void _identifier_TextBox_KeyUp(object sender, KeyEventArgs e)

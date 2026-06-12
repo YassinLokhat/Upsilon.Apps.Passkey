@@ -1,0 +1,97 @@
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 3
+end_of_line = crlf
+insert_final_newline = true
+charset = utf-8-bom
+trim_trailing_whitespace = true
+
+# Security/correctness rules are kept as errors.
+# The rules below are downgraded because they would require sweeping
+# rewrites unrelated to the current focus (architecture, security and
+# performance). They can be tightened back to errors progressively.
+
+# Style/design suggestions: keep visible (suggestion) but not breaking.
+dotnet_diagnostic.CA1003.severity = suggestion   # EventHandler<T> with EventArgs
+dotnet_diagnostic.CA1008.severity = suggestion   # Enums should have zero value
+dotnet_diagnostic.CA1024.severity = suggestion   # Use properties where appropriate
+dotnet_diagnostic.CA1032.severity = suggestion   # Implement standard exception ctors
+dotnet_diagnostic.CA1056.severity = suggestion   # Uri properties should not be strings
+dotnet_diagnostic.CA1030.severity = suggestion   # Make method an event
+dotnet_diagnostic.CA1031.severity = suggestion   # Do not catch general Exception
+dotnet_diagnostic.CA1034.severity = suggestion   # Nested types should not be visible
+dotnet_diagnostic.CA1051.severity = suggestion   # Do not declare visible instance fields
+dotnet_diagnostic.CA1062.severity = suggestion   # Validate arguments of public methods
+dotnet_diagnostic.CA1303.severity = none         # Localised string literal
+dotnet_diagnostic.CA1304.severity = suggestion   # ToLower without culture
+dotnet_diagnostic.CA1305.severity = suggestion   # IFormatProvider missing
+dotnet_diagnostic.CA1307.severity = suggestion   # StringComparison missing
+dotnet_diagnostic.CA1308.severity = suggestion   # ToLowerInvariant vs ToUpperInvariant
+dotnet_diagnostic.CA1310.severity = suggestion   # StartsWith without StringComparison
+dotnet_diagnostic.CA1311.severity = suggestion   # Specify culture for ToLower/ToUpper
+dotnet_diagnostic.CA1707.severity = suggestion   # Underscore in identifiers
+dotnet_diagnostic.CA1716.severity = suggestion   # Reserved language identifier
+dotnet_diagnostic.CA1805.severity = suggestion   # Default value initialization
+dotnet_diagnostic.CA1810.severity = suggestion   # Init static fields inline
+dotnet_diagnostic.CA1812.severity = suggestion   # Avoid uninstantiated internal class
+dotnet_diagnostic.CA1815.severity = suggestion   # Override Equals on value types
+dotnet_diagnostic.CA1819.severity = suggestion   # Properties should not return arrays
+dotnet_diagnostic.CA1822.severity = suggestion   # Mark members static
+dotnet_diagnostic.CA1859.severity = suggestion   # Use concrete types for performance
+dotnet_diagnostic.CA1862.severity = suggestion   # StringComparison for Contains
+dotnet_diagnostic.CA2227.severity = suggestion   # Collection properties should be read-only
+
+# In an executable, internal types are encouraged but the existing
+# code base exposes most types publicly. Lower CA1515 to suggestion
+# to surface it without breaking the build.
+dotnet_diagnostic.CA1515.severity = suggestion
+
+# CA1815 / CA1851 noisy across the codebase; keep as suggestion.
+dotnet_diagnostic.CA1851.severity = suggestion
+
+# Security: keep dispose ownership warning visible without breaking.
+# Database lifecycle is managed by ISessionService.
+dotnet_diagnostic.CA2000.severity = suggestion
+
+# CA5392 (DefaultDllImportSearchPaths): keep as suggestion; the
+# P/Invokes target well-known system DLLs (user32, dwmapi).
+dotnet_diagnostic.CA5392.severity = suggestion
+
+# The Core/QrCode logic uses multidimensional arrays for matrix algebra.
+# Rewriting to jagged arrays would degrade readability without any gain.
+dotnet_diagnostic.CA1814.severity = suggestion
+
+# CA1852 (seal internal types): worthwhile but currently noisy in Core.
+dotnet_diagnostic.CA1852.severity = suggestion
+
+# CA2201 (reserved exception types): the codebase intentionally throws
+# NullReferenceException in some places; flag as suggestion until those
+# sites can be reviewed individually.
+dotnet_diagnostic.CA2201.severity = suggestion
+
+# CA1001 (type owns disposable field but is not IDisposable): User holds
+# a DispatcherTimer; the existing lifetime is tied to Database.Dispose.
+# Surfaced as suggestion for a follow-up.
+dotnet_diagnostic.CA1001.severity = suggestion
+
+# Cryptography rules: the existing on-disk format relies on MD5/SHA1/
+# legacy IV derivation. Changing the algorithms would silently break
+# every existing user database, so they are kept as suggestion and the
+# follow-up will introduce versioned migrations.
+dotnet_diagnostic.CA5350.severity = suggestion
+dotnet_diagnostic.CA5351.severity = suggestion
+dotnet_diagnostic.CA5394.severity = suggestion
+dotnet_diagnostic.CA5401.severity = suggestion
+
+# Visual Studio Editor-only style rules; keep silent when not relevant.
+dotnet_diagnostic.IDE0001.severity = suggestion
+dotnet_diagnostic.IDE0008.severity = suggestion
+dotnet_diagnostic.IDE0028.severity = suggestion
+dotnet_diagnostic.IDE0046.severity = suggestion
+dotnet_diagnostic.IDE0047.severity = suggestion
+dotnet_diagnostic.IDE0048.severity = suggestion
+dotnet_diagnostic.IDE0058.severity = suggestion
+dotnet_diagnostic.IDE0072.severity = suggestion
+dotnet_diagnostic.IDE0290.severity = suggestion

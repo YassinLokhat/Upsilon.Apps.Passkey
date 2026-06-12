@@ -74,6 +74,10 @@
                              Grid.Column="0"
                              Name="_accounts_LB"
                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.CanContentScroll="True"
+                             ScrollViewer.IsDeferredScrollingEnabled="True"
+                             VirtualizingStackPanel.IsVirtualizing="True"
+                             VirtualizingStackPanel.VirtualizationMode="Recycling"
                              SelectionChanged="_accounts_LB_SelectionChanged">
                         <ListBox.ItemTemplate>
                             <DataTemplate>

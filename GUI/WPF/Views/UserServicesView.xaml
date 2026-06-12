@@ -54,19 +54,19 @@
                           Foreground="{Binding ShowWarningsColor}">
                     <MenuItem Name="_activityWarnings_MI"
                               Header="{Binding ShowActivityWarnings}"
-                              Foreground="Yellow"
+                              Foreground="{StaticResource WarningBrush}"
                               Click="_activityWarnings_MI_Click"/>
                     <MenuItem Name="_duplicatedPasswordWarnings_MI"
                               Header="{Binding ShowDuplicatedPasswordWarnings}"
-                              Foreground="Yellow"
+                              Foreground="{StaticResource WarningBrush}"
                               Click="_duplicatedPasswordWarnings_MI_Click"/>
                     <MenuItem Name="_expiredPasswordWarnings_MI"
                               Header="{Binding ShowExpiredPasswordWarnings}"
-                              Foreground="Red"
+                              Foreground="{StaticResource DangerBrush}"
                               Click="_expiredOrLeakedPasswordWarnings_MI_Click"/>
                     <MenuItem Name="_leakedPasswordWarnings_MI"
                               Header="{Binding ShowLeakedPasswordWarnings}"
-                              Foreground="Red"
+                              Foreground="{StaticResource DangerBrush}"
                               Click="_expiredOrLeakedPasswordWarnings_MI_Click"/>
                 </MenuItem>
                 <MenuItem Header="_Logout"
@@ -103,7 +103,7 @@
                               IsChecked="{Binding ChangedItemsOnly}"/>
                     <Button Grid.Column="7"
                             Content="✕"
-                            Command="Stop"/>
+                            Command="{Binding ClearFiltersCommand}"/>
                 </Grid>
             </GroupBox>
         </StackPanel>
@@ -122,6 +122,10 @@
                              Grid.Column="0"
                              Name="_services_LB"
                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.CanContentScroll="True"
+                             ScrollViewer.IsDeferredScrollingEnabled="True"
+                             VirtualizingStackPanel.IsVirtualizing="True"
+                             VirtualizingStackPanel.VirtualizationMode="Recycling"
                              SelectionChanged="_services_LB_SelectionChanged">
                         <ListBox.ItemTemplate>
                             <DataTemplate>

@@ -13,6 +13,8 @@
 	<AssemblyVersion>1.0.2</AssemblyVersion>
 	<FileVersion>1.0.2</FileVersion>
 	<ApplicationIcon>icon.ico</ApplicationIcon>
+	<EnableNETAnalyzers>true</EnableNETAnalyzers>
+	<AnalysisLevel>latest-all</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>

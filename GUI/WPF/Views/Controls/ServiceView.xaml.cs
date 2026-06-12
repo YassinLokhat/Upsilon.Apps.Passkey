@@ -2,8 +2,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 {
@@ -52,7 +53,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       {
          if (this.GetIsBusy()) return;
 
-         MainViewModel.User.Shake();
+         AppServices.Session.User?.Shake();
          _account_AV.SetDataContext((AccountViewModel)_accounts_LB.SelectedItem);
       }
 
@@ -118,20 +119,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         if (this.GetIsBusy()) return;
+         string itemId = _viewModel.Service.ItemId;
 
-         if (MainViewModel.UserActivitiesView is not null
-            && MainViewModel.UserActivitiesView.IsLoaded)
-         {
-            MainViewModel.UserActivitiesView.ViewModel.RefreshFilters(_viewModel.Service.ItemId);
-            _ = MainViewModel.UserActivitiesView.Activate();
-            return;
-         }
-
-         MainViewModel.UserActivitiesView = new(needsReviewFilter: false);
-         MainViewModel.UserActivitiesView.ViewModel.ClearFilters();
-         MainViewModel.UserActivitiesView.ViewModel.RefreshFilters(_viewModel.Service.ItemId);
-         MainViewModel.UserActivitiesView.Show();
+         _ = AppServices.Dialogs.ShowSingleton(
+            factory: () =>
+            {
+               UserActivitiesView view = new(needsReviewFilter: false);
+               view.ViewModel.ClearFilters();
+               view.ViewModel.RefreshFilters(itemId);
+               return view;
+            },
+            configure: view => view.ViewModel.RefreshFilters(itemId));
       }
    }
 }

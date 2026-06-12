@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
@@ -36,7 +37,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _viewItemButton_Click(object sender, RoutedEventArgs e)
       {
-         MainViewModel.GoToItem?.Invoke(_viewModel.Warnings[_warnings_LB.SelectedIndex].Accounts[_warnings_DGV.SelectedIndex].Account.ItemId);
+         AppServices.Navigation.RequestItem(_viewModel.Warnings[_warnings_LB.SelectedIndex].Accounts[_warnings_DGV.SelectedIndex].Account.ItemId);
       }
    }
 }

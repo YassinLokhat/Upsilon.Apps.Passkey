@@ -59,6 +59,10 @@
                                  Grid.Column="0"
                                  Grid.ColumnSpan="6"
                                  HorizontalContentAlignment="Stretch"
+                                 ScrollViewer.CanContentScroll="True"
+                                 ScrollViewer.IsDeferredScrollingEnabled="True"
+                                 VirtualizingStackPanel.IsVirtualizing="True"
+                                 VirtualizingStackPanel.VirtualizationMode="Recycling"
                                  Name="_identifiers_LB">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
@@ -124,6 +128,10 @@
                                  Grid.Column="0"
                                  Grid.ColumnSpan="3"
                                  HorizontalContentAlignment="Stretch"
+                                 ScrollViewer.CanContentScroll="True"
+                                 ScrollViewer.IsDeferredScrollingEnabled="True"
+                                 VirtualizingStackPanel.IsVirtualizing="True"
+                                 VirtualizingStackPanel.VirtualizationMode="Recycling"
                                  Name="_passwords_LB">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>

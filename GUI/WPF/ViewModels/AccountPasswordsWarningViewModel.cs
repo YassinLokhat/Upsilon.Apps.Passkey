@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
@@ -44,6 +46,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public ObservableCollection<AccountPasswordWarningViewModel> Warnings { get; set; } = [];
 
+      public ICommand ClearFiltersCommand { get; }
+
       public event PropertyChangedEventHandler? PropertyChanged;
 
       protected virtual void OnPropertyChanged(string propertyName)
@@ -53,17 +57,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public AccountPasswordsWarningViewModel()
       {
-         Title = MainViewModel.AppTitle + " - Account Passwords Warnings";
+         Title = AppInfo.Title + " - Account Passwords Warnings";
+         ClearFiltersCommand = new RelayCommand(ClearFilters);
          RefreshFilters();
+      }
+
+      public void ClearFilters()
+      {
+         WarningType = WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning;
+         Text = string.Empty;
       }
 
       public void RefreshFilters()
       {
          Warnings.Clear();
 
-         if (MainViewModel.Database?.Warnings is null) return;
+         if (AppServices.Session.Database?.Warnings is null) return;
 
-         AccountPasswordWarningViewModel[] warnings = [.. MainViewModel.Database.Warnings
+         AccountPasswordWarningViewModel[] warnings = [.. AppServices.Session.Database.Warnings
             .Where(x => WarningType.HasFlag(x.WarningType))
             .SelectMany(x => x.Accounts?.Select(y => new AccountPasswordWarningViewModel(y, x.WarningType)) ?? [])
             .Where(x => x.MeetsConditions(WarningType, Text))];
