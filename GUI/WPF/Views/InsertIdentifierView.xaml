@@ -1,0 +1,46 @@
+﻿<Window x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.InsertIdentifierView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views"
+        xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        d:DataContext="{d:DesignInstance Type=viewmodels:InsertIdentifierViewModel}"
+        mc:Ignorable="d"
+        Title="Insert identifier"
+        ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen"
+        Height="200" Width="483">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal">
+            <TextBox Name="_identifier_TB"
+                     Width="415"
+                     Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     KeyUp="_identifier_TextBox_KeyUp"/>
+            <Button Content="✕"
+                    Click="_clearFilter_Button_Click"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal">
+            <Button Content="Username"
+                    Click="_insertIdentifierType_Button_Click"/>
+            <Button Content="Email"
+                    Click="_insertIdentifierType_Button_Click"/>
+            <Button Content="Phone Number"
+                    Click="_insertIdentifierType_Button_Click"/>
+            <Button Content="Passkey"
+                    Click="_insertIdentifierType_Button_Click"/>
+            <Button Content="Authentificator App" 
+                    Click="_insertIdentifierType_Button_Click"/>
+        </StackPanel>
+        <ListBox Name="_identifiers_LB"
+                 Grid.Row="2"
+                 SelectionChanged="_identifiers_LB_SelectionChanged"/>
+    </Grid>
+</Window>

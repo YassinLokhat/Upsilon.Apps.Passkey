@@ -1,0 +1,196 @@
+﻿using System.ComponentModel;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+
+namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
+{
+   internal class UserSettingsViewModel : INotifyPropertyChanged
+   {
+      public string Title { get; }
+      public string Username
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = "NewUser";
+      public int LogoutTimeout
+      {
+         get;
+         set
+         {
+            if (field != value)
+            {
+               field = value;
+
+               OnPropertyChanged(nameof(LogoutTimeout));
+               OnPropertyChanged(nameof(LogoutTimeoutChecked));
+            }
+         }
+      } = 5;
+      public bool LogoutTimeoutChecked
+      {
+         get => LogoutTimeout != 0;
+         set
+         {
+            if (LogoutTimeoutChecked != value)
+            {
+               LogoutTimeout = value ? 5 : 0;
+               OnPropertyChanged(nameof(LogoutTimeoutChecked));
+            }
+         }
+      }
+      public int CleaningClipboardTimeout
+      {
+         get;
+         set
+         {
+            if (field != value)
+            {
+               field = value;
+
+               OnPropertyChanged(nameof(CleaningClipboardTimeout));
+               OnPropertyChanged(nameof(CleaningClipboardTimeoutChecked));
+            }
+         }
+      } = 30;
+      public bool CleaningClipboardTimeoutChecked
+      {
+         get => CleaningClipboardTimeout != 0;
+         set
+         {
+            if (CleaningClipboardTimeoutChecked != value)
+            {
+               CleaningClipboardTimeout = value ? 30 : 0;
+               OnPropertyChanged(nameof(CleaningClipboardTimeoutChecked));
+            }
+         }
+      }
+      public int ShowPasswordDelay
+      {
+         get;
+         set
+         {
+            if (field != value)
+            {
+               field = value;
+               OnPropertyChanged(nameof(ShowPasswordDelay));
+               OnPropertyChanged(nameof(ShowPasswordDelayChecked));
+            }
+         }
+      } = 500;
+      public bool ShowPasswordDelayChecked
+      {
+         get => ShowPasswordDelay != 0;
+         set
+         {
+            if (ShowPasswordDelayChecked != value)
+            {
+               ShowPasswordDelay = value ? 500 : 0;
+               OnPropertyChanged(nameof(ShowPasswordDelayChecked));
+            }
+         }
+      }
+      public int NumberOfOldPasswordToKeep
+      {
+         get;
+         set
+         {
+            if (field != value)
+            {
+               field = value;
+               OnPropertyChanged(nameof(NumberOfOldPasswordToKeep));
+               OnPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
+            }
+         }
+      } = 0;
+      public bool NumberOfOldPasswordToKeepChecked
+      {
+         get => NumberOfOldPasswordToKeep != 0;
+         set
+         {
+            if (NumberOfOldPasswordToKeepChecked != value)
+            {
+               NumberOfOldPasswordToKeep = value ? 10 : 0;
+               OnPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
+            }
+         }
+      }
+      public int NumberOfMonthActivitiesToKeep
+      {
+         get;
+         set
+         {
+            if (field != value)
+            {
+               field = value;
+               OnPropertyChanged(nameof(NumberOfMonthActivitiesToKeep));
+               OnPropertyChanged(nameof(NumberOfMonthActivitiesToKeepChecked));
+            }
+         }
+      } = 0;
+      public bool NumberOfMonthActivitiesToKeepChecked
+      {
+         get => NumberOfMonthActivitiesToKeep != 0;
+         set
+         {
+            if (NumberOfMonthActivitiesToKeepChecked != value)
+            {
+               NumberOfMonthActivitiesToKeep = value ? 12 : 0;
+               OnPropertyChanged(nameof(NumberOfMonthActivitiesToKeepChecked));
+            }
+         }
+      }
+      public bool NotifyActivityReview
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = true;
+      public bool NotifyPasswordUpdateReminder
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = true;
+      public bool NotifyDuplicatedPasswords
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = true;
+      public bool NotifyPasswordLeaked
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = true;
+
+      public event PropertyChangedEventHandler? PropertyChanged;
+
+      protected virtual void OnPropertyChanged(string propertyName)
+      {
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+      }
+
+      public UserSettingsViewModel()
+      {
+         Title = MainViewModel.AppTitle;
+
+         if (MainViewModel.Database is null || MainViewModel.Database.User is null)
+         {
+            Title += " - New user";
+         }
+         else
+         {
+            Title += " - User settings";
+
+            Username = MainViewModel.Database.User.Username;
+
+            LogoutTimeout = MainViewModel.Database.User.LogoutTimeout;
+            CleaningClipboardTimeout = MainViewModel.Database.User.CleaningClipboardTimeout;
+            ShowPasswordDelay = MainViewModel.Database.User.ShowPasswordDelay;
+            NumberOfOldPasswordToKeep = MainViewModel.Database.User.NumberOfOldPasswordToKeep;
+            NumberOfMonthActivitiesToKeep = MainViewModel.Database.User.NumberOfMonthActivitiesToKeep;
+
+            NotifyActivityReview = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
+            NotifyPasswordUpdateReminder = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
+            NotifyDuplicatedPasswords = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
+            NotifyPasswordLeaked = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
+         }
+      }
+   }
+}
