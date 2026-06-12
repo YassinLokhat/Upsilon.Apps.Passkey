@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -157,11 +158,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public bool PasswordLeaked
          => Account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
-               && MainViewModel.Database?.Warnings is not null
-               && MainViewModel.Database.Warnings.Any(x => x.WarningType == WarningType.PasswordLeakedWarning
+               && AppServices.Session.Database?.Warnings is not null
+               && AppServices.Session.Database.Warnings.Any(x => x.WarningType == WarningType.PasswordLeakedWarning
                   && x.Accounts.Contains(Account));
 
-      public static string[] IdentifierAutoCompleteList => MainViewModel.User?.Services
+      public static string[] IdentifierAutoCompleteList => AppServices.Session.User?.Services
          .SelectMany(x => x.Accounts)
          .SelectMany(x => x.Identifiers)
          .Distinct()

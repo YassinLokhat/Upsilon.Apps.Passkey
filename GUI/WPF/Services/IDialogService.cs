@@ -9,18 +9,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
    public interface IDialogService
    {
       /// <summary>
-      /// Shows a window of type <typeparamref name="TWindow"/> modally. The optional
-      /// <paramref name="configure"/> callback runs after the window is created but
-      /// before <c>ShowDialog</c> is invoked.
+      /// Shows the supplied <paramref name="window"/> modally as a child of the
+      /// currently active window.
       /// </summary>
-      bool? ShowDialog<TWindow>(Action<TWindow>? configure = null) where TWindow : Window, new();
+      bool? ShowDialog<TWindow>(TWindow window) where TWindow : Window;
 
       /// <summary>
       /// Shows a window of type <typeparamref name="TWindow"/> non-modally. If a
       /// window of the same type is already open and loaded, it is activated
-      /// instead of being recreated.
+      /// (after running <paramref name="configure"/>) instead of being recreated.
       /// </summary>
-      TWindow Show<TWindow>(Action<TWindow>? configure = null) where TWindow : Window, new();
+      TWindow ShowSingleton<TWindow>(Func<TWindow> factory, Action<TWindow>? configure = null) where TWindow : Window;
+
+      /// <summary>Returns the singleton window of type <typeparamref name="TWindow"/> currently being tracked, if any.</summary>
+      TWindow? GetSingleton<TWindow>() where TWindow : Window;
 
       /// <summary>Closes the singleton window of type <typeparamref name="TWindow"/> if any.</summary>
       void Close<TWindow>() where TWindow : Window;

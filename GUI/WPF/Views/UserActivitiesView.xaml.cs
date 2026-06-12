@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
@@ -38,7 +39,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _viewItemButton_Click(object sender, RoutedEventArgs e)
       {
-         MainViewModel.GoToItem?.Invoke(ViewModel.Activities[_activities_DGV.SelectedIndex].Activity.ItemId);
+         AppServices.Navigation.RequestItem(ViewModel.Activities[_activities_DGV.SelectedIndex].Activity.ItemId);
       }
    }
 }

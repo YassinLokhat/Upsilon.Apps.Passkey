@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
@@ -53,7 +54,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public AccountPasswordsWarningViewModel()
       {
-         Title = MainViewModel.AppTitle + " - Account Passwords Warnings";
+         Title = AppInfo.Title + " - Account Passwords Warnings";
          RefreshFilters();
       }
 
@@ -61,9 +62,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          Warnings.Clear();
 
-         if (MainViewModel.Database?.Warnings is null) return;
+         if (AppServices.Session.Database?.Warnings is null) return;
 
-         AccountPasswordWarningViewModel[] warnings = [.. MainViewModel.Database.Warnings
+         AccountPasswordWarningViewModel[] warnings = [.. AppServices.Session.Database.Warnings
             .Where(x => WarningType.HasFlag(x.WarningType))
             .SelectMany(x => x.Accounts?.Select(y => new AccountPasswordWarningViewModel(y, x.WarningType)) ?? [])
             .Where(x => x.MeetsConditions(WarningType, Text))];

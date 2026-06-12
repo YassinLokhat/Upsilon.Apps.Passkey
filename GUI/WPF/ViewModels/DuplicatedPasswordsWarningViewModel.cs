@@ -1,4 +1,6 @@
-﻿using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
@@ -11,9 +13,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public DuplicatedPasswordsWarningViewModel()
       {
-         Title = MainViewModel.AppTitle + " - Duplicated Passwords Warnings";
+         Title = AppInfo.Title + " - Duplicated Passwords Warnings";
 
-         Warnings = [.. MainViewModel.Database?.Warnings?
+         Warnings = [.. AppServices.Session.Database?.Warnings?
             .Where(x => x.WarningType == WarningType.DuplicatedPasswordsWarning)
             .Select(x => new DuplicatedPasswordWarningViewModel(x))
             ?? []];

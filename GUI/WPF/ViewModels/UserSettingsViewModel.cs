@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -168,9 +169,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public UserSettingsViewModel()
       {
-         Title = MainViewModel.AppTitle;
+         Title = AppInfo.Title;
 
-         if (MainViewModel.Database is null || MainViewModel.Database.User is null)
+         if (AppServices.Session.Database?.User is not { } user)
          {
             Title += " - New user";
          }
@@ -178,18 +179,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          {
             Title += " - User settings";
 
-            Username = MainViewModel.Database.User.Username;
+            Username = user.Username;
 
-            LogoutTimeout = MainViewModel.Database.User.LogoutTimeout;
-            CleaningClipboardTimeout = MainViewModel.Database.User.CleaningClipboardTimeout;
-            ShowPasswordDelay = MainViewModel.Database.User.ShowPasswordDelay;
-            NumberOfOldPasswordToKeep = MainViewModel.Database.User.NumberOfOldPasswordToKeep;
-            NumberOfMonthActivitiesToKeep = MainViewModel.Database.User.NumberOfMonthActivitiesToKeep;
+            LogoutTimeout = user.LogoutTimeout;
+            CleaningClipboardTimeout = user.CleaningClipboardTimeout;
+            ShowPasswordDelay = user.ShowPasswordDelay;
+            NumberOfOldPasswordToKeep = user.NumberOfOldPasswordToKeep;
+            NumberOfMonthActivitiesToKeep = user.NumberOfMonthActivitiesToKeep;
 
-            NotifyActivityReview = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
-            NotifyPasswordUpdateReminder = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
-            NotifyDuplicatedPasswords = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
-            NotifyPasswordLeaked = (MainViewModel.Database.User.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
+            NotifyActivityReview = (user.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
+            NotifyPasswordUpdateReminder = (user.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
+            NotifyDuplicatedPasswords = (user.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
+            NotifyPasswordLeaked = (user.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
          }
       }
    }

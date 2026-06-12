@@ -1,40 +1,12 @@
 ﻿using System.ComponentModel;
 using System.IO;
-using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
-using Upsilon.Apps.Passkey.GUI.WPF.Views;
-using Upsilon.Apps.Passkey.Interfaces.Models;
-using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
    internal class MainViewModel : INotifyPropertyChanged
    {
-      public static string AppTitle
-      {
-         get
-         {
-            System.Reflection.AssemblyName package = System.Reflection.Assembly.GetExecutingAssembly().GetName();
-            string? packageVersion = package.Version?.ToString(3);
-
-            return $"{package.Name} v{packageVersion}";
-         }
-      }
-
-      public static readonly ICryptographyCenter CryptographyCenter = new CryptographyCenter();
-      public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
-      public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
-      public static readonly IClipboardManager ClipboardManager = new ClipboardManager();
-
-      public static IDatabase? Database = null;
-
-      public static IUser User => Database is null || Database.User is null ? throw new NullReferenceException(nameof(User)) : Database.User;
-
-      public static AccountPasswordsWarningView? AccountPasswordsWarningView;
-      public static DuplicatedPasswordsWarningView? DuplicatedPasswordsWarningView;
-      public static UserActivitiesView? UserActivitiesView;
-      public static Action<string>? GoToItem;
+      public static string AppTitle => AppInfo.Title;
 
       public string DatabaseFile
       {
@@ -51,10 +23,5 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       } = "Username :";
 
       public event PropertyChangedEventHandler? PropertyChanged;
-
-      protected virtual void OnPropertyChanged(string propertyName)
-      {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-      }
    }
 }

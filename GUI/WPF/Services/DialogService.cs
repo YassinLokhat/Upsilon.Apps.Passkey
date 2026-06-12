@@ -7,20 +7,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
    {
       private readonly Dictionary<Type, Window> _singletons = [];
 
-      public bool? ShowDialog<TWindow>(Action<TWindow>? configure = null) where TWindow : Window, new()
+      public bool? ShowDialog<TWindow>(TWindow window) where TWindow : Window
       {
-         TWindow window = new()
-         {
-            Owner = _resolveOwner(),
-         };
+         ArgumentNullException.ThrowIfNull(window);
 
-         configure?.Invoke(window);
-
+         window.Owner = _resolveOwner();
          return window.ShowDialog();
       }
 
-      public TWindow Show<TWindow>(Action<TWindow>? configure = null) where TWindow : Window, new()
+      public TWindow ShowSingleton<TWindow>(Func<TWindow> factory, Action<TWindow>? configure = null) where TWindow : Window
       {
+         ArgumentNullException.ThrowIfNull(factory);
+
          if (_singletons.TryGetValue(typeof(TWindow), out Window? existing)
             && existing is TWindow loaded
             && loaded.IsLoaded)
@@ -30,10 +28,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
             return loaded;
          }
 
-         TWindow window = new()
-         {
-            Owner = _resolveOwner(),
-         };
+         TWindow window = factory();
+         window.Owner = _resolveOwner();
 
          configure?.Invoke(window);
 
@@ -49,6 +45,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          window.Show();
 
          return window;
+      }
+
+      public TWindow? GetSingleton<TWindow>() where TWindow : Window
+      {
+         return _singletons.TryGetValue(typeof(TWindow), out Window? window) ? window as TWindow : null;
       }
 
       public void Close<TWindow>() where TWindow : Window

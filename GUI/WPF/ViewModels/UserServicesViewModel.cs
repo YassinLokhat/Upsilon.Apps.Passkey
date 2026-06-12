@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
@@ -156,13 +157,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          ServiceViewModel? serviceViewModel = Services.FirstOrDefault(x => x.ServiceName.StartsWith("New Service #"));
 
-         if (serviceViewModel is null)
+         if (serviceViewModel is null && AppServices.Session.User is { } user)
          {
-            serviceViewModel = new(MainViewModel.User.AddService("New Service #" + DateTime.Now.Ticks));
+            serviceViewModel = new(user.AddService("New Service #" + DateTime.Now.Ticks));
             Services.Insert(0, serviceViewModel);
          }
 
-         return serviceViewModel;
+         return serviceViewModel!;
       }
 
       public int DeleteService(ServiceViewModel serviceViewModel)
@@ -170,7 +171,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          int index = Services.IndexOf(serviceViewModel);
 
          _ = Services.Remove(serviceViewModel);
-         MainViewModel.User.DeleteService(serviceViewModel.Service);
+         AppServices.Session.User?.DeleteService(serviceViewModel.Service);
 
          return index < Services.Count ? index : Services.Count - 1;
       }
@@ -179,7 +180,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          Services.Clear();
 
-         ServiceViewModel[] services = [.. MainViewModel.User.Services
+         if (AppServices.Session.User is not { } user)
+         {
+            FiltersRefreshed?.Invoke(this, EventArgs.Empty);
+            return;
+         }
+
+         ServiceViewModel[] services = [.. user.Services
             .Where(x => x.MeetsFilterConditions(ServiceFilter, IdentifierFilter, TextFilter, ChangedItemsOnly))
             .OrderBy(x => x.ServiceName)
             .Select(x => new ServiceViewModel(x, IdentifierFilter, TextFilter, ChangedItemsOnly))];
@@ -196,14 +203,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          string title = _defaultTitle;
 
-         if (MainViewModel.Database?.User is not null)
+         if (AppServices.Session.Database?.User is { } user)
          {
-            if (MainViewModel.Database.User.HasChanged())
+            if (user.HasChanged())
             {
                title += " - *";
             }
 
-            int sessionLeftTime = MainViewModel.Database.SessionLeftTime ?? 0;
+            int sessionLeftTime = AppServices.Session.Database.SessionLeftTime ?? 0;
             title += $" - Left session time : {sessionLeftTime / 60:D2}:{sessionLeftTime % 60:D2}";
          }
 

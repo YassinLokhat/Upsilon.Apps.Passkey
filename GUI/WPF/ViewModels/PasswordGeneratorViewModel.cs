@@ -1,12 +1,13 @@
 ﻿using System.ComponentModel;
 using System.Text;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
    internal class PasswordGeneratorViewModel : INotifyPropertyChanged
    {
-      public static string Title => MainViewModel.AppTitle + " - Password Generator";
+      public static string Title => AppInfo.Title + " - Password Generator";
 
       public bool CheckIfLeaked
       {
@@ -127,7 +128,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          _ = Task.Run(() =>
          {
-            GeneratedPassword = MainViewModel.PasswordFactory.GeneratePassword(PasswordLength, Alphabet, CheckIfLeaked);
+            GeneratedPassword = AppServices.PasswordFactory.GeneratePassword(PasswordLength, Alphabet, CheckIfLeaked);
          });
       }
 
@@ -144,22 +145,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          if (IncludeNumerics)
          {
-            _ = alphabetBuilder.Append(MainViewModel.PasswordFactory.Numeric);
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Numeric);
          }
 
          if (IncludeUpperCaseAlphabet)
          {
-            _ = alphabetBuilder.Append(MainViewModel.PasswordFactory.Alphabetic.ToUpper());
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToUpper());
          }
 
          if (IncludeLowerCaseAlphabet)
          {
-            _ = alphabetBuilder.Append(MainViewModel.PasswordFactory.Alphabetic.ToLower());
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToLower());
          }
 
          if (IncludeSpecialCharacters)
          {
-            _ = alphabetBuilder.Append(MainViewModel.PasswordFactory.SpecialChars);
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.SpecialChars);
          }
 
          return alphabetBuilder.ToString();

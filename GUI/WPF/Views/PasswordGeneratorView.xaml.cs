@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
@@ -20,8 +21,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          InitializeComponent();
 
          DataContext = _viewModel = new PasswordGeneratorViewModel();
-         _insert.Visibility = (MainViewModel.Database is not null
-               && MainViewModel.Database.User is not null) ? Visibility.Visible : Visibility.Collapsed;
+         _insert.Visibility = AppServices.Session.User is not null ? Visibility.Visible : Visibility.Collapsed;
 
          Loaded += (s, e) => this.PostLoadSetup();
       }

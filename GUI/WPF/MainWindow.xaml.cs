@@ -1,12 +1,13 @@
-﻿using Microsoft.Win32;
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF
 {
@@ -17,6 +18,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
    {
       private readonly MainViewModel _mainViewModel;
       private readonly DispatcherTimer _timer;
+
+      private static ISessionService Session => AppServices.Session;
 
       public MainWindow()
       {
@@ -57,8 +60,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       private void _timer_Elapsed(object? sender, EventArgs e)
       {
          _resetCredentials();
-         MainViewModel.Database?.Close();
-         MainViewModel.Database = null;
+         Session.EndSession();
       }
 
       private void _newUser_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -87,21 +89,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
                if (!File.Exists(_mainViewModel.DatabaseFile))
                {
-                  string filename = MainViewModel.CryptographyCenter.GetHash(_username_TB.Text);
+                  string filename = AppServices.Cryptography.GetHash(_username_TB.Text);
                   _mainViewModel.DatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{filename}.pku");
                }
 
                try
                {
-                  MainViewModel.Database = Database.Open(MainViewModel.CryptographyCenter,
-                     MainViewModel.SerializationCenter,
-                     MainViewModel.PasswordFactory,
-                     MainViewModel.ClipboardManager,
+                  IDatabase database = Database.Open(AppServices.Cryptography,
+                     AppServices.Serialization,
+                     AppServices.PasswordFactory,
+                     AppServices.Clipboard,
                      _mainViewModel.DatabaseFile,
                      _username_TB.Text);
 
-                  MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
-                  MainViewModel.Database.AutoSaveDetected += _database_AutoSaveDetected;
+                  database.DatabaseClosed += _database_DatabaseClosed;
+                  database.AutoSaveDetected += _database_AutoSaveDetected;
+                  Session.StartSession(database);
                }
                catch (Exception ex)
                {
@@ -125,11 +128,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
                   return;
                }
 
-               if (MainViewModel.Database is not null)
+               if (Session.Database is not null)
                {
-                  _ = MainViewModel.Database.Login(_password_PB.Password);
+                  _ = Session.Database.Login(_password_PB.Password);
 
-                  if (MainViewModel.Database.User is not null)
+                  if (Session.Database.User is not null)
                   {
                      Hide();
                      _resetCredentials();
@@ -152,8 +155,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          else if (e.Key == Key.Escape)
          {
             _resetCredentials();
-            MainViewModel.Database?.Close();
-            MainViewModel.Database = null;
+            Session.EndSession();
          }
          else
          {
@@ -186,7 +188,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _ = Dispatcher.BeginInvoke(() =>
          {
             _resetCredentials();
-            MainViewModel.Database = null;
+            Session.EndSession();
             Show();
          });
       }
@@ -208,18 +210,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
       private void _openDatabase_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         OpenFileDialog dialog = new()
-         {
-            Title = "Open user database file",
-            Filter = "Passkey user database file|*.pku",
-         };
+         string? filename = AppServices.Dialogs.PickOpenFile("Passkey user database file|*.pku", "Open user database file");
 
-         if (!(dialog.ShowDialog() ?? false)) return;
+         if (filename is null) return;
 
          _resetCredentials();
-         MainViewModel.Database?.Close();
-         MainViewModel.Database = null;
-         _mainViewModel.DatabaseFile = dialog.FileName;
+         Session.EndSession();
+         _mainViewModel.DatabaseFile = filename;
       }
    }
 }

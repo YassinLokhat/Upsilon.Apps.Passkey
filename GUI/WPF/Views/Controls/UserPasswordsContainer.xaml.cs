@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 {
@@ -20,9 +20,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          _passwords = [];
 
-         if (MainViewModel.Database?.User?.Passkeys is not null)
+         if (AppServices.Session.User?.Passkeys is not null)
          {
-            foreach (string password in MainViewModel.Database.User.Passkeys)
+            foreach (string password in AppServices.Session.User.Passkeys)
             {
                _addPassword(password);
             }
