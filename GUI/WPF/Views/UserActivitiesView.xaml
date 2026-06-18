@@ -55,7 +55,7 @@
                               IsChecked="{Binding NeedsReview}"/>
                     <Button Grid.Column="9"
                             Content="✕"
-                            Click="_filterClear_Button_Click"/>
+                            Command="{Binding ClearFiltersCommand}"/>
                 </Grid>
             </GroupBox>
         </StackPanel>

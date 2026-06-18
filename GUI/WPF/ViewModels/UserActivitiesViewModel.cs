@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
@@ -10,7 +12,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
    {
       public string Title { get; }
 
-      public string FiltersHeader => $"Filters : {Activities.Count} activities found over {MainViewModel.Database?.Activities?.Length}";
+      public string FiltersHeader => $"Filters : {Activities.Count} activities found over {AppServices.Session.Database?.Activities?.Length}";
       public DateTime FromDateFilter
       {
          get;
@@ -87,6 +89,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public ObservableCollection<ActivityViewModel> Activities { get; set; } = [];
 
+      public ICommand ClearFiltersCommand { get; }
+
       public event PropertyChangedEventHandler? PropertyChanged;
 
       protected virtual void OnPropertyChanged(string propertyName)
@@ -96,7 +100,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public UserActivitiesViewModel()
       {
-         Title = MainViewModel.AppTitle + " - Activities";
+         Title = AppInfo.Title + " - Activities";
+
+         ClearFiltersCommand = new RelayCommand(ClearFilters);
 
          RefreshFilters();
       }
@@ -122,9 +128,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          Activities.Clear();
 
-         if (MainViewModel.Database?.Activities is null) return;
+         if (AppServices.Session.Database?.Activities is null) return;
 
-         ActivityViewModel[] activities = [.. MainViewModel.Database.Activities
+         ActivityViewModel[] activities = [.. AppServices.Session.Database.Activities
             .Select(x => new ActivityViewModel(x))
             .Where(x => x.MeetsConditions(itemId, FromDateFilter, ToDateFilter, EventType, Message, NeedsReview))
             .OrderByDescending(x => x.DateTime)];
