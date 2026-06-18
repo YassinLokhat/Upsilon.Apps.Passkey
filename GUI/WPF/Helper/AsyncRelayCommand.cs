@@ -1,4 +1,4 @@
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -11,7 +11,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    {
       private readonly Func<object?, Task> _execute;
       private readonly Predicate<object?>? _canExecute;
-      private bool _isRunning;
 
       public AsyncRelayCommand(Func<Task> execute, Func<bool>? canExecute = null)
          : this(_ => execute(), canExecute is null ? null : _ => canExecute())
@@ -31,9 +30,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          remove => CommandManager.RequerySuggested -= value;
       }
 
-      public bool IsRunning => _isRunning;
+      public bool IsRunning { get; private set; }
 
-      public bool CanExecute(object? parameter) => !_isRunning && (_canExecute?.Invoke(parameter) ?? true);
+      public bool CanExecute(object? parameter) => !IsRunning && (_canExecute?.Invoke(parameter) ?? true);
 
       public async void Execute(object? parameter)
       {
@@ -42,7 +41,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             return;
          }
 
-         _isRunning = true;
+         IsRunning = true;
          CommandManager.InvalidateRequerySuggested();
 
          try
@@ -51,7 +50,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          }
          finally
          {
-            _isRunning = false;
+            IsRunning = false;
             CommandManager.InvalidateRequerySuggested();
          }
       }

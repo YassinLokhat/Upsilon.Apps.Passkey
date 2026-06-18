@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
@@ -29,13 +29,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             string file = Path.Combine(directory, $"app-{DateTime.Now:yyyyMMdd}.log");
 
             TextWriterTraceListener fileListener = new(file, "PasskeyFile");
-            _source.Listeners.Add(fileListener);
+            _ = _source.Listeners.Add(fileListener);
          }
          catch
          {
             // Logging must never crash the application: silently fall back to
             // an in-memory listener when the file cannot be created.
-            _source.Listeners.Add(new DefaultTraceListener());
+            _ = _source.Listeners.Add(new DefaultTraceListener());
          }
 
          Trace.AutoFlush = true;

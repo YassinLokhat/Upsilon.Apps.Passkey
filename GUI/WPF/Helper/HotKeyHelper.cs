@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -37,8 +37,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             return -1;
          }
 
-         IntPtr expected = (IntPtr)hotkeyId;
-         HwndSourceHook hook = (IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
+         IntPtr expected = hotkeyId;
+         nint hook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
          {
             if (msg == WM_HOTKEY && wParam == expected)
             {
@@ -47,7 +47,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             }
 
             return IntPtr.Zero;
-         };
+         }
 
          source.AddHook(hook);
          _registrations[hotkeyId] = new _Registration(hWnd, source, hook);
