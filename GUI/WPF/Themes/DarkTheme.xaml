@@ -26,10 +26,6 @@
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
     </Style>
 
-    <Style TargetType="Grid">
-        <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
-    </Style>
-
     <Style TargetType="StackPanel">
         <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
     </Style>
@@ -62,10 +58,6 @@
         <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-    </Style>
-
-    <Style TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
     </Style>
 
     <Style TargetType="ProgressBar">

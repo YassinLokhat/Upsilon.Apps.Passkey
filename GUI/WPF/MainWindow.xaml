@@ -46,9 +46,8 @@
             <Label Grid.Row="0"
                    Grid.Column="0"
                    Grid.ColumnSpan="2">
-                <TextBlock Text="{Binding DatabaseLabel}" 
-                    TextTrimming="CharacterEllipsis" 
-                    TextWrapping="NoWrap" />   
+                <TextBlock Text="{Binding DatabaseLabel}"
+                    TextWrapping="Wrap" />
             </Label>
             <Label Grid.Row="1"
                    Grid.Column="0"
