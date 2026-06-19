@@ -1,4 +1,4 @@
-﻿using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -205,10 +205,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       #endregion
 
-      internal User? User;
-      internal AutoSave AutoSave;
-      internal ActivityCenter ActivityCenter;
-      internal Warning[]? Warnings;
+      internal User? User { get; private set; }
+      internal AutoSave AutoSave { get; private set; }
+      internal ActivityCenter ActivityCenter { get; private set; }
+      internal Warning[]? Warnings { get; private set; }
 
       internal string Username { get; private set; }
       internal string[] Passkeys { get; private set; }
@@ -216,7 +216,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal readonly string DatabaseFileEntry = "database";
       internal readonly string AutoSaveFileEntry = "autosave";
       internal readonly string ActivityFileEntry = "activity";
-      internal FileLocker FileLocker;
+      internal FileLocker FileLocker { get; private set; }
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
