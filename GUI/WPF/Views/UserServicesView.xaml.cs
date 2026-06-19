@@ -16,9 +16,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    public partial class UserServicesView : Window
    {
       private readonly UserServicesViewModel _viewModel;
+      private readonly IDatabase _database;
       private int _autoLoginHotkeyId = 0;
       private int _autoPasswordHotkeyId = 0;
       private Task? _saveTask;
+      private bool _isClosing;
 
       private static ISessionService Session => AppServices.Session;
       private static IDialogService Dialogs => AppServices.Dialogs;
@@ -28,7 +30,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          InitializeComponent();
 
-         IDatabase database = Session.Database
+         _database = Session.Database
             ?? throw new InvalidOperationException("UserServicesView requires an active session.");
 
          Navigation.ItemRequested += _navigation_ItemRequested;
@@ -47,8 +49,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _ = _serviceFilter_TB.Focus();
 
-         database.DatabaseClosed += _database_DatabaseClosed;
-         database.WarningsUpdated += _database_WarningUpdated;
+         _database.DatabaseClosed += _database_DatabaseClosed;
+         _database.WarningsUpdated += _database_WarningUpdated;
          Loaded += _userServicesView_Loaded;
       }
 
@@ -67,13 +69,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
       {
-         if (Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
+         if (_isClosing || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
          {
             return;
          }
 
          _ = Dispatcher.BeginInvoke(() =>
          {
+            if (_isClosing || !IsLoaded)
+            {
+               return;
+            }
+
             DialogResult = true;
          });
       }
@@ -154,6 +161,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _window_Closed(object sender, EventArgs e)
       {
+         _isClosing = true;
+
+         _database.DatabaseClosed -= _database_DatabaseClosed;
+         _database.WarningsUpdated -= _database_WarningUpdated;
+
          _ = HotkeyHelper.Unregister(this, _autoLoginHotkeyId);
          _ = HotkeyHelper.Unregister(this, _autoPasswordHotkeyId);
          HotkeyHelper.HotkeyPressed -= _hotkeyHelper_HotkeyPressed;
