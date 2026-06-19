@@ -11,7 +11,7 @@
         Title="{Binding AppTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="140" Width="500">
+        Height="150" Width="500">
     <Window.InputBindings>
         <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenDatabaseCommand}"/>
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewUserCommand}"/>
@@ -43,22 +43,22 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Row="0"
+            <Label Grid.Row="1"
                    Grid.Column="0"
                    Grid.ColumnSpan="2">
                 <TextBlock Text="{Binding DatabaseLabel}"
                     TextWrapping="Wrap" />
             </Label>
-            <Label Grid.Row="1"
+            <Label Grid.Row="0"
                    Grid.Column="0"
                    MinWidth="70"
                    Content="{Binding CredentialsLabel}"/>
             <TextBox Name="_username_TB"
-                     Grid.Row="1"
+                     Grid.Row="0"
                      Grid.Column="1"
                      Visibility="Visible"/>
             <PasswordBox Name="_password_PB"
-                         Grid.Row="1"
+                         Grid.Row="0"
                          Grid.Column="1"
                          Visibility="Collapsed"/>
         </Grid>
