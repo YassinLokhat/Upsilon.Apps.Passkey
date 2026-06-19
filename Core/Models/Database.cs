@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+using System.Security;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
@@ -41,6 +43,36 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public void Dispose() => Close(logCloseEvent: true, loginTimeoutReached: false);
 
       public void Save() => _save(logSaveEvent: true);
+
+      public IUser? Login(SecureString passkey)
+      {
+         ArgumentNullException.ThrowIfNull(passkey);
+
+         IntPtr bstr = IntPtr.Zero;
+         char[]? chars = null;
+
+         try
+         {
+            bstr = Marshal.SecureStringToBSTR(passkey);
+            int length = passkey.Length;
+            chars = new char[length];
+            Marshal.Copy(bstr, chars, 0, length);
+
+            return Login(new string(chars));
+         }
+         finally
+         {
+            if (chars is not null)
+            {
+               Array.Clear(chars);
+            }
+
+            if (bstr != IntPtr.Zero)
+            {
+               Marshal.ZeroFreeBSTR(bstr);
+            }
+         }
+      }
 
       public IUser? Login(string passkey)
       {

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -149,10 +149,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
-         _password_PB.SecurePassword.UseAsString(passkey =>
-         {
-            _ = Session.Database.Login(passkey);
-         });
+         _ = Session.Database.Login(_password_PB.SecurePassword);
 
          // Erase the PasswordBox buffer right after submitting so the secret
          // is not kept alive longer than necessary.
