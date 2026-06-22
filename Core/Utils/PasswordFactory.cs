@@ -30,7 +30,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // password; it is intentionally independent of the requested length.
          const int maxAttempts = 100;
 
-         Random random = new((int)DateTime.Now.Ticks);
          StringBuilder stringBuilder = new(length);
 
          for (int attempt = 0; attempt < maxAttempts; attempt++)
@@ -39,7 +38,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             for (int i = 0; i < length; i++)
             {
-               _ = stringBuilder.Append(alphabet[random.Next(alphabet.Length)]);
+               // RandomNumberGenerator.GetInt32 is a cryptographically secure,
+               // unbiased source: unlike System.Random it cannot be predicted
+               // from the current time, which is essential when minting secrets.
+               _ = stringBuilder.Append(alphabet[RandomNumberGenerator.GetInt32(alphabet.Length)]);
             }
 
             string candidate = stringBuilder.ToString();

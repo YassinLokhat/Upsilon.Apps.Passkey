@@ -83,10 +83,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string EncryptAsymmetrically(string source, string key)
       {
-         Random random = new((int)DateTime.Now.Ticks);
-         byte[] randomBytes = new byte[100];
-         random.NextBytes(randomBytes);
-         string aesKey = Encoding.UTF8.GetString(randomBytes);
+         // The one-time AES key wraps the payload while the RSA layer protects
+         // the key itself. It must be unpredictable, so it is drawn from a
+         // CSPRNG and Base64-encoded to keep every bit of entropy (encoding raw
+         // random bytes as UTF-8 would silently drop invalid sequences).
+         byte[] randomBytes = RandomNumberGenerator.GetBytes(100);
+         string aesKey = Convert.ToBase64String(randomBytes);
          source = EncryptSymmetrically(source, [aesKey]);
          aesKey = _encryptRsa(aesKey, key);
          KeyValuePair<string, string> s = new(aesKey, source);
