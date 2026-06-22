@@ -1,12 +1,5 @@
 ﻿namespace Upsilon.Apps.Passkey.Interfaces.Utils
 {
-   public sealed class CheckSignFailedException : Exception
-   {
-      public CheckSignFailedException() : base() { }
-      public CheckSignFailedException(string message) : base(message) { }
-      public CheckSignFailedException(string message, Exception innerException) : base(message, innerException) { }
-   }
-
    public sealed class CorruptedSourceException : Exception
    {
       public CorruptedSourceException() : base() { }

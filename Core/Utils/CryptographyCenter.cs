@@ -34,33 +34,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public int HashLength => GetHash(string.Empty).Length;
 
-      public void Sign(ref string source)
-      {
-         source = GetHash(source) + source;
-      }
-
-      public bool CheckSign(ref string source)
-      {
-         try
-         {
-            string hashSource = source[..HashLength];
-            string hashCheck = GetHash(source[HashLength..]);
-
-            if (hashSource != hashCheck)
-            {
-               throw new Exception();
-            }
-
-            source = source[HashLength..];
-         }
-         catch
-         {
-            return false;
-         }
-
-         return true;
-      }
-
       public string EncryptSymmetrically(string source, string[] passwords)
       {
          // Onion encryption: every passkey adds an authenticated AES-GCM layer,
@@ -122,28 +95,36 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // random bytes as UTF-8 would silently drop invalid sequences).
          byte[] randomBytes = RandomNumberGenerator.GetBytes(100);
          string aesKey = Convert.ToBase64String(randomBytes);
+
+         // The payload is sealed with authenticated AES-GCM and the AES key is
+         // wrapped with RSA-OAEP, so both parts already detect tampering - no
+         // separate signature is needed over the envelope.
          source = EncryptSymmetrically(source, [aesKey]);
          aesKey = _encryptRsa(aesKey, key);
          KeyValuePair<string, string> s = new(aesKey, source);
-         source = JsonSerializer.Serialize(s);
 
-         Sign(ref source);
-
-         return source;
+         return JsonSerializer.Serialize(s);
       }
 
       public string DecryptAsymmetrically(string source, string key)
       {
-         if (!CheckSign(ref source))
+         KeyValuePair<string, string> s;
+
+         try
          {
-            throw new CheckSignFailedException();
+            s = JsonSerializer.Deserialize<KeyValuePair<string, string>>(source);
+         }
+         catch (JsonException)
+         {
+            throw new CorruptedSourceException();
          }
 
-         KeyValuePair<string, string> s = JsonSerializer.Deserialize<KeyValuePair<string, string>>(source);
+         // A wrong key fails the RSA unwrap (WrongPasswordException); any
+         // tampering with the wrapped key or the payload is caught by RSA-OAEP
+         // or the AES-GCM tag inside DecryptSymmetrically.
          string aesKey = _decryptRsa(s.Key, 0, key);
-         source = DecryptSymmetrically(s.Value, [aesKey]);
 
-         return source;
+         return DecryptSymmetrically(s.Value, [aesKey]);
       }
 
       private const int _saltSize = 16;
