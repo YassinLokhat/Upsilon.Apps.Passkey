@@ -21,28 +21,38 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       public string GeneratePassword(int length, string alphabet, bool checkIfLeaked = true)
       {
          if (string.IsNullOrWhiteSpace(alphabet)
-            || length == 0)
+            || length <= 0)
          {
             return string.Empty;
          }
 
-         StringBuilder stringBuilder = new();
-         Random random = new((int)DateTime.Now.Ticks);
-         byte iteration = 0;
+         // The retry budget is a fixed number of attempts to find a non-leaked
+         // password; it is intentionally independent of the requested length.
+         const int maxAttempts = 100;
 
-         do
+         Random random = new((int)DateTime.Now.Ticks);
+         StringBuilder stringBuilder = new(length);
+
+         for (int attempt = 0; attempt < maxAttempts; attempt++)
          {
-            iteration++;
             _ = stringBuilder.Clear();
 
             for (int i = 0; i < length; i++)
             {
                _ = stringBuilder.Append(alphabet[random.Next(alphabet.Length)]);
             }
-         }
-         while (iteration < length && checkIfLeaked && PasswordLeaked(stringBuilder.ToString()));
 
-         return iteration == length ? string.Empty : stringBuilder.ToString();
+            string candidate = stringBuilder.ToString();
+
+            if (!checkIfLeaked || !PasswordLeaked(candidate))
+            {
+               return candidate;
+            }
+         }
+
+         // Every attempt produced a leaked password: give up rather than
+         // returning a password that is known to be compromised.
+         return string.Empty;
       }
 
       public bool PasswordLeaked(string password)
