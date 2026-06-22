@@ -82,15 +82,16 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             User = FileLocker.Open<User>(DatabaseFileEntry, Passkeys);
          }
+         catch (WrongPasswordException passwordException)
+         {
+            ActivityCenter.AddActivity(itemId: string.Empty,
+               eventType: ActivityEventType.LoginFailed,
+               data: [Username, passwordException.PasswordLevel.ToString()],
+               needsReview: true);
+         }
          catch (Exception ex)
          {
-            if (ex is WrongPasswordException passwordException)
-            {
-               ActivityCenter.AddActivity(itemId: string.Empty,
-                  eventType: ActivityEventType.LoginFailed,
-                  data: [Username, passwordException.PasswordLevel.ToString()],
-                  needsReview: true);
-            }
+            System.Diagnostics.Trace.TraceWarning($"Unexpected error during login :\n{ex.Message}");
          }
 
          if (User is not null)

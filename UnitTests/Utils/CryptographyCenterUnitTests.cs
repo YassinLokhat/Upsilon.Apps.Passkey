@@ -5,7 +5,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 namespace Upsilon.Apps.Passkey.UnitTests.Utils
 {
    [TestClass]
-   public sealed class CryptographyCenterUnitTexts
+   public sealed class CryptographyCenterUnitTests
    {
       [TestMethod]
       /*
