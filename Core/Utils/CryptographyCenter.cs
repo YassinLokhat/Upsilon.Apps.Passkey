@@ -52,25 +52,47 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string EncryptSymmetrically(string source, string[] passwords)
       {
-         source = _encryptAes(source, passwords);
-         source = Convert.ToBase64String(Encoding.Unicode.GetBytes(source));
+         // Onion encryption: every passkey adds an authenticated AES-GCM layer,
+         // so all of them are required - and in the right order - to recover the
+         // data.
+         string result = source;
 
-         Sign(ref source);
+         for (int i = passwords.Length - 1; i >= 0; i--)
+         {
+            result = _encryptGcmLayer(result, passwords[i]);
+         }
 
-         return source;
+         // A final layer keyed with a fixed, public value lets decryption tell
+         // "corrupted or foreign data" apart from "valid data, wrong passkey".
+         return _encryptGcmLayer(result, GetHash(string.Empty));
       }
 
       public string DecryptSymmetrically(string source, string[] passwords)
       {
-         if (!CheckSign(ref source))
+         string result;
+
+         try
          {
-            throw new CheckSignFailedException();
+            result = _decryptGcmLayer(source, GetHash(string.Empty));
+         }
+         catch
+         {
+            throw new CorruptedSourceException();
          }
 
-         source = Encoding.Unicode.GetString(Convert.FromBase64String(source));
-         source = _decryptAes(source, passwords);
+         for (int i = 0; i < passwords.Length; i++)
+         {
+            try
+            {
+               result = _decryptGcmLayer(result, passwords[i]);
+            }
+            catch
+            {
+               throw new WrongPasswordException(i);
+            }
+         }
 
-         return source;
+         return result;
       }
 
       public void GenerateRandomKeys(out string publicKey, out string privateKey)
@@ -113,128 +135,78 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return source;
       }
 
-      private static string _cipherAes(string plainText, string key)
+      private const int _saltSize = 16;
+      private const int _nonceSize = 12;
+      private const int _tagSize = 16;
+      private const int _keySize = 32;
+
+      // The passkeys reaching this layer are already high-entropy values
+      // (slow-hashed master passwords or a random AES key), so HKDF is the
+      // right tool to expand them into a fresh AES-256 key. Brute-force
+      // hardening of human-chosen passwords belongs to GetSlowHash, not here.
+      private static byte[] _deriveLayerKey(string password, byte[] salt)
+         => HKDF.DeriveKey(HashAlgorithmName.SHA256, Encoding.Unicode.GetBytes(password), _keySize, salt);
+
+      private static string _encryptGcmLayer(string plainText, string password)
       {
-         if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(plainText))
-         {
-            return plainText;
-         }
-
-         key = Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
-
-         byte[] _key = Encoding.ASCII.GetBytes(key[..32]);
-         byte[] IV = Encoding.ASCII.GetBytes(key.Substring(32, 16));
-
-         byte[] bytes = _cipherAes(plainText, _key, IV);
-
-         return new string([.. bytes.Select(x => (char)x)]);
-      }
-
-      private static byte[] _cipherAes(string plainText, byte[] key, byte[] IV)
-      {
-         using Aes aesAlg = Aes.Create();
-         aesAlg.Key = key;
-         aesAlg.IV = IV;
-
-         ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-
-         using MemoryStream msEncrypt = new();
-         using CryptoStream csEncrypt = new(msEncrypt, encryptor, CryptoStreamMode.Write);
-         using (StreamWriter swEncrypt = new(csEncrypt))
-         {
-            swEncrypt.Write(plainText);
-         }
-
-         return msEncrypt.ToArray();
-      }
-
-      private static string _uncipherAes(string cipherText, string key)
-      {
-         if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(cipherText))
-         {
-            return cipherText;
-         }
-         key = Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
-
-         byte[] _key = Encoding.ASCII.GetBytes(key[..32]);
-         byte[] IV = Encoding.ASCII.GetBytes(key.Substring(32, 16));
-
-         byte[] bytes = [.. cipherText.Select(x => (byte)x)];
-
-         return _uncitherAes(bytes, _key, IV);
-      }
-
-      private static string _uncitherAes(byte[] cipherText, byte[] key, byte[] IV)
-      {
-         using Aes aesAlg = Aes.Create();
-         aesAlg.Key = key;
-         aesAlg.IV = IV;
-
-         ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
-
-         using MemoryStream msDecrypt = new(cipherText);
-         using CryptoStream csDecrypt = new(msDecrypt, decryptor, CryptoStreamMode.Read);
-         using StreamReader srDecrypt = new(csDecrypt);
-
-         return srDecrypt.ReadToEnd();
-      }
-
-      private string _encryptAes(string source, string[] passwords)
-      {
-         passwords = [.. passwords.Select(GetHash)];
-
-         for (int i = passwords.Length - 1; i >= 0; i--)
-         {
-            Sign(ref source);
-            source = _cipherAes(source, passwords[i]);
-         }
-
-         Sign(ref source);
-         source = _cipherAes(source, GetHash(string.Empty));
-
-         return source;
-      }
-
-      private string _decryptAes(string source, string[] passwords)
-      {
-         passwords = [.. passwords.Select(GetHash)];
+         byte[] salt = RandomNumberGenerator.GetBytes(_saltSize);
+         byte[] nonce = RandomNumberGenerator.GetBytes(_nonceSize);
+         byte[] key = _deriveLayerKey(password, salt);
 
          try
          {
-            source = _uncipherAes(source, GetHash(string.Empty));
-         }
-         catch
-         {
-            throw new CorruptedSourceException();
-         }
+            byte[] plainBytes = Encoding.Unicode.GetBytes(plainText);
+            byte[] cipherBytes = new byte[plainBytes.Length];
+            byte[] tag = new byte[_tagSize];
 
-         if (!CheckSign(ref source))
-         {
-            throw new CheckSignFailedException();
-         }
-
-         for (int i = 0; i < passwords.Length; i++)
-         {
-            try
+            using (AesGcm aesGcm = new(key, _tagSize))
             {
-               source = _uncipherAes(source, passwords[i]);
+               aesGcm.Encrypt(nonce, plainBytes, cipherBytes, tag);
+            }
 
-               if (!CheckSign(ref source))
-               {
-                  throw new CheckSignFailedException();
-               }
-            }
-            catch
-            {
-               throw new WrongPasswordException(i);
-            }
+            // salt | nonce | tag | ciphertext, so decryption is self-describing.
+            return Convert.ToBase64String([.. salt, .. nonce, .. tag, .. cipherBytes]);
+         }
+         finally
+         {
+            CryptographicOperations.ZeroMemory(key);
+         }
+      }
+
+      private static string _decryptGcmLayer(string payload, string password)
+      {
+         byte[] data = Convert.FromBase64String(payload);
+
+         if (data.Length < _saltSize + _nonceSize + _tagSize)
+         {
+            throw new CryptographicException("Ciphertext is too short to be valid.");
          }
 
-         return source;
+         ReadOnlySpan<byte> dataSpan = data;
+         byte[] salt = dataSpan[.._saltSize].ToArray();
+         byte[] nonce = dataSpan.Slice(_saltSize, _nonceSize).ToArray();
+         byte[] tag = dataSpan.Slice(_saltSize + _nonceSize, _tagSize).ToArray();
+         byte[] cipherBytes = dataSpan[(_saltSize + _nonceSize + _tagSize)..].ToArray();
+
+         byte[] key = _deriveLayerKey(password, salt);
+
+         try
+         {
+            byte[] plainBytes = new byte[cipherBytes.Length];
+
+            // AES-GCM verifies the tag while decrypting and throws on any
+            // tampering or wrong key, which is how callers detect both.
+            using (AesGcm aesGcm = new(key, _tagSize))
+            {
+               aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
+            }
+
+            return Encoding.Unicode.GetString(plainBytes);
+         }
+         finally
+         {
+            CryptographicOperations.ZeroMemory(key);
+         }
       }
 
       private static string _encryptRsa(string source, string publicKeyPem)

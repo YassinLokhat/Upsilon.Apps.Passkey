@@ -125,8 +125,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             string source = UnitTestsHelper.GetRandomString();
             string[] passkeys = UnitTestsHelper.GetRandomStringArray();
             string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptSymmetrically(source, passkeys);
-            string corruptedSource = encryptedSource + " ";
-            CheckSignFailedException exception = null;
+            // Appending a character breaks the Base64 alignment of the
+            // outermost layer (a lone space would be ignored by the decoder).
+            string corruptedSource = encryptedSource + "A";
+            CorruptedSourceException exception = null;
 
             // When
             Action act = new(() =>
@@ -135,7 +137,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
                {
                   string decryptedSource = UnitTestsHelper.CryptographicCenter.DecryptSymmetrically(corruptedSource, passkeys);
                }
-               catch (CheckSignFailedException ex)
+               catch (CorruptedSourceException ex)
                {
                   exception = ex;
                   throw;
@@ -143,7 +145,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             });
 
             // Then
-            _ = act.Should().Throw<CheckSignFailedException>();
+            _ = act.Should().Throw<CorruptedSourceException>();
             _ = exception.Should().NotBeNull();
          }
       }
