@@ -149,11 +149,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
-         _ = Session.Database.Login(_password_PB.SecurePassword);
-
-         // Erase the PasswordBox buffer right after submitting so the secret
-         // is not kept alive longer than necessary.
-         _password_PB.Clear();
+         try
+         {
+            _ = Session.Database.Login(_password_PB.SecurePassword);
+         }
+         catch (Exception ex)
+         {
+            Log.Error(ex, "Unexpected error during login");
+            AppServices.Dialogs.Warn("An unexpected error occurred while opening the database.", "Login error");
+            return;
+         }
+         finally
+         {
+            // Erase the PasswordBox buffer right after submitting so the secret
+            // is not kept alive longer than necessary.
+            _password_PB.Clear();
+         }
 
          if (Session.Database.User is null)
          {
