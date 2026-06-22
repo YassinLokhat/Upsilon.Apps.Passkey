@@ -6,6 +6,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 {
    public class PasswordFactory : IPasswordFactory
    {
+      // A single, shared HttpClient avoids the socket exhaustion caused by
+      // creating (and disposing) one client per leak check. The timeout keeps a
+      // slow or unreachable service from blocking password generation forever.
+      private static readonly HttpClient _httpClient = new()
+      {
+         Timeout = TimeSpan.FromSeconds(10),
+      };
+
       public string Alphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
       public string Numeric => "0123456789";
       public string SpecialChars => "~!@#$%^&*()_-+={[}]\\|'\";:,<.>/?";
@@ -41,14 +49,30 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          string hash = Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(password)));
 
-         using HttpClient httpClient = new();
-         HttpRequestMessage request = new(HttpMethod.Get, $"https://api.pwnedpasswords.com/range/{hash[..5]}");
-         HttpResponseMessage response = httpClient.Send(request);
-         using StreamReader reader = new(response.Content.ReadAsStream());
+         try
+         {
+            using HttpRequestMessage request = new(HttpMethod.Get, $"https://api.pwnedpasswords.com/range/{hash[..5]}");
+            using HttpResponseMessage response = _httpClient.Send(request);
 
-         string res = reader.ReadToEnd();
+            if (!response.IsSuccessStatusCode)
+            {
+               System.Diagnostics.Trace.TraceWarning($"Password leak check returned HTTP {(int)response.StatusCode}.");
+               return false;
+            }
 
-         return res.Contains(hash[5..]);
+            using StreamReader reader = new(response.Content.ReadAsStream());
+            string res = reader.ReadToEnd();
+
+            return res.Contains(hash[5..]);
+         }
+         catch (Exception ex)
+         {
+            // A leak check must never crash password generation or the warning
+            // scan. When the service is unreachable we cannot confirm a leak, so
+            // we report "not leaked" and trace the failure for diagnostics.
+            System.Diagnostics.Trace.TraceWarning($"Password leak check failed: {ex}");
+            return false;
+         }
       }
    }
 }
