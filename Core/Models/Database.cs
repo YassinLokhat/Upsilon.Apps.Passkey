@@ -439,6 +439,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
                needsReview: false);
          }
 
+         // Stop the session timer before tearing down the file handle: this both
+         // blocks until any in-flight tick finishes and prevents future ticks
+         // from operating on the disposed FileLocker.
+         User?.StopTimer();
+
          User = null;
          Username = string.Empty;
          Passkeys = [];

@@ -204,6 +204,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public int SessionLeftTime = 0;
       private int _clipboardLeftTime = 0;
 
+      // The timer fires on a ThreadPool thread, so a tick can run concurrently
+      // with Database.Close on the UI thread. This gate serializes both: a tick
+      // already in progress completes before StopTimer disposes the timer, and a
+      // late tick that wins the race observes _timerStopped and bails out before
+      // touching the now-disposed Database/FileLocker. The lock is re-entrant, so
+      // the timeout tick path (which calls Close -> StopTimer) is safe.
+      private readonly System.Threading.Lock _timerGate = new();
+      private bool _timerStopped;
+
       public User()
       {
          _timer.Elapsed += _timer_Elapsed;
@@ -211,31 +220,41 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
       {
-         if (LogoutTimeout != 0)
+         lock (_timerGate)
          {
-            SessionLeftTime--;
-
-            if (SessionLeftTime == 0)
+            if (_timerStopped)
             {
-               Database.ActivityCenter.AddActivity(itemId: ItemId,
-                  eventType: ActivityEventType.LoginSessionTimeoutReached,
-                  data: [Username],
-                  needsReview: true);
-               Database.Close(logCloseEvent: true, loginTimeoutReached: true);
-
-               _timer.Stop();
-               _timer.Dispose();
+               return;
             }
-         }
 
-         if (CleaningClipboardTimeout != 0)
-         {
-            _clipboardLeftTime--;
-
-            if (_clipboardLeftTime == 0)
+            if (LogoutTimeout != 0)
             {
-               _ = Database.ClipboardManager.RemoveAllOccurence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)]);
-               _clipboardLeftTime = CleaningClipboardTimeout;
+               SessionLeftTime--;
+
+               if (SessionLeftTime == 0)
+               {
+                  Database.ActivityCenter.AddActivity(itemId: ItemId,
+                     eventType: ActivityEventType.LoginSessionTimeoutReached,
+                     data: [Username],
+                     needsReview: true);
+
+                  // Close stops and disposes this timer through StopTimer, so the
+                  // tick must not touch the timer or the Database afterwards.
+                  Database.Close(logCloseEvent: true, loginTimeoutReached: true);
+
+                  return;
+               }
+            }
+
+            if (CleaningClipboardTimeout != 0)
+            {
+               _clipboardLeftTime--;
+
+               if (_clipboardLeftTime == 0)
+               {
+                  _ = Database.ClipboardManager.RemoveAllOccurence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)]);
+                  _clipboardLeftTime = CleaningClipboardTimeout;
+               }
             }
          }
       }
@@ -244,6 +263,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          SessionLeftTime = LogoutTimeout * 60;
          _clipboardLeftTime = CleaningClipboardTimeout;
+      }
+
+      internal void StopTimer()
+      {
+         lock (_timerGate)
+         {
+            if (_timerStopped)
+            {
+               return;
+            }
+
+            _timerStopped = true;
+            _timer.Stop();
+            _timer.Elapsed -= _timer_Elapsed;
+            _timer.Dispose();
+         }
       }
 
       internal void Apply(Change change)
