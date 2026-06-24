@@ -211,6 +211,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          _ = Dispatcher.BeginInvoke(() =>
          {
+            if (!IsLoaded)
+            {
+               return;
+            }
+
             _resetCredentials();
             Session.EndSession();
             Show();
