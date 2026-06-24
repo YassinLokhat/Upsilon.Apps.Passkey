@@ -11,6 +11,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private readonly ICryptographyCenter _cryptographicCenter;
       private readonly ISerializationCenter _serializationCenter;
 
+      // Every public operation briefly releases the held lock stream, touches
+      // the archive, then re-acquires it. Without serialization two threads
+      // (e.g. a save and the session-timeout timer) can reach the archive at
+      // the same time and trip "the file is used by another process". This gate
+      // makes all file access mutually exclusive; it is re-entrant, so the
+      // internal Lock/Unlock calls made inside a held operation are safe.
+      private readonly System.Threading.Lock _gate = new();
+
       internal FileLocker(ICryptographyCenter cryptographicCenter, ISerializationCenter serializationCenter, string filePath, FileMode fileMode = FileMode.Open)
       {
          FilePath = filePath;
@@ -39,61 +47,79 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       internal T Open<T>(string fileEntry, string[] passkeys) where T : notnull
       {
-         return _readContent(fileEntry, passkeys).DeserializeTo<T>(_serializationCenter);
+         lock (_gate)
+         {
+            return _readContent(fileEntry, passkeys).DeserializeTo<T>(_serializationCenter);
+         }
       }
 
       internal T Open<T>(string fileEntry) where T : notnull => Open<T>(fileEntry, []);
 
       internal void Save<T>(T obj, string fileEntry, string[] passkeys) where T : notnull
       {
-         _writeContent(obj.SerializeWith(_serializationCenter), fileEntry, passkeys);
+         lock (_gate)
+         {
+            _writeContent(obj.SerializeWith(_serializationCenter), fileEntry, passkeys);
+         }
       }
 
       internal void Save<T>(T obj, string fileEntry) where T : notnull => Save(obj, fileEntry, []);
 
       internal void Delete()
       {
-         Unlock();
-
-         if (File.Exists(FilePath))
+         lock (_gate)
          {
-            File.Delete(FilePath);
+            Unlock();
+
+            if (File.Exists(FilePath))
+            {
+               File.Delete(FilePath);
+            }
          }
       }
 
       internal void Delete(string fileEntry)
       {
-         Unlock();
-
-         using (ZipArchive archive = ZipFile.Open(FilePath, ZipArchiveMode.Update, Encoding.UTF8))
+         lock (_gate)
          {
-            ZipArchiveEntry? existingEntry = archive.GetEntry(fileEntry);
-            existingEntry?.Delete();
-         }
+            Unlock();
 
-         Lock();
+            using (ZipArchive archive = ZipFile.Open(FilePath, ZipArchiveMode.Update, Encoding.UTF8))
+            {
+               ZipArchiveEntry? existingEntry = archive.GetEntry(fileEntry);
+               existingEntry?.Delete();
+            }
+
+            Lock();
+         }
       }
 
       internal bool Exists(string fileEntry)
       {
-         Unlock();
-
-         bool exists = false;
-
-         using (ZipArchive archive = ZipFile.Open(FilePath, ZipArchiveMode.Update, Encoding.UTF8))
+         lock (_gate)
          {
-            exists = archive.GetEntry(fileEntry) is not null;
+            Unlock();
+
+            bool exists = false;
+
+            using (ZipArchive archive = ZipFile.Open(FilePath, ZipArchiveMode.Update, Encoding.UTF8))
+            {
+               exists = archive.GetEntry(fileEntry) is not null;
+            }
+
+            Lock();
+
+            return exists;
          }
-
-         Lock();
-
-         return exists;
       }
 
       public void Dispose()
       {
-         Unlock();
-         FilePath = string.Empty;
+         lock (_gate)
+         {
+            Unlock();
+            FilePath = string.Empty;
+         }
       }
 
       private static string _compressString(string text)
