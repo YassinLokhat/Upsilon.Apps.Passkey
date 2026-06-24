@@ -1,129 +1,230 @@
-﻿using System.IO;
+﻿
+using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.MAUI.ViewModels;
-
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Events;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace MAUI
 {
     public partial class MainPage : ContentPage
     {
         private MainViewModel _viewModel;
-
+        private bool _isPasswordStep = false;
+        
+        private IDispatcherTimer _timer = null!;
+        private readonly TimeSpan _timeoutDuration = TimeSpan.FromMinutes(2);
+        
         public MainPage()
         {
             InitializeComponent();
             _viewModel = new MainViewModel();
             BindingContext = _viewModel;
+            _timer = Dispatcher.CreateTimer();
+            _timer.Interval = _timeoutDuration;
+            _timer.Tick += _timer_Tick;
+            _timer.Start();
+#if WINDOWS
+                Microsoft.Maui.Handlers.WindowHandler.Mapper.AppendToMapping("GlobalKeyInterceptor", (handler, view) =>
+                {
+                    var nativeWindow = handler.PlatformView;
+                    nativeWindow.Content.KeyDown += (sender, e) =>
+                    {
+                        if (e.Key == Windows.System.VirtualKey.Escape)
+                        {
+                            ResetToUsernameStep();
+                        }
+                    };
+                });
+#endif
         }
 
-        private async void OnNavigateToRegisterPage_Click(object sender, EventArgs e)
+        private void _timer_Tick(object sender, EventArgs e)
+        {
+            _resetCredentials();
+            MainViewModel.Database?.Close();
+            MainViewModel.Database = null;
+        }
+       
+        private void _onEntryCompleted(object sender, EventArgs e)
+        {
+            ExecuteAuthenticationStep();
+        }
+        private void _onLoginButtonClicked(object sender, EventArgs e)
+        {
+            ExecuteAuthenticationStep();
+        }
+
+        private void ExecuteAuthenticationStep()
+        {
+            _timer.Stop();
+            string inputText = _credentialEntry.Text;
+
+            if (string.IsNullOrEmpty(inputText))
+            {
+                _timer.Start();
+                return;
+            }
+
+            if (!_isPasswordStep)
+            {
+                if (!File.Exists(_viewModel.DatabaseFile))
+                {
+                    string filename = MainViewModel.CryptographyCenter.GetHash(inputText);
+                    _viewModel.DatabaseFile = Path.Combine(FileSystem.AppDataDirectory, "raw", $"{filename}.pku");
+                }
+
+                try
+                {
+                    MainViewModel.Database = Database.Open(
+                        MainViewModel.CryptographyCenter,
+                        MainViewModel.SerializationCenter,
+                        MainViewModel.PasswordFactory,
+                        MainViewModel.ClipboardManager,
+                        _viewModel.DatabaseFile,
+                        inputText);
+
+                    MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
+                    MainViewModel.Database.AutoSaveDetected += _database_AutoSaveDetected;
+                }
+                catch { }
+
+                _viewModel.CredentialsLabel = "Password :";
+                _credentialEntry.Text = string.Empty;
+                _credentialEntry.Placeholder = "Saisir votre mot de passe...";
+                _credentialEntry.IsPassword = true; // Masque les caractères automatiquement
+                _loginButton.Text = "Login";
+
+                _isPasswordStep = true;
+                _credentialEntry.Focus();
+            }
+            else
+            {
+                if (MainViewModel.Database is not null)
+                {
+                    _ = MainViewModel.Database.Login(inputText);
+
+                    if (MainViewModel.Database.User is not null)
+                    {
+                        _resetCredentials();
+                    }
+                }
+                _credentialEntry.Text = string.Empty;
+            }
+            _timer.Start();
+        }
+
+        private void ResetToUsernameStep()
+        {
+            _resetCredentials();
+            MainViewModel.Database?.Close();
+            MainViewModel.Database = null;
+
+            _isPasswordStep = false;
+            _viewModel.CredentialsLabel = "Username :";
+            _credentialEntry.Text = string.Empty;
+            _credentialEntry.Placeholder = "Saisir votre identifiant...";
+            _credentialEntry.IsPassword = false;
+            _loginButton.Text = "Suivant";
+
+            _timer.Stop();
+            _timer.Start();
+        }
+
+        private void _resetCredentials()
+        {
+            _viewModel.DatabaseFile = string.Empty;
+            _viewModel.CredentialsLabel = "Username :";
+
+            _isPasswordStep = false; 
+            _credentialEntry.Text = string.Empty;
+            _credentialEntry.Placeholder = "Saisir votre identifiant...";
+            _credentialEntry.IsPassword = false; 
+            _credentialEntry.Focus();
+            _loginButton.Text = "Suivant";
+            _timer.Stop();
+        }
+        private async void _onNavigateToRegisterPage_Click(object sender, EventArgs e)
         {
            
             await Navigation.PushAsync(new UserSettingsView());
         }
-        
 
-        
-        private async void _openDatabase_MenuItem_Click(object sender, EventArgs e)
+        private void _database_DatabaseClosed(object? sender, LogoutEventArgs e)
         {
             try
             {
-                var result = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Ouvrir votre fichier .pku" });
-                if (result == null) return;
-
-                string localPath = Path.Combine(FileSystem.AppDataDirectory, result.FileName);
-                using (var sourceStream = await result.OpenReadAsync())
-                using (var targetStream = File.Create(localPath))
+                MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    await sourceStream.CopyToAsync(targetStream);
-                }
+                    _resetCredentials();
+                    MainViewModel.Database = null;
+                });
+            }
+            catch { }
+        }
 
-                string? username = await DisplayPromptAsync("Connexion", "Utilisateur :");
-                if (string.IsNullOrWhiteSpace(username)) return;
-
-                MainViewModel.Database = Upsilon.Apps.Passkey.Core.Models.Database.Open(
-                    MainViewModel.CryptographyCenter,
-                    MainViewModel.SerializationCenter,
-                    MainViewModel.PasswordFactory,
-                    MainViewModel.ClipboardManager,
-                    localPath,
-                    username);
-
-                if (MainViewModel.Database == null)
+        private async void _database_AutoSaveDetected(object? sender, AutoSaveDetectedEventArgs e)
+        {
+            try
+            {
+                string action = await MainThread.InvokeOnMainThreadAsync(async () =>
                 {
-                    await DisplayAlertAsync("Erreur", "Impossible de lire ce fichier.", "Fermer");
-                    return;
-                }
+                    return await DisplayActionSheetAsync(
+                        "Autosave detected",                                      
+                        "Cancel (Ignore and keep save file)",                     
+                        null,                                                     
+                        "Yes (Apply these changes)",                              
+                        "No (Discard them)"                                       
+                    );
+                });
 
-               
-                await ProcessDynamicLogin(username);
+                e.MergeBehavior = action switch
+                {
+                    "Cancel (Ignore and keep save file)" => AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile,
+                    "No (Discard them)" => AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile,
+                    _ => AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile 
+                };
+            }
+            catch { }
+        }
+        private async void _openDatabase_MenuItem_Click(object sender, EventArgs e)
+        {
+            var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+    {
+        { DevicePlatform.iOS, new[] { "com.upsilon.pku" } },
+        { DevicePlatform.Android, new[] { "application/octet-stream" } },
+        { DevicePlatform.WinUI, new[] { ".pku" } },
+        { DevicePlatform.MacCatalyst, new[] { "pku" } }
+    });
+
+            PickOptions options = new()
+            {
+                PickerTitle = "Open user database file",
+                FileTypes = customFileType
+            };
+            try
+            {
+                var result = await FilePicker.Default.PickAsync(options);
+                if (result == null) return; 
+
+                _resetCredentials();
+                MainViewModel.Database?.Close();
+                MainViewModel.Database = null;
+                _viewModel.DatabaseFile = result.FullPath;            
             }
             catch (Exception ex)
             {
-                await DisplayAlertAsync("Erreur Technique", $"{ex.GetType().Name}: {ex.Message}", "Fermer");
+                System.Diagnostics.Debug.WriteLine($"Erreur lors de la sélection du fichier: {ex.Message}");
+                await DisplayAlertAsync("Erreur", "Impossible d'ouvrir le fichier.", "OK");
             }
         }
 
-      
-        private async Task ProcessDynamicLogin(string username)
+        private void _newUser_MenuItem_Click()
         {
-            if (MainViewModel.Database == null) return;
-
-            try
-            {
-                IUser? user = null;
-                int step = 1;
-
-                
-                while (true)
-                {
-                    string? pwd = await DisplayPromptAsync(
-                        $"Authentification - Étape {step}",
-                        $"Entrez le mot de passe n°{step} :",
-                        keyboard: Keyboard.Password);
-
-                    if (string.IsNullOrWhiteSpace(pwd))
-                    {
-                        MainViewModel.Database = null; // Annulation
-                        return;
-                    }
-
-                    user = MainViewModel.Database.Login(pwd);
-
-                    
-                    if (user != null)
-                    {
-                        _viewModel.DatabaseLabel = $"🟢 Connecté : {username}";
-                        await DisplayAlertAsync("Succès", $"Ravi de vous revoir {user.Username} !", "Accéder au coffre");
-                        return;
-                    }
-
-                    
-                    step++;
-                }
-            }
-            catch (Exception)
-            {
-                await DisplayAlertAsync("Échec", "Mot de passe incorrect ou erreur d'authentification.", "Fermer");
-                MainViewModel.Database = null;
-            }
-        }
-
-        
-        private async void OnUsernameCompleted(object sender, EventArgs e)
-        {
-            string username = _mainEntry.Text?.Trim() ?? "";
-            if (string.IsNullOrWhiteSpace(username)) return;
-
             
-            if (MainViewModel.Database == null)
-            {
-                await DisplayAlertAsync("Info", "Veuillez d'abord sélectionner ou ouvrir votre fichier de base.", "OK");
-                return;
-            }
-
-            await ProcessDynamicLogin(username);
-            _mainEntry.Text = string.Empty;
         }
+       
+        
+        
     }
 }
