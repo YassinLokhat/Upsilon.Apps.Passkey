@@ -2,60 +2,84 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MAUI.MainPage"
-             Title="Passkey Manager">
+             NavigationPage.HasNavigationBar="False">
 
-    <ContentPage.MenuBarItems>
-        <MenuBarItem Text="Fichier">
-            <MenuFlyoutItem Text="Ouvrir une base existante" Clicked="_openDatabase_MenuItem_Click" />
-            <MenuFlyoutItem Text="Créer un nouvel utilisateur" Clicked="OnNavigateToRegisterPage_Click" />
-        </MenuBarItem>
-    </ContentPage.MenuBarItems>
+    
 
-   
-    <ScrollView HorizontalOptions="Fill">
+    <Grid RowDefinitions="Auto, *">
+        <Button Text="Ouvrir une base" 
+        Clicked="_openDatabase_MenuItem_Click" 
+        WidthRequest="250" 
+        HorizontalOptions="Start"/>
 
-        
-        <VerticalStackLayout Padding="30" 
-                             Spacing="25" 
-                             VerticalOptions="Center"
-                             HorizontalOptions="Center"
-                             MaximumWidthRequest="450"
-                             WidthRequest="450">
+        <ScrollView Grid.Row="1" HorizontalOptions="Fill">
 
-            <Image Source="dotnet_bot.png" HeightRequest="100" HorizontalOptions="Center" />
+            <VerticalStackLayout Padding="30" 
+                                 Spacing="25" 
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 MaximumWidthRequest="450"
+                                 WidthRequest="450">
 
-            <Label Text="{Binding DatabaseLabel}" 
-                   FontSize="14" 
-                   HorizontalOptions="Center" 
-                   TextColor="{StaticResource Primary}"/>
+                <Label Text="Bienvenue dans Passkey Manager" FontSize="24" HorizontalOptions="Center"/>
 
-            
-            <FlexLayout Direction="Column" AlignItems="Center" HorizontalOptions="Fill">
-                <Label x:Name="_inputLabel" Text="Username" FontAttributes="Bold" Margin="0,0,0,5" />
-                <Border StrokeThickness="1" StrokeShape="RoundRectangle 8" HorizontalOptions="Fill" Margin="20,0">
-                    <Entry x:Name="_mainEntry" 
-                           Placeholder="Saisir ici..." 
-                           Completed="OnUsernameCompleted" 
-                           Margin="10,0"
-                           HorizontalTextAlignment="Center"/>
-                </Border>
-            </FlexLayout>
+                <Image Source="passkeylogo.png" HorizontalOptions="Center" />
 
-            
-            <Button Text="Ouvrir une base" 
-                    Clicked="_openDatabase_MenuItem_Click" 
-                    WidthRequest="250" 
-                    HorizontalOptions="Center"/>
+                <Label Text="{Binding DatabaseLabel}" 
+                       FontSize="14" 
+                       HorizontalOptions="Center" 
+                       TextColor="{StaticResource Secondary}"/>
 
-            <Button Text="Nouvel Utilisateur" 
-                    Clicked="OnNavigateToRegisterPage_Click" 
-                    WidthRequest="250" 
-                    BackgroundColor="Transparent"
-                    TextColor="{StaticResource Primary}"
-                    BorderColor="{StaticResource Primary}"
-                    BorderWidth="1" 
-                    HorizontalOptions="Center"/>
+                <FlexLayout Direction="Column" 
+                    AlignItems="Stretch" 
+                    JustifyContent="Start"
+                    HorizontalOptions="Fill">
 
-        </VerticalStackLayout>
-    </ScrollView>
+                    <VerticalStackLayout Spacing="20" Padding="20" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="400">
+
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="15">
+
+                            <Label Grid.Column="0" 
+                               Text="{Binding CredentialsLabel}" 
+                               FontAttributes="Bold" 
+                               VerticalOptions="Center" 
+                               WidthRequest="90"/>
+
+                            <Border Grid.Column="1" StrokeThickness="1" StrokeShape="RoundRectangle 8">
+                                <Entry x:Name="_credentialEntry" 
+                                   Placeholder="Saisir votre identifiant..." 
+                                   HorizontalTextAlignment="Start"
+                                   Completed="_onEntryCompleted">
+                                    <Entry.GestureRecognizers>
+                                        <PointerGestureRecognizer />
+                                    </Entry.GestureRecognizers>
+                                </Entry>
+                            </Border>
+                        </Grid>
+
+                        <Button x:Name="_loginButton"
+                        Text="Suivant"
+                        Clicked="_onLoginButtonClicked"
+                        HeightRequest="45"
+                        CornerRadius="8" />
+
+                    </VerticalStackLayout>
+
+                </FlexLayout>
+
+
+
+                <Button Text="Nouvel Utilisateur" 
+                        Clicked="_onNavigateToRegisterPage_Click" 
+                        WidthRequest="250" 
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource Primary}"
+                        BorderColor="{StaticResource Primary}"
+                        BorderWidth="1" 
+                        HorizontalOptions="Center"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
 </ContentPage>
