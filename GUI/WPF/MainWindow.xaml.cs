@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -19,7 +19,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       private readonly MainViewModel _mainViewModel;
       private readonly DispatcherTimer _timer;
 
-      private static ISessionService Session => AppServices.Session;
+      private static ISessionService _session => AppServices.Session;
 
       public MainWindow()
       {
@@ -61,7 +61,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       private void _timer_Elapsed(object? sender, EventArgs e)
       {
          _resetCredentials();
-         Session.EndSession();
+         _session.EndSession();
       }
 
       private void _credential_TB_KeyUp(object sender, KeyEventArgs e)
@@ -85,7 +85,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          else if (e.Key == Key.Escape)
          {
             _resetCredentials();
-            Session.EndSession();
+            _session.EndSession();
          }
          else
          {
@@ -119,7 +119,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
             database.DatabaseClosed += _database_DatabaseClosed;
             database.AutoSaveDetected += _database_AutoSaveDetected;
-            Session.StartSession(database);
+            _session.StartSession(database);
          }
          catch (Exception ex)
          {
@@ -144,14 +144,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
-         if (Session.Database is null)
+         if (_session.Database is null)
          {
             return;
          }
 
          try
          {
-            _ = Session.Database.Login(_password_PB.SecurePassword);
+            _ = _session.Database.Login(_password_PB.SecurePassword);
          }
          catch (Exception ex)
          {
@@ -166,7 +166,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             _password_PB.Clear();
          }
 
-         if (Session.Database.User is null)
+         if (_session.Database.User is null)
          {
             return;
          }
@@ -217,7 +217,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             }
 
             _resetCredentials();
-            Session.EndSession();
+            _session.EndSession();
             Show();
          });
       }

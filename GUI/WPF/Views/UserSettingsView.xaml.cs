@@ -25,13 +25,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private bool _isClosing;
       private IDatabase? _database;
 
-      private static ISessionService Session => AppServices.Session;
+      private static ISessionService _session => AppServices.Session;
 
       public UserSettingsView()
       {
          InitializeComponent();
 
-         _database = Session.Database;
+         _database = _session.Database;
          bool hasUser = _database?.User is not null;
 
          _deleteUser_MI.Visibility
@@ -60,7 +60,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _database?.DatabaseClosed -= _database_DatabaseClosed;
 
-         Session.EndSession();
+         _session.EndSession();
       }
 
       public static void ShowUserSettings(Window owner)
@@ -173,7 +173,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   _passwordsContainer.Passkeys);
 
                _database.DatabaseClosed += _database_DatabaseClosed;
-               Session.StartSession(_database);
+               _session.StartSession(_database);
             }
             catch (Exception ex)
             {

@@ -201,7 +201,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Interval = 1000,
       };
 
-      public int SessionLeftTime = 0;
+      public int SessionLeftTime { get; set; } = 0;
       private int _clipboardLeftTime = 0;
 
       // The timer fires on a ThreadPool thread, so a tick can run concurrently

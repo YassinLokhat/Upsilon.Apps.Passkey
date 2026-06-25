@@ -22,20 +22,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private Task? _saveTask;
       private bool _isClosing;
 
-      private static ISessionService Session => AppServices.Session;
-      private static IDialogService Dialogs => AppServices.Dialogs;
-      private static INavigationService Navigation => AppServices.Navigation;
+      private static ISessionService _session => AppServices.Session;
+      private static IDialogService _dialogs => AppServices.Dialogs;
+      private static INavigationService _navigation => AppServices.Navigation;
 
       private UserServicesView()
       {
          InitializeComponent();
 
-         _database = Session.Database
+         _database = _session.Database
             ?? throw new InvalidOperationException("UserServicesView requires an active session.");
 
-         Navigation.ItemRequested += _navigation_ItemRequested;
+         _navigation.ItemRequested += _navigation_ItemRequested;
 
-         DataContext = _viewModel = new($"{AppInfo.Title} - '{Session.User}'");
+         DataContext = _viewModel = new($"{AppInfo.Title} - '{_session.User}'");
          _viewModel.FiltersRefreshed += _viewModel_FiltersRefreshed;
 
          _services_LB.ItemsSource = _viewModel.Services;
@@ -155,13 +155,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = HotkeyHelper.Unregister(this, _autoPasswordHotkeyId);
          HotkeyHelper.HotkeyPressed -= _hotkeyHelper_HotkeyPressed;
 
-         Navigation.ItemRequested -= _navigation_ItemRequested;
+         _navigation.ItemRequested -= _navigation_ItemRequested;
 
-         Dialogs.Close<AccountPasswordsWarningView>();
-         Dialogs.Close<DuplicatedPasswordsWarningView>();
-         Dialogs.Close<UserActivitiesView>();
+         _dialogs.Close<AccountPasswordsWarningView>();
+         _dialogs.Close<DuplicatedPasswordsWarningView>();
+         _dialogs.Close<UserActivitiesView>();
 
-         Session.EndSession();
+         _session.EndSession();
 
          _viewModel.Dispose();
       }
@@ -170,7 +170,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          if (this.GetIsBusy()) return;
 
-         Session.User?.Shake();
+         _session.User?.Shake();
          _service_SV.SetDataContext((ServiceViewModel)_services_LB.SelectedItem);
       }
 
@@ -190,7 +190,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _saveTask = Task.Run(() =>
          {
-            Session.Database?.Save();
+            _session.Database?.Save();
 
             _ = Dispatcher.BeginInvoke(() =>
             {
@@ -218,7 +218,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          int duplicatedPasswordWarnings = 0;
          int leakedPasswordWarnings = 0;
 
-         if (Session.Database?.Warnings is not null)
+         if (_session.Database?.Warnings is not null)
          {
             activityWarnings = warnings
                .Where(x => x.WarningType.HasFlag(WarningType.ActivityReviewWarning))
@@ -264,7 +264,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (this.GetIsBusy()) return;
 
          if (_services_LB.SelectedItem is not ServiceViewModel serviceViewModel
-            || Dialogs.Confirm($"Are you sure you want to delete the service '{serviceViewModel.ServiceDisplay}'", "Delete Service") != MessageBoxResult.Yes)
+            || _dialogs.Confirm($"Are you sure you want to delete the service '{serviceViewModel.ServiceDisplay}'", "Delete Service") != MessageBoxResult.Yes)
          {
             return;
          }
@@ -288,7 +288,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          if (this.GetIsBusy()) return;
 
-         _ = Dialogs.ShowSingleton(
+         _ = _dialogs.ShowSingleton(
             factory: () => new UserActivitiesView(needsReviewFilter: false),
             configure: view =>
             {
@@ -301,10 +301,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _navigation_ItemRequested(object? sender, string itemId)
       {
-         if (Session.Database?.User is null) return;
+         if (_session.Database?.User is null) return;
 
          if (string.IsNullOrEmpty(itemId)
-            || Session.Database.User.ItemId == itemId)
+            || _session.Database.User.ItemId == itemId)
          {
             _openSettings();
             return;
@@ -336,7 +336,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
          else
          {
-            Dialogs.Warn($"The item '{itemId}' was not found.\nIt has been deleted.", "Item not found");
+            _dialogs.Warn($"The item '{itemId}' was not found.\nIt has been deleted.", "Item not found");
          }
       }
 
@@ -344,7 +344,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          if (this.GetIsBusy()) return;
 
-         _ = Dialogs.ShowSingleton(
+         _ = _dialogs.ShowSingleton(
             factory: () => new UserActivitiesView(needsReviewFilter: true),
             configure: view =>
             {
@@ -359,7 +359,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          if (this.GetIsBusy()) return;
 
-         _ = Dialogs.ShowSingleton(() => new DuplicatedPasswordsWarningView());
+         _ = _dialogs.ShowSingleton(() => new DuplicatedPasswordsWarningView());
       }
 
       private void _expiredOrLeakedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
@@ -370,7 +370,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             ? WarningType.PasswordUpdateReminderWarning
             : WarningType.PasswordLeakedWarning;
 
-         _ = Dialogs.ShowSingleton(
+         _ = _dialogs.ShowSingleton(
             factory: () => new AccountPasswordsWarningView(requested),
             configure: view =>
             {
