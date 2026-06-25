@@ -68,22 +68,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       }
 
       private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
-      {
-         if (_isClosing || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
-         {
-            return;
-         }
-
-         _ = Dispatcher.BeginInvoke(() =>
-         {
-            if (_isClosing || !IsLoaded)
-            {
-               return;
-            }
-
-            DialogResult = true;
-         });
-      }
+          => this.DatabaseClosed(_isClosing);
 
       public static bool ShowUser(Window owner)
       {

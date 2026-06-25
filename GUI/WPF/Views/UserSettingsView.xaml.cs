@@ -22,6 +22,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private Task? _saveTask;
       private Task? _importTask;
       private Task? _exportTask;
+      private bool _isClosing;
+      private IDatabase? _database;
 
       private static ISessionService Session => AppServices.Session;
 
@@ -29,8 +31,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          InitializeComponent();
 
-         IDatabase? database = Session.Database;
-         bool hasUser = database?.User is not null;
+         _database = Session.Database;
+         bool hasUser = _database?.User is not null;
 
          _deleteUser_MI.Visibility
             = _import_MI.Visibility
@@ -39,16 +41,26 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          DataContext = _viewModel = new UserSettingsViewModel();
 
-         if (database is not null && database.User is not null)
+         if (_database is not null && _database.User is not null)
          {
-            database.User.Shake();
-            database.DatabaseClosed += _database_DatabaseClosed;
+            _database.User.Shake();
+            _database.DatabaseClosed += _database_DatabaseClosed;
          }
 
          _username_TB.SelectAll();
          _ = _username_TB.Focus();
 
          Loaded += (s, e) => this.PostLoadSetup();
+         Closed += _window_Closed;
+      }
+
+      private void _window_Closed(object? sender, EventArgs e)
+      {
+         _isClosing = true;
+
+         _database?.DatabaseClosed -= _database_DatabaseClosed;
+
+         Session.EndSession();
       }
 
       public static void ShowUserSettings(Window owner)
@@ -61,17 +73,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       }
 
       private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
-      {
-         if (Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
-         {
-            return;
-         }
-
-         _ = Dispatcher.BeginInvoke(() =>
-         {
-            DialogResult = true;
-         });
-      }
+          => this.DatabaseClosed(_isClosing);
 
       private void _value_TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
       {
@@ -101,19 +103,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _deleteUser_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         IDatabase? database = Session.Database;
-
          if (this.GetIsBusy()
-            || database?.User is null
+            || _database?.User is null
             || MessageBox.Show("If you delete the user database, you will lost all credentials.\nAre you sure you want to delete the database anyway?", "Confirmation required", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes
             || MessageBox.Show("This procedure is non-reversible.\nPlease confirm to proceed the deletion.", "Confirmation required", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) != MessageBoxResult.Yes)
          {
             return;
          }
 
-         string databaseDirectory = Path.GetDirectoryName(database.DatabaseFile) ?? string.Empty;
+         string databaseDirectory = Path.GetDirectoryName(_database.DatabaseFile) ?? string.Empty;
 
-         database.Delete();
+         _database.Delete();
 
          if (Directory.Exists(databaseDirectory))
          {
@@ -144,9 +144,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          bool credentialsChanged = false;
          string oldDatabaseFile = string.Empty;
 
-         IDatabase? database = Session.Database;
-
-         if (database?.User is null)
+         if (_database?.User is null)
          {
             try
             {
@@ -166,7 +164,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   }
                }
 
-               database = Database.Create(AppServices.Cryptography,
+               _database = Database.Create(AppServices.Cryptography,
                   AppServices.Serialization,
                   AppServices.PasswordFactory,
                   AppServices.Clipboard,
@@ -174,8 +172,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   _viewModel.Username,
                   _passwordsContainer.Passkeys);
 
-               database.DatabaseClosed += _database_DatabaseClosed;
-               Session.StartSession(database);
+               _database.DatabaseClosed += _database_DatabaseClosed;
+               Session.StartSession(_database);
             }
             catch (Exception ex)
             {
@@ -192,32 +190,32 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
          else
          {
-            string oldFileName = AppServices.Cryptography.GetHash(database.User.Username);
+            string oldFileName = AppServices.Cryptography.GetHash(_database.User.Username);
             oldDatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{oldFileName}.pku");
 
             credentialsChanged = _credentialsChanged(oldFileName,
-               oldPasskeys: database.User.Passkeys,
+               oldPasskeys: _database.User.Passkeys,
                newFilename,
                newPasskeys: _passwordsContainer.Passkeys);
          }
 
-         if (database.User is not null)
+         if (_database.User is not null)
          {
-            database.User.Username = _viewModel.Username;
-            database.User.Passkeys = _passwordsContainer.Passkeys;
-            database.User.LogoutTimeout = _viewModel.LogoutTimeout;
-            database.User.CleaningClipboardTimeout = _viewModel.CleaningClipboardTimeout;
-            database.User.ShowPasswordDelay = _viewModel.ShowPasswordDelay;
-            database.User.NumberOfOldPasswordToKeep = _viewModel.NumberOfOldPasswordToKeep;
-            database.User.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
+            _database.User.Username = _viewModel.Username;
+            _database.User.Passkeys = _passwordsContainer.Passkeys;
+            _database.User.LogoutTimeout = _viewModel.LogoutTimeout;
+            _database.User.CleaningClipboardTimeout = _viewModel.CleaningClipboardTimeout;
+            _database.User.ShowPasswordDelay = _viewModel.ShowPasswordDelay;
+            _database.User.NumberOfOldPasswordToKeep = _viewModel.NumberOfOldPasswordToKeep;
+            _database.User.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
             WarningType warningsToNotify = 0;
             if (_viewModel.NotifyActivityReview) warningsToNotify |= WarningType.ActivityReviewWarning;
             if (_viewModel.NotifyDuplicatedPasswords) warningsToNotify |= WarningType.DuplicatedPasswordsWarning;
             if (_viewModel.NotifyPasswordUpdateReminder) warningsToNotify |= WarningType.PasswordUpdateReminderWarning;
             if (_viewModel.NotifyPasswordLeaked) warningsToNotify |= WarningType.PasswordLeakedWarning;
-            database.User.WarningsToNotify = warningsToNotify;
+            _database.User.WarningsToNotify = warningsToNotify;
 
-            database.Save();
+            _database.Save();
          }
 
          string message = $"'{_viewModel.Username}' user database ";
@@ -225,7 +223,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (credentialsChanged)
          {
             message = $"'{_viewModel.Username}' user's credentials has been updated.\nYou will be logged out.\nPlease login again.";
-            database.Close();
+            _database.Close();
 
             string oldDatabaseDirectory = Path.GetDirectoryName(oldDatabaseFile) ?? string.Empty;
             string newDatabaseDirectory = Path.GetDirectoryName(newDatabaseFile) ?? string.Empty;
@@ -251,15 +249,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          else if (newUser)
          {
             message += $"created successfully";
-            database.Close();
+            _database.Close();
          }
          else
          {
             message += $"updated successfully";
-            _ = Dispatcher.BeginInvoke(() =>
-            {
-               DialogResult = true;
-            });
+            this.DatabaseClosed(_isClosing);
          }
 
          _ = MessageBox.Show(message, "Success");
@@ -285,15 +280,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _import_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         IDatabase? database = Session.Database;
-
          if (this.GetIsBusy()
-            || database?.User is null)
+            || _database?.User is null)
          {
             return;
          }
 
-         if (database.User.HasChanged()
+         if (_database.User.HasChanged()
             && MessageBox.Show("Before importing data, all unsaved changes will be saved.", "Import data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
          {
             return;
@@ -314,7 +307,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             _importTask = Task.Run(() =>
             {
-               _ = database.ImportFromFile(dialog.FileName)
+               _ = _database.ImportFromFile(dialog.FileName)
                   ? MessageBox.Show("Import data has been completed successfully.\nMore details in the activities.", "Import success")
                   : MessageBox.Show("Import data failed.\nMore details in the activities.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
 
@@ -328,15 +321,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _export_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         IDatabase? database = Session.Database;
-
          if (this.GetIsBusy()
-            || database?.User is null)
+            || _database?.User is null)
          {
             return;
          }
 
-         if (database.User.HasChanged()
+         if (_database.User.HasChanged()
             && MessageBox.Show("Before exporting data, all unsaved changes will be saved.", "Export data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
          {
             return;
@@ -346,7 +337,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             Title = "Export data to a file",
             Filter = "Tab delimited CSV file|*.csv|json file|*.json",
-            FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
+            FileName = $"{_database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
          };
 
          if (!(dialog.ShowDialog() ?? false)) return;
@@ -358,7 +349,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             _exportTask = Task.Run(() =>
             {
-               _ = database.ExportToFile(dialog.FileName)
+               _ = _database.ExportToFile(dialog.FileName)
                   ? MessageBox.Show("Export data has been completed successfully.\nMore details in the activities.", "Export success")
                   : MessageBox.Show("Export data failed.\nMore details in the activities.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
 
