@@ -15,11 +15,11 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// <summary>
       /// The activities concerned to the warning, if exists.
       /// </summary>
-      IActivity[]? Activities { get; }
+      IEnumerable<IActivity>? Activities { get; }
 
       /// <summary>
       /// The accounts concerned to the warning, if exists.
       /// </summary>
-      IAccount[]? Accounts { get; }
+      IEnumerable<IAccount>? Accounts { get; }
    }
 }

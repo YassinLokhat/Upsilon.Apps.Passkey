@@ -7,9 +7,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
    {
       public WarningType WarningType { get; set; }
 
-      public IActivity[]? Activities { get; set; }
+      public IEnumerable<IActivity>? Activities { get; set; }
 
-      public IAccount[]? Accounts { get; set; }
+      public IEnumerable<IAccount>? Accounts { get; set; }
 
       public Warning(IActivity[] activities)
       {

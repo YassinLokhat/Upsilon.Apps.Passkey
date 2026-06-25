@@ -1,4 +1,4 @@
-using System.Security;
+﻿using System.Security;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
@@ -27,12 +27,12 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// <summary>
       /// The activities.
       /// </summary>
-      IActivity[]? Activities { get; }
+      IEnumerable<IActivity>? Activities { get; }
 
       /// <summary>
       /// The warnings detected.
       /// </summary>
-      IWarning[]? Warnings { get; }
+      IEnumerable<IWarning>? Warnings { get; }
 
       /// <summary>
       /// The serialization center implementation.
@@ -92,13 +92,13 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
 
       /// <summary>
       /// Save the current user to database file.
-      /// The User must be loaded, else it will throw a NullReferenceException.
+      /// The User must be loaded, else it will throw a NullValueException.
       /// </summary>
       void Save();
 
       /// <summary>
       /// Delete the current user with all its files.
-      /// The User must be loaded, else it will throw a NullReferenceException.
+      /// The User must be loaded, else it will throw a NullValueException.
       /// </summary>
       void Delete();
 

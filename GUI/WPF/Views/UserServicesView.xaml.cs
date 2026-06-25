@@ -17,8 +17,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    {
       private readonly UserServicesViewModel _viewModel;
       private readonly IDatabase _database;
-      private int _autoLoginHotkeyId = 0;
-      private int _autoPasswordHotkeyId = 0;
+      private int _autoLoginHotkeyId;
+      private int _autoPasswordHotkeyId;
       private Task? _saveTask;
       private bool _isClosing;
 

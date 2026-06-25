@@ -1,5 +1,6 @@
 ﻿using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -7,7 +8,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
    {
       internal Database Database
       {
-         get => field ?? throw new NullReferenceException(nameof(Database));
+         get => field ?? throw new NullValueException(nameof(Database));
          set;
       }
 
@@ -185,7 +186,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal bool Any() => Any(string.Empty);
 
-      internal bool Any(string itemId) => Changes.Any(x => x.Key.StartsWith(itemId));
+      internal bool Any(string itemId) => Changes.Any(x => x.Key.StartsWith(itemId, StringComparison.InvariantCulture));
 
       internal bool Any(string itemId, string fieldName) => Changes.Any(x => x.Key == $"{itemId}\t{fieldName}");
 

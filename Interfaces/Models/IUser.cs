@@ -15,7 +15,7 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// <summary>
       /// The passkeys.
       /// </summary>
-      string[] Passkeys { get; set; }
+      IEnumerable<string> Passkeys { get; set; }
 
       /// <summary>
       /// The number of minutes of inactivity before auto-logout.
@@ -50,7 +50,7 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// <summary>
       /// The list of the user's services.
       /// </summary>
-      IService[] Services { get; }
+      IEnumerable<IService> Services { get; }
 
       /// <summary>
       /// Add a new service to the user's services.

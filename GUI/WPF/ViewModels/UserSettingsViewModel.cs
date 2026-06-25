@@ -101,7 +101,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                OnPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
             }
          }
-      } = 0;
+      }
       public bool NumberOfOldPasswordToKeepChecked
       {
          get => NumberOfOldPasswordToKeep != 0;
@@ -126,7 +126,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                OnPropertyChanged(nameof(NumberOfMonthActivitiesToKeepChecked));
             }
          }
-      } = 0;
+      }
       public bool NumberOfMonthActivitiesToKeepChecked
       {
          get => NumberOfMonthActivitiesToKeep != 0;

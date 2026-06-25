@@ -8,7 +8,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
    {
       internal Database Database
       {
-         get => field ?? throw new NullReferenceException(nameof(Database));
+         get => field ?? throw new NullValueException(nameof(Database));
          set;
       }
 

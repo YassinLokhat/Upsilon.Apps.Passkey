@@ -8,7 +8,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    public static class HotkeyHelper
    {
       private const int WM_HOTKEY = 0x0312;
-      private static int _id = 0;
+      private static int _id;
 
       private static readonly Dictionary<int, _Registration> _registrations = [];
 

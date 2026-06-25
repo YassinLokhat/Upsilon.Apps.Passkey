@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// <summary>
       /// The identifants.
       /// </summary>
-      string[] Identifiers { get; set; }
+      IEnumerable<string> Identifiers { get; set; }
 
       /// <summary>
       /// The actual password.

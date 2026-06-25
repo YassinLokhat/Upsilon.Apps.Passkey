@@ -18,7 +18,7 @@
       /// <summary>
       /// The service URL.
       /// </summary>
-      string Url { get; set; }
+      Uri Url { get; set; }
 
       /// <summary>
       /// The service's notes.
@@ -28,7 +28,7 @@
       /// <summary>
       /// The list of the user's account on this service.
       /// </summary>
-      IAccount[] Accounts { get; }
+      IEnumerable<IAccount> Accounts { get; }
 
       /// <summary>
       /// Add a new account to this service.

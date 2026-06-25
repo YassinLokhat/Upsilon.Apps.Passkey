@@ -85,7 +85,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                RefreshFilters();
             }
          }
-      } = false;
+      }
 
       public ObservableCollection<ActivityViewModel> Activities { get; set; } = [];
 
@@ -107,7 +107,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          RefreshFilters();
       }
 
-      private bool _locked = false;
+      private bool _locked;
       public void ClearFilters()
       {
          _locked = true;

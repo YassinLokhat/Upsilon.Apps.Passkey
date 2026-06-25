@@ -59,7 +59,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public bool PasswordLeaked(string password)
       {
+#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms : pwnedpasswords.com's API needs the use of SHA1 algorithm
          string hash = Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(password)));
+#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
 
          try
          {
@@ -75,7 +77,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             using StreamReader reader = new(response.Content.ReadAsStream());
             string res = reader.ReadToEnd();
 
-            return res.Contains(hash[5..]);
+            return res.Contains(hash[5..], StringComparison.InvariantCulture);
          }
          catch (Exception ex)
          {

@@ -13,7 +13,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       IDatabase IItem.Database => Database;
 
-      IService[] IUser.Services => [.. Database.Get(Services)];
+      IEnumerable<IService> IUser.Services => [.. Database.Get(Services)];
 
       string IUser.Username
       {
@@ -31,7 +31,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      string[] IUser.Passkeys
+      IEnumerable<string> IUser.Passkeys
       {
          get => Database.Get(Passkeys);
          set
@@ -94,11 +94,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (NumberOfOldPasswordToKeep == 0) return;
 
-            Account[] accounts = [.. Services.SelectMany(x => x.Accounts).Where(x => x.Passwords.Count > NumberOfOldPasswordToKeep)];
+            IEnumerable<Account> accounts = [.. Services.SelectMany(x => x.Accounts).Where(x => x.Passwords.Count > NumberOfOldPasswordToKeep)];
 
             foreach (Account account in accounts)
             {
-               DateTime[] datesToRemove = [.. account.Passwords.Keys
+               IEnumerable<DateTime> datesToRemove = [.. account.Passwords.Keys
                   .OrderBy(x => x)
                   .Take(account.Passwords.Count - NumberOfOldPasswordToKeep)];
 
@@ -163,7 +163,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal Database Database
       {
-         get => field ?? throw new NullReferenceException(nameof(Database));
+         get => field ?? throw new NullValueException(nameof(Database));
          set
          {
             field = value;
@@ -181,13 +181,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public List<Service> Services { get; set; } = [];
 
       public string Username { get; set; } = string.Empty;
-      public string[] Passkeys { get; set; } = [];
-      public bool CredentialChanged { get; set; } = false;
-      public int LogoutTimeout { get; set; } = 0;
-      public int CleaningClipboardTimeout { get; set; } = 0;
-      public int ShowPasswordDelay { get; set; } = 0;
-      public int NumberOfOldPasswordToKeep { get; set; } = 0;
-      public int NumberOfMonthActivitiesToKeep { get; set; } = 0;
+      public IEnumerable<string> Passkeys { get; set; } = [];
+      public bool CredentialChanged { get; set; }
+      public int LogoutTimeout { get; set; }
+      public int CleaningClipboardTimeout { get; set; }
+      public int ShowPasswordDelay { get; set; }
+      public int NumberOfOldPasswordToKeep { get; set; }
+      public int NumberOfMonthActivitiesToKeep { get; set; }
       public WarningType WarningsToNotify { get; set; }
          = WarningType.ActivityReviewWarning
          | WarningType.PasswordUpdateReminderWarning
@@ -201,8 +201,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Interval = 1000,
       };
 
-      public int SessionLeftTime { get; set; } = 0;
-      private int _clipboardLeftTime = 0;
+      public int SessionLeftTime { get; set; }
+      private int _clipboardLeftTime;
 
       // The timer fires on a ThreadPool thread, so a tick can run concurrently
       // with Database.Close on the UI thread. This gate serializes both: a tick
@@ -318,7 +318,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      break;
                   case nameof(Passkeys):
                      CredentialChanged = true;
-                     Passkeys = change.NewValue.DeserializeTo<string[]>(Database.SerializationCenter);
+                     Passkeys = change.NewValue.DeserializeTo<IEnumerable<string>>(Database.SerializationCenter);
                      break;
                   case nameof(LogoutTimeout):
                      LogoutTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);

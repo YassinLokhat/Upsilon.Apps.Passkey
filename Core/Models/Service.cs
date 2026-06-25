@@ -14,7 +14,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       IDatabase IItem.Database => Database;
 
       IUser IService.User => Database.Get(User);
-      IAccount[] IService.Accounts => [.. Database.Get(Accounts)];
+      IEnumerable<IAccount> IService.Accounts => [.. Database.Get(Accounts)];
 
       string IService.ServiceName
       {
@@ -27,15 +27,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
             readableValue: value);
       }
 
-      string IService.Url
+      Uri IService.Url
       {
-         get => Database.Get(Url);
+         get => new Uri(Database.Get(Url));
          set => Url = Database.AutoSave.UpdateValue(ItemId,
             fieldName: nameof(Url),
             needsReview: false,
             oldValue: Url,
-            newValue: value,
-            readableValue: value);
+            newValue: value.OriginalString,
+            readableValue: value.OriginalString);
       }
 
       string IService.Notes
@@ -103,7 +103,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal User User
       {
-         get => field ?? throw new NullReferenceException(nameof(User));
+         get => field ?? throw new NullValueException(nameof(User));
          set
          {
             field = value;

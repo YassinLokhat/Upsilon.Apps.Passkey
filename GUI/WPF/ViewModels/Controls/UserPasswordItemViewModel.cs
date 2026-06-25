@@ -9,7 +9,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = 0;
+      }
       public string Password
       {
          get;

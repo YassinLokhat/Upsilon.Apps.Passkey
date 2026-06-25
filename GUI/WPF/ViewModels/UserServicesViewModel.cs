@@ -106,7 +106,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                _scheduleRefresh();
             }
          }
-      } = false;
+      }
 
       public ObservableCollection<ServiceViewModel> Services { get; } = [];
 

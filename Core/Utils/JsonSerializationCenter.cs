@@ -12,6 +12,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          => JsonSerializer.Serialize<T>(toSerialize, _options);
 
       public T Deserialize<T>(string toDeserialize) where T : notnull
-         => JsonSerializer.Deserialize<T>(toDeserialize, _options) ?? throw new NullReferenceException(nameof(toDeserialize));
+         => JsonSerializer.Deserialize<T>(toDeserialize, _options) ?? throw new NullValueException(nameof(toDeserialize));
    }
 }

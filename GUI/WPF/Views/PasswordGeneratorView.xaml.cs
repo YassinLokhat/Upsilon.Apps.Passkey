@@ -13,7 +13,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    {
       private readonly PasswordGeneratorViewModel _viewModel;
 
-      public string? GeneratedPassword { get; private set; } = null;
+      public string? GeneratedPassword { get; private set; }
 
       internal PasswordGenerator()
       {

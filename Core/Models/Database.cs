@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Security;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -17,9 +17,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
       IUser? IDatabase.User => User;
       int? IDatabase.SessionLeftTime => User?.SessionLeftTime;
 
-      IActivity[]? IDatabase.Activities => Get(ActivityCenter.Activities.OrderByDescending(x => x.DateTime).ToArray());
+      IEnumerable<IActivity>? IDatabase.Activities => Get(ActivityCenter.Activities.OrderByDescending(x => x.DateTime).ToArray());
 
-      IWarning[]? IDatabase.Warnings => Get(User is not null ? Warnings : null);
+      IEnumerable<IWarning>? IDatabase.Warnings => Get(User is not null ? Warnings : null);
 
       public ICryptographyCenter CryptographyCenter { get; private set; }
       public ISerializationCenter SerializationCenter { get; private set; }
@@ -33,7 +33,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Delete()
       {
-         if (User is null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullValueException(nameof(User));
 
          FileLocker.Delete();
 
@@ -130,7 +130,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public bool ImportFromFile(string filePath)
       {
-         if (User is null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullValueException(nameof(User));
 
          if (User.HasChanged())
          {
@@ -187,7 +187,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public bool ExportToFile(string filePath)
       {
-         if (User is null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullValueException(nameof(User));
 
          if (User.HasChanged())
          {
@@ -241,7 +241,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal User? User { get; private set; }
       internal AutoSave AutoSave { get; private set; }
       internal ActivityCenter ActivityCenter { get; private set; }
-      internal Warning[]? Warnings { get; private set; }
+      internal IEnumerable<Warning>? Warnings { get; private set; }
 
       internal string Username { get; private set; }
       internal string[] Passkeys { get; private set; }
@@ -383,7 +383,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _saveDatabase(bool logSaveEvent)
       {
-         if (User is null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullValueException(nameof(User));
 
          Username = User.Username;
          Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(CryptographyCenter.GetSlowHash)];
@@ -408,7 +408,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _saveActivities(bool rebuildStringActivities)
       {
-         if (User is null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullValueException(nameof(User));
 
          ActivityCenter.Username = User.Username;
          ActivityCenter.Save(rebuildStringActivities);
@@ -456,7 +456,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _handleAutoSave(AutoSaveMergeBehavior mergeAutoSave)
       {
-         if (User is null) throw new NullReferenceException(nameof(User));
+         if (User is null) throw new NullValueException(nameof(User));
 
          if (!FileLocker.Exists(AutoSaveFileEntry))
          {
@@ -510,8 +510,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private Warning[] _lookAtActivityWarnings()
       {
-         if (User is null) throw new NullReferenceException(nameof(User));
-         if (ActivityCenter.Activities is null) throw new NullReferenceException(nameof(ActivityCenter.Activities));
+         if (User is null) throw new NullValueException(nameof(User));
+         if (ActivityCenter.Activities is null) throw new NullValueException(nameof(ActivityCenter.Activities));
 
          IActivity[] activities = [.. ActivityCenter.Activities.Where(x => x.NeedsReview)];
 

@@ -2,6 +2,7 @@
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -26,7 +27,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             readableValue: value);
       }
 
-      string[] IAccount.Identifiers
+      IEnumerable<string> IAccount.Identifiers
       {
          get => Database.Get(Identifiers);
          set => Identifiers = Database.AutoSave.UpdateValue(ItemId,
@@ -96,7 +97,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: false,
             oldValue: PasswordUpdateReminderDelay,
             newValue: value,
-            readableValue: value.ToString());
+            readableValue: $"{value}");
       }
 
       AccountOption IAccount.Options
@@ -119,16 +120,16 @@ namespace Upsilon.Apps.Passkey.Core.Models
       private Service? _service;
       internal Service Service
       {
-         get => _service ?? throw new NullReferenceException(nameof(Service));
+         get => _service ?? throw new NullValueException(nameof(Service));
          set => _service = value;
       }
 
       public string Label { get; set; } = string.Empty;
-      public string[] Identifiers { get; set; } = [];
+      public IEnumerable<string> Identifiers { get; set; } = [];
       public string Password { get; set; } = string.Empty;
       public Dictionary<DateTime, string> Passwords { get; set; } = [];
       public string Notes { get; set; } = string.Empty;
-      public int PasswordUpdateReminderDelay { get; set; } = 0;
+      public int PasswordUpdateReminderDelay { get; set; }
       public AccountOption Options { get; set; }
          = AccountOption.WarnIfPasswordLeaked;
 
@@ -145,7 +146,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      internal bool PasswordLeaked { get; set; } = false;
+      internal bool PasswordLeaked { get; set; }
 
       internal void Apply(Change change)
       {

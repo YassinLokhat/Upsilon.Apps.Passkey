@@ -26,7 +26,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          => JsonSerializer.Serialize(obj, _options);
 
       private static T _jsonDeserializeAs<T>(string json)
-         => JsonSerializer.Deserialize<T>(json, _options) ?? throw new NullReferenceException();
+         => JsonSerializer.Deserialize<T>(json, _options) ?? throw new NullValueException();
 
       private static readonly JsonSerializerOptions _options = new() { Converters = { new JsonStringEnumConverter() }, WriteIndented = true, };
 
