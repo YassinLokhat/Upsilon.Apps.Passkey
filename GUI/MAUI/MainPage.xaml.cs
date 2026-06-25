@@ -1,9 +1,10 @@
-﻿
+﻿using System;
+using CommunityToolkit.Mvvm.Input;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.MAUI.ViewModels;
-using Upsilon.Apps.Passkey.Interfaces.Models;
-using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Events;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace MAUI
 {
@@ -92,7 +93,7 @@ namespace MAUI
                 _viewModel.CredentialsLabel = "Password :";
                 _credentialEntry.Text = string.Empty;
                 _credentialEntry.Placeholder = "Saisir votre mot de passe...";
-                _credentialEntry.IsPassword = true; // Masque les caractères automatiquement
+                _credentialEntry.IsPassword = true; 
                 _loginButton.Text = "Login";
 
                 _isPasswordStep = true;
@@ -219,12 +220,23 @@ namespace MAUI
             }
         }
 
+        private void _GeneratePassword_MenuItem_Click(object sender, EventArgs e)
+        {
+            int length = 20;
+            System.Text.StringBuilder sb = new();
+            sb.Append(MainViewModel.PasswordFactory.Numeric);
+            sb.Append(MainViewModel.PasswordFactory.Alphabetic.ToUpper());
+            sb.Append(MainViewModel.PasswordFactory.Alphabetic.ToLower());
+            sb.Append(MainViewModel.PasswordFactory.SpecialChars);
+            string alphabet = sb.ToString();
+            string newPassword = MainViewModel.PasswordFactory.GeneratePassword(length, alphabet, checkIfLeaked: true);
+            
+            _credentialEntry.Text = newPassword;
+        }
         private void _newUser_MenuItem_Click()
         {
             
         }
        
-        
-        
     }
 }
