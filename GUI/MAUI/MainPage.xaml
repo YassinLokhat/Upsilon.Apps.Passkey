@@ -63,11 +63,15 @@
                         HeightRequest="45"
                         CornerRadius="8" />
 
+                        <Button x:Name="_generatePasswordButton"
+                        Text="Générer"
+                        Clicked="_GeneratePassword_MenuItem_Click"
+                        HeightRequest="45"
+                        CornerRadius="8"/>
+
                     </VerticalStackLayout>
 
                 </FlexLayout>
-
-
 
                 <Button Text="Nouvel Utilisateur" 
                         Clicked="_onNavigateToRegisterPage_Click" 
