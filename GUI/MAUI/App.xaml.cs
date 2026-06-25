@@ -8,6 +8,13 @@ namespace MAUI
         {
             InitializeComponent();
             MainPage = new NavigationPage(new MainPage());
+            AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+            {
+                var exception = args.ExceptionObject as Exception;
+                System.Diagnostics.Debug.WriteLine($"CRASH MAUI: {exception?.Message}");
+            };
+
+            MainPage = new AppShell();
         }
 
         protected override Window CreateWindow(IActivationState? activationState)

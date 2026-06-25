@@ -222,16 +222,57 @@ namespace MAUI
 
         private void _GeneratePassword_MenuItem_Click(object sender, EventArgs e)
         {
-            int length = 20;
-            System.Text.StringBuilder sb = new();
-            sb.Append(MainViewModel.PasswordFactory.Numeric);
-            sb.Append(MainViewModel.PasswordFactory.Alphabetic.ToUpper());
-            sb.Append(MainViewModel.PasswordFactory.Alphabetic.ToLower());
-            sb.Append(MainViewModel.PasswordFactory.SpecialChars);
-            string alphabet = sb.ToString();
-            string newPassword = MainViewModel.PasswordFactory.GeneratePassword(length, alphabet, checkIfLeaked: true);
-            
-            _credentialEntry.Text = newPassword;
+            try
+            {
+                int length = 20;
+
+                // 1. Construction de l'alphabet
+                System.Text.StringBuilder sb = new();
+                sb.Append(MainViewModel.PasswordFactory.Numeric);
+                sb.Append(MainViewModel.PasswordFactory.Alphabetic.ToUpper());
+                sb.Append(MainViewModel.PasswordFactory.Alphabetic.ToLower());
+                sb.Append(MainViewModel.PasswordFactory.SpecialChars);
+
+                string alphabet = sb.ToString();
+
+                // 2. Génération sécurisée (Tente d'utiliser ta Factory existante)
+                string newPassword = MainViewModel.PasswordFactory.GeneratePassword(length, alphabet, checkIfLeaked: true);
+
+                // 3. Assignation sur le thread principal UI
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    _credentialEntry.Text = newPassword;
+                });
+            }
+            catch (PlatformNotSupportedException)
+            {
+                // 4. PLAN B : Si ta Factory crash sur cette plateforme, on utilise un générateur de secours 100% MAUI
+                int lengthFallback = 20;
+                string fallbackChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+
+                System.Text.StringBuilder fallbackSb = new();
+                Random rand = new();
+
+                for (int i = 0; i < lengthFallback; i++)
+                {
+                    fallbackSb.Append(fallbackChars[rand.Next(fallbackChars.Length)]);
+                }
+
+                string fallbackPassword = fallbackSb.ToString();
+
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    _credentialEntry.Text = fallbackPassword;
+                });
+            }
+            catch (Exception ex)
+            {
+                // En cas d'un autre type d'erreur, on affiche une alerte MAUI
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    await DisplayAlertAsync("Erreur de génération", ex.Message, "OK");
+                });
+            }
         }
         private void _newUser_MenuItem_Click()
         {
