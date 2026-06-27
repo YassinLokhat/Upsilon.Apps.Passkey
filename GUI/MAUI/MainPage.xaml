@@ -66,7 +66,7 @@
 
                         <Button x:Name="_generatePasswordButton"
                         Text="Générer"
-                        Clicked="_GeneratePassword_MenuItem_Click"
+                        Clicked="_generatePassword_MenuItem_Click"
                         HeightRequest="45"
                         CornerRadius="8"/>
 
