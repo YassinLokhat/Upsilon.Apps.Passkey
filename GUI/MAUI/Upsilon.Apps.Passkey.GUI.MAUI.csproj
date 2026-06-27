@@ -81,4 +81,10 @@
 	  <Folder Include="Resources\Splash\" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <MauiXaml Update="Views\PasswordGeneratorView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
 </Project>
