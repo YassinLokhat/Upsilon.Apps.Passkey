@@ -1,7 +1,8 @@
-﻿using System;
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
+using System;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.MAUI.ViewModels;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -220,58 +221,29 @@ namespace MAUI
             }
         }
 
-        private void _GeneratePassword_MenuItem_Click(object sender, EventArgs e)
+        private async void _generatePassword_MenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                int length = 20;
+                var generatorPage = new PasswordGenerator();
 
-                // 1. Construction de l'alphabet
-                System.Text.StringBuilder sb = new();
-                sb.Append(MainViewModel.PasswordFactory.Numeric);
-                sb.Append(MainViewModel.PasswordFactory.Alphabetic.ToUpper());
-                sb.Append(MainViewModel.PasswordFactory.Alphabetic.ToLower());
-                sb.Append(MainViewModel.PasswordFactory.SpecialChars);
-
-                string alphabet = sb.ToString();
-
-                // 2. Génération sécurisée (Tente d'utiliser ta Factory existante)
-                string newPassword = MainViewModel.PasswordFactory.GeneratePassword(length, alphabet, checkIfLeaked: true);
-
-                // 3. Assignation sur le thread principal UI
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    _credentialEntry.Text = newPassword;
-                });
-            }
-            catch (PlatformNotSupportedException)
-            {
-                // 4. PLAN B : Si ta Factory crash sur cette plateforme, on utilise un générateur de secours 100% MAUI
-                int lengthFallback = 20;
-                string fallbackChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-
-                System.Text.StringBuilder fallbackSb = new();
-                Random rand = new();
-
-                for (int i = 0; i < lengthFallback; i++)
-                {
-                    fallbackSb.Append(fallbackChars[rand.Next(fallbackChars.Length)]);
-                }
-
-                string fallbackPassword = fallbackSb.ToString();
-
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    _credentialEntry.Text = fallbackPassword;
-                });
+#if WINDOWS || MACCATALYST
+        // On Desktop: New dedicated floating window
+        var toolWindow = new Window(generatorPage)
+        {
+            Title = "Password Generator",
+            Width = 500,
+            Height = 450
+        };
+        Application.Current?.OpenWindow(toolWindow);
+#else
+                // On Mobile (Android/iOS): We open it properly on top in full screen
+                await Navigation.PushModalAsync(generatorPage);
+#endif
             }
             catch (Exception ex)
             {
-                // En cas d'un autre type d'erreur, on affiche une alerte MAUI
-                MainThread.BeginInvokeOnMainThread(async () =>
-                {
-                    await DisplayAlertAsync("Erreur de génération", ex.Message, "OK");
-                });
+                await DisplayAlertAsync("Erreur", ex.Message, "OK");
             }
         }
         private void _newUser_MenuItem_Click()
