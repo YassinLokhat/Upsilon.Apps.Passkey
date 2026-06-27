@@ -25,7 +25,7 @@ namespace MAUI
             window.Created += (s, e) =>
             {
 #if WINDOWS
-                // Code Windows fonctionnel
+                
                 var nativeWindow = window.Handler?.PlatformView as Microsoft.UI.Xaml.Window;
                 if (nativeWindow != null)
                 {
@@ -39,19 +39,16 @@ namespace MAUI
                     }
                 }
 #elif MACCATALYST
-                // Astuce Mac Catalyst : On récupère la scène de la fenêtre
+                
                 var uiWindow = window.Handler?.PlatformView as UIKit.UIWindow;
                 var windowScene = uiWindow?.WindowScene;
                 if (windowScene != null && windowScene.SizeRestrictions != null)
-                {
-                    // On prend les dimensions maximales de l'écran principal de l'utilisateur
-                    var screenSize = UIKit.UIScreen.MainScreen.Bounds.Size;
+                {               
+                    var screenSize = UIKit.UIScreen.MainScreen.Bounds.Size;             
                     
-                    // On force temporairement la taille minimale à la taille de l'écran pour l'étirer au max
                     windowScene.SizeRestrictions.MinimumSize = screenSize;
                     windowScene.SizeRestrictions.MaximumSize = screenSize;
 
-                    // On redonne ensuite la liberté à l'utilisateur de redimensionner s'il le veut
                     Dispatcher.Dispatch(() =>
                     {
                         windowScene.SizeRestrictions.MinimumSize = new CoreGraphics.CGSize(500, 600);
