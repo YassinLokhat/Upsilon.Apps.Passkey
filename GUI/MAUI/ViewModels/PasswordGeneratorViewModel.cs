@@ -2,8 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Maui.ApplicationModel;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI.ViewModels;
 
