@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MAUI.MainPage"
+             NavigationPage.HasNavigationBar="False">
+
+    
+
+    <Grid RowDefinitions="Auto, *">
+        <Button Text="Ouvrir une base" 
+        Clicked="_openDatabase_MenuItem_Click" 
+        WidthRequest="250" 
+        HorizontalOptions="Start"/>
+
+        <ScrollView Grid.Row="1" HorizontalOptions="Fill">
+
+            <VerticalStackLayout Padding="30" 
+                                 Spacing="25" 
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 MaximumWidthRequest="450"
+                                 WidthRequest="450">
+
+                <Label Text="Bienvenue dans Passkey Manager" FontSize="24" HorizontalOptions="Center"/>
+
+                <Image Source="passkeylogo.png" HorizontalOptions="Center" />
+
+                <Label Text="{Binding DatabaseLabel}" 
+                       FontSize="14" 
+                       HorizontalOptions="Center" 
+                       TextColor="{StaticResource Secondary}"/>
+
+                <FlexLayout Direction="Column" 
+                    AlignItems="Stretch" 
+                    JustifyContent="Start"
+                    HorizontalOptions="Fill">
+
+                    <VerticalStackLayout Spacing="20" Padding="20" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="400">
+
+                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="15">
+
+                            <Label Grid.Column="0" 
+                               Text="{Binding CredentialsLabel}" 
+                               FontAttributes="Bold" 
+                               VerticalOptions="Center" 
+                               WidthRequest="90"/>
+
+                            <Border Grid.Column="1" StrokeThickness="1" StrokeShape="RoundRectangle 8">
+                                <Entry x:Name="_credentialEntry" 
+                                   Placeholder="Saisir votre identifiant..." 
+                                   HorizontalTextAlignment="Start"
+                                   Completed="_onEntryCompleted"
+                                   ClearButtonVisibility="{OnPlatform Android=WhileEditing, Default=Never}">
+                                    <Entry.GestureRecognizers>
+                                        <PointerGestureRecognizer />
+                                    </Entry.GestureRecognizers>
+                                </Entry>
+                            </Border>
+                        </Grid>
+
+                        <Button x:Name="_loginButton"
+                        Text="Suivant"
+                        Clicked="_onLoginButtonClicked"
+                        HeightRequest="45"
+                        CornerRadius="8" />
+
+                        <Button x:Name="_generatePasswordButton"
+                        Text="Générer"
+                        Clicked="_generatePassword_MenuItem_Click"
+                        HeightRequest="45"
+                        CornerRadius="8"/>
+
+                    </VerticalStackLayout>
+
+                </FlexLayout>
+
+                <Button Text="Nouvel Utilisateur" 
+                        Clicked="_newUser_MenuItem_Click" 
+                        WidthRequest="250" 
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource Primary}"
+                        BorderColor="{StaticResource Primary}"
+                        BorderWidth="1" 
+                        HorizontalOptions="Center"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>
