@@ -75,7 +75,7 @@
                 </FlexLayout>
 
                 <Button Text="Nouvel Utilisateur" 
-                        Clicked="_onNavigateToRegisterPage_Click" 
+                        Clicked="_newUser_MenuItem_Click" 
                         WidthRequest="250" 
                         BackgroundColor="Transparent"
                         TextColor="{StaticResource Primary}"
