@@ -1,49 +1,111 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MAUI.UserSettingsView"
-             Title="Créer un compte local">
+             xmlns:controls="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Views.Controls"
+             xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.ViewModels"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Views.UserSettingsView"
+             x:DataType="viewmodels:UserSettingsViewModel"
+             Title="{Binding Title}"
+             BackgroundColor="#80000000">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Save" Order="Primary" Clicked="Save_Clicked"/>
+        <ToolbarItem Text="Import" Order="Primary" Clicked="Import_Clicked"/>
+        <ToolbarItem Text="Export" Order="Primary" Clicked="Export_Clicked"/>
+        <ToolbarItem Text="Delete User" Order="Secondary" Clicked="DeleteUser_Clicked"/>
+    </ContentPage.ToolbarItems>
 
-    <ScrollView>
-        <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Center">
+    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" MaximumWidthRequest="1000" Padding="15">
+        <Border StrokeShape="RoundRectangle 12" Stroke="#CCCCCC" StrokeThickness="1" BackgroundColor="{AppThemeBinding Light=White, Dark=#1C1C1E}" Padding="10">
+            <ScrollView VerticalScrollBarVisibility="Never">
 
-            <Label Text="Création de votre coffre-fort"
-                   FontSize="22"
-                   FontAttributes="Bold"
-                   HorizontalOptions="Center"
-                   TextColor="{StaticResource Primary}"/>
+                <Grid x:Name="_mainGrid" ColumnDefinitions="*, *" RowDefinitions="Auto" ColumnSpacing="20" RowSpacing="20">
 
-            <Label Text="Ce compte sera stocké de manière 100% locale et chiffrée sur votre appareil."
-                   FontSize="14"
-                   HorizontalOptions="Center"
-                   HorizontalTextAlignment="Center"
-                   Margin="0,0,0,20"/>
+                    <Border x:Name="_credentialsBorder" 
+            Grid.Row="0" 
+            Grid.Column="0" 
+            StrokeShape="RoundRectangle 8" 
+            Stroke="#E0E0E0" 
+            StrokeThickness="1" 
+            Padding="15" 
+            WidthRequest="400"
+            MinimumWidthRequest="340" 
+            VerticalOptions="Fill">
+                        <VerticalStackLayout Spacing="15">
+                            <Label Text="Credentials" FontAttributes="Bold" FontSize="16" TextColor="{AppThemeBinding Light=#212121, Dark=White}"/>
+                            <Grid ColumnDefinitions="Auto, *" ColumnSpacing="10" VerticalOptions="Center">
+                                <Label Grid.Column="0" Text="Username :" VerticalOptions="Center"/>
+                                <Entry Grid.Column="1" x:Name="_username_Entry" Text="{Binding Username, Mode=TwoWay}"/>
+                            </Grid>
+                            <controls:UserPasswordsContainer x:Name="_passwordsContainer"/>
+                        </VerticalStackLayout>
+                    </Border>
 
-            
-            <VerticalStackLayout Spacing="5" WidthRequest="300">
-                <Label Text="Nom d'utilisateur" FontAttributes="Bold" />
-                <Border StrokeThickness="1" StrokeShape="RoundRectangle 8">
-                    <Entry x:Name="_usernameEntry" Placeholder="Ex: Jean" Margin="10,0"/>
-                </Border>
-            </VerticalStackLayout>
+                    <Border x:Name="_settingsBorder" 
+            Grid.Row="0" 
+            Grid.Column="1" 
+            StrokeShape="RoundRectangle 8" 
+            Stroke="#E0E0E0" 
+            StrokeThickness="1" 
+            Padding="15" 
+            WidthRequest="400"
+            MinimumWidthRequest="340"
+            VerticalOptions="Fill">
+                        <VerticalStackLayout Spacing="15">
+                            <Label Text="Settings" FontAttributes="Bold" FontSize="16" TextColor="{AppThemeBinding Light=#212121, Dark=White}"/>
 
-            
-            <VerticalStackLayout Spacing="5" WidthRequest="300">
-                <Label Text="Mot de passe principal" FontAttributes="Bold" />
-                <Border StrokeThickness="1" StrokeShape="RoundRectangle 8">
-                    <Entry x:Name="_passwordEntry" 
-                           Placeholder="Entrez un mot de passe fort" 
-                           IsPassword="True" 
-                           Margin="10,0"/>
-                </Border>
-            </VerticalStackLayout>
+                            <Grid ColumnDefinitions="Auto, Auto, *, Auto" RowDefinitions="Auto, Auto, Auto, Auto, Auto" RowSpacing="12" ColumnSpacing="8" VerticalOptions="Center">
+                                <CheckBox Grid.Row="0" Grid.Column="0" IsChecked="{Binding LogoutTimeoutChecked}" VerticalOptions="Center"/>
+                                <Label Grid.Row="0" Grid.Column="1" Text="Logout after" VerticalOptions="Center"/>
+                                <Entry Grid.Row="0" Grid.Column="2" HorizontalTextAlignment="Center" Keyboard="Numeric" TextChanged="Value_Entry_TextChanged" Text="{Binding LogoutTimeout, Mode=TwoWay}" WidthRequest="50"/>
+                                <Label Grid.Row="0" Grid.Column="3" Text="minutes." VerticalOptions="Center"/>
 
-            
-            <Button Text="Créer mon espace chiffré" 
-                    Clicked="OnRegisterSubmitted_Click" 
-                    WidthRequest="250"
-                    Margin="0,20,0,0" />
+                                <CheckBox Grid.Row="1" Grid.Column="0" IsChecked="{Binding CleaningClipboardTimeoutChecked}" VerticalOptions="Center"/>
+                                <Label Grid.Row="1" Grid.Column="1" Text="Clean passwords every" VerticalOptions="Center"/>
+                                <Entry Grid.Row="1" Grid.Column="2" HorizontalTextAlignment="Center" Keyboard="Numeric" TextChanged="Value_Entry_TextChanged" Text="{Binding CleaningClipboardTimeout, Mode=TwoWay}" WidthRequest="50"/>
+                                <Label Grid.Row="1" Grid.Column="3" Text="seconds." VerticalOptions="Center"/>
 
-        </VerticalStackLayout>
-    </ScrollView>
+                                <CheckBox Grid.Row="2" Grid.Column="0" IsChecked="{Binding ShowPasswordDelayChecked}" VerticalOptions="Center"/>
+                                <Label Grid.Row="2" Grid.Column="1" Text="Show QR Code during" VerticalOptions="Center"/>
+                                <Entry Grid.Row="2" Grid.Column="2" HorizontalTextAlignment="Center" Keyboard="Numeric" TextChanged="Value_Entry_TextChanged" Text="{Binding ShowPasswordDelay, Mode=TwoWay}" WidthRequest="65"/>
+                                <Label Grid.Row="2" Grid.Column="3" Text="ms." VerticalOptions="Center"/>
+
+                                <CheckBox Grid.Row="3" Grid.Column="0" IsChecked="{Binding NumberOfOldPasswordToKeepChecked}" VerticalOptions="Center"/>
+                                <Label Grid.Row="3" Grid.Column="1" Text="Limit history to" VerticalOptions="Center"/>
+                                <Entry Grid.Row="3" Grid.Column="2" HorizontalTextAlignment="Center" Keyboard="Numeric" TextChanged="Value_Entry_TextChanged" Text="{Binding NumberOfOldPasswordToKeep, Mode=TwoWay}" WidthRequest="55"/>
+                                <Label Grid.Row="3" Grid.Column="3" Text="entries." VerticalOptions="Center"/>
+
+                                <CheckBox Grid.Row="4" Grid.Column="0" IsChecked="{Binding NumberOfMonthActivitiesToKeepChecked}" VerticalOptions="Center"/>
+                                <Label Grid.Row="4" Grid.Column="1" Text="Limit activities to" VerticalOptions="Center"/>
+                                <Entry Grid.Row="4" Grid.Column="2" HorizontalTextAlignment="Center" Keyboard="Numeric" TextChanged="Value_Entry_TextChanged" Text="{Binding NumberOfMonthActivitiesToKeep, Mode=TwoWay}" WidthRequest="55"/>
+                                <Label Grid.Row="4" Grid.Column="3" Text="months." VerticalOptions="Center"/>
+                            </Grid>
+
+                            <Border StrokeShape="RoundRectangle 6" Stroke="#DDDDDD" StrokeThickness="1" Margin="0,5,0,0" Padding="12" BackgroundColor="{AppThemeBinding Light=#FAFAFA, Dark=#2C2C2E}">
+                                <VerticalStackLayout Spacing="10">
+                                    <Label Text="Warnings" FontAttributes="Bold" FontSize="14" TextColor="{AppThemeBinding Light=#424242, Dark=#E0E0E0}"/>
+                                    <HorizontalStackLayout Spacing="8">
+                                        <CheckBox IsChecked="{Binding NotifyActivityReview}"/>
+                                        <Label Text="Notify Activity Review" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                    <HorizontalStackLayout Spacing="8">
+                                        <CheckBox IsChecked="{Binding NotifyDuplicatedPasswords}"/>
+                                        <Label Text="Notify Duplicated Passwords" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                    <HorizontalStackLayout Spacing="8">
+                                        <CheckBox IsChecked="{Binding NotifyPasswordUpdateReminder}"/>
+                                        <Label Text="Notify Password Update" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                    <HorizontalStackLayout Spacing="8">
+                                        <CheckBox IsChecked="{Binding NotifyPasswordLeaked}"/>
+                                        <Label Text="Notify Password Leaked" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                </Grid>
+            </ScrollView>
+        </Border>
+    </VerticalStackLayout>
 </ContentPage>
