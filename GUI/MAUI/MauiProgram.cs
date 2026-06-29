@@ -1,4 +1,5 @@
 ﻿using MAUI;
+using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI
@@ -10,6 +11,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
