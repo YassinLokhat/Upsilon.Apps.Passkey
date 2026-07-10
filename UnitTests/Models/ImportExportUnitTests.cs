@@ -119,8 +119,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Warning : Import failed because service 'Service1' already exists");
 
          // Then
-         database.User.Services.Length.Should().Be(1);
-         database.User.Services[0].Url.Should().BeEmpty();
+         database.User.Services.Count().Should().Be(1);
+         database.User.Services.ElementAt(0).Url.OriginalString.Should().BeEmpty();
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
@@ -211,47 +211,47 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : User {username}'s database saved");
 
          // Then
-         database.User.Services.Length.Should().Be(2);
+         database.User.Services.Count().Should().Be(2);
 
-         database.User.Services[0].ServiceName.Should().Be("Service0");
-         database.User.Services[0].Url.Should().Be("www.service0.xyz");
-         database.User.Services[0].Notes.Should().Be("Service0's notes");
+         database.User.Services.ElementAt(0).ServiceName.Should().Be("Service0");
+         database.User.Services.ElementAt(0).Url.Should().Be("www.service0.xyz");
+         database.User.Services.ElementAt(0).Notes.Should().Be("Service0's notes");
 
-         database.User.Services[0].Accounts.Length.Should().Be(2);
+         database.User.Services.ElementAt(0).Accounts.Count().Should().Be(2);
 
-         database.User.Services[0].Accounts[0].Label.Should().Be("Account0");
-         database.User.Services[0].Accounts[0].Identifiers.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
-         database.User.Services[0].Accounts[0].Password.Should().Be("0000");
-         database.User.Services[0].Accounts[0].Notes.Should().Be("Service0's Account0's notes");
-         database.User.Services[0].Accounts[0].Options.Should().Be(AccountOption.None);
-         database.User.Services[0].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Label.Should().Be("Account0");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Identifiers.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Password.Should().Be("0000");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Notes.Should().Be("Service0's Account0's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).PasswordUpdateReminderDelay.Should().Be(3);
 
-         database.User.Services[0].Accounts[1].Label.Should().Be("Account1");
-         database.User.Services[0].Accounts[1].Identifiers.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
-         database.User.Services[0].Accounts[1].Password.Should().Be("1111");
-         database.User.Services[0].Accounts[1].Notes.Should().Be("Service0's Account1's notes");
-         database.User.Services[0].Accounts[1].Options.Should().Be(AccountOption.None);
-         database.User.Services[0].Accounts[1].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Label.Should().Be("Account1");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Identifiers.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Password.Should().Be("1111");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Notes.Should().Be("Service0's Account1's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
 
-         database.User.Services[1].ServiceName.Should().Be("Service1");
-         database.User.Services[1].Url.Should().Be("www.service1.xyz");
-         database.User.Services[1].Notes.Should().Be("Service1's notes");
+         database.User.Services.ElementAt(1).ServiceName.Should().Be("Service1");
+         database.User.Services.ElementAt(1).Url.Should().Be("www.service1.xyz");
+         database.User.Services.ElementAt(1).Notes.Should().Be("Service1's notes");
 
-         database.User.Services[1].Accounts.Length.Should().Be(2);
+         database.User.Services.ElementAt(1).Accounts.Count().Should().Be(2);
 
-         database.User.Services[1].Accounts[0].Label.Should().Be("Account0");
-         database.User.Services[1].Accounts[0].Identifiers.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
-         database.User.Services[1].Accounts[0].Password.Should().Be("AAAA");
-         database.User.Services[1].Accounts[0].Notes.Should().Be("Service1's Account0's notes");
-         database.User.Services[1].Accounts[0].Options.Should().Be(AccountOption.None);
-         database.User.Services[1].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Label.Should().Be("Account0");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Identifiers.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Password.Should().Be("AAAA");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Notes.Should().Be("Service1's Account0's notes");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).PasswordUpdateReminderDelay.Should().Be(3);
 
-         database.User.Services[1].Accounts[1].Label.Should().Be("Account1");
-         database.User.Services[1].Accounts[1].Identifiers.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
-         database.User.Services[1].Accounts[1].Password.Should().Be("BBBB");
-         database.User.Services[1].Accounts[1].Notes.Should().Be("Service1's Account1's notes");
-         database.User.Services[1].Accounts[1].Options.Should().Be(AccountOption.None);
-         database.User.Services[1].Accounts[1].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Label.Should().Be("Account1");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Identifiers.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Password.Should().Be("BBBB");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Notes.Should().Be("Service1's Account1's notes");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
 
          // When
          database.ExportToFile(exportFile);
@@ -377,47 +377,47 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : User {username}'s database saved");
 
          // Then
-         database.User.Services.Length.Should().Be(2);
+         database.User.Services.Count().Should().Be(2);
 
-         database.User.Services[0].ServiceName.Should().Be("Service0");
-         database.User.Services[0].Url.Should().Be("www.service0.xyz");
-         database.User.Services[0].Notes.Should().Be("Service0's notes");
+         database.User.Services.ElementAt(0).ServiceName.Should().Be("Service0");
+         database.User.Services.ElementAt(0).Url.Should().Be("www.service0.xyz");
+         database.User.Services.ElementAt(0).Notes.Should().Be("Service0's notes");
 
-         database.User.Services[0].Accounts.Length.Should().Be(2);
+         database.User.Services.ElementAt(0).Accounts.Count().Should().Be(2);
 
-         database.User.Services[0].Accounts[0].Label.Should().Be("Account0");
-         database.User.Services[0].Accounts[0].Identifiers.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
-         database.User.Services[0].Accounts[0].Password.Should().Be("0000");
-         database.User.Services[0].Accounts[0].Notes.Should().Be("Service0's Account0's notes");
-         database.User.Services[0].Accounts[0].Options.Should().Be(AccountOption.None);
-         database.User.Services[0].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Label.Should().Be("Account0");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Identifiers.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Password.Should().Be("0000");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Notes.Should().Be("Service0's Account0's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).PasswordUpdateReminderDelay.Should().Be(3);
 
-         database.User.Services[0].Accounts[1].Label.Should().Be("Account1");
-         database.User.Services[0].Accounts[1].Identifiers.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
-         database.User.Services[0].Accounts[1].Password.Should().Be("1111");
-         database.User.Services[0].Accounts[1].Notes.Should().Be("Service0's Account1's notes");
-         database.User.Services[0].Accounts[1].Options.Should().Be(AccountOption.None);
-         database.User.Services[0].Accounts[1].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Label.Should().Be("Account1");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Identifiers.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Password.Should().Be("1111");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Notes.Should().Be("Service0's Account1's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
 
-         database.User.Services[1].ServiceName.Should().Be("Service1");
-         database.User.Services[1].Url.Should().Be("www.service1.xyz");
-         database.User.Services[1].Notes.Should().Be("Service1's notes");
+         database.User.Services.ElementAt(1).ServiceName.Should().Be("Service1");
+         database.User.Services.ElementAt(1).Url.Should().Be("www.service1.xyz");
+         database.User.Services.ElementAt(1).Notes.Should().Be("Service1's notes");
 
-         database.User.Services[1].Accounts.Length.Should().Be(2);
+         database.User.Services.ElementAt(1).Accounts.Count().Should().Be(2);
 
-         database.User.Services[1].Accounts[0].Label.Should().Be("Account0");
-         database.User.Services[1].Accounts[0].Identifiers.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
-         database.User.Services[1].Accounts[0].Password.Should().Be("AAAA");
-         database.User.Services[1].Accounts[0].Notes.Should().Be("Service1's Account0's notes");
-         database.User.Services[1].Accounts[0].Options.Should().Be(AccountOption.None);
-         database.User.Services[1].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Label.Should().Be("Account0");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Identifiers.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Password.Should().Be("AAAA");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Notes.Should().Be("Service1's Account0's notes");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).PasswordUpdateReminderDelay.Should().Be(3);
 
-         database.User.Services[1].Accounts[1].Label.Should().Be("Account1");
-         database.User.Services[1].Accounts[1].Identifiers.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
-         database.User.Services[1].Accounts[1].Password.Should().Be("BBBB");
-         database.User.Services[1].Accounts[1].Notes.Should().Be("Service1's Account1's notes");
-         database.User.Services[1].Accounts[1].Options.Should().Be(AccountOption.None);
-         database.User.Services[1].Accounts[1].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Label.Should().Be("Account1");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Identifiers.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Password.Should().Be("BBBB");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Notes.Should().Be("Service1's Account1's notes");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 

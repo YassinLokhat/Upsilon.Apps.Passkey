@@ -45,7 +45,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseCreated.User.HasChanged().Should().BeTrue();
          service.HasChanged().Should().BeTrue();
          account.HasChanged().Should().BeTrue();
-         _ = service.Accounts.Length.Should().Be(1);
+         _ = service.Accounts.Count().Should().Be(1);
          _ = account.Label.Should().Be(oldAccountLabel);
          _ = account.Identifiers.Should().BeEquivalentTo(oldIdentifiers);
          _ = account.Password.Should().Be(oldPassword);
@@ -97,7 +97,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = serviceLoaded.Accounts.Length.Should().Be(1);
+         _ = serviceLoaded.Accounts.Count().Should().Be(1);
 
          // When
          _ = serviceLoaded.Accounts.First();
@@ -152,7 +152,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : {service}'s {account}'s password has been updated");
 
          // Then
-         _ = service.Accounts.Length.Should().Be(1);
+         _ = service.Accounts.Count().Should().Be(1);
          _ = account.Label.Should().Be(oldAccountLabel);
          _ = account.Identifiers.Should().BeEquivalentTo(oldIdentifiers);
          _ = account.Password.Should().Be(oldPassword);
@@ -192,7 +192,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = serviceLoaded.Accounts.Length.Should().Be(1);
+         _ = serviceLoaded.Accounts.Count().Should().Be(1);
 
          // When
          _ = serviceLoaded.Accounts.First();
@@ -246,7 +246,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Account {accountLabel} ({string.Join(", ", identifiers)}) has been removed from Service {service.ServiceName}");
 
          // Then
-         _ = serviceLoaded.Accounts.Length.Should().Be(0);
+         _ = serviceLoaded.Accounts.Count().Should().Be(0);
 
          // When
          databaseLoaded.Save();
@@ -262,7 +262,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = serviceLoaded.Accounts.Length.Should().Be(0);
+         _ = serviceLoaded.Accounts.Count().Should().Be(0);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
@@ -304,7 +304,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Account {accountLabel} ({string.Join(", ", identifiers)}) has been removed from Service {service.ServiceName}");
 
          // Then
-         _ = serviceLoaded.Accounts.Length.Should().Be(0);
+         _ = serviceLoaded.Accounts.Count().Should().Be(0);
 
          // When
          databaseLoaded.Close();
@@ -321,7 +321,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
-         _ = serviceLoaded.Accounts.Length.Should().Be(0);
+         _ = serviceLoaded.Accounts.Count().Should().Be(0);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);

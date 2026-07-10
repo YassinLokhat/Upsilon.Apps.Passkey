@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          string oldServiceName = "Service_" + UnitTestsHelper.GetUsername();
          string newServiceName = "new_" + oldServiceName;
-         string url = UnitTestsHelper.GetRandomString();
+         Uri url = new(UnitTestsHelper.GetRandomString());
          string notes = UnitTestsHelper.GetRandomString();
          Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
@@ -36,7 +36,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // Then
          databaseCreated.User.HasChanged().Should().BeTrue();
          service.HasChanged().Should().BeFalse();
-         _ = databaseCreated.User.Services.Length.Should().Be(1);
+         _ = databaseCreated.User.Services.Count().Should().Be(1);
 
          // When
          service.ServiceName = newServiceName;
@@ -69,7 +69,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : User {username} logged in");
 
          // Then
-         _ = databaseLoaded.User.Services.Length.Should().Be(1);
+         _ = databaseLoaded.User.Services.Count().Should().Be(1);
 
          // When
          IService serviceLoaded = databaseLoaded.User.Services.First();
@@ -102,7 +102,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          string oldServiceName = "Service_" + UnitTestsHelper.GetUsername();
          string newServiceName = "new_" + oldServiceName;
-         string url = UnitTestsHelper.GetRandomString();
+         Uri url = new(UnitTestsHelper.GetRandomString());
          string notes = UnitTestsHelper.GetRandomString();
          Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
@@ -112,7 +112,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : {service} has been added to User {username}");
 
          // Then
-         _ = databaseCreated.User.Services.Length.Should().Be(1);
+         _ = databaseCreated.User.Services.Count().Should().Be(1);
 
          // When
          service.ServiceName = newServiceName;
@@ -138,7 +138,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : User {username}'s autosave merged and saved");
 
          // Then
-         _ = databaseLoaded.User.Services.Length.Should().Be(1);
+         _ = databaseLoaded.User.Services.Count().Should().Be(1);
 
          // When
          IService serviceLoaded = databaseLoaded.User.Services.First();
@@ -184,7 +184,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Service {serviceName} has been removed from User {username}");
 
          // Then
-         _ = databaseLoaded.User.Services.Length.Should().Be(0);
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          // When
          databaseLoaded.Save();
@@ -198,7 +198,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : User {username} logged in");
 
          // Then
-         _ = databaseLoaded.User.Services.Length.Should().Be(0);
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
@@ -235,7 +235,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Service {serviceName} has been removed from User {username}");
 
          // Then
-         _ = databaseLoaded.User.Services.Length.Should().Be(0);
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          // When
          databaseLoaded.Close();
@@ -250,7 +250,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : User {username}'s autosave merged and saved");
 
          // Then
-         _ = databaseLoaded.User.Services.Length.Should().Be(0);
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
