@@ -129,7 +129,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return [.. passkeys];
       }
 
-      public static string GetRandomString(int min = 10, int max = 0)
+      public static string GetRandomString(int min = 10, int max = 0) 
       {
          if (max == 0)
          {

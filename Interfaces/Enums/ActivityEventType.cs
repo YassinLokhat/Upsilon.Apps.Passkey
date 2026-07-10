@@ -19,17 +19,17 @@
       /// The auto-save merged but not saved.
       /// Should match with the AutoSaveMergeBehavior value.
       /// </summary>
-      MergeWithoutSavingAndKeepAutoSaveFile = 2,
+      MergeWithoutSavingAndKeepAutoSaveFile,
       /// <summary>
       /// The auto-save not merged then removed.
       /// Should match with the AutoSaveMergeBehavior value.
       /// </summary>
-      DontMergeAndRemoveAutoSaveFile = 3,
+      DontMergeAndRemoveAutoSaveFile,
       /// <summary>
       /// The auto-save not merged.
       /// Should match with the AutoSaveMergeBehavior value.
       /// </summary>
-      DontMergeAndKeepAutoSaveFile = 4,
+      DontMergeAndKeepAutoSaveFile,
 
       /// <summary>
       /// Database created.

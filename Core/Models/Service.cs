@@ -28,15 +28,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
             readableValue: value);
       }
 
-      Uri IService.Url
+      Uri? IService.Url
       {
-         get => new Uri(Database.Get(Url));
+         get => !String.IsNullOrWhiteSpace(Url) ? new Uri(Database.Get(Url)) : null;
          set => Url = Database.AutoSave.UpdateValue(ItemId,
             fieldName: nameof(Url),
             needsReview: false,
             oldValue: Url,
-            newValue: value.OriginalString,
-            readableValue: value.OriginalString);
+            newValue: value?.OriginalString ?? string.Empty,
+            readableValue: value?.OriginalString ?? string.Empty);
       }
 
       string IService.Notes

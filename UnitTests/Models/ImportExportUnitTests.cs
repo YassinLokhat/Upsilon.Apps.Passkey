@@ -120,7 +120,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // Then
          database.User.Services.Count().Should().Be(1);
-         database.User.Services.ElementAt(0).Url.OriginalString.Should().BeEmpty();
+         database.User.Services.ElementAt(0).Url.Should().BeNull();
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
@@ -176,7 +176,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
 
          expectedActivities.Push($"Information : Service Service0 has been added to User {username}");
-         expectedActivities.Push($"Information : Service Service0's url has been set to www.service0.xyz");
+         expectedActivities.Push($"Information : Service Service0's url has been set to http://service0.xyz");
          expectedActivities.Push($"Information : Service Service0's notes has been set to Service0's notes");
 
          expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
@@ -192,7 +192,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
          expectedActivities.Push($"Information : Service Service1 has been added to User {username}");
-         expectedActivities.Push($"Information : Service Service1's url has been set to www.service1.xyz");
+         expectedActivities.Push($"Information : Service Service1's url has been set to http://service1.xyz");
          expectedActivities.Push($"Information : Service Service1's notes has been set to Service1's notes");
 
          expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
@@ -214,7 +214,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Services.Count().Should().Be(2);
 
          database.User.Services.ElementAt(0).ServiceName.Should().Be("Service0");
-         database.User.Services.ElementAt(0).Url.Should().Be("www.service0.xyz");
+         database.User.Services.ElementAt(0).Url.OriginalString.Should().Be("http://service0.xyz");
          database.User.Services.ElementAt(0).Notes.Should().Be("Service0's notes");
 
          database.User.Services.ElementAt(0).Accounts.Count().Should().Be(2);
@@ -234,7 +234,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Services.ElementAt(0).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
 
          database.User.Services.ElementAt(1).ServiceName.Should().Be("Service1");
-         database.User.Services.ElementAt(1).Url.Should().Be("www.service1.xyz");
+         database.User.Services.ElementAt(1).Url.OriginalString.Should().Be("http://service1.xyz");
          database.User.Services.ElementAt(1).Notes.Should().Be("Service1's notes");
 
          database.User.Services.ElementAt(1).Accounts.Count().Should().Be(2);
@@ -342,7 +342,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
 
          expectedActivities.Push($"Information : Service Service0 has been added to User {username}");
-         expectedActivities.Push($"Information : Service Service0's url has been set to www.service0.xyz");
+         expectedActivities.Push($"Information : Service Service0's url has been set to http://service0.xyz");
          expectedActivities.Push($"Information : Service Service0's notes has been set to Service0's notes");
 
          expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
@@ -358,7 +358,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
          expectedActivities.Push($"Information : Service Service1 has been added to User {username}");
-         expectedActivities.Push($"Information : Service Service1's url has been set to www.service1.xyz");
+         expectedActivities.Push($"Information : Service Service1's url has been set to http://service1.xyz");
          expectedActivities.Push($"Information : Service Service1's notes has been set to Service1's notes");
 
          expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
@@ -380,7 +380,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Services.Count().Should().Be(2);
 
          database.User.Services.ElementAt(0).ServiceName.Should().Be("Service0");
-         database.User.Services.ElementAt(0).Url.Should().Be("www.service0.xyz");
+         database.User.Services.ElementAt(0).Url.OriginalString.Should().Be("http://service0.xyz");
          database.User.Services.ElementAt(0).Notes.Should().Be("Service0's notes");
 
          database.User.Services.ElementAt(0).Accounts.Count().Should().Be(2);
@@ -400,7 +400,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Services.ElementAt(0).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
 
          database.User.Services.ElementAt(1).ServiceName.Should().Be("Service1");
-         database.User.Services.ElementAt(1).Url.Should().Be("www.service1.xyz");
+         database.User.Services.ElementAt(1).Url.OriginalString.Should().Be("http://service1.xyz");
          database.User.Services.ElementAt(1).Notes.Should().Be("Service1's notes");
 
          database.User.Services.ElementAt(1).Accounts.Count().Should().Be(2);

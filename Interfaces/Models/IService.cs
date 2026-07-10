@@ -18,7 +18,7 @@
       /// <summary>
       /// The service URL.
       /// </summary>
-      Uri Url { get; set; }
+      Uri? Url { get; set; }
 
       /// <summary>
       /// The service's notes.

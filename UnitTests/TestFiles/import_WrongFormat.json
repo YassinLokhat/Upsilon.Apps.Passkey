@@ -1,7 +1,7 @@
 [
   {
     "ServiceName": "Service0",
-    "Url": "www.service0.xyz",
+    "Url": "http://service0.xyz",
     "Notes": "Service0\u0027s notes",
     "Accounts": [
       {
@@ -26,7 +26,7 @@
   },
   {
     "ServiceName": "Service1",
-    "Url": "www.service1.xyz",
+    "Url": "http://service1.xyz",
     "Notes": "Service1\u0027s notes",
     "Accounts": [
       {

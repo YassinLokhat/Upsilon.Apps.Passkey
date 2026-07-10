@@ -6,20 +6,24 @@
    public enum AutoSaveMergeBehavior
    {
       /// <summary>
+      /// The behavior of auto-save handling is undefined.
+      /// </summary>
+      Undefined = 0,
+      /// <summary>
       /// The auto-save will be merged into the database and saved then the auto-save file will be removed.
       /// </summary>
-      MergeAndSaveThenRemoveAutoSaveFile = 0,
+      MergeAndSaveThenRemoveAutoSaveFile,
       /// <summary>
       /// The auto-save will be merged into the database without saving and the auto-save file will be keeped.
       /// </summary>
-      MergeWithoutSavingAndKeepAutoSaveFile = 1,
+      MergeWithoutSavingAndKeepAutoSaveFile,
       /// <summary>
       /// The auto-save will not be merged into the database but the auto-save file will be removed.
       /// </summary>
-      DontMergeAndRemoveAutoSaveFile = 2,
+      DontMergeAndRemoveAutoSaveFile,
       /// <summary>
       /// The auto-save will not be merged into the database and the auto-save file will be keeped.
       /// </summary>
-      DontMergeAndKeepAutoSaveFile = 3,
+      DontMergeAndKeepAutoSaveFile,
    }
 }

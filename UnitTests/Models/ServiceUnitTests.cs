@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          string oldServiceName = "Service_" + UnitTestsHelper.GetUsername();
          string newServiceName = "new_" + oldServiceName;
-         Uri url = new(UnitTestsHelper.GetRandomString());
+         Uri url = new($"http://{username}.test");
          string notes = UnitTestsHelper.GetRandomString();
          Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
@@ -45,7 +45,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
          service.Url = url;
          service.Url = url;
-         expectedActivities.Push($"Information : {service}'s url has been set to {url}");
+         expectedActivities.Push($"Information : {service}'s url has been set to {url.OriginalString}");
          service.Notes = notes;
          service.Notes = notes;
          expectedActivities.Push($"Information : {service}'s notes has been set to {notes}");
@@ -102,7 +102,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          string oldServiceName = "Service_" + UnitTestsHelper.GetUsername();
          string newServiceName = "new_" + oldServiceName;
-         Uri url = new(UnitTestsHelper.GetRandomString());
+         Uri url = new($"http://{username}.test");
          string notes = UnitTestsHelper.GetRandomString();
          Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
@@ -121,7 +121,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
          service.Url = url;
          service.Url = url;
-         expectedActivities.Push($"Information : {service}'s url has been set to {url}");
+         expectedActivities.Push($"Information : {service}'s url has been set to {url.OriginalString}");
          service.Notes = notes;
          service.Notes = notes;
          expectedActivities.Push($"Information : {service}'s notes has been set to {notes}");
