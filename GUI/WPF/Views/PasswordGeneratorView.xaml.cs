@@ -15,13 +15,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       public string? GeneratedPassword { get; private set; } = null;
 
-      private PasswordGenerator()
+      internal PasswordGenerator()
       {
          InitializeComponent();
 
          DataContext = _viewModel = new PasswordGeneratorViewModel();
-         _insert.Visibility = (MainViewModel.Database is not null
-               && MainViewModel.Database.User is not null) ? Visibility.Visible : Visibility.Collapsed;
+         _viewModel.InsertRequested += _viewModel_InsertRequested;
 
          Loaded += (s, e) => this.PostLoadSetup();
       }
@@ -34,6 +33,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          };
 
          return _passwordGenerator.ShowDialog() ?? false ? _passwordGenerator.GeneratedPassword : null;
+      }
+
+      private void _viewModel_InsertRequested(object? sender, EventArgs e)
+      {
+         GeneratedPassword = _viewModel.GeneratedPassword;
+         DialogResult = true;
       }
 
       private void _length_TextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -49,24 +54,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private void _length_TextBox_Pasting(object sender, DataObjectPastingEventArgs e)
       {
          NumericTextBoxHelper.Pasting(sender, e);
-      }
-
-      private void _insertMenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         _copyMenuItem_Click(sender, e);
-
-         GeneratedPassword = _viewModel.GeneratedPassword;
-         DialogResult = true;
-      }
-
-      private void _regenerateMenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         _viewModel.GeneratePassword();
-      }
-
-      private void _copyMenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         QrCodeView.CopyToClipboard(_viewModel.GeneratedPassword);
       }
    }
 }

@@ -1,4 +1,6 @@
-﻿using Upsilon.Apps.Passkey.Core.Utils;
+using System.Runtime.InteropServices;
+using System.Security;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -42,6 +44,36 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Save() => _save(logSaveEvent: true);
 
+      public IUser? Login(SecureString passkey)
+      {
+         ArgumentNullException.ThrowIfNull(passkey);
+
+         IntPtr bstr = IntPtr.Zero;
+         char[]? chars = null;
+
+         try
+         {
+            bstr = Marshal.SecureStringToBSTR(passkey);
+            int length = passkey.Length;
+            chars = new char[length];
+            Marshal.Copy(bstr, chars, 0, length);
+
+            return Login(new string(chars));
+         }
+         finally
+         {
+            if (chars is not null)
+            {
+               Array.Clear(chars);
+            }
+
+            if (bstr != IntPtr.Zero)
+            {
+               Marshal.ZeroFreeBSTR(bstr);
+            }
+         }
+      }
+
       public IUser? Login(string passkey)
       {
          Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey)];
@@ -50,15 +82,16 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             User = FileLocker.Open<User>(DatabaseFileEntry, Passkeys);
          }
+         catch (WrongPasswordException passwordException)
+         {
+            ActivityCenter.AddActivity(itemId: string.Empty,
+               eventType: ActivityEventType.LoginFailed,
+               data: [Username, passwordException.PasswordLevel.ToString()],
+               needsReview: true);
+         }
          catch (Exception ex)
          {
-            if (ex is WrongPasswordException passwordException)
-            {
-               ActivityCenter.AddActivity(itemId: string.Empty,
-                  eventType: ActivityEventType.LoginFailed,
-                  data: [Username, passwordException.PasswordLevel.ToString()],
-                  needsReview: true);
-            }
+            System.Diagnostics.Trace.TraceWarning($"Unexpected error during login :\n{ex.Message}");
          }
 
          if (User is not null)
@@ -205,10 +238,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       #endregion
 
-      internal User? User;
-      internal AutoSave AutoSave;
-      internal ActivityCenter ActivityCenter;
-      internal Warning[]? Warnings;
+      internal User? User { get; private set; }
+      internal AutoSave AutoSave { get; private set; }
+      internal ActivityCenter ActivityCenter { get; private set; }
+      internal Warning[]? Warnings { get; private set; }
 
       internal string Username { get; private set; }
       internal string[] Passkeys { get; private set; }
@@ -216,7 +249,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal readonly string DatabaseFileEntry = "database";
       internal readonly string AutoSaveFileEntry = "autosave";
       internal readonly string ActivityFileEntry = "activity";
-      internal FileLocker FileLocker;
+      internal FileLocker FileLocker { get; private set; }
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
@@ -405,6 +438,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
                data: [Username],
                needsReview: false);
          }
+
+         // Stop the session timer before tearing down the file handle: this both
+         // blocks until any in-flight tick finishes and prevents future ticks
+         // from operating on the disposed FileLocker.
+         User?.StopTimer();
 
          User = null;
          Username = string.Empty;

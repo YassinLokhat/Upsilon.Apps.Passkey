@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "master" ]
 
+concurrency:
+  group: linux-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,9 +27,9 @@ jobs:
     - name: Build Debug
       run: dotnet build Upsilon.Apps.Passkey.Linux.slnx --no-restore --configuration Debug
       
-    - name: Build Relesae
+    - name: Build Release
       run: dotnet build Upsilon.Apps.Passkey.Linux.slnx --no-restore --configuration Release
-            
+
     - name: Test
       run: dotnet test --no-build --verbosity normal Upsilon.Apps.Passkey.Linux.slnx
 

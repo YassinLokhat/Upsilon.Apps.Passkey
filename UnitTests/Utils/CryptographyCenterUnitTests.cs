@@ -5,7 +5,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 namespace Upsilon.Apps.Passkey.UnitTests.Utils
 {
    [TestClass]
-   public sealed class CryptographyCenterUnitTexts
+   public sealed class CryptographyCenterUnitTests
    {
       [TestMethod]
       /*
@@ -46,53 +46,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
       [TestMethod]
       /*
-       * Signing an empty string returns the hash code of that empty string,
-       * Then checking the signature returns the empty string.
-      */
-      public void Case03_SignEmptyString()
-      {
-         // Given
-         string source = string.Empty;
-
-         // When
-         string signedSource = source;
-         UnitTestsHelper.CryptographicCenter.Sign(ref signedSource);
-
-         // Then
-         _ = signedSource.Should().Be(UnitTestsHelper.CryptographicCenter.GetHash(string.Empty));
-
-         // When
-         string checkedSource = signedSource;
-         _ = UnitTestsHelper.CryptographicCenter.CheckSign(ref checkedSource);
-
-         // Then
-         _ = checkedSource.Should().Be(source);
-      }
-
-      [TestMethod]
-      /*
-       * Signing a random string then check the sign should rise no error.
-      */
-      public void Case04_SignRandomString()
-      {
-         for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
-         {
-            // Given
-            string source = UnitTestsHelper.GetRandomString();
-
-            // When
-            string signedSource = source;
-            UnitTestsHelper.CryptographicCenter.Sign(ref signedSource);
-            string checkedSource = signedSource;
-            _ = UnitTestsHelper.CryptographicCenter.CheckSign(ref checkedSource);
-
-            // Then
-            _ = checkedSource.Should().Be(source);
-         }
-      }
-
-      [TestMethod]
-      /*
        * Encrypting symmetrically a random string then decrypting it should rise no error,
        * Then the decrypted string should be the same as the source.
       */
@@ -125,8 +78,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             string source = UnitTestsHelper.GetRandomString();
             string[] passkeys = UnitTestsHelper.GetRandomStringArray();
             string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptSymmetrically(source, passkeys);
-            string corruptedSource = encryptedSource + " ";
-            CheckSignFailedException exception = null;
+            // Appending a character breaks the Base64 alignment of the
+            // outermost layer (a lone space would be ignored by the decoder).
+            string corruptedSource = encryptedSource + "A";
+            CorruptedSourceException exception = null;
 
             // When
             Action act = new(() =>
@@ -135,7 +90,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
                {
                   string decryptedSource = UnitTestsHelper.CryptographicCenter.DecryptSymmetrically(corruptedSource, passkeys);
                }
-               catch (CheckSignFailedException ex)
+               catch (CorruptedSourceException ex)
                {
                   exception = ex;
                   throw;
@@ -143,7 +98,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             });
 
             // Then
-            _ = act.Should().Throw<CheckSignFailedException>();
+            _ = act.Should().Throw<CorruptedSourceException>();
             _ = exception.Should().NotBeNull();
          }
       }
@@ -219,8 +174,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             string source = UnitTestsHelper.GetRandomString(150);
             UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
             string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptAsymmetrically(source, publicKey);
-            string corruptedSource = encryptedSource + " ";
-            CheckSignFailedException exception = null;
+            // Appending a character makes the JSON envelope invalid (a lone
+            // space would be ignored by the JSON reader).
+            string corruptedSource = encryptedSource + "A";
+            CorruptedSourceException exception = null;
 
             // When
             Action act = new(() =>
@@ -229,7 +186,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
                {
                   string decryptedSource = UnitTestsHelper.CryptographicCenter.DecryptAsymmetrically(corruptedSource, privateKey);
                }
-               catch (CheckSignFailedException ex)
+               catch (CorruptedSourceException ex)
                {
                   exception = ex;
                   throw;
@@ -237,7 +194,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             });
 
             // Then
-            _ = act.Should().Throw<CheckSignFailedException>();
+            _ = act.Should().Throw<CorruptedSourceException>();
             _ = exception.Should().NotBeNull();
          }
       }

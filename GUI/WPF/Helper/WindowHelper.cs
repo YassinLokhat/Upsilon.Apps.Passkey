@@ -51,5 +51,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             _computeTabIndex(ithChild, ref tabIndex);
          }
       }
+
+      public static void DatabaseClosed(this Window window, bool IsClosing)
+      {
+         if (IsClosing || window.Dispatcher.HasShutdownStarted || window.Dispatcher.HasShutdownFinished)
+         {
+            return;
+         }
+
+         _ = window.Dispatcher.BeginInvoke(() =>
+         {
+            if (IsClosing || !window.IsLoaded)
+            {
+               return;
+            }
+
+            window.DialogResult = true;
+         });
+      }
    }
 }

@@ -18,7 +18,7 @@ This is a C# implementation of a local stored password manager in .Net 10. The a
 **Security**
 ------------
 
-*   **Encryption**: All passwords are encrypted using AES with a set of keys and RSA with a 1024-bit key
+*   **Encryption**: All passwords are encrypted using AES with a set of keys and RSA with a 4096-bit key
 *   **Access Control**: Access to the password store is restricted to authorized users only
 
 **Models**
@@ -123,7 +123,7 @@ classDiagram
             +DatabaseFile : string
             +User : IUser
             +SessionLeftTime : int
-            +Logs : IEnumerable~ILog~
+            +Activities : IEnumerable~IActivity~
             +Warnings : IEnumerable~IWarning~
             +SerializationCenter : ISerializationCenter
             +CryptographyCenter : ICryptographyCenter
@@ -143,7 +143,7 @@ classDiagram
             +ExportToFile(in filePath string) bool
         }
 
-        class ILog {
+        class IActivity {
             <<interface>>
             +DateTime : DateTime
             +ItemId : string
@@ -154,7 +154,7 @@ classDiagram
         class IWarning {
             <<interface>>
             +WarningType : WarningType
-            +Logs : IEnumerable~ILog~
+            +Activities : IEnumerable~IActivity~
             +Accounts : IEnumerable~IAccount~
         }
     }
@@ -218,12 +218,12 @@ classDiagram
     IDatabase --> IClipboardManager : ClipboardManager
     IDatabase --> IUser : User
     IDatabase "0" --> "*" IWarning : Warnings
-    IDatabase "0" --> "*" ILog : Logs
+    IDatabase "0" --> "*" IActivity : Activities
     IDatabase --> WarningsUpdatedEventArgs : WarningsUpdated
     IDatabase --> AutoSaveDetectedEventArgs : AutoSaveDetected
     IDatabase --> LogoutEventArgs : DatabaseClosed
     IWarning --> WarningType : WarningType
-    IWarning "0" --> "*" ILog : Logs
+    IWarning "0" --> "*" IActivity : Activities
     IWarning "0" --> "*" IAccount : Accounts
     AutoSaveDetectedEventArgs --> AutoSaveMergeBehavior : MergeBehavior
     WarningsUpdatedEventArgs "0" --> "*" IWarning : Warnings

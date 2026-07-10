@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using System.Windows.Threading;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF
 {
@@ -7,6 +9,51 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
    /// </summary>
    public partial class App : Application
    {
-   }
+      protected override void OnStartup(StartupEventArgs e)
+      {
+         DispatcherUnhandledException += _onDispatcherUnhandledException;
+         AppDomain.CurrentDomain.UnhandledException += _onAppDomainUnhandledException;
+         TaskScheduler.UnobservedTaskException += _onUnobservedTaskException;
 
+         Log.Info($"Application starting (PID {Environment.ProcessId}).");
+
+         base.OnStartup(e);
+      }
+
+      protected override void OnExit(ExitEventArgs e)
+      {
+         Log.Info($"Application exiting with code {e.ApplicationExitCode}.");
+         Log.Flush();
+
+         base.OnExit(e);
+      }
+
+      private static void _onDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+      {
+         Log.Error(e.Exception, "Unhandled UI exception");
+         // The application keeps running; the caller has already shown any
+         // feedback it needed. Marking as handled prevents the default crash.
+         e.Handled = true;
+      }
+
+      private static void _onAppDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+      {
+         if (e.ExceptionObject is Exception exception)
+         {
+            Log.Error(exception, $"Unhandled AppDomain exception (terminating: {e.IsTerminating})");
+         }
+         else
+         {
+            Log.Error($"Unhandled non-CLR AppDomain exception (terminating: {e.IsTerminating}).");
+         }
+
+         Log.Flush();
+      }
+
+      private static void _onUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+      {
+         Log.Error(e.Exception, "Unobserved task exception");
+         e.SetObserved();
+      }
+   }
 }

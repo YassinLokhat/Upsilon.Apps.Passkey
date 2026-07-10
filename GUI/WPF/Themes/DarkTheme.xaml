@@ -7,7 +7,24 @@
     <SolidColorBrush x:Key="BorderBrush" Color="#3F3F46"/>
     <SolidColorBrush x:Key="AccentBrush" Color="#007ACC"/>
 
+    <!-- Item state brushes (kept in sync with DarkMode.cs) -->
+    <SolidColorBrush x:Key="UnchangedBrush1" Color="#1E1E1E"/>
+    <SolidColorBrush x:Key="UnchangedBrush2" Color="#2D2D30"/>
+    <SolidColorBrush x:Key="ChangedBrush" Color="#606060"/>
+
+    <!-- Semantic colors -->
+    <SolidColorBrush x:Key="InfoBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="#52C16E"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="#FFD84A"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="#E04A4A"/>
+    <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#808080"/>
+
     <!-- Styles -->
+
+    <Style TargetType="Window">
+        <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+    </Style>
 
     <Style TargetType="StackPanel">
         <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
@@ -17,8 +34,36 @@
         <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
     </Style>
 
+    <Style TargetType="Border">
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+    </Style>
+
+    <Style TargetType="Separator">
+        <Setter Property="Background" Value="{StaticResource BorderBrush}"/>
+    </Style>
+
     <Style TargetType="GroupBox">
+        <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+    </Style>
+
+    <Style TargetType="ToolTip">
+        <Setter Property="Background" Value="{StaticResource SecondaryBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+    </Style>
+
+    <Style TargetType="ContextMenu">
+        <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+    </Style>
+
+    <Style TargetType="ProgressBar">
+        <Setter Property="Background" Value="{StaticResource SecondaryBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
     </Style>
 
     <Style TargetType="Menu">

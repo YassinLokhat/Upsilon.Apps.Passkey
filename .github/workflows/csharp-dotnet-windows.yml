@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "master" ]
 
+concurrency:
+  group: windows-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: windows-2025-vs2026
@@ -23,11 +27,19 @@ jobs:
     - name: Build Debug
       run: dotnet build Upsilon.Apps.Passkey.Windows.slnx --no-restore --configuration Debug
       
-    - name: Build Relesae
+    - name: Build Release
       run: dotnet build Upsilon.Apps.Passkey.Windows.slnx --no-restore --configuration Release
-            
+
     - name: Test
-      run: dotnet test --no-build --verbosity normal Upsilon.Apps.Passkey.Windows.slnx
+      run: dotnet test --no-build --verbosity normal Upsilon.Apps.Passkey.Windows.slnx --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-windows
+        path: TestResults/**/*.trx
+        if-no-files-found: ignore
 
 
 permissions:

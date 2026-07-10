@@ -11,16 +11,11 @@
         Title="{Binding AppTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="140" Width="500">
-    <Window.CommandBindings>
-        <CommandBinding Command="Open" Executed="_openDatabase_MenuItem_Click"/>
-        <CommandBinding Command="New" Executed="_newUser_MenuItem_Click"/>
-        <CommandBinding Command="Print" Executed="_generatePassword_MenuItem_Click"/>
-    </Window.CommandBindings>
+        Height="150" Width="500">
     <Window.InputBindings>
-        <KeyBinding Key="O" Modifiers="Control" Command="Open"/>
-        <KeyBinding Key="N" Modifiers="Control" Command="New"/>
-        <KeyBinding Key="P" Modifiers="Control" Command="Print"/>
+        <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenDatabaseCommand}"/>
+        <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewUserCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding GeneratePasswordCommand}"/>
     </Window.InputBindings>
     <StackPanel>
         <Menu>
@@ -30,13 +25,13 @@
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
             <MenuItem Header="_Open database"
-                      Command="Open"
+                      Command="{Binding OpenDatabaseCommand}"
                       InputGestureText="Ctrl+O"/>
             <MenuItem Header="_New User"
-                      Command="New"
+                      Command="{Binding NewUserCommand}"
                       InputGestureText="Ctrl+N"/>
             <MenuItem Header="_Generate random Password"
-                      Command="Print"
+                      Command="{Binding GeneratePasswordCommand}"
                       HorizontalAlignment="Right"/>
         </Menu>
         <Grid>
@@ -48,23 +43,22 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Row="0"
+            <Label Grid.Row="1"
                    Grid.Column="0"
                    Grid.ColumnSpan="2">
-                <TextBlock Text="{Binding DatabaseLabel}" 
-                    TextTrimming="CharacterEllipsis" 
-                    TextWrapping="NoWrap" />   
+                <TextBlock Text="{Binding DatabaseLabel}"
+                    TextWrapping="Wrap" />
             </Label>
-            <Label Grid.Row="1"
+            <Label Grid.Row="0"
                    Grid.Column="0"
                    MinWidth="70"
                    Content="{Binding CredentialsLabel}"/>
             <TextBox Name="_username_TB"
-                     Grid.Row="1"
+                     Grid.Row="0"
                      Grid.Column="1"
                      Visibility="Visible"/>
             <PasswordBox Name="_password_PB"
-                         Grid.Row="1"
+                         Grid.Row="0"
                          Grid.Column="1"
                          Visibility="Collapsed"/>
         </Grid>

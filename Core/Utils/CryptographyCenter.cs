@@ -7,76 +7,76 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 {
    public class CryptographyCenter : ICryptographyCenter
    {
-      public string GetHash(string source)
-      {
-         string md5Hash = Convert.ToBase64String(MD5.HashData(Encoding.Unicode.GetBytes(source)));
-         string sha1Hash = Convert.ToBase64String(SHA1.HashData(Encoding.Unicode.GetBytes(source)));
+      public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.Unicode.GetBytes(source))).Replace("/", "-");
 
-         return (md5Hash + sha1Hash).Replace("/", "-");
-      }
+      // A fixed, application-wide salt gives the slow hash domain separation.
+      // Per-database random salts would be stronger but require storing the
+      // salt next to the data; here the cost that deters brute force comes from
+      // the high PBKDF2 iteration count.
+      private static readonly byte[] _slowHashSalt = Encoding.UTF8.GetBytes("Upsilon.Apps.Passkey.SlowHash.v1");
+
+      private const int _slowHashIterations = 1_000_000;
 
       public string GetSlowHash(string source)
       {
-         long realTimeFactor = (long)Math.Pow(0b1001, 6);
+         // PBKDF2-SHA256 is a standard password-stretching KDF. Iterating a
+         // plain SHA-512 (the previous approach) is far cheaper per guess on a
+         // GPU and offers no salting, so it gave attackers a big head start.
+         byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
+            Encoding.Unicode.GetBytes(source),
+            _slowHashSalt,
+            _slowHashIterations,
+            HashAlgorithmName.SHA256,
+            64);
 
-         for (int i = 0; i < realTimeFactor; i++)
-         {
-            source = GetHash(source);
-         }
-
-         return source;
+         return Convert.ToBase64String(hash);
       }
 
       public int HashLength => GetHash(string.Empty).Length;
 
-      public void Sign(ref string source)
-      {
-         source = GetHash(source) + source;
-      }
-
-      public bool CheckSign(ref string source)
-      {
-         try
-         {
-            string hashSource = source[..HashLength];
-            string hashCheck = GetHash(source[HashLength..]);
-
-            if (hashSource != hashCheck)
-            {
-               throw new Exception();
-            }
-
-            source = source[HashLength..];
-         }
-         catch
-         {
-            return false;
-         }
-
-         return true;
-      }
-
       public string EncryptSymmetrically(string source, string[] passwords)
       {
-         source = _encryptAes(source, passwords);
-         source = Convert.ToBase64String(Encoding.Unicode.GetBytes(source));
+         // Onion encryption: every passkey adds an authenticated AES-GCM layer,
+         // so all of them are required - and in the right order - to recover the
+         // data.
+         string result = source;
 
-         Sign(ref source);
+         for (int i = passwords.Length - 1; i >= 0; i--)
+         {
+            result = _encryptGcmLayer(result, passwords[i]);
+         }
 
-         return source;
+         // A final layer keyed with a fixed, public value lets decryption tell
+         // "corrupted or foreign data" apart from "valid data, wrong passkey".
+         return _encryptGcmLayer(result, GetHash(string.Empty));
       }
 
       public string DecryptSymmetrically(string source, string[] passwords)
       {
-         if (!CheckSign(ref source))
+         string result;
+
+         try
          {
-            throw new CheckSignFailedException();
+            result = _decryptGcmLayer(source, GetHash(string.Empty));
+         }
+         catch
+         {
+            throw new CorruptedSourceException();
          }
 
-         source = Encoding.Unicode.GetString(Convert.FromBase64String(source));
-         source = _decryptAes(source, passwords);
+         for (int i = 0; i < passwords.Length; i++)
+         {
+            try
+            {
+               result = _decryptGcmLayer(result, passwords[i]);
+            }
+            catch
+            {
+               throw new WrongPasswordException(i);
+            }
+         }
 
-         return source;
+         return result;
       }
 
       public void GenerateRandomKeys(out string publicKey, out string privateKey)
@@ -89,156 +89,116 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string EncryptAsymmetrically(string source, string key)
       {
-         Random random = new((int)DateTime.Now.Ticks);
-         byte[] randomBytes = new byte[100];
-         random.NextBytes(randomBytes);
-         string aesKey = Encoding.UTF8.GetString(randomBytes);
+         // The one-time AES key wraps the payload while the RSA layer protects
+         // the key itself. It must be unpredictable, so it is drawn from a
+         // CSPRNG and Base64-encoded to keep every bit of entropy (encoding raw
+         // random bytes as UTF-8 would silently drop invalid sequences).
+         byte[] randomBytes = RandomNumberGenerator.GetBytes(100);
+         string aesKey = Convert.ToBase64String(randomBytes);
+
+         // The payload is sealed with authenticated AES-GCM and the AES key is
+         // wrapped with RSA-OAEP, so both parts already detect tampering - no
+         // separate signature is needed over the envelope.
          source = EncryptSymmetrically(source, [aesKey]);
          aesKey = _encryptRsa(aesKey, key);
          KeyValuePair<string, string> s = new(aesKey, source);
-         source = JsonSerializer.Serialize(s);
 
-         Sign(ref source);
-
-         return source;
+         return JsonSerializer.Serialize(s);
       }
 
       public string DecryptAsymmetrically(string source, string key)
       {
-         if (!CheckSign(ref source))
-         {
-            throw new CheckSignFailedException();
-         }
-
-         KeyValuePair<string, string> s = JsonSerializer.Deserialize<KeyValuePair<string, string>>(source);
-         string aesKey = _decryptRsa(s.Key, 0, key);
-         source = DecryptSymmetrically(s.Value, [aesKey]);
-
-         return source;
-      }
-
-      private static string _cipherAes(string plainText, string key)
-      {
-         if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(plainText))
-         {
-            return plainText;
-         }
-
-         key = Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
-
-         byte[] _key = Encoding.ASCII.GetBytes(key[..32]);
-         byte[] IV = Encoding.ASCII.GetBytes(key.Substring(32, 16));
-
-         byte[] bytes = _cipherAes(plainText, _key, IV);
-
-         return new string([.. bytes.Select(x => (char)x)]);
-      }
-
-      private static byte[] _cipherAes(string plainText, byte[] key, byte[] IV)
-      {
-         using Aes aesAlg = Aes.Create();
-         aesAlg.Key = key;
-         aesAlg.IV = IV;
-
-         ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-
-         using MemoryStream msEncrypt = new();
-         using CryptoStream csEncrypt = new(msEncrypt, encryptor, CryptoStreamMode.Write);
-         using (StreamWriter swEncrypt = new(csEncrypt))
-         {
-            swEncrypt.Write(plainText);
-         }
-
-         return msEncrypt.ToArray();
-      }
-
-      private static string _uncipherAes(string cipherText, string key)
-      {
-         if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(cipherText))
-         {
-            return cipherText;
-         }
-         key = Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
-         key += Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(key)));
-
-         byte[] _key = Encoding.ASCII.GetBytes(key[..32]);
-         byte[] IV = Encoding.ASCII.GetBytes(key.Substring(32, 16));
-
-         byte[] bytes = [.. cipherText.Select(x => (byte)x)];
-
-         return _uncitherAes(bytes, _key, IV);
-      }
-
-      private static string _uncitherAes(byte[] cipherText, byte[] key, byte[] IV)
-      {
-         using Aes aesAlg = Aes.Create();
-         aesAlg.Key = key;
-         aesAlg.IV = IV;
-
-         ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
-
-         using MemoryStream msDecrypt = new(cipherText);
-         using CryptoStream csDecrypt = new(msDecrypt, decryptor, CryptoStreamMode.Read);
-         using StreamReader srDecrypt = new(csDecrypt);
-
-         return srDecrypt.ReadToEnd();
-      }
-
-      private string _encryptAes(string source, string[] passwords)
-      {
-         passwords = [.. passwords.Select(GetHash)];
-
-         for (int i = passwords.Length - 1; i >= 0; i--)
-         {
-            Sign(ref source);
-            source = _cipherAes(source, passwords[i]);
-         }
-
-         Sign(ref source);
-         source = _cipherAes(source, GetHash(string.Empty));
-
-         return source;
-      }
-
-      private string _decryptAes(string source, string[] passwords)
-      {
-         passwords = [.. passwords.Select(GetHash)];
+         KeyValuePair<string, string> s;
 
          try
          {
-            source = _uncipherAes(source, GetHash(string.Empty));
+            s = JsonSerializer.Deserialize<KeyValuePair<string, string>>(source);
          }
-         catch
+         catch (JsonException)
          {
             throw new CorruptedSourceException();
          }
 
-         if (!CheckSign(ref source))
+         // A wrong key fails the RSA unwrap (WrongPasswordException); any
+         // tampering with the wrapped key or the payload is caught by RSA-OAEP
+         // or the AES-GCM tag inside DecryptSymmetrically.
+         string aesKey = _decryptRsa(s.Key, 0, key);
+
+         return DecryptSymmetrically(s.Value, [aesKey]);
+      }
+
+      private const int _saltSize = 16;
+      private const int _nonceSize = 12;
+      private const int _tagSize = 16;
+      private const int _keySize = 32;
+
+      // The passkeys reaching this layer are already high-entropy values
+      // (slow-hashed master passwords or a random AES key), so HKDF is the
+      // right tool to expand them into a fresh AES-256 key. Brute-force
+      // hardening of human-chosen passwords belongs to GetSlowHash, not here.
+      private static byte[] _deriveLayerKey(string password, byte[] salt)
+         => HKDF.DeriveKey(HashAlgorithmName.SHA256, Encoding.Unicode.GetBytes(password), _keySize, salt);
+
+      private static string _encryptGcmLayer(string plainText, string password)
+      {
+         byte[] salt = RandomNumberGenerator.GetBytes(_saltSize);
+         byte[] nonce = RandomNumberGenerator.GetBytes(_nonceSize);
+         byte[] key = _deriveLayerKey(password, salt);
+
+         try
          {
-            throw new CheckSignFailedException();
+            byte[] plainBytes = Encoding.Unicode.GetBytes(plainText);
+            byte[] cipherBytes = new byte[plainBytes.Length];
+            byte[] tag = new byte[_tagSize];
+
+            using (AesGcm aesGcm = new(key, _tagSize))
+            {
+               aesGcm.Encrypt(nonce, plainBytes, cipherBytes, tag);
+            }
+
+            // salt | nonce | tag | ciphertext, so decryption is self-describing.
+            return Convert.ToBase64String([.. salt, .. nonce, .. tag, .. cipherBytes]);
+         }
+         finally
+         {
+            CryptographicOperations.ZeroMemory(key);
+         }
+      }
+
+      private static string _decryptGcmLayer(string payload, string password)
+      {
+         byte[] data = Convert.FromBase64String(payload);
+
+         if (data.Length < _saltSize + _nonceSize + _tagSize)
+         {
+            throw new CryptographicException("Ciphertext is too short to be valid.");
          }
 
-         for (int i = 0; i < passwords.Length; i++)
+         ReadOnlySpan<byte> dataSpan = data;
+         byte[] salt = dataSpan[.._saltSize].ToArray();
+         byte[] nonce = dataSpan.Slice(_saltSize, _nonceSize).ToArray();
+         byte[] tag = dataSpan.Slice(_saltSize + _nonceSize, _tagSize).ToArray();
+         byte[] cipherBytes = dataSpan[(_saltSize + _nonceSize + _tagSize)..].ToArray();
+
+         byte[] key = _deriveLayerKey(password, salt);
+
+         try
          {
-            try
-            {
-               source = _uncipherAes(source, passwords[i]);
+            byte[] plainBytes = new byte[cipherBytes.Length];
 
-               if (!CheckSign(ref source))
-               {
-                  throw new CheckSignFailedException();
-               }
-            }
-            catch
+            // AES-GCM verifies the tag while decrypting and throws on any
+            // tampering or wrong key, which is how callers detect both.
+            using (AesGcm aesGcm = new(key, _tagSize))
             {
-               throw new WrongPasswordException(i);
+               aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
             }
+
+            return Encoding.Unicode.GetString(plainBytes);
          }
-
-         return source;
+         finally
+         {
+            CryptographicOperations.ZeroMemory(key);
+         }
       }
 
       private static string _encryptRsa(string source, string publicKeyPem)
