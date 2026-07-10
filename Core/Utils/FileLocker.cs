@@ -4,7 +4,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
-   internal class FileLocker : IDisposable
+   internal sealed class FileLocker : IDisposable
    {
       internal string FilePath { get; private set; }
       private FileStream? _stream;

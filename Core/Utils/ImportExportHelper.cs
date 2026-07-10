@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
@@ -36,7 +37,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          try
          {
-            string[] csvLines = [.. importContent.Split('\n').Select(x => x.Replace("\r", "")).Where(x => !string.IsNullOrWhiteSpace(x))];
+            string[] csvLines = [.. importContent.Split('\n').Select(x => x.Replace("\r", "", StringComparison.CurrentCulture)).Where(x => !string.IsNullOrWhiteSpace(x))];
 
             string[] headers = csvLines[0].Split("\t");
 
@@ -117,14 +118,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             return "import file deserialization failed";
          }
 
-         return _importServices(database, services);
+         return _importServices(database, [.. services]);
       }
 
-      private static string _importServices(IDatabase database, IEnumerable<Service> services)
+      private static string _importServices(IDatabase database, List<Service> services)
       {
          if (database.User is null) return string.Empty;
 
-         if (!services.Any()) return "there is no data to import";
+         if (services.Count == 0) return "there is no data to import";
 
          Service? s0 = services.FirstOrDefault(x => database.User.Services.Any(y => y.ServiceName == x.ServiceName));
          if (s0 is not null)
@@ -141,7 +142,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          foreach (Service s in services)
          {
             IService service = database.User.AddService(s.ServiceName);
-            service.Url = s.Url;
+            service.Url = new Uri(s.Url);
             service.Notes = s.Notes;
 
             foreach (Account a in s.Accounts)

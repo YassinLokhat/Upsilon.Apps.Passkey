@@ -3,7 +3,7 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
-   internal class Warning : IWarning
+   internal sealed class Warning : IWarning
    {
       public WarningType WarningType { get; set; }
 

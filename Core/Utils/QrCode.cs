@@ -29,7 +29,7 @@ internal enum EncodingMode
    Unknown14,
    Unknown15,
 }
-
+#pragma warning disable CA1814, CA1819
 public class QrCode
 {
    private byte[][] _dataSegArray = [];
@@ -263,7 +263,7 @@ public class QrCode
             break;
       }
       if (QRCodeVersion > 40)
-         throw new ApplicationException("Input data string is too long");
+         throw new InvalidOperationException("Input data string is too long");
       _encodedDataBits += num2;
    }
 
@@ -727,7 +727,7 @@ public class QrCode
          case EncodingMode.Byte:
             return QRCodeVersion >= 10 ? 16 /*0x10*/ : 8;
          default:
-            throw new ApplicationException("Encoding mode error");
+            throw new InvalidOperationException("Encoding mode error");
       }
    }
 
@@ -1039,3 +1039,4 @@ public class QrCode
       }
    }
 }
+#pragma warning restore CA1814

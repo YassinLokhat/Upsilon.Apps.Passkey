@@ -11,3 +11,8 @@ trim_trailing_whitespace = true
 # Style/design suggestions: keep visible (suggestion) but not breaking.
 dotnet_diagnostic.CA1031.severity = suggestion   # Do not catch general Exception
 dotnet_diagnostic.CA1062.severity = suggestion   # Validate arguments of public methods
+dotnet_diagnostic.CA1305.severity = suggestion   # IFormatProvider missing
+
+# CA5392 (DefaultDllImportSearchPaths): keep as suggestion; the
+# P/Invokes target well-known system DLLs (user32, dwmapi).
+dotnet_diagnostic.CA5392.severity = suggestion

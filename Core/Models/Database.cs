@@ -86,7 +86,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.LoginFailed,
-               data: [Username, passwordException.PasswordLevel.ToString()],
+               data: [Username, $"{passwordException.PasswordLevel}"],
                needsReview: true);
          }
          catch (Exception ex)

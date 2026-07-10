@@ -1,10 +1,11 @@
-﻿using Upsilon.Apps.Passkey.Core.Utils;
+﻿using System.Globalization;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
-   internal class Activity : IActivity
+   internal sealed class Activity : IActivity
    {
       #region IActivity interface
 
@@ -60,10 +61,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (info.Length > 4)
          {
             activity = string.Join("|", info[4..])
-               .Replace("|", "/|")
-               .Replace("\\/|", "\\|");
+               .Replace("|", "/|", StringComparison.CurrentCulture)
+               .Replace("\\/|", "\\|", StringComparison.CurrentCulture);
             info = activity.Split("/|");
-            Data = [.. info.Select(x => x.Replace("\\|", "|"))];
+            Data = [.. info.Select(x => x.Replace("\\|", "|", StringComparison.CurrentCulture))];
          }
       }
 
@@ -71,7 +72,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          string activity = $"{DateTimeTicks:X}|{ItemId}|{(int)EventType}|{(NeedsReview ? "1" : "")}";
 
-         string[] data = [.. Data.Select(x => x.Replace("|", "\\|"))];
+         string[] data = [.. Data.Select(x => x.Replace("|", "\\|", StringComparison.CurrentCulture))];
          if (data.Length != 0)
          {
             activity += $"|{string.Join("|", data)}";
@@ -102,7 +103,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             ActivityEventType.ExportingDataStarted => $"Exporting data to file : '{Data[0]}'",
             ActivityEventType.ExportingDataSucceded => $"Export completed successfully",
             ActivityEventType.ExportingDataFailed => $"Export failed because {Data[0]}",
-            ActivityEventType.ItemUpdated => $"{(Data.Length > 3 ? $"{Data[3]}'s " : "")}{Data[0]}'s {Data[1].ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(Data[2]) ? $"updated" : $"set to {Data[2]}")}",
+            ActivityEventType.ItemUpdated => $"{(Data.Length > 3 ? $"{Data[3]}'s " : "")}{Data[0]}'s {Data[1].ToSentenceCase().ToLower(CultureInfo.CurrentCulture)} has been {(string.IsNullOrWhiteSpace(Data[2]) ? $"updated" : $"set to {Data[2]}")}",
             ActivityEventType.ItemAdded => $"{Data[2]} has been added to {Data[0]}",
             ActivityEventType.ItemDeleted => $"{Data[2]} has been removed from {Data[0]}",
             _ => ToString(),

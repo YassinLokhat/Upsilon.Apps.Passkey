@@ -7,7 +7,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 {
    public class CryptographyCenter : ICryptographyCenter
    {
-      public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.Unicode.GetBytes(source))).Replace("/", "-");
+      public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.Unicode.GetBytes(source))).Replace("/", "-", StringComparison.CurrentCulture);
 
       // A fixed, application-wide salt gives the slow hash domain separation.
       // Per-database random salts would be stronger but require storing the

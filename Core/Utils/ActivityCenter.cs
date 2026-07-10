@@ -1,10 +1,11 @@
 ﻿using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
-   internal class ActivityCenter
+   internal sealed class ActivityCenter
    {
       internal Database Database
       {

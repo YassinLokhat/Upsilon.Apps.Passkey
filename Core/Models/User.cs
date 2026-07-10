@@ -2,10 +2,11 @@
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
-   internal sealed class User : IUser
+   internal sealed class User : IUser, IDisposable
    {
       #region IUser interface explicit Internal
 
@@ -55,7 +56,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: false,
             oldValue: LogoutTimeout,
             newValue: value,
-            readableValue: value.ToString());
+            readableValue: $"{value}");
       }
 
       int IUser.CleaningClipboardTimeout
@@ -66,7 +67,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: false,
             oldValue: CleaningClipboardTimeout,
             newValue: value,
-            readableValue: value.ToString());
+            readableValue: $"{value}");
       }
 
       int IUser.ShowPasswordDelay
@@ -77,7 +78,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: false,
             oldValue: ShowPasswordDelay,
             newValue: value,
-            readableValue: value.ToString());
+            readableValue: $"{value}");
       }
 
       int IUser.NumberOfOldPasswordToKeep
@@ -90,7 +91,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                needsReview: true,
                oldValue: NumberOfOldPasswordToKeep,
                newValue: value,
-               readableValue: value.ToString());
+               readableValue: $"{value}");
 
             if (NumberOfOldPasswordToKeep == 0) return;
 
@@ -120,7 +121,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                needsReview: true,
                oldValue: NumberOfMonthActivitiesToKeep,
                newValue: value,
-               readableValue: value.ToString());
+               readableValue: $"{value}");
 
             Database.ActivityCenter.Save(rebuildStringActivities: true);
          }
@@ -350,5 +351,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public override string ToString() => $"User {Database.Username}";
 
       public bool HasChanged() => Database.HasChanged(ItemId) || Services.Any(x => x.HasChanged());
+
+      public void Dispose() => _timer?.Dispose();
    }
 }
