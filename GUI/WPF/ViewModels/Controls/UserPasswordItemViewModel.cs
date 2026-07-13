@@ -3,7 +3,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   public class UserPasswordItemViewModel : INotifyPropertyChanged
+   internal sealed class UserPasswordItemViewModel : INotifyPropertyChanged
    {
       public int Index
       {
@@ -18,7 +18,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }

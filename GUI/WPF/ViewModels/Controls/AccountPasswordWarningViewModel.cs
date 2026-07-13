@@ -4,7 +4,7 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal class AccountPasswordWarningViewModel(IAccount account, WarningType warningType)
+   internal sealed class AccountPasswordWarningViewModel(IAccount account, WarningType warningType)
    {
       public string ReadableWarningType => WarningType.ToReadableString();
       public string ServiceString => Account.Service.ToString() ?? string.Empty;

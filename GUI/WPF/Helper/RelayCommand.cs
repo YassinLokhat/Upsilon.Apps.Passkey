@@ -1,4 +1,4 @@
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -7,7 +7,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// to the supplied delegates. Hooks into <see cref="CommandManager.RequerySuggested"/>
    /// so WPF automatically re-evaluates <see cref="CanExecute"/>.
    /// </summary>
-   public sealed class RelayCommand : ICommand
+   internal sealed class RelayCommand : ICommand
    {
       private readonly Action<object?> _execute;
       private readonly Predicate<object?>? _canExecute;

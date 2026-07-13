@@ -10,13 +10,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    /// </summary>
    public partial class UserPasswordItem : UserControl
    {
-      public readonly UserPasswordItemViewModel ViewModel;
+      internal readonly UserPasswordItemViewModel ViewModel;
 
       public event EventHandler? UpClicked;
       public event EventHandler? DownClicked;
       public event EventHandler? DeleteClicked;
 
-      public UserPasswordItem(UserPasswordItemViewModel viewModel)
+      internal UserPasswordItem(UserPasswordItemViewModel viewModel)
       {
          InitializeComponent();
 

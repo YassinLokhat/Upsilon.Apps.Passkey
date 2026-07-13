@@ -94,7 +94,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          return string.IsNullOrEmpty(_viewModel.Username)
             ? "Username cannot be empty."
-            : _passwordsContainer.Passkeys.Length == 0
+            : !_passwordsContainer.Passkeys.Any()
             ? "At least one password should be set."
             : _passwordsContainer.Passkeys.Any(string.IsNullOrEmpty)
             ? "No password can be empty."
@@ -170,7 +170,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   AppServices.Clipboard,
                   newDatabaseFile,
                   _viewModel.Username,
-                  _passwordsContainer.Passkeys);
+                  [.._passwordsContainer.Passkeys]);
 
                _database.DatabaseClosed += _database_DatabaseClosed;
                _session.StartSession(_database);
@@ -273,7 +273,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
-      private static bool _credentialsChanged(string oldFileName, string[] oldPasskeys, string newFilename, string[] newPasskeys)
+      private static bool _credentialsChanged(string oldFileName, IEnumerable<string> oldPasskeys, string newFilename, IEnumerable<string> newPasskeys)
       {
          return oldFileName != newFilename || AppServices.Serialization.AreDifferent(oldPasskeys, newPasskeys);
       }

@@ -5,12 +5,12 @@ using System.Windows.Interop;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
-   public static class HotkeyHelper
+   internal static class HotkeyHelper
    {
       private const int WM_HOTKEY = 0x0312;
       private static int _id;
 
-      private static readonly Dictionary<int, _Registration> _registrations = [];
+      private static readonly Dictionary<int, Registration> _registrations = [];
 
       public static event EventHandler<HotkeyEventArgs>? HotkeyPressed;
 
@@ -50,7 +50,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          }
 
          source.AddHook(hook);
-         _registrations[hotkeyId] = new _Registration(hWnd, source, hook);
+         _registrations[hotkeyId] = new Registration(hWnd, source, hook);
 
          return hotkeyId;
       }
@@ -58,7 +58,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       public static bool Unregister(Window window, int hotkeyId)
       {
          if (window is null
-            || !_registrations.Remove(hotkeyId, out _Registration? registration))
+            || !_registrations.Remove(hotkeyId, out Registration? registration))
          {
             return false;
          }
@@ -185,10 +185,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          public ushort wParamH;
       }
 
-      private sealed record _Registration(IntPtr Handle, HwndSource Source, HwndSourceHook Hook);
+      private sealed record Registration(IntPtr Handle, HwndSource Source, HwndSourceHook Hook);
    }
 
-   public class HotkeyEventArgs : EventArgs
+   internal sealed class HotkeyEventArgs : EventArgs
    {
       public readonly Key Key;
       public readonly ModifierKeys Modifiers;

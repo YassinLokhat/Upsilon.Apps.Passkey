@@ -3,7 +3,7 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
 {
-   public class ClipboardManager : IClipboardManager
+   internal sealed class ClipboardManager : IClipboardManager
    {
       public int RemoveAllOccurence(string[] removeList)
       {

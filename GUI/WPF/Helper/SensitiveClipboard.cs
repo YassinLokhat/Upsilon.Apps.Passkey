@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Threading;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
@@ -14,7 +14,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// "CanIncludeInClipboardHistory"/"CanUploadToCloudClipboard" to false ask
    /// the OS to keep the payload out of any history/sync surface.
    /// </remarks>
-   public static class SensitiveClipboard
+   internal static class SensitiveClipboard
    {
       private const string ExcludeFormat = "ExcludeClipboardContentFromMonitoring";
       private const string HistoryFormat = "CanIncludeInClipboardHistory";

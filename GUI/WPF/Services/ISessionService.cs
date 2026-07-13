@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Interfaces.Models;
+﻿using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 {
@@ -7,7 +7,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
    /// Replaces the static <c>MainViewModel.Database</c> field so consumers can
    /// be unit-tested and react to lifecycle changes through events.
    /// </summary>
-   public interface ISessionService
+   internal interface ISessionService
    {
       /// <summary>The active database, or <c>null</c> when nobody is logged in.</summary>
       IDatabase? Database { get; }

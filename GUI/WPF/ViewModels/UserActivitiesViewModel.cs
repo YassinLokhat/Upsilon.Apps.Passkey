@@ -8,11 +8,11 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class UserActivitiesViewModel : INotifyPropertyChanged
+   internal sealed class UserActivitiesViewModel : INotifyPropertyChanged
    {
       public string Title { get; }
 
-      public string FiltersHeader => $"Filters : {Activities.Count} activities found over {AppServices.Session.Database?.Activities?.Length}";
+      public string FiltersHeader => $"Filters : {Activities.Count} activities found over {AppServices.Session.Database?.Activities?.Count()}";
       public DateTime FromDateFilter
       {
          get;
@@ -21,7 +21,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(FromDateFilter));
+               _onPropertyChanged(nameof(FromDateFilter));
                RefreshFilters();
             }
          }
@@ -34,7 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(ToDateFilter));
+               _onPropertyChanged(nameof(ToDateFilter));
                RefreshFilters();
             }
          }
@@ -53,7 +53,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(ReadableEventType));
+               _onPropertyChanged(nameof(ReadableEventType));
                RefreshFilters();
             }
          }
@@ -67,7 +67,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(Message));
+               _onPropertyChanged(nameof(Message));
                RefreshFilters();
             }
          }
@@ -81,7 +81,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(NeedsReview));
+               _onPropertyChanged(nameof(NeedsReview));
                RefreshFilters();
             }
          }
@@ -93,7 +93,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
@@ -140,7 +140,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             Activities.Add(activity);
          }
 
-         OnPropertyChanged(nameof(FiltersHeader));
+         _onPropertyChanged(nameof(FiltersHeader));
       }
    }
 }

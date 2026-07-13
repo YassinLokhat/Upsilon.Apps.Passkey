@@ -2,11 +2,11 @@
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal class DuplicatedPasswordWarningViewModel
+   internal sealed class DuplicatedPasswordWarningViewModel
    {
       private readonly IWarning _warning;
 
-      public string DuplicatedPassword => $"{_warning.Accounts?.Length} accounts with same passwords";
+      public string DuplicatedPassword => $"{_warning.Accounts?.Count()} accounts with same passwords";
       public AccountPasswordWarningViewModel[] Accounts { get; set; }
 
       public DuplicatedPasswordWarningViewModel(IWarning warning)

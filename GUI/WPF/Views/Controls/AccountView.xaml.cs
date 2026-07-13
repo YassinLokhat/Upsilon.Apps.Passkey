@@ -29,7 +29,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          {
             foreach (string idType in IdentifierViewModel.IdentifiersTypes.Values)
             {
-               if (identifier.StartsWith(idType))
+               if (identifier.StartsWith(idType, StringComparison.CurrentCulture))
                {
                   identifier = identifier[idType.Length..];
                }
@@ -39,20 +39,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          return identifier;
       }
 
-      public string? GetPassword() => _viewModel?.Password;
-
-      public void SetPassword(string password)
+      public string? Password
       {
-         if (_viewModel is null) return;
+         get => _viewModel?.Password;
+         set
+         {
+            ArgumentNullException.ThrowIfNull(value);
 
-         _viewModel.Password = password;
+            if (_viewModel is null) return;
 
-         _password_VPB.Password = _viewModel.Password;
-         _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
-         _passwords_LB.ItemsSource = _viewModel.Passwords;
+            _viewModel.Password = value;
+
+            _password_VPB.Password = _viewModel.Password;
+            _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
+            _passwords_LB.ItemsSource = _viewModel.Passwords;
+         }
       }
 
-      public void SetDataContext(AccountViewModel? dataContext)
+      internal void SetDataContext(AccountViewModel? dataContext)
       {
          if (dataContext is null)
          {
@@ -67,7 +71,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          _viewModel.Identifiers.Clear();
 
-         if (_viewModel.Account.Identifiers.Length == 0)
+         if (!_viewModel.Account.Identifiers.Any())
          {
             _viewModel.AddIdentifier(string.Empty);
          }

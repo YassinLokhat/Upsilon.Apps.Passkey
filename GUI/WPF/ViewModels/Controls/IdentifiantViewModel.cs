@@ -7,7 +7,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   public partial class IdentifierViewModel : INotifyPropertyChanged
+   internal partial class IdentifierViewModel : INotifyPropertyChanged
    {
       private readonly IAccount _account;
 
@@ -36,7 +36,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
                foreach (KeyValuePair<string, string> idType in IdentifiersTypes)
                {
-                  field = value.Replace(idType.Key, idType.Value);
+                  field = value.Replace(idType.Key, idType.Value, StringComparison.CurrentCulture);
                }
 
                OnPropertyChanged(nameof(Identifier));

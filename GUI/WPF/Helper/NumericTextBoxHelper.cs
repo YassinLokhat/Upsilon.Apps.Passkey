@@ -5,7 +5,7 @@ using System.Windows.Input;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
-   public static class NumericTextBoxHelper
+   internal static class NumericTextBoxHelper
    {
       private static readonly Regex _regex = new("[^0-9]+"); //regex that matches disallowed text
 
@@ -29,7 +29,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
          if (e.Handled)
          {
-            textBox.Text = textBox.Text.Replace(" ", "");
+            textBox.Text = textBox.Text.Replace(" ", "", StringComparison.CurrentCulture);
          }
       }
 

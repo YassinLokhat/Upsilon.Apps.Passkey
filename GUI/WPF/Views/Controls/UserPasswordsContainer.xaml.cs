@@ -10,7 +10,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    /// </summary>
    public partial class UserPasswordsContainer : UserControl
    {
-      public string[] Passkeys => [.. _passwords.Select(x => x.ViewModel.Password)];
+      public IEnumerable<string> Passkeys => [.. _passwords.Select(x => x.ViewModel.Password)];
 
       private readonly List<UserPasswordItem> _passwords;
 

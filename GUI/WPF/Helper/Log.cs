@@ -8,13 +8,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// No external dependency is used; entries are written to a rolling daily
    /// file located under <c>%LocalAppData%\Passkey\logs</c>.
    /// </summary>
-   public static class Log
+   internal static class Log
    {
-      private static readonly TraceSource _source;
+      private static readonly TraceSource _source = new("Passkey", SourceLevels.All);
 
       static Log()
       {
-         _source = new TraceSource("Passkey", SourceLevels.All);
          _source.Listeners.Clear();
 
          try

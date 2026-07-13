@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -13,7 +14,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserServicesView.xaml
    /// </summary>
-   public partial class UserServicesView : Window
+   public partial class UserServicesView : Window, IDisposable
    {
       private readonly UserServicesViewModel _viewModel;
       private readonly IDatabase _database;
@@ -56,7 +57,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _database_WarningUpdated(object? sender, Interfaces.Events.WarningsUpdatedEventArgs e)
       {
-         _ = Dispatcher.BeginInvoke(() => { _updateWarningsMenu(e.Warnings); });
+         _ = Dispatcher.BeginInvoke(() => { _updateWarningsMenu([..e.Warnings]); });
       }
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
@@ -385,6 +386,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          _serviceFilter_TB.SelectAll();
          _ = _serviceFilter_TB.Focus();
+      }
+
+      public void Dispose()
+      {
+         Dispose(true);
+         GC.SuppressFinalize(this);
+      }
+
+      protected virtual void Dispose(bool disposing)
+      {
+         if (disposing)
+         {
+            _viewModel.Dispose();
+         }
       }
    }
 }

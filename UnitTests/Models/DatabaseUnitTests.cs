@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          for (int i = 0; i < 100; i++)
          {
             IService service = user.AddService($"Service{i} ({UnitTestsHelper.GetRandomString(min: 10, max: 15)})");
-            service.Url = new Uri($"www.service{i}.xyz");
+            service.Url = new Uri($"http://service{i}.xyz");
             int random = UnitTestsHelper.GetRandomInt(100) % 10;
             service.Notes = random == 0 ? $"Service{i} notes : \n{UnitTestsHelper.GetRandomString(min: 10, max: 150)}" : "";
 

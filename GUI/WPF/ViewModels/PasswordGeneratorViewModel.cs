@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -101,7 +102,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = string.Empty;
 
-      public Visibility InsertVisibility => AppServices.Session.User is not null ? Visibility.Visible : Visibility.Collapsed;
+      public static Visibility InsertVisibility => AppServices.Session.User is not null ? Visibility.Visible : Visibility.Collapsed;
 
       public ICommand RegenerateCommand { get; }
       public ICommand CopyCommand { get; }
@@ -149,12 +150,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          if (IncludeUpperCaseAlphabet)
          {
-            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToUpper());
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToUpper(CultureInfo.CurrentCulture));
          }
 
          if (IncludeLowerCaseAlphabet)
          {
-            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToLower());
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToLower(CultureInfo.CurrentCulture));
          }
 
          if (IncludeSpecialCharacters)

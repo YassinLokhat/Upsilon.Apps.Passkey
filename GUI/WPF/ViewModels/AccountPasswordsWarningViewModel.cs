@@ -8,7 +8,7 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class AccountPasswordsWarningViewModel : INotifyPropertyChanged
+   internal sealed class AccountPasswordsWarningViewModel : INotifyPropertyChanged
    {
       public string Title { get; }
 
@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(ReadableWarningType));
+               _onPropertyChanged(nameof(ReadableWarningType));
                RefreshFilters();
             }
          }
@@ -38,7 +38,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(Text));
+               _onPropertyChanged(nameof(Text));
                RefreshFilters();
             }
          }
@@ -50,7 +50,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }

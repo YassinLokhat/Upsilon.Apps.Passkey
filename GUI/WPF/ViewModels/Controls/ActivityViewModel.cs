@@ -5,7 +5,7 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal class ActivityViewModel(IActivity activity) : INotifyPropertyChanged
+   internal sealed class ActivityViewModel(IActivity activity) : INotifyPropertyChanged
    {
       public readonly IActivity Activity = activity;
       public string DateTime => Activity.DateTime.ToString("yyyy-MM-dd HH:mm");
@@ -19,8 +19,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Activity.NeedsReview != value)
             {
                Activity.NeedsReview = value;
-               OnPropertyChanged(nameof(NeedsReview));
-               OnPropertyChanged(nameof(NeedsReviewString));
+               _onPropertyChanged(nameof(NeedsReview));
+               _onPropertyChanged(nameof(NeedsReviewString));
             }
          }
       }
@@ -28,7 +28,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }

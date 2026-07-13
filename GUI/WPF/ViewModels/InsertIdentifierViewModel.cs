@@ -4,7 +4,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class InsertIdentifierViewModel(IEnumerable<string> identifiers, string identifier) : INotifyPropertyChanged
+   internal sealed class InsertIdentifierViewModel(IEnumerable<string> identifiers, string identifier) : INotifyPropertyChanged
    {
       private readonly string[] _identifiers = [.. identifiers];
 
@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }

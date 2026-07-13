@@ -5,7 +5,7 @@ using System.Windows.Media;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
 {
-   public static class DarkMode
+   internal static class DarkMode
    {
       /// <summary>Background brush used for the main window/panel surfaces (#1E1E1E).</summary>
       public static readonly Brush UnchangedBrush1 = _freeze(Color.FromRgb(0x1E, 0x1E, 0x1E));
@@ -30,7 +30,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
          _ = DwmSetWindowAttribute(hwnd, attribute, ref useImmersiveDarkMode, sizeof(int));
       }
 
-      private static Brush _freeze(Color color)
+      private static SolidColorBrush _freeze(Color color)
       {
          SolidColorBrush brush = new(color);
          brush.Freeze();

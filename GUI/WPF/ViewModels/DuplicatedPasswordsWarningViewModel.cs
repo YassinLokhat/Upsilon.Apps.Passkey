@@ -5,7 +5,7 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class DuplicatedPasswordsWarningViewModel
+   internal sealed class DuplicatedPasswordsWarningViewModel
    {
       public string Title { get; }
 

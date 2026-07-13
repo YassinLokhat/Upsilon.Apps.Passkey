@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Core.Utils;
+﻿using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
@@ -11,7 +11,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
    /// only one composition root (the WPF process) and no extra dependency is
    /// allowed.
    /// </summary>
-   public static class AppServices
+   internal static class AppServices
    {
       public static IDialogService Dialogs { get; } = new DialogService();
 

@@ -19,9 +19,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       internal string? GetSelectedIdentifier() => _account_AV.GetIdentifier();
 
-      internal string? GetSelectedPassword() => _account_AV.GetPassword();
+      internal string? GetSelectedPassword() => _account_AV.Password;
 
-      internal void SetSelectedPassword(string password) => _account_AV.SetPassword(password);
+      internal void SetSelectedPassword(string password) => _account_AV.Password = password;
 
       public ServiceView()
       {

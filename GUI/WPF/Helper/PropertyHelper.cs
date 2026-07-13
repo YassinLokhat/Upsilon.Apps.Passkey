@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
-   public static class PropertyHelper
+   internal static class PropertyHelper
    {
       public static bool SetProperty<T>(ref T field,
          T newValue,

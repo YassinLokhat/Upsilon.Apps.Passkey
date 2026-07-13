@@ -8,13 +8,13 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal class ServiceViewModel : INotifyPropertyChanged
+   internal sealed class ServiceViewModel : INotifyPropertyChanged
    {
       public readonly IService Service;
 
       public string ServiceDisplay => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service.ServiceName}";
 
-      public string ServiceId => $"Service Id : {Service.ItemId.Replace(Service.User.ItemId, string.Empty)}";
+      public string ServiceId => $"Service Id : {Service.ItemId.Replace(Service.User.ItemId, string.Empty, StringComparison.CurrentCulture)}";
 
       public Brush ServiceNameBackground => Service.HasChanged(nameof(ServiceName)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string ServiceName
@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Service.ServiceName != value)
             {
                Service.ServiceName = value;
-               OnPropertyChanged(nameof(ServiceName));
+               _onPropertyChanged(nameof(ServiceName));
             }
          }
       }
@@ -33,13 +33,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public Brush UrlBackground => Service.HasChanged(nameof(Url)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Url
       {
-         get => Service.Url;
+         get => Service.Url?.OriginalString ?? string.Empty;
          set
          {
-            if (Service.Url != value)
+            if (Service.Url?.OriginalString != value)
             {
-               Service.Url = value;
-               OnPropertyChanged(nameof(Url));
+               Service.Url = new(value);
+               _onPropertyChanged(nameof(Url));
             }
          }
       }
@@ -53,7 +53,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Service.Notes != value)
             {
                Service.Notes = value;
-               OnPropertyChanged(nameof(Notes));
+               _onPropertyChanged(nameof(Notes));
             }
          }
       }
@@ -62,7 +62,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
@@ -77,7 +77,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
          if (accounts.Length == 0)
          {
-            accounts = Service.Accounts;
+            accounts = [..Service.Accounts];
          }
 
          foreach (IAccount account in accounts)
@@ -90,7 +90,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public AccountViewModel AddAccount()
       {
-         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier.StartsWith("👤New Account #")));
+         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier.StartsWith("👤New Account #", StringComparison.CurrentCulture)));
 
          if (accountViewModel is null)
          {
@@ -98,7 +98,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             accountViewModel.PropertyChanged += _accountViewModel_PropertyChanged;
             Accounts.Insert(0, accountViewModel);
 
-            OnPropertyChanged(string.Empty);
+            _onPropertyChanged(string.Empty);
          }
 
          return accountViewModel;
@@ -111,14 +111,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          _ = Accounts.Remove(accountViewModel);
          Service.DeleteAccount(accountViewModel.Account);
 
-         OnPropertyChanged(string.Empty);
+         _onPropertyChanged(string.Empty);
 
          return index < Accounts.Count ? index : Accounts.Count - 1;
       }
 
       private void _accountViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
       {
-         OnPropertyChanged(string.Empty);
+         _onPropertyChanged(string.Empty);
       }
 
       public override string ToString() => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service}";

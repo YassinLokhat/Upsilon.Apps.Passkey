@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
@@ -7,7 +7,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// Base class providing a minimal <see cref="INotifyPropertyChanged"/> implementation
    /// for MVVM, without any external dependency.
    /// </summary>
-   public abstract class ObservableObject : INotifyPropertyChanged
+   internal abstract class ObservableObject : INotifyPropertyChanged
    {
       public event PropertyChangedEventHandler? PropertyChanged;
 

@@ -6,7 +6,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
-   public static class WindowHelper
+   internal static class WindowHelper
    {
       public static bool GetIsBusy(this Window window)
       {

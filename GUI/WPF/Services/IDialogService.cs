@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 {
@@ -6,7 +6,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
    /// Abstracts every window/message-box/file-dialog open call so view-models
    /// can stay free of WPF dependencies and remain testable.
    /// </summary>
-   public interface IDialogService
+   internal interface IDialogService
    {
       /// <summary>
       /// Shows the supplied <paramref name="window"/> modally as a child of the

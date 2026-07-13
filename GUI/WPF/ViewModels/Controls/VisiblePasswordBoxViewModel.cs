@@ -6,7 +6,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   public class VisiblePasswordBoxViewModel : INotifyPropertyChanged
+   internal sealed class VisiblePasswordBoxViewModel : INotifyPropertyChanged
    {
       public string Password
       {
@@ -45,7 +45,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
