@@ -59,8 +59,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _isClosing = true;
 
          _database?.DatabaseClosed -= _database_DatabaseClosed;
-
-         _session.EndSession();
       }
 
       public static void ShowUserSettings(Window owner)

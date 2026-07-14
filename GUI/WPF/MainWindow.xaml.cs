@@ -21,6 +21,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
       private static ISessionService _session => AppServices.Session;
 
+      private bool _isClosing;
+
       public MainWindow()
       {
          InitializeComponent();
@@ -56,6 +58,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _password_PB.KeyUp += _credential_TB_KeyUp;
          _timer.Tick += _timer_Elapsed;
          Loaded += (s, e) => this.PostLoadSetup();
+         Closed += (s, e) => _isClosing = true;
       }
 
       private void _timer_Elapsed(object? sender, EventArgs e)
@@ -204,14 +207,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
       private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
       {
-         if (Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
+         if (_isClosing || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
          {
             return;
          }
 
          _ = Dispatcher.BeginInvoke(() =>
          {
-            if (!IsLoaded)
+            if (_isClosing || !IsLoaded)
             {
                return;
             }
