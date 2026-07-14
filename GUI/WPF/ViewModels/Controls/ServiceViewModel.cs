@@ -77,7 +77,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
          if (accounts.Length == 0)
          {
-            accounts = [..Service.Accounts];
+            accounts = [.. Service.Accounts];
          }
 
          foreach (IAccount account in accounts)

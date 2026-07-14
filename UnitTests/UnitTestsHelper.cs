@@ -87,7 +87,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
             username);
 
          database.AutoSaveDetected += (s, e) => { e.MergeBehavior = mergeAutoSave; };
-         database.WarningsUpdated += (s, e) => { warnings = [..e.Warnings]; };
+         database.WarningsUpdated += (s, e) => { warnings = [.. e.Warnings]; };
 
          foreach (string passkey in passkeys)
          {
@@ -129,7 +129,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return [.. passkeys];
       }
 
-      public static string GetRandomString(int min = 10, int max = 0) 
+      public static string GetRandomString(int min = 10, int max = 0)
       {
          if (max == 0)
          {

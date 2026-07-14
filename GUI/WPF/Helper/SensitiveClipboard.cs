@@ -16,9 +16,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// </remarks>
    internal static class SensitiveClipboard
    {
-      private const string ExcludeFormat = "ExcludeClipboardContentFromMonitoring";
-      private const string HistoryFormat = "CanIncludeInClipboardHistory";
-      private const string CloudFormat = "CanUploadToCloudClipboard";
+      private const string EXCLUDE_FORMAT = "ExcludeClipboardContentFromMonitoring";
+      private const string HISTORY_FORMAT = "CanIncludeInClipboardHistory";
+      private const string CLOUD_FORMAT = "CanUploadToCloudClipboard";
 
       private static readonly object _autoClearLock = new();
       private static DispatcherTimer? _autoClearTimer;
@@ -39,9 +39,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
          DataObject data = new();
          data.SetText(text);
-         data.SetData(ExcludeFormat, true);
-         data.SetData(HistoryFormat, false);
-         data.SetData(CloudFormat, false);
+         data.SetData(EXCLUDE_FORMAT, true);
+         data.SetData(HISTORY_FORMAT, false);
+         data.SetData(CLOUD_FORMAT, false);
 
          try
          {

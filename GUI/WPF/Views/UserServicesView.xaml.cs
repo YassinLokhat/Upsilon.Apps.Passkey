@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -57,7 +56,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _database_WarningUpdated(object? sender, Interfaces.Events.WarningsUpdatedEventArgs e)
       {
-         _ = Dispatcher.BeginInvoke(() => { _updateWarningsMenu([..e.Warnings]); });
+         _ = Dispatcher.BeginInvoke(() => { _updateWarningsMenu([.. e.Warnings]); });
       }
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)

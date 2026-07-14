@@ -30,7 +30,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       Uri? IService.Url
       {
-         get => !String.IsNullOrWhiteSpace(Url) ? new Uri(Database.Get(Url)) : null;
+         get => !string.IsNullOrWhiteSpace(Url) ? new Uri(Database.Get(Url)) : null;
          set => Url = Database.AutoSave.UpdateValue(ItemId,
             fieldName: nameof(Url),
             needsReview: false,

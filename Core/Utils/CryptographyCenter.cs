@@ -15,7 +15,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // the high PBKDF2 iteration count.
       private static readonly byte[] _slowHashSalt = Encoding.UTF8.GetBytes("Upsilon.Apps.Passkey.SlowHash.v1");
 
-      private const int _slowHashIterations = 1_000_000;
+      private const int SLOW_HASH_ITERATIONS = 1_000_000;
 
       public string GetSlowHash(string source)
       {
@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
             Encoding.Unicode.GetBytes(source),
             _slowHashSalt,
-            _slowHashIterations,
+            SLOW_HASH_ITERATIONS,
             HashAlgorithmName.SHA256,
             64);
 
@@ -127,31 +127,31 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return DecryptSymmetrically(s.Value, [aesKey]);
       }
 
-      private const int _saltSize = 16;
-      private const int _nonceSize = 12;
-      private const int _tagSize = 16;
-      private const int _keySize = 32;
+      private const int SALT_SIZE = 16;
+      private const int NONCE_SIZE = 12;
+      private const int TAG_SIZE = 16;
+      private const int KEY_SIZE = 32;
 
       // The passkeys reaching this layer are already high-entropy values
       // (slow-hashed master passwords or a random AES key), so HKDF is the
       // right tool to expand them into a fresh AES-256 key. Brute-force
       // hardening of human-chosen passwords belongs to GetSlowHash, not here.
       private static byte[] _deriveLayerKey(string password, byte[] salt)
-         => HKDF.DeriveKey(HashAlgorithmName.SHA256, Encoding.Unicode.GetBytes(password), _keySize, salt);
+         => HKDF.DeriveKey(HashAlgorithmName.SHA256, Encoding.Unicode.GetBytes(password), KEY_SIZE, salt);
 
       private static string _encryptGcmLayer(string plainText, string password)
       {
-         byte[] salt = RandomNumberGenerator.GetBytes(_saltSize);
-         byte[] nonce = RandomNumberGenerator.GetBytes(_nonceSize);
+         byte[] salt = RandomNumberGenerator.GetBytes(SALT_SIZE);
+         byte[] nonce = RandomNumberGenerator.GetBytes(NONCE_SIZE);
          byte[] key = _deriveLayerKey(password, salt);
 
          try
          {
             byte[] plainBytes = Encoding.Unicode.GetBytes(plainText);
             byte[] cipherBytes = new byte[plainBytes.Length];
-            byte[] tag = new byte[_tagSize];
+            byte[] tag = new byte[TAG_SIZE];
 
-            using (AesGcm aesGcm = new(key, _tagSize))
+            using (AesGcm aesGcm = new(key, TAG_SIZE))
             {
                aesGcm.Encrypt(nonce, plainBytes, cipherBytes, tag);
             }
@@ -169,16 +169,16 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          byte[] data = Convert.FromBase64String(payload);
 
-         if (data.Length < _saltSize + _nonceSize + _tagSize)
+         if (data.Length < SALT_SIZE + NONCE_SIZE + TAG_SIZE)
          {
             throw new CryptographicException("Ciphertext is too short to be valid.");
          }
 
          ReadOnlySpan<byte> dataSpan = data;
-         byte[] salt = dataSpan[.._saltSize].ToArray();
-         byte[] nonce = dataSpan.Slice(_saltSize, _nonceSize).ToArray();
-         byte[] tag = dataSpan.Slice(_saltSize + _nonceSize, _tagSize).ToArray();
-         byte[] cipherBytes = dataSpan[(_saltSize + _nonceSize + _tagSize)..].ToArray();
+         byte[] salt = dataSpan[..SALT_SIZE].ToArray();
+         byte[] nonce = dataSpan.Slice(SALT_SIZE, NONCE_SIZE).ToArray();
+         byte[] tag = dataSpan.Slice(SALT_SIZE + NONCE_SIZE, TAG_SIZE).ToArray();
+         byte[] cipherBytes = dataSpan[(SALT_SIZE + NONCE_SIZE + TAG_SIZE)..].ToArray();
 
          byte[] key = _deriveLayerKey(password, salt);
 
@@ -188,7 +188,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             // AES-GCM verifies the tag while decrypting and throws on any
             // tampering or wrong key, which is how callers detect both.
-            using (AesGcm aesGcm = new(key, _tagSize))
+            using (AesGcm aesGcm = new(key, TAG_SIZE))
             {
                aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
             }

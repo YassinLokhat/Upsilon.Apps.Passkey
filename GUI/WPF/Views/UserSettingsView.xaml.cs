@@ -168,7 +168,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   AppServices.Clipboard,
                   newDatabaseFile,
                   _viewModel.Username,
-                  [.._passwordsContainer.Passkeys]);
+                  [.. _passwordsContainer.Passkeys]);
 
                _database.DatabaseClosed += _database_DatabaseClosed;
                _session.StartSession(_database);
