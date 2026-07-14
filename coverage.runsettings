@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Uses the "Code Coverage" data collector that ships with Microsoft.NET.Test.Sdk,
+  so no third-party coverage package is required. Output is Cobertura XML, which
+  is consumable by any coverage viewer.
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage">
+        <Configuration>
+          <Format>Cobertura</Format>
+          <CodeCoverage>
+            <!-- Coverage measures production code only, not the test assemblies
+                 nor the third-party test frameworks. -->
+            <ModulePaths>
+              <Exclude>
+                <ModulePath>.*[Uu]nit[Tt]ests\.dll$</ModulePath>
+                <ModulePath>.*[Tt]ests\.dll$</ModulePath>
+                <ModulePath>.*FluentAssertions\.dll$</ModulePath>
+                <ModulePath>.*MSTest.*\.dll$</ModulePath>
+              </Exclude>
+            </ModulePaths>
+            <ExcludeAssembliesWithoutSources>MissingAll</ExcludeAssembliesWithoutSources>
+            <UseVerifiableInstrumentation>False</UseVerifiableInstrumentation>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
