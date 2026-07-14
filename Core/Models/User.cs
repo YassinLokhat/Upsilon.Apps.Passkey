@@ -253,7 +253,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
                if (_clipboardLeftTime == 0)
                {
-                  _ = Database.ClipboardManager.RemoveAllOccurence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)]);
+                  _ = Database.ClipboardManager.RemoveAllOccurrence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)]);
                   _clipboardLeftTime = CleaningClipboardTimeout;
                }
             }

@@ -13,7 +13,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile => "Auto-save merged then saved",
             ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile => "Auto-save merged but not saved",
             ActivityEventType.DontMergeAndRemoveAutoSaveFile => "Auto-save discarded",
-            ActivityEventType.DontMergeAndKeepAutoSaveFile => "Auto-save not merged and keeped",
+            ActivityEventType.DontMergeAndKeepAutoSaveFile => "Auto-save not merged and kept",
             ActivityEventType.DatabaseCreated
               or ActivityEventType.DatabaseOpened
               or ActivityEventType.DatabaseSaved

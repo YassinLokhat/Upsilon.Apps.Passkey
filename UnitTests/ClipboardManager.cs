@@ -6,7 +6,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 {
    public class ClipboardManager : IClipboardManager
    {
-      public int RemoveAllOccurence(string[] removeList)
+      public int RemoveAllOccurrence(string[] removeList)
       {
          int cleanedPasswordCount = 0;
 

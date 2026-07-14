@@ -41,7 +41,7 @@ classDiagram
 
         class IClipboardManager {
             <<interface>>
-            +RemoveAllOccurence(in removeList IEnumerable~string~) int
+            +RemoveAllOccurrence(in removeList IEnumerable~string~) int
         }
 
         class IPasswordFactory {
@@ -238,7 +238,7 @@ classDiagram
 To create a new database, use the `Upsilon.Apps.Passkey.Core.Models.Database.Create` static method.
 
 This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation and an `IClipboardManager` implementation.
-The namespace `Upsilon.Apps.Passkey.Core.Utils` already contains implementations for all of these intefaces except for the `IClipboardManager` which needs an OS specific implementation.
+The namespace `Upsilon.Apps.Passkey.Core.Utils` already contains implementations for all of these interfaces except for the `IClipboardManager` which needs an OS specific implementation.
 
 The next parameter is the database file itself, which will be created during the process.
 
@@ -281,7 +281,7 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Open(new Upsilon.
 
 After opening (or creating) a database, use the `IDatabase.Login` method to login the user.
 To do that, call the login method with every passkeys used during the database creation process.
-Only the last call of that method, with every correct and ordered passkeys, will return the `IUser` representing the current user successfuly loged in.
+Only the last call of that method, with every correct and ordered passkeys, will return the `IUser` representing the current user successfully logged in.
 Else that method will return `null`.
 
 ```csharp
@@ -295,17 +295,17 @@ Once the IUser retrieved, it allow a full access to all services and accounts, a
 ### Saving the changes
 
 Use the `IDatabase.Save` method to save the user's updates.
-Note that any update on the user, its services and/or accounts which is not saved will be keeped in a hiden autosave file.
+Note that any update on the user, its services and/or accounts which is not saved will be kept in a hidden autosave file.
 
 ```csharp
-user.LogoutTimeout = 5;	// Setting the logout timeout to 5 min will create a hiden autosave file
+user.LogoutTimeout = 5;	// Setting the logout timeout to 5 min will create a hidden autosave file
 database.Save();		// Will save the new logout timeout in the database file and remove the autosave file
 ```
 
 ### Logout/Close a database
 
 To logout and close the database, use the `IDatabase.Close` method.
-All unsaved updates are stored inside the hiden autosave file.
+All unsaved updates are stored inside the hidden autosave file.
 
 ```csharp
 database.Close();

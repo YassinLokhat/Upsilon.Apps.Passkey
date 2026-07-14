@@ -14,7 +14,7 @@
       /// </summary>
       MergeAndSaveThenRemoveAutoSaveFile,
       /// <summary>
-      /// The auto-save will be merged into the database without saving and the auto-save file will be keeped.
+      /// The auto-save will be merged into the database without saving and the auto-save file will be kept.
       /// </summary>
       MergeWithoutSavingAndKeepAutoSaveFile,
       /// <summary>
@@ -22,7 +22,7 @@
       /// </summary>
       DontMergeAndRemoveAutoSaveFile,
       /// <summary>
-      /// The auto-save will not be merged into the database and the auto-save file will be keeped.
+      /// The auto-save will not be merged into the database and the auto-save file will be kept.
       /// </summary>
       DontMergeAndKeepAutoSaveFile,
    }

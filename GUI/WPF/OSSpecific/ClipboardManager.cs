@@ -5,7 +5,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
 {
    internal sealed class ClipboardManager : IClipboardManager
    {
-      public int RemoveAllOccurence(string[] removeList)
+      public int RemoveAllOccurrence(string[] removeList)
       {
          int cleanedPasswordCount = 0;
 

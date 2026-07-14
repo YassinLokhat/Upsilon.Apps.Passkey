@@ -156,13 +156,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (string.IsNullOrWhiteSpace(errorLog))
          {
-            string extention = Path.GetExtension(filePath);
+            string extension = Path.GetExtension(filePath);
 
-            errorLog = extention switch
+            errorLog = extension switch
             {
                ".json" => this.ImportJson(importContent),
                ".csv" => this.ImportCSV(importContent),
-               _ => $"'{extention}' extention type is not handled",
+               _ => $"'{extension}' extension type is not handled",
             };
          }
 
@@ -208,13 +208,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (string.IsNullOrWhiteSpace(errorLog))
          {
-            string extention = Path.GetExtension(filePath);
+            string extension = Path.GetExtension(filePath);
 
-            errorLog = extention switch
+            errorLog = extension switch
             {
                ".json" => this.ExportJson(filePath),
                ".csv" => this.ExportCSV(filePath),
-               _ => $"'{extention}' extention type is not handled",
+               _ => $"'{extension}' extension type is not handled",
             };
          }
 

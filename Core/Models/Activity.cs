@@ -88,7 +88,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile => $"User {Data[0]}'s autosave merged and saved",
             ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile => $"User {Data[0]}'s autosave merged without saving",
             ActivityEventType.DontMergeAndRemoveAutoSaveFile => $"User {Data[0]}'s autosave not merged and removed",
-            ActivityEventType.DontMergeAndKeepAutoSaveFile => $"User {Data[0]}'s autosave not merged and keeped",
+            ActivityEventType.DontMergeAndKeepAutoSaveFile => $"User {Data[0]}'s autosave not merged and kept",
             ActivityEventType.DatabaseCreated => $"User {Data[0]}'s database created",
             ActivityEventType.DatabaseOpened => $"User {Data[0]}'s database opened",
             ActivityEventType.DatabaseSaved => $"User {Data[0]}'s database saved",

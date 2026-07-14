@@ -58,7 +58,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.ImportFromFile(importFile);
 
          expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedActivities.Push($"Warning : Import failed because '.txt' extention type is not handled");
+         expectedActivities.Push($"Warning : Import failed because '.txt' extension type is not handled");
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -506,7 +506,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          expectedActivities.Push($"Information : User {username}'s database saved");
          expectedActivities.Push($"Warning : Exporting data to file : '{exportFile}'");
-         expectedActivities.Push($"Warning : Export failed because '.txt' extention type is not handled");
+         expectedActivities.Push($"Warning : Export failed because '.txt' extension type is not handled");
 
          // Then
          File.Exists(exportFile).Should().BeFalse();
