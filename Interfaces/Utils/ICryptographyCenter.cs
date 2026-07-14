@@ -16,8 +16,10 @@
       /// Returs a slow string hash of the given string.
       /// </summary>
       /// <param name="source">The string to hash.</param>
+      /// <param name="salt">A stable, per-account value (typically the username) mixed into the
+      /// salt so that identical <paramref name="source"/> values hash differently across accounts.</param>
       /// <returns>The hash.</returns>
-      string GetSlowHash(string source);
+      string GetSlowHash(string source, string salt);
 
       /// <summary>
       /// The fixed length of the hash.

@@ -76,7 +76,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public IUser? Login(string passkey)
       {
-         Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey)];
+         Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey, Username)];
 
          try
          {
@@ -273,7 +273,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (passkeys is not null)
          {
-            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x))];
+            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x, username))];
          }
 
          AutoSave = new()
@@ -386,7 +386,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (User is null) throw new NullValueException(nameof(User));
 
          Username = User.Username;
-         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(CryptographyCenter.GetSlowHash)];
+         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x, User.Username))];
          FileLocker.Save(User, DatabaseFileEntry, Passkeys);
 
          if (logSaveEvent)

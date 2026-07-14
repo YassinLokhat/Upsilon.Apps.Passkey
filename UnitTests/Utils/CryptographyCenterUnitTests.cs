@@ -18,7 +18,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          Stopwatch _stopwatch = Stopwatch.StartNew();
 
          // When
-         _ = UnitTestsHelper.CryptographicCenter.GetSlowHash(string.Empty);
+         _ = UnitTestsHelper.CryptographicCenter.GetSlowHash(string.Empty, UnitTestsHelper.GetUsername());
          _stopwatch.Stop();
 
          // Then
@@ -27,9 +27,34 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
       [TestMethod]
       /*
+       * Hashing the same source with two different salts (usernames) yields two
+       * different hashes, while the same source with the same salt is stable.
+      */
+      public void Case02_SlowHashSaltVariesPerUsername()
+      {
+         for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
+         {
+            // Given
+            string source = UnitTestsHelper.GetRandomString();
+            string firstUsername = UnitTestsHelper.GetRandomString();
+            string secondUsername = firstUsername + "_other";
+
+            // When
+            string firstHash = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, firstUsername);
+            string firstHashAgain = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, firstUsername);
+            string secondHash = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, secondUsername);
+
+            // Then
+            _ = firstHash.Should().Be(firstHashAgain);
+            _ = firstHash.Should().NotBe(secondHash);
+         }
+      }
+
+      [TestMethod]
+      /*
        * The length of any should be constantly equal to `HashLength`.
       */
-      public void Case02_HashLength()
+      public void Case03_HashLength()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
@@ -49,7 +74,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
        * Encrypting symmetrically a random string then decrypting it should rise no error,
        * Then the decrypted string should be the same as the source.
       */
-      public void Case05_SymmetricEncryptionRandomString()
+      public void Case04_SymmetricEncryptionRandomString()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
@@ -70,7 +95,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       /*
        * Decrypting symmetrically a corrupted string should rise an error.
       */
-      public void Case06_SymmetricEncryptionDecryptingCorruptedRandomString()
+      public void Case05_SymmetricEncryptionDecryptingCorruptedRandomString()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
@@ -107,7 +132,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       /*
        * Decrypting symmetrically a random string with a wrong passkey should rise an error.
       */
-      public void Case07_SymmetricEncryptionDecryptingRandomStringWithWrongPasskey()
+      public void Case06_SymmetricEncryptionDecryptingRandomStringWithWrongPasskey()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
@@ -145,7 +170,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
        * Encrypting a random string then decrypting it should rise no error,
        * Then the decrypted string should be the same as the source.
       */
-      public void Case08_AsymmetricEncryptionRandomString()
+      public void Case07_AsymmetricEncryptionRandomString()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
@@ -166,7 +191,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       /*
        * Decrypting a corrupted string should rise an error.
       */
-      public void Case09_AsymmetricEncryptionDecryptingCorruptedRandomString()
+      public void Case08_AsymmetricEncryptionDecryptingCorruptedRandomString()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
@@ -203,7 +228,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       /*
        * Decrypting a random string with a wrong passkey should rise an error.
       */
-      public void Case10_AsymmetricEncryptionDecryptingRandomStringWithWrongPasskey()
+      public void Case09_AsymmetricEncryptionDecryptingRandomStringWithWrongPasskey()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {

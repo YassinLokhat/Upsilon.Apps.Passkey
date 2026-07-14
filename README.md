@@ -59,7 +59,7 @@ classDiagram
             +HashLength : int
 
             +GetHash(in source string) string
-            +GetSlowHash(in source string) string
+            +GetSlowHash(in source string, in salt string) string
             +Sign(inout source string) void
             +CheckSign(inout source string) bool
             +EncryptSymmetrically(inout source string, in passwords IEnumerable~string~) string

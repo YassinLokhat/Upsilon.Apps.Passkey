@@ -9,22 +9,30 @@ namespace Upsilon.Apps.Passkey.Core.Utils
    {
       public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.Unicode.GetBytes(source))).Replace("/", "-", StringComparison.CurrentCulture);
 
-      // A fixed, application-wide salt gives the slow hash domain separation.
-      // Per-database random salts would be stronger but require storing the
-      // salt next to the data; here the cost that deters brute force comes from
-      // the high PBKDF2 iteration count.
-      private static readonly byte[] _slowHashSalt = Encoding.UTF8.GetBytes("Upsilon.Apps.Passkey.SlowHash.v1");
+      private readonly byte[] _slowHashSaltPrefix;
 
       private const int SLOW_HASH_ITERATIONS = 1_000_000;
 
-      public string GetSlowHash(string source)
+      public CryptographyCenter()
       {
+         _slowHashSaltPrefix = Encoding.UTF8.GetBytes(GetHash(string.Empty));
+      }
+
+      public string GetSlowHash(string source, string salt)
+      {
+         // Fold the per-account salt into a fixed-size, high-entropy value so
+         // the PBKDF2 salt is always well-formed regardless of the username's
+         // length or content, while staying deterministic (same username always
+         // yields the same salt, which is required to reopen the database).
+         byte[] saltMaterial = [.. _slowHashSaltPrefix, .. Encoding.Unicode.GetBytes(salt)];
+         byte[] derivedSalt = SHA256.HashData(saltMaterial);
+
          // PBKDF2-SHA256 is a standard password-stretching KDF. Iterating a
          // plain SHA-512 (the previous approach) is far cheaper per guess on a
          // GPU and offers no salting, so it gave attackers a big head start.
          byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
             Encoding.Unicode.GetBytes(source),
-            _slowHashSalt,
+            derivedSalt,
             SLOW_HASH_ITERATIONS,
             HashAlgorithmName.SHA256,
             64);
