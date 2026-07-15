@@ -359,7 +359,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             PrivateKey = privateKey,
             ItemId = "U" + cryptographicCenter.GetHash(username),
             Username = username,
-            Passkeys = [.. passkeys],
+            Passkeys = [.. passkeys.Select(ProtectedSecret.Protect)],
          };
 
          database.ActivityCenter.AddActivity(itemId: string.Empty,
@@ -424,7 +424,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          // activities were just (re)sealed by the _saveActivities call above.
          User.ActivitySealWatermark = ActivityCenter.SealedCount;
 
-         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x, User.Username, _slowHashParameters))];
+         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x.Reveal(), User.Username, _slowHashParameters))];
          FileLocker.Save(User, DatabaseFileEntry, Passkeys);
 
          if (logSaveEvent)

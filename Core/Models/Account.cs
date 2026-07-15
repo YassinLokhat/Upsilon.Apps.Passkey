@@ -46,8 +46,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
             if (!string.IsNullOrEmpty(value)
                && Password != value)
             {
-               Dictionary<DateTime, string> oldPasswords = Passwords.CloneWith(Database.SerializationCenter);
-               Passwords[DateTime.Now] = Password = value;
+               Dictionary<DateTime, ProtectedSecret> oldPasswords = Passwords.CloneWith(Database.SerializationCenter);
+               Password = value;
+               Passwords[DateTime.Now] = ProtectedSecret.Protect(value);
 
                if (_service is not null)
                {
@@ -76,7 +77,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      Dictionary<DateTime, string> IAccount.Passwords => new(Passwords);
+      Dictionary<DateTime, string> IAccount.Passwords => Passwords.ToDictionary(x => x.Key, x => x.Value.Reveal());
 
       string IAccount.Notes
       {
@@ -126,8 +127,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public string Label { get; set; } = string.Empty;
       public IEnumerable<string> Identifiers { get; set; } = [];
-      public string Password { get; set; } = string.Empty;
-      public Dictionary<DateTime, string> Passwords { get; set; } = [];
+
+      // Backed by a ProtectedSecret so the plaintext is never held in a long-lived
+      // field: it is only materialized just in time on read and re-protected on
+      // write. Serialization goes through the plaintext (see ProtectedSecret), so
+      // the persisted form is unchanged.
+      public string Password
+      {
+         get => _password.Reveal();
+         set => _password = ProtectedSecret.Protect(value);
+      }
+      private ProtectedSecret _password = ProtectedSecret.Protect(string.Empty);
+
+      public Dictionary<DateTime, ProtectedSecret> Passwords { get; set; } = [];
       public string Notes { get; set; } = string.Empty;
       public int PasswordUpdateReminderDelay { get; set; }
       public AccountOption Options { get; set; }
@@ -165,8 +177,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      Notes = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
                      break;
                   case nameof(Password):
-                     Passwords = change.NewValue.DeserializeTo<Dictionary<DateTime, string>>(Database.SerializationCenter);
-                     Password = Passwords.Count != 0 ? Passwords[Passwords.Keys.Max()] : string.Empty;
+                     Passwords = change.NewValue.DeserializeTo<Dictionary<DateTime, ProtectedSecret>>(Database.SerializationCenter);
+                     Password = Passwords.Count != 0 ? Passwords[Passwords.Keys.Max()].Reveal() : string.Empty;
                      break;
                   case nameof(PasswordUpdateReminderDelay):
                      PasswordUpdateReminderDelay = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);

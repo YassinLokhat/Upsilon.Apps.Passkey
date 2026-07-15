@@ -29,7 +29,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private static T _jsonDeserializeAs<T>(string json)
          => JsonSerializer.Deserialize<T>(json, _options) ?? throw new NullValueException();
 
-      private static readonly JsonSerializerOptions _options = new() { Converters = { new JsonStringEnumConverter() }, WriteIndented = true, };
+      private static readonly JsonSerializerOptions _options = new() { Converters = { new JsonStringEnumConverter(), new ProtectedSecretJsonConverter() }, WriteIndented = true, };
 
       public static string ImportCSV(this IDatabase database, string importContent)
       {
