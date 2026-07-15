@@ -30,18 +30,5 @@ namespace Upsilon.Apps.Passkey.Interfaces.Utils
       /// The length, in bytes, of the derived key material.
       /// </summary>
       public int OutputLength { get; set; }
-
-      /// <summary>
-      /// The parameters used before the versioned header was introduced. Files
-      /// created by those earlier versions carry no header and must be read with
-      /// exactly these values.
-      /// </summary>
-      public static KdfParameters Legacy => new()
-      {
-         Version = 1,
-         Algorithm = KdfAlgorithm.Pbkdf2HmacSha256,
-         Iterations = 1_000_000,
-         OutputLength = 64,
-      };
    }
 }

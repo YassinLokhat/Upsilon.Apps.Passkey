@@ -253,8 +253,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal FileLocker FileLocker { get; private set; }
 
       // The key-derivation parameters governing how this file's passkeys are
-      // stretched. Read from the header on open (or the historical defaults for
-      // pre-header files), and refreshed to the current default on save.
+      // stretched. Taken from the crypto center when the database is created,
+      // then read back from the header whenever it is reopened. A file keeps the
+      // parameters it was created with.
       private KdfParameters _slowHashParameters;
 
       private Database(ICryptographyCenter cryptographicCenter,
@@ -283,14 +284,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          FileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
 
-         // New databases adopt the current default parameters; existing ones are
-         // read from the versioned header, falling back to the historical
-         // parameters for files created before the header existed.
+         // New databases adopt the crypto center's current parameters; existing
+         // ones are read from the versioned header they were written with.
          _slowHashParameters = fileMode == FileMode.Create
             ? CryptographyCenter.DefaultSlowHashParameters
-            : FileLocker.Exists(HeaderFileEntry)
-               ? FileLocker.Open<KdfParameters>(HeaderFileEntry)
-               : KdfParameters.Legacy;
+            : FileLocker.Open<KdfParameters>(HeaderFileEntry);
 
          Passkeys = [CryptographyCenter.GetHash(username)];
 
@@ -403,11 +401,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          Username = User.Username;
 
-         // Re-stretch the passkeys with the current default parameters and record
-         // them in the (unencrypted) header, so the database entry written just
-         // below can always be reopened - and pre-header or older-parameter files
-         // are transparently upgraded on the next save.
-         _slowHashParameters = CryptographyCenter.DefaultSlowHashParameters;
+         // Record the file's stretching parameters in its (unencrypted) header so
+         // the database entry written just below can always be reopened with the
+         // exact parameters it was encrypted with.
          FileLocker.Save(_slowHashParameters, HeaderFileEntry);
 
          Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x, User.Username, _slowHashParameters))];
