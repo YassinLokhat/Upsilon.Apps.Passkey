@@ -8,7 +8,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 {
    public class CryptographyCenter : ICryptographyCenter
    {
-      public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.Unicode.GetBytes(source))).Replace("/", "-", StringComparison.CurrentCulture);
+      public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.Unicode.GetBytes(source))).Replace("/", "-", StringComparison.Ordinal);
 
       private readonly byte[] _slowHashSaltPrefix;
 
