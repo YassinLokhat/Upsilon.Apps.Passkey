@@ -10,6 +10,12 @@ concurrency:
   group: windows-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Minimum line coverage (0.0 - 1.0) required for the build to pass. Bump this
+  # up as coverage grows to lock in non-regression; the build fails if coverage
+  # drops below it.
+  MINIMUM_LINE_COVERAGE: "0.60"
+
 jobs:
   build:
     runs-on: windows-2025-vs2026
@@ -49,22 +55,31 @@ jobs:
         path: TestResults/**/*.cobertura.xml
         if-no-files-found: ignore
 
-    - name: Publish coverage summary
+    - name: Publish coverage summary and enforce threshold
       if: always()
       shell: pwsh
       run: |
         $report = Get-ChildItem -Path TestResults -Recurse -Filter *.cobertura.xml | Select-Object -First 1
         if ($null -eq $report) {
           "No coverage report was produced." | Add-Content -Path $env:GITHUB_STEP_SUMMARY
-          return
+          Write-Error "No coverage report was produced; cannot enforce the coverage threshold."
+          exit 1
         }
         [xml]$coverage = Get-Content -Path $report.FullName
         $lineRate = [double]$coverage.coverage.'line-rate'
         $branchRate = [double]$coverage.coverage.'branch-rate'
+        $threshold = [double]$env:MINIMUM_LINE_COVERAGE
         "## Code coverage" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
         "" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
         ("- Line coverage: {0:P2}" -f $lineRate) | Add-Content -Path $env:GITHUB_STEP_SUMMARY
         ("- Branch coverage: {0:P2}" -f $branchRate) | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        ("- Required line coverage: {0:P2}" -f $threshold) | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        if ($lineRate -lt $threshold) {
+          ("- Result: FAILED (line coverage below the required threshold)") | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+          Write-Error ("Line coverage {0:P2} is below the required {1:P2}." -f $lineRate, $threshold)
+          exit 1
+        }
+        "- Result: passed" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
 
 
 permissions:
