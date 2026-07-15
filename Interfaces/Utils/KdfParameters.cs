@@ -1,0 +1,47 @@
+using Upsilon.Apps.Passkey.Interfaces.Enums;
+
+namespace Upsilon.Apps.Passkey.Interfaces.Utils
+{
+   /// <summary>
+   /// Describes how a passkey is stretched into key material (the slow hash).
+   /// These parameters are stored, unencrypted, in the database header so a file
+   /// can always be reopened with the exact settings it was written with. They
+   /// are not secret: tampering with them only prevents the correct key from
+   /// being derived, it never weakens data that is already encrypted.
+   /// </summary>
+   public sealed class KdfParameters
+   {
+      /// <summary>
+      /// The version of the stretching scheme, allowing future migrations.
+      /// </summary>
+      public int Version { get; set; }
+
+      /// <summary>
+      /// The key-derivation function used.
+      /// </summary>
+      public KdfAlgorithm Algorithm { get; set; }
+
+      /// <summary>
+      /// The number of KDF iterations (work factor).
+      /// </summary>
+      public int Iterations { get; set; }
+
+      /// <summary>
+      /// The length, in bytes, of the derived key material.
+      /// </summary>
+      public int OutputLength { get; set; }
+
+      /// <summary>
+      /// The parameters used before the versioned header was introduced. Files
+      /// created by those earlier versions carry no header and must be read with
+      /// exactly these values.
+      /// </summary>
+      public static KdfParameters Legacy => new()
+      {
+         Version = 1,
+         Algorithm = KdfAlgorithm.Pbkdf2HmacSha256,
+         Iterations = 1_000_000,
+         OutputLength = 64,
+      };
+   }
+}

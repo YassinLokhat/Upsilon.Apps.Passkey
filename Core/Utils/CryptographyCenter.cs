@@ -1,6 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
@@ -18,8 +19,20 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          _slowHashSaltPrefix = Encoding.UTF8.GetBytes(GetHash(string.Empty));
       }
 
-      public string GetSlowHash(string source, string salt)
+      public KdfParameters DefaultSlowHashParameters => new()
       {
+         Version = 1,
+         Algorithm = KdfAlgorithm.Pbkdf2HmacSha256,
+         Iterations = SLOW_HASH_ITERATIONS,
+         OutputLength = 64,
+      };
+
+      public string GetSlowHash(string source, string salt) => GetSlowHash(source, salt, DefaultSlowHashParameters);
+
+      public string GetSlowHash(string source, string salt, KdfParameters parameters)
+      {
+         ArgumentNullException.ThrowIfNull(parameters);
+
          // Fold the per-account salt into a fixed-size, high-entropy value so
          // the PBKDF2 salt is always well-formed regardless of the username's
          // length or content, while staying deterministic (same username always
@@ -27,18 +40,27 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          byte[] saltMaterial = [.. _slowHashSaltPrefix, .. Encoding.Unicode.GetBytes(salt)];
          byte[] derivedSalt = SHA256.HashData(saltMaterial);
 
-         // PBKDF2-SHA256 is a standard password-stretching KDF. Iterating a
-         // plain SHA-512 (the previous approach) is far cheaper per guess on a
-         // GPU and offers no salting, so it gave attackers a big head start.
+         // PBKDF2 is a standard password-stretching KDF. Iterating a plain
+         // SHA-512 (the original approach) is far cheaper per guess on a GPU and
+         // offers no salting, so it gave attackers a big head start. The exact
+         // algorithm/work factor is taken from the caller so that a database can
+         // be reopened with the parameters it was written with (crypto-agility).
          byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
             Encoding.Unicode.GetBytes(source),
             derivedSalt,
-            SLOW_HASH_ITERATIONS,
-            HashAlgorithmName.SHA256,
-            64);
+            parameters.Iterations,
+            _toHashAlgorithmName(parameters.Algorithm),
+            parameters.OutputLength);
 
          return Convert.ToBase64String(hash);
       }
+
+      private static HashAlgorithmName _toHashAlgorithmName(KdfAlgorithm algorithm) => algorithm switch
+      {
+         KdfAlgorithm.Pbkdf2HmacSha256 => HashAlgorithmName.SHA256,
+         KdfAlgorithm.Pbkdf2HmacSha512 => HashAlgorithmName.SHA512,
+         _ => throw new NotSupportedException($"Unsupported KDF algorithm '{algorithm}'."),
+      };
 
       public int HashLength => GetHash(string.Empty).Length;
 
