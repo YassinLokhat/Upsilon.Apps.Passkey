@@ -558,7 +558,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => User.WarningsToNotify.HasFlag(x.WarningType))]));
          }
-         catch { }
+         catch (Exception ex)
+         {
+            // The warning scan runs on a background task and must never crash the
+            // session; a failure only means warnings are not refreshed this round,
+            // so we trace it for diagnostics rather than swallowing it silently.
+            System.Diagnostics.Trace.TraceWarning($"Warning scan failed: {ex}");
+         }
       }
 
       private Warning[] _lookAtActivityWarnings()
