@@ -82,14 +82,24 @@ supply-chain attack surface minimal.
 
 - A database is protected by an **ordered set of passkeys** (master passwords).
   All of them, **in the correct order**, are required to decrypt the data.
-- Each passkey is stretched with **PBKDF2-HMAC-SHA256, 1,000,000 iterations**
+- Each passkey is stretched with **PBKDF2-HMAC-SHA-512, 1,000,000 iterations**
   (64-byte output) before being used as key material (`GetSlowHash`). This far
-  exceeds the OWASP baseline for PBKDF2-SHA256 and makes offline guessing
-  expensive.
+  exceeds the OWASP baseline and makes offline guessing expensive. HMAC-SHA-512
+  is used deliberately: its 64-bit arithmetic is markedly less efficient on the
+  GPUs and ASICs an attacker would use for parallel guessing than the 32-bit
+  operations of SHA-256.
 - The PBKDF2 salt is derived deterministically from the username
   (`SHA-256(fixed_prefix || username)`), so the same username always yields the
   same salt (required to reopen the file) while different usernames get distinct
   salts.
+- **Crypto-agility**: the stretching parameters (algorithm, iterations, output
+  length, scheme version) are recorded in an unencrypted `header` entry of the
+  `.pku` file. A database is always reopened with the exact parameters it was
+  written with, and is transparently re-stretched with the current defaults on
+  the next save. This lets the work factor and algorithm evolve over time
+  without breaking existing files. The header is not secret: tampering with it
+  only prevents the correct key from being derived, it never weakens already
+  encrypted data.
 
 ### Symmetric encryption (data at rest)
 
@@ -168,7 +178,10 @@ These are conscious trade-offs, documented for transparency:
 - **Password stretching algorithm**: the project uses PBKDF2 rather than a
   memory-hard KDF such as Argon2id, because Argon2 is not part of the .NET base
   class library and the project maintains a zero-external-dependency policy for
-  its core. PBKDF2 with 1,000,000 SHA-256 iterations is used to compensate.
+  its core. To compensate, it uses PBKDF2-HMAC-SHA-512 (more hostile to
+  GPU/ASIC parallelism than SHA-256) with 1,000,000 iterations. The versioned
+  KDF header (see "Crypto-agility") keeps the door open to adopting a memory-hard
+  KDF later, pluggably, should the policy ever be relaxed.
 - **Deterministic salt**: the PBKDF2 salt is derived from the username, so two
   users with the same username share the same salt. Usernames are not secrets.
 - **Import/Export files**: CSV and JSON files produced by the Export feature (and

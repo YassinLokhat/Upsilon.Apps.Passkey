@@ -22,7 +22,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       public KdfParameters DefaultSlowHashParameters => new()
       {
          Version = 1,
-         Algorithm = KdfAlgorithm.Pbkdf2HmacSha256,
+         // HMAC-SHA-512 relies on 64-bit arithmetic, which GPUs and ASICs run
+         // far less efficiently than the 32-bit operations of SHA-256. At an
+         // equal iteration count this narrows an attacker's parallel-hardware
+         // advantage for offline guessing, while staying within the .NET BCL.
+         Algorithm = KdfAlgorithm.Pbkdf2HmacSha512,
          Iterations = SLOW_HASH_ITERATIONS,
          OutputLength = 64,
       };
