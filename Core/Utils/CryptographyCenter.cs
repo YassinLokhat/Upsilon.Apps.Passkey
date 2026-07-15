@@ -150,7 +150,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // A wrong key fails the RSA unwrap (WrongPasswordException); any
          // tampering with the wrapped key or the payload is caught by RSA-OAEP
          // or the AES-GCM tag inside DecryptSymmetrically.
-         string aesKey = _decryptRsa(s.Key, 0, key);
+         string aesKey = _decryptRsa(s.Key, key);
 
          return DecryptSymmetrically(s.Value, [aesKey]);
       }
@@ -283,7 +283,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return source;
       }
 
-      private static string _decryptRsa(string source, int level, string privateKeyPem)
+      private static string _decryptRsa(string source, string privateKeyPem)
       {
          try
          {
@@ -296,7 +296,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
          catch
          {
-            throw new WrongPasswordException(level);
+            throw new WrongPasswordException(0);
          }
       }
    }

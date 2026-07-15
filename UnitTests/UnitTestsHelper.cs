@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
@@ -63,6 +64,53 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          WriteFileZipEntry(databaseFile, "activity", _compress(tampered));
       }
+
+      // Drops one entry from the sealed log while leaving SealedCount untouched,
+      // so the stored list becomes shorter than the count it claims to have
+      // sealed: a rollback/truncation of the log.
+      public static void TamperActivityLogTruncate(string databaseFile)
+      {
+         JsonNode node = _readActivityNode(databaseFile);
+         JsonArray list = node["ActivityList"]!.AsArray();
+
+         list.RemoveAt(list.Count - 1);
+
+         _writeActivityNode(databaseFile, node);
+      }
+
+      // Swaps in an attacker-controlled key pair's public key. The private key
+      // that anchors verification still lives in the tamper-proof database, so
+      // the stored public key no longer matches it: a key substitution.
+      public static void TamperActivityLogPublicKey(string databaseFile)
+      {
+         CryptographicCenter.GenerateRandomKeys(out string attackerPublicKey, out _);
+
+         JsonNode node = _readActivityNode(databaseFile);
+         node["PublicKey"] = attackerPublicKey;
+
+         _writeActivityNode(databaseFile, node);
+      }
+
+      // Reorders two sealed entries, which changes the canonical content the seal
+      // was computed over without adding or removing anything: a reordering.
+      public static void TamperActivityLogReorder(string databaseFile)
+      {
+         JsonNode node = _readActivityNode(databaseFile);
+         JsonArray list = node["ActivityList"]!.AsArray();
+
+         string first = list[0]!.GetValue<string>();
+         string second = list[1]!.GetValue<string>();
+         list[0] = second;
+         list[1] = first;
+
+         _writeActivityNode(databaseFile, node);
+      }
+
+      private static JsonNode _readActivityNode(string databaseFile)
+         => JsonNode.Parse(_decompress(ReadFileZipEntry(databaseFile, "activity")))!;
+
+      private static void _writeActivityNode(string databaseFile, JsonNode node)
+         => WriteFileZipEntry(databaseFile, "activity", _compress(node.ToJsonString()));
 
       private static string _compress(string text)
       {
