@@ -49,7 +49,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // A fresh AES-256 key per secret, derived from the session key and a random
          // salt, removes any nonce-reuse concern under a single long-lived key.
          byte[] key = HKDF.DeriveKey(HashAlgorithmName.SHA256, _sessionKey, KEY_SIZE, salt);
-         byte[] plainBytes = Encoding.Unicode.GetBytes(secret ?? string.Empty);
+         byte[] plainBytes = Encoding.UTF8.GetBytes(secret ?? string.Empty);
 
          try
          {
@@ -95,7 +95,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
             }
 
-            return Encoding.Unicode.GetString(plainBytes);
+            return Encoding.UTF8.GetString(plainBytes);
          }
          finally
          {
