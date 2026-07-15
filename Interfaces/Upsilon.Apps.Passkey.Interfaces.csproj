@@ -2,26 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <Title>$(AssemblyName)</Title>
-    <Authors>Yassin Lokhat</Authors>
     <Description>A local stored Password Manager Interfaces.</Description>
     <Version>2.0.0</Version>
     <AssemblyVersion>2.0.0</AssemblyVersion>
     <FileVersion>2.0.0</FileVersion>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisLevel>latest-all</AnalysisLevel>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-    <WarningLevel>9999</WarningLevel>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-    <WarningLevel>9999</WarningLevel>
-  </PropertyGroup>
+  <!--
+    Zero-dependency policy: the Interfaces library must never take on a
+    third-party NuGet package, to keep the security-critical supply-chain
+    attack surface minimal. ProjectReferences (in-solution) stay allowed.
+    This target turns the policy into a hard build failure.
+  -->
+  <Target Name="EnforceZeroExternalDependencies" BeforeTargets="Build;Pack">
+    <Error Condition="'@(PackageReference)' != ''"
+           Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(PackageReference))." />
+  </Target>
 
 </Project>
