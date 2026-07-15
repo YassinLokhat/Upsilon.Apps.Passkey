@@ -76,7 +76,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public IUser? Login(string passkey)
       {
-         Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey, Username)];
+         Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey, Username, _slowHashParameters)];
 
          try
          {
@@ -246,10 +246,16 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal string Username { get; private set; }
       internal string[] Passkeys { get; private set; }
 
+      internal readonly string HeaderFileEntry = "header";
       internal readonly string DatabaseFileEntry = "database";
       internal readonly string AutoSaveFileEntry = "autosave";
       internal readonly string ActivityFileEntry = "activity";
       internal FileLocker FileLocker { get; private set; }
+
+      // The key-derivation parameters governing how this file's passkeys are
+      // stretched. Read from the header on open (or the historical defaults for
+      // pre-header files), and refreshed to the current default on save.
+      private KdfParameters _slowHashParameters;
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
@@ -269,12 +275,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
          ClipboardManager = clipboardManager;
 
          Username = username;
-         Passkeys = [CryptographyCenter.GetHash(username)];
-
-         if (passkeys is not null)
-         {
-            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x, username))];
-         }
 
          AutoSave = new()
          {
@@ -282,6 +282,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
          };
 
          FileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
+
+         // New databases adopt the current default parameters; existing ones are
+         // read from the versioned header, falling back to the historical
+         // parameters for files created before the header existed.
+         _slowHashParameters = fileMode == FileMode.Create
+            ? CryptographyCenter.DefaultSlowHashParameters
+            : FileLocker.Exists(HeaderFileEntry)
+               ? FileLocker.Open<KdfParameters>(HeaderFileEntry)
+               : KdfParameters.Legacy;
+
+         Passkeys = [CryptographyCenter.GetHash(username)];
+
+         if (passkeys is not null)
+         {
+            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x, username, _slowHashParameters))];
+         }
 
          ActivityCenter = fileMode == FileMode.Create
             ? new()
@@ -386,7 +402,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (User is null) throw new NullValueException(nameof(User));
 
          Username = User.Username;
-         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x, User.Username))];
+
+         // Re-stretch the passkeys with the current default parameters and record
+         // them in the (unencrypted) header, so the database entry written just
+         // below can always be reopened - and pre-header or older-parameter files
+         // are transparently upgraded on the next save.
+         _slowHashParameters = CryptographyCenter.DefaultSlowHashParameters;
+         FileLocker.Save(_slowHashParameters, HeaderFileEntry);
+
+         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x, User.Username, _slowHashParameters))];
          FileLocker.Save(User, DatabaseFileEntry, Passkeys);
 
          if (logSaveEvent)

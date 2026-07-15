@@ -13,13 +13,31 @@
       string GetHash(string source);
 
       /// <summary>
-      /// Returs a slow string hash of the given string.
+      /// Returs a slow string hash of the given string, using <see cref="DefaultSlowHashParameters"/>.
       /// </summary>
       /// <param name="source">The string to hash.</param>
       /// <param name="salt">A stable, per-account value (typically the username) mixed into the
       /// salt so that identical <paramref name="source"/> values hash differently across accounts.</param>
       /// <returns>The hash.</returns>
       string GetSlowHash(string source, string salt);
+
+      /// <summary>
+      /// Returs a slow string hash of the given string, using the provided key-derivation parameters.
+      /// This overload enables crypto-agility: a file can be reopened with the exact parameters it was
+      /// written with, while new data can adopt stronger defaults over time.
+      /// </summary>
+      /// <param name="source">The string to hash.</param>
+      /// <param name="salt">A stable, per-account value (typically the username) mixed into the
+      /// salt so that identical <paramref name="source"/> values hash differently across accounts.</param>
+      /// <param name="parameters">The key-derivation parameters (algorithm, iterations, output length) to use.</param>
+      /// <returns>The hash.</returns>
+      string GetSlowHash(string source, string salt, KdfParameters parameters);
+
+      /// <summary>
+      /// The key-derivation parameters that new data should be stretched with. This value may
+      /// strengthen across releases; existing files keep the parameters stored in their header.
+      /// </summary>
+      KdfParameters DefaultSlowHashParameters { get; }
 
       /// <summary>
       /// The fixed length of the hash.
