@@ -121,7 +121,30 @@ supply-chain attack surface minimal.
 - The audit/activity log uses a **hybrid** scheme: a random one-time AES key
   encrypts each record symmetrically, and that key is wrapped with
   **RSA-OAEP-SHA256**. This lets activity entries be written even when the full
-  symmetric passkey set is not available.
+  symmetric passkey set is not available (e.g. a failed login records an entry
+  without anyone being logged in).
+
+### Activity-log integrity (tamper-evidence)
+
+Because entries must be writable **without being logged in**, writing relies on
+the public key alone and therefore cannot be protected by a secret. Integrity is
+instead provided by **sealing**, which makes tampering *detectable* on the next
+login:
+
+- On every save performed **while a user is logged in**, the whole current log
+  is sealed: an **RSA-PSS-SHA256 signature** (made with the user's private key)
+  is computed over the log's entries and their count. Verification only needs
+  the public key.
+- The number of sealed entries is anchored inside the **encrypted, AEAD-protected
+  database** (`ActivitySealWatermark`). Since that store is tamper-proof, it lets
+  the next login detect a **rollback/truncation** of the sealed entries, or a
+  **stripped** signature.
+- On login the log is verified against the private key: the stored public key
+  must match the key pair in the database (defeats a **key substitution**), and
+  the signature must be valid over the sealed entries (defeats **modification,
+  forgery and reordering** of the sealed portion).
+- If any check fails, login is **not** blocked; instead a reviewable
+  `ActivityLogTampered` activity is recorded so the user is alerted.
 
 ### Storage format (`.pku`)
 
@@ -189,6 +212,16 @@ These are conscious trade-offs, documented for transparency:
   interoperability. Users are responsible for protecting or deleting them.
 - **Leak check fails open**: if the Have I Been Pwned service is unreachable, a
   potentially leaked password is reported as "not leaked".
+- **Unsealed activity-log tail**: the activity log is tamper-evident only for the
+  portion sealed at the last login (see "Activity-log integrity"). Entries added
+  since then — including events written while no one is logged in, such as failed
+  logins — are **not** protected against deletion or alteration by an attacker
+  with write access to the file, because writing them requires no secret. Such an
+  attacker could erase the record of their own access before the legitimate user
+  logs in again. Detecting this fully would require a trusted external log; it is
+  out of scope for a purely local, offline tool. Everything sealed at the last
+  login, however, remains tamper-evident, and a wholesale rollback of the sealed
+  portion is detected via the watermark stored in the encrypted database.
 
 ## Reporting Non-Security Bugs
 

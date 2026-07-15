@@ -259,5 +259,49 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             _ = (exception?.PasswordLevel.Should().Be(0));
          }
       }
+
+      [TestMethod]
+      /*
+       * The public key derived from a private key matches the one generated alongside it.
+      */
+      public void Case10_GetPublicKeyMatchesGeneratedPair()
+      {
+         for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
+         {
+            // Given
+            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
+
+            // When
+            string derivedPublicKey = UnitTestsHelper.CryptographicCenter.GetPublicKey(privateKey);
+
+            // Then
+            _ = derivedPublicKey.Should().Be(publicKey);
+         }
+      }
+
+      [TestMethod]
+      /*
+       * A signature verifies against its source and public key,
+       * but fails for altered content, an altered signature, or a wrong key.
+      */
+      public void Case11_SignAndVerify()
+      {
+         for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
+         {
+            // Given
+            string source = UnitTestsHelper.GetRandomString(150);
+            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
+            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string wrongPublicKey, out _);
+
+            // When
+            string signature = UnitTestsHelper.CryptographicCenter.Sign(source, privateKey);
+
+            // Then
+            _ = UnitTestsHelper.CryptographicCenter.Verify(source, signature, publicKey).Should().BeTrue();
+            _ = UnitTestsHelper.CryptographicCenter.Verify(source + "X", signature, publicKey).Should().BeFalse();
+            _ = UnitTestsHelper.CryptographicCenter.Verify(source, signature, wrongPublicKey).Should().BeFalse();
+            _ = UnitTestsHelper.CryptographicCenter.Verify(source, "not-a-signature", publicKey).Should().BeFalse();
+         }
+      }
    }
 }

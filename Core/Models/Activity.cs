@@ -106,6 +106,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             ActivityEventType.ItemUpdated => $"{(Data.Length > 3 ? $"{Data[3]}'s " : "")}{Data[0]}'s {Data[1].ToSentenceCase().ToLower(CultureInfo.CurrentCulture)} has been {(string.IsNullOrWhiteSpace(Data[2]) ? $"updated" : $"set to {Data[2]}")}",
             ActivityEventType.ItemAdded => $"{Data[2]} has been added to {Data[0]}",
             ActivityEventType.ItemDeleted => $"{Data[2]} has been removed from {Data[0]}",
+            ActivityEventType.ActivityLogTampered => $"User {Data[0]}'s activity log integrity check failed",
             _ => ToString(),
          };
 

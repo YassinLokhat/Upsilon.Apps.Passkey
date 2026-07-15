@@ -99,5 +99,10 @@
       /// Item deleted.
       /// </summary>
       ItemDeleted,
+
+      /// <summary>
+      /// The activity log failed its integrity check on login (possible tampering).
+      /// </summary>
+      ActivityLogTampered,
    }
 }
