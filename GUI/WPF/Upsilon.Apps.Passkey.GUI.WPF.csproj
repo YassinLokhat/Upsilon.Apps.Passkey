@@ -9,9 +9,9 @@
 	<Title>$(AssemblyName)</Title>
 	<Authors>Yassin Lokhat</Authors>
 	<Description>A local stored Password Manager GUI.</Description>
-	<Version>3.0.0</Version>
-	<AssemblyVersion>1.1.0</AssemblyVersion>
-	<FileVersion>1.1.0</FileVersion>
+	<Version>2.0.0</Version>
+	<AssemblyVersion>2.0.0</AssemblyVersion>
+	<FileVersion>2.0.0</FileVersion>
 	<ApplicationIcon>icon.ico</ApplicationIcon>
 	<EnableNETAnalyzers>true</EnableNETAnalyzers>
 	<AnalysisLevel>latest-all</AnalysisLevel>
