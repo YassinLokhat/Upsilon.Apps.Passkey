@@ -520,10 +520,24 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          ActivityCenter.AddActivity(itemId: string.Empty,
-            eventType: (ActivityEventType)mergeAutoSave,
+            eventType: _toActivityEventType(mergeAutoSave),
             data: [Username],
             needsReview: true);
       }
+
+      // Maps an auto-save handling outcome to the activity event that records it.
+      // The two enums are deliberately independent: this explicit switch replaces
+      // a brittle numeric cast that relied on their values coinciding, so
+      // reordering either enum can no longer silently log the wrong event. A new
+      // AutoSaveMergeBehavior value now forces a compile-time review here.
+      private static ActivityEventType _toActivityEventType(AutoSaveMergeBehavior mergeBehavior) => mergeBehavior switch
+      {
+         AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile => ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile,
+         AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile => ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile,
+         AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile => ActivityEventType.DontMergeAndRemoveAutoSaveFile,
+         AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile => ActivityEventType.DontMergeAndKeepAutoSaveFile,
+         _ => ActivityEventType.None,
+      };
 
       private void _lookAtWarnings()
       {
