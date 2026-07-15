@@ -83,5 +83,34 @@
       /// <param name="key">The encryption key.</param>
       /// <returns>The decrypted string.</returns>
       string DecryptAsymmetrically(string source, string key);
+
+      /// <summary>
+      /// Derives the public key that corresponds to the given private key.
+      /// Used to bind data (e.g. the activity log) to the key pair stored in the
+      /// encrypted database, so an attacker cannot substitute their own key.
+      /// </summary>
+      /// <param name="privateKey">The private key.</param>
+      /// <returns>The matching public key.</returns>
+      string GetPublicKey(string privateKey);
+
+      /// <summary>
+      /// Signs a string with a private key, producing a detached signature that
+      /// can later be checked with <see cref="Verify"/> and the matching public key.
+      /// </summary>
+      /// <param name="source">The string to sign.</param>
+      /// <param name="privateKey">The private key used to sign.</param>
+      /// <returns>The signature.</returns>
+      string Sign(string source, string privateKey);
+
+      /// <summary>
+      /// Verifies that a signature produced by <see cref="Sign"/> matches the given
+      /// string and public key. Returns <see langword="false"/> for any tampering
+      /// or malformed input instead of throwing.
+      /// </summary>
+      /// <param name="source">The signed string.</param>
+      /// <param name="signature">The signature to check.</param>
+      /// <param name="publicKey">The public key matching the signing private key.</param>
+      /// <returns><see langword="true"/> if the signature is valid; otherwise <see langword="false"/>.</returns>
+      bool Verify(string source, string signature, string publicKey);
    }
 }

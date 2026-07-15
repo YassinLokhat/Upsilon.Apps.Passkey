@@ -178,6 +178,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public string PrivateKey { get; set; } = string.Empty;
 
+      // The number of activity-log entries sealed at the last save. Stored inside
+      // the encrypted (tamper-proof) database so it can act as a trusted anchor:
+      // if the activity log later presents fewer sealed entries, or no signature
+      // at all, the log has been rolled back or stripped. Not user-editable, so
+      // it deliberately bypasses the AutoSave change-tracking of other fields.
+      public int ActivitySealWatermark { get; set; }
+
       public string ItemId { get; set; } = string.Empty;
       public List<Service> Services { get; set; } = [];
 

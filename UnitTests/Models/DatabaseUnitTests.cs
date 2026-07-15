@@ -330,5 +330,41 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * A database created and closed normally opens without any tampering warning,
+       * Then stripping the activity-log signature is detected on the next login.
+      */
+      public void Case06_ActivityLogTamperingIsDetected()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string tamperMessage = $"User {username}'s activity log integrity check failed";
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         // When (untampered)
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (no tampering detected)
+         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+
+         // When (tampered: the sealed signature is stripped from the log)
+         databaseLoaded.Close();
+         UnitTestsHelper.TamperActivityLogSignature(databaseFile);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (tampering detected and flagged for review)
+         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+
+         // Finaly
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

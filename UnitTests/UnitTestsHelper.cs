@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces;
@@ -35,6 +36,56 @@ namespace Upsilon.Apps.Passkey.UnitTests
          using StreamReader reader = new(stream, Encoding.UTF8);
 
          return reader.ReadToEnd();
+      }
+
+      public static void WriteFileZipEntry(string zipFile, string fileEntry, string content)
+      {
+         using ZipArchive archive = ZipFile.Open(zipFile, ZipArchiveMode.Update, Encoding.UTF8);
+
+         archive.GetEntry(fileEntry)?.Delete();
+
+         ZipArchiveEntry entry = archive.CreateEntry(fileEntry);
+
+         using Stream stream = entry.Open();
+         using StreamWriter writer = new(stream, Encoding.UTF8);
+
+         writer.Write(content);
+      }
+
+      // Reproduces the FileLocker pipeline for the (unencrypted) activity entry:
+      // the stored content is base64(gzip(json)). This lets a test surgically
+      // tamper with the activity log to exercise the integrity checks.
+      public static void TamperActivityLogSignature(string databaseFile)
+      {
+         string json = _decompress(ReadFileZipEntry(databaseFile, "activity"));
+
+         string tampered = Regex.Replace(json, "\"Signature\":\"[^\"]*\"", "\"Signature\":\"\"");
+
+         WriteFileZipEntry(databaseFile, "activity", _compress(tampered));
+      }
+
+      private static string _compress(string text)
+      {
+         byte[] bytes = Encoding.UTF8.GetBytes(text);
+         using MemoryStream msi = new(bytes);
+         using MemoryStream mso = new();
+         using (GZipStream gs = new(mso, CompressionLevel.SmallestSize))
+         {
+            msi.CopyTo(gs);
+         }
+         return Convert.ToBase64String(mso.ToArray());
+      }
+
+      private static string _decompress(string compressedText)
+      {
+         byte[] bytes = Convert.FromBase64String(compressedText);
+         using MemoryStream msi = new(bytes);
+         using MemoryStream mso = new();
+         using (GZipStream gs = new(msi, CompressionMode.Decompress))
+         {
+            gs.CopyTo(mso);
+         }
+         return Encoding.UTF8.GetString(mso.ToArray());
       }
 
       public static string GetTestFilePath(string fileName, bool createIfNotExists = false)

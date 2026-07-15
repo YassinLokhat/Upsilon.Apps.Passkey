@@ -99,6 +99,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
             User.Database = this;
 
             ActivityCenter.LoadStringActivities();
+
+            // Assert the log's sealed portion is intact now that the private key
+            // (the verification anchor) is available. On failure we record a
+            // reviewable activity rather than blocking access, so the user is
+            // alerted while still being able to log in.
+            if (!ActivityCenter.VerifyIntegrity())
+            {
+               ActivityCenter.AddActivity(itemId: string.Empty,
+                  eventType: ActivityEventType.ActivityLogTampered,
+                  data: [Username],
+                  needsReview: true);
+            }
+
             ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.UserLoggedIn,
                data: [Username],
@@ -405,6 +418,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          // the database entry written just below can always be reopened with the
          // exact parameters it was encrypted with.
          FileLocker.Save(_slowHashParameters, HeaderFileEntry);
+
+         // Anchor the activity log's seal inside the (tamper-proof) database so a
+         // later rollback or signature strip of the log becomes detectable. The
+         // activities were just (re)sealed by the _saveActivities call above.
+         User.ActivitySealWatermark = ActivityCenter.SealedCount;
 
          Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x, User.Username, _slowHashParameters))];
          FileLocker.Save(User, DatabaseFileEntry, Passkeys);

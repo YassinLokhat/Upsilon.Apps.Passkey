@@ -161,6 +161,47 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return DecryptSymmetrically(s.Value, [aesKey]);
       }
 
+      public string GetPublicKey(string privateKey)
+      {
+         using RSA rsa = RSA.Create();
+         rsa.ImportFromPem(privateKey);
+
+         return rsa.ExportRSAPublicKeyPem();
+      }
+
+      public string Sign(string source, string privateKey)
+      {
+         using RSA rsa = RSA.Create();
+         rsa.ImportFromPem(privateKey);
+
+         // RSA-PSS with SHA-256 is the modern, randomized signature scheme
+         // (preferred over the legacy PKCS#1 v1.5 padding). SignData hashes the
+         // input itself, so an arbitrarily long payload can be signed directly.
+         byte[] signature = rsa.SignData(Encoding.Unicode.GetBytes(source), HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+
+         return Convert.ToBase64String(signature);
+      }
+
+      public bool Verify(string source, string signature, string publicKey)
+      {
+         try
+         {
+            using RSA rsa = RSA.Create();
+            rsa.ImportFromPem(publicKey);
+
+            return rsa.VerifyData(Encoding.Unicode.GetBytes(source),
+               Convert.FromBase64String(signature),
+               HashAlgorithmName.SHA256,
+               RSASignaturePadding.Pss);
+         }
+         catch
+         {
+            // Any malformed key/signature (or a mismatch) is treated as an
+            // invalid signature rather than surfacing as an exception.
+            return false;
+         }
+      }
+
       private const int SALT_SIZE = 16;
       private const int NONCE_SIZE = 12;
       private const int TAG_SIZE = 16;
