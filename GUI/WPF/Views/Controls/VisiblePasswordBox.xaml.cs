@@ -88,12 +88,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _viewButton_MouseDown(object sender, MouseButtonEventArgs e)
       {
-         _viewModel.TooglePasswordVisibility();
+         _viewModel.ShowPassword();
       }
 
       private void _viewButton_MouseUp(object sender, MouseButtonEventArgs e)
       {
-         _viewModel.TooglePasswordVisibility();
+         _viewModel.HidePassword();
       }
    }
 }

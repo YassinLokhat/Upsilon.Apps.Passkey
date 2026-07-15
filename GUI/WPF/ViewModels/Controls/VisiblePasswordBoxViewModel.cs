@@ -41,8 +41,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = DarkMode.UnchangedBrush2;
 
-      public bool PasswordIsVisible => PasswordVisibility == System.Windows.Visibility.Collapsed;
-
       public event PropertyChangedEventHandler? PropertyChanged;
 
       private void _onPropertyChanged(string propertyName)
@@ -50,18 +48,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
-      public void TooglePasswordVisibility()
+      public void ShowPassword()
       {
-         if (!PasswordIsVisible)
-         {
-            PasswordVisibility = System.Windows.Visibility.Collapsed;
-            TextVisibility = System.Windows.Visibility.Visible;
-         }
-         else
-         {
-            PasswordVisibility = System.Windows.Visibility.Visible;
-            TextVisibility = System.Windows.Visibility.Collapsed;
-         }
+         PasswordVisibility = System.Windows.Visibility.Collapsed;
+         TextVisibility = System.Windows.Visibility.Visible;
+      }
+
+      public void HidePassword()
+      {
+         PasswordVisibility = System.Windows.Visibility.Visible;
+         TextVisibility = System.Windows.Visibility.Collapsed;
       }
    }
 }
