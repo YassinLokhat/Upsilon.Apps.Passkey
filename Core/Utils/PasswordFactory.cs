@@ -77,7 +77,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             using StreamReader reader = new(response.Content.ReadAsStream());
             string res = reader.ReadToEnd();
 
-            return res.Contains(hash[5..], StringComparison.CurrentCulture);
+            return res.Contains(hash[5..], StringComparison.Ordinal);
          }
          catch (Exception ex)
          {

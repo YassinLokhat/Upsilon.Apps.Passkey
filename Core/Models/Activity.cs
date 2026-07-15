@@ -61,10 +61,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (info.Length > 4)
          {
             activity = string.Join("|", info[4..])
-               .Replace("|", "/|", StringComparison.CurrentCulture)
-               .Replace("\\/|", "\\|", StringComparison.CurrentCulture);
+               .Replace("|", "/|", StringComparison.Ordinal)
+               .Replace("\\/|", "\\|", StringComparison.Ordinal);
             info = activity.Split("/|");
-            Data = [.. info.Select(x => x.Replace("\\|", "|", StringComparison.CurrentCulture))];
+            Data = [.. info.Select(x => x.Replace("\\|", "|", StringComparison.Ordinal))];
          }
       }
 
@@ -72,7 +72,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          string activity = $"{DateTimeTicks:X}|{ItemId}|{(int)EventType}|{(NeedsReview ? "1" : "")}";
 
-         string[] data = [.. Data.Select(x => x.Replace("|", "\\|", StringComparison.CurrentCulture))];
+         string[] data = [.. Data.Select(x => x.Replace("|", "\\|", StringComparison.Ordinal))];
          if (data.Length != 0)
          {
             activity += $"|{string.Join("|", data)}";

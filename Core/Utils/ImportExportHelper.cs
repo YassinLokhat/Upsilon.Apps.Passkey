@@ -37,7 +37,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          try
          {
-            string[] csvLines = [.. importContent.Split('\n').Select(x => x.Replace("\r", "", StringComparison.CurrentCulture)).Where(x => !string.IsNullOrWhiteSpace(x))];
+            string[] csvLines = [.. importContent.Split('\n').Select(x => x.Replace("\r", "", StringComparison.Ordinal)).Where(x => !string.IsNullOrWhiteSpace(x))];
 
             string[] headers = csvLines[0].Split("\t");
 
