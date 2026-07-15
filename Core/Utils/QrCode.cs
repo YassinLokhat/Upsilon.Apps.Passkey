@@ -915,9 +915,9 @@ public class QrCode
       2 => col % 3 == 0,
       3 => (row + col) % 3 == 0,
       4 => ((row / 2) + (col / 3)) % 2 == 0,
-      5 => ((row * col) % 2) + ((row * col) % 3) == 0,
-      6 => (((row * col) % 2) + ((row * col) % 3)) % 2 == 0,
-      7 => (((row + col) % 2) + ((row * col) % 3)) % 2 == 0,
+      5 => (row * col % 2) + (row * col % 3) == 0,
+      6 => ((row * col % 2) + (row * col % 3)) % 2 == 0,
+      7 => (((row + col) % 2) + (row * col % 3)) % 2 == 0,
       _ => false,
    };
 }

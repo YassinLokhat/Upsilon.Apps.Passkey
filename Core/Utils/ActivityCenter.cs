@@ -112,12 +112,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // belongs to the private key held in the encrypted database. This
          // defeats an attacker swapping in their own key pair.
          string trustedPublicKey = Database.CryptographyCenter.GetPublicKey(Database.User.PrivateKey);
-         if (trustedPublicKey != PublicKey)
-         {
-            return false;
-         }
-
-         return Database.CryptographyCenter.Verify(_canonicalSealedContent(), Signature, trustedPublicKey);
+         return trustedPublicKey == PublicKey && Database.CryptographyCenter.Verify(_canonicalSealedContent(), Signature, trustedPublicKey);
       }
 
       internal void Save(bool rebuildStringActivities)

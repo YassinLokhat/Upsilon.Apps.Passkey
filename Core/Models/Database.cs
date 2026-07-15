@@ -269,7 +269,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       // stretched. Taken from the crypto center when the database is created,
       // then read back from the header whenever it is reopened. A file keeps the
       // parameters it was created with.
-      private KdfParameters _slowHashParameters;
+      private readonly KdfParameters _slowHashParameters;
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
