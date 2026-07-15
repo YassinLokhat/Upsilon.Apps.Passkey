@@ -30,5 +30,13 @@ namespace Upsilon.Apps.Passkey.Interfaces.Utils
       /// The length, in bytes, of the derived key material.
       /// </summary>
       public int OutputLength { get; set; }
+
+      /// <summary>
+      /// The random, per-database salt (Base64-encoded) mixed into the KDF, so that two
+      /// databases stretch the same passkey into different key material. It is generated
+      /// once when the database is created and then stored, unencrypted, in the header;
+      /// a salt is not secret, it only has to be unique and stable for a given file.
+      /// </summary>
+      public string Salt { get; set; } = string.Empty;
    }
 }

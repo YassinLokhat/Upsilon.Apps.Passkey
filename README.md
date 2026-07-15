@@ -60,8 +60,7 @@ classDiagram
             +KdfParameters DefaultSlowHashParameters
 
             +GetHash(in source string) string
-            +GetSlowHash(in source string, in salt string) string
-            +GetSlowHash(in source string, in salt string, in parameters KdfParameters) string
+            +GetSlowHash(in source string, in parameters KdfParameters) string
             +EncryptSymmetrically(in source string, in passwords IEnumerable~string~) string
             +DecryptSymmetrically(in source string, in passwords IEnumerable~string~) string
             +GenerateRandomKeys(out publicKey string, out privateKey string) void
@@ -77,6 +76,7 @@ classDiagram
             +KdfAlgorithm Algorithm
             +int Iterations
             +int OutputLength
+            +string Salt
         }
     }
 

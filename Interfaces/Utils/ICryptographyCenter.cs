@@ -13,30 +13,21 @@
       string GetHash(string source);
 
       /// <summary>
-      /// Returs a slow string hash of the given string, using <see cref="DefaultSlowHashParameters"/>.
-      /// </summary>
-      /// <param name="source">The string to hash.</param>
-      /// <param name="salt">A stable, per-account value (typically the username) mixed into the
-      /// salt so that identical <paramref name="source"/> values hash differently across accounts.</param>
-      /// <returns>The hash.</returns>
-      string GetSlowHash(string source, string salt);
-
-      /// <summary>
       /// Returs a slow string hash of the given string, using the provided key-derivation parameters.
-      /// This overload enables crypto-agility: a file is always reopened with the exact parameters it
-      /// was written with, which are stored in its header.
+      /// This enables crypto-agility: a file is always reopened with the exact parameters it was
+      /// written with (algorithm, iterations, output length and the random salt), which are stored
+      /// in its header.
       /// </summary>
       /// <param name="source">The string to hash.</param>
-      /// <param name="salt">A stable, per-account value (typically the username) mixed into the
-      /// salt so that identical <paramref name="source"/> values hash differently across accounts.</param>
-      /// <param name="parameters">The key-derivation parameters (algorithm, iterations, output length) to use.</param>
+      /// <param name="parameters">The key-derivation parameters (algorithm, iterations, output length and salt) to use.</param>
       /// <returns>The hash.</returns>
-      string GetSlowHash(string source, string salt, KdfParameters parameters);
+      string GetSlowHash(string source, KdfParameters parameters);
 
       /// <summary>
       /// The key-derivation parameters used to stretch passkeys for newly created databases.
-      /// They are recorded in each database header so the file remains readable if these values
-      /// change in a future release.
+      /// Each access mints a fresh random salt, so the returned instance must be captured once
+      /// per database and then recorded in its header, so the file remains readable if these
+      /// values change in a future release.
       /// </summary>
       KdfParameters DefaultSlowHashParameters { get; }
 

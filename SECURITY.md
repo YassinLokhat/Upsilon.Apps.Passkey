@@ -88,13 +88,15 @@ supply-chain attack surface minimal.
   is used deliberately: its 64-bit arithmetic is markedly less efficient on the
   GPUs and ASICs an attacker would use for parallel guessing than the 32-bit
   operations of SHA-256.
-- The PBKDF2 salt is derived deterministically from the username
-  (`SHA-256(fixed_prefix || username)`), so the same username always yields the
-  same salt (required to reopen the file) while different usernames get distinct
-  salts.
+- The PBKDF2 salt is a **random 128-bit value generated once when the database
+  is created** and stored in the file's `header` entry. It is stable for the life
+  of the file (required to reopen it) and unique per database, so two files never
+  stretch the same passkey to the same key material — even with identical
+  usernames and passkeys. A salt is not secret; storing it unencrypted is
+  standard.
 - **Crypto-agility**: the stretching parameters (algorithm, iterations, output
-  length, scheme version) are recorded in an unencrypted `header` entry of the
-  `.pku` file. A database is always reopened with the exact parameters it was
+  length, salt, scheme version) are recorded in an unencrypted `header` entry of
+  the `.pku` file. A database is always reopened with the exact parameters it was
   written with, and is transparently re-stretched with the current defaults on
   the next save. This lets the work factor and algorithm evolve over time
   without breaking existing files. The header is not secret: tampering with it
@@ -205,8 +207,6 @@ These are conscious trade-offs, documented for transparency:
   GPU/ASIC parallelism than SHA-256) with 1,000,000 iterations. The versioned
   KDF header (see "Crypto-agility") keeps the door open to adopting a memory-hard
   KDF later, pluggably, should the policy ever be relaxed.
-- **Deterministic salt**: the PBKDF2 salt is derived from the username, so two
-  users with the same username share the same salt. Usernames are not secrets.
 - **Import/Export files**: CSV and JSON files produced by the Export feature (and
   consumed by Import) are **unencrypted plaintext** by design, for
   interoperability. Users are responsible for protecting or deleting them.

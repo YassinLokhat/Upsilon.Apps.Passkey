@@ -10,14 +10,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
    {
       public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.UTF8.GetBytes(source))).Replace("/", "-", StringComparison.Ordinal);
 
-      private readonly byte[] _slowHashSaltPrefix;
-
       private const int SLOW_HASH_ITERATIONS = 1_000_000;
-
-      public CryptographyCenter()
-      {
-         _slowHashSaltPrefix = Encoding.UTF8.GetBytes(GetHash(string.Empty));
-      }
+      private const int SLOW_HASH_SALT_SIZE = 16;
 
       public KdfParameters DefaultSlowHashParameters => new()
       {
@@ -29,29 +23,29 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          Algorithm = KdfAlgorithm.Pbkdf2HmacSha512,
          Iterations = SLOW_HASH_ITERATIONS,
          OutputLength = 64,
+         // A fresh 128-bit random salt is minted for every new database, so two
+         // databases (even with the same username and passkeys) never stretch to
+         // the same key material. It is stored, unencrypted, in the header; a
+         // salt is not secret. Each access mints a new salt, so the returned
+         // instance must be captured once per database rather than re-read.
+         Salt = Convert.ToBase64String(RandomNumberGenerator.GetBytes(SLOW_HASH_SALT_SIZE)),
       };
 
-      public string GetSlowHash(string source, string salt) => GetSlowHash(source, salt, DefaultSlowHashParameters);
-
-      public string GetSlowHash(string source, string salt, KdfParameters parameters)
+      public string GetSlowHash(string source, KdfParameters parameters)
       {
          ArgumentNullException.ThrowIfNull(parameters);
 
-         // Fold the per-account salt into a fixed-size, high-entropy value so
-         // the PBKDF2 salt is always well-formed regardless of the username's
-         // length or content, while staying deterministic (same username always
-         // yields the same salt, which is required to reopen the database).
-         byte[] saltMaterial = [.. _slowHashSaltPrefix, .. Encoding.UTF8.GetBytes(salt)];
-         byte[] derivedSalt = SHA256.HashData(saltMaterial);
+         // The salt is a random, per-database value carried in the parameters
+         // (read back from the header), so it is well-formed by construction and
+         // stable for the life of the file, which is required to reopen it.
+         byte[] salt = Convert.FromBase64String(parameters.Salt);
 
-         // PBKDF2 is a standard password-stretching KDF. Iterating a plain
-         // SHA-512 (the original approach) is far cheaper per guess on a GPU and
-         // offers no salting, so it gave attackers a big head start. The exact
-         // algorithm/work factor is taken from the caller so that a database can
+         // PBKDF2 is a standard password-stretching KDF. The exact algorithm,
+         // work factor and salt are taken from the caller so that a database can
          // be reopened with the parameters it was written with (crypto-agility).
          byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
             Encoding.UTF8.GetBytes(source),
-            derivedSalt,
+            salt,
             parameters.Iterations,
             _toHashAlgorithmName(parameters.Algorithm),
             parameters.OutputLength);
