@@ -63,12 +63,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          Accounts.Add(Database.AutoSave.AddValue(ItemId, readableValue: account.ToString(), needsReview: false, account));
 
-         account.Passwords[DateTime.Now] = Database.AutoSave.UpdateValue(account.ItemId,
+         _ = Database.AutoSave.UpdateValue(account.ItemId,
             fieldName: nameof(account.Password),
             needsReview: true,
             oldValue: string.Empty,
             newValue: account.Password,
             readableValue: string.Empty);
+
+         account.Passwords[DateTime.Now] = ProtectedSecret.Protect(account.Password);
 
          return account;
       }
