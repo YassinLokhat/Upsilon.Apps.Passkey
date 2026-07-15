@@ -23,8 +23,8 @@
 
       /// <summary>
       /// Returs a slow string hash of the given string, using the provided key-derivation parameters.
-      /// This overload enables crypto-agility: a file can be reopened with the exact parameters it was
-      /// written with, while new data can adopt stronger defaults over time.
+      /// This overload enables crypto-agility: a file is always reopened with the exact parameters it
+      /// was written with, which are stored in its header.
       /// </summary>
       /// <param name="source">The string to hash.</param>
       /// <param name="salt">A stable, per-account value (typically the username) mixed into the
@@ -34,8 +34,9 @@
       string GetSlowHash(string source, string salt, KdfParameters parameters);
 
       /// <summary>
-      /// The key-derivation parameters that new data should be stretched with. This value may
-      /// strengthen across releases; existing files keep the parameters stored in their header.
+      /// The key-derivation parameters used to stretch passkeys for newly created databases.
+      /// They are recorded in each database header so the file remains readable if these values
+      /// change in a future release.
       /// </summary>
       KdfParameters DefaultSlowHashParameters { get; }
 
