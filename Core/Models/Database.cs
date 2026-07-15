@@ -76,7 +76,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public IUser? Login(string passkey)
       {
-         Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey, Username, _slowHashParameters)];
+         Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey, _slowHashParameters)];
 
          try
          {
@@ -266,9 +266,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal FileLocker FileLocker { get; private set; }
 
       // The key-derivation parameters governing how this file's passkeys are
-      // stretched. Taken from the crypto center when the database is created,
-      // then read back from the header whenever it is reopened. A file keeps the
-      // parameters it was created with.
+      // stretched, including its random per-database salt. Taken from the crypto
+      // center when the database is created (which mints the salt), then read
+      // back from the header whenever it is reopened. A file keeps the parameters
+      // and salt it was created with.
       private readonly KdfParameters _slowHashParameters;
 
       private Database(ICryptographyCenter cryptographicCenter,
@@ -307,7 +308,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (passkeys is not null)
          {
-            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x, username, _slowHashParameters))];
+            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x, _slowHashParameters))];
          }
 
          ActivityCenter = fileMode == FileMode.Create
@@ -424,7 +425,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          // activities were just (re)sealed by the _saveActivities call above.
          User.ActivitySealWatermark = ActivityCenter.SealedCount;
 
-         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x.Reveal(), User.Username, _slowHashParameters))];
+         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x.Reveal(), _slowHashParameters))];
          FileLocker.Save(User, DatabaseFileEntry, Passkeys);
 
          if (logSaveEvent)

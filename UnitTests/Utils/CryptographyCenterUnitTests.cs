@@ -18,7 +18,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          Stopwatch _stopwatch = Stopwatch.StartNew();
 
          // When
-         _ = UnitTestsHelper.CryptographicCenter.GetSlowHash(string.Empty, UnitTestsHelper.GetUsername());
+         _ = UnitTestsHelper.CryptographicCenter.GetSlowHash(string.Empty, UnitTestsHelper.CryptographicCenter.DefaultSlowHashParameters);
          _stopwatch.Stop();
 
          // Then
@@ -27,24 +27,26 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
       [TestMethod]
       /*
-       * Hashing the same source with two different salts (usernames) yields two
-       * different hashes, while the same source with the same salt is stable.
+       * Each new set of parameters carries a fresh random salt, so the same
+       * source hashed under two different salts yields two different hashes,
+       * while re-hashing the same source under the same parameters is stable.
       */
-      public void Case02_SlowHashSaltVariesPerUsername()
+      public void Case02_SlowHashSaltVariesPerParameters()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
             // Given
             string source = UnitTestsHelper.GetRandomString();
-            string firstUsername = UnitTestsHelper.GetRandomString();
-            string secondUsername = firstUsername + "_other";
+            KdfParameters firstParameters = UnitTestsHelper.CryptographicCenter.DefaultSlowHashParameters;
+            KdfParameters secondParameters = UnitTestsHelper.CryptographicCenter.DefaultSlowHashParameters;
 
             // When
-            string firstHash = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, firstUsername);
-            string firstHashAgain = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, firstUsername);
-            string secondHash = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, secondUsername);
+            string firstHash = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, firstParameters);
+            string firstHashAgain = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, firstParameters);
+            string secondHash = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, secondParameters);
 
             // Then
+            _ = firstParameters.Salt.Should().NotBe(secondParameters.Salt);
             _ = firstHash.Should().Be(firstHashAgain);
             _ = firstHash.Should().NotBe(secondHash);
          }
