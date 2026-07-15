@@ -8,7 +8,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 {
    public class CryptographyCenter : ICryptographyCenter
    {
-      public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.Unicode.GetBytes(source))).Replace("/", "-", StringComparison.Ordinal);
+      public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.UTF8.GetBytes(source))).Replace("/", "-", StringComparison.Ordinal);
 
       private readonly byte[] _slowHashSaltPrefix;
 
@@ -41,7 +41,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // the PBKDF2 salt is always well-formed regardless of the username's
          // length or content, while staying deterministic (same username always
          // yields the same salt, which is required to reopen the database).
-         byte[] saltMaterial = [.. _slowHashSaltPrefix, .. Encoding.Unicode.GetBytes(salt)];
+         byte[] saltMaterial = [.. _slowHashSaltPrefix, .. Encoding.UTF8.GetBytes(salt)];
          byte[] derivedSalt = SHA256.HashData(saltMaterial);
 
          // PBKDF2 is a standard password-stretching KDF. Iterating a plain
@@ -50,7 +50,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // algorithm/work factor is taken from the caller so that a database can
          // be reopened with the parameters it was written with (crypto-agility).
          byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
-            Encoding.Unicode.GetBytes(source),
+            Encoding.UTF8.GetBytes(source),
             derivedSalt,
             parameters.Iterations,
             _toHashAlgorithmName(parameters.Algorithm),
@@ -177,7 +177,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // RSA-PSS with SHA-256 is the modern, randomized signature scheme
          // (preferred over the legacy PKCS#1 v1.5 padding). SignData hashes the
          // input itself, so an arbitrarily long payload can be signed directly.
-         byte[] signature = rsa.SignData(Encoding.Unicode.GetBytes(source), HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+         byte[] signature = rsa.SignData(Encoding.UTF8.GetBytes(source), HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
 
          return Convert.ToBase64String(signature);
       }
@@ -189,7 +189,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             using RSA rsa = RSA.Create();
             rsa.ImportFromPem(publicKey);
 
-            return rsa.VerifyData(Encoding.Unicode.GetBytes(source),
+            return rsa.VerifyData(Encoding.UTF8.GetBytes(source),
                Convert.FromBase64String(signature),
                HashAlgorithmName.SHA256,
                RSASignaturePadding.Pss);
@@ -212,7 +212,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // right tool to expand them into a fresh AES-256 key. Brute-force
       // hardening of human-chosen passwords belongs to GetSlowHash, not here.
       private static byte[] _deriveLayerKey(string password, byte[] salt)
-         => HKDF.DeriveKey(HashAlgorithmName.SHA256, Encoding.Unicode.GetBytes(password), KEY_SIZE, salt);
+         => HKDF.DeriveKey(HashAlgorithmName.SHA256, Encoding.UTF8.GetBytes(password), KEY_SIZE, salt);
 
       private static string _encryptGcmLayer(string plainText, string password)
       {
@@ -222,7 +222,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          try
          {
-            byte[] plainBytes = Encoding.Unicode.GetBytes(plainText);
+            byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
             byte[] cipherBytes = new byte[plainBytes.Length];
             byte[] tag = new byte[TAG_SIZE];
 
@@ -268,7 +268,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
             }
 
-            return Encoding.Unicode.GetString(plainBytes);
+            return Encoding.UTF8.GetString(plainBytes);
          }
          finally
          {
@@ -281,7 +281,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          using RSA rsa = RSA.Create();
          rsa.ImportFromPem(publicKeyPem);
 
-         byte[] bytesPlainTextData = Encoding.Unicode.GetBytes(source);
+         byte[] bytesPlainTextData = Encoding.UTF8.GetBytes(source);
          byte[] bytesCypherText = rsa.Encrypt(bytesPlainTextData, RSAEncryptionPadding.OaepSHA256);
 
          source = Convert.ToBase64String(bytesCypherText);
@@ -298,7 +298,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             byte[] bytesCypherText = Convert.FromBase64String(source);
             byte[] bytesPlainTextData = rsa.Decrypt(bytesCypherText, RSAEncryptionPadding.OaepSHA256);
-            return Encoding.Unicode.GetString(bytesPlainTextData);
+            return Encoding.UTF8.GetString(bytesPlainTextData);
          }
          catch
          {
