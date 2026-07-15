@@ -70,8 +70,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             return new Activity(Database.CryptographyCenter.DecryptAsymmetrically(encryptedActivity, Database.User.PrivateKey));
          }
-         catch
+         catch (Exception ex)
          {
+            // An entry that cannot be decrypted (e.g. one forged with a different
+            // key) is skipped rather than aborting login; authenticity of the
+            // sealed portion is asserted separately by VerifyIntegrity. We still
+            // trace the failure so a skipped entry is diagnosable.
+            System.Diagnostics.Trace.TraceWarning($"Activity entry could not be decrypted and was skipped: {ex}");
             return null;
          }
       }
