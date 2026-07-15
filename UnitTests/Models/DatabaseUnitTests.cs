@@ -20,6 +20,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          user.LogoutTimeout = 10;
          user.CleaningClipboardTimeout = 15;
          user.WarningsToNotify = (WarningType)0;
+         string logFile = database.DatabaseFile.Replace(".pku", ".log");
+         File.WriteAllText(logFile, string.Empty);
 
          for (int i = 0; i < 100; i++)
          {
@@ -60,7 +62,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
                account.Notes = random % 10 == 0 ? $"Service{i}'s Account{j} notes : \n{UnitTestsHelper.GetRandomString(min: 10, max: 150)}" : "";
                account.PasswordUpdateReminderDelay = random < 10 ? random : 0;
                account.Options = (!string.IsNullOrEmpty(account.Password) && random % 2 == 0) ? AccountOption.WarnIfPasswordLeaked : AccountOption.None;
+               File.AppendAllText(logFile, "#");
             }
+            File.AppendAllText(logFile, "\n");
          }
 
          database.Save();
