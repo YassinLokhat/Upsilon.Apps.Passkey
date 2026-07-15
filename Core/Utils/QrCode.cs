@@ -155,41 +155,50 @@ public class QrCode
       _ = _encode([singleDataSeg]);
    }
 
-   private bool[,] _encode(byte[][] DataSegArray)
+   private bool[,] _encode(byte[][] dataSegments)
    {
-      if (DataSegArray == null || DataSegArray.Length == 0)
+      if (dataSegments == null || dataSegments.Length == 0)
          throw new ArgumentException("Data segments argument is null or empty");
+
       QRCodeVersion = 0;
       QRCodeDimension = 0;
-      int num = 0;
-      for (int index = 0; index < DataSegArray.Length; ++index)
+
+      int totalDataLength = 0;
+      for (int segmentIndex = 0; segmentIndex < dataSegments.Length; ++segmentIndex)
       {
-         byte[] dataSeg = DataSegArray[index];
-         if (dataSeg == null)
-            DataSegArray[index] = [];
+         byte[] segment = dataSegments[segmentIndex];
+         if (segment == null)
+            dataSegments[segmentIndex] = [];
          else
-            num += dataSeg.Length;
+            totalDataLength += segment.Length;
       }
-      if (num == 0)
+
+      if (totalDataLength == 0)
          throw new ArgumentException("There is no data to encode.");
-      _dataSegArray = DataSegArray;
-      _initialization();
-      _encodeData();
-      _calculateErrorCorrection();
-      _interleaveBlocks();
-      _buildBaseMatrix();
-      _loadMatrixWithData();
-      _selectBestMask();
-      _addFormatInformation();
+
+      _dataSegArray = dataSegments;
+
+      // The full QR pipeline, one stage after another.
+      _initialization();            // pick encoding mode(s) and the smallest fitting version
+      _encodeData();                // serialize the payload into data codewords
+      _calculateErrorCorrection();  // append Reed-Solomon error-correction codewords
+      _interleaveBlocks();          // interleave data/EC codewords as the standard requires
+      _buildBaseMatrix();           // lay out the fixed function patterns
+      _loadMatrixWithData();        // route the codeword bits through the data area
+      _selectBestMask();            // try the 8 masks and keep the least penalized one
+      _addFormatInformation();      // write format (and version) information
+
+      // Expose the low bit of every module as a black/white boolean matrix.
       QRCodeMatrix = new bool[QRCodeDimension, QRCodeDimension];
-      for (int index1 = 0; index1 < QRCodeDimension; ++index1)
+      for (int row = 0; row < QRCodeDimension; ++row)
       {
-         for (int index2 = 0; index2 < QRCodeDimension; ++index2)
+         for (int col = 0; col < QRCodeDimension; ++col)
          {
-            if ((_resultMatrix[index1, index2] & 1) != 0)
-               QRCodeMatrix[index1, index2] = true;
+            if ((_resultMatrix[row, col] & 1) != 0)
+               QRCodeMatrix[row, col] = true;
          }
       }
+
       return QRCodeMatrix;
    }
 
@@ -197,19 +206,24 @@ public class QrCode
    {
       _encodingSegMode = new EncodingMode[_dataSegArray.Length];
       _encodedDataBits = 0;
+
+      // ECI header bits (only when an ECI assignment value is requested).
       if (ECIAssignValue >= 0)
          _encodedDataBits = ECIAssignValue > sbyte.MaxValue ? (ECIAssignValue > 16383 /*0x3FFF*/ ? 28 : 20) : 12;
-      for (int index1 = 0; index1 < _dataSegArray.Length; ++index1)
+
+      for (int segmentIndex = 0; segmentIndex < _dataSegArray.Length; ++segmentIndex)
       {
-         byte[] dataSeg = _dataSegArray[index1];
-         int length = dataSeg.Length;
+         byte[] segment = _dataSegArray[segmentIndex];
+         int segmentLength = segment.Length;
+
+         // Choose the densest encoding mode that fits the whole segment.
          EncodingMode encodingMode = EncodingMode.Numeric;
-         for (int index2 = 0; index2 < length; ++index2)
+         for (int i = 0; i < segmentLength; ++i)
          {
-            int num = EncodingTable[dataSeg[index2]];
-            if (num >= 10)
+            int encodedValue = EncodingTable[segment[i]];
+            if (encodedValue >= 10)
             {
-               if (num < 45)
+               if (encodedValue < 45)
                {
                   encodingMode = EncodingMode.AlphaNumeric;
                }
@@ -220,51 +234,51 @@ public class QrCode
                }
             }
          }
-         int num1 = 4;
+
+         // 4 bits for the mode indicator plus the payload bits for that mode.
+         int segmentBits = 4;
          switch (encodingMode)
          {
             case EncodingMode.Numeric:
-               num1 += 10 * (length / 3);
-               if (length % 3 == 1)
-               {
-                  num1 += 4;
-                  break;
-               }
-               if (length % 3 == 2)
-               {
-                  num1 += 7;
-                  break;
-               }
+               segmentBits += 10 * (segmentLength / 3);
+               if (segmentLength % 3 == 1)
+                  segmentBits += 4;
+               else if (segmentLength % 3 == 2)
+                  segmentBits += 7;
                break;
             case EncodingMode.AlphaNumeric:
-               num1 += 11 * (length / 2);
-               if ((length & 1) != 0)
-               {
-                  num1 += 6;
-                  break;
-               }
+               segmentBits += 11 * (segmentLength / 2);
+               if ((segmentLength & 1) != 0)
+                  segmentBits += 6;
                break;
             case EncodingMode.Byte:
-               num1 += 8 * length;
+               segmentBits += 8 * segmentLength;
                break;
          }
-         _encodingSegMode[index1] = encodingMode;
-         _encodedDataBits += num1;
+
+         _encodingSegMode[segmentIndex] = encodingMode;
+         _encodedDataBits += segmentBits;
       }
-      int num2 = 0;
+
+      // Grow the version until the data plus per-segment character-count fields fit.
+      int characterCountBits = 0;
       for (QRCodeVersion = 1; QRCodeVersion <= 40; ++QRCodeVersion)
       {
          QRCodeDimension = 17 + (4 * QRCodeVersion);
          _setDataCodewordsLength();
-         num2 = 0;
-         for (int index = 0; index < _encodingSegMode.Length; ++index)
-            num2 += _dataLengthBits(_encodingSegMode[index]);
-         if (_encodedDataBits + num2 <= _maxDataBits)
+
+         characterCountBits = 0;
+         for (int segmentIndex = 0; segmentIndex < _encodingSegMode.Length; ++segmentIndex)
+            characterCountBits += _dataLengthBits(_encodingSegMode[segmentIndex]);
+
+         if (_encodedDataBits + characterCountBits <= _maxDataBits)
             break;
       }
+
       if (QRCodeVersion > 40)
          throw new InvalidOperationException("Input data string is too long");
-      _encodedDataBits += num2;
+
+      _encodedDataBits += characterCountBits;
    }
 
    private void _encodeData()
@@ -273,9 +287,11 @@ public class QrCode
       _codewordsPtr = 0;
       _bitBuffer = 0U;
       _bitBufferLen = 0;
+
+      // Optional ECI header (mode indicator + 1/2/3-byte assignment value).
       if (ECIAssignValue >= 0)
       {
-         _saveBitsToCodewordsArray(7, 4);
+         _saveBitsToCodewordsArray((int)EncodingMode.ECI, 4);
          if (ECIAssignValue <= sbyte.MaxValue)
             _saveBitsToCodewordsArray(ECIAssignValue, 8);
          else if (ECIAssignValue <= 16383 /*0x3FFF*/)
@@ -290,58 +306,65 @@ public class QrCode
             _saveBitsToCodewordsArray(ECIAssignValue & byte.MaxValue, 8);
          }
       }
-      for (int index1 = 0; index1 < _dataSegArray.Length; ++index1)
+
+      for (int segmentIndex = 0; segmentIndex < _dataSegArray.Length; ++segmentIndex)
       {
-         byte[] dataSeg = _dataSegArray[index1];
-         int length = dataSeg.Length;
-         _saveBitsToCodewordsArray((int)_encodingSegMode[index1], 4);
-         _saveBitsToCodewordsArray(length, _dataLengthBits(_encodingSegMode[index1]));
-         switch (_encodingSegMode[index1])
+         byte[] segment = _dataSegArray[segmentIndex];
+         int segmentLength = segment.Length;
+         EncodingMode mode = _encodingSegMode[segmentIndex];
+
+         _saveBitsToCodewordsArray((int)mode, 4);
+         _saveBitsToCodewordsArray(segmentLength, _dataLengthBits(mode));
+
+         switch (mode)
          {
             case EncodingMode.Numeric:
-               int index2 = length / 3 * 3;
-               for (int index3 = 0; index3 < index2; index3 += 3)
-                  _saveBitsToCodewordsArray((100 * EncodingTable[dataSeg[index3]]) + (10 * EncodingTable[dataSeg[index3 + 1]]) + EncodingTable[dataSeg[index3 + 2]], 10);
-               if (length - index2 == 1)
-               {
-                  _saveBitsToCodewordsArray(EncodingTable[dataSeg[index2]], 4);
-                  break;
-               }
-               if (length - index2 == 2)
-               {
-                  _saveBitsToCodewordsArray((10 * EncodingTable[dataSeg[index2]]) + EncodingTable[dataSeg[index2 + 1]], 7);
-                  break;
-               }
+               // Encode digits in groups of three (10 bits per triple).
+               int numericTripleEnd = segmentLength / 3 * 3;
+               for (int i = 0; i < numericTripleEnd; i += 3)
+                  _saveBitsToCodewordsArray(
+                     (100 * EncodingTable[segment[i]]) + (10 * EncodingTable[segment[i + 1]]) + EncodingTable[segment[i + 2]], 10);
+               if (segmentLength - numericTripleEnd == 1)
+                  _saveBitsToCodewordsArray(EncodingTable[segment[numericTripleEnd]], 4);
+               else if (segmentLength - numericTripleEnd == 2)
+                  _saveBitsToCodewordsArray(
+                     (10 * EncodingTable[segment[numericTripleEnd]]) + EncodingTable[segment[numericTripleEnd + 1]], 7);
                break;
             case EncodingMode.AlphaNumeric:
-               int index4 = length / 2 * 2;
-               for (int index5 = 0; index5 < index4; index5 += 2)
-                  _saveBitsToCodewordsArray((45 * EncodingTable[dataSeg[index5]]) + EncodingTable[dataSeg[index5 + 1]], 11);
-               if (length - index4 == 1)
-               {
-                  _saveBitsToCodewordsArray(EncodingTable[dataSeg[index4]], 6);
-                  break;
-               }
+               // Encode characters in pairs (11 bits per pair).
+               int alphaPairEnd = segmentLength / 2 * 2;
+               for (int i = 0; i < alphaPairEnd; i += 2)
+                  _saveBitsToCodewordsArray(
+                     (45 * EncodingTable[segment[i]]) + EncodingTable[segment[i + 1]], 11);
+               if (segmentLength - alphaPairEnd == 1)
+                  _saveBitsToCodewordsArray(EncodingTable[segment[alphaPairEnd]], 6);
                break;
             case EncodingMode.Byte:
-               for (int index6 = 0; index6 < length; ++index6)
-                  _saveBitsToCodewordsArray(dataSeg[index6], 8);
+               for (int i = 0; i < segmentLength; ++i)
+                  _saveBitsToCodewordsArray(segment[i], 8);
                break;
          }
       }
+
+      // Terminator: up to 4 zero bits.
       if (_encodedDataBits < _maxDataBits)
          _saveBitsToCodewordsArray(0, _maxDataBits - _encodedDataBits < 4 ? _maxDataBits - _encodedDataBits : 4);
+
+      // Flush the last partial byte still sitting in the bit buffer.
       if (_bitBufferLen > 0)
          _codewordsArray[_codewordsPtr++] = (byte)(_bitBuffer >> 24);
-      int num = _maxDataCodewords - _codewordsPtr;
-      for (int index = 0; index < num; ++index)
-         _codewordsArray[_codewordsPtr + index] = (index & 1) == 0 ? (byte)236 : (byte)17;
+
+      // Fill the remaining data capacity with the standard alternating pad bytes.
+      int padCount = _maxDataCodewords - _codewordsPtr;
+      for (int i = 0; i < padCount; ++i)
+         _codewordsArray[_codewordsPtr + i] = (i & 1) == 0 ? (byte)236 : (byte)17;
    }
 
-   private void _saveBitsToCodewordsArray(int Data, int Bits)
+   private void _saveBitsToCodewordsArray(int data, int bitCount)
    {
-      _bitBuffer |= (uint)(Data << (32 /*0x20*/ - _bitBufferLen - Bits));
-      for (_bitBufferLen += Bits; _bitBufferLen >= 8; _bitBufferLen -= 8)
+      // Left-align the incoming bits in the 32-bit buffer, then drain whole bytes.
+      _bitBuffer |= (uint)(data << (32 /*0x20*/ - _bitBufferLen - bitCount));
+      for (_bitBufferLen += bitCount; _bitBufferLen >= 8; _bitBufferLen -= 8)
       {
          _codewordsArray[_codewordsPtr++] = (byte)(_bitBuffer >> 24);
          _bitBuffer <<= 8;
@@ -350,145 +373,174 @@ public class QrCode
 
    private void _calculateErrorCorrection()
    {
-      byte[] gen = GenArray[_errCorrCodewords - 7] ?? [];
-      byte[] numArray = new byte[Math.Max(_dataCodewordsGroup1, _dataCodewordsGroup2) + _errCorrCodewords];
-      int num1 = _dataCodewordsGroup1;
-      int PolyLength = num1 + _errCorrCodewords;
-      int sourceIndex = 0;
-      int maxDataCodewords = _maxDataCodewords;
-      int num2 = _blocksGroup1 + _blocksGroup2;
-      for (int index = 0; index < num2; ++index)
+      byte[] generator = GenArray[_errCorrCodewords - 7] ?? [];
+      byte[] block = new byte[Math.Max(_dataCodewordsGroup1, _dataCodewordsGroup2) + _errCorrCodewords];
+
+      int blockDataLength = _dataCodewordsGroup1;
+      int polynomialLength = blockDataLength + _errCorrCodewords;
+      int readIndex = 0;
+      int writeIndex = _maxDataCodewords;   // EC codewords are appended after the data area
+      int totalBlocks = _blocksGroup1 + _blocksGroup2;
+
+      for (int blockIndex = 0; blockIndex < totalBlocks; ++blockIndex)
       {
-         if (index == _blocksGroup1)
+         // Group 2 blocks may carry one more data codeword than group 1.
+         if (blockIndex == _blocksGroup1)
          {
-            num1 = _dataCodewordsGroup2;
-            PolyLength = num1 + _errCorrCodewords;
+            blockDataLength = _dataCodewordsGroup2;
+            polynomialLength = blockDataLength + _errCorrCodewords;
          }
-         Array.Copy(_codewordsArray, sourceIndex, numArray, 0, num1);
-         Array.Clear(numArray, num1, _errCorrCodewords);
-         sourceIndex += num1;
-         _polynominalDivision(numArray, PolyLength, gen, _errCorrCodewords);
-         Array.Copy(numArray, num1, _codewordsArray, maxDataCodewords, _errCorrCodewords);
-         maxDataCodewords += _errCorrCodewords;
+
+         Array.Copy(_codewordsArray, readIndex, block, 0, blockDataLength);
+         Array.Clear(block, blockDataLength, _errCorrCodewords);
+         readIndex += blockDataLength;
+
+         _polynomialDivision(block, polynomialLength, generator, _errCorrCodewords);
+
+         Array.Copy(block, blockDataLength, _codewordsArray, writeIndex, _errCorrCodewords);
+         writeIndex += _errCorrCodewords;
       }
    }
 
-   private static void _polynominalDivision(
-     byte[] Polynomial,
-     int PolyLength,
-     byte[] _generator,
-     int ErrCorrCodewords)
+   private static void _polynomialDivision(
+     byte[] polynomial,
+     int polynomialLength,
+     byte[] generator,
+     int errorCorrectionCodewords)
    {
-      int num1 = PolyLength - ErrCorrCodewords;
-      for (int index1 = 0; index1 < num1; ++index1)
+      // Reed-Solomon division over GF(256) using log/antilog (IntToExp/ExpToInt) tables.
+      int dataLength = polynomialLength - errorCorrectionCodewords;
+      for (int i = 0; i < dataLength; ++i)
       {
-         if (Polynomial[index1] != 0)
+         if (polynomial[i] != 0)
          {
-            int num2 = IntToExp[Polynomial[index1]];
-            for (int index2 = 0; index2 < ErrCorrCodewords; ++index2)
-               Polynomial[index1 + 1 + index2] = (byte)(Polynomial[index1 + 1 + index2] ^ (uint)ExpToInt[_generator[index2] + num2]);
+            int leadTermExp = IntToExp[polynomial[i]];
+            for (int j = 0; j < errorCorrectionCodewords; ++j)
+               polynomial[i + 1 + j] = (byte)(polynomial[i + 1 + j] ^ (uint)ExpToInt[generator[j] + leadTermExp]);
          }
       }
    }
 
    private void _interleaveBlocks()
    {
-      byte[] numArray1 = new byte[_maxCodewords];
-      int length = _blocksGroup1 + _blocksGroup2;
-      int[] numArray2 = new int[length];
-      for (int index = 1; index < length; ++index)
-         numArray2[index] = numArray2[index - 1] + (index <= _blocksGroup1 ? _dataCodewordsGroup1 : _dataCodewordsGroup2);
-      int num = _dataCodewordsGroup1 * length;
-      int index1 = 0;
-      int index2;
-      for (index2 = 0; index2 < num; ++index2)
+      byte[] interleaved = new byte[_maxCodewords];
+      int totalBlocks = _blocksGroup1 + _blocksGroup2;
+
+      // Read cursor pointing at the next codeword to take from each block.
+      int[] blockCursor = new int[totalBlocks];
+      for (int blockIndex = 1; blockIndex < totalBlocks; ++blockIndex)
+         blockCursor[blockIndex] = blockCursor[blockIndex - 1]
+            + (blockIndex <= _blocksGroup1 ? _dataCodewordsGroup1 : _dataCodewordsGroup2);
+
+      int outputIndex = 0;
+
+      // Interleave the data codewords common to every block, one column at a time.
+      int sharedDataCount = _dataCodewordsGroup1 * totalBlocks;
+      int currentBlock = 0;
+      for (; outputIndex < sharedDataCount; ++outputIndex)
       {
-         numArray1[index2] = _codewordsArray[numArray2[index1]];
-         ++numArray2[index1];
-         ++index1;
-         if (index1 == length)
-            index1 = 0;
+         interleaved[outputIndex] = _codewordsArray[blockCursor[currentBlock]];
+         ++blockCursor[currentBlock];
+         ++currentBlock;
+         if (currentBlock == totalBlocks)
+            currentBlock = 0;
       }
+
+      // Group 2 blocks hold one extra data codeword: interleave that last column.
       if (_dataCodewordsGroup2 > _dataCodewordsGroup1)
       {
-         int maxDataCodewords = _maxDataCodewords;
-         int blocksGroup1 = _blocksGroup1;
-         for (; index2 < maxDataCodewords; ++index2)
+         int currentGroup2Block = _blocksGroup1;
+         for (; outputIndex < _maxDataCodewords; ++outputIndex)
          {
-            numArray1[index2] = _codewordsArray[numArray2[blocksGroup1]];
-            ++numArray2[blocksGroup1];
-            ++blocksGroup1;
-            if (blocksGroup1 == length)
-               blocksGroup1 = _blocksGroup1;
+            interleaved[outputIndex] = _codewordsArray[blockCursor[currentGroup2Block]];
+            ++blockCursor[currentGroup2Block];
+            ++currentGroup2Block;
+            if (currentGroup2Block == totalBlocks)
+               currentGroup2Block = _blocksGroup1;
          }
       }
-      numArray2[0] = _maxDataCodewords;
-      for (int index3 = 1; index3 < length; ++index3)
-         numArray2[index3] = numArray2[index3 - 1] + _errCorrCodewords;
-      int maxCodewords = _maxCodewords;
-      int index4 = 0;
-      for (; index2 < maxCodewords; ++index2)
+
+      // Repoint the cursors at each block's EC codewords (stored after the data area).
+      blockCursor[0] = _maxDataCodewords;
+      for (int blockIndex = 1; blockIndex < totalBlocks; ++blockIndex)
+         blockCursor[blockIndex] = blockCursor[blockIndex - 1] + _errCorrCodewords;
+
+      // Interleave the EC codewords the same way.
+      int currentEcBlock = 0;
+      for (; outputIndex < _maxCodewords; ++outputIndex)
       {
-         numArray1[index2] = _codewordsArray[numArray2[index4]];
-         ++numArray2[index4];
-         ++index4;
-         if (index4 == length)
-            index4 = 0;
+         interleaved[outputIndex] = _codewordsArray[blockCursor[currentEcBlock]];
+         ++blockCursor[currentEcBlock];
+         ++currentEcBlock;
+         if (currentEcBlock == totalBlocks)
+            currentEcBlock = 0;
       }
-      _codewordsArray = numArray1;
+
+      _codewordsArray = interleaved;
    }
 
    private void _loadMatrixWithData()
    {
-      int num1 = 0;
-      int num2 = 8 * _maxCodewords;
-      int index1 = QRCodeDimension - 1;
-      int index2 = QRCodeDimension - 1;
-      int num3 = 0;
+      // Walk the data area in the standard boustrophedon (zig-zag) order, from the
+      // bottom-right corner upward, filling only the modules that are not reserved.
+      int bitIndex = 0;
+      int totalBits = 8 * _maxCodewords;
+      int row = QRCodeDimension - 1;
+      int col = QRCodeDimension - 1;
+
+      // Movement phase: 0/2 = move left within a column pair, 1/3 = step to the next
+      // row while going back right; phases 0/1 travel upward, phases 2/3 downward.
+      int phase = 0;
+
       while (true)
       {
-         if ((_baseMatrix[index1, index2] & 2) == 0)
+         if ((_baseMatrix[row, col] & 2) == 0)
          {
-            if ((_codewordsArray[num1 >> 3] & (1 << (7 - (num1 & 7)))) != 0)
-               _baseMatrix[index1, index2] = 1;
-            if (++num1 == num2)
+            // Data module: set it dark when the current codeword bit is 1.
+            if ((_codewordsArray[bitIndex >> 3] & (1 << (7 - (bitIndex & 7)))) != 0)
+               _baseMatrix[row, col] = 1;
+            if (++bitIndex == totalBits)
                break;
          }
-         else if (index2 == 6)
-            --index2;
-         switch (num3)
+         else if (col == 6)
+         {
+            // Skip the vertical timing column.
+            --col;
+         }
+
+         switch (phase)
          {
             case 0:
-               --index2;
-               num3 = 1;
+               --col;
+               phase = 1;
                continue;
             case 1:
-               ++index2;
-               --index1;
-               if (index1 >= 0)
+               ++col;
+               --row;
+               if (row >= 0)
                {
-                  num3 = 0;
+                  phase = 0;
                   continue;
                }
-               index2 -= 2;
-               index1 = 0;
-               num3 = 2;
+               col -= 2;
+               row = 0;
+               phase = 2;
                continue;
             case 2:
-               --index2;
-               num3 = 3;
+               --col;
+               phase = 3;
                continue;
             case 3:
-               ++index2;
-               ++index1;
-               if (index1 < QRCodeDimension)
+               ++col;
+               ++row;
+               if (row < QRCodeDimension)
                {
-                  num3 = 2;
+                  phase = 2;
                   continue;
                }
-               index2 -= 2;
-               index1 = QRCodeDimension - 1;
-               num3 = 0;
+               col -= 2;
+               row = QRCodeDimension - 1;
+               phase = 0;
                continue;
             default:
                continue;
@@ -498,223 +550,241 @@ public class QrCode
 
    private void _selectBestMask()
    {
-      int num1 = int.MaxValue;
+      // Try every mask, score it with the four standard penalty rules, and keep
+      // the matrix with the lowest total penalty.
+      int bestPenalty = int.MaxValue;
       _maskCode = 0;
-      for (int Mask = 0; Mask < 8; ++Mask)
+
+      for (int maskPattern = 0; maskPattern < 8; ++maskPattern)
       {
-         _applyMask(Mask);
-         int num2 = _evaluationCondition1();
-         if (num2 < num1)
+         _applyMask(maskPattern);
+
+         int penalty = _penaltyAdjacentModules()
+            + _penaltyBlocks()
+            + _penaltyFinderLikePatterns()
+            + _penaltyDarkProportion();
+
+         if (penalty < bestPenalty)
          {
-            int num3 = num2 + _evaluationCondition2();
-            if (num3 < num1)
+            bestPenalty = penalty;
+            _maskCode = maskPattern;
+            _resultMatrix = _maskMatrix;
+         }
+      }
+   }
+
+   // Penalty rule 1: runs of five or more same-colored modules in a row or column.
+   private int _penaltyAdjacentModules()
+   {
+      int penalty = 0;
+
+      for (int row = 0; row < QRCodeDimension; ++row)
+      {
+         int runLength = 1;
+         for (int col = 1; col < QRCodeDimension; ++col)
+         {
+            if (((_maskMatrix[row, col - 1] ^ _maskMatrix[row, col]) & 1) != 0)
             {
-               int num4 = num3 + _evaluationCondition3();
-               if (num4 < num1)
+               if (runLength >= 5)
+                  penalty += runLength - 2;
+               runLength = 0;
+            }
+            ++runLength;
+         }
+         if (runLength >= 5)
+            penalty += runLength - 2;
+      }
+
+      for (int col = 0; col < QRCodeDimension; ++col)
+      {
+         int runLength = 1;
+         for (int row = 1; row < QRCodeDimension; ++row)
+         {
+            if (((_maskMatrix[row - 1, col] ^ _maskMatrix[row, col]) & 1) != 0)
+            {
+               if (runLength >= 5)
+                  penalty += runLength - 2;
+               runLength = 0;
+            }
+            ++runLength;
+         }
+         if (runLength >= 5)
+            penalty += runLength - 2;
+      }
+
+      return penalty;
+   }
+
+   // Penalty rule 2: every 2x2 block of identically-colored modules.
+   private int _penaltyBlocks()
+   {
+      int penalty = 0;
+      for (int row = 1; row < QRCodeDimension; ++row)
+      {
+         for (int col = 1; col < QRCodeDimension; ++col)
+         {
+            int topLeft = _maskMatrix[row - 1, col - 1];
+            int topRight = _maskMatrix[row - 1, col];
+            int bottomLeft = _maskMatrix[row, col - 1];
+            int bottomRight = _maskMatrix[row, col];
+
+            if ((topLeft & topRight & bottomLeft & bottomRight & 1) != 0)
+               penalty += 3;   // all four dark
+            else if (((topLeft | topRight | bottomLeft | bottomRight) & 1) == 0)
+               penalty += 3;   // all four light
+         }
+      }
+      return penalty;
+   }
+
+   // Penalty rule 3: 1:1:3:1:1 finder-like patterns with a 4-module clear run.
+   private int _penaltyFinderLikePatterns()
+   {
+      int penalty = 0;
+
+      for (int row = 0; row < QRCodeDimension; ++row)
+      {
+         int afterLastDark = 0;
+         for (int col = 0; col < QRCodeDimension; ++col)
+         {
+            if ((_maskMatrix[row, col] & 1) != 0)
+            {
+               if (col - afterLastDark >= 4)
                {
-                  int num5 = num4 + _evaluationCondition4();
-                  if (num5 < num1)
+                  if (afterLastDark >= 7 && _matchesFinderPatternHorizontally(row, afterLastDark - 7))
+                     penalty += 40;
+                  if (QRCodeDimension - col >= 7 && _matchesFinderPatternHorizontally(row, col))
                   {
-                     _resultMatrix = _maskMatrix;
-                     _maskMatrix = new byte[0, 0];
-                     num1 = num5;
-                     _maskCode = Mask;
+                     penalty += 40;
+                     col += 6;
                   }
                }
+               afterLastDark = col + 1;
             }
          }
+         if (QRCodeDimension - afterLastDark >= 4 && afterLastDark >= 7 && _matchesFinderPatternHorizontally(row, afterLastDark - 7))
+            penalty += 40;
       }
-   }
 
-   private int _evaluationCondition1()
-   {
-      int num1 = 0;
-      for (int index1 = 0; index1 < QRCodeDimension; ++index1)
+      for (int col = 0; col < QRCodeDimension; ++col)
       {
-         int num2 = 1;
-         for (int index2 = 1; index2 < QRCodeDimension; ++index2)
+         int afterLastDark = 0;
+         for (int row = 0; row < QRCodeDimension; ++row)
          {
-            if (((_maskMatrix[index1, index2 - 1] ^ _maskMatrix[index1, index2]) & 1) != 0)
+            if ((_maskMatrix[row, col] & 1) != 0)
             {
-               if (num2 >= 5)
-                  num1 += num2 - 2;
-               num2 = 0;
-            }
-            ++num2;
-         }
-         if (num2 >= 5)
-            num1 += num2 - 2;
-      }
-      for (int index3 = 0; index3 < QRCodeDimension; ++index3)
-      {
-         int num3 = 1;
-         for (int index4 = 1; index4 < QRCodeDimension; ++index4)
-         {
-            if (((_maskMatrix[index4 - 1, index3] ^ _maskMatrix[index4, index3]) & 1) != 0)
-            {
-               if (num3 >= 5)
-                  num1 += num3 - 2;
-               num3 = 0;
-            }
-            ++num3;
-         }
-         if (num3 >= 5)
-            num1 += num3 - 2;
-      }
-      return num1;
-   }
-
-   private int _evaluationCondition2()
-   {
-      int num = 0;
-      for (int index1 = 1; index1 < QRCodeDimension; ++index1)
-      {
-         for (int index2 = 1; index2 < QRCodeDimension; ++index2)
-         {
-            if ((_maskMatrix[index1 - 1, index2 - 1] & _maskMatrix[index1 - 1, index2] & _maskMatrix[index1, index2 - 1] & _maskMatrix[index1, index2] & 1) != 0)
-               num += 3;
-            else if (((_maskMatrix[index1 - 1, index2 - 1] | _maskMatrix[index1 - 1, index2] | _maskMatrix[index1, index2 - 1] | _maskMatrix[index1, index2]) & 1) == 0)
-               num += 3;
-         }
-      }
-      return num;
-   }
-
-   private int _evaluationCondition3()
-   {
-      int num1 = 0;
-      for (int Row = 0; Row < QRCodeDimension; ++Row)
-      {
-         int num2 = 0;
-         for (int Col = 0; Col < QRCodeDimension; ++Col)
-         {
-            if ((_maskMatrix[Row, Col] & 1) != 0)
-            {
-               if (Col - num2 >= 4)
+               if (row - afterLastDark >= 4)
                {
-                  if (num2 >= 7 && _testHorizontalDarkLight(Row, num2 - 7))
-                     num1 += 40;
-                  if (QRCodeDimension - Col >= 7 && _testHorizontalDarkLight(Row, Col))
+                  if (afterLastDark >= 7 && _matchesFinderPatternVertically(afterLastDark - 7, col))
+                     penalty += 40;
+                  if (QRCodeDimension - row >= 7 && _matchesFinderPatternVertically(row, col))
                   {
-                     num1 += 40;
-                     Col += 6;
+                     penalty += 40;
+                     row += 6;
                   }
                }
-               num2 = Col + 1;
+               afterLastDark = row + 1;
             }
          }
-         if (QRCodeDimension - num2 >= 4 && num2 >= 7 && _testHorizontalDarkLight(Row, num2 - 7))
-            num1 += 40;
+         if (QRCodeDimension - afterLastDark >= 4 && afterLastDark >= 7 && _matchesFinderPatternVertically(afterLastDark - 7, col))
+            penalty += 40;
       }
-      for (int Col = 0; Col < QRCodeDimension; ++Col)
-      {
-         int num3 = 0;
-         for (int Row = 0; Row < QRCodeDimension; ++Row)
-         {
-            if ((_maskMatrix[Row, Col] & 1) != 0)
-            {
-               if (Row - num3 >= 4)
-               {
-                  if (num3 >= 7 && _testVerticalDarkLight(num3 - 7, Col))
-                     num1 += 40;
-                  if (QRCodeDimension - Row >= 7 && _testVerticalDarkLight(Row, Col))
-                  {
-                     num1 += 40;
-                     Row += 6;
-                  }
-               }
-               num3 = Row + 1;
-            }
-         }
-         if (QRCodeDimension - num3 >= 4 && num3 >= 7 && _testVerticalDarkLight(num3 - 7, Col))
-            num1 += 40;
-      }
-      return num1;
+
+      return penalty;
    }
 
-   private int _evaluationCondition4()
+   // Penalty rule 4: deviation of the dark-module ratio from 50%.
+   private int _penaltyDarkProportion()
    {
-      int num1 = 0;
-      for (int index1 = 0; index1 < QRCodeDimension; ++index1)
+      int darkCount = 0;
+      for (int row = 0; row < QRCodeDimension; ++row)
       {
-         for (int index2 = 0; index2 < QRCodeDimension; ++index2)
+         for (int col = 0; col < QRCodeDimension; ++col)
          {
-            if ((_maskMatrix[index1, index2] & 1) != 0)
-               ++num1;
+            if ((_maskMatrix[row, col] & 1) != 0)
+               ++darkCount;
          }
       }
-      double num2 = num1 / (double)(QRCodeDimension * QRCodeDimension);
-      return num2 > 0.55 ? (int)(20.0 * (num2 - 0.5)) * 10 : num2 < 0.45 ? (int)(20.0 * (0.5 - num2)) * 10 : 0;
+
+      double darkRatio = darkCount / (double)(QRCodeDimension * QRCodeDimension);
+      return darkRatio > 0.55
+         ? (int)(20.0 * (darkRatio - 0.5)) * 10
+         : darkRatio < 0.45
+            ? (int)(20.0 * (0.5 - darkRatio)) * 10
+            : 0;
    }
 
-   private bool _testHorizontalDarkLight(int Row, int Col)
+   private bool _matchesFinderPatternHorizontally(int row, int col)
    {
-      return (_maskMatrix[Row, Col] & ~_maskMatrix[Row, Col + 1] & _maskMatrix[Row, Col + 2] & _maskMatrix[Row, Col + 3] & _maskMatrix[Row, Col + 4] & ~_maskMatrix[Row, Col + 5] & _maskMatrix[Row, Col + 6] & 1) != 0;
+      return (_maskMatrix[row, col] & ~_maskMatrix[row, col + 1] & _maskMatrix[row, col + 2] & _maskMatrix[row, col + 3] & _maskMatrix[row, col + 4] & ~_maskMatrix[row, col + 5] & _maskMatrix[row, col + 6] & 1) != 0;
    }
 
-   private bool _testVerticalDarkLight(int Row, int Col)
+   private bool _matchesFinderPatternVertically(int row, int col)
    {
-      return (_maskMatrix[Row, Col] & ~_maskMatrix[Row + 1, Col] & _maskMatrix[Row + 2, Col] & _maskMatrix[Row + 3, Col] & _maskMatrix[Row + 4, Col] & ~_maskMatrix[Row + 5, Col] & _maskMatrix[Row + 6, Col] & 1) != 0;
+      return (_maskMatrix[row, col] & ~_maskMatrix[row + 1, col] & _maskMatrix[row + 2, col] & _maskMatrix[row + 3, col] & _maskMatrix[row + 4, col] & ~_maskMatrix[row + 5, col] & _maskMatrix[row + 6, col] & 1) != 0;
    }
 
    private void _addFormatInformation()
    {
+      // Version information block (versions 7 and up).
       if (QRCodeVersion >= 7)
       {
-         int num1 = QRCodeDimension - 11;
+         int versionBlockCol = QRCodeDimension - 11;
          int versionCode = VersionCodeArray[QRCodeVersion - 7];
-         int num2 = 1;
-         for (int index1 = 0; index1 < 6; ++index1)
+
+         int bit = 1;
+         for (int row = 0; row < 6; ++row)
          {
-            for (int index2 = 0; index2 < 3; ++index2)
+            for (int col = 0; col < 3; ++col)
             {
-               _resultMatrix[index1, num1 + index2] = (versionCode & num2) != 0 ? (byte)7 : (byte)6;
-               num2 <<= 1;
+               _resultMatrix[row, versionBlockCol + col] = (versionCode & bit) != 0 ? FixedBlack : FixedWhite;
+               bit <<= 1;
             }
          }
-         int num3 = 1;
-         for (int index3 = 0; index3 < 6; ++index3)
+
+         bit = 1;
+         for (int col = 0; col < 6; ++col)
          {
-            for (int index4 = 0; index4 < 3; ++index4)
+            for (int row = 0; row < 3; ++row)
             {
-               _resultMatrix[num1 + index4, index3] = (versionCode & num3) != 0 ? (byte)7 : (byte)6;
-               num3 <<= 1;
+               _resultMatrix[versionBlockCol + row, col] = (versionCode & bit) != 0 ? FixedBlack : FixedWhite;
+               bit <<= 1;
             }
          }
       }
-      int num4 = 0;
-      switch (ErrorCorrection)
+
+      // Format information: error-correction level indicator combined with the mask.
+      int formatEcIndex = ErrorCorrection switch
       {
-         case ErrorCorrection.L:
-            num4 = 8;
-            break;
-         case ErrorCorrection.Q:
-            num4 = 24;
-            break;
-         case ErrorCorrection.H:
-            num4 = 16 /*0x10*/;
-            break;
-      }
-      int formatInfo = FormatInfoArray[num4 + _maskCode];
-      int num5 = 1;
-      for (int index5 = 0; index5 < 15; ++index5)
+         ErrorCorrection.L => 8,
+         ErrorCorrection.Q => 24,
+         ErrorCorrection.H => 16 /*0x10*/,
+         _ => 0,   // ErrorCorrection.M
+      };
+      int formatInfo = FormatInfoArray[formatEcIndex + _maskCode];
+
+      int formatBit = 1;
+      for (int i = 0; i < 15; ++i)
       {
-         int num6 = (formatInfo & num5) != 0 ? 7 : 6;
-         num5 <<= 1;
-         _resultMatrix[FormatInfoOne[index5, 0], FormatInfoOne[index5, 1]] = (byte)num6;
-         int index6 = FormatInfoTwo[index5, 0];
-         if (index6 < 0)
-            index6 += QRCodeDimension;
-         int index7 = FormatInfoTwo[index5, 1];
-         if (index7 < 0)
-            index7 += QRCodeDimension;
-         _resultMatrix[index6, index7] = (byte)num6;
+         byte moduleValue = (formatInfo & formatBit) != 0 ? FixedBlack : FixedWhite;
+         formatBit <<= 1;
+
+         _resultMatrix[FormatInfoOne[i, 0], FormatInfoOne[i, 1]] = moduleValue;
+
+         // The second copy uses negative offsets counted back from the far edge.
+         int row = FormatInfoTwo[i, 0];
+         if (row < 0)
+            row += QRCodeDimension;
+         int col = FormatInfoTwo[i, 1];
+         if (col < 0)
+            col += QRCodeDimension;
+         _resultMatrix[row, col] = moduleValue;
       }
    }
 
-   private int _dataLengthBits(EncodingMode EncodingMode)
+   private int _dataLengthBits(EncodingMode encodingMode)
    {
-      switch (EncodingMode)
+      switch (encodingMode)
       {
          case EncodingMode.Numeric:
             if (QRCodeVersion < 10)
@@ -733,11 +803,11 @@ public class QrCode
 
    private void _setDataCodewordsLength()
    {
-      int index = (int)(((QRCodeVersion - 1) * 4) + ErrorCorrection);
-      _blocksGroup1 = ECBlockInfo[index, 0];
-      _dataCodewordsGroup1 = ECBlockInfo[index, 1];
-      _blocksGroup2 = ECBlockInfo[index, 2];
-      _dataCodewordsGroup2 = ECBlockInfo[index, 3];
+      int ecBlockRow = (int)(((QRCodeVersion - 1) * 4) + ErrorCorrection);
+      _blocksGroup1 = ECBlockInfo[ecBlockRow, BLOCKS_GROUP1];
+      _dataCodewordsGroup1 = ECBlockInfo[ecBlockRow, DATA_CODEWORDS_GROUP1];
+      _blocksGroup2 = ECBlockInfo[ecBlockRow, BLOCKS_GROUP2];
+      _dataCodewordsGroup2 = ECBlockInfo[ecBlockRow, DATA_CODEWORDS_GROUP2];
       _maxDataCodewords = (_blocksGroup1 * _dataCodewordsGroup1) + (_blocksGroup2 * _dataCodewordsGroup2);
       _maxDataBits = 8 * _maxDataCodewords;
       _maxCodewords = MaxCodewordsArray[QRCodeVersion];
@@ -746,297 +816,109 @@ public class QrCode
 
    private void _buildBaseMatrix()
    {
-      _baseMatrix = new byte[QRCodeDimension + 5, QRCodeDimension + 5];
-      for (int index1 = 0; index1 < 9; ++index1)
+      _baseMatrix = new byte[QRCodeDimension, QRCodeDimension];
+
+      // Three finder patterns (with their separators) at the corners.
+      for (int row = 0; row < 9; ++row)
       {
-         for (int index2 = 0; index2 < 9; ++index2)
-            _baseMatrix[index1, index2] = FinderPatternTopLeft[index1, index2];
+         for (int col = 0; col < 9; ++col)
+            _baseMatrix[row, col] = FinderPatternTopLeft[row, col];
       }
-      int num1 = QRCodeDimension - 8;
-      for (int index3 = 0; index3 < 9; ++index3)
+
+      int farCorner = QRCodeDimension - 8;
+      for (int row = 0; row < 9; ++row)
       {
-         for (int index4 = 0; index4 < 8; ++index4)
-            _baseMatrix[index3, num1 + index4] = FinderPatternTopRight[index3, index4];
+         for (int col = 0; col < 8; ++col)
+            _baseMatrix[row, farCorner + col] = FinderPatternTopRight[row, col];
       }
-      for (int index5 = 0; index5 < 8; ++index5)
+
+      for (int row = 0; row < 8; ++row)
       {
-         for (int index6 = 0; index6 < 9; ++index6)
-            _baseMatrix[num1 + index5, index6] = FinderPatternBottomLeft[index5, index6];
+         for (int col = 0; col < 9; ++col)
+            _baseMatrix[farCorner + row, col] = FinderPatternBottomLeft[row, col];
       }
-      for (int index = 8; index < QRCodeDimension - 8; ++index)
-         _baseMatrix[index, 6] = _baseMatrix[6, index] = (index & 1) == 0 ? (byte)7 : (byte)6;
+
+      // Timing patterns: alternating modules along row 6 and column 6.
+      for (int i = 8; i < QRCodeDimension - 8; ++i)
+         _baseMatrix[i, 6] = _baseMatrix[6, i] = (i & 1) == 0 ? FixedBlack : FixedWhite;
+
+      // Alignment patterns (version 2+).
       if (QRCodeVersion > 1)
       {
-         byte[] alignmentPosition = AlignmentPositionArray[QRCodeVersion] ?? [];
-         int length = alignmentPosition.Length;
-         for (int index7 = 0; index7 < length; ++index7)
+         byte[] alignmentPositions = AlignmentPositionArray[QRCodeVersion] ?? [];
+         int positionCount = alignmentPositions.Length;
+         for (int rowPos = 0; rowPos < positionCount; ++rowPos)
          {
-            for (int index8 = 0; index8 < length; ++index8)
+            for (int colPos = 0; colPos < positionCount; ++colPos)
             {
-               if ((index8 != 0 || index7 != 0) && (index8 != length - 1 || index7 != 0) && (index8 != 0 || index7 != length - 1))
+               // Skip the three positions that would collide with the finder patterns.
+               bool overlapsFinder =
+                  (colPos == 0 && rowPos == 0)
+                  || (colPos == positionCount - 1 && rowPos == 0)
+                  || (colPos == 0 && rowPos == positionCount - 1);
+               if (overlapsFinder)
+                  continue;
+
+               int centerRow = alignmentPositions[rowPos];
+               int centerCol = alignmentPositions[colPos];
+               for (int dRow = -2; dRow < 3; ++dRow)
                {
-                  int num2 = alignmentPosition[index7];
-                  int num3 = alignmentPosition[index8];
-                  for (int index9 = -2; index9 < 3; ++index9)
-                  {
-                     for (int index10 = -2; index10 < 3; ++index10)
-                        _baseMatrix[num2 + index9, num3 + index10] = AlignmentPattern[index9 + 2, index10 + 2];
-                  }
+                  for (int dCol = -2; dCol < 3; ++dCol)
+                     _baseMatrix[centerRow + dRow, centerCol + dCol] = AlignmentPattern[dRow + 2, dCol + 2];
                }
             }
          }
       }
+
+      // Reserve the version-information areas (version 7+).
       if (QRCodeVersion < 7)
          return;
-      int num4 = QRCodeDimension - 11;
-      for (int index11 = 0; index11 < 6; ++index11)
+
+      int versionBlockCol = QRCodeDimension - 11;
+      for (int row = 0; row < 6; ++row)
       {
-         for (int index12 = 0; index12 < 3; ++index12)
-            _baseMatrix[index11, num4 + index12] = 2;
+         for (int col = 0; col < 3; ++col)
+            _baseMatrix[row, versionBlockCol + col] = NonData;
       }
-      for (int index13 = 0; index13 < 6; ++index13)
+
+      for (int col = 0; col < 6; ++col)
       {
-         for (int index14 = 0; index14 < 3; ++index14)
-            _baseMatrix[num4 + index14, index13] = 2;
+         for (int row = 0; row < 3; ++row)
+            _baseMatrix[versionBlockCol + row, col] = NonData;
       }
    }
 
-   private void _applyMask(int Mask)
+   private void _applyMask(int maskPattern)
    {
       _maskMatrix = (byte[,])_baseMatrix.Clone();
-      switch (Mask)
-      {
-         case 0:
-            _applyMask0();
-            break;
-         case 1:
-            _applyMask1();
-            break;
-         case 2:
-            _applyMask2();
-            break;
-         case 3:
-            _applyMask3();
-            break;
-         case 4:
-            _applyMask4();
-            break;
-         case 5:
-            _applyMask5();
-            break;
-         case 6:
-            _applyMask6();
-            break;
-         case 7:
-            _applyMask7();
-            break;
-      }
-   }
 
-   private void _applyMask0()
-   {
-      for (int index1 = 0; index1 < QRCodeDimension; index1 += 2)
+      for (int row = 0; row < QRCodeDimension; ++row)
       {
-         for (int index2 = 0; index2 < QRCodeDimension; index2 += 2)
+         for (int col = 0; col < QRCodeDimension; ++col)
          {
-            if ((_maskMatrix[index1, index2] & 2) == 0)
-               _maskMatrix[index1, index2] ^= 1;
-            if ((_maskMatrix[index1 + 1, index2 + 1] & 2) == 0)
-               _maskMatrix[index1 + 1, index2 + 1] ^= 1;
+            // Only data modules are masked; function modules keep bit 2 set.
+            if ((_maskMatrix[row, col] & 2) != 0)
+               continue;
+
+            if (_maskCondition(maskPattern, row, col))
+               _maskMatrix[row, col] ^= 1;
          }
       }
    }
 
-   private void _applyMask1()
+   // The eight standard QR mask patterns (ISO/IEC 18004). A module is inverted
+   // when the condition holds for its (row, col) coordinates.
+   private static bool _maskCondition(int maskPattern, int row, int col) => maskPattern switch
    {
-      for (int index1 = 0; index1 < QRCodeDimension; index1 += 2)
-      {
-         for (int index2 = 0; index2 < QRCodeDimension; ++index2)
-         {
-            if ((_maskMatrix[index1, index2] & 2) == 0)
-               _maskMatrix[index1, index2] ^= 1;
-         }
-      }
-   }
-
-   private void _applyMask2()
-   {
-      for (int index1 = 0; index1 < QRCodeDimension; ++index1)
-      {
-         for (int index2 = 0; index2 < QRCodeDimension; index2 += 3)
-         {
-            if ((_maskMatrix[index1, index2] & 2) == 0)
-               _maskMatrix[index1, index2] ^= 1;
-         }
-      }
-   }
-
-   private void _applyMask3()
-   {
-      for (int index1 = 0; index1 < QRCodeDimension; index1 += 3)
-      {
-         for (int index2 = 0; index2 < QRCodeDimension; index2 += 3)
-         {
-            if ((_maskMatrix[index1, index2] & 2) == 0)
-               _maskMatrix[index1, index2] ^= 1;
-            if ((_maskMatrix[index1 + 1, index2 + 2] & 2) == 0)
-               _maskMatrix[index1 + 1, index2 + 2] ^= 1;
-            if ((_maskMatrix[index1 + 2, index2 + 1] & 2) == 0)
-               _maskMatrix[index1 + 2, index2 + 1] ^= 1;
-         }
-      }
-   }
-
-   private void _applyMask4()
-   {
-      for (int index1 = 0; index1 < QRCodeDimension; index1 += 4)
-      {
-         for (int index2 = 0; index2 < QRCodeDimension; index2 += 6)
-         {
-            if ((_maskMatrix[index1, index2] & 2) == 0)
-               _maskMatrix[index1, index2] ^= 1;
-            if ((_maskMatrix[index1, index2 + 1] & 2) == 0)
-               _maskMatrix[index1, index2 + 1] ^= 1;
-            if ((_maskMatrix[index1, index2 + 2] & 2) == 0)
-               _maskMatrix[index1, index2 + 2] ^= 1;
-            if ((_maskMatrix[index1 + 1, index2] & 2) == 0)
-               _maskMatrix[index1 + 1, index2] ^= 1;
-            if ((_maskMatrix[index1 + 1, index2 + 1] & 2) == 0)
-               _maskMatrix[index1 + 1, index2 + 1] ^= 1;
-            if ((_maskMatrix[index1 + 1, index2 + 2] & 2) == 0)
-               _maskMatrix[index1 + 1, index2 + 2] ^= 1;
-            if ((_maskMatrix[index1 + 2, index2 + 3] & 2) == 0)
-               _maskMatrix[index1 + 2, index2 + 3] ^= 1;
-            if ((_maskMatrix[index1 + 2, index2 + 4] & 2) == 0)
-               _maskMatrix[index1 + 2, index2 + 4] ^= 1;
-            if ((_maskMatrix[index1 + 2, index2 + 5] & 2) == 0)
-               _maskMatrix[index1 + 2, index2 + 5] ^= 1;
-            if ((_maskMatrix[index1 + 3, index2 + 3] & 2) == 0)
-               _maskMatrix[index1 + 3, index2 + 3] ^= 1;
-            if ((_maskMatrix[index1 + 3, index2 + 4] & 2) == 0)
-               _maskMatrix[index1 + 3, index2 + 4] ^= 1;
-            if ((_maskMatrix[index1 + 3, index2 + 5] & 2) == 0)
-               _maskMatrix[index1 + 3, index2 + 5] ^= 1;
-         }
-      }
-   }
-
-   private void _applyMask5()
-   {
-      for (int index1 = 0; index1 < QRCodeDimension; index1 += 6)
-      {
-         for (int index2 = 0; index2 < QRCodeDimension; index2 += 6)
-         {
-            for (int index3 = 0; index3 < 6; ++index3)
-            {
-               if ((_maskMatrix[index1, index2 + index3] & 2) == 0)
-                  _maskMatrix[index1, index2 + index3] ^= 1;
-            }
-            for (int index4 = 1; index4 < 6; ++index4)
-            {
-               if ((_maskMatrix[index1 + index4, index2] & 2) == 0)
-                  _maskMatrix[index1 + index4, index2] ^= 1;
-            }
-            if ((_maskMatrix[index1 + 2, index2 + 3] & 2) == 0)
-               _maskMatrix[index1 + 2, index2 + 3] ^= 1;
-            if ((_maskMatrix[index1 + 3, index2 + 2] & 2) == 0)
-               _maskMatrix[index1 + 3, index2 + 2] ^= 1;
-            if ((_maskMatrix[index1 + 3, index2 + 4] & 2) == 0)
-               _maskMatrix[index1 + 3, index2 + 4] ^= 1;
-            if ((_maskMatrix[index1 + 4, index2 + 3] & 2) == 0)
-               _maskMatrix[index1 + 4, index2 + 3] ^= 1;
-         }
-      }
-   }
-
-   private void _applyMask6()
-   {
-      for (int index1 = 0; index1 < QRCodeDimension; index1 += 6)
-      {
-         for (int index2 = 0; index2 < QRCodeDimension; index2 += 6)
-         {
-            for (int index3 = 0; index3 < 6; ++index3)
-            {
-               if ((_maskMatrix[index1, index2 + index3] & 2) == 0)
-                  _maskMatrix[index1, index2 + index3] ^= 1;
-            }
-            for (int index4 = 1; index4 < 6; ++index4)
-            {
-               if ((_maskMatrix[index1 + index4, index2] & 2) == 0)
-                  _maskMatrix[index1 + index4, index2] ^= 1;
-            }
-            if ((_maskMatrix[index1 + 1, index2 + 1] & 2) == 0)
-               _maskMatrix[index1 + 1, index2 + 1] ^= 1;
-            if ((_maskMatrix[index1 + 1, index2 + 2] & 2) == 0)
-               _maskMatrix[index1 + 1, index2 + 2] ^= 1;
-            if ((_maskMatrix[index1 + 2, index2 + 1] & 2) == 0)
-               _maskMatrix[index1 + 2, index2 + 1] ^= 1;
-            if ((_maskMatrix[index1 + 2, index2 + 3] & 2) == 0)
-               _maskMatrix[index1 + 2, index2 + 3] ^= 1;
-            if ((_maskMatrix[index1 + 2, index2 + 4] & 2) == 0)
-               _maskMatrix[index1 + 2, index2 + 4] ^= 1;
-            if ((_maskMatrix[index1 + 3, index2 + 2] & 2) == 0)
-               _maskMatrix[index1 + 3, index2 + 2] ^= 1;
-            if ((_maskMatrix[index1 + 3, index2 + 4] & 2) == 0)
-               _maskMatrix[index1 + 3, index2 + 4] ^= 1;
-            if ((_maskMatrix[index1 + 4, index2 + 2] & 2) == 0)
-               _maskMatrix[index1 + 4, index2 + 2] ^= 1;
-            if ((_maskMatrix[index1 + 4, index2 + 3] & 2) == 0)
-               _maskMatrix[index1 + 4, index2 + 3] ^= 1;
-            if ((_maskMatrix[index1 + 4, index2 + 5] & 2) == 0)
-               _maskMatrix[index1 + 4, index2 + 5] ^= 1;
-            if ((_maskMatrix[index1 + 5, index2 + 4] & 2) == 0)
-               _maskMatrix[index1 + 5, index2 + 4] ^= 1;
-            if ((_maskMatrix[index1 + 5, index2 + 5] & 2) == 0)
-               _maskMatrix[index1 + 5, index2 + 5] ^= 1;
-         }
-      }
-   }
-
-   private void _applyMask7()
-   {
-      for (int index1 = 0; index1 < QRCodeDimension; index1 += 6)
-      {
-         for (int index2 = 0; index2 < QRCodeDimension; index2 += 6)
-         {
-            if ((_maskMatrix[index1, index2] & 2) == 0)
-               _maskMatrix[index1, index2] ^= 1;
-            if ((_maskMatrix[index1, index2 + 2] & 2) == 0)
-               _maskMatrix[index1, index2 + 2] ^= 1;
-            if ((_maskMatrix[index1, index2 + 4] & 2) == 0)
-               _maskMatrix[index1, index2 + 4] ^= 1;
-            if ((_maskMatrix[index1 + 1, index2 + 3] & 2) == 0)
-               _maskMatrix[index1 + 1, index2 + 3] ^= 1;
-            if ((_maskMatrix[index1 + 1, index2 + 4] & 2) == 0)
-               _maskMatrix[index1 + 1, index2 + 4] ^= 1;
-            if ((_maskMatrix[index1 + 1, index2 + 5] & 2) == 0)
-               _maskMatrix[index1 + 1, index2 + 5] ^= 1;
-            if ((_maskMatrix[index1 + 2, index2] & 2) == 0)
-               _maskMatrix[index1 + 2, index2] ^= 1;
-            if ((_maskMatrix[index1 + 2, index2 + 4] & 2) == 0)
-               _maskMatrix[index1 + 2, index2 + 4] ^= 1;
-            if ((_maskMatrix[index1 + 2, index2 + 5] & 2) == 0)
-               _maskMatrix[index1 + 2, index2 + 5] ^= 1;
-            if ((_maskMatrix[index1 + 3, index2 + 1] & 2) == 0)
-               _maskMatrix[index1 + 3, index2 + 1] ^= 1;
-            if ((_maskMatrix[index1 + 3, index2 + 3] & 2) == 0)
-               _maskMatrix[index1 + 3, index2 + 3] ^= 1;
-            if ((_maskMatrix[index1 + 3, index2 + 5] & 2) == 0)
-               _maskMatrix[index1 + 3, index2 + 5] ^= 1;
-            if ((_maskMatrix[index1 + 4, index2] & 2) == 0)
-               _maskMatrix[index1 + 4, index2] ^= 1;
-            if ((_maskMatrix[index1 + 4, index2 + 1] & 2) == 0)
-               _maskMatrix[index1 + 4, index2 + 1] ^= 1;
-            if ((_maskMatrix[index1 + 4, index2 + 2] & 2) == 0)
-               _maskMatrix[index1 + 4, index2 + 2] ^= 1;
-            if ((_maskMatrix[index1 + 5, index2 + 1] & 2) == 0)
-               _maskMatrix[index1 + 5, index2 + 1] ^= 1;
-            if ((_maskMatrix[index1 + 5, index2 + 2] & 2) == 0)
-               _maskMatrix[index1 + 5, index2 + 2] ^= 1;
-            if ((_maskMatrix[index1 + 5, index2 + 3] & 2) == 0)
-               _maskMatrix[index1 + 5, index2 + 3] ^= 1;
-         }
-      }
-   }
+      0 => (row + col) % 2 == 0,
+      1 => row % 2 == 0,
+      2 => col % 3 == 0,
+      3 => (row + col) % 3 == 0,
+      4 => ((row / 2) + (col / 3)) % 2 == 0,
+      5 => ((row * col) % 2) + ((row * col) % 3) == 0,
+      6 => (((row * col) % 2) + ((row * col) % 3)) % 2 == 0,
+      7 => (((row + col) % 2) + ((row * col) % 3)) % 2 == 0,
+      _ => false,
+   };
 }
 #pragma warning restore CA1814
