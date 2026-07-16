@@ -188,7 +188,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                HashAlgorithmName.SHA256,
                RSASignaturePadding.Pss);
          }
+#pragma warning disable CA1031 // Intentional: any malformed key/signature is treated as an invalid signature
          catch
+#pragma warning restore CA1031
          {
             // Any malformed key/signature (or a mismatch) is treated as an
             // invalid signature rather than surfacing as an exception.

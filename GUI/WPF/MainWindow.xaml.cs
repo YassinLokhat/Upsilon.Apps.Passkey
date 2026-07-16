@@ -124,7 +124,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             database.AutoSaveDetected += _database_AutoSaveDetected;
             _session.StartSession(database);
          }
+#pragma warning disable CA1031 // Last-resort barrier: a failed open is logged and surfaced, not propagated
          catch (Exception ex)
+#pragma warning restore CA1031
          {
             Log.Error(ex, "Failed to open database");
          }
@@ -156,7 +158,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          {
             _ = _session.Database.Login(_password_PB.SecurePassword);
          }
+#pragma warning disable CA1031 // Last-resort barrier: an unexpected login error is shown to the user, not propagated
          catch (Exception ex)
+#pragma warning restore CA1031
          {
             Log.Error(ex, "Unexpected error during login");
             AppServices.Dialogs.Warn("An unexpected error occurred while opening the database.", "Login error");
