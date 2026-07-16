@@ -334,6 +334,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
          string username,
          string[] passkeys)
       {
+         ArgumentNullException.ThrowIfNull(cryptographicCenter);
+         ArgumentNullException.ThrowIfNull(serializationCenter);
+         ArgumentNullException.ThrowIfNull(passwordFactory);
+         ArgumentNullException.ThrowIfNull(clipboardManager);
+         ArgumentNullException.ThrowIfNull(passkeys);
+
          if (File.Exists(databaseFile))
          {
             throw new IOException($"'{databaseFile}' database file already exists");

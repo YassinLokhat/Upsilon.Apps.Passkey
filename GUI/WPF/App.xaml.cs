@@ -22,6 +22,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
       protected override void OnExit(ExitEventArgs e)
       {
+         ArgumentNullException.ThrowIfNull(e);
+
          Log.Info($"Application exiting with code {e.ApplicationExitCode}.");
          Log.Flush();
 

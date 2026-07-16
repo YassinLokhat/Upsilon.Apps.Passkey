@@ -64,6 +64,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string EncryptSymmetrically(string source, string[] passwords)
       {
+         ArgumentNullException.ThrowIfNull(passwords);
+
          // Onion encryption: every passkey adds an authenticated AES-GCM layer,
          // so all of them are required - and in the right order - to recover the
          // data.
@@ -81,6 +83,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string DecryptSymmetrically(string source, string[] passwords)
       {
+         ArgumentNullException.ThrowIfNull(passwords);
+
          string result;
 
          try
