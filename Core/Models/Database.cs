@@ -89,7 +89,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
                data: [Username, $"{passwordException.PasswordLevel}"],
                needsReview: true);
          }
+#pragma warning disable CA1031 // Last-resort barrier: an unexpected login failure is traced, not propagated
          catch (Exception ex)
+#pragma warning restore CA1031
          {
             System.Diagnostics.Trace.TraceWarning($"Unexpected error during login :\n{ex.Message}");
          }
@@ -162,7 +164,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             importContent = File.ReadAllText(filePath);
          }
+#pragma warning disable CA1031 // Intentional: any file access failure is reported as a user-facing error message
          catch
+#pragma warning restore CA1031
          {
             errorLog = $"import file is not accessible";
          }
@@ -558,7 +562,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => User.WarningsToNotify.HasFlag(x.WarningType))]));
          }
+#pragma warning disable CA1031 // Last-resort barrier: the background warning scan must never crash the session
          catch (Exception ex)
+#pragma warning restore CA1031
          {
             // The warning scan runs on a background task and must never crash the
             // session; a failure only means warnings are not refreshed this round,

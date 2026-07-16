@@ -47,7 +47,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          {
             Clipboard.SetDataObject(data, copy: true);
          }
+#pragma warning disable CA1031 // Last-resort barrier: a clipboard failure must never crash the caller
          catch (Exception ex)
+#pragma warning restore CA1031
          {
             Log.Error(ex, "Failed to write to clipboard");
             return;
@@ -81,7 +83,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
                   Clipboard.Clear();
                }
             }
+#pragma warning disable CA1031 // Last-resort barrier: a clipboard failure must never crash the caller
             catch (Exception ex)
+#pragma warning restore CA1031
             {
                Log.Error(ex, "Failed to clear sensitive clipboard content");
             }

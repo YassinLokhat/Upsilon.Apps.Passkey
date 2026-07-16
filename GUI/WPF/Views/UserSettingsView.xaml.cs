@@ -173,7 +173,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                _database.DatabaseClosed += _database_DatabaseClosed;
                _session.StartSession(_database);
             }
+#pragma warning disable CA1031 // Last-resort barrier: database creation errors are shown to the user, not propagated
             catch (Exception ex)
+#pragma warning restore CA1031
             {
                _ = MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                _ = Dispatcher.BeginInvoke(() =>
