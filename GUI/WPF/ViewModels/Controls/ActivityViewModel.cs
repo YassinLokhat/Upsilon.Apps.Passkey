@@ -8,7 +8,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
    internal sealed class ActivityViewModel(IActivity activity) : INotifyPropertyChanged
    {
       public readonly IActivity Activity = activity;
-      public string DateTime => Activity.DateTime.ToString("yyyy-MM-dd HH:mm");
+      public string DateTime => Activity.DateTime.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture);
       public string EventType => Activity.EventType.ToReadableString();
       public string Message => Activity.Message;
       public bool NeedsReview
