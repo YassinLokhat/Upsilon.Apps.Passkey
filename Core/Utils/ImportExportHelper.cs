@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Upsilon.Apps.Passkey.Core.Models;
@@ -178,7 +179,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                string identifiers = string.Join("|", account.Identifiers.Where(x => !string.IsNullOrWhiteSpace(x)));
 
                _ = sb.Append(serviceLine);
-               _ = sb.Append($"{_jsonSerialize(account.Label.Trim())}\t" +
+               _ = sb.Append(CultureInfo.InvariantCulture, $"{_jsonSerialize(account.Label.Trim())}\t" +
                   $"{_jsonSerialize(identifiers)}\t" +
                   $"{_jsonSerialize(account.Password.Trim())}\t" +
                   $"{_jsonSerialize(account.Notes.Trim())}\t" +

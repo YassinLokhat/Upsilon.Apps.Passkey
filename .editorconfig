@@ -8,12 +8,10 @@ insert_final_newline = true
 charset = utf-8-bom
 trim_trailing_whitespace = true
 
-# Style/design suggestions: keep visible (suggestion) but not breaking.
-dotnet_diagnostic.CA1305.severity = suggestion   # IFormatProvider missing
-
 # CA5392 (DefaultDllImportSearchPaths): keep as suggestion; the
 # P/Invokes target well-known system DLLs (user32, dwmapi).
 dotnet_diagnostic.CA5392.severity = suggestion
+
 # In an executable, internal types are encouraged but the existing
 # code base exposes most types publicly. Lower CA1515 to suggestion
 # to surface it without breaking the build.
@@ -21,5 +19,4 @@ dotnet_diagnostic.CA1515.severity = suggestion
 
 # CA1852 (seal internal types): worthwhile but currently noisy in Core.
 dotnet_diagnostic.CA1852.severity = suggestion
-
 dotnet_diagnostic.CA1416.severity = suggestion
