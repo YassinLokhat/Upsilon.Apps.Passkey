@@ -147,7 +147,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             foreach (Account a in s.Accounts)
             {
-               IAccount account = service.AddAccount(a.Label, a.Identifiers, a.Password);
+               IAccount account = ((Service)service).AddAccount(a.Label, a.Identifiers, a.Password, a.Passwords);
                account.Notes = a.Notes;
                account.Options = a.Options;
                account.PasswordUpdateReminderDelay = a.PasswordUpdateReminderDelay;

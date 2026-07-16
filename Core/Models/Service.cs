@@ -124,6 +124,30 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public string Url { get; set; } = string.Empty;
       public string Notes { get; set; } = string.Empty;
 
+      public IAccount AddAccount(string label, IEnumerable<string> identifiers, string password, Dictionary<DateTime, ProtectedSecret> passwords)
+      {
+         Account account = new()
+         {
+            Service = this,
+            ItemId = "A" + Database.CryptographyCenter.GetHash(ItemId + label + string.Join(string.Empty, identifiers)),
+            Label = label,
+            Identifiers = [.. identifiers],
+            Password = password,
+            Passwords = passwords,
+         };
+
+         Accounts.Add(Database.AutoSave.AddValue(ItemId, readableValue: account.ToString(), needsReview: false, account));
+
+         _ = Database.AutoSave.UpdateValue(account.ItemId,
+            fieldName: nameof(account.Password),
+            needsReview: true,
+            oldValue: string.Empty,
+            newValue: account.Password,
+            readableValue: string.Empty);
+
+         return account;
+      }
+
       internal void Apply(Change change)
       {
          switch (change.ActionType)

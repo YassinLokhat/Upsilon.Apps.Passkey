@@ -293,7 +293,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          OpenFileDialog dialog = new()
          {
             Title = "Import data from a file",
-            Filter = "Tab delimited CSV file|*.csv|json file|*.json",
+            Filter = "json file|*.json|Tab delimited CSV file|*.csv",
          };
 
          if (!(dialog.ShowDialog() ?? false)) return;
@@ -334,7 +334,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          SaveFileDialog dialog = new()
          {
             Title = "Export data to a file",
-            Filter = "Tab delimited CSV file|*.csv|json file|*.json",
+            Filter = "json file|*.json|Tab delimited CSV file|*.csv",
             FileName = $"{_database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
          };
 
