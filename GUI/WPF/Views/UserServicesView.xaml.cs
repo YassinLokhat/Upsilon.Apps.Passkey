@@ -72,12 +72,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       public static bool ShowUser(Window owner)
       {
-         return new UserServicesView()
+         using UserServicesView view = new()
          {
             Owner = owner,
-         }
-         .ShowDialog()
-         ?? true;
+         };
+
+         return view.ShowDialog() ?? true;
       }
 
       private void _userServicesView_Loaded(object sender, RoutedEventArgs e)
