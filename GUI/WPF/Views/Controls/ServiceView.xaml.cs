@@ -89,13 +89,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         _ = new Process()
+         using Process process = new()
          {
             StartInfo = new ProcessStartInfo(_viewModel.Url)
             {
                UseShellExecute = true,
             },
-         }.Start();
+         };
+
+         _ = process.Start();
       }
 
       public bool SelectAccount(string itemId)
