@@ -29,14 +29,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          {
             if (field != value)
             {
-               if (IdentifiersTypes.Keys.Union(IdentifiersTypes.Values).All(x => !value.StartsWith(x, StringComparison.CurrentCultureIgnoreCase)))
+               if (IdentifiersTypes.Keys.Union(IdentifiersTypes.Values).All(x => !value.StartsWith(x, StringComparison.Ordinal)))
                {
                   value = _getIdentifierType(value);
                }
 
                foreach (KeyValuePair<string, string> idType in IdentifiersTypes)
                {
-                  field = value.Replace(idType.Key, idType.Value, StringComparison.CurrentCulture);
+                  field = value.Replace(idType.Key, idType.Value, StringComparison.Ordinal);
                }
 
                OnPropertyChanged(nameof(Identifier));

@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Text;
+﻿using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -150,12 +149,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          if (IncludeUpperCaseAlphabet)
          {
-            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToUpper(CultureInfo.CurrentCulture));
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToUpperInvariant());
          }
 
          if (IncludeLowerCaseAlphabet)
          {
-            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToLower(CultureInfo.CurrentCulture));
+#pragma warning disable CA1308 // Not a normalization key: lower-case letters are a legitimate part of the password character set.
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToLowerInvariant());
+#pragma warning restore CA1308
          }
 
          if (IncludeSpecialCharacters)

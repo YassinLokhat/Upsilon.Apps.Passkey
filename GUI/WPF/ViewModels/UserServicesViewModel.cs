@@ -152,7 +152,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public ServiceViewModel AddService()
       {
-         ServiceViewModel? serviceViewModel = Services.FirstOrDefault(x => x.ServiceName.StartsWith("New Service #", StringComparison.CurrentCulture));
+         ServiceViewModel? serviceViewModel = Services.FirstOrDefault(x => x.ServiceName.StartsWith("New Service #", StringComparison.Ordinal));
 
          if (serviceViewModel is null && AppServices.Session.User is { } user)
          {

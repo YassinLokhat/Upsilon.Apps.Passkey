@@ -16,8 +16,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public bool MeetsConditions(WarningType warningType, string text)
       {
          return warningType.HasFlag(WarningType)
-            && (AccountString.Contains(text, StringComparison.CurrentCultureIgnoreCase)
-               || ServiceString.Contains(text, StringComparison.CurrentCultureIgnoreCase));
+            && (AccountString.Contains(text, StringComparison.OrdinalIgnoreCase)
+               || ServiceString.Contains(text, StringComparison.OrdinalIgnoreCase));
       }
    }
 }

@@ -22,7 +22,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public string AccountId => $"Account Id : {Account.ItemId.Replace(Account.Service.ItemId, string.Empty, StringComparison.CurrentCulture)}";
+      public string AccountId => $"Account Id : {Account.ItemId.Replace(Account.Service.ItemId, string.Empty, StringComparison.Ordinal)}";
 
       public Brush LabelBackground => Account.HasChanged(nameof(Label)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Label
