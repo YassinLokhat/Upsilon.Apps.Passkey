@@ -29,7 +29,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          {
             foreach (string idType in IdentifierViewModel.IdentifiersTypes.Values)
             {
-               if (identifier.StartsWith(idType, StringComparison.CurrentCulture))
+               if (identifier.StartsWith(idType, StringComparison.Ordinal))
                {
                   identifier = identifier[idType.Length..];
                }

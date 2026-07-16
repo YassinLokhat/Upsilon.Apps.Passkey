@@ -40,7 +40,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                || Activity.DateTime.Date >= fromDateFilter) && (toDateFilter > System.DateTime.Now.Date
                || Activity.DateTime.Date <= toDateFilter) && (eventType == ActivityEventType.None
                || Activity.EventType == eventType) && (!needsReview
-               || Activity.NeedsReview) && Activity.Message.Contains(message, StringComparison.CurrentCultureIgnoreCase);
+               || Activity.NeedsReview) && Activity.Message.Contains(message, StringComparison.OrdinalIgnoreCase);
       }
    }
 }
