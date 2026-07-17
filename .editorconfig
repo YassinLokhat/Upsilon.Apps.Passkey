@@ -12,6 +12,3 @@ trim_trailing_whitespace = true
 # code base exposes most types publicly. Lower CA1515 to suggestion
 # to surface it without breaking the build.
 dotnet_diagnostic.CA1515.severity = suggestion
-
-# CA1852 (seal internal types): worthwhile but currently noisy in Core.
-dotnet_diagnostic.CA1852.severity = suggestion
