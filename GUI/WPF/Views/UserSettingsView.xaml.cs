@@ -113,11 +113,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _database.Delete();
 
-         if (Directory.Exists(databaseDirectory))
-         {
-            Directory.Delete(databaseDirectory, true);
-         }
-
          _ = MessageBox.Show($"'{_viewModel.Username}' user database deleted successfully", "Success");
       }
 

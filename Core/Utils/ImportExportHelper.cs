@@ -147,7 +147,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          foreach (Service s in services)
          {
             IService service = database.User.AddService(s.ServiceName);
-            service.Url = new Uri(s.Url);
+            service.Url = (!string.IsNullOrWhiteSpace(s.Url) && Uri.IsWellFormedUriString(s.Url, UriKind.RelativeOrAbsolute))
+               ? new Uri(s.Url) : null;
             service.Notes = s.Notes;
 
             foreach (Account a in s.Accounts)
