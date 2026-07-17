@@ -1,5 +1,4 @@
-﻿using System.Security;
-using Upsilon.Apps.Passkey.Interfaces.Events;
+﻿using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Interfaces.Models
@@ -80,15 +79,6 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// <param name="passkey">The current passkey.</param>
       /// <returns>The loaded user.</returns>
       IUser? Login(string passkey);
-
-      /// <summary>
-      /// Try to load the current user from a <see cref="SecureString"/> passkey.
-      /// The secret is materialized as a managed string for the shortest possible
-      /// time and the transient unmanaged/char buffers are zeroed right after use.
-      /// </summary>
-      /// <param name="passkey">The current passkey.</param>
-      /// <returns>The loaded user.</returns>
-      IUser? Login(SecureString passkey);
 
       /// <summary>
       /// Save the current user to database file.

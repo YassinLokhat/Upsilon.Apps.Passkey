@@ -158,7 +158,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          try
          {
-            _ = _session.Database.Login(_password_PB.SecurePassword);
+            _ = _password_PB.SecurePassword.UseAsString(_session.Database.Login);
          }
 #pragma warning disable CA1031 // Last-resort barrier: an unexpected login error is shown to the user, not propagated
          catch (Exception ex)

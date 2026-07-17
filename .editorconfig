@@ -15,4 +15,3 @@ dotnet_diagnostic.CA1515.severity = suggestion
 
 # CA1852 (seal internal types): worthwhile but currently noisy in Core.
 dotnet_diagnostic.CA1852.severity = suggestion
-dotnet_diagnostic.CA1416.severity = suggestion
