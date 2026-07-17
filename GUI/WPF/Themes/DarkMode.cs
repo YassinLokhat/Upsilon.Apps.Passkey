@@ -38,6 +38,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
       }
 
       [DllImport("dwmapi.dll", PreserveSig = true)]
+      [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
       private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
    }
 }
