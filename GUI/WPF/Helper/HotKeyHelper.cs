@@ -127,12 +127,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       }
 
       [DllImport("user32.dll")]
+      [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
       private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
 
       [DllImport("user32.dll")]
+      [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
       private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
       [DllImport("user32.dll", SetLastError = true)]
+      [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
       private static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
 
       private const uint INPUT_KEYBOARD = 1;

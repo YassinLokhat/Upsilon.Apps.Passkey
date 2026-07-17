@@ -8,10 +8,6 @@ insert_final_newline = true
 charset = utf-8-bom
 trim_trailing_whitespace = true
 
-# CA5392 (DefaultDllImportSearchPaths): keep as suggestion; the
-# P/Invokes target well-known system DLLs (user32, dwmapi).
-dotnet_diagnostic.CA5392.severity = suggestion
-
 # In an executable, internal types are encouraged but the existing
 # code base exposes most types publicly. Lower CA1515 to suggestion
 # to surface it without breaking the build.
