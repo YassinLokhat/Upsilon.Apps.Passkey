@@ -13,7 +13,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserServicesView.xaml
    /// </summary>
-   public partial class UserServicesView : Window, IDisposable
+   internal sealed partial class UserServicesView : Window, IDisposable
    {
       private readonly UserServicesViewModel _viewModel;
       private readonly IDatabase _database;
@@ -393,7 +393,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          GC.SuppressFinalize(this);
       }
 
-      protected virtual void Dispose(bool disposing)
+      private void Dispose(bool disposing)
       {
          if (disposing)
          {

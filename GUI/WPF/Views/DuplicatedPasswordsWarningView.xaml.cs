@@ -10,7 +10,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for DuplicatedPasswordWarningView.xaml
    /// </summary>
-   public partial class DuplicatedPasswordsWarningView : Window
+   internal sealed partial class DuplicatedPasswordsWarningView : Window
    {
       private readonly DuplicatedPasswordsWarningViewModel _viewModel;
 

@@ -6,7 +6,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// Read-only metadata about the running assembly. Centralises the title shown
    /// in window headers so it is no longer scattered across view-models.
    /// </summary>
-   public static class AppInfo
+   internal static class AppInfo
    {
       private static readonly Lazy<string> _title = new(_buildTitle);
 

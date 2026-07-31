@@ -9,7 +9,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for PasswordGenerator.xaml
    /// </summary>
-   public partial class PasswordGenerator : Window
+   internal sealed partial class PasswordGenerator : Window
    {
       private readonly PasswordGeneratorViewModel _viewModel;
 
