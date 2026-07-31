@@ -9,7 +9,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for InsertIdentifierView.xaml
    /// </summary>
-   public partial class InsertIdentifierView : Window
+   internal sealed partial class InsertIdentifierView : Window
    {
       private readonly InsertIdentifierViewModel _viewModel;
       private string? _selectedIdentifier;

@@ -12,7 +12,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for QrCodeView.xaml
    /// </summary>
-   public partial class QrCodeView : Window
+   internal sealed partial class QrCodeView : Window
    {
       private QrCodeView(string qrCode, int delay)
       {

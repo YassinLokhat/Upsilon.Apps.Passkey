@@ -16,7 +16,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserSettingsView.xaml
    /// </summary>
-   public partial class UserSettingsView : Window
+   internal sealed partial class UserSettingsView : Window
    {
       private readonly UserSettingsViewModel _viewModel;
       private Task? _saveTask;

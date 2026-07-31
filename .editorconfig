@@ -7,8 +7,3 @@ end_of_line = crlf
 insert_final_newline = true
 charset = utf-8-bom
 trim_trailing_whitespace = true
-
-# In an executable, internal types are encouraged but the existing
-# code base exposes most types publicly. Lower CA1515 to suggestion
-# to surface it without breaking the build.
-dotnet_diagnostic.CA1515.severity = suggestion

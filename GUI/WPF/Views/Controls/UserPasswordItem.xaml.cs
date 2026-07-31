@@ -8,7 +8,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    /// <summary>
    /// Interaction logic for UserPasswordItem.xaml
    /// </summary>
-   public partial class UserPasswordItem : UserControl
+   internal sealed partial class UserPasswordItem : UserControl
    {
       internal readonly UserPasswordItemViewModel ViewModel;
 

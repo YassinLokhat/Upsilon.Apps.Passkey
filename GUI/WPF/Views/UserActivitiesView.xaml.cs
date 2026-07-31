@@ -9,7 +9,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserLogsView.xaml
    /// </summary>
-   public partial class UserActivitiesView : Window
+   internal sealed partial class UserActivitiesView : Window
    {
       internal readonly UserActivitiesViewModel ViewModel;
 
