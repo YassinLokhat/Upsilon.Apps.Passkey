@@ -19,9 +19,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    internal sealed partial class UserSettingsView : Window
    {
       private readonly UserSettingsViewModel _viewModel;
-      private Task? _saveTask;
-      private Task? _importTask;
-      private Task? _exportTask;
       private bool _isClosing;
       private IDatabase? _database;
 
@@ -116,16 +113,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = MessageBox.Show($"'{_viewModel.Username}' user database deleted successfully", "Success");
       }
 
-      private void _save()
+      private async Task _saveAsync()
       {
          string error = _canSave();
          if (!string.IsNullOrEmpty(error))
          {
             _ = MessageBox.Show(error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            _ = Dispatcher.BeginInvoke(() =>
-            {
-               this.SetIsBusy(false);
-            });
 
             return;
          }
@@ -157,13 +150,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   }
                }
 
-               _database = Database.Create(AppServices.Cryptography,
+               _database = await Database.CreateAsync(AppServices.Cryptography,
                   AppServices.Serialization,
                   AppServices.PasswordFactory,
                   AppServices.Clipboard,
                   newDatabaseFile,
                   _viewModel.Username,
-                  [.. _passwordsContainer.Passkeys]);
+                  [.. _passwordsContainer.Passkeys]).ConfigureAwait(true);
 
                _database.DatabaseClosed += _database_DatabaseClosed;
                _session.StartSession(_database);
@@ -173,10 +166,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 #pragma warning restore CA1031
             {
                _ = MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-               _ = Dispatcher.BeginInvoke(() =>
-               {
-                  this.SetIsBusy(false);
-               });
 
                return;
             }
@@ -210,7 +199,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             if (_viewModel.NotifyPasswordLeaked) warningsToNotify |= WarningType.PasswordLeakedWarning;
             _database.User.WarningsToNotify = warningsToNotify;
 
-            _database.Save();
+            await _database.SaveAsync().ConfigureAwait(true);
          }
 
          string message = $"'{_viewModel.Username}' user database ";
@@ -255,16 +244,29 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = MessageBox.Show(message, "Success");
       }
 
-      private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
+      private async void _save_MenuItem_Click(object sender, RoutedEventArgs e)
       {
+         // The busy cursor is set synchronously before the first await, so it
+         // doubles as the re-entrancy guard against a second save being started
+         // while this one is still running.
          if (this.GetIsBusy()) return;
 
          this.SetIsBusy(true);
 
-         if (_saveTask is null
-            || _saveTask.IsCompleted)
+         try
          {
-            _saveTask = Task.Run(_save);
+            await _saveAsync().ConfigureAwait(true);
+         }
+#pragma warning disable CA1031 // Last-resort barrier: nothing may escape an async void handler
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            Log.Error(ex, "Failed to save the user settings");
+            _ = MessageBox.Show("An unexpected error occurred while saving.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+         }
+         finally
+         {
+            this.SetIsBusy(false);
          }
       }
 
@@ -273,15 +275,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          return oldFileName != newFilename || AppServices.Serialization.AreDifferent(oldPasskeys, newPasskeys);
       }
 
-      private void _import_MenuItem_Click(object sender, RoutedEventArgs e)
+      private async void _import_MenuItem_Click(object sender, RoutedEventArgs e)
       {
+         IDatabase? database = _database;
+
          if (this.GetIsBusy()
-            || _database?.User is null)
+            || database?.User is null)
          {
             return;
          }
 
-         if (_database.User.HasChanged()
+         if (database.User.HasChanged()
             && MessageBox.Show("Before importing data, all unsaved changes will be saved.", "Import data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
          {
             return;
@@ -297,32 +301,38 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          this.SetIsBusy(true);
 
-         if (_importTask is null
-            || _importTask.IsCompleted)
+         try
          {
-            _importTask = Task.Run(() =>
-            {
-               _ = _database.ImportFromFile(dialog.FileName)
-                  ? MessageBox.Show("Import data has been completed successfully.\nMore details in the activities.", "Import success")
-                  : MessageBox.Show("Import data failed.\nMore details in the activities.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            bool imported = await database.ImportFromFileAsync(dialog.FileName).ConfigureAwait(true);
 
-               _ = Dispatcher.BeginInvoke(() =>
-               {
-                  this.SetIsBusy(false);
-               });
-            });
+            _ = imported
+               ? MessageBox.Show("Import data has been completed successfully.\nMore details in the activities.", "Import success")
+               : MessageBox.Show("Import data failed.\nMore details in the activities.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
+         }
+#pragma warning disable CA1031 // Last-resort barrier: nothing may escape an async void handler
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            Log.Error(ex, "Failed to import data");
+            _ = MessageBox.Show("Import data failed.\nMore details in the activities.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
+         }
+         finally
+         {
+            this.SetIsBusy(false);
          }
       }
 
-      private void _export_MenuItem_Click(object sender, RoutedEventArgs e)
+      private async void _export_MenuItem_Click(object sender, RoutedEventArgs e)
       {
+         IDatabase? database = _database;
+
          if (this.GetIsBusy()
-            || _database?.User is null)
+            || database?.User is null)
          {
             return;
          }
 
-         if (_database.User.HasChanged()
+         if (database.User.HasChanged()
             && MessageBox.Show("Before exporting data, all unsaved changes will be saved.", "Export data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
          {
             return;
@@ -332,27 +342,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             Title = "Export data to a file",
             Filter = "json file|*.json|Tab delimited CSV file|*.csv",
-            FileName = $"{_database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
+            FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
          };
 
          if (!(dialog.ShowDialog() ?? false)) return;
 
          this.SetIsBusy(true);
 
-         if (_exportTask is null
-            || _exportTask.IsCompleted)
+         try
          {
-            _exportTask = Task.Run(() =>
-            {
-               _ = _database.ExportToFile(dialog.FileName)
-                  ? MessageBox.Show("Export data has been completed successfully.\nMore details in the activities.", "Export success")
-                  : MessageBox.Show("Export data failed.\nMore details in the activities.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            bool exported = await database.ExportToFileAsync(dialog.FileName).ConfigureAwait(true);
 
-               _ = Dispatcher.BeginInvoke(() =>
-               {
-                  this.SetIsBusy(false);
-               });
-            });
+            _ = exported
+               ? MessageBox.Show("Export data has been completed successfully.\nMore details in the activities.", "Export success")
+               : MessageBox.Show("Export data failed.\nMore details in the activities.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
+         }
+#pragma warning disable CA1031 // Last-resort barrier: nothing may escape an async void handler
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            Log.Error(ex, "Failed to export data");
+            _ = MessageBox.Show("Export data failed.\nMore details in the activities.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
+         }
+         finally
+         {
+            this.SetIsBusy(false);
          }
       }
    }

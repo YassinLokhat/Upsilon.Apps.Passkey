@@ -481,5 +481,97 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * The asynchronous entry points drive the very same pipeline as their
+       * synchronous twins: CreateAsync then SaveAsync persist an update, and
+       * OpenAsync followed by one LoginAsync per passkey reads it back.
+      */
+      public async Task Case10_AsynchronousEntryPointsRoundTrip()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+
+         // When
+         IDatabase databaseCreated = await Database.CreateAsync(UnitTestsHelper.CryptographicCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            databaseFile,
+            username,
+            passkeys);
+
+         databaseCreated.User.WarningsToNotify = (WarningType)0;
+         databaseCreated.User.NumberOfOldPasswordToKeep = 7;
+
+         await databaseCreated.SaveAsync();
+         databaseCreated.Close();
+
+         IDatabase databaseLoaded = await Database.OpenAsync(UnitTestsHelper.CryptographicCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            databaseFile,
+            username);
+
+         IUser? user = null;
+
+         foreach (string passkey in passkeys)
+         {
+            user = await databaseLoaded.LoginAsync(passkey);
+         }
+
+         // Then
+         _ = user.Should().NotBeNull();
+         _ = user.Username.Should().Be(username);
+         _ = user.NumberOfOldPasswordToKeep.Should().Be(7);
+
+         // Finaly
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Only the last LoginAsync call, once every passkey has been provided in
+       * order, returns the user: the progressive stack behaves exactly as the
+       * synchronous Login does.
+      */
+      public async Task Case11_AsynchronousLoginIsProgressive()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray(3);
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         IDatabase databaseLoaded = await Database.OpenAsync(UnitTestsHelper.CryptographicCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            databaseFile,
+            username);
+
+         // When / Then
+         for (int i = 0; i < passkeys.Length - 1; i++)
+         {
+            _ = (await databaseLoaded.LoginAsync(passkeys[i])).Should().BeNull();
+         }
+
+         _ = (await databaseLoaded.LoginAsync(passkeys[^1])).Should().NotBeNull();
+
+         // Finaly
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

@@ -51,7 +51,9 @@ classDiagram
             +string SpecialChars
 
             +GeneratePassword(in length int, in alphabet string, in checkIfLeaked bool) string
+            +GeneratePasswordAsync(in length int, in alphabet string, in checkIfLeaked bool, in cancellationToken CancellationToken) Task~string~
             +PasswordLeaked(in password string) bool
+            +PasswordLeakedAsync(in password string, in cancellationToken CancellationToken) Task~bool~
         }
 
         class ICryptographyCenter {
@@ -145,13 +147,17 @@ classDiagram
             +EventHandler DatabaseSaved
             +EventHandler~LogoutEventArgs~ DatabaseClosed
             +Login(in passkey string) IUser
+            +LoginAsync(in passkey string, in cancellationToken CancellationToken) Task~IUser~
             +Save(void) void
+            +SaveAsync(in cancellationToken CancellationToken) Task
             +Delete(void) void
             +Close(void) void
             +HasChanged(in itemId string) bool
             +HasChanged(in itemId string, in fieldName string) bool
             +ImportFromFile(in filePath string) bool
+            +ImportFromFileAsync(in filePath string, in cancellationToken CancellationToken) Task~bool~
             +ExportToFile(in filePath string) bool
+            +ExportToFileAsync(in filePath string, in cancellationToken CancellationToken) Task~bool~
         }
 
         class IActivity {
@@ -368,6 +374,46 @@ All unsaved updates are stored inside the hidden autosave file.
 ```csharp
 database.Close();
 ```
+
+### Keeping a UI responsive
+
+Every expensive operation has an `Async` twin: `Database.CreateAsync`,
+`Database.OpenAsync`, `IDatabase.LoginAsync`, `SaveAsync`, `ImportFromFileAsync`
+and `ExportToFileAsync`.
+
+They matter because the work behind them is deliberately slow: stretching a
+single passkey costs about a second by design (see
+[SECURITY.md](SECURITY.md#master-passkeys-multi-factor-onion)), and creating a
+database also mints an RSA-4096 key pair. Running that on a UI thread freezes
+the window for the whole duration.
+
+```csharp
+IDatabase database = await Database.OpenAsync(cryptographyCenter,
+   serializationCenter,
+   passwordFactory,
+   clipboardManager,
+   "./database.pku",
+   "username");
+
+IUser? user = await database.LoginAsync("master_password_1");
+user = await database.LoginAsync("master_password_2");
+user = await database.LoginAsync("master_password_3");	// Returns the IUser
+
+await database.SaveAsync();
+```
+
+Two things to keep in mind:
+
+*   These operations share the progressive passkey stack and the database file,
+    so they are not meant to overlap: await one before starting the next.
+*   Their events (`AutoSaveDetected`, `DatabaseSaved`, `WarningsUpdated`,
+    `DatabaseClosed`) are raised from the worker thread, so a handler touching UI
+    state has to marshal back to its own thread.
+
+`IPasswordFactory` follows the same pattern with `GeneratePasswordAsync` and
+`PasswordLeakedAsync`. Those two are genuinely asynchronous rather than merely
+offloaded: they await the "Have I Been Pwned" response instead of blocking a
+thread on it.
 
 **Getting Started**
 -------------------

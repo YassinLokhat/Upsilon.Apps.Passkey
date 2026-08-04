@@ -118,5 +118,47 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          _ = emptyAlphabet.Should().BeEmpty();
          _ = whitespaceAlphabet.Should().BeEmpty();
       }
+
+      [TestMethod]
+      /*
+       * The asynchronous generation honours the same contract as the synchronous
+       * one: requested length, alphabet, and the empty-password guards.
+      */
+      public async Task Case07_GeneratePasswordAsync_MatchesSynchronousContract()
+      {
+         // Given
+         string alphabet = UnitTestsHelper.PasswordFactory.Numeric;
+
+         // When
+         string password = await UnitTestsHelper.PasswordFactory.GeneratePasswordAsync(32, alphabet, checkIfLeaked: false);
+         string zeroLength = await UnitTestsHelper.PasswordFactory.GeneratePasswordAsync(0, alphabet, checkIfLeaked: false);
+         string blankAlphabet = await UnitTestsHelper.PasswordFactory.GeneratePasswordAsync(10, "   ", checkIfLeaked: false);
+
+         // Then
+         _ = password.Length.Should().Be(32);
+         _ = password.ToCharArray().Should().OnlyContain(c => alphabet.Contains(c));
+         _ = zeroLength.Should().BeEmpty();
+         _ = blankAlphabet.Should().BeEmpty();
+      }
+
+      [TestMethod]
+      /*
+       * A cancelled leak check surfaces the cancellation instead of silently
+       * reporting "not leaked", which is how a caller tells a deliberate abort
+       * apart from an unreachable service.
+      */
+      public async Task Case08_PasswordLeakedAsync_HonoursCancellation()
+      {
+         // Given
+         using CancellationTokenSource cancellation = new();
+         await cancellation.CancelAsync();
+
+         // When
+         Func<Task> act = async () => await UnitTestsHelper.PasswordFactory
+            .PasswordLeakedAsync(UnitTestsHelper.GetRandomString(), cancellation.Token);
+
+         // Then
+         _ = await act.Should().ThrowAsync<OperationCanceledException>();
+      }
    }
 }

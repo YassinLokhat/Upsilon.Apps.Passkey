@@ -19,7 +19,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private readonly IDatabase _database;
       private int _autoLoginHotkeyId;
       private int _autoPasswordHotkeyId;
-      private Task? _saveTask;
       private bool _isClosing;
 
       private static ISessionService _session => AppServices.Session;
@@ -174,40 +173,51 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _service_SV.SetDataContext((ServiceViewModel)_services_LB.SelectedItem);
       }
 
-      private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
+      private async void _save_MenuItem_Click(object sender, RoutedEventArgs e)
       {
+         // The busy cursor is set synchronously before the first await, so it
+         // doubles as the re-entrancy guard against a second save being started
+         // while this one is still running.
          if (this.GetIsBusy()) return;
 
          string? serviceId = _service_SV.GetServiceId();
          string? accountId = _service_SV.GetAccountId();
+
          this.SetIsBusy(true);
 
-         if (_saveTask is not null
-            && !_saveTask.IsCompleted)
+         try
          {
-            return;
+            IDatabase? database = _session.Database;
+
+            if (database is not null)
+            {
+               await database.SaveAsync().ConfigureAwait(true);
+            }
+         }
+#pragma warning disable CA1031 // Last-resort barrier: nothing may escape an async void handler
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            Log.Error(ex, "Failed to save the database");
+            _dialogs.Warn("An unexpected error occurred while saving.", "Save error");
+         }
+         finally
+         {
+            this.SetIsBusy(false);
          }
 
-         _saveTask = Task.Run(() =>
+         if (_isClosing) return;
+
+         _viewModel.RefreshFilters();
+         ServiceViewModel? service = _viewModel.Services.FirstOrDefault(x => x.Service.ItemId == serviceId);
+
+         _services_LB.ItemsSource = _viewModel.Services;
+         _services_LB.SelectedItem = service;
+
+         if (!string.IsNullOrEmpty(accountId))
          {
-            _session.Database?.Save();
-
-            _ = Dispatcher.BeginInvoke(() =>
-            {
-               _viewModel.RefreshFilters();
-               ServiceViewModel? service = _viewModel.Services.FirstOrDefault(x => x.Service.ItemId == serviceId);
-
-               this.SetIsBusy(false);
-
-               _services_LB.ItemsSource = _viewModel.Services;
-               _services_LB.SelectedItem = service;
-
-               if (!string.IsNullOrEmpty(accountId))
-               {
-                  _ = _service_SV.SelectAccount(accountId);
-               }
-            });
-         });
+            _ = _service_SV.SelectAccount(accountId);
+         }
       }
 
       private void _updateWarningsMenu(IWarning[] warnings)

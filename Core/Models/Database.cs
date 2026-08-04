@@ -100,7 +100,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                _handleAutoSave(eventArg.MergeBehavior);
             }
 
-            _ = Task.Run(_lookAtWarnings);
+            _ = Task.Run(_lookAtWarningsAsync);
 
             User.ResetTimer();
          }
@@ -223,6 +223,33 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          return string.IsNullOrWhiteSpace(errorLog);
       }
+
+      #endregion
+
+      #region Asynchronous entry points
+
+      // Everything the database does is CPU- and disk-bound: stretching passkeys,
+      // peeling AES layers, re-encrypting the activity log, rewriting the ZIP.
+      // There is no naturally asynchronous work to await underneath, so these
+      // entry points simply hand the synchronous operation to the thread pool and
+      // give the caller something to await. The point is not throughput, it is
+      // that a UI thread never spends a second deriving a key.
+      //
+      // The operations below share mutable state (the progressive passkey stack,
+      // the file itself), so they are not meant to overlap: await one before
+      // starting the next. Their events are raised from the worker thread.
+
+      public Task<IUser?> LoginAsync(string passkey, CancellationToken cancellationToken = default)
+         => Task.Run(() => Login(passkey), cancellationToken);
+
+      public Task SaveAsync(CancellationToken cancellationToken = default)
+         => Task.Run(Save, cancellationToken);
+
+      public Task<bool> ImportFromFileAsync(string filePath, CancellationToken cancellationToken = default)
+         => Task.Run(() => ImportFromFile(filePath), cancellationToken);
+
+      public Task<bool> ExportToFileAsync(string filePath, CancellationToken cancellationToken = default)
+         => Task.Run(() => ExportToFile(filePath), cancellationToken);
 
       #endregion
 
@@ -354,6 +381,29 @@ namespace Upsilon.Apps.Passkey.Core.Models
          return database;
       }
 
+      /// <summary>
+      /// Same as <see cref="Create"/>, but handed to a worker thread so the
+      /// caller stays responsive. Creating a database is the single most
+      /// expensive operation of the whole application: an RSA-4096 key pair, one
+      /// stretching per passkey, then a full save.
+      /// </summary>
+      public static Task<IDatabase> CreateAsync(ICryptographyCenter cryptographicCenter,
+         ISerializationCenter serializationCenter,
+         IPasswordFactory passwordFactory,
+         IClipboardManager clipboardManager,
+         string databaseFile,
+         string username,
+         string[] passkeys,
+         CancellationToken cancellationToken = default)
+         => Task.Run(() => Create(cryptographicCenter,
+               serializationCenter,
+               passwordFactory,
+               clipboardManager,
+               databaseFile,
+               username,
+               passkeys),
+            cancellationToken);
+
       public static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
@@ -376,6 +426,26 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          return database;
       }
+
+      /// <summary>
+      /// Same as <see cref="Open"/>, but handed to a worker thread so the caller
+      /// stays responsive. Opening reads and decrypts the whole activity log,
+      /// which grows with the file's history.
+      /// </summary>
+      public static Task<IDatabase> OpenAsync(ICryptographyCenter cryptographicCenter,
+         ISerializationCenter serializationCenter,
+         IPasswordFactory passwordFactory,
+         IClipboardManager clipboardManager,
+         string databaseFile,
+         string username,
+         CancellationToken cancellationToken = default)
+         => Task.Run(() => Open(cryptographicCenter,
+               serializationCenter,
+               passwordFactory,
+               clipboardManager,
+               databaseFile,
+               username),
+            cancellationToken);
 
       internal T Get<T>(T value)
       {
@@ -419,7 +489,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          AutoSave.Clear(deleteFile: true);
 
-         _ = Task.Run(_lookAtWarnings);
+         _ = Task.Run(_lookAtWarningsAsync);
 
          User.ResetTimer();
 
@@ -521,7 +591,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          _ => ActivityEventType.None,
       };
 
-      private void _lookAtWarnings()
+      private async Task _lookAtWarningsAsync()
       {
          if (User is null) return;
 
@@ -529,7 +599,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             Warning[] activityWarnings = _lookAtActivityWarnings();
             Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
-            Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
+            Warning[] passwordLeakedWarnings = await _lookAtPasswordLeakedWarningsAsync().ConfigureAwait(false);
             Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
 
             Warnings = [..activityWarnings,
@@ -537,7 +607,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
                ..passwordLeakedWarnings,
                ..duplicatedPasswordsWarnings];
 
-            WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => User.WarningsToNotify.HasFlag(x.WarningType))]));
+            // The leak check awaits a remote service, so the session may have
+            // been closed in the meantime: notify against the user observed now,
+            // not the one observed when the scan started.
+            User? user = User;
+
+            if (user is null) return;
+
+            WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => user.WarningsToNotify.HasFlag(x.WarningType))]));
          }
 #pragma warning disable CA1031 // Last-resort barrier: the background warning scan must never crash the session
          catch (Exception ex)
@@ -571,17 +648,39 @@ namespace Upsilon.Apps.Passkey.Core.Models
          return accounts.Length != 0 ? [new Warning(WarningType.PasswordUpdateReminderWarning, accounts)] : [];
       }
 
-      private Warning[] _lookAtPasswordLeakedWarnings()
+      // Leak checks are the only outbound calls the application makes, and the
+      // previous parallel fan-out fired one request - and blocked one thread -
+      // per distinct password at once. Requests are now awaited rather than
+      // blocking, and issued in bounded batches so a large database cannot flood
+      // a courtesy service.
+      private const int MAX_CONCURRENT_LEAK_CHECKS = 8;
+
+      private async Task<Warning[]> _lookAtPasswordLeakedWarningsAsync()
       {
          if (User is null) return [];
 
-         string[] leakedPasswords = [.. User.Services
+         string[] passwordsToCheck = [.. User.Services
             .SelectMany(x => x.Accounts)
             .Where(x => x.Options.HasFlag(AccountOption.WarnIfPasswordLeaked))
             .Select(x => x.Password)
-            .Distinct()
-            .AsParallel()
-            .Where(PasswordFactory.PasswordLeaked)];
+            .Distinct()];
+
+         HashSet<string> leakedPasswords = [];
+
+         foreach (string[] batch in passwordsToCheck.Chunk(MAX_CONCURRENT_LEAK_CHECKS))
+         {
+            bool[] leaked = await Task.WhenAll(batch.Select(x => PasswordFactory.PasswordLeakedAsync(x))).ConfigureAwait(false);
+
+            for (int i = 0; i < batch.Length; i++)
+            {
+               if (leaked[i])
+               {
+                  _ = leakedPasswords.Add(batch[i]);
+               }
+            }
+         }
+
+         if (User is null) return [];
 
          Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
