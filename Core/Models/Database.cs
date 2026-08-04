@@ -338,7 +338,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          database.User = new()
          {
             Database = database,
-            PrivateKey = privateKey,
+            PrivateKey = ProtectedSecret.Protect(privateKey),
             ItemId = "U" + cryptographicCenter.GetHash(username),
             Username = username,
             Passkeys = [.. passkeys.Select(ProtectedSecret.Protect)],

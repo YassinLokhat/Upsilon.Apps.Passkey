@@ -68,7 +68,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          try
          {
-            return new Activity(Database.CryptographyCenter.DecryptAsymmetrically(encryptedActivity, Database.User.PrivateKey));
+            return new Activity(Database.CryptographyCenter.DecryptAsymmetrically(encryptedActivity, Database.User.PrivateKey.Reveal()));
          }
 #pragma warning disable CA1031 // Intentional: any decryption failure means a skipped entry, not a login abort
          catch (Exception ex)
@@ -118,7 +118,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // The public key stored in the (unencrypted) log must be the one that
          // belongs to the private key held in the encrypted database. This
          // defeats an attacker swapping in their own key pair.
-         string trustedPublicKey = Database.CryptographyCenter.GetPublicKey(Database.User.PrivateKey);
+         string trustedPublicKey = Database.CryptographyCenter.GetPublicKey(Database.User.PrivateKey.Reveal());
          return trustedPublicKey == PublicKey && Database.CryptographyCenter.Verify(_canonicalSealedContent(), Signature, trustedPublicKey);
       }
 
@@ -152,7 +152,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
 
          SealedCount = ActivityList.Count;
-         Signature = Database.CryptographyCenter.Sign(_canonicalSealedContent(), Database.User.PrivateKey);
+         Signature = Database.CryptographyCenter.Sign(_canonicalSealedContent(), Database.User.PrivateKey.Reveal());
       }
 
       private string _canonicalSealedContent()
