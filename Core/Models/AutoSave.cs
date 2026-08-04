@@ -4,7 +4,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
-   internal sealed class AutoSave
+   internal sealed class AutoSave : IDisposable
    {
       internal Database Database
       {
@@ -13,6 +13,16 @@ namespace Upsilon.Apps.Passkey.Core.Models
       }
 
       public Dictionary<string, List<Change>> Changes { get; set; } = [];
+
+      // Field edits often arrive in bursts (typing, multi-property forms). Writing
+      // the onion-encrypted ZIP entry on every keystroke is the dominant I/O cost
+      // of an interactive session; coalesce them into one write after a short idle.
+      private readonly DeferredPersistence _deferred;
+
+      public AutoSave()
+      {
+         _deferred = new DeferredPersistence(_writeToDisk);
+      }
 
       internal T UpdateValue<T>(string itemId,
          string fieldName,
@@ -97,7 +107,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          _mergeChanges(changeKey, currentChange);
 
-         Database.FileLocker.Save(this, Database.AutoSaveFileEntry, Database.Passkeys);
+         // Persist later; the in-memory Changes dictionary is already updated so
+         // HasChanged / ApplyChanges stay correct without waiting for the flush.
+         _deferred.Schedule();
+
          string itemName = string.Empty;
          string parentName = string.Empty;
 
@@ -190,15 +203,36 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal bool Any(string itemId, string fieldName) => Changes.Any(x => x.Key == $"{itemId}\t{fieldName}");
 
+      /// <summary>
+      /// Forces any debounced autosave write to disk. Must be called before Close
+      /// when <see cref="Any"/> is true so the recovery file survives the session.
+      /// </summary>
+      internal void Flush() => _deferred.Flush();
+
       internal void Clear(bool deleteFile)
       {
          Changes.Clear();
+         _deferred.Cancel();
 
          if (deleteFile
             && Database.FileLocker.Exists(Database.AutoSaveFileEntry))
          {
             Database.FileLocker.Delete(Database.AutoSaveFileEntry);
          }
+      }
+
+      public void Dispose() => _deferred.Dispose();
+
+      private void _writeToDisk()
+      {
+         // A timer flush can race with Clear (e.g. during Save). If the pending
+         // changes were discarded, do not recreate the autosave ZIP entry.
+         if (Changes.Count == 0)
+         {
+            return;
+         }
+
+         Database.FileLocker.Save(this, Database.AutoSaveFileEntry, Database.Passkeys);
       }
    }
 }

@@ -5,7 +5,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
-   internal sealed class ActivityCenter
+   internal sealed class ActivityCenter : IDisposable
    {
       internal Database Database
       {
@@ -35,6 +35,18 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public int SealedCount { get; set; }
 
+      // Each AddActivity used to rewrite the ZIP activity entry (and RSA-sign it
+      // when logged in). Bursts of edits therefore paid N full archive writes.
+      // While a user is logged in we coalesce those into one flush; pre-login
+      // events still write immediately so failed-login / open audits survive a
+      // crash before the session starts.
+      private readonly DeferredPersistence _deferred;
+
+      public ActivityCenter()
+      {
+         _deferred = new DeferredPersistence(() => _persist(rebuildStringActivities: false));
+      }
+
       internal void AddActivity(string itemId, ActivityEventType eventType, string[] data, bool needsReview)
       {
          Activity activity = new(DateTime.Now.Ticks, itemId, eventType, data, needsReview);
@@ -42,7 +54,16 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          Activities.Insert(0, activity);
          ActivityList.Insert(0, Database.CryptographyCenter.EncryptAsymmetrically(activity.ToString(), PublicKey));
 
-         Save(rebuildStringActivities: false);
+         if (Database.User is null)
+         {
+            // No session yet: flush now so the audit trail is on disk even if the
+            // process dies before Login (failed attempts, DatabaseOpened, …).
+            Save(rebuildStringActivities: false);
+         }
+         else
+         {
+            _deferred.Schedule();
+         }
       }
 
       internal void LoadStringActivities()
@@ -122,7 +143,27 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return trustedPublicKey == PublicKey && Database.CryptographyCenter.Verify(_canonicalSealedContent(), Signature, trustedPublicKey);
       }
 
+      /// <summary>
+      /// Forces any debounced activity write to disk. Must run while the user is
+      /// still available so the seal can be (re)computed.
+      /// </summary>
+      internal void Flush() => _deferred.Flush();
+
+      /// <summary>
+      /// Drops a pending debounced write without touching the disk.
+      /// </summary>
+      internal void CancelPending() => _deferred.Cancel();
+
       internal void Save(bool rebuildStringActivities)
+      {
+         // An explicit save supersedes any pending debounce.
+         _deferred.Cancel();
+         _persist(rebuildStringActivities);
+      }
+
+      public void Dispose() => _deferred.Dispose();
+
+      private void _persist(bool rebuildStringActivities)
       {
          if (rebuildStringActivities)
          {

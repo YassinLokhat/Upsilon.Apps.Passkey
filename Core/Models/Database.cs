@@ -33,6 +33,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          if (User is null) throw new NullValueException(nameof(User));
 
+         // Drop any debounced write before erasing the file so a late timer
+         // cannot recreate entries on a path that no longer exists.
+         AutoSave.Clear(deleteFile: false);
+         ActivityCenter.CancelPending();
+
          FileLocker.Delete();
 
          Close(logCloseEvent: false, loginTimeoutReached: false);
@@ -92,6 +97,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (FileLocker.Exists(AutoSaveFileEntry))
             {
+               AutoSave.Dispose();
                AutoSave = FileLocker.Open<AutoSave>(AutoSaveFileEntry, Passkeys);
                AutoSave.Database = this;
 
@@ -476,7 +482,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
          // activities were just (re)sealed by the _saveActivities call above.
          User.ActivitySealWatermark = ActivityCenter.SealedCount;
 
-         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x.Reveal(), _slowHashParameters))];
+         // Re-stretching every passkey on each Save is the most expensive step of
+         // a save (PBKDF2 × N). Skip it when neither the username nor the master
+         // passkeys changed; the session already holds the derived key material.
+         if (User.CredentialChanged)
+         {
+            Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x.Reveal(), _slowHashParameters))];
+            User.CredentialChanged = false;
+         }
+
          FileLocker.Save(User, DatabaseFileEntry, Passkeys);
 
          if (logSaveEvent)
@@ -488,6 +502,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          AutoSave.Clear(deleteFile: true);
+
+         // DatabaseSaved (and any earlier debounced item events) must hit disk
+         // before Save returns, matching the previous durability guarantee.
+         ActivityCenter.Flush();
 
          _ = Task.Run(_lookAtWarningsAsync);
 
@@ -512,7 +530,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
             {
                bool needsReview = AutoSave.Any();
 
-               if (!needsReview)
+               if (needsReview)
+               {
+                  // Debounced edits may not have reached the ZIP yet; flush so
+                  // the recovery file is present for the next Open.
+                  AutoSave.Flush();
+               }
+               else
                {
                   AutoSave.Clear(deleteFile: true);
                }
@@ -527,12 +551,24 @@ namespace Upsilon.Apps.Passkey.Core.Models
                eventType: ActivityEventType.DatabaseClosed,
                data: [Username],
                needsReview: false);
+
+            // Seal + write while the private key is still available. Must run
+            // before User is cleared below.
+            ActivityCenter.Flush();
+         }
+         else
+         {
+            AutoSave.Clear(deleteFile: false);
+            ActivityCenter.CancelPending();
          }
 
          // Stop the session timer before tearing down the file handle: this both
          // blocks until any in-flight tick finishes and prevents future ticks
          // from operating on the disposed FileLocker.
          User?.StopTimer();
+
+         AutoSave.Dispose();
+         ActivityCenter.Dispose();
 
          User = null;
          Username = string.Empty;
