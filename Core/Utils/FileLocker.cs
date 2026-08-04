@@ -11,13 +11,17 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private readonly ICryptographyCenter _cryptographicCenter;
       private readonly ISerializationCenter _serializationCenter;
 
-      // Every public operation briefly releases the held lock stream, touches
-      // the archive, then re-acquires it. Without serialization two threads
-      // (e.g. a save and the session-timeout timer) can reach the archive at
-      // the same time and trip "the file is used by another process". This gate
-      // makes all file access mutually exclusive; it is re-entrant, so the
-      // internal Lock/Unlock calls made inside a held operation are safe.
+      // Serializes every public operation so two threads (e.g. a save and the
+      // session-timeout timer) cannot touch the archive at the same time. The
+      // lock is re-entrant, which matches how nested call paths reach the file.
       private readonly System.Threading.Lock _gate = new();
+
+      // The .pku is held open for the whole lifetime of this locker: there is
+      // never an unlocked window between operations during which another process
+      // could grab a write handle. FileShare.Read still lets other processes
+      // open the file for reading (backups, antivirus, inspection) while denying
+      // concurrent writers — a second FileLocker on the same path still fails.
+      private const FileShare ShareMode = FileShare.Read;
 
       internal FileLocker(ICryptographyCenter cryptographicCenter, ISerializationCenter serializationCenter, string filePath, FileMode fileMode = FileMode.Open)
       {
@@ -26,24 +30,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          _cryptographicCenter = cryptographicCenter;
          _serializationCenter = serializationCenter;
 
-         _stream = new FileStream(FilePath, fileMode, FileAccess.ReadWrite, FileShare.None);
+         _stream = new FileStream(FilePath, fileMode, FileAccess.ReadWrite, ShareMode);
       }
 
-      internal void Lock()
-      {
-         Unlock();
-
-         _stream = new FileStream(FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Inheritable);
-      }
-
-      internal void Unlock()
-      {
-         if (_stream is null) return;
-
-         _stream.Close();
-         _stream.Dispose();
-         _stream = null;
-      }
+      private FileStream Stream => _stream
+         ?? throw new ObjectDisposedException(nameof(FileLocker));
 
       internal T Open<T>(string fileEntry, string[] passkeys) where T : notnull
       {
@@ -69,7 +60,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          lock (_gate)
          {
-            Unlock();
+            _releaseStream();
 
             if (File.Exists(FilePath))
             {
@@ -82,15 +73,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          lock (_gate)
          {
-            Unlock();
-
-            using (ZipArchive archive = ZipFile.Open(FilePath, ZipArchiveMode.Update, Encoding.UTF8))
-            {
-               ZipArchiveEntry? existingEntry = archive.GetEntry(fileEntry);
-               existingEntry?.Delete();
-            }
-
-            Lock();
+            using ZipArchive archive = _openArchive(ZipArchiveMode.Update);
+            archive.GetEntry(fileEntry)?.Delete();
          }
       }
 
@@ -98,18 +82,15 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          lock (_gate)
          {
-            Unlock();
-
-            bool exists = false;
-
-            using (ZipArchive archive = ZipFile.Open(FilePath, ZipArchiveMode.Update, Encoding.UTF8))
+            // An empty file (just created, not yet written) is not a valid zip
+            // yet, so it cannot contain any entry.
+            if (Stream.Length == 0)
             {
-               exists = archive.GetEntry(fileEntry) is not null;
+               return false;
             }
 
-            Lock();
-
-            return exists;
+            using ZipArchive archive = _openArchive(ZipArchiveMode.Read);
+            return archive.GetEntry(fileEntry) is not null;
          }
       }
 
@@ -117,9 +98,23 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          lock (_gate)
          {
-            Unlock();
+            _releaseStream();
             FilePath = string.Empty;
          }
+      }
+
+      private void _releaseStream()
+      {
+         if (_stream is null) return;
+
+         _stream.Dispose();
+         _stream = null;
+      }
+
+      private ZipArchive _openArchive(ZipArchiveMode mode)
+      {
+         Stream.Position = 0;
+         return new ZipArchive(Stream, mode, leaveOpen: true, Encoding.UTF8);
       }
 
       private static string _compressString(string text)
@@ -155,35 +150,26 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private string _readContent(string fileEntry, string[] passkeys)
       {
-         Unlock();
-         string content;
+         using ZipArchive archive = _openArchive(ZipArchiveMode.Read);
 
-         using (ZipArchive archive = ZipFile.OpenRead(FilePath))
-         {
-            ZipArchiveEntry zipEntry = archive.GetEntry(fileEntry)
-               ?? throw new FileNotFoundException($"The file entry '{fileEntry}' not found in the archive {FilePath}.", $"{FilePath}/{fileEntry}");
+         ZipArchiveEntry zipEntry = archive.GetEntry(fileEntry)
+            ?? throw new FileNotFoundException($"The file entry '{fileEntry}' not found in the archive {FilePath}.", $"{FilePath}/{fileEntry}");
 
-            using Stream stream = zipEntry.Open();
-            using StreamReader reader = new(stream, Encoding.UTF8);
+         using Stream stream = zipEntry.Open();
+         using StreamReader reader = new(stream, Encoding.UTF8);
 
-            content = passkeys.Length != 0
-               ? _cryptographicCenter.DecryptSymmetrically(_decompressString(reader.ReadToEnd()), passkeys)
-               : _decompressString(reader.ReadToEnd());
-         }
+         string content = reader.ReadToEnd();
 
-         Lock();
-
-         return content;
+         return passkeys.Length != 0
+            ? _cryptographicCenter.DecryptSymmetrically(_decompressString(content), passkeys)
+            : _decompressString(content);
       }
 
       private void _writeContent(string content, string fileEntry, string[] passkeys)
       {
-         Unlock();
-
-         using (ZipArchive archive = ZipFile.Open(FilePath, ZipArchiveMode.Update, Encoding.UTF8))
+         using (ZipArchive archive = _openArchive(ZipArchiveMode.Update))
          {
-            ZipArchiveEntry? existingEntry = archive.GetEntry(fileEntry);
-            existingEntry?.Delete();
+            archive.GetEntry(fileEntry)?.Delete();
 
             ZipArchiveEntry newEntry = archive.CreateEntry(fileEntry);
 
@@ -200,7 +186,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             }
          }
 
-         Lock();
+         // ZipArchive.Update rewrites the archive on dispose; rewind so the next
+         // open starts from a known position.
+         Stream.Position = 0;
       }
    }
 }

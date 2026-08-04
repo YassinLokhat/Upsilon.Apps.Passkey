@@ -159,6 +159,9 @@ login:
   Base64 → write into the ZIP entry.
 - File access is serialized through a re-entrant lock (`FileLocker`) to prevent
   concurrent access races (e.g. a save colliding with the session-timeout timer).
+  The `.pku` handle is held open for the whole session (`FileShare.Read`), so
+  there is no unlocked window between operations; other processes may still
+  open the file for reading, but not for writing.
 
 ### Randomness
 
