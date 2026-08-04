@@ -340,6 +340,15 @@ user = database.Login("master_password_2");			// Will also return null
 user = database.Login("master_password_3");			// Will return a IUser this time
 ```
 
+**Important — no rollback on a wrong passkey.** Each `Login` call appends the
+passkey to the in-memory onion stack. A mistyped value is never undone: further
+`Login` calls keep stacking on top of it, so even the correct passkeys will keep
+failing until you `Close()` the database and `Open` it again. That is intentional
+(an online anti-brute-force friction layer on top of PBKDF2); see
+[SECURITY.md](SECURITY.md#progressive-login-without-rollback-online-brute-force-friction).
+In the GUI, cancelling the login (e.g. Escape) ends the session so the user can
+restart cleanly.
+
 Once the IUser retrieved, it allow a full access to all services and accounts, all log history and all user parameters.
 
 ### Saving the changes

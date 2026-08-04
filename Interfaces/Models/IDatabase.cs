@@ -74,10 +74,13 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       event EventHandler<LogoutEventArgs>? DatabaseClosed;
 
       /// <summary>
-      /// Try to load the current user.
+      /// Try to load the current user by appending one passkey to the progressive
+      /// login stack. There is no rollback: a wrong passkey poisons the current
+      /// open session until <see cref="Close"/>, which is intentional anti-brute-force
+      /// friction (see SECURITY.md).
       /// </summary>
       /// <param name="passkey">The current passkey.</param>
-      /// <returns>The loaded user.</returns>
+      /// <returns>The loaded user, or <see langword="null"/> if login is incomplete or failed.</returns>
       IUser? Login(string passkey);
 
       /// <summary>

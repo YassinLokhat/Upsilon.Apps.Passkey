@@ -56,6 +56,8 @@ What to expect:
 
 - Confidentiality and integrity of the `.pku` database file at rest.
 - Resistance to offline brute-force against the master passkeys.
+- Friction against interactive (online) guessing during progressive login
+  (no rollback of a wrong passkey; see "Progressive login without rollback").
 - Tamper detection of stored data.
 - Limiting exposure of secrets during an active session (auto-logout, clipboard
   cleaning).
@@ -172,6 +174,25 @@ login:
   (`Marshal.ZeroFreeBSTR`).
 - Derived AES keys are wiped with `CryptographicOperations.ZeroMemory` after use.
 
+### Progressive login without rollback (online brute-force friction)
+
+- Logging in is **progressive**: each call to `IDatabase.Login` appends one
+  stretched passkey to the in-memory onion stack and attempts decryption. There
+  is **no rollback** of a wrong attempt. A mistyped passkey permanently
+  poisons the current open session: every subsequent `Login` call keeps
+  stacking on top of the bad layer, so even the correct remaining passkeys
+  cannot recover the database until the session is closed and the file is
+  reopened from scratch.
+- That behaviour is intentional. Combined with the expensive PBKDF2 stretch on
+  every attempt, it turns an interactive guessing loop into a high-friction
+  path: each wrong guess both costs a full slow-hash and forces a full reopen
+  (and a fresh stretch of every passkey entered so far) before the attacker can
+  try again. It is a deliberate online anti-brute-force layer on top of the
+  offline hardness of the onion encryption — not an accidental UX bug.
+- The legitimate user who mistypes must close the database (or cancel the
+  login UI, which ends the session) and start over. See also the matching note
+  under "Known Limitations".
+
 ### Session protection
 
 - **Auto-logout**: after a configurable inactivity timeout (`LogoutTimeout`), the
@@ -222,6 +243,10 @@ These are conscious trade-offs, documented for transparency:
   out of scope for a purely local, offline tool. Everything sealed at the last
   login, however, remains tamper-evident, and a wholesale rollback of the sealed
   portion is detected via the watermark stored in the encrypted database.
+- **No login-attempt rollback**: a wrong passkey cannot be undone without closing
+  and reopening the database (see "Progressive login without rollback"). This
+  raises the cost of interactive guessing at the expense of UX: a legitimate
+  mistype also requires a full restart of the login sequence.
 
 ## Reporting Non-Security Bugs
 

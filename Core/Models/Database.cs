@@ -42,6 +42,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Save() => _save(logSaveEvent: true);
 
+      // Progressive onion login: each call appends a stretched passkey and never
+      // rolls back on failure. A wrong attempt poisons the stack until Close/Open,
+      // which is deliberate online brute-force friction (see SECURITY.md).
       public IUser? Login(string passkey)
       {
          Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey, _slowHashParameters)];
