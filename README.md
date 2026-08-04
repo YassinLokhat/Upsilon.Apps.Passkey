@@ -145,7 +145,6 @@ classDiagram
             +EventHandler DatabaseSaved
             +EventHandler~LogoutEventArgs~ DatabaseClosed
             +Login(in passkey string) IUser
-            +Login(in passkey SecureString) IUser
             +Save(void) void
             +Delete(void) void
             +Close(void) void

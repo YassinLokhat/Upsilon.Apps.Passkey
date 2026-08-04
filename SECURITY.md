@@ -169,9 +169,13 @@ login:
 
 ### In-memory hygiene
 
-- The `SecureString` login path copies the secret into a transient buffer that is
-  zeroed in a `finally` block, and frees the unmanaged BSTR
-  (`Marshal.ZeroFreeBSTR`).
+- `IDatabase.Login` takes a plain `string` passkey (there is no `SecureString`
+  overload on the Core API). The WPF GUI keeps the typed secret in
+  `PasswordBox.SecurePassword` and bridges it through
+  `SecureStringExtensions.UseAsString`: the unmanaged BSTR is zeroed in a
+  `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of
+  the `Login` call. The short-lived managed `string` passed to Core remains
+  subject to the usual .NET GC limitations documented under "Known Limitations".
 - Derived AES keys are wiped with `CryptographicOperations.ZeroMemory` after use.
 
 ### Progressive login without rollback (online brute-force friction)
