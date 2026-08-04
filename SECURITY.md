@@ -219,12 +219,20 @@ login:
 ### Password hygiene features
 
 - **Strong password generation** uses the CSPRNG over a configurable alphabet.
+  When leak-checking is enabled, generation retries at most **five** candidates
+  against the HIBP corpus and then gives up (returns empty) rather than hammering
+  the remote service.
 - **Leak detection** uses the "Have I Been Pwned" range API
   (`api.pwnedpasswords.com`) with **k-anonymity**: only the first 5 characters of
   the SHA-1 hash are sent, never the password. This is the **only** outbound
   network call the application makes, it is opt-in per account, and it **fails
   open** (treats the password as "not leaked" if the service is unreachable) so a
-  network problem never blocks the user.
+  network problem never blocks the user. Successful range responses are **cached
+  in process** (keyed by the 5-character prefix, bounded, never persisted) so
+  repeated checks for the same prefix — generation retries, duplicate accounts,
+  re-scans — avoid extra round-trips. Requests time out after a few seconds.
+  The GUI and the warning scan use the asynchronous API so the UI thread is not
+  blocked while waiting on the network.
 - **Duplicate-password** and **password-expiry** warnings are computed locally.
 
 ## Known Limitations
