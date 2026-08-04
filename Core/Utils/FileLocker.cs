@@ -160,8 +160,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          string content = reader.ReadToEnd();
 
+         // Inverse of write: decrypt (when keyed) then decompress. Compression
+         // runs on plaintext so GZip actually shrinks JSON; ciphertext would not.
          return passkeys.Length != 0
-            ? _cryptographicCenter.DecryptSymmetrically(_decompressString(content), passkeys)
+            ? _decompressString(_cryptographicCenter.DecryptSymmetrically(content, passkeys))
             : _decompressString(content);
       }
 
@@ -176,14 +178,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             using Stream stream = newEntry.Open();
             using StreamWriter writer = new(stream, Encoding.UTF8);
 
-            if (passkeys.Length != 0)
-            {
-               writer.Write(_compressString(_cryptographicCenter.EncryptSymmetrically(content, passkeys)));
-            }
-            else
-            {
-               writer.Write(_compressString(content));
-            }
+            // Compress-then-encrypt: GZip the JSON first, then (optionally) wrap
+            // the compressed payload in the symmetric onion. Encrypting first
+            // would leave GZip with high-entropy input and almost no size gain.
+            string compressed = _compressString(content);
+
+            writer.Write(passkeys.Length != 0
+               ? _cryptographicCenter.EncryptSymmetrically(compressed, passkeys)
+               : compressed);
          }
 
          // ZipArchive.Update rewrites the archive on dispose; rewind so the next

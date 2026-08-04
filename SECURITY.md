@@ -154,9 +154,12 @@ login:
 
 - A `.pku` file is a **ZIP archive** containing three entries: `database`,
   `autosave`, and `activity`.
-- Each entry pipeline is: JSON serialize → encrypt (symmetric onion for
-  `database`/`autosave`, per-record RSA for `activity`) → GZip compress →
-  Base64 → write into the ZIP entry.
+- Each entry pipeline is: JSON serialize → GZip compress → Base64, then (for
+  `database`/`autosave`) the symmetric onion encrypts that compressed payload.
+  The `activity` entry is stored compressed only at the ZIP layer; its records
+  are already protected individually with per-record RSA before serialization.
+  Compressing **before** encryption is deliberate: GZip only shrinks structured
+  plaintext, not high-entropy ciphertext.
 - File access is serialized through a re-entrant lock (`FileLocker`) to prevent
   concurrent access races (e.g. a save colliding with the session-timeout timer).
 - **Deferred persistence**: while a user is logged in, autosave and activity-log
@@ -259,6 +262,12 @@ These are conscious trade-offs, documented for transparency:
   and reopening the database (see "Progressive login without rollback"). This
   raises the cost of interactive guessing at the expense of UX: a legitimate
   mistype also requires a full restart of the login sequence.
+- **Compressed size leakage**: `database`/`autosave` are GZip-compressed before
+  encryption, so the ciphertext length tracks the compressed plaintext size.
+  An observer of the `.pku` file can therefore infer approximate vault size and,
+  in edge cases, rough compressibility of the JSON. Absolute lengths are already
+  visible for any AEAD ciphertext; this trade-off is accepted for the storage
+  savings on structured data.
 
 ## Reporting Non-Security Bugs
 
