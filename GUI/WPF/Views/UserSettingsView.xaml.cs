@@ -44,7 +44,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _database.DatabaseClosed += _database_DatabaseClosed;
          }
 
-         _username_TB.SelectAll();
+         _username_TB.SelectedText = _viewModel.Username;
          _ = _username_TB.Focus();
 
          Loaded += (s, e) => this.PostLoadSetup();
@@ -106,7 +106,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         string databaseDirectory = Path.GetDirectoryName(_database.DatabaseFile) ?? string.Empty;
+         _ = Path.GetDirectoryName(_database.DatabaseFile) ?? string.Empty;
 
          _database.Delete();
 
