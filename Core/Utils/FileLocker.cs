@@ -21,7 +21,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // could grab a write handle. FileShare.Read still lets other processes
       // open the file for reading (backups, antivirus, inspection) while denying
       // concurrent writers — a second FileLocker on the same path still fails.
-      private const FileShare ShareMode = FileShare.Read;
+      private const FileShare SHARE_MODE = FileShare.Read;
 
       internal FileLocker(ICryptographyCenter cryptographicCenter, ISerializationCenter serializationCenter, string filePath, FileMode fileMode = FileMode.Open)
       {
@@ -30,10 +30,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          _cryptographicCenter = cryptographicCenter;
          _serializationCenter = serializationCenter;
 
-         _stream = new FileStream(FilePath, fileMode, FileAccess.ReadWrite, ShareMode);
+         _stream = new FileStream(FilePath, fileMode, FileAccess.ReadWrite, SHARE_MODE);
       }
 
-      private FileStream Stream => _stream
+      private FileStream _stream2 => _stream
          ?? throw new ObjectDisposedException(nameof(FileLocker));
 
       internal T Open<T>(string fileEntry, string[] passkeys) where T : notnull
@@ -84,7 +84,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             // An empty file (just created, not yet written) is not a valid zip
             // yet, so it cannot contain any entry.
-            if (Stream.Length == 0)
+            if (_stream2.Length == 0)
             {
                return false;
             }
@@ -113,8 +113,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private ZipArchive _openArchive(ZipArchiveMode mode)
       {
-         Stream.Position = 0;
-         return new ZipArchive(Stream, mode, leaveOpen: true, Encoding.UTF8);
+         _stream2.Position = 0;
+         return new ZipArchive(_stream2, mode, leaveOpen: true, Encoding.UTF8);
       }
 
       private static string _compressString(string text)
@@ -190,7 +190,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          // ZipArchive.Update rewrites the archive on dispose; rewind so the next
          // open starts from a known position.
-         Stream.Position = 0;
+         _stream2.Position = 0;
       }
    }
 }

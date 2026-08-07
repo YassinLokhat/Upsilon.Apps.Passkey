@@ -140,7 +140,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          _ = Database.AutoSave.UpdateValue(account.ItemId,
             fieldName: nameof(account.Password),
-            needsReview: true,
+            needsReview: false,
             oldValue: string.Empty,
             newValue: account.Password,
             readableValue: string.Empty);

@@ -68,6 +68,17 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          }
 
          database.Save();
+
+         string exportFile = database.DatabaseFile.Replace(".pku", ".json");
+
+         if (database.ExportToFile(exportFile))
+         {
+            database.Delete();
+
+            database = UnitTestsHelper.CreateTestDatabase(["a", "b"], "_");
+            database.ImportFromFile(exportFile);
+         }
+
          database.Close();
       }
 
