@@ -57,7 +57,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          TimeSpan? autoClear = null;
 
-         int seconds = Services.AppServices.Session.User?.CleaningClipboardTimeout ?? 0;
+         int seconds = Services.AppServices.Session.User?.Settings.CleaningClipboardTimeout ?? 0;
          if (seconds > 0)
          {
             autoClear = TimeSpan.FromSeconds(seconds);

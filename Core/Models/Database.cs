@@ -650,7 +650,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (user is null) return;
 
-            WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => user.WarningsToNotify.HasFlag(x.WarningType))]));
+            WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => user.Settings.WarningsToNotify.HasFlag(x.WarningType))]));
          }
 #pragma warning disable CA1031 // Last-resort barrier: the background warning scan must never crash the session
          catch (Exception ex)

@@ -209,12 +209,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private void _removeOldActivities()
       {
          if (Database.User is null
-            || Database.User.NumberOfMonthActivitiesToKeep == 0)
+            || Database.User.Settings.NumberOfMonthActivitiesToKeep == 0)
          {
             return;
          }
 
-         DateTime limitDate = DateTime.Now.AddMonths(-Database.User.NumberOfMonthActivitiesToKeep).Date.AddDays(-DateTime.Now.Day + 1);
+         DateTime limitDate = DateTime.Now.AddMonths(-Database.User.Settings.NumberOfMonthActivitiesToKeep).Date.AddDays(-DateTime.Now.Day + 1);
          Activities = [.. Activities.Where(x => x.DateTime >= limitDate || x.NeedsReview)];
       }
    }

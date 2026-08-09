@@ -52,12 +52,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
                if (_service is not null)
                {
-                  if (Service.User.NumberOfOldPasswordToKeep != 0)
+                  if (Service.User.Settings.NumberOfOldPasswordToKeep != 0)
                   {
                      DateTime[] datesToRemove = [.. Passwords.Keys
                         .OrderBy(x => x)
-                        .Take(Passwords.Count > Service.User.NumberOfOldPasswordToKeep
-                           ? Passwords.Count - Service.User.NumberOfOldPasswordToKeep
+                        .Take(Passwords.Count > Service.User.Settings.NumberOfOldPasswordToKeep
+                           ? Passwords.Count - Service.User.Settings.NumberOfOldPasswordToKeep
                            : 0)];
 
                      foreach (DateTime dateToRemove in datesToRemove)

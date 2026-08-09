@@ -50,94 +50,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      int IUser.LogoutTimeout
+      ISettings IUser.Settings
       {
-         get => Database.Get(LogoutTimeout);
-         set => LogoutTimeout = Database.AutoSave.UpdateValue(ItemId,
-            fieldName: nameof(LogoutTimeout),
-            needsReview: false,
-            oldValue: LogoutTimeout,
-            newValue: value,
-            readableValue: $"{value}");
-      }
-
-      int IUser.CleaningClipboardTimeout
-      {
-         get => Database.Get(CleaningClipboardTimeout);
-         set => CleaningClipboardTimeout = Database.AutoSave.UpdateValue(ItemId,
-            fieldName: nameof(CleaningClipboardTimeout),
-            needsReview: false,
-            oldValue: CleaningClipboardTimeout,
-            newValue: value,
-            readableValue: $"{value}");
-      }
-
-      int IUser.ShowPasswordDelay
-      {
-         get => Database.Get(ShowPasswordDelay);
-         set => ShowPasswordDelay = Database.AutoSave.UpdateValue(ItemId,
-            fieldName: nameof(ShowPasswordDelay),
-            needsReview: false,
-            oldValue: ShowPasswordDelay,
-            newValue: value,
-            readableValue: $"{value}");
-      }
-
-      int IUser.NumberOfOldPasswordToKeep
-      {
-         get => Database.Get(NumberOfOldPasswordToKeep);
+         get => Database.Get(Settings);
          set
          {
-            NumberOfOldPasswordToKeep = Database.AutoSave.UpdateValue(ItemId,
-               fieldName: nameof(NumberOfOldPasswordToKeep),
-               needsReview: true,
-               oldValue: NumberOfOldPasswordToKeep,
-               newValue: value,
-               readableValue: $"{value}");
-
-            if (NumberOfOldPasswordToKeep == 0) return;
-
-            IEnumerable<Account> accounts = [.. Services.SelectMany(x => x.Accounts).Where(x => x.Passwords.Count > NumberOfOldPasswordToKeep)];
-
-            foreach (Account account in accounts)
+            if (value.GetType() != typeof(Settings))
             {
-               IEnumerable<DateTime> datesToRemove = [.. account.Passwords.Keys
-                  .OrderBy(x => x)
-                  .Take(account.Passwords.Count - NumberOfOldPasswordToKeep)];
-
-               foreach (DateTime dateToRemove in datesToRemove)
-               {
-                  _ = account.Passwords.Remove(dateToRemove);
-               }
+               throw new InvalidCastException("The ISettings object is not a known implementation");
             }
+
+            Settings = Database.Get((Settings)value);
          }
-      }
-
-      int IUser.NumberOfMonthActivitiesToKeep
-      {
-         get => Database.Get(NumberOfMonthActivitiesToKeep);
-         set
-         {
-            NumberOfMonthActivitiesToKeep = Database.AutoSave.UpdateValue(ItemId,
-               fieldName: nameof(NumberOfMonthActivitiesToKeep),
-               needsReview: true,
-               oldValue: NumberOfMonthActivitiesToKeep,
-               newValue: value,
-               readableValue: $"{value}");
-
-            Database.ActivityCenter.Save(rebuildStringActivities: true);
-         }
-      }
-
-      WarningType IUser.WarningsToNotify
-      {
-         get => Database.Get(WarningsToNotify);
-         set => WarningsToNotify = Database.AutoSave.UpdateValue(ItemId,
-            fieldName: nameof(WarningsToNotify),
-            needsReview: true,
-            oldValue: WarningsToNotify,
-            newValue: value,
-            readableValue: value.ToString());
       }
 
       IService IUser.AddService(string serviceName)
@@ -171,6 +95,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             field = value;
 
+            Settings.User = this;
+
             foreach (Service service in Services)
             {
                service.User = this;
@@ -201,16 +127,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
       // Serialization goes through the plaintext (see ProtectedSecret).
       public IEnumerable<ProtectedSecret> Passkeys { get; set; } = [];
       public bool CredentialChanged { get; set; }
-      public int LogoutTimeout { get; set; }
-      public int CleaningClipboardTimeout { get; set; }
-      public int ShowPasswordDelay { get; set; }
-      public int NumberOfOldPasswordToKeep { get; set; }
-      public int NumberOfMonthActivitiesToKeep { get; set; }
-      public WarningType WarningsToNotify { get; set; }
-         = WarningType.ActivityReviewWarning
-         | WarningType.PasswordUpdateReminderWarning
-         | WarningType.DuplicatedPasswordsWarning
-         | WarningType.PasswordLeakedWarning;
+
+      public Settings Settings { get; set; } = new();
 
       private readonly System.Timers.Timer _timer = new()
       {
@@ -245,7 +163,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                return;
             }
 
-            if (LogoutTimeout != 0)
+            if (Settings.LogoutTimeout != 0)
             {
                SessionLeftTime--;
 
@@ -264,14 +182,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
                }
             }
 
-            if (CleaningClipboardTimeout != 0)
+            if (Settings.CleaningClipboardTimeout != 0)
             {
                _clipboardLeftTime--;
 
                if (_clipboardLeftTime == 0)
                {
                   _ = Database.ClipboardManager.RemoveAllOccurrence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values.Select(y => y.Reveal()))]);
-                  _clipboardLeftTime = CleaningClipboardTimeout;
+                  _clipboardLeftTime = Settings.CleaningClipboardTimeout;
                }
             }
          }
@@ -279,8 +197,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void ResetTimer()
       {
-         SessionLeftTime = LogoutTimeout * 60;
-         _clipboardLeftTime = CleaningClipboardTimeout;
+         SessionLeftTime = Settings.LogoutTimeout * 60;
+         _clipboardLeftTime = Settings.CleaningClipboardTimeout;
       }
 
       internal void StopTimer()
@@ -338,14 +256,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      CredentialChanged = true;
                      Passkeys = change.NewValue.DeserializeTo<IEnumerable<ProtectedSecret>>(Database.SerializationCenter);
                      break;
-                  case nameof(LogoutTimeout):
-                     LogoutTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
+                  case nameof(Settings.LogoutTimeout):
+                     Settings.LogoutTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
                      break;
-                  case nameof(CleaningClipboardTimeout):
-                     CleaningClipboardTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
+                  case nameof(Settings.CleaningClipboardTimeout):
+                     Settings.CleaningClipboardTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
                      break;
-                  case nameof(WarningsToNotify):
-                     WarningsToNotify = change.NewValue.DeserializeTo<WarningType>(Database.SerializationCenter);
+                  case nameof(Settings.WarningsToNotify):
+                     Settings.WarningsToNotify = change.NewValue.DeserializeTo<WarningType>(Database.SerializationCenter);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");

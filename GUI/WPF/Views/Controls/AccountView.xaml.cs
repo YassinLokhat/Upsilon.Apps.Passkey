@@ -203,7 +203,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          QrCodeView.ShowQrCode(Window.GetWindow(this),
             ((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier,
-            AppServices.Session.User?.ShowPasswordDelay ?? 0);
+            AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
       }
 
       private void _copyPassword_Clicked(object sender, RoutedEventArgs e)
@@ -227,7 +227,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          QrCodeView.ShowQrCode(Window.GetWindow(this),
             _viewModel.Password,
-            AppServices.Session.User?.ShowPasswordDelay ?? 0);
+            AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
       }
 
       private void _copyPasswords_Clicked(object sender, RoutedEventArgs e)
@@ -251,7 +251,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          QrCodeView.ShowQrCode(Window.GetWindow(this),
             ((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password,
-            AppServices.Session.User?.ShowPasswordDelay ?? 0);
+            AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
       }
 
       private void _viewActivities_Button_Click(object sender, RoutedEventArgs e)

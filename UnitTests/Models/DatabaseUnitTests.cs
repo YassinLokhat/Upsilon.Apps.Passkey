@@ -17,9 +17,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          IDatabase database = UnitTestsHelper.CreateTestDatabase(["a", "b"], "_");
          IUser user = database.User;
-         user.LogoutTimeout = 10;
-         user.CleaningClipboardTimeout = 15;
-         user.WarningsToNotify = (WarningType)0;
+         user.Settings.LogoutTimeout = 10;
+         user.Settings.CleaningClipboardTimeout = 15;
+         user.Settings.WarningsToNotify = (WarningType)0;
          string logFile = database.DatabaseFile.Replace(".pku", ".log");
          File.WriteAllText(logFile, string.Empty);
 
@@ -110,8 +110,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = databaseCreated.User.Should().NotBeNull();
          _ = databaseCreated.User.Username.Should().Be(username);
 
-         _ = databaseCreated.User.LogoutTimeout.Should().Be(0);
-         _ = databaseCreated.User.CleaningClipboardTimeout.Should().Be(0);
+         _ = databaseCreated.User.Settings.LogoutTimeout.Should().Be(0);
+         _ = databaseCreated.User.Settings.CleaningClipboardTimeout.Should().Be(0);
 
          // When
          databaseCreated.Close();
@@ -135,8 +135,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = databaseLoaded.User.Should().NotBeNull();
          _ = databaseLoaded.User.Username.Should().Be(username);
 
-         _ = databaseLoaded.User.LogoutTimeout.Should().Be(0);
-         _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(0);
+         _ = databaseLoaded.User.Settings.LogoutTimeout.Should().Be(0);
+         _ = databaseLoaded.User.Settings.CleaningClipboardTimeout.Should().Be(0);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
 
@@ -322,7 +322,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          database.DatabaseClosed += (s, e) => { closedDueToTimeout = e.LoginTimeoutReached; };
 
-         database.User.LogoutTimeout = 1;
+         database.User.Settings.LogoutTimeout = 1;
          database.Save();
          DateTime start = DateTime.Now;
 
@@ -517,8 +517,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             username,
             passkeys);
 
-         databaseCreated.User.WarningsToNotify = (WarningType)0;
-         databaseCreated.User.NumberOfOldPasswordToKeep = 7;
+         databaseCreated.User.Settings.WarningsToNotify = (WarningType)0;
+         databaseCreated.User.Settings.NumberOfOldPasswordToKeep = 7;
 
          await databaseCreated.SaveAsync();
          databaseCreated.Close();
@@ -540,7 +540,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // Then
          _ = user.Should().NotBeNull();
          _ = user.Username.Should().Be(username);
-         _ = user.NumberOfOldPasswordToKeep.Should().Be(7);
+         _ = user.Settings.NumberOfOldPasswordToKeep.Should().Be(7);
 
          // Finaly
          databaseLoaded.Close();

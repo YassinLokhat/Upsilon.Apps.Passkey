@@ -181,16 +181,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
             Username = user.Username;
 
-            LogoutTimeout = user.LogoutTimeout;
-            CleaningClipboardTimeout = user.CleaningClipboardTimeout;
-            ShowPasswordDelay = user.ShowPasswordDelay;
-            NumberOfOldPasswordToKeep = user.NumberOfOldPasswordToKeep;
-            NumberOfMonthActivitiesToKeep = user.NumberOfMonthActivitiesToKeep;
+            LogoutTimeout = user.Settings.LogoutTimeout;
+            CleaningClipboardTimeout = user.Settings.CleaningClipboardTimeout;
+            ShowPasswordDelay = user.Settings.ShowPasswordDelay;
+            NumberOfOldPasswordToKeep = user.Settings.NumberOfOldPasswordToKeep;
+            NumberOfMonthActivitiesToKeep = user.Settings.NumberOfMonthActivitiesToKeep;
 
-            NotifyActivityReview = (user.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
-            NotifyPasswordUpdateReminder = (user.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
-            NotifyDuplicatedPasswords = (user.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
-            NotifyPasswordLeaked = (user.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
+            NotifyActivityReview = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
+            NotifyPasswordUpdateReminder = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
+            NotifyDuplicatedPasswords = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
+            NotifyPasswordLeaked = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
          }
       }
    }

@@ -187,17 +187,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             _database.User.Username = _viewModel.Username;
             _database.User.Passkeys = _passwordsContainer.Passkeys;
-            _database.User.LogoutTimeout = _viewModel.LogoutTimeout;
-            _database.User.CleaningClipboardTimeout = _viewModel.CleaningClipboardTimeout;
-            _database.User.ShowPasswordDelay = _viewModel.ShowPasswordDelay;
-            _database.User.NumberOfOldPasswordToKeep = _viewModel.NumberOfOldPasswordToKeep;
-            _database.User.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
+            _database.User.Settings.LogoutTimeout = _viewModel.LogoutTimeout;
+            _database.User.Settings.CleaningClipboardTimeout = _viewModel.CleaningClipboardTimeout;
+            _database.User.Settings.ShowPasswordDelay = _viewModel.ShowPasswordDelay;
+            _database.User.Settings.NumberOfOldPasswordToKeep = _viewModel.NumberOfOldPasswordToKeep;
+            _database.User.Settings.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
             WarningType warningsToNotify = 0;
             if (_viewModel.NotifyActivityReview) warningsToNotify |= WarningType.ActivityReviewWarning;
             if (_viewModel.NotifyDuplicatedPasswords) warningsToNotify |= WarningType.DuplicatedPasswordsWarning;
             if (_viewModel.NotifyPasswordUpdateReminder) warningsToNotify |= WarningType.PasswordUpdateReminderWarning;
             if (_viewModel.NotifyPasswordLeaked) warningsToNotify |= WarningType.PasswordLeakedWarning;
-            _database.User.WarningsToNotify = warningsToNotify;
+            _database.User.Settings.WarningsToNotify = warningsToNotify;
 
             await _database.SaveAsync().ConfigureAwait(true);
          }

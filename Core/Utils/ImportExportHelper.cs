@@ -132,12 +132,29 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          string error = string.Empty;
 
-         if (data.Services is not null)
+         if (data.Settings is not null)
+         {
+            error = _importSettings(database, data.Settings);
+         }
+
+         if (string.IsNullOrEmpty(error)
+            && data.Services is not null)
          {
             error = _importServices(database, data.Services);
          }
 
          return error;
+      }
+
+      private static string _importSettings(IDatabase database, Settings settings)
+      {
+         if (database.User is null)
+            return string.Empty;
+
+         settings.User = (User)database.User;
+         database.User.Settings = settings;
+
+         return string.Empty;
       }
 
       private static string _importServices(IDatabase database, List<Service> services)
@@ -214,6 +231,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          Data data = new()
          {
+            Settings = database.User.Settings.CloneWith(database.SerializationCenter),
             Services = [.. database.User.Services],
          };
 
@@ -225,6 +243,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
    internal class Data
    {
+      public Settings? Settings { get; set; }
       public List<Service>? Services { get; set; }
    }
 }
