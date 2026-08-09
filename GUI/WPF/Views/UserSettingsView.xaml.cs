@@ -322,7 +322,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
-      private async void _export_MenuItem_Click(object sender, RoutedEventArgs e)
+      private async void _export_json_MenuItem_Click(object sender, RoutedEventArgs e)
       {
          IDatabase? database = _database;
 
@@ -340,18 +340,51 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          SaveFileDialog dialog = new()
          {
-            Title = "Export data to a file",
-            Filter = "json file|*.json|Tab delimited CSV file|*.csv",
+            Title = "Export settings and services to a JSON file",
+            Filter = "json file|*.json",
             FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
          };
 
          if (!(dialog.ShowDialog() ?? false)) return;
 
+         _export(database, dialog.FileName);
+      }
+
+      private async void _export_csv_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         IDatabase? database = _database;
+
+         if (this.GetIsBusy()
+            || database?.User is null)
+         {
+            return;
+         }
+
+         if (database.User.HasChanged()
+            && MessageBox.Show("Before exporting data, all unsaved changes will be saved.", "Export data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+         {
+            return;
+         }
+
+         SaveFileDialog dialog = new()
+         {
+            Title = "Export services to a CSV file",
+            Filter = "Tab delimited CSV file|*.csv",
+            FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
+         };
+
+         if (!(dialog.ShowDialog() ?? false)) return;
+
+         _export(database, dialog.FileName);
+      }
+
+      private async void _export(IDatabase database, string fileName)
+      {
          this.SetIsBusy(true);
 
          try
          {
-            bool exported = await database.ExportToFileAsync(dialog.FileName).ConfigureAwait(true);
+            bool exported = await database.ExportToFileAsync(fileName).ConfigureAwait(true);
 
             _ = exported
                ? MessageBox.Show("Export data has been completed successfully.\nMore details in the activities.", "Export success")

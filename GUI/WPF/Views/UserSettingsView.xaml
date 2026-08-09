@@ -30,8 +30,12 @@
                       Header="_Import"
                       Click="_import_MenuItem_Click"/>
             <MenuItem Name="_export_MI"
-                      Header="_Export"
-                      Click="_export_MenuItem_Click"/>
+                      Header="_Export">
+                <MenuItem Header="Export as _JSON (Settings and Services)"
+                          Click="_export_json_MenuItem_Click"/>
+                <MenuItem Header="Export as _CSV (Services only)"
+                          Click="_export_csv_MenuItem_Click"/>
+            </MenuItem>
             <MenuItem Name="_deleteUser_MI"
                       Header="_Delete User"
                       HorizontalAlignment="Right"
