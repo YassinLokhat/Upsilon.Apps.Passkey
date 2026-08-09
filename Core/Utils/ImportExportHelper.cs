@@ -105,16 +105,18 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             return "the CSV data format is incorrect";
          }
 
+         if (services.Count == 0) return "there is no data to import";
+
          return _importServices(database, services);
       }
 
       public static string ImportJson(this IDatabase database, string importContent)
       {
-         Service[] services;
+         Data data;
 
          try
          {
-            services = _jsonDeserializeAs<Service[]>(importContent);
+            data = _jsonDeserializeAs<Data>(importContent);
          }
 #pragma warning disable CA1031 // Intentional: any deserialization failure is reported as a user-facing error
          catch
@@ -123,14 +125,26 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             return "import file deserialization failed";
          }
 
-         return _importServices(database, [.. services]);
+         return _importData(database, data);
+      }
+
+      private static string _importData(IDatabase database, Data data)
+      {
+         string error = string.Empty;
+
+         if (data.Services is not null)
+         {
+            error = _importServices(database, data.Services);
+         }
+
+         return error;
       }
 
       private static string _importServices(IDatabase database, List<Service> services)
       {
-         if (database.User is null) return string.Empty;
-
-         if (services.Count == 0) return "there is no data to import";
+         if (database.User is null
+            || services.Count == 0)
+            return string.Empty;
 
          Service? s0 = services.FirstOrDefault(x => database.User.Services.Any(y => y.ServiceName == x.ServiceName));
          if (s0 is not null)
@@ -198,9 +212,19 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          if (database.User is null) return string.Empty;
 
-         File.WriteAllText(filePath, _jsonSerialize(database.User.Services));
+         Data data = new()
+         {
+            Services = [.. database.User.Services],
+         };
+
+         File.WriteAllText(filePath, _jsonSerialize(data));
 
          return string.Empty;
       }
+   }
+
+   internal class Data
+   {
+      public List<Service>? Services { get; set; }
    }
 }
