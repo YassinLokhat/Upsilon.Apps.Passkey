@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
@@ -410,6 +411,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             _viewModel.Dispose();
          }
+      }
+
+      private void _userServicesView_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+      {
+         string sourceText = (e.OriginalSource as TextBlock)?.Text ?? string.Empty;
+
+         if (sourceText != _userServices_GB.Header.ToString())
+            return;
+
+         string? itemId = AppServices.Session.User?.ItemId;
+
+         if (itemId is null)
+            return;
+
+         AppServices.Clipboard.SetText(itemId);
+
+         e.Handled = true;
       }
    }
 }

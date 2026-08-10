@@ -24,6 +24,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = string.Empty;
 
+      public static string UserId => $"User Id : {AppServices.Session.User?.ItemId}";
+
       public string ShowWarnings
       {
          get;

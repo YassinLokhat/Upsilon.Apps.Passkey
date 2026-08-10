@@ -14,7 +14,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string ServiceDisplay => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service.ServiceName}";
 
-      public string ServiceId => $"Service Id : {Service.ItemId.Replace(Service.User.ItemId, string.Empty, StringComparison.Ordinal)}";
+      public string ServiceId => $"Service Id : {Service.ItemId}";
 
       public Brush ServiceNameBackground => Service.HasChanged(nameof(ServiceName)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string ServiceName
