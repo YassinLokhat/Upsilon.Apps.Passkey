@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
@@ -27,6 +28,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       public ServiceView()
       {
          InitializeComponent();
+      }
+
+      private void _serviceView_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+      {
+         string sourceText = (e.OriginalSource as TextBlock)?.Text ?? string.Empty;
+
+         if (sourceText != _service_GB.Header.ToString())
+            return;
+
+         string? itemId = GetServiceId();
+
+         if (itemId is null)
+            return;
+
+         AppServices.Clipboard.SetText(itemId);
+
+         e.Handled = true;
       }
 
       internal void SetDataContext(ServiceViewModel? serviceViewModel)

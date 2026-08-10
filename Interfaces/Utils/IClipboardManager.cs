@@ -10,7 +10,7 @@
       /// </summary>
       /// <param name="text">The text to add.</param>
       /// <param name="autoClearAfter">The duration to keep the password in the clipboard.</param>
-      void SetText(string text, TimeSpan? autoClearAfter);
+      void SetText(string text, TimeSpan? autoClearAfter = null);
 
       /// <summary>
       /// Add the given text to the clipboard then clear if after a certain time if set.

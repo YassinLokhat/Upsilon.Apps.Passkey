@@ -9,8 +9,10 @@
              d:DataContext="{d:DesignInstance Type=controls:ServiceViewModel}"
              mc:Ignorable="d">
     <DockPanel VerticalAlignment="Stretch">
-        <GroupBox Header="{Binding ServiceId}"
-                  DockPanel.Dock="Top">
+        <GroupBox Name="_service_GB"
+                  Header="{Binding ServiceId}"
+                  DockPanel.Dock="Top"
+                  MouseRightButtonUp="_serviceView_MouseRightButtonUp">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>

@@ -12,7 +12,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
    {
       #region IAccount interface explicit Internal
 
-      public void SetText(string text, TimeSpan? autoClearAfter)
+      public void SetText(string text, TimeSpan? autoClearAfter = null)
       {
          if (string.IsNullOrEmpty(text))
          {

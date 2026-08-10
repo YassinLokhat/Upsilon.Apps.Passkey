@@ -23,6 +23,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          InitializeComponent();
       }
 
+      private void _accountView_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+      {
+         string sourceText = (e.OriginalSource as TextBlock)?.Text ?? string.Empty;
+
+         if (sourceText != _account_GB.Header.ToString())
+            return;
+
+         string? itemId = GetAccountId();
+
+         if (itemId is null)
+            return;
+
+         AppServices.Clipboard.SetText(itemId);
+
+         e.Handled = true;
+      }
+
       public string? GetIdentifier()
       {
          string? identifier = _identifiers_LB.SelectedItem is not IdentifierViewModel identifierViewModel ? null : identifierViewModel.Identifier;
