@@ -60,7 +60,9 @@
                 </Grid>
             </GroupBox>
         </StackPanel>
-        <DataGrid Name="_activities_DGV" Grid.Row="1" AutoGenerateColumns="False">
+        <DataGrid Name="_activities_DGV"
+                  Grid.Row="1"
+                  AutoGenerateColumns="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Date and Time"
                                     IsReadOnly="True"
@@ -112,7 +114,14 @@
                 <DataGridTemplateColumn Header="Go to item">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="Go" Click="_viewItemButton_Click"  Margin="4"/>
+                            <Button Content="🔍" Click="_viewItemButton_Click"  Margin="4"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Copy">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="📋" Click="_copyButton_Click"  Margin="4"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
