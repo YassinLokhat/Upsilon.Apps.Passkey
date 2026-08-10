@@ -1,6 +1,4 @@
-﻿using static System.Net.Mime.MediaTypeNames;
-
-namespace Upsilon.Apps.Passkey.Interfaces.Utils
+﻿namespace Upsilon.Apps.Passkey.Interfaces.Utils
 {
    /// <summary>
    /// Represent a OS specific Clipboard manager.

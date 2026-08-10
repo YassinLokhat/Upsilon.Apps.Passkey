@@ -4,7 +4,6 @@ using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.Views;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
