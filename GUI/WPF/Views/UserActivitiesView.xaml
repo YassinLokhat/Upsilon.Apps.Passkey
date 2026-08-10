@@ -50,7 +50,7 @@
                     <Label Grid.Column="6"
                            Content="Message :"/>
                     <TextBox Grid.Column="7"
-                             Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{Binding SearchCriteria, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <CheckBox Grid.Column="8"
                               Content="Needs review only"
                               IsChecked="{Binding NeedsReview}"/>

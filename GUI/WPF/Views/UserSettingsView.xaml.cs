@@ -34,6 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _deleteUser_MI.Visibility
             = _import_MI.Visibility
             = _export_MI.Visibility
+            = _viewActivities_MI.Visibility
             = hasUser ? Visibility.Visible : Visibility.Collapsed;
 
          DataContext = _viewModel = new UserSettingsViewModel();
@@ -401,6 +402,28 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             this.SetIsBusy(false);
          }
+      }
+
+      private void _viewActivities_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         if (this.GetIsBusy()
+            || _viewModel is null
+            || AppServices.Session.User is null)
+         {
+            return;
+         }
+
+         string itemId = AppServices.Session.User.ItemId;
+
+         _ = AppServices.Dialogs.ShowSingleton(
+            factory: () =>
+            {
+               UserActivitiesView view = new(needsReviewFilter: false);
+               view.ViewModel.ClearFilters();
+               view.ViewModel.SearchCriteria = itemId;
+               return view;
+            },
+            configure: view => view.ViewModel.SearchCriteria = itemId);
       }
    }
 }

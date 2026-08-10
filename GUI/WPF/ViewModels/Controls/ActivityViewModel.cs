@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -33,14 +34,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
-      public bool MeetsConditions(string itemId, DateTime fromDateFilter, DateTime toDateFilter, ActivityEventType eventType, string message, bool needsReview)
+      public bool MeetsConditions(DateTime fromDateFilter, DateTime toDateFilter, ActivityEventType eventType, string searchCriteria, bool needsReview)
       {
-         return (string.IsNullOrEmpty(itemId) || Activity.ItemId == itemId)
-            && (fromDateFilter > System.DateTime.Now.Date
-               || Activity.DateTime.Date >= fromDateFilter) && (toDateFilter > System.DateTime.Now.Date
-               || Activity.DateTime.Date <= toDateFilter) && (eventType == ActivityEventType.None
-               || Activity.EventType == eventType) && (!needsReview
-               || Activity.NeedsReview) && Activity.Message.Contains(message, StringComparison.OrdinalIgnoreCase);
+         return (fromDateFilter > System.DateTime.Now.Date || Activity.DateTime.Date >= fromDateFilter)
+            && (toDateFilter > System.DateTime.Now.Date || Activity.DateTime.Date <= toDateFilter)
+            && (eventType == ActivityEventType.None || Activity.EventType == eventType)
+            && (!needsReview || Activity.NeedsReview)
+            && ((string.IsNullOrEmpty(Activity.ItemId)
+                  && !string.IsNullOrEmpty(AppServices.Session.User?.ItemId)
+                  && searchCriteria == AppServices.Session.User?.ItemId)
+               || Activity.ItemId == searchCriteria
+               || Activity.Message.Contains(searchCriteria, StringComparison.OrdinalIgnoreCase));
       }
    }
 }

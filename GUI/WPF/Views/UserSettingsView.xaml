@@ -36,6 +36,9 @@
                 <MenuItem Header="Export as _CSV (Services only)"
                           Click="_export_csv_MenuItem_Click"/>
             </MenuItem>
+            <MenuItem Name="_viewActivities_MI"
+                      Header="View Activities"
+                      Click="_viewActivities_MenuItem_Click"/>
             <MenuItem Name="_deleteUser_MI"
                       Header="_Delete User"
                       HorizontalAlignment="Right"

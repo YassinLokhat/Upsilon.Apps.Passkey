@@ -146,10 +146,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             {
                UserActivitiesView view = new(needsReviewFilter: false);
                view.ViewModel.ClearFilters();
-               view.ViewModel.RefreshFilters(itemId);
+               view.ViewModel.SearchCriteria = itemId;
                return view;
             },
-            configure: view => view.ViewModel.RefreshFilters(itemId));
+            configure: view => view.ViewModel.SearchCriteria = itemId);
       }
    }
 }
