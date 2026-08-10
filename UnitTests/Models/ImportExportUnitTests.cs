@@ -377,6 +377,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : User {username}'s database saved");
 
          // Then
+         database.User.Settings.LogoutTimeout.Should().Be(9);
+         database.User.Settings.CleaningClipboardTimeout.Should().Be(99);
+         database.User.Settings.ShowPasswordDelay.Should().Be(999);
+         database.User.Settings.NumberOfOldPasswordToKeep.Should().Be(9);
+         database.User.Settings.NumberOfMonthActivitiesToKeep.Should().Be(9);
+         database.User.Settings.WarningsToNotify.Should().Be(WarningType.PasswordUpdateReminderWarning | WarningType.DuplicatedPasswordsWarning | WarningType.PasswordLeakedWarning);
+
          database.User.Services.Count().Should().Be(2);
 
          database.User.Services.ElementAt(0).ServiceName.Should().Be("Service0");

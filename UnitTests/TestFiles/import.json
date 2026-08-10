@@ -1,4 +1,12 @@
 {
+  "Settings": {
+    "LogoutTimeout": 9,
+    "CleaningClipboardTimeout": 99,
+    "ShowPasswordDelay": 999,
+    "NumberOfOldPasswordToKeep": 9,
+    "NumberOfMonthActivitiesToKeep": 9,
+    "WarningsToNotify": "PasswordUpdateReminderWarning, DuplicatedPasswordsWarning, PasswordLeakedWarning"
+  },
   "Services": [
     {
       "ItemId": "eXZ6qTu9LwbPIRGL0YgYZQ==7Fo5YgcgzaCQbBFmigk1WbNgUwU=37RLlpzi9VX85YalKXG0cA==sbuNCB\u002B7gEqqz55oh0i3U9mTDPs=",
