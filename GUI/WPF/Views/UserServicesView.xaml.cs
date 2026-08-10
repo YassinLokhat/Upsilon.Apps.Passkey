@@ -1,6 +1,8 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
@@ -107,7 +109,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (!string.IsNullOrEmpty(toInsert))
          {
-            QrCodeView.CopyToClipboard(toInsert);
+            AppServices.Clipboard.SetText(toInsert, ClipboardManager.AutoClearAfter);
             HotkeyHelper.Send(ModifierKeys.Control, Key.V);
          }
       }
@@ -399,11 +401,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       public void Dispose()
       {
-         Dispose(true);
+         _dispose(true);
          GC.SuppressFinalize(this);
       }
 
-      private void Dispose(bool disposing)
+      private void _dispose(bool disposing)
       {
          if (disposing)
          {

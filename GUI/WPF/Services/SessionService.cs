@@ -1,4 +1,5 @@
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Services
@@ -24,7 +25,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
       public void EndSession()
       {
-         SensitiveClipboard.ClearIfStillOwned();
+         ClipboardManager.ClearIfStillOwned();
 
          if (Database is null) return;
 

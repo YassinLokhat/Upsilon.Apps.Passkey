@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
 
@@ -115,10 +116,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          GeneratePassword();
 
          RegenerateCommand = new RelayCommand(GeneratePassword);
-         CopyCommand = new RelayCommand(() => QrCodeView.CopyToClipboard(GeneratedPassword));
+         CopyCommand = new RelayCommand(() => AppServices.Clipboard.SetText(GeneratedPassword, ClipboardManager.AutoClearAfter));
          InsertCommand = new RelayCommand(() =>
          {
-            QrCodeView.CopyToClipboard(GeneratedPassword);
+            AppServices.Clipboard.SetText(GeneratedPassword, ClipboardManager.AutoClearAfter);
             InsertRequested?.Invoke(this, EventArgs.Empty);
          });
       }

@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.Interfaces;
+﻿using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 using Windows.ApplicationModel.DataTransfer;
 
@@ -6,6 +7,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 {
    public class ClipboardManager : IClipboardManager
    {
+      public void SetText(string text, TimeSpan? autoClearAfter) => throw new NotImplementedException();
+      public void SetText(string text, int autoClearAfter) => throw new NotImplementedException();
+
       public int RemoveAllOccurrence(string[] removeList)
       {
          int cleanedPasswordCount = 0;

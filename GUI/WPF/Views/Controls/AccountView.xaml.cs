@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
@@ -194,7 +195,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       {
          if (this.GetIsBusy()) return;
 
-         QrCodeView.CopyToClipboard(((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier);
+         AppServices.Clipboard.SetText(((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier,
+            ClipboardManager.AutoClearAfter);
       }
 
       private void _showQrCodeIdentifier_Clicked(object sender, RoutedEventArgs e)
@@ -214,7 +216,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         QrCodeView.CopyToClipboard(_viewModel.Password);
+         AppServices.Clipboard.SetText(_viewModel.Password,
+          ClipboardManager.AutoClearAfter);
       }
 
       private void _showQrCodePassword_Clicked(object sender, RoutedEventArgs e)
@@ -238,7 +241,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         QrCodeView.CopyToClipboard(((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password);
+         AppServices.Clipboard.SetText(((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password,
+            ClipboardManager.AutoClearAfter);
       }
 
       private void _showQrCodePasswords_Clicked(object sender, RoutedEventArgs e)
