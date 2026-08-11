@@ -584,5 +584,108 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * Concurrent field edits (autosave + activity mutations) racing with
+       * explicit Flush calls must not throw and must leave a consistent
+       * recovery state after a final Flush + reopen with merge.
+      */
+      public void Case12_ConcurrentEditsAndFlush_DoNotCorruptAutosaveOrActivity()
+      {
+         // Given
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray(1);
+         UnitTestsHelper.ClearTestEnvironment();
+
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Database databaseCore = (Database)database;
+         IUser user = database.User!;
+         user.Settings.WarningsToNotify = (WarningType)0;
+
+         IService service = user.AddService("ConcurrentService");
+         IAccount account = service.AddAccount(["id@test.te"], "initial-password");
+         database.Save();
+
+         const int editorCount = 3;
+         const int editsPerEditor = 40;
+         using Barrier start = new(editorCount + 1);
+         Exception? failure = null;
+
+         Thread[] editors = [.. Enumerable.Range(0, editorCount).Select(editorIndex => new Thread(() =>
+         {
+            try
+            {
+               start.SignalAndWait();
+
+               for (int n = 0; n < editsPerEditor; n++)
+               {
+                  account.Notes = $"notes-{editorIndex}-{n}";
+                  account.Label = $"label-{editorIndex}-{n}";
+               }
+            }
+#pragma warning disable CA1031 // Test harness: capture the first failure from any worker
+            catch (Exception ex)
+#pragma warning restore CA1031
+            {
+               _ = Interlocked.CompareExchange(ref failure, ex, null);
+            }
+         }))];
+
+         Thread flusher = new(() =>
+         {
+            try
+            {
+               start.SignalAndWait();
+
+               for (int n = 0; n < editsPerEditor; n++)
+               {
+                  databaseCore.AutoSave.Flush();
+                  databaseCore.ActivityCenter.Flush();
+                  _ = database.HasChanged(string.Empty);
+                  _ = database.Activities;
+               }
+            }
+#pragma warning disable CA1031 // Test harness: capture the first failure from any worker
+            catch (Exception ex)
+#pragma warning restore CA1031
+            {
+               _ = Interlocked.CompareExchange(ref failure, ex, null);
+            }
+         });
+
+         // When
+         foreach (Thread editor in editors)
+         {
+            editor.Start();
+         }
+
+         flusher.Start();
+
+         foreach (Thread editor in editors)
+         {
+            editor.Join();
+         }
+
+         flusher.Join();
+
+         // Then — no torn-enumeration / collection-modified exceptions
+         _ = failure.Should().BeNull(failure?.ToString());
+         _ = database.HasChanged(string.Empty).Should().BeTrue();
+
+         databaseCore.AutoSave.Flush();
+         databaseCore.ActivityCenter.Flush();
+         database.Close();
+
+         IDatabase reopened = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
+         IAccount reopenedAccount = reopened.User!.Services.Single().Accounts.Single();
+
+         _ = reopenedAccount.Notes.Should().StartWith("notes-");
+         _ = reopenedAccount.Label.Should().StartWith("label-");
+         _ = reopened.Activities.Should().NotBeEmpty();
+
+         // Finaly
+         reopened.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

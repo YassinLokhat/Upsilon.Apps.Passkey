@@ -15,7 +15,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       IUser? IDatabase.User => User;
       int? IDatabase.SessionLeftTime => User?.SessionLeftTime;
 
-      IEnumerable<IActivity>? IDatabase.Activities => Get(ActivityCenter.Activities.OrderByDescending(x => x.DateTime).ToArray());
+      IEnumerable<IActivity>? IDatabase.Activities => Get(ActivityCenter.GetActivitiesOrdered());
 
       IEnumerable<IWarning>? IDatabase.Warnings => Get(User is not null ? Warnings : null);
 
@@ -480,7 +480,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          // Anchor the activity log's seal inside the (tamper-proof) database so a
          // later rollback or signature strip of the log becomes detectable. The
          // activities were just (re)sealed by the _saveActivities call above.
-         User.ActivitySealWatermark = ActivityCenter.SealedCount;
+         User.ActivitySealWatermark = ActivityCenter.GetSealedCount();
 
          // Re-stretching every passkey on each Save is the most expensive step of
          // a save (PBKDF2 × N). Skip it when neither the username nor the master
@@ -666,9 +666,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
       private Warning[] _lookAtActivityWarnings()
       {
          if (User is null) throw new NullValueException(nameof(User));
-         if (ActivityCenter.Activities is null) throw new NullValueException(nameof(ActivityCenter.Activities));
 
-         IActivity[] activities = [.. ActivityCenter.Activities.Where(x => x.NeedsReview)];
+         IActivity[] activities = ActivityCenter.GetActivitiesNeedingReview();
 
          return activities.Length != 0 ? [new Warning([.. activities])] : [];
       }

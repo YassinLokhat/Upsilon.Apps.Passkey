@@ -13,8 +13,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          set;
       }
 
+      // In-memory decrypted view. Mutated on the UI thread and read by warning
+      // scans / Flush; always accessed under _gate.
       internal List<IActivity> Activities = [];
 
+      // Serialized ciphertexts (and seal metadata below). Same gate as Activities
+      // so a deferred persist never snapshots a torn list.
       public List<string> ActivityList { get; set; } = [];
 
       public string Username { get; set; } = string.Empty;
@@ -35,6 +39,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public int SealedCount { get; set; }
 
+      // Protects Activities, ActivityList, Signature, SealedCount, and the
+      // Username/PublicKey reads used while mutating those collections. Lock
+      // order when nested: AutoSave → ActivityCenter → FileLocker.
+      private readonly Lock _gate = new();
+
       // Each AddActivity used to rewrite the ZIP activity entry (and RSA-sign it
       // when logged in). Bursts of edits therefore paid N full archive writes.
       // While a user is logged in we coalesce those into one flush; pre-login
@@ -51,10 +60,26 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          Activity activity = new(DateTime.Now.Ticks, itemId, eventType, data, needsReview);
 
-         Activities.Insert(0, activity);
-         ActivityList.Insert(0, Database.CryptographyCenter.EncryptAsymmetrically(activity.ToString(), PublicKey));
+         // Capture the public key under the gate, encrypt outside it, then insert
+         // both plaintext and ciphertext atomically. Holding _gate across RSA
+         // would stall concurrent Flush/warning reads for no consistency gain.
+         string publicKey;
+         lock (_gate)
+         {
+            publicKey = PublicKey;
+         }
 
-         if (Database.User is null)
+         string encrypted = Database.CryptographyCenter.EncryptAsymmetrically(activity.ToString(), publicKey);
+
+         bool flushImmediately;
+         lock (_gate)
+         {
+            Activities.Insert(0, activity);
+            ActivityList.Insert(0, encrypted);
+            flushImmediately = Database.User is null;
+         }
+
+         if (flushImmediately)
          {
             // No session yet: flush now so the audit trail is on disk even if the
             // process dies before Login (failed attempts, DatabaseOpened, …).
@@ -68,19 +93,36 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       internal void LoadStringActivities()
       {
-         Activities.Clear();
+         if (Database.User is null)
+         {
+            lock (_gate)
+            {
+               Activities.Clear();
+            }
 
-         if (Database.User is null) return;
+            return;
+         }
 
-         // Decryption is tolerant: an entry that cannot be decrypted (e.g. one
-         // forged with a different key) is skipped rather than aborting login.
-         // Authenticity of the sealed portion is asserted separately by
-         // VerifyIntegrity, which does not need to decrypt anything.
-         Activities = [.. ActivityList.AsParallel()
+         // Snapshot ciphertexts under the gate, decrypt outside (RSA is slow and
+         // must not block AddActivity / Flush), then publish the result under the
+         // gate again. Authenticity of the sealed portion is asserted separately
+         // by VerifyIntegrity, which does not need to decrypt anything.
+         string[] encryptedSnapshot;
+         lock (_gate)
+         {
+            encryptedSnapshot = [.. ActivityList];
+         }
+
+         List<IActivity> decrypted = [.. encryptedSnapshot.AsParallel()
             .Select(_tryDecrypt)
             .Where(x => x is not null)
             .Cast<Activity>()
             .OrderByDescending(x => x.DateTime)];
+
+         lock (_gate)
+         {
+            Activities = decrypted;
+         }
       }
 
       private Activity? _tryDecrypt(string encryptedActivity)
@@ -114,33 +156,82 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          if (Database.User is null) throw new NullValueException(nameof(Database.User));
 
          int watermark = Database.User.ActivitySealWatermark;
+         string signature;
+         int sealedCount;
+         int activityCount;
+         string publicKey;
+         string canonical;
 
-         // Never sealed (legacy file, or a brand-new database before its first
-         // save): there is nothing to verify.
-         if (watermark == 0 && string.IsNullOrEmpty(Signature))
+         lock (_gate)
          {
-            return true;
-         }
+            signature = Signature;
+            sealedCount = SealedCount;
+            activityCount = ActivityList.Count;
+            publicKey = PublicKey;
 
-         // The database (which is tamper-proof) records that the log was sealed,
-         // but the signature is now gone: a downgrade/strip attempt.
-         if (string.IsNullOrEmpty(Signature))
-         {
-            return false;
-         }
+            // Never sealed (legacy file, or a brand-new database before its first
+            // save): there is nothing to verify.
+            if (watermark == 0 && string.IsNullOrEmpty(signature))
+            {
+               return true;
+            }
 
-         // Fewer sealed entries than the trusted database recorded, or a list
-         // shorter than its own sealed count: truncation/rollback.
-         if (SealedCount < watermark || ActivityList.Count < SealedCount)
-         {
-            return false;
+            // The database (which is tamper-proof) records that the log was sealed,
+            // but the signature is now gone: a downgrade/strip attempt.
+            if (string.IsNullOrEmpty(signature))
+            {
+               return false;
+            }
+
+            // Fewer sealed entries than the trusted database recorded, or a list
+            // shorter than its own sealed count: truncation/rollback.
+            if (sealedCount < watermark || activityCount < sealedCount)
+            {
+               return false;
+            }
+
+            canonical = _canonicalSealedContent_NoLock();
          }
 
          // The public key stored in the (unencrypted) log must be the one that
          // belongs to the private key held in the encrypted database. This
-         // defeats an attacker swapping in their own key pair.
+         // defeats an attacker swapping in their own key pair. RSA verify runs
+         // outside the gate.
          string trustedPublicKey = Database.CryptographyCenter.GetPublicKey(Database.User.PrivateKey.Reveal());
-         return trustedPublicKey == PublicKey && Database.CryptographyCenter.Verify(_canonicalSealedContent(), Signature, trustedPublicKey);
+         return trustedPublicKey == publicKey && Database.CryptographyCenter.Verify(canonical, signature, trustedPublicKey);
+      }
+
+      /// <summary>
+      /// Snapshot of activities newest-first for UI / public API consumers.
+      /// </summary>
+      internal IActivity[] GetActivitiesOrdered()
+      {
+         lock (_gate)
+         {
+            return [.. Activities.OrderByDescending(x => x.DateTime)];
+         }
+      }
+
+      /// <summary>
+      /// Snapshot of activities that still need user review (warning scan).
+      /// </summary>
+      internal IActivity[] GetActivitiesNeedingReview()
+      {
+         lock (_gate)
+         {
+            return [.. Activities.Where(x => x.NeedsReview)];
+         }
+      }
+
+      /// <summary>
+      /// Current seal watermark, safe to read while a flush may be in progress.
+      /// </summary>
+      internal int GetSealedCount()
+      {
+         lock (_gate)
+         {
+            return SealedCount;
+         }
       }
 
       /// <summary>
@@ -165,24 +256,32 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private void _persist(bool rebuildStringActivities)
       {
-         if (rebuildStringActivities)
+         // Rebuild (when requested) re-encrypts every entry with RSA; that work
+         // stays under _gate so AddActivity cannot interleave a partial list.
+         // FileLocker is taken inside the same critical section (lock order:
+         // ActivityCenter → FileLocker).
+         lock (_gate)
          {
-            _removeOldActivities();
+            if (rebuildStringActivities)
+            {
+               _removeOldActivities_NoLock();
 
-            ActivityList.Clear();
-            ActivityList.AddRange(Activities
-               .OrderByDescending(x => x.DateTime)
-               .Select(x => ((Activity)x).ToString())
-               .Distinct()
-               .Select(x => Database.CryptographyCenter.EncryptAsymmetrically(x, PublicKey)));
+               ActivityList.Clear();
+               ActivityList.AddRange(Activities
+                  .OrderByDescending(x => x.DateTime)
+                  .Select(x => ((Activity)x).ToString())
+                  .Distinct()
+                  .Select(x => Database.CryptographyCenter.EncryptAsymmetrically(x, PublicKey)));
+            }
+
+            _seal_NoLock();
+
+            Database.FileLocker.Save(this, Database.ActivityFileEntry);
          }
-
-         _seal();
-
-         Database.FileLocker.Save(this, Database.ActivityFileEntry);
       }
 
-      private void _seal()
+      // Caller must hold _gate.
+      private void _seal_NoLock()
       {
          // Sealing needs the private key, which is only available once a user is
          // logged in. Activities appended before login grow an unsealed tail
@@ -193,10 +292,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
 
          SealedCount = ActivityList.Count;
-         Signature = Database.CryptographyCenter.Sign(_canonicalSealedContent(), Database.User.PrivateKey.Reveal());
+         Signature = Database.CryptographyCenter.Sign(_canonicalSealedContent_NoLock(), Database.User.PrivateKey.Reveal());
       }
 
-      private string _canonicalSealedContent()
+      // Caller must hold _gate.
+      private string _canonicalSealedContent_NoLock()
       {
          // Entries are stored newest-first, so the sealed set (everything that
          // existed at the last seal) is the tail; anything prepended afterwards
@@ -206,7 +306,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return string.Join("\n", [$"{SealedCount}", PublicKey, .. sealedEntries]);
       }
 
-      private void _removeOldActivities()
+      // Caller must hold _gate.
+      private void _removeOldActivities_NoLock()
       {
          if (Database.User is null
             || Database.User.Settings.NumberOfMonthActivitiesToKeep == 0)
