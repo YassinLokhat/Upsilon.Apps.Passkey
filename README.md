@@ -41,6 +41,8 @@ classDiagram
 
         class IClipboardManager {
             <<interface>>
+            +SetText(in text string, in autoClearAfter TimeSpan) void
+            +SetText(in text string, in autoClearAfter int) void
             +RemoveAllOccurrence(in removeList IEnumerable~string~) int
         }
 
@@ -120,15 +122,20 @@ classDiagram
             <<interface>>
             +string Username
             +IEnumerable~string~ Passkeys
+            +ISettings Settings
+            +IEnumerable~IService~ Services
+            +AddService(in serviceName string) IService
+            +DeleteService(in service IService) void
+        }
+
+        class ISettings {
+            <<interface>>
             +int LogoutTimeout
             +int CleaningClipboardTimeout
             +int ShowPasswordDelay
             +int NumberOfOldPasswordToKeep
             +int NumberOfMonthActivitiesToKeep
             +WarningType WarningsToNotify
-            +IEnumerable~IService~ Services
-            +AddService(in serviceName string) IService
-            +DeleteService(in service IService) void
         }
 
         class IDatabase {
@@ -152,6 +159,7 @@ classDiagram
             +SaveAsync(in cancellationToken CancellationToken) Task
             +Delete(void) void
             +Close(void) void
+            +Dispose(void) void
             +HasChanged(in itemId string) bool
             +HasChanged(in itemId string, in fieldName string) bool
             +ImportFromFile(in filePath string) bool
@@ -181,6 +189,7 @@ classDiagram
     namespace Upsilon.Apps.Passkey.Interfaces.Enums {
         class AccountOption {
             <<enumeration>>
+            <<flags>>
             None
             WarnIfPasswordLeaked
             WarnIfDuplicatedPassword
@@ -188,6 +197,7 @@ classDiagram
         
         class WarningType {
             <<enumeration>>
+            <<flags>>
             ActivityReviewWarning
             PasswordUpdateReminderWarning
             DuplicatedPasswordsWarning
@@ -256,6 +266,7 @@ classDiagram
     IUser --|> IItem
     IService --|> IItem
     IAccount --|> IItem
+    IDatabase ..|> IDisposable
     
     %% Link Relations
     IItem --> IDatabase : Database
@@ -267,6 +278,8 @@ classDiagram
     IService "0" --> "*" IAccount : Accounts
     IService --> IUser : User
     IUser "0" --> "*" IService : Services
+    IUser --> ISettings : Settings
+    ISettings --> WarningType : WarningsToNotify
     IDatabase --> ISerializationCenter : SerializationCenter
     IDatabase --> ICryptographyCenter : CryptographyCenter
     IDatabase --> IPasswordFactory : PasswordFactory
@@ -310,8 +323,14 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Create(new Upsilo
    new string[] { "master_password_1", "master_password_2", "master_password_3" });
 ```
 
-After creation, the method will directly open the database but it will not login directly to the current user.
-So to login, check the **Login to an user** use case.
+After creation, the method opens the database **and logs the user in**:
+`database.User` is already set. Do **not** call `Login` afterwards — that would
+append another onion layer on top of an already-complete stack and fail. Progressive
+`Login` is only needed after `Open` (see the next use cases).
+
+```csharp
+IUser user = database.User!;	// Already logged in after Create
+```
 
 ### Open an existing database
 
@@ -332,9 +351,11 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Open(new Upsilon.
    "username");
 ```
 
+After `Open`, `database.User` is still `null` until progressive login succeeds.
+
 ### Login to an user
 
-After opening (or creating) a database, use the `IDatabase.Login` method to login the user.
+After opening a database, use the `IDatabase.Login` method to login the user.
 To do that, call the login method with every passkeys used during the database creation process.
 Only the last call of that method, with every correct and ordered passkeys, will return the `IUser` representing the current user successfully logged in.
 Else that method will return `null`.
@@ -354,26 +375,44 @@ failing until you `Close()` the database and `Open` it again. That is intentiona
 In the GUI, cancelling the login (e.g. Escape) ends the session so the user can
 restart cleanly.
 
-Once the IUser retrieved, it allow a full access to all services and accounts, all log history and all user parameters.
+Once the IUser retrieved, it allow a full access to all services and accounts, all log history and all user settings (`user.Settings`).
+
+`IDatabase` also implements `IDisposable`: `Dispose()` closes the session the same
+way as `Close()`. Prefer a `using` when you own the lifetime of the database.
 
 ### Saving the changes
 
 Use the `IDatabase.Save` method to save the user's updates.
-Note that any update on the user, its services and/or accounts which is not saved will be kept in a hidden autosave file.
+Note that any update on the user, its settings, services and/or accounts which is
+not saved is kept in the `autosave` entry inside the `.pku` ZIP (not a separate file).
 
 ```csharp
-user.LogoutTimeout = 5;	// Setting the logout timeout to 5 min will create a hidden autosave file
-database.Save();		// Will save the new logout timeout in the database file and remove the autosave file
+user.Settings.LogoutTimeout = 5;	// Setting the logout timeout to 5 min writes the autosave entry
+database.Save();					// Persists into the database entry and clears autosave
 ```
 
 ### Logout/Close a database
 
 To logout and close the database, use the `IDatabase.Close` method.
-All unsaved updates are stored inside the hidden autosave file.
+All unsaved updates remain in the `autosave` ZIP entry until the next successful merge/save.
 
 ```csharp
 database.Close();
 ```
+
+### Import and Export
+
+`ImportFromFile` / `ExportToFile` (and their `Async` twins) are routed by file
+extension. Only `.json` and `.csv` are supported; any other extension fails.
+
+*   **JSON** carries `Settings` and `Services` (with accounts).
+*   **CSV** is tab-separated (TSV) with JSON-encoded cells. Headers are
+    `ServiceName`, `ServiceUrl`, `ServiceNotes`, `AccountLabel`, `Identifiers`,
+    `Password`, `AccountNotes`, `AccountOptions`, `PasswordUpdateReminderDelay`.
+    Settings are not included in CSV.
+
+Import requires a logged-in user. Export and import files are **plaintext** — see
+[SECURITY.md](SECURITY.md#known-limitations).
 
 ### Keeping a UI responsive
 

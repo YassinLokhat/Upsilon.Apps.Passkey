@@ -84,6 +84,11 @@ supply-chain attack surface minimal.
 
 - A database is protected by an **ordered set of passkeys** (master passwords).
   All of them, **in the correct order**, are required to decrypt the data.
+- The onion always starts with an **implicit first layer keyed by the username**:
+  `GetHash(username)` (fast SHA-512, Base64) is pushed onto the stack before any
+  stretched passkey. Changing the username therefore changes the ciphertext
+  layout; it is not a secret factor on its own, but it is part of the key
+  material used at rest.
 - Each passkey is stretched with **PBKDF2-HMAC-SHA-512, 1,000,000 iterations**
   (64-byte output) before being used as key material (`GetSlowHash`). This far
   exceeds the OWASP baseline and makes offline guessing expensive. HMAC-SHA-512
@@ -98,12 +103,12 @@ supply-chain attack surface minimal.
   standard.
 - **Crypto-agility**: the stretching parameters (algorithm, iterations, output
   length, salt, scheme version) are recorded in an unencrypted `header` entry of
-  the `.pku` file. A database is always reopened with the exact parameters it was
-  written with, and is transparently re-stretched with the current defaults on
-  the next save. This lets the work factor and algorithm evolve over time
-  without breaking existing files. The header is not secret: tampering with it
-  only prevents the correct key from being derived, it never weakens already
-  encrypted data.
+  the `.pku` file. A database is always reopened — and rewritten — with the
+  **exact parameters stored in that header**. There is no automatic upgrade to
+  `DefaultSlowHashParameters` on save today; the sticky header is what will let
+  a future release migrate work factor or algorithm without breaking existing
+  files. The header is not secret: tampering with it only prevents the correct
+  key from being derived, it never weakens already encrypted data.
 
 ### Symmetric encryption (data at rest)
 
@@ -152,14 +157,18 @@ login:
 
 ### Storage format (`.pku`)
 
-- A `.pku` file is a **ZIP archive** containing three entries: `database`,
-  `autosave`, and `activity`.
-- Each entry pipeline is: JSON serialize → GZip compress → Base64, then (for
-  `database`/`autosave`) the symmetric onion encrypts that compressed payload.
-  The `activity` entry is stored compressed only at the ZIP layer; its records
-  are already protected individually with per-record RSA before serialization.
-  Compressing **before** encryption is deliberate: GZip only shrinks structured
-  plaintext, not high-entropy ciphertext.
+- A `.pku` file is a **ZIP archive** containing four entries: `header`,
+  `database`, `autosave`, and `activity`.
+- The `header` entry holds the versioned `KdfParameters` (algorithm, iterations,
+  output length, salt, scheme version). It is not passkey-encrypted — only the
+  shared JSON → GZip → Base64 pipeline applies — because those values must be
+  readable before any key can be derived.
+- Each other entry pipeline is: JSON serialize → GZip compress → Base64, then
+  (for `database`/`autosave`) the symmetric onion encrypts that compressed
+  payload. The `activity` entry is stored compressed only at the ZIP layer; its
+  records are already protected individually with per-record RSA before
+  serialization. Compressing **before** encryption is deliberate: GZip only
+  shrinks structured plaintext, not high-entropy ciphertext.
 - File access is serialized through a re-entrant lock (`FileLocker`) to prevent
   concurrent access races (e.g. a save colliding with the session-timeout timer).
 - **Deferred persistence**: while a user is logged in, autosave and activity-log
@@ -210,11 +219,12 @@ login:
 
 ### Session protection
 
-- **Auto-logout**: after a configurable inactivity timeout (`LogoutTimeout`), the
-  session is closed automatically and the database file handle is released.
+- **Auto-logout**: after a configurable inactivity timeout
+  (`ISettings.LogoutTimeout`), the session is closed automatically and the
+  database file handle is released.
 - **Clipboard cleaning**: copied passwords are removed from the clipboard (and
   clipboard history, via the OS-specific `IClipboardManager`) after a
-  configurable delay (`CleaningClipboardTimeout`).
+  configurable delay (`ISettings.CleaningClipboardTimeout`).
 
 ### Password hygiene features
 
@@ -253,7 +263,9 @@ These are conscious trade-offs, documented for transparency:
   KDF later, pluggably, should the policy ever be relaxed.
 - **Import/Export files**: CSV and JSON files produced by the Export feature (and
   consumed by Import) are **unencrypted plaintext** by design, for
-  interoperability. Users are responsible for protecting or deleting them.
+  interoperability. The `.csv` path is tab-separated (TSV) with JSON-encoded
+  cells and covers services/accounts only; `.json` also carries user settings.
+  Users are responsible for protecting or deleting these files.
 - **Leak check fails open**: if the Have I Been Pwned service is unreachable, a
   potentially leaked password is reported as "not leaked".
 - **Unsealed activity-log tail**: the activity log is tamper-evident only for the
