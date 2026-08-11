@@ -155,19 +155,28 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          try
          {
-            byte[] bytes = Convert.FromBase64String(compressedText);
-            using MemoryStream msi = new(bytes);
-            using MemoryStream mso = new();
-            using (GZipStream gs = new(msi, CompressionMode.Decompress))
-            {
-               gs.CopyTo(mso);
-            }
-            return Encoding.UTF8.GetString(mso.ToArray());
+            return _decompressStringCore(compressedText);
          }
-         catch
+#pragma warning disable CA1031 // Domain mapping: any decode/gunzip failure is corruption for unkeyed entries
+         catch (Exception ex)
+#pragma warning restore CA1031
          {
-            throw new CorruptedSourceException();
+            throw new CorruptedSourceException("Compressed payload could not be decoded.", ex);
          }
+      }
+
+      // Shared GZip/Base64 decode without mapping failures to a domain exception;
+      // keyed reads need to distinguish "onion not finished yet" from corruption.
+      private static string _decompressStringCore(string compressedText)
+      {
+         byte[] bytes = Convert.FromBase64String(compressedText);
+         using MemoryStream msi = new(bytes);
+         using MemoryStream mso = new();
+         using (GZipStream gs = new(msi, CompressionMode.Decompress))
+         {
+            gs.CopyTo(mso);
+         }
+         return Encoding.UTF8.GetString(mso.ToArray());
       }
 
       private string _readContent(string fileEntry, string[] passkeys)
@@ -184,9 +193,27 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          // Inverse of write: decrypt (when keyed) then decompress. Compression
          // runs on plaintext so GZip actually shrinks JSON; ciphertext would not.
-         return passkeys.Length != 0
-            ? _decompressString(_cryptographicCenter.DecryptSymmetrically(content, passkeys))
-            : _decompressString(content);
+         if (passkeys.Length == 0)
+         {
+            return _decompressString(content);
+         }
+
+         string decrypted = _cryptographicCenter.DecryptSymmetrically(content, passkeys);
+
+         try
+         {
+            return _decompressStringCore(decrypted);
+         }
+#pragma warning disable CA1031 // Domain mapping: peel-ok / gunzip-fail means more passkeys (or junk inner bytes)
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            // Layers peeled cleanly but the payload is not valid gzip yet: either
+            // more passkeys are required (progressive login) or the inner bytes
+            // are junk. Login treats this as a soft miss; outer AEAD failures
+            // already surfaced as CorruptedSourceException / WrongPasswordException.
+            throw new IncompleteOnionException("Decrypted payload is not a finished vault entry yet.", ex);
+         }
       }
 
       private void _writeContent(string content, string fileEntry, string[] passkeys)

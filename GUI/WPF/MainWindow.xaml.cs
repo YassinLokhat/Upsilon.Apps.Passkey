@@ -206,12 +206,26 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
             _ = await login.ConfigureAwait(true);
          }
+         catch (CorruptedSourceException ex)
+         {
+            // Wrong passkeys stay soft (Login returns null). Corruption and other
+            // hard failures bubble up so the user can be told and restart cleanly.
+            Log.Error(ex, "Database corrupted during login");
+            AppServices.Dialogs.Warn(
+               "This database file appears to be corrupted or is not a valid Passkey vault and cannot be opened.",
+               "Corrupted database");
+            _resetCredentials();
+            _session.EndSession();
+            return;
+         }
 #pragma warning disable CA1031 // Last-resort barrier: an unexpected login error is shown to the user, not propagated
          catch (Exception ex)
 #pragma warning restore CA1031
          {
             Log.Error(ex, "Unexpected error during login");
             AppServices.Dialogs.Warn("An unexpected error occurred while opening the database.", "Login error");
+            _resetCredentials();
+            _session.EndSession();
             return;
          }
          finally

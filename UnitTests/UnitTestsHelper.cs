@@ -116,6 +116,14 @@ namespace Upsilon.Apps.Passkey.UnitTests
          WriteFileZipEntry(databaseFile, "header", _compress(node.ToJsonString()));
       }
 
+      // Replaces the encrypted database entry with opaque garbage so Login with
+      // the correct passkeys fails the outer AEAD layer as CorruptedSourceException
+      // rather than WrongPasswordException.
+      public static void TamperDatabaseEntryCorrupt(string databaseFile)
+      {
+         WriteFileZipEntry(databaseFile, "database", Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)));
+      }
+
       private static JsonNode _readActivityNode(string databaseFile)
          => JsonNode.Parse(_decompress(ReadFileZipEntry(databaseFile, "activity")))!;
 

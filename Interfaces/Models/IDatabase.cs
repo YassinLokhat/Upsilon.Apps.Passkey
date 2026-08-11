@@ -80,7 +80,15 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// friction (see SECURITY.md).
       /// </summary>
       /// <param name="passkey">The current passkey.</param>
-      /// <returns>The loaded user, or <see langword="null"/> if login is incomplete or failed.</returns>
+      /// <returns>
+      /// The loaded user, or <see langword="null"/> when login is still incomplete
+      /// (<see cref="IncompleteOnionException"/>) or the passkey was wrong
+      /// (<see cref="WrongPasswordException"/>). Both are caught internally and
+      /// never surface to the caller.
+      /// </returns>
+      /// <exception cref="CorruptedSourceException">
+      /// The database entry is corrupted or not a Passkey vault payload.
+      /// </exception>
       IUser? Login(string passkey);
 
       /// <summary>
@@ -95,7 +103,11 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// </remarks>
       /// <param name="passkey">The current passkey.</param>
       /// <param name="cancellationToken">Abandons the attempt while it is still queued.</param>
-      /// <returns>The loaded user, or <see langword="null"/> if login is incomplete or failed.</returns>
+      /// <returns>
+      /// The loaded user, or <see langword="null"/> when login is still incomplete
+      /// or the passkey was wrong. Other failures (e.g.
+      /// <see cref="CorruptedSourceException"/>) are propagated to the caller.
+      /// </returns>
       Task<IUser?> LoginAsync(string passkey, CancellationToken cancellationToken = default);
 
       /// <summary>

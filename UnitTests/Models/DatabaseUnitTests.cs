@@ -730,5 +730,45 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded!.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * Login with the correct passkeys against a corrupted database entry must
+       * throw CorruptedSourceException (not return null as WrongPassword does).
+      */
+      public void Case14_LoginWithCorruptedDatabaseThrows()
+      {
+         // Given
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         UnitTestsHelper.TamperDatabaseEntryCorrupt(databaseFile);
+
+         IDatabase databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            databaseFile,
+            UnitTestsHelper.GetUsername());
+
+         // When / Then — wrong passkey stays soft (null); corruption must throw.
+         Action loginCorrupt = () =>
+         {
+            foreach (string passkey in passkeys)
+            {
+               _ = databaseLoaded.Login(passkey);
+            }
+         };
+         loginCorrupt.Should().Throw<CorruptedSourceException>();
+         databaseLoaded.User.Should().BeNull();
+
+         // Finaly
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

@@ -60,17 +60,21 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
          catch (WrongPasswordException passwordException)
          {
+            // Soft miss: wrong passkey poisons the stack and returns null so the
+            // caller can keep stacking (or abandon). Logged for review.
             ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.LoginFailed,
                data: [Username, $"{passwordException.PasswordLevel}"],
                needsReview: true);
          }
-#pragma warning disable CA1031 // Last-resort barrier: an unexpected login failure is traced, not propagated
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (IncompleteOnionException)
          {
-            System.Diagnostics.Trace.TraceWarning($"Unexpected error during login :\n{ex.Message}");
+            // Soft miss: the layers provided so far decrypted, but the payload is
+            // not a finished vault yet (more passkeys still required). Not logged
+            // as LoginFailed — the passkeys were not wrong.
          }
+         // CorruptedSourceException and any other failure propagate: the GUI
+         // must surface them rather than treating them like a wrong passkey.
 
          if (User is not null)
          {

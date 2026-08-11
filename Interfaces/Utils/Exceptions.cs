@@ -19,6 +19,19 @@
       public InsufficientKdfParametersException(string message, Exception innerException) : base(message, innerException) { }
    }
 
+   /// <summary>
+   /// Thrown during progressive login when the supplied passkeys decrypted their
+   /// onion layers successfully but the result is not yet a valid compressed
+   /// payload — typically because more passkeys are still required. Callers
+   /// treat this like a soft login miss (<see langword="null"/>), not corruption.
+   /// </summary>
+   public sealed class IncompleteOnionException : Exception
+   {
+      public IncompleteOnionException() : base() { }
+      public IncompleteOnionException(string message) : base(message) { }
+      public IncompleteOnionException(string message, Exception innerException) : base(message, innerException) { }
+   }
+
    public sealed class WrongPasswordException : Exception
    {
       public int PasswordLevel { get; private set; }
