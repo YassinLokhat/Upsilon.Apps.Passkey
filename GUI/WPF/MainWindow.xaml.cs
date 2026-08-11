@@ -142,15 +142,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          try
          {
-#pragma warning disable CA2000 // Ownership is transferred to ISessionService, which disposes the database when the session ends
             IDatabase database = await Database.OpenAsync(AppServices.Cryptography,
                AppServices.Serialization,
                AppServices.PasswordFactory,
                AppServices.Clipboard,
                _mainViewModel.DatabaseFile,
                _username_TB.Text).ConfigureAwait(true);
-#pragma warning restore CA2000
-
             database.DatabaseClosed += _database_DatabaseClosed;
             database.AutoSaveDetected += _database_AutoSaveDetected;
             _session.StartSession(database);

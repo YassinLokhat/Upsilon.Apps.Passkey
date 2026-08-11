@@ -105,9 +105,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             return "the CSV data format is incorrect";
          }
 
-         if (services.Count == 0) return "there is no data to import";
-
-         return _importServices(database, services);
+         return services.Count == 0 ? "there is no data to import" : _importServices(database, services);
       }
 
       public static string ImportJson(this IDatabase database, string importContent)
