@@ -174,6 +174,31 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          }
       }
 
+      [TestMethod]
+      public void Case08_RapidConsecutiveSaves_DoNotFailOnReplace()
+      {
+         string path = _preparePath();
+
+         try
+         {
+            using FileLocker locker = _createLocker(path, FileMode.CreateNew);
+
+            for (int i = 0; i < 40; i++)
+            {
+               locker.Save(new Payload { Value = $"v{i}" }, "entry");
+               locker.Save(new Payload { Value = $"side-{i}" }, "side");
+            }
+
+            _ = locker.Open<Payload>("entry").Value.Should().Be("v39");
+            _ = locker.Open<Payload>("side").Value.Should().Be("side-39");
+            _ = Directory.GetFiles(Path.GetDirectoryName(path)!, "*.tmp").Should().BeEmpty();
+         }
+         finally
+         {
+            _cleanup(path);
+         }
+      }
+
       private static FileLocker _createLocker(string path, FileMode mode) =>
          new(UnitTestsHelper.CryptographicCenter, UnitTestsHelper.SerializationCenter, path, mode);
 

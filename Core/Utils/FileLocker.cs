@@ -20,11 +20,19 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // never an unlocked window between *logical* operations during which
       // another process could grab a write handle — except for the brief
       // close/reopen inside _commitArchiveAtomically, which swaps a fully
-      // written sibling temp file into place. FileShare.Read still lets other
+      // written sibling temp file into place. FileShare.Read lets other
       // processes open the file for reading (backups, antivirus, inspection)
-      // while denying concurrent writers — a second FileLocker on the same
-      // path still fails outside that replace window.
-      private const FileShare SHARE_MODE = FileShare.Read;
+      // while denying concurrent writers. FileShare.Delete lets the atomic
+      // replace succeed even when a reader still holds a handle that allowed
+      // deletion (common on Windows with scanners).
+      private const FileShare SHARE_MODE = FileShare.Read | FileShare.Delete;
+
+      // Windows antivirus / search indexers often open a just-closed .pku for
+      // a few milliseconds; File.Move(overwrite) then fails with
+      // UnauthorizedAccessException or IOException (HRESULT 0x80070005). Retry
+      // with short backoff — the same strategy used by the .NET SDK tooling.
+      private const int ReplaceMaxAttempts = 16;
+      private static readonly TimeSpan ReplaceInitialDelay = TimeSpan.FromMilliseconds(5);
 
       internal FileLocker(ICryptographyCenter cryptographicCenter, ISerializationCenter serializationCenter, string filePath, FileMode fileMode = FileMode.Open)
       {
@@ -256,7 +264,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // (flushed to disk), release our handle, then File.Move(overwrite) so
       // readers either see the previous intact .pku or the new intact one —
       // never a torn ZipArchive.Update. The handle is reacquired immediately
-      // afterwards; the unlocked window is only the replace itself.
+      // afterwards; the unlocked window is only the replace itself. On Windows
+      // that window races with AV/indexers, so the move is retried; if it still
+      // cannot replace, we fall back to an in-place rewrite under a reacquired
+      // handle (still truncates correctly via SetLength).
       private void _commitArchiveAtomically(ReadOnlySpan<byte> archiveBytes)
       {
          string directory = Path.GetDirectoryName(FilePath) is { Length: > 0 } dir
@@ -266,6 +277,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          string tempPath = Path.Combine(
             directory,
             $"{Path.GetFileName(FilePath)}.{Guid.NewGuid():N}.tmp");
+
+         byte[] payload = archiveBytes.ToArray();
 
          try
          {
@@ -277,23 +290,30 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                bufferSize: 64 * 1024,
                FileOptions.WriteThrough))
             {
-               temp.Write(archiveBytes);
+               temp.Write(payload);
                temp.Flush(flushToDisk: true);
             }
 
             string path = FilePath;
             _releaseStream();
 
-            try
+            bool replaced = _tryReplaceWithRetries(tempPath, path);
+
+            if (replaced)
             {
-               File.Move(tempPath, path, overwrite: true);
                tempPath = string.Empty;
+               _stream = _openExistingWithRetries(path);
             }
-            finally
+            else
             {
-               // Re-acquire whether replace succeeded or not so the locker
-               // keeps owning the session handle whenever the path still exists.
-               _stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, SHARE_MODE);
+               // Move kept failing (typically a transient scanner lock). Prefer
+               // a successful in-place commit over failing the whole Save: the
+               // temp file still holds a complete archive if we crash mid-write.
+               System.Diagnostics.Trace.TraceWarning(
+                  $"Atomic replace of '{path}' failed after retries; falling back to in-place rewrite.");
+
+               _stream = _openExistingWithRetries(path);
+               _rewriteInPlace(payload);
             }
          }
          finally
@@ -313,5 +333,72 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             }
          }
       }
+
+      private void _rewriteInPlace(ReadOnlySpan<byte> archiveBytes)
+      {
+         FileStream stream = _stream2;
+         stream.Position = 0;
+         stream.Write(archiveBytes);
+         stream.SetLength(archiveBytes.Length);
+         stream.Flush(flushToDisk: true);
+      }
+
+      private static bool _tryReplaceWithRetries(string tempPath, string path)
+      {
+         TimeSpan delay = ReplaceInitialDelay;
+         Exception? lastFailure = null;
+
+         for (int attempt = 1; attempt <= ReplaceMaxAttempts; attempt++)
+         {
+            try
+            {
+               File.Move(tempPath, path, overwrite: true);
+               return true;
+            }
+            catch (Exception ex) when (_isTransientFileAccessFailure(ex))
+            {
+               lastFailure = ex;
+
+               if (attempt == ReplaceMaxAttempts)
+               {
+                  break;
+               }
+
+               Thread.Sleep(delay);
+               delay = TimeSpan.FromMilliseconds(Math.Min(delay.TotalMilliseconds * 2, 200));
+            }
+         }
+
+         System.Diagnostics.Trace.TraceWarning(
+            $"File.Move('{tempPath}' → '{path}') failed after {ReplaceMaxAttempts} attempts: {lastFailure}");
+         return false;
+      }
+
+      private static FileStream _openExistingWithRetries(string path)
+      {
+         TimeSpan delay = ReplaceInitialDelay;
+         Exception? lastFailure = null;
+
+         for (int attempt = 1; attempt <= ReplaceMaxAttempts; attempt++)
+         {
+            try
+            {
+               return new FileStream(path, FileMode.Open, FileAccess.ReadWrite, SHARE_MODE);
+            }
+            catch (Exception ex) when (attempt < ReplaceMaxAttempts && _isTransientFileAccessFailure(ex))
+            {
+               lastFailure = ex;
+               Thread.Sleep(delay);
+               delay = TimeSpan.FromMilliseconds(Math.Min(delay.TotalMilliseconds * 2, 200));
+            }
+         }
+
+         throw lastFailure
+            ?? new IOException($"Could not reopen '{path}' after atomic replace.");
+      }
+
+      private static bool _isTransientFileAccessFailure(Exception ex) =>
+         ex is UnauthorizedAccessException
+            or IOException;
    }
 }
