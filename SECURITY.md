@@ -171,14 +171,21 @@ login:
   shrinks structured plaintext, not high-entropy ciphertext.
 - File access is serialized through a re-entrant lock (`FileLocker`) to prevent
   concurrent access races (e.g. a save colliding with the session-timeout timer).
+- **Atomic ZIP commits**: each entry update builds a complete replacement archive
+  in memory, writes it to a sibling temp file (flushed with write-through), then
+  `File.Move(overwrite)` swaps it onto the `.pku` path. Readers therefore see
+  either the previous intact archive or the new one — never a torn
+  `ZipArchiveMode.Update` rewrite, and never trailing garbage when the archive
+  shrinks. The session handle is released only for that replace and reacquired
+  immediately afterwards.
 - **Deferred persistence**: while a user is logged in, autosave and activity-log
   ZIP rewrites are coalesced with a short debounce (~500 ms) so a burst of field
   edits becomes a single disk write. Pending work is flushed on explicit `Save`
   and on `Close`. Pre-login events (open, failed login) still write immediately
   so the audit trail survives a crash before the session starts.
-  The `.pku` handle is held open for the whole session (`FileShare.Read`), so
-  there is no unlocked window between operations; other processes may still
-  open the file for reading, but not for writing.
+  The `.pku` handle is held open for the whole session (`FileShare.Read`) outside
+  the brief atomic-replace window above; other processes may still open the file
+  for reading, but not for writing.
 
 ### Randomness
 

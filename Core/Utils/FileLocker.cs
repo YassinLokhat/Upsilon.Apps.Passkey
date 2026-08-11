@@ -17,10 +17,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private readonly System.Threading.Lock _gate = new();
 
       // The .pku is held open for the whole lifetime of this locker: there is
-      // never an unlocked window between operations during which another process
-      // could grab a write handle. FileShare.Read still lets other processes
-      // open the file for reading (backups, antivirus, inspection) while denying
-      // concurrent writers — a second FileLocker on the same path still fails.
+      // never an unlocked window between *logical* operations during which
+      // another process could grab a write handle — except for the brief
+      // close/reopen inside _commitArchiveAtomically, which swaps a fully
+      // written sibling temp file into place. FileShare.Read still lets other
+      // processes open the file for reading (backups, antivirus, inspection)
+      // while denying concurrent writers — a second FileLocker on the same
+      // path still fails outside that replace window.
       private const FileShare SHARE_MODE = FileShare.Read;
 
       internal FileLocker(ICryptographyCenter cryptographicCenter, ISerializationCenter serializationCenter, string filePath, FileMode fileMode = FileMode.Open)
@@ -73,8 +76,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          lock (_gate)
          {
-            using ZipArchive archive = _openArchive(ZipArchiveMode.Update);
-            archive.GetEntry(fileEntry)?.Delete();
+            if (_stream2.Length == 0
+               || !_entryExists(fileEntry))
+            {
+               return;
+            }
+
+            byte[] updated = _buildArchive(fileEntry, payload: null);
+            _commitArchiveAtomically(updated);
          }
       }
 
@@ -89,8 +98,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                return false;
             }
 
-            using ZipArchive archive = _openArchive(ZipArchiveMode.Read);
-            return archive.GetEntry(fileEntry) is not null;
+            return _entryExists(fileEntry);
          }
       }
 
@@ -115,6 +123,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          _stream2.Position = 0;
          return new ZipArchive(_stream2, mode, leaveOpen: true, Encoding.UTF8);
+      }
+
+      private bool _entryExists(string fileEntry)
+      {
+         using ZipArchive archive = _openArchive(ZipArchiveMode.Read);
+         return archive.GetEntry(fileEntry) is not null;
       }
 
       private static string _compressString(string text)
@@ -169,28 +183,135 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private void _writeContent(string content, string fileEntry, string[] passkeys)
       {
-         using (ZipArchive archive = _openArchive(ZipArchiveMode.Update))
+         // Compress-then-encrypt: GZip the JSON first, then (optionally) wrap
+         // the compressed payload in the symmetric onion. Encrypting first
+         // would leave GZip with high-entropy input and almost no size gain.
+         string compressed = _compressString(content);
+         string payload = passkeys.Length != 0
+            ? _cryptographicCenter.EncryptSymmetrically(compressed, passkeys)
+            : compressed;
+
+         // Build the full updated archive off to the side, then swap it in
+         // atomically. In-place ZipArchiveMode.Update on a live FileStream can
+         // leave trailing garbage when the archive shrinks, and a crash mid-
+         // rewrite can leave a half-updated .pku with no intact predecessor.
+         byte[] updated = _buildArchive(fileEntry, payload);
+         _commitArchiveAtomically(updated);
+      }
+
+      // When payload is non-null, add or replace fileEntry. When null, omit it
+      // (delete). Other existing entries are copied through unchanged.
+      private byte[] _buildArchive(string fileEntry, string? payload)
+      {
+         using MemoryStream output = new();
+
+         using (ZipArchive outArchive = new(output, ZipArchiveMode.Create, leaveOpen: true, Encoding.UTF8))
          {
-            archive.GetEntry(fileEntry)?.Delete();
+            bool wroteTarget = false;
 
-            ZipArchiveEntry newEntry = archive.CreateEntry(fileEntry);
+            if (_stream2.Length > 0)
+            {
+               _stream2.Position = 0;
+               using ZipArchive inArchive = new(_stream2, ZipArchiveMode.Read, leaveOpen: true, Encoding.UTF8);
 
-            using Stream stream = newEntry.Open();
-            using StreamWriter writer = new(stream, Encoding.UTF8);
+               foreach (ZipArchiveEntry entry in inArchive.Entries)
+               {
+                  if (string.Equals(entry.FullName, fileEntry, StringComparison.Ordinal))
+                  {
+                     if (payload is not null)
+                     {
+                        _writeZipEntry(outArchive, fileEntry, payload);
+                        wroteTarget = true;
+                     }
 
-            // Compress-then-encrypt: GZip the JSON first, then (optionally) wrap
-            // the compressed payload in the symmetric onion. Encrypting first
-            // would leave GZip with high-entropy input and almost no size gain.
-            string compressed = _compressString(content);
+                     continue;
+                  }
 
-            writer.Write(passkeys.Length != 0
-               ? _cryptographicCenter.EncryptSymmetrically(compressed, passkeys)
-               : compressed);
+                  ZipArchiveEntry copy = outArchive.CreateEntry(entry.FullName);
+                  using Stream source = entry.Open();
+                  using Stream destination = copy.Open();
+                  source.CopyTo(destination);
+               }
+            }
+
+            if (payload is not null
+               && !wroteTarget)
+            {
+               _writeZipEntry(outArchive, fileEntry, payload);
+            }
          }
 
-         // ZipArchive.Update rewrites the archive on dispose; rewind so the next
-         // open starts from a known position.
-         _stream2.Position = 0;
+         return output.ToArray();
+      }
+
+      private static void _writeZipEntry(ZipArchive archive, string fileEntry, string payload)
+      {
+         ZipArchiveEntry entry = archive.CreateEntry(fileEntry);
+         using Stream stream = entry.Open();
+         using StreamWriter writer = new(stream, Encoding.UTF8);
+         writer.Write(payload);
+      }
+
+      // Durability strategy: write the complete archive to a sibling temp file
+      // (flushed to disk), release our handle, then File.Move(overwrite) so
+      // readers either see the previous intact .pku or the new intact one —
+      // never a torn ZipArchive.Update. The handle is reacquired immediately
+      // afterwards; the unlocked window is only the replace itself.
+      private void _commitArchiveAtomically(ReadOnlySpan<byte> archiveBytes)
+      {
+         string directory = Path.GetDirectoryName(FilePath) is { Length: > 0 } dir
+            ? dir
+            : ".";
+
+         string tempPath = Path.Combine(
+            directory,
+            $"{Path.GetFileName(FilePath)}.{Guid.NewGuid():N}.tmp");
+
+         try
+         {
+            using (FileStream temp = new(
+               tempPath,
+               FileMode.CreateNew,
+               FileAccess.Write,
+               FileShare.None,
+               bufferSize: 64 * 1024,
+               FileOptions.WriteThrough))
+            {
+               temp.Write(archiveBytes);
+               temp.Flush(flushToDisk: true);
+            }
+
+            string path = FilePath;
+            _releaseStream();
+
+            try
+            {
+               File.Move(tempPath, path, overwrite: true);
+               tempPath = string.Empty;
+            }
+            finally
+            {
+               // Re-acquire whether replace succeeded or not so the locker
+               // keeps owning the session handle whenever the path still exists.
+               _stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, SHARE_MODE);
+            }
+         }
+         finally
+         {
+            if (tempPath.Length != 0
+               && File.Exists(tempPath))
+            {
+               try
+               {
+                  File.Delete(tempPath);
+               }
+#pragma warning disable CA1031 // Best-effort cleanup of a leftover temp; must not mask the original failure.
+               catch
+#pragma warning restore CA1031
+               {
+               }
+            }
+         }
       }
    }
 }
