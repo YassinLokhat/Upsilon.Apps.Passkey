@@ -8,6 +8,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF
 {
@@ -157,6 +158,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 #pragma warning restore CA1031
          {
             Log.Error(ex, "Failed to open database");
+            if (ex is InsufficientKdfParametersException)
+            {
+               AppServices.Dialogs.Warn(
+                  "This database file uses key-stretching parameters below the accepted security floor and cannot be opened.",
+                  "Insufficient KDF parameters");
+            }
             return;
          }
 

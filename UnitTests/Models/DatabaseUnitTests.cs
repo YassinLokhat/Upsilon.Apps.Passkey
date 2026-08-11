@@ -3,6 +3,7 @@ using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
@@ -685,6 +686,48 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // Finaly
          reopened.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Database.Open refuses a file whose unencrypted KDF header was weakened
+       * below the accepted floor, and releases the file lock so a later open
+       * of a restored header can succeed.
+      */
+      public void Case13_DatabaseOpenRejectsWeakKdfHeader()
+      {
+         // Given
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         UnitTestsHelper.TamperKdfHeaderIterations(databaseFile, iterations: 1);
+
+         // When / Then
+         Action openWeak = () => UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         openWeak.Should().Throw<InsufficientKdfParametersException>()
+            .WithMessage("*iterations*");
+
+         // Restore a sufficient work factor (still wrong for the ciphertext, but
+         // enough to pass the floor) and confirm the lock was released.
+         UnitTestsHelper.TamperKdfHeaderIterations(databaseFile, iterations: 1_000_000);
+
+         IDatabase databaseLoaded = null;
+         Action openRestored = () => databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            databaseFile,
+            UnitTestsHelper.GetUsername());
+         openRestored.Should().NotThrow();
+         databaseLoaded.Should().NotBeNull();
+
+         // Finaly
+         databaseLoaded!.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
    }

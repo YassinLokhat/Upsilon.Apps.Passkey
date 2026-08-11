@@ -308,9 +308,23 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          // New databases adopt the crypto center's current parameters; existing
          // ones are read from the versioned header they were written with.
+         // The header is unencrypted, so Open also enforces the KDF floor here:
+         // a weakened file is rejected before any passkey is stretched.
          _slowHashParameters = fileMode == FileMode.Create
             ? CryptographyCenter.DefaultSlowHashParameters
             : FileLocker.Open<KdfParameters>(HeaderFileEntry);
+
+         try
+         {
+            CryptographyCenter.EnsureSufficientSlowHashParameters(_slowHashParameters);
+         }
+         catch
+         {
+            // Constructor failed after taking the file lock: release it so the
+            // caller can retry or inspect the .pku without a sharing violation.
+            FileLocker.Dispose();
+            throw;
+         }
 
          Passkeys = [CryptographyCenter.GetHash(username)];
 

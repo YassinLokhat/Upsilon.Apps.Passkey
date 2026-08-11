@@ -13,6 +13,16 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private const int SLOW_HASH_ITERATIONS = 1_000_000;
       private const int SLOW_HASH_SALT_SIZE = 16;
 
+      // Floors for parameters read from an unencrypted header. Defaults sit well
+      // above these; the floors follow the OWASP Password Storage Cheat Sheet
+      // (PBKDF2-HMAC-SHA-256: 600k, PBKDF2-HMAC-SHA-512: 210k) so a hand-edited
+      // or malicious .pku with Iterations = 1 cannot be used to stretch secrets.
+      private const int MIN_SLOW_HASH_VERSION = 1;
+      private const int MIN_SLOW_HASH_ITERATIONS_SHA256 = 600_000;
+      private const int MIN_SLOW_HASH_ITERATIONS_SHA512 = 210_000;
+      private const int MIN_SLOW_HASH_OUTPUT_LENGTH = 32;
+      private const int MIN_SLOW_HASH_SALT_SIZE = 16;
+
       public KdfParameters DefaultSlowHashParameters => new()
       {
          Version = 1,
@@ -31,9 +41,57 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          Salt = Convert.ToBase64String(RandomNumberGenerator.GetBytes(SLOW_HASH_SALT_SIZE)),
       };
 
-      public string GetSlowHash(string source, KdfParameters parameters)
+      public void EnsureSufficientSlowHashParameters(KdfParameters parameters)
       {
          ArgumentNullException.ThrowIfNull(parameters);
+
+         if (parameters.Version < MIN_SLOW_HASH_VERSION)
+         {
+            throw new InsufficientKdfParametersException(
+               $"KDF scheme version '{parameters.Version}' is below the minimum of {MIN_SLOW_HASH_VERSION}.");
+         }
+
+         int minIterations = parameters.Algorithm switch
+         {
+            KdfAlgorithm.Pbkdf2HmacSha256 => MIN_SLOW_HASH_ITERATIONS_SHA256,
+            KdfAlgorithm.Pbkdf2HmacSha512 => MIN_SLOW_HASH_ITERATIONS_SHA512,
+            _ => throw new InsufficientKdfParametersException(
+               $"Unsupported KDF algorithm '{parameters.Algorithm}'."),
+         };
+
+         if (parameters.Iterations < minIterations)
+         {
+            throw new InsufficientKdfParametersException(
+               $"KDF iterations '{parameters.Iterations}' for '{parameters.Algorithm}' are below the minimum of {minIterations}.");
+         }
+
+         if (parameters.OutputLength < MIN_SLOW_HASH_OUTPUT_LENGTH)
+         {
+            throw new InsufficientKdfParametersException(
+               $"KDF output length '{parameters.OutputLength}' is below the minimum of {MIN_SLOW_HASH_OUTPUT_LENGTH} bytes.");
+         }
+
+         byte[] salt;
+         try
+         {
+            salt = Convert.FromBase64String(parameters.Salt);
+         }
+         catch (FormatException ex)
+         {
+            throw new InsufficientKdfParametersException("KDF salt is not valid Base64.", ex);
+         }
+
+         if (salt.Length < MIN_SLOW_HASH_SALT_SIZE)
+         {
+            throw new InsufficientKdfParametersException(
+               $"KDF salt length '{salt.Length}' is below the minimum of {MIN_SLOW_HASH_SALT_SIZE} bytes.");
+         }
+      }
+
+      public string GetSlowHash(string source, KdfParameters parameters)
+      {
+         // Reject weakened or malformed headers before spending CPU on PBKDF2.
+         EnsureSufficientSlowHashParameters(parameters);
 
          // The salt is a random, per-database value carried in the parameters
          // (read back from the header), so it is well-formed by construction and

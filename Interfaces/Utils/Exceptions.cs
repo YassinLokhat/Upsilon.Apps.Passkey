@@ -7,6 +7,18 @@
       public CorruptedSourceException(string message, Exception innerException) : base(message, innerException) { }
    }
 
+   /// <summary>
+   /// Thrown when key-derivation parameters (e.g. from a database header) fall
+   /// below the floor this crypto center accepts, so a weakened or malformed
+   /// header is never used to stretch passkeys.
+   /// </summary>
+   public sealed class InsufficientKdfParametersException : Exception
+   {
+      public InsufficientKdfParametersException() : base() { }
+      public InsufficientKdfParametersException(string message) : base(message) { }
+      public InsufficientKdfParametersException(string message, Exception innerException) : base(message, innerException) { }
+   }
+
    public sealed class WrongPasswordException : Exception
    {
       public int PasswordLevel { get; private set; }

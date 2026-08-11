@@ -62,9 +62,9 @@ classDiagram
             <<interface>>
             +int HashLength
             +KdfParameters DefaultSlowHashParameters
-
             +GetHash(in source string) string
             +GetSlowHash(in source string, in parameters KdfParameters) string
+            +EnsureSufficientSlowHashParameters(in parameters KdfParameters) void
             +EncryptSymmetrically(in source string, in passwords IEnumerable~string~) string
             +DecryptSymmetrically(in source string, in passwords IEnumerable~string~) string
             +GenerateRandomKeys(out publicKey string, out privateKey string) void

@@ -106,6 +106,16 @@ namespace Upsilon.Apps.Passkey.UnitTests
          _writeActivityNode(databaseFile, node);
       }
 
+      // Reproduces the FileLocker pipeline for the (unencrypted) header entry:
+      // the stored content is base64(gzip(json)). Lowers the work factor so
+      // Open's KDF floor can be exercised without minting a whole weak vault.
+      public static void TamperKdfHeaderIterations(string databaseFile, int iterations)
+      {
+         JsonNode node = JsonNode.Parse(_decompress(ReadFileZipEntry(databaseFile, "header")))!;
+         node["Iterations"] = iterations;
+         WriteFileZipEntry(databaseFile, "header", _compress(node.ToJsonString()));
+      }
+
       private static JsonNode _readActivityNode(string databaseFile)
          => JsonNode.Parse(_decompress(ReadFileZipEntry(databaseFile, "activity")))!;
 

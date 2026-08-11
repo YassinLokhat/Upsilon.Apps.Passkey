@@ -107,8 +107,18 @@ supply-chain attack surface minimal.
   **exact parameters stored in that header**. There is no automatic upgrade to
   `DefaultSlowHashParameters` on save today; the sticky header is what will let
   a future release migrate work factor or algorithm without breaking existing
-  files. The header is not secret: tampering with it only prevents the correct
-  key from being derived, it never weakens already encrypted data.
+  files. The header is not secret: lowering iterations in an *existing* file's
+  header does not weaken already encrypted data (the wrong work factor simply
+  yields the wrong key). What it *can* do is offer the user a **new** vault
+  written under a trivial work factor. To block that, Open and every
+  `GetSlowHash` call enforce a **KDF floor** via
+  `EnsureSufficientSlowHashParameters`: scheme version ≥ 1, a known algorithm,
+  iterations at least **600,000** (PBKDF2-HMAC-SHA-256) or **210,000**
+  (PBKDF2-HMAC-SHA-512) — the OWASP Password Storage Cheat Sheet baselines —
+  output length ≥ 32 bytes, and a Base64 salt of at least 16 bytes. Parameters
+  below the floor raise `InsufficientKdfParametersException` and the file is
+  refused. New databases still use the stronger default of 1,000,000
+  PBKDF2-HMAC-SHA-512 iterations.
 
 ### Symmetric encryption (data at rest)
 

@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using System.Diagnostics;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Utils
@@ -304,6 +305,94 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             _ = UnitTestsHelper.CryptographicCenter.Verify(source, signature, wrongPublicKey).Should().BeFalse();
             _ = UnitTestsHelper.CryptographicCenter.Verify(source, "not-a-signature", publicKey).Should().BeFalse();
          }
+      }
+
+      [TestMethod]
+      /*
+       * Default slow-hash parameters satisfy the KDF floor; weakened or
+       * malformed parameters are rejected by Ensure and by GetSlowHash.
+      */
+      public void Case12_SlowHashKdfFloor()
+      {
+         ICryptographyCenter crypto = UnitTestsHelper.CryptographicCenter;
+         KdfParameters defaults = crypto.DefaultSlowHashParameters;
+
+         Action ensureDefaults = () => crypto.EnsureSufficientSlowHashParameters(defaults);
+         ensureDefaults.Should().NotThrow();
+
+         KdfParameters weakIterations = new()
+         {
+            Version = defaults.Version,
+            Algorithm = defaults.Algorithm,
+            Iterations = 1,
+            OutputLength = defaults.OutputLength,
+            Salt = defaults.Salt,
+         };
+         Action ensureWeakIterations = () => crypto.EnsureSufficientSlowHashParameters(weakIterations);
+         ensureWeakIterations.Should().Throw<InsufficientKdfParametersException>()
+            .WithMessage("*iterations*");
+         Action hashWeakIterations = () => crypto.GetSlowHash("passkey", weakIterations);
+         hashWeakIterations.Should().Throw<InsufficientKdfParametersException>();
+
+         KdfParameters weakOutput = new()
+         {
+            Version = defaults.Version,
+            Algorithm = defaults.Algorithm,
+            Iterations = defaults.Iterations,
+            OutputLength = 16,
+            Salt = defaults.Salt,
+         };
+         Action ensureWeakOutput = () => crypto.EnsureSufficientSlowHashParameters(weakOutput);
+         ensureWeakOutput.Should().Throw<InsufficientKdfParametersException>()
+            .WithMessage("*output length*");
+
+         KdfParameters shortSalt = new()
+         {
+            Version = defaults.Version,
+            Algorithm = defaults.Algorithm,
+            Iterations = defaults.Iterations,
+            OutputLength = defaults.OutputLength,
+            Salt = Convert.ToBase64String(new byte[8]),
+         };
+         Action ensureShortSalt = () => crypto.EnsureSufficientSlowHashParameters(shortSalt);
+         ensureShortSalt.Should().Throw<InsufficientKdfParametersException>()
+            .WithMessage("*salt*");
+
+         KdfParameters badSalt = new()
+         {
+            Version = defaults.Version,
+            Algorithm = defaults.Algorithm,
+            Iterations = defaults.Iterations,
+            OutputLength = defaults.OutputLength,
+            Salt = "not-valid-base64!!!",
+         };
+         Action ensureBadSalt = () => crypto.EnsureSufficientSlowHashParameters(badSalt);
+         ensureBadSalt.Should().Throw<InsufficientKdfParametersException>()
+            .WithMessage("*Base64*");
+
+         KdfParameters oldVersion = new()
+         {
+            Version = 0,
+            Algorithm = defaults.Algorithm,
+            Iterations = defaults.Iterations,
+            OutputLength = defaults.OutputLength,
+            Salt = defaults.Salt,
+         };
+         Action ensureOldVersion = () => crypto.EnsureSufficientSlowHashParameters(oldVersion);
+         ensureOldVersion.Should().Throw<InsufficientKdfParametersException>()
+            .WithMessage("*version*");
+
+         // OWASP floor for SHA-512 is accepted (below the create default, above the reject line).
+         KdfParameters owaspFloor = new()
+         {
+            Version = defaults.Version,
+            Algorithm = KdfAlgorithm.Pbkdf2HmacSha512,
+            Iterations = 210_000,
+            OutputLength = defaults.OutputLength,
+            Salt = defaults.Salt,
+         };
+         Action ensureOwaspFloor = () => crypto.EnsureSufficientSlowHashParameters(owaspFloor);
+         ensureOwaspFloor.Should().NotThrow();
       }
    }
 }
