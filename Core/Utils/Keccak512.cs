@@ -10,10 +10,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
    internal static class Keccak512
    {
       // Keccak-512: capacity 1024 → rate 576 bits = 72 bytes; digest 64 bytes.
-      private const int RateBytes = 72;
-      private const int OutputBytes = 64;
+      private const int RATE_BYTES = 72;
+      private const int OUTPUT_BYTES = 64;
 
-      private static readonly ulong[] RoundConstants =
+      private static readonly ulong[] _roundConstants =
       [
          0x0000000000000001UL, 0x0000000000008082UL, 0x800000000000808aUL, 0x8000000080008000UL,
          0x000000000000808bUL, 0x0000000080000001UL, 0x8000000080008081UL, 0x8000000000008009UL,
@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       ];
 
       // Rotation offsets indexed as x + 5*y for the rho step.
-      private static readonly int[] RotationOffsets =
+      private static readonly int[] _rotationOffsets =
       [
          0, 1, 62, 28, 27,
          36, 44, 6, 55, 20,
@@ -49,25 +49,25 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          state.Clear();
 
          int offset = 0;
-         while (offset + RateBytes <= input.Length)
+         while (offset + RATE_BYTES <= input.Length)
          {
-            _absorb(state, input.Slice(offset, RateBytes));
+            _absorb(state, input.Slice(offset, RATE_BYTES));
             _keccakF(state);
-            offset += RateBytes;
+            offset += RATE_BYTES;
          }
 
-         Span<byte> block = stackalloc byte[RateBytes];
+         Span<byte> block = stackalloc byte[RATE_BYTES];
          block.Clear();
          int remaining = input.Length - offset;
          input.Slice(offset).CopyTo(block);
          // Multi-rate padding for raw Keccak (not SHA-3 domain separation).
          block[remaining] = 0x01;
-         block[RateBytes - 1] |= 0x80;
+         block[RATE_BYTES - 1] |= 0x80;
          _absorb(state, block);
          _keccakF(state);
 
-         byte[] output = new byte[OutputBytes];
-         for (int i = 0; i < OutputBytes; i++)
+         byte[] output = new byte[OUTPUT_BYTES];
+         for (int i = 0; i < OUTPUT_BYTES; i++)
          {
             output[i] = (byte)(state[i / 8] >> (8 * (i % 8)));
          }
@@ -77,7 +77,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private static void _absorb(Span<ulong> state, ReadOnlySpan<byte> block)
       {
-         for (int i = 0; i < RateBytes; i++)
+         for (int i = 0; i < RATE_BYTES; i++)
          {
             state[i / 8] ^= (ulong)block[i] << (8 * (i % 8));
          }
@@ -113,7 +113,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                   int index = x + (5 * y);
                   int newX = y;
                   int newY = ((2 * x) + (3 * y)) % 5;
-                  b[newX + (5 * newY)] = _rotl(state[index], RotationOffsets[index]);
+                  b[newX + (5 * newY)] = _rotl(state[index], _rotationOffsets[index]);
                }
             }
 
@@ -126,7 +126,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                }
             }
 
-            state[0] ^= RoundConstants[round];
+            state[0] ^= _roundConstants[round];
          }
       }
 

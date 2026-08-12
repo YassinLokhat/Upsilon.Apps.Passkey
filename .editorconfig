@@ -7,3 +7,91 @@ end_of_line = crlf
 insert_final_newline = true
 charset = utf-8-bom
 trim_trailing_whitespace = true
+
+# -----------------------------------------------------------------------------
+# Naming conventions (more specific rules first — they win over broader ones)
+#   private / private-static fields & methods : _camelCase
+#   private const fields                      : CAPITAL_CASE (SCREAMING_SNAKE)
+#   local const                               : camelCase
+#   other symbols                             : PascalCase (interfaces: I…, type params: T…)
+# -----------------------------------------------------------------------------
+
+# --- Styles ---
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+
+dotnet_naming_style._camel_case.capitalization = camel_case
+dotnet_naming_style._camel_case.required_prefix = _
+
+dotnet_naming_style.capital_case.capitalization = all_upper
+dotnet_naming_style.capital_case.word_separator = _
+
+dotnet_naming_style.interface_style.capitalization = pascal_case
+dotnet_naming_style.interface_style.required_prefix = I
+
+dotnet_naming_style.type_parameter_style.capitalization = pascal_case
+dotnet_naming_style.type_parameter_style.required_prefix = T
+
+# --- Symbols ---
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+
+dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
+dotnet_naming_symbols.type_parameters.applicable_accessibilities = *
+
+dotnet_naming_symbols.private_const_fields.applicable_kinds = field
+dotnet_naming_symbols.private_const_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_const_fields.required_modifiers = const
+
+dotnet_naming_symbols.non_private_const_fields.applicable_kinds = field
+dotnet_naming_symbols.non_private_const_fields.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
+dotnet_naming_symbols.non_private_const_fields.required_modifiers = const
+
+dotnet_naming_symbols.local_constants.applicable_kinds = local
+dotnet_naming_symbols.local_constants.required_modifiers = const
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_symbols.private_methods.applicable_kinds = method, local_function
+dotnet_naming_symbols.private_methods.applicable_accessibilities = private
+
+dotnet_naming_symbols.non_private_members.applicable_kinds = class, struct, enum, property, method, event, namespace, local_function
+dotnet_naming_symbols.non_private_members.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
+
+# --- Rules (order matters) ---
+dotnet_naming_rule.interfaces_must_begin_with_I.symbols = interfaces
+dotnet_naming_rule.interfaces_must_begin_with_I.style = interface_style
+dotnet_naming_rule.interfaces_must_begin_with_I.severity = warning
+
+dotnet_naming_rule.type_parameters_must_begin_with_T.symbols = type_parameters
+dotnet_naming_rule.type_parameters_must_begin_with_T.style = type_parameter_style
+dotnet_naming_rule.type_parameters_must_begin_with_T.severity = warning
+
+dotnet_naming_rule.private_const_fields_must_be_capital_case.symbols = private_const_fields
+dotnet_naming_rule.private_const_fields_must_be_capital_case.style = capital_case
+dotnet_naming_rule.private_const_fields_must_be_capital_case.severity = warning
+
+dotnet_naming_rule.non_private_const_fields_must_be_pascal_case.symbols = non_private_const_fields
+dotnet_naming_rule.non_private_const_fields_must_be_pascal_case.style = pascal_case
+dotnet_naming_rule.non_private_const_fields_must_be_pascal_case.severity = warning
+
+dotnet_naming_rule.local_constants_must_be_camel_case.symbols = local_constants
+dotnet_naming_rule.local_constants_must_be_camel_case.style = camel_case
+dotnet_naming_rule.local_constants_must_be_camel_case.severity = warning
+
+dotnet_naming_rule.private_fields_must_be_underscore_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_must_be_underscore_camel_case.style = _camel_case
+dotnet_naming_rule.private_fields_must_be_underscore_camel_case.severity = warning
+
+dotnet_naming_rule.private_methods_must_be_underscore_camel_case.symbols = private_methods
+dotnet_naming_rule.private_methods_must_be_underscore_camel_case.style = _camel_case
+dotnet_naming_rule.private_methods_must_be_underscore_camel_case.severity = warning
+
+dotnet_naming_rule.non_private_members_must_be_pascal_case.symbols = non_private_members
+dotnet_naming_rule.non_private_members_must_be_pascal_case.style = pascal_case
+dotnet_naming_rule.non_private_members_must_be_pascal_case.severity = warning
+
+# Surface naming violations in `dotnet build` (TreatWarningsAsErrors applies).
+dotnet_diagnostic.IDE1006.severity = warning

@@ -29,8 +29,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private const int MAX_CACHED_RANGES = 512;
       private const int MAX_CACHED_XON_PREFIXES = 512;
 
-      private const int HibpPrefixLength = 5;
-      private const int XonPrefixLength = 10;
+      private const int HIBP_PREFIX_LENGTH = 5;
+      private const int XON_PREFIX_LENGTH = 10;
 
       private readonly Func<HttpRequestMessage, CancellationToken, HttpResponseMessage> _send;
       private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> _sendAsync;
@@ -165,11 +165,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private bool? _tryHibp(string password)
       {
          string hash = _sha1Hex(password);
-         string prefix = hash[..HibpPrefixLength];
+         string prefix = hash[..HIBP_PREFIX_LENGTH];
 
          if (_hibpRangeCache.TryGetValue(prefix, out HashSet<string>? suffixes))
          {
-            return suffixes.Contains(hash[HibpPrefixLength..]);
+            return suffixes.Contains(hash[HIBP_PREFIX_LENGTH..]);
          }
 
          try
@@ -186,7 +186,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             using StreamReader reader = new(response.Content.ReadAsStream());
             HashSet<string> parsed = _parseAndCacheHibp(prefix, reader.ReadToEnd());
-            return parsed.Contains(hash[HibpPrefixLength..]);
+            return parsed.Contains(hash[HIBP_PREFIX_LENGTH..]);
          }
 #pragma warning disable CA1031 // Provider-local barrier: fall through to XON instead of aborting the whole check
          catch (Exception ex)
@@ -200,11 +200,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private async Task<bool?> _tryHibpAsync(string password, CancellationToken cancellationToken)
       {
          string hash = _sha1Hex(password);
-         string prefix = hash[..HibpPrefixLength];
+         string prefix = hash[..HIBP_PREFIX_LENGTH];
 
          if (_hibpRangeCache.TryGetValue(prefix, out HashSet<string>? suffixes))
          {
-            return suffixes.Contains(hash[HibpPrefixLength..]);
+            return suffixes.Contains(hash[HIBP_PREFIX_LENGTH..]);
          }
 
          try
@@ -221,7 +221,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             HashSet<string> parsed = _parseAndCacheHibp(prefix, body);
-            return parsed.Contains(hash[HibpPrefixLength..]);
+            return parsed.Contains(hash[HIBP_PREFIX_LENGTH..]);
          }
          catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
          {
@@ -244,7 +244,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private bool? _tryXon(string password)
       {
          string hash = Keccak512.HashHex(password);
-         string prefix = hash[..XonPrefixLength];
+         string prefix = hash[..XON_PREFIX_LENGTH];
 
          if (_xonPrefixCache.TryGetValue(prefix, out bool cached))
          {
@@ -269,7 +269,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private async Task<bool?> _tryXonAsync(string password, CancellationToken cancellationToken)
       {
          string hash = Keccak512.HashHex(password);
-         string prefix = hash[..XonPrefixLength];
+         string prefix = hash[..XON_PREFIX_LENGTH];
 
          if (_xonPrefixCache.TryGetValue(prefix, out bool cached))
          {

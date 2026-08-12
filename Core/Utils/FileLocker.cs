@@ -31,8 +31,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // a few milliseconds; File.Move(overwrite) then fails with
       // UnauthorizedAccessException or IOException (HRESULT 0x80070005). Retry
       // with short backoff — the same strategy used by the .NET SDK tooling.
-      private const int ReplaceMaxAttempts = 16;
-      private static readonly TimeSpan ReplaceInitialDelay = TimeSpan.FromMilliseconds(5);
+      private const int REPLACE_MAX_ATTEMPTS = 16;
+      private static readonly TimeSpan _replaceInitialDelay = TimeSpan.FromMilliseconds(5);
 
       internal FileLocker(ICryptographyCenter cryptographicCenter, ISerializationCenter serializationCenter, string filePath, FileMode fileMode = FileMode.Open)
       {
@@ -372,10 +372,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private static bool _tryReplaceWithRetries(string tempPath, string path)
       {
-         TimeSpan delay = ReplaceInitialDelay;
+         TimeSpan delay = _replaceInitialDelay;
          Exception? lastFailure = null;
 
-         for (int attempt = 1; attempt <= ReplaceMaxAttempts; attempt++)
+         for (int attempt = 1; attempt <= REPLACE_MAX_ATTEMPTS; attempt++)
          {
             try
             {
@@ -386,7 +386,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             {
                lastFailure = ex;
 
-               if (attempt == ReplaceMaxAttempts)
+               if (attempt == REPLACE_MAX_ATTEMPTS)
                {
                   break;
                }
@@ -397,22 +397,22 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
 
          System.Diagnostics.Trace.TraceWarning(
-            $"File.Move('{tempPath}' → '{path}') failed after {ReplaceMaxAttempts} attempts: {lastFailure}");
+            $"File.Move('{tempPath}' → '{path}') failed after {REPLACE_MAX_ATTEMPTS} attempts: {lastFailure}");
          return false;
       }
 
       private static FileStream _openExistingWithRetries(string path)
       {
-         TimeSpan delay = ReplaceInitialDelay;
+         TimeSpan delay = _replaceInitialDelay;
          Exception? lastFailure = null;
 
-         for (int attempt = 1; attempt <= ReplaceMaxAttempts; attempt++)
+         for (int attempt = 1; attempt <= REPLACE_MAX_ATTEMPTS; attempt++)
          {
             try
             {
                return new FileStream(path, FileMode.Open, FileAccess.ReadWrite, SHARE_MODE);
             }
-            catch (Exception ex) when (attempt < ReplaceMaxAttempts && _isTransientFileAccessFailure(ex))
+            catch (Exception ex) when (attempt < REPLACE_MAX_ATTEMPTS && _isTransientFileAccessFailure(ex))
             {
                lastFailure = ex;
                Thread.Sleep(delay);

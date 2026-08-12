@@ -10,7 +10,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // Long enough to absorb a burst of field edits / activity events into one
       // ZIP rewrite, short enough that a crash shortly after editing still leaves
       // an autosave/activity file on disk.
-      private static readonly TimeSpan DefaultDelay = TimeSpan.FromMilliseconds(500);
+      private static readonly TimeSpan _defaultDelay = TimeSpan.FromMilliseconds(500);
 
       private readonly Lock _gate = new();
       private readonly Action _persist;
@@ -23,12 +23,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          ArgumentNullException.ThrowIfNull(persist);
          _persist = persist;
-         _delay = delay ?? DefaultDelay;
+         _delay = delay ?? _defaultDelay;
       }
 
       /// <summary>
       /// Marks pending work and (re)arms the debounce timer. Repeated calls within
-      /// <see cref="DefaultDelay"/> collapse into a single persistence pass.
+      /// the configured delay collapse into a single persistence pass.
       /// </summary>
       internal void Schedule()
       {
