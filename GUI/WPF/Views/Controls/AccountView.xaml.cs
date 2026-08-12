@@ -60,7 +60,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       public string? Password
       {
-         get => _viewModel?.Password;
+         get => _password_VPB.Password;
          set
          {
             ArgumentNullException.ThrowIfNull(value);
@@ -69,14 +69,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
             _viewModel.Password = value;
 
-            _password_VPB.Password = _viewModel.Password;
+            _password_VPB.Password = value;
             _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
-            _passwords_LB.ItemsSource = _viewModel.Passwords;
+            _refreshPasswordHistory();
          }
       }
 
       internal void SetDataContext(AccountViewModel? dataContext)
       {
+         // Drop any previously revealed / mirrored secrets before switching.
+         _clearSecrets();
+
          if (dataContext is null)
          {
             DataContext = null;
@@ -108,7 +111,35 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          _password_VPB.Password = _viewModel.Password;
          _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
-         _passwords_LB.ItemsSource = _viewModel.Passwords;
+         _refreshPasswordHistory();
+      }
+
+      private void _clearSecrets()
+      {
+         _password_VPB.Clear();
+
+         if (_passwords_LB.ItemsSource is IEnumerable<PasswordViewModel> history)
+         {
+            foreach (PasswordViewModel entry in history)
+            {
+               entry.Clear();
+            }
+         }
+
+         _passwords_LB.ItemsSource = null;
+      }
+
+      private void _refreshPasswordHistory()
+      {
+         if (_passwords_LB.ItemsSource is IEnumerable<PasswordViewModel> previous)
+         {
+            foreach (PasswordViewModel entry in previous)
+            {
+               entry.Clear();
+            }
+         }
+
+         _passwords_LB.ItemsSource = _viewModel?.Passwords;
       }
 
       private void _identifier_DeleteClicked(object? sender, EventArgs e)
@@ -192,7 +223,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          _viewModel.Password = _password_VPB.Password;
          _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
-         _passwords_LB.ItemsSource = _viewModel.Passwords;
+         _refreshPasswordHistory();
       }
 
       private void _passwords_VPB_Loaded(object sender, RoutedEventArgs e)
@@ -233,7 +264,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         AppServices.Clipboard.SetText(_viewModel.Password,
+         AppServices.Clipboard.SetText(_password_VPB.Password,
           ClipboardManager.AutoClearAfter);
       }
 
@@ -246,7 +277,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
 
          QrCodeView.ShowQrCode(Window.GetWindow(this),
-            _viewModel.Password,
+            _password_VPB.Password,
             AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
       }
 

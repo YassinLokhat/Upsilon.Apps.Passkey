@@ -56,6 +56,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          _isClosing = true;
 
+         _passwordsContainer.ClearSecrets();
          _database?.DatabaseClosed -= _database_DatabaseClosed;
       }
 
@@ -208,6 +209,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (credentialsChanged)
          {
             message = $"'{_viewModel.Username}' user's credentials has been updated.\nYou will be logged out.\nPlease login again.";
+            _passwordsContainer.ClearSecrets();
             _database.Close();
 
             string oldDatabaseDirectory = Path.GetDirectoryName(oldDatabaseFile) ?? string.Empty;
@@ -234,6 +236,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          else if (newUser)
          {
             message += $"created successfully";
+            _passwordsContainer.ClearSecrets();
             _database.Close();
          }
          else
@@ -276,6 +279,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          return oldFileName != newFilename || AppServices.Serialization.AreDifferent(oldPasskeys, newPasskeys);
       }
 
+      private static async Task<bool> _savePendingChangesAsync(IDatabase database, string title)
+      {
+         if (!database.User!.HasChanged())
+         {
+            return true;
+         }
+
+         if (MessageBox.Show("Before continuing, all unsaved changes will be saved.", title, MessageBoxButton.OKCancel)
+            != MessageBoxResult.OK)
+         {
+            return false;
+         }
+
+         await database.SaveAsync().ConfigureAwait(true);
+         return true;
+      }
+
       private async void _import_MenuItem_Click(object sender, RoutedEventArgs e)
       {
          IDatabase? database = _database;
@@ -286,8 +306,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (database.User.HasChanged()
-            && MessageBox.Show("Before importing data, all unsaved changes will be saved.", "Import data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+         if (!await _savePendingChangesAsync(database, "Import data").ConfigureAwait(true))
          {
             return;
          }
@@ -333,8 +352,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (database.User.HasChanged()
-            && MessageBox.Show("Before exporting data, all unsaved changes will be saved.", "Export data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+         if (!await _savePendingChangesAsync(database, "Export data").ConfigureAwait(true))
          {
             return;
          }
@@ -348,7 +366,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (!(dialog.ShowDialog() ?? false)) return;
 
-         _export(database, dialog.FileName);
+         await _exportAsync(database, dialog.FileName).ConfigureAwait(true);
       }
 
       private async void _export_csv_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -361,8 +379,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (database.User.HasChanged()
-            && MessageBox.Show("Before exporting data, all unsaved changes will be saved.", "Export data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+         if (!await _savePendingChangesAsync(database, "Export data").ConfigureAwait(true))
          {
             return;
          }
@@ -376,10 +393,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (!(dialog.ShowDialog() ?? false)) return;
 
-         _export(database, dialog.FileName);
+         await _exportAsync(database, dialog.FileName).ConfigureAwait(true);
       }
 
-      private async void _export(IDatabase database, string fileName)
+      private async Task _exportAsync(IDatabase database, string fileName)
       {
          this.SetIsBusy(true);
 

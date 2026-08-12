@@ -162,6 +162,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _dialogs.Close<DuplicatedPasswordsWarningView>();
          _dialogs.Close<UserActivitiesView>();
 
+         // Drop any PasswordBox / history plaintext before tearing down the session.
+         _service_SV.SetDataContext(null);
+
          _session.EndSession();
 
          _viewModel.Dispose();
@@ -172,7 +175,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (this.GetIsBusy()) return;
 
          _session.User?.Shake();
-         _service_SV.SetDataContext((ServiceViewModel)_services_LB.SelectedItem);
+         _service_SV.SetDataContext(_services_LB.SelectedItem as ServiceViewModel);
       }
 
       private async void _save_MenuItem_Click(object sender, RoutedEventArgs e)

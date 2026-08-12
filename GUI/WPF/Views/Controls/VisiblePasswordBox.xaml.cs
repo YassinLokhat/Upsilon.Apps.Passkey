@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
@@ -13,10 +14,26 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    {
       private readonly VisiblePasswordBoxViewModel _viewModel;
 
+      /// <summary>
+      /// Reads from / writes to the underlying <see cref="PasswordBox"/>. The
+      /// ViewModel only holds a plaintext copy while the password is revealed.
+      /// </summary>
       public string Password
       {
-         get => _viewModel.Password;
-         set => _viewModel.Password = value;
+         get => _passwordBox.Password;
+         set
+         {
+            if (_passwordBox.Password != value)
+            {
+               _passwordBox.Password = value;
+            }
+
+            // Keep the reveal TextBox in sync only while it is visible.
+            if (_viewModel.TextVisibility == Visibility.Visible)
+            {
+               _viewModel.RevealText = value;
+            }
+         }
       }
 
       public bool ReadOnly
@@ -41,8 +58,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          DataContext = _viewModel = new VisiblePasswordBoxViewModel();
 
-         _viewModel.PropertyChanged += _viewModel_PropertyChanged;
-
          _passwordBox.LostFocus += _passwordBox_LostFocus;
          _passwordBox.KeyUp += _passwordBox_KeyUp;
          _passwordBox.PasswordChanged += _passwordBox_PasswordChanged;
@@ -53,24 +68,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          _ = _passwordBox.Focus();
       }
 
-      private void _passwordBox_LostFocus(object sender, System.Windows.RoutedEventArgs e)
+      /// <summary>
+      /// Clears both the PasswordBox buffer and any revealed plaintext copy.
+      /// </summary>
+      public void Clear()
+      {
+         _viewModel.HidePassword();
+         _viewModel.RevealText = string.Empty;
+         _passwordBox.Clear();
+      }
+
+      private void _passwordBox_LostFocus(object sender, RoutedEventArgs e)
       {
          Validated?.Invoke(this, EventArgs.Empty);
       }
 
-      private void _passwordBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
+      private void _passwordBox_PasswordChanged(object sender, RoutedEventArgs e)
       {
-         _viewModel.Password = _passwordBox.Password;
-         PasswordChanged?.Invoke(this, EventArgs.Empty);
-      }
-
-      private void _viewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-      {
-         if ((e.PropertyName == nameof(Password))
-            && _passwordBox.Password != Password)
+         // Do not mirror into a managed string while the password stays masked;
+         // only refresh the reveal TextBox when it is currently shown.
+         if (_viewModel.TextVisibility == Visibility.Visible)
          {
-            _passwordBox.Password = Password;
+            _viewModel.RevealText = _passwordBox.Password;
          }
+
+         PasswordChanged?.Invoke(this, EventArgs.Empty);
       }
 
       private void _passwordBox_KeyUp(object sender, KeyEventArgs e)
@@ -81,7 +103,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
                Validated?.Invoke(this, EventArgs.Empty);
                break;
             case Key.Escape:
-               Password = string.Empty;
+               Clear();
                Aborded?.Invoke(this, EventArgs.Empty);
                break;
          }
@@ -89,12 +111,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _viewButton_MouseDown(object sender, MouseButtonEventArgs e)
       {
+         // Materialize plaintext only for the duration of the press-and-hold reveal.
+         _viewModel.RevealText = _passwordBox.Password;
          _viewModel.ShowPassword();
       }
 
       private void _viewButton_MouseUp(object sender, MouseButtonEventArgs e)
       {
          _viewModel.HidePassword();
+         _viewModel.RevealText = string.Empty;
       }
    }
 }

@@ -54,6 +54,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             DataContext = null;
             _viewModel = null;
             _accounts_LB.ItemsSource = null;
+            _account_AV.SetDataContext(null);
 
             return;
          }
@@ -65,6 +66,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          {
             _accounts_LB.SelectedIndex = 0;
          }
+         else
+         {
+            _account_AV.SetDataContext(null);
+         }
       }
 
       private void _accounts_LB_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -72,7 +77,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          if (this.GetIsBusy()) return;
 
          AppServices.Session.User?.Shake();
-         _account_AV.SetDataContext((AccountViewModel)_accounts_LB.SelectedItem);
+         _account_AV.SetDataContext(_accounts_LB.SelectedItem as AccountViewModel);
       }
 
       private void _addAccount_Button_Click(object sender, System.Windows.RoutedEventArgs e)
