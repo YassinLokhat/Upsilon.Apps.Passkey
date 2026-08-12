@@ -175,7 +175,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          // Given
          const string password = "unique-test-password-for-cache";
          string hash = _sha1Hex(password);
-         CountingHandler handler = new(_ => $"{hash[5..]}:1\r\n");
+         RoutingHandler handler = new(
+            hibp: _ => (HttpStatusCode.OK, $"{hash[5..]}:1\r\n"),
+            xon: _ => (HttpStatusCode.OK, "{\"SearchPassAnon\":{}}"));
          PasswordFactory factory = _factoryFor(handler);
 
          // When
@@ -185,19 +187,23 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          // Then
          _ = first.Should().BeTrue();
          _ = second.Should().BeTrue();
-         _ = handler.RequestCount.Should().Be(1);
+         _ = handler.HibpRequestCount.Should().Be(1);
+         _ = handler.XonRequestCount.Should().Be(0);
          _ = factory.CachedRangeCount.Should().Be(1);
       }
 
       [TestMethod]
       /*
        * A non-success HTTP response must not be cached, otherwise a transient
-       * outage would pin "not leaked" for the rest of the process.
+       * outage would pin "not leaked" for the rest of the process. When HIBP
+       * and XON both fail, each PasswordLeaked call asks both providers once.
       */
       public void Case10_PasswordLeaked_DoesNotCacheHttpFailures()
       {
          // Given
-         CountingHandler handler = new(_ => null, HttpStatusCode.ServiceUnavailable);
+         RoutingHandler handler = new(
+            hibp: _ => (HttpStatusCode.ServiceUnavailable, null),
+            xon: _ => (HttpStatusCode.ServiceUnavailable, null));
          PasswordFactory factory = _factoryFor(handler);
 
          // When
@@ -207,8 +213,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          // Then
          _ = first.Should().BeFalse();
          _ = second.Should().BeFalse();
-         _ = handler.RequestCount.Should().Be(2);
+         _ = handler.HibpRequestCount.Should().Be(2);
+         _ = handler.XonRequestCount.Should().Be(2);
          _ = factory.CachedRangeCount.Should().Be(0);
+         _ = factory.CachedXonPrefixCount.Should().Be(0);
       }
 
       [TestMethod]
@@ -223,7 +231,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          // whose HIBP range we mark as leaked.
          const string alphabet = "A";
          string hash = _sha1Hex("A");
-         CountingHandler handler = new(_ => $"{hash[5..]}:99\r\n");
+         RoutingHandler handler = new(
+            hibp: _ => (HttpStatusCode.OK, $"{hash[5..]}:99\r\n"),
+            xon: _ => (HttpStatusCode.NotFound, "{\"Error\":\"Not found\"}"));
          PasswordFactory factory = _factoryFor(handler);
 
          // When
@@ -231,7 +241,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
          // Then
          _ = password.Should().BeEmpty();
-         _ = handler.RequestCount.Should().Be(1);
+         _ = handler.HibpRequestCount.Should().Be(1);
+         _ = handler.XonRequestCount.Should().Be(0);
       }
 
       [TestMethod]
@@ -243,7 +254,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          // Given
          const string password = "async-cache-password";
          string hash = _sha1Hex(password);
-         CountingHandler handler = new(_ => $"{hash[5..]}:1\r\n");
+         RoutingHandler handler = new(
+            hibp: _ => (HttpStatusCode.OK, $"{hash[5..]}:1\r\n"),
+            xon: _ => (HttpStatusCode.OK, "{\"SearchPassAnon\":{}}"));
          PasswordFactory factory = _factoryFor(handler);
 
          // When
@@ -253,10 +266,77 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          // Then
          _ = first.Should().BeTrue();
          _ = second.Should().BeTrue();
-         _ = handler.RequestCount.Should().Be(1);
+         _ = handler.HibpRequestCount.Should().Be(1);
+         _ = handler.XonRequestCount.Should().Be(0);
       }
 
-      private static PasswordFactory _factoryFor(CountingHandler handler)
+      [TestMethod]
+      /*
+       * When HIBP is down, XposedOrNot answers the check and its result is cached
+       * by Keccak prefix so a second call does not hit the network again.
+      */
+      public void Case13_PasswordLeaked_FallsBackToXonWhenHibpFails()
+      {
+         // Given
+         const string password = "xon-failover-password";
+         RoutingHandler handler = new(
+            hibp: _ => (HttpStatusCode.ServiceUnavailable, null),
+            xon: _ => (HttpStatusCode.OK, "{\"SearchPassAnon\":{\"count\":\"1\"}}"));
+         PasswordFactory factory = _factoryFor(handler);
+
+         // When
+         bool first = factory.PasswordLeaked(password);
+         bool second = factory.PasswordLeaked(password);
+
+         // Then: HIBP failures are never cached (so a later recovery is possible),
+         // but the definitive XON answer is, so the second call asks HIBP again
+         // and skips XON.
+         _ = first.Should().BeTrue();
+         _ = second.Should().BeTrue();
+         _ = handler.HibpRequestCount.Should().Be(2);
+         _ = handler.XonRequestCount.Should().Be(1);
+         _ = factory.CachedXonPrefixCount.Should().Be(1);
+      }
+
+      [TestMethod]
+      /*
+       * An XON 404 is a definitive "not leaked" and must be cached the same way
+       * as a positive hit, so we do not keep probing after HIBP stays down.
+      */
+      public void Case14_PasswordLeaked_XonNotFoundIsCachedAsSafe()
+      {
+         // Given
+         RoutingHandler handler = new(
+            hibp: _ => (HttpStatusCode.ServiceUnavailable, null),
+            xon: _ => (HttpStatusCode.NotFound, "{\"Error\":\"Not found\"}"));
+         PasswordFactory factory = _factoryFor(handler);
+
+         // When
+         bool first = factory.PasswordLeaked("fresh-random-looking-password");
+         bool second = factory.PasswordLeaked("fresh-random-looking-password");
+
+         // Then
+         _ = first.Should().BeFalse();
+         _ = second.Should().BeFalse();
+         _ = handler.HibpRequestCount.Should().Be(2);
+         _ = handler.XonRequestCount.Should().Be(1);
+         _ = factory.CachedXonPrefixCount.Should().Be(1);
+      }
+
+      [TestMethod]
+      /*
+       * Keccak-512 vectors published by XposedOrNot must match so the failover
+       * prefix we send is the one their API indexes.
+      */
+      public void Case15_Keccak512_MatchesXposedOrNotVectors()
+      {
+         _ = Keccak512.HashHex("test").Should().Be(
+            "1E2E9FC2002B002D75198B7503210C05A1BAAC4560916A3C6D93BCCE3A50D7F00FD395BF1647B9ABB8D1AFCC9C76C289B0C9383BA386A956DA4B38934417789E");
+         _ = Keccak512.HashHex("pass").Should().Be(
+            "ADF34F3E63A8E0BD2938F3E09DDC161125A031C3C86D06EC59574A5C723E7FDBE04C2C15D9171E05E90A9C822936185F12B9D7384B2BEDB02E75C4C5FE89E4D4");
+      }
+
+      private static PasswordFactory _factoryFor(RoutingHandler handler)
          => new(
             (request, cancellationToken) => handler.Invoke(request, cancellationToken),
             (request, cancellationToken) => handler.InvokeAsync(request, cancellationToken));
@@ -267,20 +347,23 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 #pragma warning restore CA5350
 
       /// <summary>
-      /// Counts outbound HIBP-style range requests and returns a fixed body
-      /// (or an error status) so leak-check behaviour can be asserted offline.
+      /// Routes mock responses by host so HIBP and XposedOrNot failover can be
+      /// asserted independently without touching the network.
       /// </summary>
-      private sealed class CountingHandler : HttpMessageHandler
+      private sealed class RoutingHandler : HttpMessageHandler
       {
-         private readonly Func<string, string?> _bodyFactory;
-         private readonly HttpStatusCode _statusCode;
+         private readonly Func<string, (HttpStatusCode Status, string? Body)> _hibp;
+         private readonly Func<string, (HttpStatusCode Status, string? Body)> _xon;
 
-         public int RequestCount;
+         public int HibpRequestCount;
+         public int XonRequestCount;
 
-         public CountingHandler(Func<string, string?> bodyFactory, HttpStatusCode statusCode = HttpStatusCode.OK)
+         public RoutingHandler(
+            Func<string, (HttpStatusCode Status, string? Body)> hibp,
+            Func<string, (HttpStatusCode Status, string? Body)> xon)
          {
-            _bodyFactory = bodyFactory;
-            _statusCode = statusCode;
+            _hibp = hibp;
+            _xon = xon;
          }
 
          public HttpResponseMessage Invoke(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -297,19 +380,32 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
          private HttpResponseMessage _respond(HttpRequestMessage request)
          {
-            _ = Interlocked.Increment(ref RequestCount);
-
+            string host = request.RequestUri?.Host ?? string.Empty;
             string prefix = request.RequestUri?.Segments.LastOrDefault() ?? string.Empty;
-            string? body = _bodyFactory(prefix);
 
-            HttpResponseMessage response = new(_statusCode);
+            (HttpStatusCode status, string? body) = host.Contains("xposedornot", StringComparison.OrdinalIgnoreCase)
+               ? _xonAnswer(prefix)
+               : _hibpAnswer(prefix);
 
+            HttpResponseMessage response = new(status);
             if (body is not null)
             {
                response.Content = new StringContent(body, Encoding.UTF8);
             }
 
             return response;
+         }
+
+         private (HttpStatusCode Status, string? Body) _hibpAnswer(string prefix)
+         {
+            _ = Interlocked.Increment(ref HibpRequestCount);
+            return _hibp(prefix);
+         }
+
+         private (HttpStatusCode Status, string? Body) _xonAnswer(string prefix)
+         {
+            _ = Interlocked.Increment(ref XonRequestCount);
+            return _xon(prefix);
          }
       }
    }

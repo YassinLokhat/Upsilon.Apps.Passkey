@@ -14,6 +14,7 @@ This is a C# implementation of a local stored password manager in .Net 10. The a
 *   **Trigger warnings**: Trigger warnings when detected
 *   **Autosave**: Autosave updates
 *   **Password Generation**: Generate strong, unique passwords
+*   **Leak detection**: Opt-in checks against Have I Been Pwned, with a free XposedOrNot failover (k-anonymity; see [SECURITY.md](SECURITY.md))
 
 **Security**
 ------------
@@ -449,8 +450,8 @@ Two things to keep in mind:
 
 `IPasswordFactory` follows the same pattern with `GeneratePasswordAsync` and
 `PasswordLeakedAsync`. Those two are genuinely asynchronous rather than merely
-offloaded: they await the "Have I Been Pwned" response instead of blocking a
-thread on it.
+offloaded: they await the leak-check providers (Have I Been Pwned first, then
+XposedOrNot if HIBP is unreachable) instead of blocking a thread on the network.
 
 **Getting Started**
 -------------------

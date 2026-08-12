@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
@@ -16,25 +17,34 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          Timeout = TimeSpan.FromSeconds(3),
       };
 
-      // Cap how many times we ask HIBP while hunting for a non-leaked candidate.
-      // A strong random password from a wide alphabet is vanishingly unlikely to
-      // be in the corpus, so a handful of attempts is enough; 100 remote calls
-      // would only punish the user when the service is slow or every candidate
-      // happens to collide.
+      // Cap how many times we ask leak providers while hunting for a non-leaked
+      // candidate. A strong random password from a wide alphabet is vanishingly
+      // unlikely to be in the corpus, so a handful of attempts is enough; 100
+      // remote calls would only punish the user when the service is slow or
+      // every candidate happens to collide.
       private const int MAX_ATTEMPTS = 5;
 
-      // Bound the in-process prefix cache so a long session cannot grow without
+      // Bound the in-process caches so a long session cannot grow without
       // limit. Eviction drops the whole table: the next checks simply refill it.
       private const int MAX_CACHED_RANGES = 512;
+      private const int MAX_CACHED_XON_PREFIXES = 512;
+
+      private const int HibpPrefixLength = 5;
+      private const int XonPrefixLength = 10;
 
       private readonly Func<HttpRequestMessage, CancellationToken, HttpResponseMessage> _send;
       private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> _sendAsync;
 
-      // k-anonymity ranges are keyed by the first five hex chars of the SHA-1
-      // hash. Caching the parsed suffix set means a second check for the same
-      // prefix (same password, or another password that shares the prefix) is a
-      // local lookup - no network round-trip.
-      private readonly ConcurrentDictionary<string, HashSet<string>> _rangeCache
+      // HIBP k-anonymity ranges are keyed by the first five hex chars of the
+      // SHA-1 hash. Caching the parsed suffix set means a second check for the
+      // same prefix is a local lookup - no network round-trip.
+      private readonly ConcurrentDictionary<string, HashSet<string>> _hibpRangeCache
+         = new(StringComparer.OrdinalIgnoreCase);
+
+      // XON answers yes/no for a Keccak-512 hash prefix; cache the boolean so a
+      // repeated failover (or a second account with the same password) skips the
+      // network. Only definitive answers are stored - never transport failures.
+      private readonly ConcurrentDictionary<string, bool> _xonPrefixCache
          = new(StringComparer.OrdinalIgnoreCase);
 
       public PasswordFactory()
@@ -89,28 +99,19 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public bool PasswordLeaked(string password)
       {
-         string hash = _sha1Hex(password);
-         string prefix = hash[..5];
-
-         if (_rangeCache.TryGetValue(prefix, out HashSet<string>? suffixes))
-         {
-            return suffixes.Contains(hash[5..]);
-         }
-
          try
          {
-            using HttpRequestMessage request = new(HttpMethod.Get, _rangeUri(prefix));
-            using HttpResponseMessage response = _send(request, CancellationToken.None);
-
-            if (!_succeeded(response))
+            bool? hibp = _tryHibp(password);
+            if (hibp.HasValue)
             {
-               return false;
+               return hibp.Value;
             }
 
-            using StreamReader reader = new(response.Content.ReadAsStream());
-            HashSet<string> parsed = _parseAndCache(prefix, reader.ReadToEnd());
-
-            return parsed.Contains(hash[5..]);
+            bool? xon = _tryXon(password);
+            if (xon.HasValue)
+            {
+               return xon.Value;
+            }
          }
 #pragma warning disable CA1031 // Last-resort barrier: a leak check must never crash password generation
          catch (Exception ex)
@@ -118,32 +119,25 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             return _failOpen(ex);
          }
+
+         return _failOpen(null);
       }
 
       public async Task<bool> PasswordLeakedAsync(string password, CancellationToken cancellationToken = default)
       {
-         string hash = _sha1Hex(password);
-         string prefix = hash[..5];
-
-         if (_rangeCache.TryGetValue(prefix, out HashSet<string>? suffixes))
-         {
-            return suffixes.Contains(hash[5..]);
-         }
-
          try
          {
-            using HttpRequestMessage request = new(HttpMethod.Get, _rangeUri(prefix));
-            using HttpResponseMessage response = await _sendAsync(request, cancellationToken).ConfigureAwait(false);
-
-            if (!_succeeded(response))
+            bool? hibp = await _tryHibpAsync(password, cancellationToken).ConfigureAwait(false);
+            if (hibp.HasValue)
             {
-               return false;
+               return hibp.Value;
             }
 
-            string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            HashSet<string> parsed = _parseAndCache(prefix, body);
-
-            return parsed.Contains(hash[5..]);
+            bool? xon = await _tryXonAsync(password, cancellationToken).ConfigureAwait(false);
+            if (xon.HasValue)
+            {
+               return xon.Value;
+            }
          }
          // An explicit cancellation is the caller's decision and must surface as
          // such; the client's own timeout also lands here as an
@@ -159,6 +153,168 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             return _failOpen(ex);
          }
+
+         return _failOpen(null);
+      }
+
+      /// <summary>
+      /// Queries HIBP. Returns a definitive yes/no on HTTP success, or
+      /// <see langword="null"/> when the service is unreachable so the caller
+      /// can fall through to XposedOrNot.
+      /// </summary>
+      private bool? _tryHibp(string password)
+      {
+         string hash = _sha1Hex(password);
+         string prefix = hash[..HibpPrefixLength];
+
+         if (_hibpRangeCache.TryGetValue(prefix, out HashSet<string>? suffixes))
+         {
+            return suffixes.Contains(hash[HibpPrefixLength..]);
+         }
+
+         try
+         {
+            using HttpRequestMessage request = new(HttpMethod.Get, _hibpRangeUri(prefix));
+            using HttpResponseMessage response = _send(request, CancellationToken.None);
+
+            if (!response.IsSuccessStatusCode)
+            {
+               System.Diagnostics.Trace.TraceWarning(
+                  $"HIBP leak check returned HTTP {(int)response.StatusCode}; trying XposedOrNot.");
+               return null;
+            }
+
+            using StreamReader reader = new(response.Content.ReadAsStream());
+            HashSet<string> parsed = _parseAndCacheHibp(prefix, reader.ReadToEnd());
+            return parsed.Contains(hash[HibpPrefixLength..]);
+         }
+#pragma warning disable CA1031 // Provider-local barrier: fall through to XON instead of aborting the whole check
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
+            return null;
+         }
+      }
+
+      private async Task<bool?> _tryHibpAsync(string password, CancellationToken cancellationToken)
+      {
+         string hash = _sha1Hex(password);
+         string prefix = hash[..HibpPrefixLength];
+
+         if (_hibpRangeCache.TryGetValue(prefix, out HashSet<string>? suffixes))
+         {
+            return suffixes.Contains(hash[HibpPrefixLength..]);
+         }
+
+         try
+         {
+            using HttpRequestMessage request = new(HttpMethod.Get, _hibpRangeUri(prefix));
+            using HttpResponseMessage response = await _sendAsync(request, cancellationToken).ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+               System.Diagnostics.Trace.TraceWarning(
+                  $"HIBP leak check returned HTTP {(int)response.StatusCode}; trying XposedOrNot.");
+               return null;
+            }
+
+            string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            HashSet<string> parsed = _parseAndCacheHibp(prefix, body);
+            return parsed.Contains(hash[HibpPrefixLength..]);
+         }
+         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+         {
+            throw;
+         }
+#pragma warning disable CA1031 // Provider-local barrier: fall through to XON instead of aborting the whole check
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
+            return null;
+         }
+      }
+
+      /// <summary>
+      /// Queries XposedOrNot's anonymous password API. Returns a definitive
+      /// yes/no on HTTP 200 (leaked) or 404 (not found), or
+      /// <see langword="null"/> when the service is unreachable.
+      /// </summary>
+      private bool? _tryXon(string password)
+      {
+         string hash = Keccak512.HashHex(password);
+         string prefix = hash[..XonPrefixLength];
+
+         if (_xonPrefixCache.TryGetValue(prefix, out bool cached))
+         {
+            return cached;
+         }
+
+         try
+         {
+            using HttpRequestMessage request = new(HttpMethod.Get, _xonUri(prefix));
+            using HttpResponseMessage response = _send(request, CancellationToken.None);
+            return _interpretXonResponse(prefix, response);
+         }
+#pragma warning disable CA1031 // Provider-local barrier: outer PasswordLeaked still fails open
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            System.Diagnostics.Trace.TraceWarning($"XposedOrNot leak check failed: {ex}");
+            return null;
+         }
+      }
+
+      private async Task<bool?> _tryXonAsync(string password, CancellationToken cancellationToken)
+      {
+         string hash = Keccak512.HashHex(password);
+         string prefix = hash[..XonPrefixLength];
+
+         if (_xonPrefixCache.TryGetValue(prefix, out bool cached))
+         {
+            return cached;
+         }
+
+         try
+         {
+            using HttpRequestMessage request = new(HttpMethod.Get, _xonUri(prefix));
+            using HttpResponseMessage response = await _sendAsync(request, cancellationToken).ConfigureAwait(false);
+            return _interpretXonResponse(prefix, response);
+         }
+         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+         {
+            throw;
+         }
+#pragma warning disable CA1031 // Provider-local barrier: outer PasswordLeakedAsync still fails open
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            System.Diagnostics.Trace.TraceWarning($"XposedOrNot leak check failed: {ex}");
+            return null;
+         }
+      }
+
+      private bool? _interpretXonResponse(string prefix, HttpResponseMessage response)
+      {
+         if (response.StatusCode == HttpStatusCode.NotFound)
+         {
+            _cacheXon(prefix, leaked: false);
+            return false;
+         }
+
+         if (!response.IsSuccessStatusCode)
+         {
+            System.Diagnostics.Trace.TraceWarning(
+               $"XposedOrNot leak check returned HTTP {(int)response.StatusCode}.");
+            return null;
+         }
+
+         // 200 with a SearchPassAnon payload means the prefix matched a known
+         // exposed password. Any successful 200 is treated as leaked; the body
+         // is not required for the boolean decision.
+         _cacheXon(prefix, leaked: true);
+         return true;
       }
 
       private static IEnumerable<string> _candidates(int length, string alphabet)
@@ -196,20 +352,36 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       // k-anonymity: only the first five characters of the hash ever leave the
       // machine, so the service never learns which password is being checked.
-      private static string _rangeUri(string prefix) => $"https://api.pwnedpasswords.com/range/{prefix}";
+      private static string _hibpRangeUri(string prefix)
+         => $"https://api.pwnedpasswords.com/range/{prefix}";
 
-      private HashSet<string> _parseAndCache(string prefix, string body)
+      // XON k-anonymity: first 10 hex chars of Keccak-512; password and full
+      // hash never leave the machine.
+      private static string _xonUri(string prefix)
+         => $"https://passwords.xposedornot.com/api/v1/pass/anon/{prefix}";
+
+      private HashSet<string> _parseAndCacheHibp(string prefix, string body)
       {
          HashSet<string> suffixes = _parseSuffixes(body);
 
-         if (_rangeCache.Count >= MAX_CACHED_RANGES)
+         if (_hibpRangeCache.Count >= MAX_CACHED_RANGES)
          {
-            _rangeCache.Clear();
+            _hibpRangeCache.Clear();
          }
 
-         _ = _rangeCache.TryAdd(prefix, suffixes);
+         _ = _hibpRangeCache.TryAdd(prefix, suffixes);
 
          return suffixes;
+      }
+
+      private void _cacheXon(string prefix, bool leaked)
+      {
+         if (_xonPrefixCache.Count >= MAX_CACHED_XON_PREFIXES)
+         {
+            _xonPrefixCache.Clear();
+         }
+
+         _ = _xonPrefixCache.TryAdd(prefix, leaked);
       }
 
       private static HashSet<string> _parseSuffixes(string body)
@@ -230,24 +402,20 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return suffixes;
       }
 
-      private static bool _succeeded(HttpResponseMessage response)
-      {
-         if (response.IsSuccessStatusCode)
-         {
-            return true;
-         }
-
-         System.Diagnostics.Trace.TraceWarning($"Password leak check returned HTTP {(int)response.StatusCode}.");
-
-         return false;
-      }
-
-      private static bool _failOpen(Exception exception)
+      private static bool _failOpen(Exception? exception)
       {
          // A leak check must never crash password generation or the warning
-         // scan. When the service is unreachable we cannot confirm a leak, so
-         // we report "not leaked" and trace the failure for diagnostics.
-         System.Diagnostics.Trace.TraceWarning($"Password leak check failed: {exception}");
+         // scan. When every provider is unreachable we cannot confirm a leak,
+         // so we report "not leaked" and trace the failure for diagnostics.
+         if (exception is null)
+         {
+            System.Diagnostics.Trace.TraceWarning(
+               "Password leak check failed open: HIBP and XposedOrNot were both unreachable.");
+         }
+         else
+         {
+            System.Diagnostics.Trace.TraceWarning($"Password leak check failed: {exception}");
+         }
 
          return false;
       }
@@ -255,6 +423,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       /// <summary>
       /// Number of HIBP ranges currently held in the in-process cache.
       /// </summary>
-      internal int CachedRangeCount => _rangeCache.Count;
+      internal int CachedRangeCount => _hibpRangeCache.Count;
+
+      /// <summary>
+      /// Number of XposedOrNot prefix answers currently held in the in-process cache.
+      /// </summary>
+      internal int CachedXonPrefixCount => _xonPrefixCache.Count;
    }
 }
