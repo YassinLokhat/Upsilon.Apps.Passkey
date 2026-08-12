@@ -30,7 +30,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string oldPassword = UnitTestsHelper.GetRandomString();
          string newPassword = UnitTestsHelper.GetRandomString();
          string notes = UnitTestsHelper.GetRandomString();
-         int passwordUpdateReminderDelay = UnitTestsHelper.GetRandomInt(12);
+         int passwordUpdateReminderDelay = UnitTestsHelper.GetRandomInt(1, 12);
          AccountOption options = AccountOption.None;
          Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
@@ -140,7 +140,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string oldPassword = UnitTestsHelper.GetRandomString();
          string newPassword = UnitTestsHelper.GetRandomString();
          string notes = UnitTestsHelper.GetRandomString();
-         int passwordUpdateReminderDelay = UnitTestsHelper.GetRandomInt(12);
+         int passwordUpdateReminderDelay = UnitTestsHelper.GetRandomInt(1, 12);
          AccountOption options = AccountOption.None;
          Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
