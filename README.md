@@ -18,7 +18,7 @@ This is a C# implementation of a local stored password manager in .Net 10. The a
 **Security**
 ------------
 
-*   **Encryption**: All passwords are encrypted using AES with a set of keys and RSA with a 4096-bit key
+*   **Encryption**: Vault data uses an AES-256-GCM onion (HKDF-SHA256 per layer) over ordered passkeys; the activity log uses RSA-4096 hybrid encryption. See [SECURITY.md](SECURITY.md).
 *   **Access Control**: Access to the password store is restricted to authorized users only
 
 **Models**
@@ -76,7 +76,6 @@ classDiagram
         }
 
         class KdfParameters {
-            +int Version
             +KdfAlgorithm Algorithm
             +int Iterations
             +int OutputLength
@@ -159,7 +158,6 @@ classDiagram
             +SaveAsync(in cancellationToken CancellationToken) Task
             +Delete(void) void
             +Close(void) void
-            +Dispose(void) void
             +HasChanged(in itemId string) bool
             +HasChanged(in itemId string, in fieldName string) bool
             +ImportFromFile(in filePath string) bool
@@ -469,4 +467,4 @@ Contributions are welcome! Please submit a pull request with your changes.
 **License**
 -------
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v2.0. See the [LICENSE](LICENSE) file for details.

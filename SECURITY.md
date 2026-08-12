@@ -85,10 +85,10 @@ supply-chain attack surface minimal.
 - A database is protected by an **ordered set of passkeys** (master passwords).
   All of them, **in the correct order**, are required to decrypt the data.
 - The onion always starts with an **implicit first layer keyed by the username**:
-  `GetHash(username)` (fast SHA-512, Base64) is pushed onto the stack before any
-  stretched passkey. Changing the username therefore changes the ciphertext
-  layout; it is not a secret factor on its own, but it is part of the key
-  material used at rest.
+  `GetHash(username)` (fast SHA-512, Base64 with `/` replaced by `-`) is pushed
+  onto the stack before any stretched passkey. Changing the username therefore
+  changes the ciphertext layout; it is not a secret factor on its own, but it is
+  part of the key material used at rest.
 - Each passkey is stretched with **PBKDF2-HMAC-SHA-512, 1,000,000 iterations**
   (64-byte output) before being used as key material (`GetSlowHash`). This far
   exceeds the OWASP baseline and makes offline guessing expensive. HMAC-SHA-512
@@ -102,9 +102,9 @@ supply-chain attack surface minimal.
   usernames and passkeys. A salt is not secret; storing it unencrypted is
   standard.
 - **Crypto-agility**: the stretching parameters (algorithm, iterations, output
-  length, salt, scheme version) are recorded in an unencrypted `header` entry of
-  the `.pku` file. A database is always reopened — and rewritten — with the
-  **exact parameters stored in that header**. There is no automatic upgrade to
+  length, salt) are recorded in an unencrypted `header` entry of the `.pku`
+  file. A database is always reopened — and rewritten — with the **exact
+  parameters stored in that header**. There is no automatic upgrade to
   `DefaultSlowHashParameters` on save today; the sticky header is what will let
   a future release migrate work factor or algorithm without breaking existing
   files. The header is not secret: lowering iterations in an *existing* file's
@@ -112,13 +112,12 @@ supply-chain attack surface minimal.
   yields the wrong key). What it *can* do is offer the user a **new** vault
   written under a trivial work factor. To block that, Open and every
   `GetSlowHash` call enforce a **KDF floor** via
-  `EnsureSufficientSlowHashParameters`: scheme version ≥ 1, a known algorithm,
-  iterations at least **600,000** (PBKDF2-HMAC-SHA-256) or **210,000**
-  (PBKDF2-HMAC-SHA-512) — the OWASP Password Storage Cheat Sheet baselines —
-  output length ≥ 32 bytes, and a Base64 salt of at least 16 bytes. Parameters
-  below the floor raise `InsufficientKdfParametersException` and the file is
-  refused. New databases still use the stronger default of 1,000,000
-  PBKDF2-HMAC-SHA-512 iterations.
+  `EnsureSufficientSlowHashParameters`: a known algorithm, iterations at least
+  **600,000** (PBKDF2-HMAC-SHA-256) or **210,000** (PBKDF2-HMAC-SHA-512) — the
+  OWASP Password Storage Cheat Sheet baselines — output length ≥ 32 bytes, and a
+  Base64 salt of at least 16 bytes. Parameters below the floor raise
+  `InsufficientKdfParametersException` and the file is refused. New databases
+  still use the stronger default of 1,000,000 PBKDF2-HMAC-SHA-512 iterations.
 
 ### Symmetric encryption (data at rest)
 
@@ -126,8 +125,9 @@ supply-chain attack surface minimal.
   ("onion") scheme: **each passkey adds one authenticated AES-256-GCM layer**.
 - For every layer, a fresh 32-byte key is derived with **HKDF-SHA256** from the
   passkey and a random 16-byte salt; a random 12-byte nonce and a 16-byte
-  authentication tag are used. The stored layout is
-  `salt | nonce | tag | ciphertext` (Base64), so decryption is self-describing.
+  authentication tag are used. Each layer is binary
+  `salt | nonce | tag | ciphertext`; **Base64 is applied once** to the finished
+  onion, so intermediate layers do not inflate the next by ~4/3.
 - AES-GCM is an **AEAD** cipher: any tampering with the ciphertext, nonce, or tag
   is detected and rejected on decryption.
 - A final layer keyed with a fixed, public value lets the code distinguish
@@ -152,7 +152,8 @@ login:
 
 - On every save performed **while a user is logged in**, the whole current log
   is sealed: an **RSA-PSS-SHA256 signature** (made with the user's private key)
-  is computed over the log's entries and their count. Verification only needs
+  is computed over a canonical payload of the sealed entry count, the activity
+  log's public key, and the sealed entry ciphertexts. Verification only needs
   the public key.
 - The number of sealed entries is anchored inside the **encrypted, AEAD-protected
   database** (`ActivitySealWatermark`). Since that store is tamper-proof, it lets
@@ -169,15 +170,15 @@ login:
 
 - A `.pku` file is a **ZIP archive** containing four entries: `header`,
   `database`, `autosave`, and `activity`.
-- The `header` entry holds the versioned `KdfParameters` (algorithm, iterations,
-  output length, salt, scheme version). It is not passkey-encrypted — only the
-  shared JSON → GZip → Base64 pipeline applies — because those values must be
-  readable before any key can be derived.
-- Each other entry pipeline is: JSON serialize → GZip compress → Base64, then
-  (for `database`/`autosave`) the symmetric onion encrypts that compressed
-  payload. The `activity` entry is stored compressed only at the ZIP layer; its
-  records are already protected individually with per-record RSA before
-  serialization. Compressing **before** encryption is deliberate: GZip only
+- The `header` entry holds the sticky `KdfParameters` (algorithm, iterations,
+  output length, salt). It is not passkey-encrypted — only the shared
+  JSON → GZip → Base64 pipeline applies — because those values must be readable
+  before any key can be derived.
+- Each entry pipeline is: JSON serialize → GZip compress → Base64, then (for
+  `database`/`autosave`) the symmetric onion encrypts that compressed payload.
+  The `activity` entry skips the onion: its records are already protected
+  individually with per-record RSA hybrid encryption before that shared
+  compress/Base64 step. Compressing **before** encryption is deliberate: GZip only
   shrinks structured plaintext, not high-entropy ciphertext.
 - File access is serialized through a re-entrant lock (`FileLocker`) to prevent
   concurrent access races (e.g. a save colliding with the session-timeout timer).
@@ -277,8 +278,8 @@ These are conscious trade-offs, documented for transparency:
   memory-hard KDF such as Argon2id, because Argon2 is not part of the .NET base
   class library and the project maintains a zero-external-dependency policy for
   its core. To compensate, it uses PBKDF2-HMAC-SHA-512 (more hostile to
-  GPU/ASIC parallelism than SHA-256) with 1,000,000 iterations. The versioned
-  KDF header (see "Crypto-agility") keeps the door open to adopting a memory-hard
+  GPU/ASIC parallelism than SHA-256) with 1,000,000 iterations. The sticky KDF
+  header (see "Crypto-agility") keeps the door open to adopting a memory-hard
   KDF later, pluggably, should the policy ever be relaxed.
 - **Import/Export files**: CSV and JSON files produced by the Export feature (and
   consumed by Import) are **unencrypted plaintext** by design, for
