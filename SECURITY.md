@@ -82,14 +82,26 @@ supply-chain attack surface minimal.
 
 - A database is protected by an **ordered set of passkeys** (master passwords).
   All of them, **in the correct order**, are required to decrypt the data.
-- Each passkey is stretched with **PBKDF2-HMAC-SHA256, 1,000,000 iterations**
+- Each passkey is stretched with **PBKDF2-HMAC-SHA-512, 1,000,000 iterations**
   (64-byte output) before being used as key material (`GetSlowHash`). This far
-  exceeds the OWASP baseline for PBKDF2-SHA256 and makes offline guessing
-  expensive.
-- The PBKDF2 salt is derived deterministically from the username
-  (`SHA-256(fixed_prefix || username)`), so the same username always yields the
-  same salt (required to reopen the file) while different usernames get distinct
-  salts.
+  exceeds the OWASP baseline and makes offline guessing expensive. HMAC-SHA-512
+  is used deliberately: its 64-bit arithmetic is markedly less efficient on the
+  GPUs and ASICs an attacker would use for parallel guessing than the 32-bit
+  operations of SHA-256.
+- The PBKDF2 salt is a **random 128-bit value generated once when the database
+  is created** and stored in the file's `header` entry. It is stable for the life
+  of the file (required to reopen it) and unique per database, so two files never
+  stretch the same passkey to the same key material — even with identical
+  usernames and passkeys. A salt is not secret; storing it unencrypted is
+  standard.
+- **Crypto-agility**: the stretching parameters (algorithm, iterations, output
+  length, salt, scheme version) are recorded in an unencrypted `header` entry of
+  the `.pku` file. A database is always reopened with the exact parameters it was
+  written with, and is transparently re-stretched with the current defaults on
+  the next save. This lets the work factor and algorithm evolve over time
+  without breaking existing files. The header is not secret: tampering with it
+  only prevents the correct key from being derived, it never weakens already
+  encrypted data.
 
 ### Symmetric encryption (data at rest)
 
@@ -111,7 +123,30 @@ supply-chain attack surface minimal.
 - The audit/activity log uses a **hybrid** scheme: a random one-time AES key
   encrypts each record symmetrically, and that key is wrapped with
   **RSA-OAEP-SHA256**. This lets activity entries be written even when the full
-  symmetric passkey set is not available.
+  symmetric passkey set is not available (e.g. a failed login records an entry
+  without anyone being logged in).
+
+### Activity-log integrity (tamper-evidence)
+
+Because entries must be writable **without being logged in**, writing relies on
+the public key alone and therefore cannot be protected by a secret. Integrity is
+instead provided by **sealing**, which makes tampering *detectable* on the next
+login:
+
+- On every save performed **while a user is logged in**, the whole current log
+  is sealed: an **RSA-PSS-SHA256 signature** (made with the user's private key)
+  is computed over the log's entries and their count. Verification only needs
+  the public key.
+- The number of sealed entries is anchored inside the **encrypted, AEAD-protected
+  database** (`ActivitySealWatermark`). Since that store is tamper-proof, it lets
+  the next login detect a **rollback/truncation** of the sealed entries, or a
+  **stripped** signature.
+- On login the log is verified against the private key: the stored public key
+  must match the key pair in the database (defeats a **key substitution**), and
+  the signature must be valid over the sealed entries (defeats **modification,
+  forgery and reordering** of the sealed portion).
+- If any check fails, login is **not** blocked; instead a reviewable
+  `ActivityLogTampered` activity is recorded so the user is alerted.
 
 ### Storage format (`.pku`)
 
@@ -168,14 +203,25 @@ These are conscious trade-offs, documented for transparency:
 - **Password stretching algorithm**: the project uses PBKDF2 rather than a
   memory-hard KDF such as Argon2id, because Argon2 is not part of the .NET base
   class library and the project maintains a zero-external-dependency policy for
-  its core. PBKDF2 with 1,000,000 SHA-256 iterations is used to compensate.
-- **Deterministic salt**: the PBKDF2 salt is derived from the username, so two
-  users with the same username share the same salt. Usernames are not secrets.
+  its core. To compensate, it uses PBKDF2-HMAC-SHA-512 (more hostile to
+  GPU/ASIC parallelism than SHA-256) with 1,000,000 iterations. The versioned
+  KDF header (see "Crypto-agility") keeps the door open to adopting a memory-hard
+  KDF later, pluggably, should the policy ever be relaxed.
 - **Import/Export files**: CSV and JSON files produced by the Export feature (and
   consumed by Import) are **unencrypted plaintext** by design, for
   interoperability. Users are responsible for protecting or deleting them.
 - **Leak check fails open**: if the Have I Been Pwned service is unreachable, a
   potentially leaked password is reported as "not leaked".
+- **Unsealed activity-log tail**: the activity log is tamper-evident only for the
+  portion sealed at the last login (see "Activity-log integrity"). Entries added
+  since then — including events written while no one is logged in, such as failed
+  logins — are **not** protected against deletion or alteration by an attacker
+  with write access to the file, because writing them requires no secret. Such an
+  attacker could erase the record of their own access before the legitimate user
+  logs in again. Detecting this fully would require a trusted external log; it is
+  out of scope for a purely local, offline tool. Everything sealed at the last
+  login, however, remains tamper-evident, and a wholesale rollback of the sealed
+  portion is detected via the watermark stored in the encrypted database.
 
 ## Reporting Non-Security Bugs
 

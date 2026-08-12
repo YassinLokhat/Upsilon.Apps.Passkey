@@ -14,7 +14,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
    /// <summary>
    /// Interaction logic for MainWindow.xaml
    /// </summary>
-   public partial class MainWindow : Window
+   [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by WPF via XAML/BAML.")]
+   internal sealed partial class MainWindow : Window
    {
       private readonly MainViewModel _mainViewModel;
       private readonly DispatcherTimer _timer;
@@ -113,18 +114,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          try
          {
+#pragma warning disable CA2000 // Ownership is transferred to ISessionService, which disposes the database when the session ends
             IDatabase database = Database.Open(AppServices.Cryptography,
                AppServices.Serialization,
                AppServices.PasswordFactory,
                AppServices.Clipboard,
                _mainViewModel.DatabaseFile,
                _username_TB.Text);
+#pragma warning restore CA2000
 
             database.DatabaseClosed += _database_DatabaseClosed;
             database.AutoSaveDetected += _database_AutoSaveDetected;
             _session.StartSession(database);
          }
+#pragma warning disable CA1031 // Last-resort barrier: a failed open is logged and surfaced, not propagated
          catch (Exception ex)
+#pragma warning restore CA1031
          {
             Log.Error(ex, "Failed to open database");
          }
@@ -154,9 +159,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          try
          {
-            _ = _session.Database.Login(_password_PB.SecurePassword);
+            _ = _password_PB.SecurePassword.UseAsString(_session.Database.Login);
          }
+#pragma warning disable CA1031 // Last-resort barrier: an unexpected login error is shown to the user, not propagated
          catch (Exception ex)
+#pragma warning restore CA1031
          {
             Log.Error(ex, "Unexpected error during login");
             AppServices.Dialogs.Warn("An unexpected error occurred while opening the database.", "Login error");

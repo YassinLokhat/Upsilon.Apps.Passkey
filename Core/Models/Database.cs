@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using System.Security;
-using Upsilon.Apps.Passkey.Core.Utils;
+﻿using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -44,39 +42,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Save() => _save(logSaveEvent: true);
 
-      public IUser? Login(SecureString passkey)
-      {
-         ArgumentNullException.ThrowIfNull(passkey);
-
-         IntPtr bstr = IntPtr.Zero;
-         char[]? chars = null;
-
-         try
-         {
-            bstr = Marshal.SecureStringToBSTR(passkey);
-            int length = passkey.Length;
-            chars = new char[length];
-            Marshal.Copy(bstr, chars, 0, length);
-
-            return Login(new string(chars));
-         }
-         finally
-         {
-            if (chars is not null)
-            {
-               Array.Clear(chars);
-            }
-
-            if (bstr != IntPtr.Zero)
-            {
-               Marshal.ZeroFreeBSTR(bstr);
-            }
-         }
-      }
-
       public IUser? Login(string passkey)
       {
-         Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey, Username)];
+         Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey, _slowHashParameters)];
 
          try
          {
@@ -89,7 +57,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
                data: [Username, $"{passwordException.PasswordLevel}"],
                needsReview: true);
          }
+#pragma warning disable CA1031 // Last-resort barrier: an unexpected login failure is traced, not propagated
          catch (Exception ex)
+#pragma warning restore CA1031
          {
             System.Diagnostics.Trace.TraceWarning($"Unexpected error during login :\n{ex.Message}");
          }
@@ -99,6 +69,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
             User.Database = this;
 
             ActivityCenter.LoadStringActivities();
+
+            // Assert the log's sealed portion is intact now that the private key
+            // (the verification anchor) is available. On failure we record a
+            // reviewable activity rather than blocking access, so the user is
+            // alerted while still being able to log in.
+            if (!ActivityCenter.VerifyIntegrity())
+            {
+               ActivityCenter.AddActivity(itemId: string.Empty,
+                  eventType: ActivityEventType.ActivityLogTampered,
+                  data: [Username],
+                  needsReview: true);
+            }
+
             ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.UserLoggedIn,
                data: [Username],
@@ -149,7 +132,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             importContent = File.ReadAllText(filePath);
          }
+#pragma warning disable CA1031 // Intentional: any file access failure is reported as a user-facing error message
          catch
+#pragma warning restore CA1031
          {
             errorLog = $"import file is not accessible";
          }
@@ -246,10 +231,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal string Username { get; private set; }
       internal string[] Passkeys { get; private set; }
 
+      internal readonly string HeaderFileEntry = "header";
       internal readonly string DatabaseFileEntry = "database";
       internal readonly string AutoSaveFileEntry = "autosave";
       internal readonly string ActivityFileEntry = "activity";
       internal FileLocker FileLocker { get; private set; }
+
+      // The key-derivation parameters governing how this file's passkeys are
+      // stretched, including its random per-database salt. Taken from the crypto
+      // center when the database is created (which mints the salt), then read
+      // back from the header whenever it is reopened. A file keeps the parameters
+      // and salt it was created with.
+      private readonly KdfParameters _slowHashParameters;
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
@@ -269,12 +262,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
          ClipboardManager = clipboardManager;
 
          Username = username;
-         Passkeys = [CryptographyCenter.GetHash(username)];
-
-         if (passkeys is not null)
-         {
-            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x, username))];
-         }
 
          AutoSave = new()
          {
@@ -282,6 +269,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
          };
 
          FileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
+
+         // New databases adopt the crypto center's current parameters; existing
+         // ones are read from the versioned header they were written with.
+         _slowHashParameters = fileMode == FileMode.Create
+            ? CryptographyCenter.DefaultSlowHashParameters
+            : FileLocker.Open<KdfParameters>(HeaderFileEntry);
+
+         Passkeys = [CryptographyCenter.GetHash(username)];
+
+         if (passkeys is not null)
+         {
+            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x, _slowHashParameters))];
+         }
 
          ActivityCenter = fileMode == FileMode.Create
             ? new()
@@ -302,6 +302,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
          string username,
          string[] passkeys)
       {
+         ArgumentNullException.ThrowIfNull(cryptographicCenter);
+         ArgumentNullException.ThrowIfNull(serializationCenter);
+         ArgumentNullException.ThrowIfNull(passwordFactory);
+         ArgumentNullException.ThrowIfNull(clipboardManager);
+         ArgumentNullException.ThrowIfNull(passkeys);
+
          if (File.Exists(databaseFile))
          {
             throw new IOException($"'{databaseFile}' database file already exists");
@@ -332,7 +338,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             PrivateKey = privateKey,
             ItemId = "U" + cryptographicCenter.GetHash(username),
             Username = username,
-            Passkeys = [.. passkeys],
+            Passkeys = [.. passkeys.Select(ProtectedSecret.Protect)],
          };
 
          database.ActivityCenter.AddActivity(itemId: string.Empty,
@@ -386,7 +392,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (User is null) throw new NullValueException(nameof(User));
 
          Username = User.Username;
-         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x, User.Username))];
+
+         // Record the file's stretching parameters in its (unencrypted) header so
+         // the database entry written just below can always be reopened with the
+         // exact parameters it was encrypted with.
+         FileLocker.Save(_slowHashParameters, HeaderFileEntry);
+
+         // Anchor the activity log's seal inside the (tamper-proof) database so a
+         // later rollback or signature strip of the log becomes detectable. The
+         // activities were just (re)sealed by the _saveActivities call above.
+         User.ActivitySealWatermark = ActivityCenter.SealedCount;
+
+         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x.Reveal(), _slowHashParameters))];
          FileLocker.Save(User, DatabaseFileEntry, Passkeys);
 
          if (logSaveEvent)
@@ -482,10 +499,24 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          ActivityCenter.AddActivity(itemId: string.Empty,
-            eventType: (ActivityEventType)mergeAutoSave,
+            eventType: _toActivityEventType(mergeAutoSave),
             data: [Username],
             needsReview: true);
       }
+
+      // Maps an auto-save handling outcome to the activity event that records it.
+      // The two enums are deliberately independent: this explicit switch replaces
+      // a brittle numeric cast that relied on their values coinciding, so
+      // reordering either enum can no longer silently log the wrong event. A new
+      // AutoSaveMergeBehavior value now forces a compile-time review here.
+      private static ActivityEventType _toActivityEventType(AutoSaveMergeBehavior mergeBehavior) => mergeBehavior switch
+      {
+         AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile => ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile,
+         AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile => ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile,
+         AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile => ActivityEventType.DontMergeAndRemoveAutoSaveFile,
+         AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile => ActivityEventType.DontMergeAndKeepAutoSaveFile,
+         _ => ActivityEventType.None,
+      };
 
       private void _lookAtWarnings()
       {
@@ -505,7 +536,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => User.WarningsToNotify.HasFlag(x.WarningType))]));
          }
-         catch { }
+#pragma warning disable CA1031 // Last-resort barrier: the background warning scan must never crash the session
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            // The warning scan runs on a background task and must never crash the
+            // session; a failure only means warnings are not refreshed this round,
+            // so we trace it for diagnostics rather than swallowing it silently.
+            System.Diagnostics.Trace.TraceWarning($"Warning scan failed: {ex}");
+         }
       }
 
       private Warning[] _lookAtActivityWarnings()

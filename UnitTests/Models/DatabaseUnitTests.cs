@@ -20,6 +20,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          user.LogoutTimeout = 10;
          user.CleaningClipboardTimeout = 15;
          user.WarningsToNotify = (WarningType)0;
+         string logFile = database.DatabaseFile.Replace(".pku", ".log");
+         File.WriteAllText(logFile, string.Empty);
 
          for (int i = 0; i < 100; i++)
          {
@@ -60,7 +62,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
                account.Notes = random % 10 == 0 ? $"Service{i}'s Account{j} notes : \n{UnitTestsHelper.GetRandomString(min: 10, max: 150)}" : "";
                account.PasswordUpdateReminderDelay = random < 10 ? random : 0;
                account.Options = (!string.IsNullOrEmpty(account.Password) && random % 2 == 0) ? AccountOption.WarnIfPasswordLeaked : AccountOption.None;
+               File.AppendAllText(logFile, "#");
             }
+            File.AppendAllText(logFile, "\n");
          }
 
          database.Save();
@@ -328,6 +332,153 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // Finaly
          database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * A database created and closed normally opens without any tampering warning,
+       * Then stripping the activity-log signature is detected on the next login.
+      */
+      public void Case06_ActivityLogTamperingIsDetected()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string tamperMessage = $"User {username}'s activity log integrity check failed";
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         // When (untampered)
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (no tampering detected)
+         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+
+         // When (tampered: the sealed signature is stripped from the log)
+         databaseLoaded.Close();
+         UnitTestsHelper.TamperActivityLogSignature(databaseFile);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (tampering detected and flagged for review)
+         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+
+         // Finaly
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Truncating (rolling back) the sealed portion of the activity log is
+       * detected on the next login: the stored list becomes shorter than the
+       * count it claims to have sealed.
+      */
+      public void Case07_ActivityLogTruncationIsDetected()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string tamperMessage = $"User {username}'s activity log integrity check failed";
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         // When (untampered)
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (no tampering detected)
+         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+
+         // When (tampered: one sealed entry is removed from the log)
+         databaseLoaded.Close();
+         UnitTestsHelper.TamperActivityLogTruncate(databaseFile);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (tampering detected and flagged for review)
+         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+
+         // Finaly
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Substituting the log's public key is detected on the next login: the
+       * private key anchoring verification (held in the tamper-proof database)
+       * no longer matches the public key stored in the log.
+      */
+      public void Case08_ActivityLogKeySubstitutionIsDetected()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string tamperMessage = $"User {username}'s activity log integrity check failed";
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         // When (untampered)
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (no tampering detected)
+         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+
+         // When (tampered: the log's public key is swapped for an attacker's)
+         databaseLoaded.Close();
+         UnitTestsHelper.TamperActivityLogPublicKey(databaseFile);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (tampering detected and flagged for review)
+         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+
+         // Finaly
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Reordering the sealed entries is detected on the next login: the
+       * signature no longer matches the canonical content it was computed over,
+       * even though nothing was added or removed.
+      */
+      public void Case09_ActivityLogReorderingIsDetected()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string tamperMessage = $"User {username}'s activity log integrity check failed";
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         // When (untampered)
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (no tampering detected)
+         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+
+         // When (tampered: two sealed entries are swapped)
+         databaseLoaded.Close();
+         UnitTestsHelper.TamperActivityLogReorder(databaseFile);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (tampering detected and flagged for review)
+         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+
+         // Finaly
+         databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
    }

@@ -8,7 +8,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    /// <summary>
    /// Interaction logic for PrivateTextBox.xaml
    /// </summary>
-   public partial class VisiblePasswordBox : UserControl
+   [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by WPF via XAML/BAML.")]
+   internal sealed partial class VisiblePasswordBox : UserControl
    {
       private readonly VisiblePasswordBoxViewModel _viewModel;
 
@@ -88,12 +89,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _viewButton_MouseDown(object sender, MouseButtonEventArgs e)
       {
-         _viewModel.TooglePasswordVisibility();
+         _viewModel.ShowPassword();
       }
 
       private void _viewButton_MouseUp(object sender, MouseButtonEventArgs e)
       {
-         _viewModel.TooglePasswordVisibility();
+         _viewModel.HidePassword();
       }
    }
 }

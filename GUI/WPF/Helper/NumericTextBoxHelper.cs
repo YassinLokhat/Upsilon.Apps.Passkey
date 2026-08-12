@@ -29,7 +29,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
          if (e.Handled)
          {
-            textBox.Text = textBox.Text.Replace(" ", "", StringComparison.CurrentCulture);
+            textBox.Text = textBox.Text.Replace(" ", "", StringComparison.Ordinal);
          }
       }
 

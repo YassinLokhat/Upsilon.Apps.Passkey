@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Upsilon.Apps.Passkey.Core.Models;
@@ -29,7 +30,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private static T _jsonDeserializeAs<T>(string json)
          => JsonSerializer.Deserialize<T>(json, _options) ?? throw new NullValueException();
 
-      private static readonly JsonSerializerOptions _options = new() { Converters = { new JsonStringEnumConverter() }, WriteIndented = true, };
+      private static readonly JsonSerializerOptions _options = new() { Converters = { new JsonStringEnumConverter(), new ProtectedSecretJsonConverter() }, WriteIndented = true, };
 
       public static string ImportCSV(this IDatabase database, string importContent)
       {
@@ -37,7 +38,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          try
          {
-            string[] csvLines = [.. importContent.Split('\n').Select(x => x.Replace("\r", "", StringComparison.CurrentCulture)).Where(x => !string.IsNullOrWhiteSpace(x))];
+            string[] csvLines = [.. importContent.Split('\n').Select(x => x.Replace("\r", "", StringComparison.Ordinal)).Where(x => !string.IsNullOrWhiteSpace(x))];
 
             string[] headers = csvLines[0].Split("\t");
 
@@ -97,7 +98,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                service.Accounts.Add(account);
             }
          }
+#pragma warning disable CA1031 // Intentional: any parsing failure is reported as a user-facing format error
          catch
+#pragma warning restore CA1031
          {
             return "the CSV data format is incorrect";
          }
@@ -113,7 +116,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             services = _jsonDeserializeAs<Service[]>(importContent);
          }
+#pragma warning disable CA1031 // Intentional: any deserialization failure is reported as a user-facing error
          catch
+#pragma warning restore CA1031
          {
             return "import file deserialization failed";
          }
@@ -142,12 +147,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          foreach (Service s in services)
          {
             IService service = database.User.AddService(s.ServiceName);
-            service.Url = new Uri(s.Url);
+            service.Url = (!string.IsNullOrWhiteSpace(s.Url) && Uri.IsWellFormedUriString(s.Url, UriKind.RelativeOrAbsolute))
+               ? new Uri(s.Url) : null;
             service.Notes = s.Notes;
 
             foreach (Account a in s.Accounts)
             {
-               IAccount account = service.AddAccount(a.Label, a.Identifiers, a.Password);
+               IAccount account = ((Service)service).AddAccount(a.Label, a.Identifiers, a.Password, a.Passwords);
                account.Notes = a.Notes;
                account.Options = a.Options;
                account.PasswordUpdateReminderDelay = a.PasswordUpdateReminderDelay;
@@ -174,7 +180,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                string identifiers = string.Join("|", account.Identifiers.Where(x => !string.IsNullOrWhiteSpace(x)));
 
                _ = sb.Append(serviceLine);
-               _ = sb.Append($"{_jsonSerialize(account.Label.Trim())}\t" +
+               _ = sb.Append(CultureInfo.InvariantCulture, $"{_jsonSerialize(account.Label.Trim())}\t" +
                   $"{_jsonSerialize(identifiers)}\t" +
                   $"{_jsonSerialize(account.Password.Trim())}\t" +
                   $"{_jsonSerialize(account.Notes.Trim())}\t" +

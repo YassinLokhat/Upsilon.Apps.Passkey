@@ -35,8 +35,8 @@ classDiagram
     namespace Upsilon.Apps.Passkey.Interfaces.Utils {
         class ISerializationCenter {
             <<interface>>
-            +Serialize~T~(in toSerialize T) string
-            +Deserialize~T~(in toDeserialize string) T
+            +Serialize(in toSerialize T) string
+            +Deserialize(in toDeserialize string) T
         }
 
         class IClipboardManager {
@@ -46,9 +46,9 @@ classDiagram
 
         class IPasswordFactory {
             <<interface>>
-            +Alphabetic : string
-            +Numeric : string
-            +SpecialChars : string
+            +string Alphabetic
+            +string Numeric
+            +string SpecialChars
 
             +GeneratePassword(in length int, in alphabet string, in checkIfLeaked bool) string
             +PasswordLeaked(in password string) bool
@@ -56,47 +56,57 @@ classDiagram
 
         class ICryptographyCenter {
             <<interface>>
-            +HashLength : int
+            +int HashLength
+            +KdfParameters DefaultSlowHashParameters
 
             +GetHash(in source string) string
-            +GetSlowHash(in source string, in salt string) string
-            +Sign(inout source string) void
-            +CheckSign(inout source string) bool
-            +EncryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
-            +DecryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
+            +GetSlowHash(in source string, in parameters KdfParameters) string
+            +EncryptSymmetrically(in source string, in passwords IEnumerable~string~) string
+            +DecryptSymmetrically(in source string, in passwords IEnumerable~string~) string
             +GenerateRandomKeys(out publicKey string, out privateKey string) void
-            +EncryptAsymmetrically(inout source string, in key string) string
-            +DecryptAsymmetrically(inout source string, in key string) string
+            +EncryptAsymmetrically(in source string, in key string) string
+            +DecryptAsymmetrically(in source string, in key string) string
+            +GetPublicKey(in privateKey string) string
+            +Sign(in source string, in privateKey string) string
+            +Verify(in source string, in signature string, in publicKey string) bool
+        }
+
+        class KdfParameters {
+            +int Version
+            +KdfAlgorithm Algorithm
+            +int Iterations
+            +int OutputLength
+            +string Salt
         }
     }
 
     namespace Upsilon.Apps.Passkey.Interfaces.Models {
         class IItem {
             <<interface>>
-            +ItemId : string
-            +Database : IDatabase
+            +string ItemId
+            +IDatabase Database
             +HasChanged(void) bool
         }
 
         class IAccount {
             <<interface>>
-            +Service : IService
-            +Label : string
-            +Notes : string
-            +Identifiers : IEnumerable~string~
-            +Password : string
-            +Passwords : IDictionary~DateTime, string~
-            +PasswordUpdateReminderDelay : int
-            +Options : AccountOption
+            +IService Service
+            +string Label
+            +string Notes
+            +IEnumerable~string~ Identifiers
+            +string Password
+            +Dictionary~DateTime_string~ Passwords
+            +int PasswordUpdateReminderDelay
+            +AccountOption Options
         }
 
         class IService {
             <<interface>>
-            +User : IUser
-            +ServiceName : string
-            +Url : string
-            +Notes : string
-            +Accounts : IEnumerable~IAccount~
+            +IUser User
+            +string ServiceName
+            +Uri Url
+            +string Notes
+            +IEnumerable~IAccount~ Accounts
             +AddAccount(in label string, in identifiers IEnumerable~string~, in password string) IAccount
             +AddAccount(in label string, in identifiers IEnumerable~string~) IAccount
             +AddAccount(in identifiers IEnumerable~string~, in password string) IAccount
@@ -106,34 +116,36 @@ classDiagram
 
         class IUser {
             <<interface>>
-            +Username : string
-            +Passkeys : IEnumerable~string~
-            +LogoutTimeout : int
-            +CleaningClipboardTimeout : int
-            +ShowPasswordDelay : int
-            +NumberOfOldPasswordToKeep : int
-            +WarningsToNotify : WarningType
-            +Services : IEnumerable~IService~
+            +string Username
+            +IEnumerable~string~ Passkeys
+            +int LogoutTimeout
+            +int CleaningClipboardTimeout
+            +int ShowPasswordDelay
+            +int NumberOfOldPasswordToKeep
+            +int NumberOfMonthActivitiesToKeep
+            +WarningType WarningsToNotify
+            +IEnumerable~IService~ Services
             +AddService(in serviceName string) IService
             +DeleteService(in service IService) void
         }
 
         class IDatabase {
             <<interface>>
-            +DatabaseFile : string
-            +User : IUser
-            +SessionLeftTime : int
-            +Activities : IEnumerable~IActivity~
-            +Warnings : IEnumerable~IWarning~
-            +SerializationCenter : ISerializationCenter
-            +CryptographyCenter : ICryptographyCenter
-            +PasswordFactory : IPasswordFactory
-            +ClipboardManager : IClipboardManager
-            +WarningsUpdated : EventHandler~WarningsUpdatedEventArgs~
-            +AutoSaveDetected : EventHandler~AutoSaveDetectedEventArgs~
-            +DatabaseSaved : EventHandler
-            +DatabaseClosed : EventHandler~LogoutEventArgs~
+            +string DatabaseFile
+            +IUser User
+            +int SessionLeftTime
+            +IEnumerable~IActivity~ Activities
+            +IEnumerable~IWarning~ Warnings
+            +ISerializationCenter SerializationCenter
+            +ICryptographyCenter CryptographyCenter
+            +IPasswordFactory PasswordFactory
+            +IClipboardManager ClipboardManager
+            +EventHandler~WarningsUpdatedEventArgs~ WarningsUpdated
+            +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
+            +EventHandler DatabaseSaved
+            +EventHandler~LogoutEventArgs~ DatabaseClosed
             +Login(in passkey string) IUser
+            +Login(in passkey SecureString) IUser
             +Save(void) void
             +Delete(void) void
             +Close(void) void
@@ -145,17 +157,18 @@ classDiagram
 
         class IActivity {
             <<interface>>
-            +DateTime : DateTime
-            +ItemId : string
-            +Message : string
-            +NeedsReview : bool
+            +DateTime DateTime
+            +string ItemId
+            +ActivityEventType EventType
+            +string Message
+            +bool NeedsReview
         }
 
         class IWarning {
             <<interface>>
-            +WarningType : WarningType
-            +Activities : IEnumerable~IActivity~
-            +Accounts : IEnumerable~IAccount~
+            +WarningType WarningType
+            +IEnumerable~IActivity~ Activities
+            +IEnumerable~IAccount~ Accounts
         }
     }
     
@@ -170,7 +183,7 @@ classDiagram
         
         class WarningType {
             <<enumeration>>
-            LogReviewWarning
+            ActivityReviewWarning
             PasswordUpdateReminderWarning
             DuplicatedPasswordsWarning
             PasswordLeakedWarning
@@ -178,25 +191,59 @@ classDiagram
         
         class AutoSaveMergeBehavior {
             <<enumeration>>
+            Undefined
             MergeAndSaveThenRemoveAutoSaveFile
             MergeWithoutSavingAndKeepAutoSaveFile
             DontMergeAndRemoveAutoSaveFile
             DontMergeAndKeepAutoSaveFile
+        }
+
+        class KdfAlgorithm {
+            <<enumeration>>
+            Pbkdf2HmacSha256
+            Pbkdf2HmacSha512
+        }
+
+        class ActivityEventType {
+            <<enumeration>>
+            None
+            MergeAndSaveThenRemoveAutoSaveFile
+            MergeWithoutSavingAndKeepAutoSaveFile
+            DontMergeAndRemoveAutoSaveFile
+            DontMergeAndKeepAutoSaveFile
+            DatabaseCreated
+            DatabaseOpened
+            DatabaseSaved
+            DatabaseClosed
+            LoginSessionTimeoutReached
+            LoginFailed
+            UserLoggedIn
+            UserLoggedOut
+            ImportingDataStarted
+            ImportingDataSucceded
+            ImportingDataFailed
+            ExportingDataStarted
+            ExportingDataSucceded
+            ExportingDataFailed
+            ItemUpdated
+            ItemAdded
+            ItemDeleted
+            ActivityLogTampered
         }
     }
     
     %% Event Args Classes
     namespace Upsilon.Apps.Passkey.Interfaces.Events {
         class AutoSaveDetectedEventArgs {
-            +MergeBehavior : AutoSaveMergeBehavior
+            +AutoSaveMergeBehavior MergeBehavior
         }
         
         class WarningsUpdatedEventArgs {
-            +Warnings : IEnumerable~IWarning~
+            +IEnumerable~IWarning~ Warnings
         }
         
         class LogoutEventArgs {
-            +LoginTimeoutReached : bool
+            +bool LoginTimeoutReached
         }
     }
 
@@ -209,6 +256,9 @@ classDiagram
     IItem --> IDatabase : Database
     IAccount --> IService : Service
     IAccount --> AccountOption : Options
+    IActivity --> ActivityEventType : EventType
+    ICryptographyCenter --> KdfParameters : DefaultSlowHashParameters
+    KdfParameters --> KdfAlgorithm : Algorithm
     IService "0" --> "*" IAccount : Accounts
     IService --> IUser : User
     IUser "0" --> "*" IService : Services

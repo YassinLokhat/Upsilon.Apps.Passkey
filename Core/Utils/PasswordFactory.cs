@@ -77,9 +77,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             using StreamReader reader = new(response.Content.ReadAsStream());
             string res = reader.ReadToEnd();
 
-            return res.Contains(hash[5..], StringComparison.CurrentCulture);
+            return res.Contains(hash[5..], StringComparison.Ordinal);
          }
+#pragma warning disable CA1031 // Last-resort barrier: a leak check must never crash password generation
          catch (Exception ex)
+#pragma warning restore CA1031
          {
             // A leak check must never crash password generation or the warning
             // scan. When the service is unreachable we cannot confirm a leak, so

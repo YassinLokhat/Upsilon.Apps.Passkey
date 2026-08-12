@@ -7,7 +7,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
    /// <summary>
    /// Interaction logic for App.xaml
    /// </summary>
-   public partial class App : Application
+   internal sealed partial class App : Application
    {
       protected override void OnStartup(StartupEventArgs e)
       {
@@ -22,6 +22,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
       protected override void OnExit(ExitEventArgs e)
       {
+         ArgumentNullException.ThrowIfNull(e);
+
          Log.Info($"Application exiting with code {e.ApplicationExitCode}.");
          Log.Flush();
 

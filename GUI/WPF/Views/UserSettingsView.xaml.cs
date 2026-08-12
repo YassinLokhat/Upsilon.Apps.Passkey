@@ -16,7 +16,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserSettingsView.xaml
    /// </summary>
-   public partial class UserSettingsView : Window
+   internal sealed partial class UserSettingsView : Window
    {
       private readonly UserSettingsViewModel _viewModel;
       private Task? _saveTask;
@@ -113,11 +113,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _database.Delete();
 
-         if (Directory.Exists(databaseDirectory))
-         {
-            Directory.Delete(databaseDirectory, true);
-         }
-
          _ = MessageBox.Show($"'{_viewModel.Username}' user database deleted successfully", "Success");
       }
 
@@ -173,7 +168,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                _database.DatabaseClosed += _database_DatabaseClosed;
                _session.StartSession(_database);
             }
+#pragma warning disable CA1031 // Last-resort barrier: database creation errors are shown to the user, not propagated
             catch (Exception ex)
+#pragma warning restore CA1031
             {
                _ = MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                _ = Dispatcher.BeginInvoke(() =>
@@ -293,7 +290,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          OpenFileDialog dialog = new()
          {
             Title = "Import data from a file",
-            Filter = "Tab delimited CSV file|*.csv|json file|*.json",
+            Filter = "json file|*.json|Tab delimited CSV file|*.csv",
          };
 
          if (!(dialog.ShowDialog() ?? false)) return;
@@ -334,7 +331,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          SaveFileDialog dialog = new()
          {
             Title = "Export data to a file",
-            Filter = "Tab delimited CSV file|*.csv|json file|*.json",
+            Filter = "json file|*.json|Tab delimited CSV file|*.csv",
             FileName = $"{_database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
          };
 

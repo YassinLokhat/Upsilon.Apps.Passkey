@@ -14,7 +14,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string ServiceDisplay => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service.ServiceName}";
 
-      public string ServiceId => $"Service Id : {Service.ItemId.Replace(Service.User.ItemId, string.Empty, StringComparison.CurrentCulture)}";
+      public string ServiceId => $"Service Id : {Service.ItemId.Replace(Service.User.ItemId, string.Empty, StringComparison.Ordinal)}";
 
       public Brush ServiceNameBackground => Service.HasChanged(nameof(ServiceName)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string ServiceName
@@ -90,7 +90,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public AccountViewModel AddAccount()
       {
-         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier.StartsWith("👤New Account #", StringComparison.CurrentCulture)));
+         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier.StartsWith("👤New Account #", StringComparison.Ordinal)));
 
          if (accountViewModel is null)
          {

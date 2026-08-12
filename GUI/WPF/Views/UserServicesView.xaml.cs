@@ -13,7 +13,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserServicesView.xaml
    /// </summary>
-   public partial class UserServicesView : Window, IDisposable
+   internal sealed partial class UserServicesView : Window, IDisposable
    {
       private readonly UserServicesViewModel _viewModel;
       private readonly IDatabase _database;
@@ -72,12 +72,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       public static bool ShowUser(Window owner)
       {
-         return new UserServicesView()
+         using UserServicesView view = new()
          {
             Owner = owner,
-         }
-         .ShowDialog()
-         ?? true;
+         };
+
+         return view.ShowDialog() ?? true;
       }
 
       private void _userServicesView_Loaded(object sender, RoutedEventArgs e)
@@ -393,7 +393,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          GC.SuppressFinalize(this);
       }
 
-      protected virtual void Dispose(bool disposing)
+      private void Dispose(bool disposing)
       {
          if (disposing)
          {

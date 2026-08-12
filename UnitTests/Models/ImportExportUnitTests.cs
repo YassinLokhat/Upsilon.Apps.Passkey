@@ -517,5 +517,64 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * Data exported to JSON can be re-imported into a fresh database and yields
+       * an equivalent set of services and accounts (a structural round-trip). A
+       * plain file comparison is not usable here because the JSON carries the
+       * per-item ItemId and password timestamps, which are regenerated on import.
+      */
+      public void Case13_ImportExportJson_RoundTrip()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string roundTripUsername = $"{username}_roundtrip";
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.json");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export_roundtrip.json");
+
+         UnitTestsHelper.ClearTestEnvironment();
+         UnitTestsHelper.ClearTestEnvironment(roundTripUsername);
+
+         IDatabase source = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         // When (import into the source database, then export it back to JSON)
+         source.ImportFromFile(importFile).Should().BeTrue();
+         source.ExportToFile(exportFile).Should().BeTrue();
+
+         // Then (the exported file can be re-imported into a fresh database)
+         IDatabase roundTripped = UnitTestsHelper.CreateTestDatabase(passkeys, roundTripUsername);
+         roundTripped.ImportFromFile(exportFile).Should().BeTrue();
+
+         // Then (both databases hold an equivalent set of services and accounts)
+         _project(source).Should().BeEquivalentTo(_project(roundTripped));
+
+         // Finaly
+         source.Close();
+         roundTripped.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+         UnitTestsHelper.ClearTestEnvironment(roundTripUsername);
+      }
+
+      // Projects a database's services/accounts onto the persisted fields only,
+      // excluding the regenerated ItemId and password timestamps, so two imports
+      // of the same data compare as equivalent.
+      private static object _project(IDatabase database)
+         => database.User.Services.Select(service => new
+         {
+            service.ServiceName,
+            Url = service.Url?.OriginalString,
+            service.Notes,
+            Accounts = service.Accounts.Select(account => new
+            {
+               account.Label,
+               Identifiers = account.Identifiers.ToArray(),
+               account.Password,
+               account.Notes,
+               account.Options,
+               account.PasswordUpdateReminderDelay,
+            }).ToArray(),
+         }).ToArray();
    }
 }

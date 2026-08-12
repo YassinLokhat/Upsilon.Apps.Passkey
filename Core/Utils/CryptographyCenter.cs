@@ -1,49 +1,71 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
    public class CryptographyCenter : ICryptographyCenter
    {
-      public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.Unicode.GetBytes(source))).Replace("/", "-", StringComparison.CurrentCulture);
-
-      private readonly byte[] _slowHashSaltPrefix;
+      public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.UTF8.GetBytes(source))).Replace("/", "-", StringComparison.Ordinal);
 
       private const int SLOW_HASH_ITERATIONS = 1_000_000;
+      private const int SLOW_HASH_SALT_SIZE = 16;
 
-      public CryptographyCenter()
+      public KdfParameters DefaultSlowHashParameters => new()
       {
-         _slowHashSaltPrefix = Encoding.UTF8.GetBytes(GetHash(string.Empty));
-      }
+         Version = 1,
+         // HMAC-SHA-512 relies on 64-bit arithmetic, which GPUs and ASICs run
+         // far less efficiently than the 32-bit operations of SHA-256. At an
+         // equal iteration count this narrows an attacker's parallel-hardware
+         // advantage for offline guessing, while staying within the .NET BCL.
+         Algorithm = KdfAlgorithm.Pbkdf2HmacSha512,
+         Iterations = SLOW_HASH_ITERATIONS,
+         OutputLength = 64,
+         // A fresh 128-bit random salt is minted for every new database, so two
+         // databases (even with the same username and passkeys) never stretch to
+         // the same key material. It is stored, unencrypted, in the header; a
+         // salt is not secret. Each access mints a new salt, so the returned
+         // instance must be captured once per database rather than re-read.
+         Salt = Convert.ToBase64String(RandomNumberGenerator.GetBytes(SLOW_HASH_SALT_SIZE)),
+      };
 
-      public string GetSlowHash(string source, string salt)
+      public string GetSlowHash(string source, KdfParameters parameters)
       {
-         // Fold the per-account salt into a fixed-size, high-entropy value so
-         // the PBKDF2 salt is always well-formed regardless of the username's
-         // length or content, while staying deterministic (same username always
-         // yields the same salt, which is required to reopen the database).
-         byte[] saltMaterial = [.. _slowHashSaltPrefix, .. Encoding.Unicode.GetBytes(salt)];
-         byte[] derivedSalt = SHA256.HashData(saltMaterial);
+         ArgumentNullException.ThrowIfNull(parameters);
 
-         // PBKDF2-SHA256 is a standard password-stretching KDF. Iterating a
-         // plain SHA-512 (the previous approach) is far cheaper per guess on a
-         // GPU and offers no salting, so it gave attackers a big head start.
+         // The salt is a random, per-database value carried in the parameters
+         // (read back from the header), so it is well-formed by construction and
+         // stable for the life of the file, which is required to reopen it.
+         byte[] salt = Convert.FromBase64String(parameters.Salt);
+
+         // PBKDF2 is a standard password-stretching KDF. The exact algorithm,
+         // work factor and salt are taken from the caller so that a database can
+         // be reopened with the parameters it was written with (crypto-agility).
          byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
-            Encoding.Unicode.GetBytes(source),
-            derivedSalt,
-            SLOW_HASH_ITERATIONS,
-            HashAlgorithmName.SHA256,
-            64);
+            Encoding.UTF8.GetBytes(source),
+            salt,
+            parameters.Iterations,
+            _toHashAlgorithmName(parameters.Algorithm),
+            parameters.OutputLength);
 
          return Convert.ToBase64String(hash);
       }
+
+      private static HashAlgorithmName _toHashAlgorithmName(KdfAlgorithm algorithm) => algorithm switch
+      {
+         KdfAlgorithm.Pbkdf2HmacSha256 => HashAlgorithmName.SHA256,
+         KdfAlgorithm.Pbkdf2HmacSha512 => HashAlgorithmName.SHA512,
+         _ => throw new NotSupportedException($"Unsupported KDF algorithm '{algorithm}'."),
+      };
 
       public int HashLength => GetHash(string.Empty).Length;
 
       public string EncryptSymmetrically(string source, string[] passwords)
       {
+         ArgumentNullException.ThrowIfNull(passwords);
+
          // Onion encryption: every passkey adds an authenticated AES-GCM layer,
          // so all of them are required - and in the right order - to recover the
          // data.
@@ -61,6 +83,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string DecryptSymmetrically(string source, string[] passwords)
       {
+         ArgumentNullException.ThrowIfNull(passwords);
+
          string result;
 
          try
@@ -130,9 +154,52 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // A wrong key fails the RSA unwrap (WrongPasswordException); any
          // tampering with the wrapped key or the payload is caught by RSA-OAEP
          // or the AES-GCM tag inside DecryptSymmetrically.
-         string aesKey = _decryptRsa(s.Key, 0, key);
+         string aesKey = _decryptRsa(s.Key, key);
 
          return DecryptSymmetrically(s.Value, [aesKey]);
+      }
+
+      public string GetPublicKey(string privateKey)
+      {
+         using RSA rsa = RSA.Create();
+         rsa.ImportFromPem(privateKey);
+
+         return rsa.ExportRSAPublicKeyPem();
+      }
+
+      public string Sign(string source, string privateKey)
+      {
+         using RSA rsa = RSA.Create();
+         rsa.ImportFromPem(privateKey);
+
+         // RSA-PSS with SHA-256 is the modern, randomized signature scheme
+         // (preferred over the legacy PKCS#1 v1.5 padding). SignData hashes the
+         // input itself, so an arbitrarily long payload can be signed directly.
+         byte[] signature = rsa.SignData(Encoding.UTF8.GetBytes(source), HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+
+         return Convert.ToBase64String(signature);
+      }
+
+      public bool Verify(string source, string signature, string publicKey)
+      {
+         try
+         {
+            using RSA rsa = RSA.Create();
+            rsa.ImportFromPem(publicKey);
+
+            return rsa.VerifyData(Encoding.UTF8.GetBytes(source),
+               Convert.FromBase64String(signature),
+               HashAlgorithmName.SHA256,
+               RSASignaturePadding.Pss);
+         }
+#pragma warning disable CA1031 // Intentional: any malformed key/signature is treated as an invalid signature
+         catch
+#pragma warning restore CA1031
+         {
+            // Any malformed key/signature (or a mismatch) is treated as an
+            // invalid signature rather than surfacing as an exception.
+            return false;
+         }
       }
 
       private const int SALT_SIZE = 16;
@@ -145,7 +212,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // right tool to expand them into a fresh AES-256 key. Brute-force
       // hardening of human-chosen passwords belongs to GetSlowHash, not here.
       private static byte[] _deriveLayerKey(string password, byte[] salt)
-         => HKDF.DeriveKey(HashAlgorithmName.SHA256, Encoding.Unicode.GetBytes(password), KEY_SIZE, salt);
+         => HKDF.DeriveKey(HashAlgorithmName.SHA256, Encoding.UTF8.GetBytes(password), KEY_SIZE, salt);
 
       private static string _encryptGcmLayer(string plainText, string password)
       {
@@ -155,7 +222,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          try
          {
-            byte[] plainBytes = Encoding.Unicode.GetBytes(plainText);
+            byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
             byte[] cipherBytes = new byte[plainBytes.Length];
             byte[] tag = new byte[TAG_SIZE];
 
@@ -201,7 +268,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
             }
 
-            return Encoding.Unicode.GetString(plainBytes);
+            return Encoding.UTF8.GetString(plainBytes);
          }
          finally
          {
@@ -214,7 +281,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          using RSA rsa = RSA.Create();
          rsa.ImportFromPem(publicKeyPem);
 
-         byte[] bytesPlainTextData = Encoding.Unicode.GetBytes(source);
+         byte[] bytesPlainTextData = Encoding.UTF8.GetBytes(source);
          byte[] bytesCypherText = rsa.Encrypt(bytesPlainTextData, RSAEncryptionPadding.OaepSHA256);
 
          source = Convert.ToBase64String(bytesCypherText);
@@ -222,7 +289,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return source;
       }
 
-      private static string _decryptRsa(string source, int level, string privateKeyPem)
+      private static string _decryptRsa(string source, string privateKeyPem)
       {
          try
          {
@@ -231,11 +298,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             byte[] bytesCypherText = Convert.FromBase64String(source);
             byte[] bytesPlainTextData = rsa.Decrypt(bytesCypherText, RSAEncryptionPadding.OaepSHA256);
-            return Encoding.Unicode.GetString(bytesPlainTextData);
+            return Encoding.UTF8.GetString(bytesPlainTextData);
          }
          catch
          {
-            throw new WrongPasswordException(level);
+            throw new WrongPasswordException(0);
          }
       }
    }

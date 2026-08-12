@@ -10,7 +10,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    /// <summary>
    /// Interaction logic for ServiceView.xaml
    /// </summary>
-   public partial class ServiceView : UserControl
+   [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by WPF via XAML/BAML.")]
+   internal sealed partial class ServiceView : UserControl
    {
       private ServiceViewModel? _viewModel;
 
@@ -89,13 +90,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         _ = new Process()
+         using Process process = new()
          {
             StartInfo = new ProcessStartInfo(_viewModel.Url)
             {
                UseShellExecute = true,
             },
-         }.Start();
+         };
+
+         _ = process.Start();
       }
 
       public bool SelectAccount(string itemId)

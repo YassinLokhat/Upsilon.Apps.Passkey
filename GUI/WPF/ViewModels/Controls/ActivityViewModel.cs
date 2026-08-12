@@ -8,7 +8,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
    internal sealed class ActivityViewModel(IActivity activity) : INotifyPropertyChanged
    {
       public readonly IActivity Activity = activity;
-      public string DateTime => Activity.DateTime.ToString("yyyy-MM-dd HH:mm");
+      public string DateTime => Activity.DateTime.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture);
       public string EventType => Activity.EventType.ToReadableString();
       public string Message => Activity.Message;
       public bool NeedsReview
@@ -40,7 +40,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                || Activity.DateTime.Date >= fromDateFilter) && (toDateFilter > System.DateTime.Now.Date
                || Activity.DateTime.Date <= toDateFilter) && (eventType == ActivityEventType.None
                || Activity.EventType == eventType) && (!needsReview
-               || Activity.NeedsReview) && Activity.Message.Contains(message, StringComparison.CurrentCultureIgnoreCase);
+               || Activity.NeedsReview) && Activity.Message.Contains(message, StringComparison.OrdinalIgnoreCase);
       }
    }
 }

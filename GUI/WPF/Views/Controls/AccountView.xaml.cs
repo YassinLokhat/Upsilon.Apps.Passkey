@@ -10,7 +10,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    /// <summary>
    /// Interaction logic for AccountView.xaml
    /// </summary>
-   public partial class AccountView : UserControl
+   [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by WPF via XAML/BAML.")]
+   internal sealed partial class AccountView : UserControl
    {
       private AccountViewModel? _viewModel;
 
@@ -29,7 +30,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          {
             foreach (string idType in IdentifierViewModel.IdentifiersTypes.Values)
             {
-               if (identifier.StartsWith(idType, StringComparison.CurrentCulture))
+               if (identifier.StartsWith(idType, StringComparison.Ordinal))
                {
                   identifier = identifier[idType.Length..];
                }
@@ -184,7 +185,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          {
             passwordBox.Password = ((PasswordViewModel)((ContentPresenter)passwordBox.TemplatedParent).Content).Password;
          }
+#pragma warning disable CA1031 // Intentional: a transient visual-tree/binding race on load is safely ignored
          catch { }
+#pragma warning restore CA1031
       }
 
       private void _copyIdentifier_Clicked(object sender, RoutedEventArgs e)

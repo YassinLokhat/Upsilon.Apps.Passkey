@@ -8,7 +8,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    /// <summary>
    /// Interaction logic for UserPasswordsContainer.xaml
    /// </summary>
-   public partial class UserPasswordsContainer : UserControl
+   [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by WPF via XAML/BAML.")]
+   internal sealed partial class UserPasswordsContainer : UserControl
    {
       public IEnumerable<string> Passkeys => [.. _passwords.Select(x => x.ViewModel.Password)];
 

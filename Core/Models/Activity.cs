@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using Upsilon.Apps.Passkey.Core.Utils;
+﻿using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -61,10 +60,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (info.Length > 4)
          {
             activity = string.Join("|", info[4..])
-               .Replace("|", "/|", StringComparison.CurrentCulture)
-               .Replace("\\/|", "\\|", StringComparison.CurrentCulture);
+               .Replace("|", "/|", StringComparison.Ordinal)
+               .Replace("\\/|", "\\|", StringComparison.Ordinal);
             info = activity.Split("/|");
-            Data = [.. info.Select(x => x.Replace("\\|", "|", StringComparison.CurrentCulture))];
+            Data = [.. info.Select(x => x.Replace("\\|", "|", StringComparison.Ordinal))];
          }
       }
 
@@ -72,7 +71,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          string activity = $"{DateTimeTicks:X}|{ItemId}|{(int)EventType}|{(NeedsReview ? "1" : "")}";
 
-         string[] data = [.. Data.Select(x => x.Replace("|", "\\|", StringComparison.CurrentCulture))];
+         string[] data = [.. Data.Select(x => x.Replace("|", "\\|", StringComparison.Ordinal))];
          if (data.Length != 0)
          {
             activity += $"|{string.Join("|", data)}";
@@ -103,9 +102,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
             ActivityEventType.ExportingDataStarted => $"Exporting data to file : '{Data[0]}'",
             ActivityEventType.ExportingDataSucceded => $"Export completed successfully",
             ActivityEventType.ExportingDataFailed => $"Export failed because {Data[0]}",
-            ActivityEventType.ItemUpdated => $"{(Data.Length > 3 ? $"{Data[3]}'s " : "")}{Data[0]}'s {Data[1].ToSentenceCase().ToLower(CultureInfo.CurrentCulture)} has been {(string.IsNullOrWhiteSpace(Data[2]) ? $"updated" : $"set to {Data[2]}")}",
+#pragma warning disable CA1308 // Display text, not a normalization key: the field name is intentionally lowercased for a readable sentence.
+            ActivityEventType.ItemUpdated => $"{(Data.Length > 3 ? $"{Data[3]}'s " : "")}{Data[0]}'s {Data[1].ToSentenceCase().ToLowerInvariant()} has been {(string.IsNullOrWhiteSpace(Data[2]) ? $"updated" : $"set to {Data[2]}")}",
+#pragma warning restore CA1308
             ActivityEventType.ItemAdded => $"{Data[2]} has been added to {Data[0]}",
             ActivityEventType.ItemDeleted => $"{Data[2]} has been removed from {Data[0]}",
+            ActivityEventType.ActivityLogTampered => $"User {Data[0]}'s activity log integrity check failed",
             _ => ToString(),
          };
 

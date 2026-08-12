@@ -8,28 +8,31 @@
       /// <summary>
       /// No event type.
       /// </summary>
+      /// <remarks>
+      /// The numeric values below are a persistence contract: they are written to
+      /// the activity log (see <c>Activity.ToString</c>) and must stay stable to
+      /// keep existing logs readable. Mapping from <see cref="AutoSaveMergeBehavior"/>
+      /// is done explicitly in code, so these values are no longer required to
+      /// match that enum.
+      /// </remarks>
       None = 0,
 
       /// <summary>
       /// The auto-save merged and saved then removed.
-      /// Should match with the AutoSaveMergeBehavior value.
       /// </summary>
       MergeAndSaveThenRemoveAutoSaveFile = 1,
       /// <summary>
       /// The auto-save merged but not saved.
-      /// Should match with the AutoSaveMergeBehavior value.
       /// </summary>
-      MergeWithoutSavingAndKeepAutoSaveFile,
+      MergeWithoutSavingAndKeepAutoSaveFile = 2,
       /// <summary>
       /// The auto-save not merged then removed.
-      /// Should match with the AutoSaveMergeBehavior value.
       /// </summary>
-      DontMergeAndRemoveAutoSaveFile,
+      DontMergeAndRemoveAutoSaveFile = 3,
       /// <summary>
       /// The auto-save not merged.
-      /// Should match with the AutoSaveMergeBehavior value.
       /// </summary>
-      DontMergeAndKeepAutoSaveFile,
+      DontMergeAndKeepAutoSaveFile = 4,
 
       /// <summary>
       /// Database created.
@@ -99,5 +102,10 @@
       /// Item deleted.
       /// </summary>
       ItemDeleted,
+
+      /// <summary>
+      /// The activity log failed its integrity check on login (possible tampering).
+      /// </summary>
+      ActivityLogTampered,
    }
 }

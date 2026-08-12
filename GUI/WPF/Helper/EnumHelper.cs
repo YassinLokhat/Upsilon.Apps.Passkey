@@ -30,7 +30,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
               or ActivityEventType.ExportingDataFailed
               or ActivityEventType.ItemUpdated
               or ActivityEventType.ItemAdded
-              or ActivityEventType.ItemDeleted => eventType.ToString().ToSentenceCase(),
+              or ActivityEventType.ItemDeleted
+              or ActivityEventType.ActivityLogTampered => eventType.ToString().ToSentenceCase(),
             _ => throw new InvalidOperationException($"'{eventType}' event type not handled"),
          };
       }

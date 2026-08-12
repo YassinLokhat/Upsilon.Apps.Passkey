@@ -34,16 +34,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       IEnumerable<string> IUser.Passkeys
       {
-         get => Database.Get(Passkeys);
+         get => Database.Get<IEnumerable<string>>([.. Passkeys.Select(x => x.Reveal())]);
          set
          {
-            CredentialChanged |= Database.SerializationCenter.AreDifferent(Passkeys, value);
+            IEnumerable<ProtectedSecret> newPasskeys = [.. value.Select(ProtectedSecret.Protect)];
+
+            CredentialChanged |= Database.SerializationCenter.AreDifferent(Passkeys, newPasskeys);
 
             Passkeys = Database.AutoSave.UpdateValue(ItemId,
                fieldName: nameof(Passkeys),
                needsReview: true,
                oldValue: Passkeys,
-               newValue: value,
+               newValue: newPasskeys,
                readableValue: string.Empty);
          }
       }
@@ -178,11 +180,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public string PrivateKey { get; set; } = string.Empty;
 
+      // The number of activity-log entries sealed at the last save. Stored inside
+      // the encrypted (tamper-proof) database so it can act as a trusted anchor:
+      // if the activity log later presents fewer sealed entries, or no signature
+      // at all, the log has been rolled back or stripped. Not user-editable, so
+      // it deliberately bypasses the AutoSave change-tracking of other fields.
+      public int ActivitySealWatermark { get; set; }
+
       public string ItemId { get; set; } = string.Empty;
       public List<Service> Services { get; set; } = [];
 
       public string Username { get; set; } = string.Empty;
-      public IEnumerable<string> Passkeys { get; set; } = [];
+
+      // Master passkeys are held encrypted in memory and only revealed just in time
+      // (to derive the file keys on save, or to display them in the settings window).
+      // Serialization goes through the plaintext (see ProtectedSecret).
+      public IEnumerable<ProtectedSecret> Passkeys { get; set; } = [];
       public bool CredentialChanged { get; set; }
       public int LogoutTimeout { get; set; }
       public int CleaningClipboardTimeout { get; set; }
@@ -253,7 +266,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
                if (_clipboardLeftTime == 0)
                {
-                  _ = Database.ClipboardManager.RemoveAllOccurrence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values)]);
+                  _ = Database.ClipboardManager.RemoveAllOccurrence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values.Select(y => y.Reveal()))]);
                   _clipboardLeftTime = CleaningClipboardTimeout;
                }
             }
@@ -319,7 +332,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      break;
                   case nameof(Passkeys):
                      CredentialChanged = true;
-                     Passkeys = change.NewValue.DeserializeTo<IEnumerable<string>>(Database.SerializationCenter);
+                     Passkeys = change.NewValue.DeserializeTo<IEnumerable<ProtectedSecret>>(Database.SerializationCenter);
                      break;
                   case nameof(LogoutTimeout):
                      LogoutTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);

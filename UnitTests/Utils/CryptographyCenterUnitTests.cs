@@ -18,7 +18,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          Stopwatch _stopwatch = Stopwatch.StartNew();
 
          // When
-         _ = UnitTestsHelper.CryptographicCenter.GetSlowHash(string.Empty, UnitTestsHelper.GetUsername());
+         _ = UnitTestsHelper.CryptographicCenter.GetSlowHash(string.Empty, UnitTestsHelper.CryptographicCenter.DefaultSlowHashParameters);
          _stopwatch.Stop();
 
          // Then
@@ -27,24 +27,26 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
       [TestMethod]
       /*
-       * Hashing the same source with two different salts (usernames) yields two
-       * different hashes, while the same source with the same salt is stable.
+       * Each new set of parameters carries a fresh random salt, so the same
+       * source hashed under two different salts yields two different hashes,
+       * while re-hashing the same source under the same parameters is stable.
       */
-      public void Case02_SlowHashSaltVariesPerUsername()
+      public void Case02_SlowHashSaltVariesPerParameters()
       {
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
             // Given
             string source = UnitTestsHelper.GetRandomString();
-            string firstUsername = UnitTestsHelper.GetRandomString();
-            string secondUsername = firstUsername + "_other";
+            KdfParameters firstParameters = UnitTestsHelper.CryptographicCenter.DefaultSlowHashParameters;
+            KdfParameters secondParameters = UnitTestsHelper.CryptographicCenter.DefaultSlowHashParameters;
 
             // When
-            string firstHash = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, firstUsername);
-            string firstHashAgain = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, firstUsername);
-            string secondHash = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, secondUsername);
+            string firstHash = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, firstParameters);
+            string firstHashAgain = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, firstParameters);
+            string secondHash = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, secondParameters);
 
             // Then
+            _ = firstParameters.Salt.Should().NotBe(secondParameters.Salt);
             _ = firstHash.Should().Be(firstHashAgain);
             _ = firstHash.Should().NotBe(secondHash);
          }
@@ -257,6 +259,50 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             _ = act.Should().Throw<WrongPasswordException>();
             _ = exception.Should().NotBeNull();
             _ = (exception?.PasswordLevel.Should().Be(0));
+         }
+      }
+
+      [TestMethod]
+      /*
+       * The public key derived from a private key matches the one generated alongside it.
+      */
+      public void Case10_GetPublicKeyMatchesGeneratedPair()
+      {
+         for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
+         {
+            // Given
+            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
+
+            // When
+            string derivedPublicKey = UnitTestsHelper.CryptographicCenter.GetPublicKey(privateKey);
+
+            // Then
+            _ = derivedPublicKey.Should().Be(publicKey);
+         }
+      }
+
+      [TestMethod]
+      /*
+       * A signature verifies against its source and public key,
+       * but fails for altered content, an altered signature, or a wrong key.
+      */
+      public void Case11_SignAndVerify()
+      {
+         for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
+         {
+            // Given
+            string source = UnitTestsHelper.GetRandomString(150);
+            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
+            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string wrongPublicKey, out _);
+
+            // When
+            string signature = UnitTestsHelper.CryptographicCenter.Sign(source, privateKey);
+
+            // Then
+            _ = UnitTestsHelper.CryptographicCenter.Verify(source, signature, publicKey).Should().BeTrue();
+            _ = UnitTestsHelper.CryptographicCenter.Verify(source + "X", signature, publicKey).Should().BeFalse();
+            _ = UnitTestsHelper.CryptographicCenter.Verify(source, signature, wrongPublicKey).Should().BeFalse();
+            _ = UnitTestsHelper.CryptographicCenter.Verify(source, "not-a-signature", publicKey).Should().BeFalse();
          }
       }
    }
