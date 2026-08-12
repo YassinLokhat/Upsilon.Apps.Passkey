@@ -12,6 +12,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
    {
       public readonly IService Service;
 
+      private readonly Dictionary<string, AccountViewModel> _accountViewModelsById = new(StringComparer.Ordinal);
+
       public string ServiceDisplay => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service.ServiceName}";
 
       public string ServiceId => $"Service Id : {Service.ItemId}";
@@ -69,34 +71,46 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplay)));
       }
 
-      public ServiceViewModel(IService service, string identifierFilter = "", string textFilter = "", bool changedItemsOnly = false)
+      public ServiceViewModel(IService service)
       {
          Service = service;
+         _syncAccountViewModels();
+      }
 
-         IAccount[] accounts = [.. Service.Accounts.Where(x => x.MeetsFilterConditions(identifierFilter, textFilter, changedItemsOnly))];
+      public void ApplyFilters(string identifierFilter, string textFilter, bool changedItemsOnly)
+      {
+         _syncAccountViewModels();
 
-         if (accounts.Length == 0)
+         IAccount[] matching = [.. Service.Accounts.Where(x => x.MeetsFilterConditions(identifierFilter, textFilter, changedItemsOnly))];
+         IAccount[] toShow = matching.Length != 0 ? matching : [.. Service.Accounts];
+         HashSet<string> visibleIds = [.. toShow.Select(x => x.ItemId)];
+
+         Accounts.Clear();
+
+         foreach (IAccount account in Service.Accounts)
          {
-            accounts = [.. Service.Accounts];
-         }
-
-         foreach (IAccount account in accounts)
-         {
-            AccountViewModel accountViewModel = new(account);
-            accountViewModel.PropertyChanged += _accountViewModel_PropertyChanged;
-            Accounts.Add(accountViewModel);
+            if (visibleIds.Contains(account.ItemId))
+            {
+               Accounts.Add(_accountViewModelsById[account.ItemId]);
+            }
          }
       }
 
       public AccountViewModel AddAccount()
       {
-         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier.StartsWith("👤New Account #", StringComparison.Ordinal)));
+         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier.StartsWith("👤New Account #", StringComparison.Ordinal)))
+            ?? _accountViewModelsById.Values.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier.StartsWith("👤New Account #", StringComparison.Ordinal)));
 
          if (accountViewModel is null)
          {
-            accountViewModel = new(Service.AddAccount(["👤New Account #" + DateTime.Now.Ticks]));
-            accountViewModel.PropertyChanged += _accountViewModel_PropertyChanged;
-            Accounts.Insert(0, accountViewModel);
+            IAccount account = Service.AddAccount(["👤New Account #" + DateTime.Now.Ticks]);
+            _syncAccountViewModels();
+            accountViewModel = _accountViewModelsById[account.ItemId];
+
+            if (!Accounts.Contains(accountViewModel))
+            {
+               Accounts.Insert(0, accountViewModel);
+            }
 
             _onPropertyChanged(string.Empty);
          }
@@ -110,10 +124,39 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
          _ = Accounts.Remove(accountViewModel);
          Service.DeleteAccount(accountViewModel.Account);
+         _removeAccountViewModel(accountViewModel);
 
          _onPropertyChanged(string.Empty);
 
          return index < Accounts.Count ? index : Accounts.Count - 1;
+      }
+
+      private void _syncAccountViewModels()
+      {
+         HashSet<string> liveIds = [.. Service.Accounts.Select(x => x.ItemId)];
+
+         foreach (string id in _accountViewModelsById.Keys.Where(k => !liveIds.Contains(k)).ToList())
+         {
+            _removeAccountViewModel(_accountViewModelsById[id]);
+         }
+
+         foreach (IAccount account in Service.Accounts)
+         {
+            if (_accountViewModelsById.ContainsKey(account.ItemId))
+            {
+               continue;
+            }
+
+            AccountViewModel accountViewModel = new(account);
+            accountViewModel.PropertyChanged += _accountViewModel_PropertyChanged;
+            _accountViewModelsById[account.ItemId] = accountViewModel;
+         }
+      }
+
+      private void _removeAccountViewModel(AccountViewModel accountViewModel)
+      {
+         accountViewModel.PropertyChanged -= _accountViewModel_PropertyChanged;
+         _ = _accountViewModelsById.Remove(accountViewModel.Account.ItemId);
       }
 
       private void _accountViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
