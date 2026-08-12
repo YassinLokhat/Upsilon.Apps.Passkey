@@ -34,8 +34,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // rows. SealedCount records how many entries that signature covers; entries
       // appended before the next login form an unsealed tail. Verification (see
       // VerifyIntegrity) then detects any modification, forgery, reordering, key
-      // substitution or rollback of the sealed portion. Legacy files (created
-      // before sealing existed) have an empty Signature and a zero SealedCount.
+      // substitution or rollback of the sealed portion.
       public string Signature { get; set; } = string.Empty;
 
       public int SealedCount { get; set; }
@@ -170,8 +169,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             activityCount = ActivityList.Count;
             publicKey = PublicKey;
 
-            // Never sealed (legacy file, or a brand-new database before its first
-            // save): there is nothing to verify.
+            // A brand-new database before its first save has nothing sealed yet.
             if (watermark == 0 && string.IsNullOrEmpty(signature))
             {
                return true;

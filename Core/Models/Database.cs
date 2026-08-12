@@ -310,10 +310,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          FileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
 
-         // New databases adopt the crypto center's current parameters; existing
-         // ones are read from the versioned header they were written with.
-         // The header is unencrypted, so Open also enforces the KDF floor here:
-         // a weakened file is rejected before any passkey is stretched.
+         // New databases adopt the crypto center's current parameters; opened
+         // databases read the salt and work factor from the header entry.
          _slowHashParameters = fileMode == FileMode.Create
             ? CryptographyCenter.DefaultSlowHashParameters
             : FileLocker.Open<KdfParameters>(HeaderFileEntry);

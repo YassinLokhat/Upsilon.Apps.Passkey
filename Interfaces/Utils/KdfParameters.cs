@@ -5,7 +5,7 @@ namespace Upsilon.Apps.Passkey.Interfaces.Utils
    /// <summary>
    /// Describes how a passkey is stretched into key material (the slow hash).
    /// These parameters are stored, unencrypted, in the database header so a file
-   /// can always be reopened with the exact settings it was written with. They
+   /// can be reopened with the exact settings it was written with. They
    /// are not secret: tampering with them on an existing file only prevents the
    /// correct key from being derived. A weakened header on a new vault is
    /// rejected by <c>ICryptographyCenter.EnsureSufficientSlowHashParameters</c>
@@ -13,11 +13,6 @@ namespace Upsilon.Apps.Passkey.Interfaces.Utils
    /// </summary>
    public sealed class KdfParameters
    {
-      /// <summary>
-      /// The version of the stretching scheme, allowing future migrations.
-      /// </summary>
-      public int Version { get; set; }
-
       /// <summary>
       /// The key-derivation function used.
       /// </summary>

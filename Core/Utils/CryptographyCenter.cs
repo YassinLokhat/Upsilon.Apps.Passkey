@@ -17,7 +17,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // above these; the floors follow the OWASP Password Storage Cheat Sheet
       // (PBKDF2-HMAC-SHA-256: 600k, PBKDF2-HMAC-SHA-512: 210k) so a hand-edited
       // or malicious .pku with Iterations = 1 cannot be used to stretch secrets.
-      private const int MIN_SLOW_HASH_VERSION = 1;
       private const int MIN_SLOW_HASH_ITERATIONS_SHA256 = 600_000;
       private const int MIN_SLOW_HASH_ITERATIONS_SHA512 = 210_000;
       private const int MIN_SLOW_HASH_OUTPUT_LENGTH = 32;
@@ -25,7 +24,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public KdfParameters DefaultSlowHashParameters => new()
       {
-         Version = 1,
          // HMAC-SHA-512 relies on 64-bit arithmetic, which GPUs and ASICs run
          // far less efficiently than the 32-bit operations of SHA-256. At an
          // equal iteration count this narrows an attacker's parallel-hardware
@@ -44,12 +42,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       public void EnsureSufficientSlowHashParameters(KdfParameters parameters)
       {
          ArgumentNullException.ThrowIfNull(parameters);
-
-         if (parameters.Version < MIN_SLOW_HASH_VERSION)
-         {
-            throw new InsufficientKdfParametersException(
-               $"KDF scheme version '{parameters.Version}' is below the minimum of {MIN_SLOW_HASH_VERSION}.");
-         }
 
          int minIterations = parameters.Algorithm switch
          {
@@ -100,7 +92,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          // PBKDF2 is a standard password-stretching KDF. The exact algorithm,
          // work factor and salt are taken from the caller so that a database can
-         // be reopened with the parameters it was written with (crypto-agility).
+         // be reopened with the parameters stored in its header.
          byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
             Encoding.UTF8.GetBytes(source),
             salt,

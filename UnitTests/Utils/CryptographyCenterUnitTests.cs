@@ -322,7 +322,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
          KdfParameters weakIterations = new()
          {
-            Version = defaults.Version,
             Algorithm = defaults.Algorithm,
             Iterations = 1,
             OutputLength = defaults.OutputLength,
@@ -336,7 +335,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
          KdfParameters weakOutput = new()
          {
-            Version = defaults.Version,
             Algorithm = defaults.Algorithm,
             Iterations = defaults.Iterations,
             OutputLength = 16,
@@ -348,7 +346,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
          KdfParameters shortSalt = new()
          {
-            Version = defaults.Version,
             Algorithm = defaults.Algorithm,
             Iterations = defaults.Iterations,
             OutputLength = defaults.OutputLength,
@@ -360,7 +357,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
          KdfParameters badSalt = new()
          {
-            Version = defaults.Version,
             Algorithm = defaults.Algorithm,
             Iterations = defaults.Iterations,
             OutputLength = defaults.OutputLength,
@@ -370,22 +366,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          ensureBadSalt.Should().Throw<InsufficientKdfParametersException>()
             .WithMessage("*Base64*");
 
-         KdfParameters oldVersion = new()
-         {
-            Version = 0,
-            Algorithm = defaults.Algorithm,
-            Iterations = defaults.Iterations,
-            OutputLength = defaults.OutputLength,
-            Salt = defaults.Salt,
-         };
-         Action ensureOldVersion = () => crypto.EnsureSufficientSlowHashParameters(oldVersion);
-         ensureOldVersion.Should().Throw<InsufficientKdfParametersException>()
-            .WithMessage("*version*");
-
          // OWASP floor for SHA-512 is accepted (below the create default, above the reject line).
          KdfParameters owaspFloor = new()
          {
-            Version = defaults.Version,
             Algorithm = KdfAlgorithm.Pbkdf2HmacSha512,
             Iterations = 210_000,
             OutputLength = defaults.OutputLength,

@@ -106,8 +106,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       // RSA private key held encrypted in memory and revealed just in time (sign /
       // decrypt / derive public key). Persistence stays a plaintext PEM string inside
-      // the onion-encrypted database entry (see ProtectedSecret), so existing .pku
-      // files remain compatible.
+      // the onion-encrypted database entry (see ProtectedSecret).
       public ProtectedSecret PrivateKey { get; set; } = ProtectedSecret.Protect(string.Empty);
 
       // The number of activity-log entries sealed at the last save. Stored inside
