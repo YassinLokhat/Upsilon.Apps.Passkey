@@ -113,11 +113,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             encryptedSnapshot = [.. ActivityList];
          }
 
+         // Preserve ActivityList order (newest-first). AsOrdered keeps that
+         // sequence across parallel decrypts; sorting by DateTime alone was
+         // unstable when several entries shared the same tick.
          List<IActivity> decrypted = [.. encryptedSnapshot.AsParallel()
+            .AsOrdered()
             .Select(_tryDecrypt)
             .Where(x => x is not null)
-            .Cast<Activity>()
-            .OrderByDescending(x => x.DateTime)];
+            .Cast<Activity>()];
 
          lock (_gate)
          {
@@ -202,12 +205,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       /// <summary>
       /// Snapshot of activities newest-first for UI / public API consumers.
+      /// Insertion order is already newest-first; do not re-sort by DateTime
+      /// (ties would be unstable).
       /// </summary>
       internal IActivity[] GetActivitiesOrdered()
       {
          lock (_gate)
          {
-            return [.. Activities.OrderByDescending(x => x.DateTime)];
+            return [.. Activities];
          }
       }
 

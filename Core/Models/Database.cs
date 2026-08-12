@@ -476,13 +476,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
          return value;
       }
 
-      private void _save(bool logSaveEvent)
+      private void _save(bool logSaveEvent, bool refreshWarnings = true)
       {
          _saveActivities(rebuildStringActivities: true);
-         _saveDatabase(logSaveEvent);
+         _saveDatabase(logSaveEvent, refreshWarnings);
       }
 
-      private void _saveDatabase(bool logSaveEvent)
+      private void _saveDatabase(bool logSaveEvent, bool refreshWarnings = true)
       {
          if (User is null) throw new NullValueException(nameof(User));
 
@@ -524,7 +524,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
          // before Save returns, matching the previous durability guarantee.
          ActivityCenter.Flush();
 
-         _ = Task.Run(_lookAtWarningsAsync);
+         if (refreshWarnings)
+         {
+            _ = Task.Run(_lookAtWarningsAsync);
+         }
 
          User.ResetTimer();
 
@@ -610,24 +613,41 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             case AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile:
                AutoSave.ApplyChanges(deleteFile: true);
-               _save(logSaveEvent: false);
+               // Apply may rename the user; sync before logging so the merge
+               // activity carries the post-merge username. Log before _save so
+               // the event is sealed with that save and visible to Login's
+               // warning scan (skip mid-login refresh below).
+               Username = User.Username;
+               ActivityCenter.AddActivity(itemId: string.Empty,
+                  eventType: _toActivityEventType(mergeAutoSave),
+                  data: [Username],
+                  needsReview: true);
+               _save(logSaveEvent: false, refreshWarnings: false);
                break;
             case AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile:
                AutoSave.ApplyChanges(deleteFile: false);
+               Username = User.Username;
+               ActivityCenter.AddActivity(itemId: string.Empty,
+                  eventType: _toActivityEventType(mergeAutoSave),
+                  data: [Username],
+                  needsReview: true);
                _saveActivities(rebuildStringActivities: false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear(deleteFile: true);
+               ActivityCenter.AddActivity(itemId: string.Empty,
+                  eventType: _toActivityEventType(mergeAutoSave),
+                  data: [Username],
+                  needsReview: true);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
+               ActivityCenter.AddActivity(itemId: string.Empty,
+                  eventType: _toActivityEventType(mergeAutoSave),
+                  data: [Username],
+                  needsReview: true);
                break;
          }
-
-         ActivityCenter.AddActivity(itemId: string.Empty,
-            eventType: _toActivityEventType(mergeAutoSave),
-            data: [Username],
-            needsReview: true);
       }
 
       // Maps an auto-save handling outcome to the activity event that records it.

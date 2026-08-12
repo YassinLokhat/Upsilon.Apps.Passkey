@@ -294,7 +294,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
          IWarning activityWarning = database.Warnings.First(x => x.WarningType == WarningType.ActivityReviewWarning);
 
          string[] actualActivities = activityWarning.Activities
-            .OrderByDescending(x => x.DateTime)
             .Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
 
          _lastActivitiesShouldMatch(actualActivities, expectedActivities);
