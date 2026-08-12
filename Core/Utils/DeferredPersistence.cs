@@ -44,7 +44,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       /// <summary>
       /// Writes immediately if anything is pending, and cancels the debounce timer.
-      /// Safe to call when nothing is dirty.
+      /// Safe to call when nothing is dirty. If <c>_persist</c> throws, dirty is
+      /// re-armed so a later Flush (or timer) can retry.
       /// </summary>
       internal void Flush()
       {
@@ -62,9 +63,26 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             _dirty = false;
          }
 
-         if (shouldPersist)
+         if (!shouldPersist)
+         {
+            return;
+         }
+
+         try
          {
             _persist();
+         }
+         catch
+         {
+            lock (_gate)
+            {
+               if (!_disposed)
+               {
+                  _dirty = true;
+               }
+            }
+
+            throw;
          }
       }
 
@@ -111,16 +129,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          catch (Exception ex)
 #pragma warning restore CA1031
          {
-            // Re-arm dirty so a later explicit Flush (Save/Close) retries. The
-            // timer path must not throw onto the ThreadPool.
-            lock (_gate)
-            {
-               if (!_disposed)
-               {
-                  _dirty = true;
-               }
-            }
-
+            // Dirty is already re-armed by Flush on failure; this catch only
+            // keeps the ThreadPool callback from throwing.
             System.Diagnostics.Trace.TraceWarning($"Deferred persistence flush failed: {ex}");
          }
       }

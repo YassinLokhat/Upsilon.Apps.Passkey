@@ -1,13 +1,9 @@
-﻿using ABI.System;
-using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using FluentAssertions;
+using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
@@ -562,6 +558,39 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          roundTripped.Close();
          UnitTestsHelper.ClearTestEnvironment();
          UnitTestsHelper.ClearTestEnvironment(roundTripUsername);
+      }
+
+      [TestMethod]
+      /*
+       * CSV import must seed password history so PasswordExpired works when a
+       * reminder delay is set (import only carries the current password).
+      */
+      public void Case14_ImportCSV_SeedsPasswordHistoryForExpiry()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         bool imported = database.ImportFromFile(importFile);
+         imported.Should().BeTrue();
+
+         foreach (IAccount account in database.User!.Services.SelectMany(s => s.Accounts))
+         {
+            account.Passwords.Should().ContainSingle(
+               "CSV import supplies only the current password; history must still be seeded");
+            account.Passwords.Values.Single().Should().Be(account.Password);
+
+            Account concrete = (Account)account;
+            concrete.PasswordUpdateReminderDelay.Should().Be(3);
+            Action evaluateExpiry = () => _ = concrete.PasswordExpired;
+            evaluateExpiry.Should().NotThrow();
+            concrete.PasswordExpired.Should().BeFalse("just-imported passwords are not expired");
+         }
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
       }
 
       // Projects a database's services/accounts onto the persisted fields only,

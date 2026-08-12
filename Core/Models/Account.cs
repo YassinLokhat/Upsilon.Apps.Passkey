@@ -149,7 +149,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          get
          {
-            if (PasswordUpdateReminderDelay == 0) return false;
+            // No reminder configured, or no dated history yet (e.g. a bad import
+            // path that set Password without seeding Passwords): treat as fresh.
+            if (PasswordUpdateReminderDelay == 0
+               || Passwords.Count == 0)
+            {
+               return false;
+            }
 
             DateTime lastPassword = Passwords.Keys.Max();
             int delay = ((DateTime.Now.Year - lastPassword.Year) * 12) + DateTime.Now.Month - lastPassword.Month;
