@@ -28,13 +28,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // Tamper-evidence for the activity log. The log must accept entries even
       // when no user is logged in (e.g. failed logins), so writing uses only the
       // public key and cannot be protected by a secret. Instead, on every save
-      // made while a user is logged in, the whole current log is sealed with an
-      // RSA signature over its entries (see _seal). SealedCount records how many
-      // entries that signature covers; entries appended before the next login
-      // form an unsealed tail. Verification (see VerifyIntegrity) then detects
-      // any modification, forgery, reordering, key substitution or rollback of
-      // the sealed portion. Legacy files (created before sealing existed) have an
-      // empty Signature and a zero SealedCount.
+      // made while a user is logged in, the current log is sealed with an RSA
+      // signature over its entries (see _seal). Ciphertexts are produced once at
+      // AddActivity time; Save only re-encrypts when retention pruning drops
+      // rows. SealedCount records how many entries that signature covers; entries
+      // appended before the next login form an unsealed tail. Verification (see
+      // VerifyIntegrity) then detects any modification, forgery, reordering, key
+      // substitution or rollback of the sealed portion. Legacy files (created
+      // before sealing existed) have an empty Signature and a zero SealedCount.
       public string Signature { get; set; } = string.Empty;
 
       public int SealedCount { get; set; }
@@ -256,28 +257,34 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private void _persist(bool rebuildStringActivities)
       {
-         // Rebuild (when requested) re-encrypts every entry with RSA; that work
-         // stays under _gate so AddActivity cannot interleave a partial list.
+         // Append path (deferred flushes, AddActivity): ActivityList already holds
+         // per-entry ciphertexts from EncryptAsymmetrically at insert time, so we
+         // only reseal and write. Rebuild path (explicit Save / retention change):
+         // prune first, and re-RSA only when entries were actually dropped —
+         // otherwise Save would pay O(n) RSA for an unchanged log.
          // FileLocker is taken inside the same critical section (lock order:
          // ActivityCenter → FileLocker).
          lock (_gate)
          {
-            if (rebuildStringActivities)
+            if (rebuildStringActivities && _removeOldActivities_NoLock())
             {
-               _removeOldActivities_NoLock();
-
-               ActivityList.Clear();
-               ActivityList.AddRange(Activities
-                  .OrderByDescending(x => x.DateTime)
-                  .Select(x => ((Activity)x).ToString())
-                  .Distinct()
-                  .Select(x => Database.CryptographyCenter.EncryptAsymmetrically(x, PublicKey)));
+               _rebuildActivityList_NoLock();
             }
 
             _seal_NoLock();
 
             Database.FileLocker.Save(this, Database.ActivityFileEntry);
          }
+      }
+
+      // Caller must hold _gate. Re-encrypts the current Activities view into
+      // ActivityList (newest-first). Used only after a prune that dropped rows.
+      private void _rebuildActivityList_NoLock()
+      {
+         ActivityList.Clear();
+         ActivityList.AddRange(Activities
+            .OrderByDescending(x => x.DateTime)
+            .Select(x => Database.CryptographyCenter.EncryptAsymmetrically(((Activity)x).ToString(), PublicKey)));
       }
 
       // Caller must hold _gate.
@@ -306,17 +313,20 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return string.Join("\n", [$"{SealedCount}", PublicKey, .. sealedEntries]);
       }
 
-      // Caller must hold _gate.
-      private void _removeOldActivities_NoLock()
+      // Caller must hold _gate. Returns true when at least one entry was dropped
+      // so the caller knows ActivityList must be rebuilt to match.
+      private bool _removeOldActivities_NoLock()
       {
          if (Database.User is null
             || Database.User.Settings.NumberOfMonthActivitiesToKeep == 0)
          {
-            return;
+            return false;
          }
 
          DateTime limitDate = DateTime.Now.AddMonths(-Database.User.Settings.NumberOfMonthActivitiesToKeep).Date.AddDays(-DateTime.Now.Day + 1);
+         int before = Activities.Count;
          Activities = [.. Activities.Where(x => x.DateTime >= limitDate || x.NeedsReview)];
+         return Activities.Count != before;
       }
    }
 }
