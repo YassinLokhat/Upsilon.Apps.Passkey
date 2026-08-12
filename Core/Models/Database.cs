@@ -31,7 +31,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Delete()
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
          // Drop any debounced write before erasing the file so a late timer
          // cannot recreate entries on a path that no longer exists.
@@ -126,7 +129,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public bool ImportFromFile(string filePath)
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
          if (User.HasChanged())
          {
@@ -185,7 +191,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public bool ExportToFile(string filePath)
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
          if (User.HasChanged())
          {
@@ -484,7 +493,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _saveDatabase(bool logSaveEvent, bool refreshWarnings = true)
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
          Username = User.Username;
 
@@ -536,7 +548,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _saveActivities(bool rebuildStringActivities)
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
          ActivityCenter.Username = User.Username;
          ActivityCenter.Save(rebuildStringActivities);
@@ -602,7 +617,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _handleAutoSave(AutoSaveMergeBehavior mergeAutoSave)
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
          if (!FileLocker.Exists(AutoSaveFileEntry))
          {
@@ -666,7 +684,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private async Task _lookAtWarningsAsync()
       {
-         if (User is null) return;
+         if (User is null)
+         {
+            return;
+         }
 
          try
          {
@@ -685,7 +706,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
             // not the one observed when the scan started.
             User? user = User;
 
-            if (user is null) return;
+            if (user is null)
+            {
+               return;
+            }
 
             WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => user.Settings.WarningsToNotify.HasFlag(x.WarningType))]));
          }
@@ -702,7 +726,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private Warning[] _lookAtActivityWarnings()
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
          IActivity[] activities = ActivityCenter.GetActivitiesNeedingReview();
 
@@ -711,7 +738,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private Warning[] _lookAtPasswordUpdateReminderWarnings()
       {
-         if (User is null) return [];
+         if (User is null)
+         {
+            return [];
+         }
 
          Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
@@ -729,7 +759,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private async Task<Warning[]> _lookAtPasswordLeakedWarningsAsync()
       {
-         if (User is null) return [];
+         if (User is null)
+         {
+            return [];
+         }
 
          string[] passwordsToCheck = [.. User.Services
             .SelectMany(x => x.Accounts)
@@ -752,7 +785,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
             }
          }
 
-         if (User is null) return [];
+         if (User is null)
+         {
+            return [];
+         }
 
          Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
@@ -769,7 +805,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private Warning[] _lookAtDuplicatedPasswordsWarnings()
       {
-         if (User is null) return [];
+         if (User is null)
+         {
+            return [];
+         }
 
          IGrouping<string, Account>[] duplicatedPasswords = [.. User.Services
             .SelectMany(x => x.Accounts)

@@ -93,7 +93,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _hotkeyHelper_HotkeyPressed(object? sender, HotkeyEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          string? toInsert = null;
 
@@ -121,7 +124,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _openSettings()
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          UserSettingsView.ShowUserSettings(this);
          _viewModel.RefreshFilters();
@@ -129,18 +135,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _generateRandomPassword_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          string? password = PasswordGenerator.ShowGeneratePasswordDialog(this);
 
-         if (password is null) return;
+         if (password is null)
+         {
+            return;
+         }
 
          _service_SV.SetSelectedPassword(password);
       }
 
       private void _logout_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          DialogResult = true;
       }
@@ -172,7 +187,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _services_LB_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          _session.User?.Shake();
          _service_SV.SetDataContext(_services_LB.SelectedItem as ServiceViewModel);
@@ -183,7 +201,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          // The busy cursor is set synchronously before the first await, so it
          // doubles as the re-entrancy guard against a second save being started
          // while this one is still running.
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          string? serviceId = _service_SV.GetServiceId();
          string? accountId = _service_SV.GetAccountId();
@@ -211,7 +232,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             this.SetIsBusy(false);
          }
 
-         if (_isClosing) return;
+         if (_isClosing)
+         {
+            return;
+         }
 
          _viewModel.RefreshFilters();
          ServiceViewModel? service = _viewModel.Services.FirstOrDefault(x => x.Service.ItemId == serviceId);
@@ -269,14 +293,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _addService_Button_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          _services_LB.SelectedItem = _viewModel.AddService();
       }
 
       private void _deleteService_Button_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          if (_services_LB.SelectedItem is not ServiceViewModel serviceViewModel
             || _dialogs.Confirm($"Are you sure you want to delete the service '{serviceViewModel.ServiceDisplay}'", "Delete Service") != MessageBoxResult.Yes)
@@ -294,14 +324,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _clearFilter()
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          _viewModel.ClearFilters();
       }
 
       private void _showActivities_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          _ = _dialogs.ShowSingleton(
             factory: () => new UserActivitiesView(needsReviewFilter: false),
@@ -316,7 +352,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _navigation_ItemRequested(object? sender, string itemId)
       {
-         if (_session.Database?.User is null) return;
+         if (_session.Database?.User is null)
+         {
+            return;
+         }
 
          if (string.IsNullOrEmpty(itemId)
             || _session.Database.User.ItemId == itemId)
@@ -357,7 +396,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _activityWarnings_MI_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          _ = _dialogs.ShowSingleton(
             factory: () => new UserActivitiesView(needsReviewFilter: true),
@@ -372,14 +414,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _duplicatedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          _ = _dialogs.ShowSingleton(() => new DuplicatedPasswordsWarningView());
       }
 
       private void _expiredOrLeakedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          WarningType requested = sender == _expiredPasswordWarnings_MI
             ? WarningType.PasswordUpdateReminderWarning
@@ -421,12 +469,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          string sourceText = (e.OriginalSource as TextBlock)?.Text ?? string.Empty;
 
          if (sourceText != _userServices_GB.Header.ToString())
+         {
             return;
+         }
 
          string? itemId = AppServices.Session.User?.ItemId;
 
          if (itemId is null)
+         {
             return;
+         }
 
          AppServices.Clipboard.SetText(itemId);
 

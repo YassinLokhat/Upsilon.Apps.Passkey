@@ -92,7 +92,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _addButton_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          _addPassword(string.Empty);
 

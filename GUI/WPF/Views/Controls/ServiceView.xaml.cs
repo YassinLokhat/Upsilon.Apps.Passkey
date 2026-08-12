@@ -35,12 +35,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          string sourceText = (e.OriginalSource as TextBlock)?.Text ?? string.Empty;
 
          if (sourceText != _service_GB.Header.ToString())
+         {
             return;
+         }
 
          string? itemId = GetServiceId();
 
          if (itemId is null)
+         {
             return;
+         }
 
          AppServices.Clipboard.SetText(itemId);
 
@@ -74,7 +78,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _accounts_LB_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          AppServices.Session.User?.Shake();
          _account_AV.SetDataContext(_accounts_LB.SelectedItem as AccountViewModel);
@@ -128,7 +135,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       {
          AccountViewModel? account = _viewModel?.Accounts.FirstOrDefault(x => x.Account.ItemId == itemId);
 
-         if (account is null) return false;
+         if (account is null)
+         {
+            return false;
+         }
 
          _accounts_LB.SelectedItem = account;
          _accounts_LB.ScrollIntoView(account);

@@ -53,7 +53,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
                newValue: value,
                readableValue: $"{value}");
 
-            if (NumberOfOldPasswordToKeep == 0) return;
+            if (NumberOfOldPasswordToKeep == 0)
+            {
+               return;
+            }
 
             IEnumerable<Account> accounts = [.. User.Services.SelectMany(x => x.Accounts).Where(x => x.Passwords.Count > NumberOfOldPasswordToKeep)];
 

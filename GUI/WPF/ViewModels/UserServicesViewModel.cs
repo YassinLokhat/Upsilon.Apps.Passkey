@@ -143,7 +143,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void Dispose()
       {
-         if (_disposed) return;
+         if (_disposed)
+         {
+            return;
+         }
 
          _titleTimer.Stop();
          _titleTimer.Tick -= _onTitleTimerElapsed;

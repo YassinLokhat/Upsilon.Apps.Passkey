@@ -195,10 +195,26 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _database.User.Settings.NumberOfOldPasswordToKeep = _viewModel.NumberOfOldPasswordToKeep;
             _database.User.Settings.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
             WarningType warningsToNotify = 0;
-            if (_viewModel.NotifyActivityReview) warningsToNotify |= WarningType.ActivityReviewWarning;
-            if (_viewModel.NotifyDuplicatedPasswords) warningsToNotify |= WarningType.DuplicatedPasswordsWarning;
-            if (_viewModel.NotifyPasswordUpdateReminder) warningsToNotify |= WarningType.PasswordUpdateReminderWarning;
-            if (_viewModel.NotifyPasswordLeaked) warningsToNotify |= WarningType.PasswordLeakedWarning;
+            if (_viewModel.NotifyActivityReview)
+            {
+               warningsToNotify |= WarningType.ActivityReviewWarning;
+            }
+
+            if (_viewModel.NotifyDuplicatedPasswords)
+            {
+               warningsToNotify |= WarningType.DuplicatedPasswordsWarning;
+            }
+
+            if (_viewModel.NotifyPasswordUpdateReminder)
+            {
+               warningsToNotify |= WarningType.PasswordUpdateReminderWarning;
+            }
+
+            if (_viewModel.NotifyPasswordLeaked)
+            {
+               warningsToNotify |= WarningType.PasswordLeakedWarning;
+            }
+
             _database.User.Settings.WarningsToNotify = warningsToNotify;
 
             await _database.SaveAsync().ConfigureAwait(true);
@@ -253,7 +269,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          // The busy cursor is set synchronously before the first await, so it
          // doubles as the re-entrancy guard against a second save being started
          // while this one is still running.
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          this.SetIsBusy(true);
 
@@ -317,7 +336,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             Filter = "json file|*.json|Tab delimited CSV file|*.csv",
          };
 
-         if (!(dialog.ShowDialog() ?? false)) return;
+         if (!(dialog.ShowDialog() ?? false))
+         {
+            return;
+         }
 
          this.SetIsBusy(true);
 
@@ -364,7 +386,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
          };
 
-         if (!(dialog.ShowDialog() ?? false)) return;
+         if (!(dialog.ShowDialog() ?? false))
+         {
+            return;
+         }
 
          await _exportAsync(database, dialog.FileName).ConfigureAwait(true);
       }
@@ -391,7 +416,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
          };
 
-         if (!(dialog.ShowDialog() ?? false)) return;
+         if (!(dialog.ShowDialog() ?? false))
+         {
+            return;
+         }
 
          await _exportAsync(database, dialog.FileName).ConfigureAwait(true);
       }

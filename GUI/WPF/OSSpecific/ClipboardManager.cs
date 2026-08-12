@@ -125,7 +125,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
             _autoClearTimer?.Stop();
             _autoClearTimer = null;
 
-            if (tracked is null) return;
+            if (tracked is null)
+            {
+               return;
+            }
 
             try
             {

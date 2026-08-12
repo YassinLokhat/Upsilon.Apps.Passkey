@@ -81,7 +81,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       {
          // While Open/Login is running the timer is stopped; this guard is a
          // safety net if a tick was already queued.
-         if (_isBusy) return;
+         if (_isBusy)
+         {
+            return;
+         }
 
          _resetCredentials();
          _endSession();
@@ -93,7 +96,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          // the guard comes first: a second Enter would race the progressive stack,
          // Escape would tear down a session that OpenAsync is about to publish,
          // and menus are already disabled via MenusEnabled.
-         if (_isBusy) return;
+         if (_isBusy)
+         {
+            return;
+         }
 
          if (e.Key == Key.Enter)
          {
@@ -119,7 +125,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
                Log.Error(ex, "Unexpected error while submitting credentials");
             }
 
-            if (_isClosing) return;
+            if (_isClosing)
+            {
+               return;
+            }
 
             _password_PB.Clear();
             _timer.Start();

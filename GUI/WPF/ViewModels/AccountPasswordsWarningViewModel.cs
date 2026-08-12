@@ -72,7 +72,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          Warnings.Clear();
 
-         if (AppServices.Session.Database?.Warnings is null) return;
+         if (AppServices.Session.Database?.Warnings is null)
+         {
+            return;
+         }
 
          AccountPasswordWarningViewModel[] warnings = [.. AppServices.Session.Database.Warnings
             .Where(x => WarningType.HasFlag(x.WarningType))

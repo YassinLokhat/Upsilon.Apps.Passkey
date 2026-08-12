@@ -98,7 +98,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             "Passkey user database file|*.pku",
             "Open user database file");
 
-         if (filename is null) return;
+         if (filename is null)
+         {
+            return;
+         }
 
          ResetRequested?.Invoke(this, EventArgs.Empty);
          AppServices.Session.EndSession();

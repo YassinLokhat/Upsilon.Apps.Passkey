@@ -124,11 +124,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void RefreshFilters()
       {
-         if (_locked) return;
+         if (_locked)
+         {
+            return;
+         }
 
          Activities.Clear();
 
-         if (AppServices.Session.Database?.Activities is null) return;
+         if (AppServices.Session.Database?.Activities is null)
+         {
+            return;
+         }
 
          ActivityViewModel[] activities = [.. AppServices.Session.Database.Activities
             .Select(x => new ActivityViewModel(x))

@@ -27,7 +27,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       {
          ClipboardManager.ClearIfStillOwned();
 
-         if (Database is null) return;
+         if (Database is null)
+         {
+            return;
+         }
 
          if (closeDatabase)
          {

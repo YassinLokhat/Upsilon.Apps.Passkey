@@ -101,12 +101,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             // An empty file (just created, not yet written) is not a valid zip
             // yet, so it cannot contain any entry.
-            if (_stream2.Length == 0)
-            {
-               return false;
-            }
-
-            return _entryExists(fileEntry);
+            return _stream2.Length != 0 && _entryExists(fileEntry);
          }
       }
 
@@ -121,7 +116,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private void _releaseStream()
       {
-         if (_stream is null) return;
+         if (_stream is null)
+         {
+            return;
+         }
 
          _stream.Dispose();
          _stream = null;

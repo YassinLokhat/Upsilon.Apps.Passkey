@@ -28,12 +28,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          string sourceText = (e.OriginalSource as TextBlock)?.Text ?? string.Empty;
 
          if (sourceText != _account_GB.Header.ToString())
+         {
             return;
+         }
 
          string? itemId = GetAccountId();
 
          if (itemId is null)
+         {
             return;
+         }
 
          AppServices.Clipboard.SetText(itemId);
 
@@ -65,7 +69,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          {
             ArgumentNullException.ThrowIfNull(value);
 
-            if (_viewModel is null) return;
+            if (_viewModel is null)
+            {
+               return;
+            }
 
             _viewModel.Password = value;
 
@@ -192,7 +199,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _addButton_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          _viewModel?.AddIdentifier(string.Empty);
          _identifiers_LB.SelectedIndex = _identifiers_LB.Items.Count - 1;
@@ -228,7 +238,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _passwords_VPB_Loaded(object sender, RoutedEventArgs e)
       {
-         if (sender is not VisiblePasswordBox passwordBox) return;
+         if (sender is not VisiblePasswordBox passwordBox)
+         {
+            return;
+         }
 
          try
          {
@@ -241,7 +254,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _copyIdentifier_Clicked(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          AppServices.Clipboard.SetText(((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier,
             ClipboardManager.AutoClearAfter);
@@ -249,7 +265,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _showQrCodeIdentifier_Clicked(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          QrCodeView.ShowQrCode(Window.GetWindow(this),
             ((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier,
@@ -329,16 +348,25 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _identifier_TextBox_KeyUp(object sender, KeyEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
-         if (sender is not TextBox identifier_TB) return;
+         if (sender is not TextBox identifier_TB)
+         {
+            return;
+         }
 
          if (e.Key is Key.Enter
             or Key.Insert)
          {
             string? identifier = InsertIdentifierView.InsertIdentifierDialog(AccountViewModel.IdentifierAutoCompleteList ?? [], identifier_TB.Text);
 
-            if (string.IsNullOrEmpty(identifier)) return;
+            if (string.IsNullOrEmpty(identifier))
+            {
+               return;
+            }
 
             identifier_TB.Text = identifier;
          }

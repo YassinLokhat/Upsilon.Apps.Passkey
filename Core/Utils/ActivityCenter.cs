@@ -130,7 +130,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private Activity? _tryDecrypt(string encryptedActivity)
       {
-         if (Database.User is null) return null;
+         if (Database.User is null)
+         {
+            return null;
+         }
 
          try
          {
@@ -156,7 +159,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       /// </summary>
       internal bool VerifyIntegrity()
       {
-         if (Database.User is null) throw new NullValueException(nameof(Database.User));
+         if (Database.User is null)
+         {
+            throw new NullValueException(nameof(Database.User));
+         }
 
          int watermark = Database.User.ActivitySealWatermark;
          string signature;

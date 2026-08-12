@@ -54,7 +54,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             headersIndexes[Headers.AccountOptions] = headers.IndexOf(Headers.AccountOptions.ToString());
             headersIndexes[Headers.PasswordUpdateReminderDelay] = headers.IndexOf(Headers.PasswordUpdateReminderDelay.ToString());
 
-            if (headersIndexes.Values.Any(x => x == -1)) return $"the CSV headers should be : {string.Join(", ", headersIndexes.Keys.Select(x => $"'{x}'"))}";
+            if (headersIndexes.Values.Any(x => x == -1))
+            {
+               return $"the CSV headers should be : {string.Join(", ", headersIndexes.Keys.Select(x => $"'{x}'"))}";
+            }
 
             Service? service = null;
 
@@ -147,7 +150,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private static string _importSettings(IDatabase database, Settings settings)
       {
          if (database.User is null)
+         {
             return string.Empty;
+         }
 
          settings.User = (User)database.User;
          database.User.Settings = settings;
@@ -159,7 +164,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          if (database.User is null
             || services.Count == 0)
+         {
             return string.Empty;
+         }
 
          Service? s0 = services.FirstOrDefault(x => database.User.Services.Any(y => y.ServiceName == x.ServiceName));
          if (s0 is not null)
@@ -194,7 +201,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public static string ExportCSV(this Database database, string filePath)
       {
-         if (database.User is null) return string.Empty;
+         if (database.User is null)
+         {
+            return string.Empty;
+         }
 
          StringBuilder sb = new(string.Join("\t", Enum.GetNames<Headers>()) + "\n");
 
@@ -225,7 +235,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public static string ExportJson(this Database database, string filePath)
       {
-         if (database.User is null) return string.Empty;
+         if (database.User is null)
+         {
+            return string.Empty;
+         }
 
          Data data = new()
          {

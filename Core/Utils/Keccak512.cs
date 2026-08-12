@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
@@ -59,7 +59,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          Span<byte> block = stackalloc byte[RATE_BYTES];
          block.Clear();
          int remaining = input.Length - offset;
-         input.Slice(offset).CopyTo(block);
+         input[offset..].CopyTo(block);
          // Multi-rate padding for raw Keccak (not SHA-3 domain separation).
          block[remaining] = 0x01;
          block[RATE_BYTES - 1] |= 0x80;

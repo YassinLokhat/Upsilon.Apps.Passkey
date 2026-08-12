@@ -143,14 +143,22 @@ public class QrCode
 
    public QrCode(string stringDataSegment, ErrorCorrection errorCorrection)
    {
-      if (string.IsNullOrEmpty(stringDataSegment)) throw new ArgumentException("String data segment is null or missing");
+      if (string.IsNullOrEmpty(stringDataSegment))
+      {
+         throw new ArgumentException("String data segment is null or missing");
+      }
+
       ErrorCorrection = errorCorrection;
       _ = _encode([Encoding.UTF8.GetBytes(stringDataSegment)]);
    }
 
    public QrCode(byte[] singleDataSeg, ErrorCorrection errorCorrection)
    {
-      if (singleDataSeg is null || singleDataSeg.Length == 0) throw new ArgumentException("Single data segment argument is null or empty");
+      if (singleDataSeg is null || singleDataSeg.Length == 0)
+      {
+         throw new ArgumentException("Single data segment argument is null or empty");
+      }
+
       ErrorCorrection = errorCorrection;
       _ = _encode([singleDataSeg]);
    }
@@ -158,7 +166,9 @@ public class QrCode
    private bool[,] _encode(byte[][] dataSegments)
    {
       if (dataSegments == null || dataSegments.Length == 0)
+      {
          throw new ArgumentException("Data segments argument is null or empty");
+      }
 
       QRCodeVersion = 0;
       QRCodeDimension = 0;
@@ -168,13 +178,19 @@ public class QrCode
       {
          byte[] segment = dataSegments[segmentIndex];
          if (segment == null)
+         {
             dataSegments[segmentIndex] = [];
+         }
          else
+         {
             totalDataLength += segment.Length;
+         }
       }
 
       if (totalDataLength == 0)
+      {
          throw new ArgumentException("There is no data to encode.");
+      }
 
       _dataSegArray = dataSegments;
 
@@ -195,7 +211,9 @@ public class QrCode
          for (int col = 0; col < QRCodeDimension; ++col)
          {
             if ((_resultMatrix[row, col] & 1) != 0)
+            {
                QRCodeMatrix[row, col] = true;
+            }
          }
       }
 
@@ -209,7 +227,9 @@ public class QrCode
 
       // ECI header bits (only when an ECI assignment value is requested).
       if (ECIAssignValue >= 0)
+      {
          _encodedDataBits = ECIAssignValue > sbyte.MaxValue ? (ECIAssignValue > 16383 /*0x3FFF*/ ? 28 : 20) : 12;
+      }
 
       for (int segmentIndex = 0; segmentIndex < _dataSegArray.Length; ++segmentIndex)
       {
@@ -242,14 +262,22 @@ public class QrCode
             case EncodingMode.Numeric:
                segmentBits += 10 * (segmentLength / 3);
                if (segmentLength % 3 == 1)
+               {
                   segmentBits += 4;
+               }
                else if (segmentLength % 3 == 2)
+               {
                   segmentBits += 7;
+               }
+
                break;
             case EncodingMode.AlphaNumeric:
                segmentBits += 11 * (segmentLength / 2);
                if ((segmentLength & 1) != 0)
+               {
                   segmentBits += 6;
+               }
+
                break;
             case EncodingMode.Byte:
                segmentBits += 8 * segmentLength;
@@ -269,14 +297,20 @@ public class QrCode
 
          characterCountBits = 0;
          for (int segmentIndex = 0; segmentIndex < _encodingSegMode.Length; ++segmentIndex)
+         {
             characterCountBits += _dataLengthBits(_encodingSegMode[segmentIndex]);
+         }
 
          if (_encodedDataBits + characterCountBits <= _maxDataBits)
+         {
             break;
+         }
       }
 
       if (QRCodeVersion > 40)
+      {
          throw new InvalidOperationException("Input data string is too long");
+      }
 
       _encodedDataBits += characterCountBits;
    }
@@ -293,7 +327,9 @@ public class QrCode
       {
          _saveBitsToCodewordsArray((int)EncodingMode.ECI, 4);
          if (ECIAssignValue <= sbyte.MaxValue)
+         {
             _saveBitsToCodewordsArray(ECIAssignValue, 8);
+         }
          else if (ECIAssignValue <= 16383 /*0x3FFF*/)
          {
             _saveBitsToCodewordsArray((ECIAssignValue >> 8) | 128 /*0x80*/, 8);
@@ -322,42 +358,65 @@ public class QrCode
                // Encode digits in groups of three (10 bits per triple).
                int numericTripleEnd = segmentLength / 3 * 3;
                for (int i = 0; i < numericTripleEnd; i += 3)
+               {
                   _saveBitsToCodewordsArray(
                      (100 * EncodingTable[segment[i]]) + (10 * EncodingTable[segment[i + 1]]) + EncodingTable[segment[i + 2]], 10);
+               }
+
                if (segmentLength - numericTripleEnd == 1)
+               {
                   _saveBitsToCodewordsArray(EncodingTable[segment[numericTripleEnd]], 4);
+               }
                else if (segmentLength - numericTripleEnd == 2)
+               {
                   _saveBitsToCodewordsArray(
                      (10 * EncodingTable[segment[numericTripleEnd]]) + EncodingTable[segment[numericTripleEnd + 1]], 7);
+               }
+
                break;
             case EncodingMode.AlphaNumeric:
                // Encode characters in pairs (11 bits per pair).
                int alphaPairEnd = segmentLength / 2 * 2;
                for (int i = 0; i < alphaPairEnd; i += 2)
+               {
                   _saveBitsToCodewordsArray(
                      (45 * EncodingTable[segment[i]]) + EncodingTable[segment[i + 1]], 11);
+               }
+
                if (segmentLength - alphaPairEnd == 1)
+               {
                   _saveBitsToCodewordsArray(EncodingTable[segment[alphaPairEnd]], 6);
+               }
+
                break;
             case EncodingMode.Byte:
                for (int i = 0; i < segmentLength; ++i)
+               {
                   _saveBitsToCodewordsArray(segment[i], 8);
+               }
+
                break;
          }
       }
 
       // Terminator: up to 4 zero bits.
       if (_encodedDataBits < _maxDataBits)
+      {
          _saveBitsToCodewordsArray(0, _maxDataBits - _encodedDataBits < 4 ? _maxDataBits - _encodedDataBits : 4);
+      }
 
       // Flush the last partial byte still sitting in the bit buffer.
       if (_bitBufferLen > 0)
+      {
          _codewordsArray[_codewordsPtr++] = (byte)(_bitBuffer >> 24);
+      }
 
       // Fill the remaining data capacity with the standard alternating pad bytes.
       int padCount = _maxDataCodewords - _codewordsPtr;
       for (int i = 0; i < padCount; ++i)
+      {
          _codewordsArray[_codewordsPtr + i] = (i & 1) == 0 ? (byte)236 : (byte)17;
+      }
    }
 
    private void _saveBitsToCodewordsArray(int data, int bitCount)
@@ -416,7 +475,9 @@ public class QrCode
          {
             int leadTermExp = IntToExp[polynomial[i]];
             for (int j = 0; j < errorCorrectionCodewords; ++j)
+            {
                polynomial[i + 1 + j] = (byte)(polynomial[i + 1 + j] ^ (uint)ExpToInt[generator[j] + leadTermExp]);
+            }
          }
       }
    }
@@ -429,8 +490,10 @@ public class QrCode
       // Read cursor pointing at the next codeword to take from each block.
       int[] blockCursor = new int[totalBlocks];
       for (int blockIndex = 1; blockIndex < totalBlocks; ++blockIndex)
+      {
          blockCursor[blockIndex] = blockCursor[blockIndex - 1]
             + (blockIndex <= _blocksGroup1 ? _dataCodewordsGroup1 : _dataCodewordsGroup2);
+      }
 
       int outputIndex = 0;
 
@@ -443,7 +506,9 @@ public class QrCode
          ++blockCursor[currentBlock];
          ++currentBlock;
          if (currentBlock == totalBlocks)
+         {
             currentBlock = 0;
+         }
       }
 
       // Group 2 blocks hold one extra data codeword: interleave that last column.
@@ -456,14 +521,18 @@ public class QrCode
             ++blockCursor[currentGroup2Block];
             ++currentGroup2Block;
             if (currentGroup2Block == totalBlocks)
+            {
                currentGroup2Block = _blocksGroup1;
+            }
          }
       }
 
       // Repoint the cursors at each block's EC codewords (stored after the data area).
       blockCursor[0] = _maxDataCodewords;
       for (int blockIndex = 1; blockIndex < totalBlocks; ++blockIndex)
+      {
          blockCursor[blockIndex] = blockCursor[blockIndex - 1] + _errCorrCodewords;
+      }
 
       // Interleave the EC codewords the same way.
       int currentEcBlock = 0;
@@ -473,7 +542,9 @@ public class QrCode
          ++blockCursor[currentEcBlock];
          ++currentEcBlock;
          if (currentEcBlock == totalBlocks)
+         {
             currentEcBlock = 0;
+         }
       }
 
       _codewordsArray = interleaved;
@@ -498,9 +569,14 @@ public class QrCode
          {
             // Data module: set it dark when the current codeword bit is 1.
             if ((_codewordsArray[bitIndex >> 3] & (1 << (7 - (bitIndex & 7)))) != 0)
+            {
                _baseMatrix[row, col] = 1;
+            }
+
             if (++bitIndex == totalBits)
+            {
                break;
+            }
          }
          else if (col == 6)
          {
@@ -586,13 +662,18 @@ public class QrCode
             if (((_maskMatrix[row, col - 1] ^ _maskMatrix[row, col]) & 1) != 0)
             {
                if (runLength >= 5)
+               {
                   penalty += runLength - 2;
+               }
+
                runLength = 0;
             }
             ++runLength;
          }
          if (runLength >= 5)
+         {
             penalty += runLength - 2;
+         }
       }
 
       for (int col = 0; col < QRCodeDimension; ++col)
@@ -603,13 +684,18 @@ public class QrCode
             if (((_maskMatrix[row - 1, col] ^ _maskMatrix[row, col]) & 1) != 0)
             {
                if (runLength >= 5)
+               {
                   penalty += runLength - 2;
+               }
+
                runLength = 0;
             }
             ++runLength;
          }
          if (runLength >= 5)
+         {
             penalty += runLength - 2;
+         }
       }
 
       return penalty;
@@ -629,9 +715,13 @@ public class QrCode
             int bottomRight = _maskMatrix[row, col];
 
             if ((topLeft & topRight & bottomLeft & bottomRight & 1) != 0)
+            {
                penalty += 3;   // all four dark
+            }
             else if (((topLeft | topRight | bottomLeft | bottomRight) & 1) == 0)
+            {
                penalty += 3;   // all four light
+            }
          }
       }
       return penalty;
@@ -652,7 +742,10 @@ public class QrCode
                if (col - afterLastDark >= 4)
                {
                   if (afterLastDark >= 7 && _matchesFinderPatternHorizontally(row, afterLastDark - 7))
+                  {
                      penalty += 40;
+                  }
+
                   if (QRCodeDimension - col >= 7 && _matchesFinderPatternHorizontally(row, col))
                   {
                      penalty += 40;
@@ -663,7 +756,9 @@ public class QrCode
             }
          }
          if (QRCodeDimension - afterLastDark >= 4 && afterLastDark >= 7 && _matchesFinderPatternHorizontally(row, afterLastDark - 7))
+         {
             penalty += 40;
+         }
       }
 
       for (int col = 0; col < QRCodeDimension; ++col)
@@ -676,7 +771,10 @@ public class QrCode
                if (row - afterLastDark >= 4)
                {
                   if (afterLastDark >= 7 && _matchesFinderPatternVertically(afterLastDark - 7, col))
+                  {
                      penalty += 40;
+                  }
+
                   if (QRCodeDimension - row >= 7 && _matchesFinderPatternVertically(row, col))
                   {
                      penalty += 40;
@@ -687,7 +785,9 @@ public class QrCode
             }
          }
          if (QRCodeDimension - afterLastDark >= 4 && afterLastDark >= 7 && _matchesFinderPatternVertically(afterLastDark - 7, col))
+         {
             penalty += 40;
+         }
       }
 
       return penalty;
@@ -702,7 +802,9 @@ public class QrCode
          for (int col = 0; col < QRCodeDimension; ++col)
          {
             if ((_maskMatrix[row, col] & 1) != 0)
+            {
                ++darkCount;
+            }
          }
       }
 
@@ -774,10 +876,16 @@ public class QrCode
          // The second copy uses negative offsets counted back from the far edge.
          int row = FormatInfoTwo[i, 0];
          if (row < 0)
+         {
             row += QRCodeDimension;
+         }
+
          int col = FormatInfoTwo[i, 1];
          if (col < 0)
+         {
             col += QRCodeDimension;
+         }
+
          _resultMatrix[row, col] = moduleValue;
       }
    }
@@ -788,11 +896,17 @@ public class QrCode
       {
          case EncodingMode.Numeric:
             if (QRCodeVersion < 10)
+            {
                return 10;
+            }
+
             return QRCodeVersion >= 27 ? 14 : 12;
          case EncodingMode.AlphaNumeric:
             if (QRCodeVersion < 10)
+            {
                return 9;
+            }
+
             return QRCodeVersion >= 27 ? 13 : 11;
          case EncodingMode.Byte:
             return QRCodeVersion >= 10 ? 16 /*0x10*/ : 8;
@@ -822,25 +936,33 @@ public class QrCode
       for (int row = 0; row < 9; ++row)
       {
          for (int col = 0; col < 9; ++col)
+         {
             _baseMatrix[row, col] = FinderPatternTopLeft[row, col];
+         }
       }
 
       int farCorner = QRCodeDimension - 8;
       for (int row = 0; row < 9; ++row)
       {
          for (int col = 0; col < 8; ++col)
+         {
             _baseMatrix[row, farCorner + col] = FinderPatternTopRight[row, col];
+         }
       }
 
       for (int row = 0; row < 8; ++row)
       {
          for (int col = 0; col < 9; ++col)
+         {
             _baseMatrix[farCorner + row, col] = FinderPatternBottomLeft[row, col];
+         }
       }
 
       // Timing patterns: alternating modules along row 6 and column 6.
       for (int i = 8; i < QRCodeDimension - 8; ++i)
+      {
          _baseMatrix[i, 6] = _baseMatrix[6, i] = (i & 1) == 0 ? FixedBlack : FixedWhite;
+      }
 
       // Alignment patterns (version 2+).
       if (QRCodeVersion > 1)
@@ -857,14 +979,18 @@ public class QrCode
                   || (colPos == positionCount - 1 && rowPos == 0)
                   || (colPos == 0 && rowPos == positionCount - 1);
                if (overlapsFinder)
+               {
                   continue;
+               }
 
                int centerRow = alignmentPositions[rowPos];
                int centerCol = alignmentPositions[colPos];
                for (int dRow = -2; dRow < 3; ++dRow)
                {
                   for (int dCol = -2; dCol < 3; ++dCol)
+                  {
                      _baseMatrix[centerRow + dRow, centerCol + dCol] = AlignmentPattern[dRow + 2, dCol + 2];
+                  }
                }
             }
          }
@@ -872,19 +998,25 @@ public class QrCode
 
       // Reserve the version-information areas (version 7+).
       if (QRCodeVersion < 7)
+      {
          return;
+      }
 
       int versionBlockCol = QRCodeDimension - 11;
       for (int row = 0; row < 6; ++row)
       {
          for (int col = 0; col < 3; ++col)
+         {
             _baseMatrix[row, versionBlockCol + col] = NonData;
+         }
       }
 
       for (int col = 0; col < 6; ++col)
       {
          for (int row = 0; row < 3; ++row)
+         {
             _baseMatrix[versionBlockCol + row, col] = NonData;
+         }
       }
    }
 
@@ -898,10 +1030,14 @@ public class QrCode
          {
             // Only data modules are masked; function modules keep bit 2 set.
             if ((_maskMatrix[row, col] & 2) != 0)
+            {
                continue;
+            }
 
             if (_maskCondition(maskPattern, row, col))
+            {
                _maskMatrix[row, col] ^= 1;
+            }
          }
       }
    }
