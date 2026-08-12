@@ -148,6 +148,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
       private readonly System.Threading.Lock _timerGate = new();
       private bool _timerStopped;
 
+      // Clipboard history scrub is async (WinRT). Overlapping ticks must not start
+      // a second scrub while one is still enumerating history.
+      private int _clipboardScrubRunning;
+
       public User()
       {
          _timer.Elapsed += _timer_Elapsed;
@@ -155,6 +159,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
       {
+         string[]? clipboardScrubList = null;
+         IClipboardManager? clipboardManager = null;
+
          lock (_timerGate)
          {
             if (_timerStopped)
@@ -187,10 +194,46 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
                if (_clipboardLeftTime == 0)
                {
-                  _ = Database.ClipboardManager.RemoveAllOccurrence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values.Select(y => y.Reveal()))]);
+                  // Capture secrets and the clipboard manager inside the gate, then
+                  // scrub outside the lock so we never block the timer on WinRT I/O.
+                  clipboardScrubList =
+                  [
+                     .. Services
+                        .SelectMany(x => x.Accounts)
+                        .SelectMany(x => x.Passwords.Values.Select(y => y.Reveal())),
+                  ];
+                  clipboardManager = Database.ClipboardManager;
                   _clipboardLeftTime = Settings.CleaningClipboardTimeout;
                }
             }
+         }
+
+         if (clipboardScrubList is not null && clipboardManager is not null)
+         {
+            _ = _scrubClipboardHistoryAsync(clipboardManager, clipboardScrubList);
+         }
+      }
+
+      private async Task _scrubClipboardHistoryAsync(IClipboardManager clipboardManager, string[] removeList)
+      {
+         if (Interlocked.CompareExchange(ref _clipboardScrubRunning, 1, 0) != 0)
+         {
+            return;
+         }
+
+         try
+         {
+            _ = await clipboardManager.RemoveAllOccurrenceAsync(removeList).ConfigureAwait(false);
+         }
+#pragma warning disable CA1031 // Last-resort barrier: clipboard scrub must never crash the session timer
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            System.Diagnostics.Trace.TraceWarning($"Clipboard history scrub failed: {ex}");
+         }
+         finally
+         {
+            _ = Interlocked.Exchange(ref _clipboardScrubRunning, 0);
          }
       }
 

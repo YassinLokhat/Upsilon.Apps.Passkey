@@ -55,25 +55,45 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
          SetText(text, autoClear);
       }
 
-      public int RemoveAllOccurrence(string[] removeList)
+      public async Task<int> RemoveAllOccurrenceAsync(string[] removeList, CancellationToken cancellationToken = default)
       {
          int cleanedPasswordCount = 0;
 
-         IReadOnlyList<ClipboardHistoryItem> clipboardHistory = Windows.ApplicationModel.DataTransfer.Clipboard.GetHistoryItemsAsync().AsTask().GetAwaiter().GetResult().Items;
-
-         foreach (ClipboardHistoryItem? item in clipboardHistory)
+         try
          {
-            DataPackageView content = item.Content;
-            if (content.Contains(StandardDataFormats.Text))
-            {
-               string text = content.GetTextAsync().AsTask().GetAwaiter().GetResult();
+            ClipboardHistoryItemsResult historyResult = await Windows.ApplicationModel.DataTransfer.Clipboard
+               .GetHistoryItemsAsync()
+               .AsTask(cancellationToken)
+               .ConfigureAwait(false);
 
-               if (removeList.Any(x => x == text))
+            foreach (ClipboardHistoryItem item in historyResult.Items)
+            {
+               cancellationToken.ThrowIfCancellationRequested();
+
+               DataPackageView content = item.Content;
+               if (!content.Contains(StandardDataFormats.Text))
                {
-                  _ = Windows.ApplicationModel.DataTransfer.Clipboard.DeleteItemFromHistory(item);
+                  continue;
+               }
+
+               string text = await content.GetTextAsync().AsTask(cancellationToken).ConfigureAwait(false);
+
+               if (removeList.Contains(text)
+                   && Windows.ApplicationModel.DataTransfer.Clipboard.DeleteItemFromHistory(item))
+               {
                   cleanedPasswordCount++;
                }
             }
+         }
+         catch (OperationCanceledException)
+         {
+            throw;
+         }
+#pragma warning disable CA1031 // Last-resort barrier: a clipboard failure must never crash the caller
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            Log.Error(ex, "Failed to scrub clipboard history");
          }
 
          return cleanedPasswordCount;

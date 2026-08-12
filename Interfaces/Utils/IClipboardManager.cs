@@ -21,9 +21,12 @@
 
       /// <summary>
       /// Remove any occurrence of elements in the given list from the clipboard history.
+      /// WinRT clipboard history APIs are asynchronous; callers must not block a UI
+      /// or timer thread waiting for this method.
       /// </summary>
       /// <param name="removeList">The list of elements to remove.</param>
+      /// <param name="cancellationToken">Token used to cancel the history scan.</param>
       /// <returns>The number of item removed.</returns>
-      int RemoveAllOccurrence(string[] removeList);
+      Task<int> RemoveAllOccurrenceAsync(string[] removeList, CancellationToken cancellationToken = default);
    }
 }

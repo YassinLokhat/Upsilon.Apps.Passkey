@@ -43,7 +43,7 @@ classDiagram
             <<interface>>
             +SetText(in text string, in autoClearAfter TimeSpan) void
             +SetText(in text string, in autoClearAfter int) void
-            +RemoveAllOccurrence(in removeList IEnumerable~string~) int
+            +RemoveAllOccurrenceAsync(in removeList IEnumerable~string~, in cancellationToken CancellationToken) Task~int~
         }
 
         class IPasswordFactory {
