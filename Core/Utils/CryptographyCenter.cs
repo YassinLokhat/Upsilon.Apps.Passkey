@@ -270,17 +270,28 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // right tool to expand them into a fresh AES-256 key. Brute-force
       // hardening of human-chosen passwords belongs to GetSlowHash, not here.
       private static byte[] _deriveLayerKey(string password, byte[] salt)
-         => HKDF.DeriveKey(HashAlgorithmName.SHA256, Encoding.UTF8.GetBytes(password), KEY_SIZE, salt);
+      {
+         byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+
+         try
+         {
+            return HKDF.DeriveKey(HashAlgorithmName.SHA256, passwordBytes, KEY_SIZE, salt);
+         }
+         finally
+         {
+            CryptographicOperations.ZeroMemory(passwordBytes);
+         }
+      }
 
       private static string _encryptGcmLayer(string plainText, string password)
       {
          byte[] salt = RandomNumberGenerator.GetBytes(SALT_SIZE);
          byte[] nonce = RandomNumberGenerator.GetBytes(NONCE_SIZE);
          byte[] key = _deriveLayerKey(password, salt);
+         byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
 
          try
          {
-            byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
             byte[] cipherBytes = new byte[plainBytes.Length];
             byte[] tag = new byte[TAG_SIZE];
 
@@ -295,6 +306,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          finally
          {
             CryptographicOperations.ZeroMemory(key);
+            CryptographicOperations.ZeroMemory(plainBytes);
          }
       }
 
@@ -314,11 +326,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          byte[] cipherBytes = dataSpan[(SALT_SIZE + NONCE_SIZE + TAG_SIZE)..].ToArray();
 
          byte[] key = _deriveLayerKey(password, salt);
+         byte[] plainBytes = new byte[cipherBytes.Length];
 
          try
          {
-            byte[] plainBytes = new byte[cipherBytes.Length];
-
             // AES-GCM verifies the tag while decrypting and throws on any
             // tampering or wrong key, which is how callers detect both.
             using (AesGcm aesGcm = new(key, TAG_SIZE))
@@ -331,6 +342,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          finally
          {
             CryptographicOperations.ZeroMemory(key);
+            CryptographicOperations.ZeroMemory(plainBytes);
          }
       }
 

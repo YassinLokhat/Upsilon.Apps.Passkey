@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Security;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -28,7 +29,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       // Opening a database and stretching a passkey are awaited, so the window
       // keeps pumping messages while they run. This guard is what stops a second
       // Enter from starting a concurrent attempt on the same progressive login
-      // stack.
+      // stack, and what ignores Escape until the in-flight Open/Login finishes.
       private bool _isBusy;
 
       public MainWindow()
@@ -66,7 +67,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _password_PB.KeyUp += _credential_TB_KeyUp;
          _timer.Tick += _timer_Elapsed;
          Loaded += (s, e) => this.PostLoadSetup();
-         Closed += (s, e) => _isClosing = true;
+         Closed += _window_Closed;
+      }
+
+      private void _window_Closed(object? sender, EventArgs e)
+      {
+         _isClosing = true;
+         _timer.Stop();
+         _endSession();
       }
 
       private void _timer_Elapsed(object? sender, EventArgs e)
@@ -76,13 +84,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          if (_isBusy) return;
 
          _resetCredentials();
-         _session.EndSession();
+         _endSession();
       }
 
       private async void _credential_TB_KeyUp(object sender, KeyEventArgs e)
       {
          // Every branch below can run while an open or a login is in flight, so
          // the guard comes first: a second Enter would race the progressive stack,
+         // Escape would tear down a session that OpenAsync is about to publish,
          // and menus are already disabled via MenusEnabled.
          if (_isBusy) return;
 
@@ -118,7 +127,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          else if (e.Key == Key.Escape)
          {
             _resetCredentials();
-            _session.EndSession();
+            _endSession();
          }
          else
          {
@@ -141,6 +150,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             _mainViewModel.DatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{filename}.pku");
          }
 
+         _setBusy("Opening the database...");
+
          try
          {
             IDatabase database = await Database.OpenAsync(AppServices.Cryptography,
@@ -149,6 +160,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
                AppServices.Clipboard,
                _mainViewModel.DatabaseFile,
                _username_TB.Text).ConfigureAwait(true);
+
+            if (_isClosing)
+            {
+               database.Close();
+               return;
+            }
+
             database.DatabaseClosed += _database_DatabaseClosed;
             database.AutoSaveDetected += _database_AutoSaveDetected;
             _session.StartSession(database);
@@ -164,6 +182,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
                   "This database file uses key-stretching parameters below the accepted security floor and cannot be opened.",
                   "Insufficient KDF parameters");
             }
+            else
+            {
+               AppServices.Dialogs.Warn(
+                  "The database file could not be opened. Check that the path and username are correct.",
+                  "Open failed");
+            }
+            return;
+         }
+         finally
+         {
+            _clearBusy();
+         }
+
+         if (_isClosing || _session.Database is null)
+         {
             return;
          }
 
@@ -184,9 +217,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       private async Task _submitPasswordAsync()
       {
          IDatabase? database = _session.Database;
+         if (database is null)
+         {
+            return;
+         }
 
-         if (_password_PB.SecurePassword.Length == 0
-            || database is null)
+         // PasswordBox.SecurePassword returns a new SecureString the caller must
+         // dispose; keep a single copy for the length check and the login call.
+         using SecureString securePassword = _password_PB.SecurePassword;
+         if (securePassword.Length == 0)
          {
             return;
          }
@@ -195,16 +234,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          try
          {
-            // UseAsString zeroes the unmanaged buffer as soon as it returns, so
-            // the task has to be started from inside it; only the managed copy it
-            // captured outlives the call, for as long as the login needs it.
-            Task<IUser?> login = _password_PB.SecurePassword.UseAsString(passkey => database.LoginAsync(passkey));
+            // Materialize the managed copy while SecureString is still alive.
+            // UseAsString zeroes the unmanaged BSTR before returning; LoginAsync
+            // only needs the managed string, which outlives this call.
+            string passkey = securePassword.UseAsString(static s => s);
 
             // Erase the PasswordBox buffer right after submitting so the secret
             // is not kept alive longer than necessary.
             _password_PB.Clear();
 
-            _ = await login.ConfigureAwait(true);
+            _ = await database.LoginAsync(passkey).ConfigureAwait(true);
          }
          catch (CorruptedSourceException ex)
          {
@@ -215,7 +254,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
                "This database file appears to be corrupted or is not a valid Passkey vault and cannot be opened.",
                "Corrupted database");
             _resetCredentials();
-            _session.EndSession();
+            _endSession();
             return;
          }
 #pragma warning disable CA1031 // Last-resort barrier: an unexpected login error is shown to the user, not propagated
@@ -225,13 +264,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             Log.Error(ex, "Unexpected error during login");
             AppServices.Dialogs.Warn("An unexpected error occurred while opening the database.", "Login error");
             _resetCredentials();
-            _session.EndSession();
+            _endSession();
             return;
          }
          finally
          {
             _password_PB.Clear();
             _clearBusy();
+         }
+
+         if (_isClosing)
+         {
+            return;
          }
 
          if (_session.Database?.User is null)
@@ -272,6 +316,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _isBusy = false;
          _mainViewModel.IsBusy = false;
          this.SetIsBusy(false);
+      }
+
+      private void _endSession(bool closeDatabase = true)
+      {
+         IDatabase? database = _session.Database;
+         if (database is not null)
+         {
+            database.DatabaseClosed -= _database_DatabaseClosed;
+            database.AutoSaveDetected -= _database_AutoSaveDetected;
+         }
+
+         _session.EndSession(closeDatabase);
       }
 
       private void _database_AutoSaveDetected(object? sender, Interfaces.Events.AutoSaveDetectedEventArgs e)
@@ -316,7 +372,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             }
 
             _resetCredentials();
-            _session.EndSession();
+            // The database already closed itself; only clear the session reference.
+            _endSession(closeDatabase: false);
             Show();
          });
       }

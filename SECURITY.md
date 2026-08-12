@@ -213,7 +213,9 @@ login:
   `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of
   the `Login` call. The short-lived managed `string` passed to Core remains
   subject to the usual .NET GC limitations documented under "Known Limitations".
-- Derived AES keys are wiped with `CryptographicOperations.ZeroMemory` after use.
+- Derived AES keys, per-layer UTF-8 password bytes, and GCM plaintext buffers
+  are wiped with `CryptographicOperations.ZeroMemory` after use (same pattern
+  as `ProtectedSecret`).
 
 ### Progressive login without rollback (online brute-force friction)
 
