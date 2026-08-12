@@ -126,28 +126,33 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          // Onion encryption: every passkey adds an authenticated AES-GCM layer,
          // so all of them are required - and in the right order - to recover the
-         // data.
-         string result = source;
+         // data. Layers are binary (salt | nonce | tag | ciphertext); Base64 is
+         // applied once at the outer boundary so each layer does not inflate the
+         // next by ~4/3.
+         byte[] result = Encoding.UTF8.GetBytes(source);
 
          for (int i = passwords.Length - 1; i >= 0; i--)
          {
-            result = _encryptGcmLayer(result, passwords[i]);
+            result = _encryptGcmLayerBytes(result, passwords[i]);
          }
 
          // A final layer keyed with a fixed, public value lets decryption tell
          // "corrupted or foreign data" apart from "valid data, wrong passkey".
-         return _encryptGcmLayer(result, GetHash(string.Empty));
+         result = _encryptGcmLayerBytes(result, GetHash(string.Empty));
+
+         return Convert.ToBase64String(result);
       }
 
       public string DecryptSymmetrically(string source, string[] passwords)
       {
          ArgumentNullException.ThrowIfNull(passwords);
 
-         string result;
+         byte[] result;
 
          try
          {
-            result = _decryptGcmLayer(source, GetHash(string.Empty));
+            result = Convert.FromBase64String(source);
+            result = _decryptGcmLayerBytes(result, GetHash(string.Empty));
          }
          catch
          {
@@ -158,7 +163,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             try
             {
-               result = _decryptGcmLayer(result, passwords[i]);
+               result = _decryptGcmLayerBytes(result, passwords[i]);
             }
             catch
             {
@@ -166,7 +171,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             }
          }
 
-         return result;
+         return Encoding.UTF8.GetString(result);
       }
 
       public void GenerateRandomKeys(out string publicKey, out string privateKey)
@@ -180,11 +185,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       public string EncryptAsymmetrically(string source, string key)
       {
          // The one-time AES key wraps the payload while the RSA layer protects
-         // the key itself. It must be unpredictable, so it is drawn from a
-         // CSPRNG and Base64-encoded to keep every bit of entropy (encoding raw
-         // random bytes as UTF-8 would silently drop invalid sequences).
-         byte[] randomBytes = RandomNumberGenerator.GetBytes(100);
-         string aesKey = Convert.ToBase64String(randomBytes);
+         // the key itself. A full 256-bit CSPRNG draw is enough for AES-256.
+         string aesKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(KEY_SIZE));
 
          // The payload is sealed with authenticated AES-GCM and the AES key is
          // wrapped with RSA-OAEP, so both parts already detect tampering - no
@@ -283,49 +285,43 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
       }
 
-      private static string _encryptGcmLayer(string plainText, string password)
+      private static byte[] _encryptGcmLayerBytes(ReadOnlySpan<byte> plainBytes, string password)
       {
          byte[] salt = RandomNumberGenerator.GetBytes(SALT_SIZE);
          byte[] nonce = RandomNumberGenerator.GetBytes(NONCE_SIZE);
          byte[] key = _deriveLayerKey(password, salt);
-         byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
+         byte[] cipherBytes = new byte[plainBytes.Length];
+         byte[] tag = new byte[TAG_SIZE];
 
          try
          {
-            byte[] cipherBytes = new byte[plainBytes.Length];
-            byte[] tag = new byte[TAG_SIZE];
-
             using (AesGcm aesGcm = new(key, TAG_SIZE))
             {
                aesGcm.Encrypt(nonce, plainBytes, cipherBytes, tag);
             }
 
             // salt | nonce | tag | ciphertext, so decryption is self-describing.
-            return Convert.ToBase64String([.. salt, .. nonce, .. tag, .. cipherBytes]);
+            return [.. salt, .. nonce, .. tag, .. cipherBytes];
          }
          finally
          {
             CryptographicOperations.ZeroMemory(key);
-            CryptographicOperations.ZeroMemory(plainBytes);
          }
       }
 
-      private static string _decryptGcmLayer(string payload, string password)
+      private static byte[] _decryptGcmLayerBytes(ReadOnlySpan<byte> payload, string password)
       {
-         byte[] data = Convert.FromBase64String(payload);
-
-         if (data.Length < SALT_SIZE + NONCE_SIZE + TAG_SIZE)
+         if (payload.Length < SALT_SIZE + NONCE_SIZE + TAG_SIZE)
          {
             throw new CryptographicException("Ciphertext is too short to be valid.");
          }
 
-         ReadOnlySpan<byte> dataSpan = data;
-         byte[] salt = dataSpan[..SALT_SIZE].ToArray();
-         byte[] nonce = dataSpan.Slice(SALT_SIZE, NONCE_SIZE).ToArray();
-         byte[] tag = dataSpan.Slice(SALT_SIZE + NONCE_SIZE, TAG_SIZE).ToArray();
-         byte[] cipherBytes = dataSpan[(SALT_SIZE + NONCE_SIZE + TAG_SIZE)..].ToArray();
+         ReadOnlySpan<byte> salt = payload[..SALT_SIZE];
+         ReadOnlySpan<byte> nonce = payload.Slice(SALT_SIZE, NONCE_SIZE);
+         ReadOnlySpan<byte> tag = payload.Slice(SALT_SIZE + NONCE_SIZE, TAG_SIZE);
+         ReadOnlySpan<byte> cipherBytes = payload[(SALT_SIZE + NONCE_SIZE + TAG_SIZE)..];
 
-         byte[] key = _deriveLayerKey(password, salt);
+         byte[] key = _deriveLayerKey(password, salt.ToArray());
          byte[] plainBytes = new byte[cipherBytes.Length];
 
          try
@@ -337,12 +333,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
             }
 
-            return Encoding.UTF8.GetString(plainBytes);
+            return plainBytes;
          }
          finally
          {
             CryptographicOperations.ZeroMemory(key);
-            CryptographicOperations.ZeroMemory(plainBytes);
          }
       }
 
