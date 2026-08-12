@@ -257,12 +257,16 @@ login:
   the SHA-1 hash are sent, never the password. This is the **only** outbound
   network call the application makes, it is opt-in per account, and it **fails
   open** (treats the password as "not leaked" if the service is unreachable) so a
-  network problem never blocks the user. Successful range responses are **cached
-  in process** (keyed by the 5-character prefix, bounded, never persisted) so
-  repeated checks for the same prefix — generation retries, duplicate accounts,
-  re-scans — avoid extra round-trips. Requests time out after a few seconds.
-  The GUI and the warning scan use the asynchronous API so the UI thread is not
-  blocked while waiting on the network.
+  network problem never blocks the user. Failed checks are **not** cached: only
+  successful range responses are kept in process (keyed by the 5-character
+  prefix, bounded, never persisted), so the next generation retry, warning scan,
+  or session that reaches the API will ask again. Requests time out after a few
+  seconds. The GUI and the warning scan use the asynchronous API so the UI
+  thread is not blocked while waiting on the network. The UI does **not** surface
+  a separate "could not verify" state: a transient failure is expected to succeed
+  on a later attempt, and a lasting failure means the machine is offline or HIBP
+  is down — cases where nagging the user that a check did not run is not
+  actionable for a local-only tool.
 - **Duplicate-password** and **password-expiry** warnings are computed locally.
 
 ## Known Limitations
@@ -286,8 +290,14 @@ These are conscious trade-offs, documented for transparency:
   interoperability. The `.csv` path is tab-separated (TSV) with JSON-encoded
   cells and covers services/accounts only; `.json` also carries user settings.
   Users are responsible for protecting or deleting these files.
-- **Leak check fails open**: if the Have I Been Pwned service is unreachable, a
-  potentially leaked password is reported as "not leaked".
+- **Leak check fails open**: if the Have I Been Pwned service is unreachable
+  (timeout, HTTP error, offline host), the check reports "not leaked" and the UI
+  stays quiet. Failures are not cached, so a later successful reach of the API
+  can still raise a leak warning. The residual risk is a **prolonged** outage
+  during which a password that *is* in the HIBP corpus remains unmarked until a
+  check finally completes; that is accepted rather than adding an "unknown /
+  unverified" UI state that the user cannot usefully act on while offline or
+  while the remote service is down.
 - **Unsealed activity-log tail**: the activity log is tamper-evident only for the
   portion sealed at the last login (see "Activity-log integrity"). Entries added
   since then — including events written while no one is logged in, such as failed
