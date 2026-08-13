@@ -20,6 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="raw\u75-JVnHlT0oH7p-JSWAY9vIpVxbn9-NM07NZKjX2JgMb27gRXv0lrz-dHmR90FEbxgUIiZ436dFfxrTpvhIsw==.pku">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

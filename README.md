@@ -453,6 +453,33 @@ Two things to keep in mind:
 offloaded: they await the leak-check providers (Have I Been Pwned first, then
 XposedOrNot if HIBP is unreachable) instead of blocking a thread on the network.
 
+**Testing**
+-----------
+
+### Automated
+
+*   **Core**: `UnitTests` covers crypto, vault lifecycle, import/export, and related
+    models. Run with `dotnet test` on the Windows solution.
+*   **GUI ViewModels**: the same `UnitTests` project also references the WPF app
+    and exercises ViewModels (`UnitTests/Gui/`) through a replaceable
+    `AppServices` seam and fakes (session, dialogs, clipboard). No UI automation
+    (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, and real MessageBoxes
+    stay out of the automated suite.
+
+```bash
+dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Gui"
+```
+
+### Manual smoke (GUI)
+
+After changes that touch login, clipboard, or hotkeys, verify on Windows:
+
+1.  Create a new vault (multi-passkey) and reopen it with the same ordered passkeys.
+2.  Mistype a passkey, then close/reopen and log in correctly (progressive login, no rollback).
+3.  Copy an account password; confirm the clipboard clears after the configured timeout.
+4.  Idle until auto-logout; confirm the session closes and the vault file is released.
+5.  Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
+
 **Getting Started**
 -------------------
 
