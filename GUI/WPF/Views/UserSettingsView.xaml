@@ -12,7 +12,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="345" Width="870">
+        Height="520" Width="920">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -45,8 +45,8 @@
                       Click="_deleteUser_MenuItem_Click"/>
         </Menu>
 
-        <StackPanel Grid.Row="1"
-                    Orientation="Horizontal">
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Horizontal">
             <GroupBox Header="Credentials">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
@@ -58,6 +58,7 @@
                     <Controls:UserPasswordsContainer x:Name="_passwordsContainer"/>
                 </StackPanel>
             </GroupBox>
+            <StackPanel>
             <GroupBox Header="Settings">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
@@ -125,6 +126,34 @@
                     </GroupBox>
                 </StackPanel>
             </GroupBox>
+            <GroupBox Header="Application — Offline leak database"
+                      Margin="0,8,0,0"
+                      ToolTip="Machine-wide setting shared by all vault users. Not stored in the .pku vault. Disable keeps the file; only Delete removes it.">
+                <StackPanel Margin="4">
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,6"
+                               Text="{Binding OfflineLeakFilterStatus}"/>
+                    <CheckBox Content="Use offline Bloom filter when HIBP and XposedOrNot are unreachable"
+                              IsChecked="{Binding OfflineLeakFilterEnabled}"
+                              IsEnabled="{Binding OfflineLeakFilterIdle}"
+                              Checked="_offlineLeakFilterEnabled_Changed"
+                              Unchecked="_offlineLeakFilterEnabled_Changed"/>
+                    <TextBlock TextWrapping="Wrap" Margin="0,4,0,4" Foreground="Gray"
+                               Text="{Binding OfflineLeakFilterProgress}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <Button Content="Build / Update"
+                                Margin="0,0,8,0"
+                                Padding="8,2"
+                                IsEnabled="{Binding OfflineLeakFilterIdle}"
+                                Click="_offlineLeakFilterBuild_Click"/>
+                        <Button Content="Delete offline database"
+                                Padding="8,2"
+                                IsEnabled="{Binding OfflineLeakFilterIdle}"
+                                Click="_offlineLeakFilterDelete_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+            </StackPanel>
         </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>

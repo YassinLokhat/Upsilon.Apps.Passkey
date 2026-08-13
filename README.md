@@ -14,7 +14,7 @@ This is a C# implementation of a local stored password manager in .Net 10. The a
 *   **Trigger warnings**: Trigger warnings when detected
 *   **Autosave**: Autosave updates
 *   **Password Generation**: Generate strong, unique passwords
-*   **Leak detection**: Opt-in checks against Have I Been Pwned, with a free XposedOrNot failover (k-anonymity; see [SECURITY.md](SECURITY.md))
+*   **Leak detection**: Opt-in checks against Have I Been Pwned, then XposedOrNot, then an optional machine-local HIBP Bloom filter (k-anonymity / offline; see [SECURITY.md](SECURITY.md))
 
 **Security**
 ------------
@@ -451,7 +451,27 @@ Two things to keep in mind:
 `IPasswordFactory` follows the same pattern with `GeneratePasswordAsync` and
 `PasswordLeakedAsync`. Those two are genuinely asynchronous rather than merely
 offloaded: they await the leak-check providers (Have I Been Pwned first, then
-XposedOrNot if HIBP is unreachable) instead of blocking a thread on the network.
+XposedOrNot if HIBP is unreachable, then an optional local Bloom filter if both
+remote providers fail) instead of blocking a thread on the network.
+
+**Offline leak database (optional)**
+------------------------------------
+
+When HIBP and XposedOrNot are both unreachable, Passkey can fall back to a
+local Bloom filter built from the HIBP SHA-1 corpus:
+
+*   File: `<exe>/leak-filter/pwned-sha1.pkbf` for the WPF app (~2.4 GiB for the default sizing); Core defaults to `%LocalAppData%\Passkey\` until `LeakFilterPaths.SetRootDirectory` is called
+*   Config: `<exe>/leak-filter/leak-filter.json` (`Enabled` / optional `FilterPath`) — **application-level**, shared by all vault users (not stored in the `.pku`)
+*   Order: HIBP → XposedOrNot → Bloom (if enabled and present) → fail-open
+*   Disable never deletes the file; only **Delete offline database** in Settings (or deleting the `.pkbf` manually) removes it
+*   Build from the WPF Settings panel (**Application — Offline leak database**) or:
+
+```bash
+dotnet run --project Tools/LeakFilterBuilder -- build
+# rebuild: add --force
+```
+
+A full build downloads every HIBP range (~1 048 576 prefixes) and can take several hours.
 
 **Getting Started**
 -------------------

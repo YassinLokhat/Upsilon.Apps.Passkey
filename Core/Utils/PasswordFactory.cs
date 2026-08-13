@@ -2,6 +2,7 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using Upsilon.Apps.Passkey.Core.Utils.LeakFilter;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
@@ -34,6 +35,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private readonly Func<HttpRequestMessage, CancellationToken, HttpResponseMessage> _send;
       private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> _sendAsync;
+      private ILocalLeakFilter? _localFilter;
 
       // HIBP k-anonymity ranges are keyed by the first five hex chars of the
       // SHA-1 hash. Caching the parsed suffix set means a second check for the
@@ -52,17 +54,64 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             static (request, cancellationToken) => _sharedHttpClient.Send(request, cancellationToken),
             static (request, cancellationToken) => _sharedHttpClient.SendAsync(request, cancellationToken))
       {
+         ReloadLocalFilter();
       }
 
       /// <summary>
       /// Test seam: drives leak checks through custom send delegates (no real network).
+      /// Does not auto-load the machine-level filter.
       /// </summary>
       internal PasswordFactory(
          Func<HttpRequestMessage, CancellationToken, HttpResponseMessage> send,
-         Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync)
+         Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync,
+         ILocalLeakFilter? localFilter = null)
       {
          _send = send ?? throw new ArgumentNullException(nameof(send));
          _sendAsync = sendAsync ?? throw new ArgumentNullException(nameof(sendAsync));
+         _localFilter = localFilter;
+      }
+
+      /// <summary>
+      /// Whether an offline Bloom filter is currently attached for post-network fallback.
+      /// </summary>
+      public bool HasLocalFilter => _localFilter is not null;
+
+      /// <summary>
+      /// Replaces the offline filter. Pass <see langword="null"/> to detach without
+      /// deleting the on-disk <c>.pkbf</c>.
+      /// </summary>
+      public void AttachLocalFilter(ILocalLeakFilter? filter)
+      {
+         if (ReferenceEquals(_localFilter, filter))
+         {
+            return;
+         }
+
+         _localFilter?.Dispose();
+         _localFilter = filter;
+      }
+
+      /// <summary>
+      /// Loads the machine-level filter when enabled and present under LocalAppData.
+      /// </summary>
+      public void ReloadLocalFilter()
+      {
+         ILocalLeakFilter? filter = null;
+         try
+         {
+            filter = LeakFilterPaths.TryOpenConfiguredFilter();
+            if (!ReferenceEquals(_localFilter, filter))
+            {
+               _localFilter?.Dispose();
+               _localFilter = filter;
+            }
+
+            filter = null; // ownership held by _localFilter
+         }
+         finally
+         {
+            filter?.Dispose();
+         }
       }
 
       public string Alphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -112,6 +161,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             {
                return xon.Value;
             }
+
+            bool? bloom = _tryLocalBloom(password);
+            if (bloom.HasValue)
+            {
+               return bloom.Value;
+            }
          }
 #pragma warning disable CA1031 // Last-resort barrier: a leak check must never crash password generation
          catch (Exception ex)
@@ -138,6 +193,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             {
                return xon.Value;
             }
+
+            bool? bloom = _tryLocalBloom(password);
+            if (bloom.HasValue)
+            {
+               return bloom.Value;
+            }
          }
          // An explicit cancellation is the caller's decision and must surface as
          // such; the client's own timeout also lands here as an
@@ -155,6 +216,31 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
 
          return _failOpen(null);
+      }
+
+      /// <summary>
+      /// Offline Bloom fallback after HIBP and XON failed. Miss = not leaked;
+      /// hit = leaked (conservative; false positives possible). Returns
+      /// <see langword="null"/> when no filter is attached.
+      /// </summary>
+      private bool? _tryLocalBloom(string password)
+      {
+         ILocalLeakFilter? filter = _localFilter;
+         if (filter is null)
+         {
+            return null;
+         }
+
+#pragma warning disable CA5350 // HIBP / local filter index SHA-1 digests
+         byte[] sha1 = SHA1.HashData(Encoding.UTF8.GetBytes(password));
+#pragma warning restore CA5350
+
+         bool hit = filter.MightContain(sha1);
+         System.Diagnostics.Trace.TraceWarning(
+            hit
+               ? "Password leak check: HIBP and XposedOrNot unreachable; offline Bloom reported a possible hit (treated as leaked)."
+               : "Password leak check: HIBP and XposedOrNot unreachable; offline Bloom miss (not leaked).");
+         return hit;
       }
 
       /// <summary>
@@ -405,12 +491,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private static bool _failOpen(Exception? exception)
       {
          // A leak check must never crash password generation or the warning
-         // scan. When every provider is unreachable we cannot confirm a leak,
-         // so we report "not leaked" and trace the failure for diagnostics.
+         // scan. When every provider is unreachable and no offline filter is
+         // attached, we report "not leaked" and trace the failure.
          if (exception is null)
          {
             System.Diagnostics.Trace.TraceWarning(
-               "Password leak check failed open: HIBP and XposedOrNot were both unreachable.");
+               "Password leak check failed open: HIBP and XposedOrNot were unreachable and no offline Bloom filter is attached.");
          }
          else
          {

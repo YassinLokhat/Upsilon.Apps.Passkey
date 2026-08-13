@@ -3,6 +3,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.Core.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Utils
 {
@@ -336,15 +337,92 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             "ADF34F3E63A8E0BD2938F3E09DDC161125A031C3C86D06EC59574A5C723E7FDBE04C2C15D9171E05E90A9C822936185F12B9D7384B2BEDB02E75C4C5FE89E4D4");
       }
 
-      private static PasswordFactory _factoryFor(RoutingHandler handler)
+      [TestMethod]
+      /*
+       * When HIBP succeeds, the offline Bloom filter must not be consulted.
+      */
+      public void Case16_PasswordLeaked_DoesNotQueryBloomWhenHibpSucceeds()
+      {
+         const string password = "hibp-wins-over-bloom";
+         string hash = _sha1Hex(password);
+         RecordingBloom bloom = new(mightContain: true);
+         RoutingHandler handler = new(
+            hibp: _ => (HttpStatusCode.OK, $"{hash[5..]}:1\r\n"),
+            xon: _ => (HttpStatusCode.OK, "{\"SearchPassAnon\":{}}"));
+         PasswordFactory factory = _factoryFor(handler, bloom);
+
+         _ = factory.PasswordLeaked(password).Should().BeTrue();
+         _ = bloom.QueryCount.Should().Be(0);
+         _ = handler.XonRequestCount.Should().Be(0);
+      }
+
+      [TestMethod]
+      /*
+       * After HIBP and XON fail, a Bloom miss is a definitive "not leaked".
+      */
+      public void Case17_PasswordLeaked_BloomMissAfterNetworkFailure()
+      {
+         RecordingBloom bloom = new(mightContain: false);
+         RoutingHandler handler = new(
+            hibp: _ => (HttpStatusCode.ServiceUnavailable, null),
+            xon: _ => (HttpStatusCode.ServiceUnavailable, null));
+         PasswordFactory factory = _factoryFor(handler, bloom);
+
+         _ = factory.PasswordLeaked("offline-safe-password").Should().BeFalse();
+         _ = bloom.QueryCount.Should().Be(1);
+      }
+
+      [TestMethod]
+      /*
+       * After HIBP and XON fail, a Bloom hit is treated as leaked (conservative).
+      */
+      public void Case18_PasswordLeaked_BloomHitAfterNetworkFailure()
+      {
+         RecordingBloom bloom = new(mightContain: true);
+         RoutingHandler handler = new(
+            hibp: _ => (HttpStatusCode.ServiceUnavailable, null),
+            xon: _ => (HttpStatusCode.ServiceUnavailable, null));
+         PasswordFactory factory = _factoryFor(handler, bloom);
+
+         _ = factory.PasswordLeaked("offline-maybe-leaked").Should().BeTrue();
+         _ = bloom.QueryCount.Should().Be(1);
+      }
+
+      private static PasswordFactory _factoryFor(RoutingHandler handler, ILocalLeakFilter? localFilter = null)
          => new(
             (request, cancellationToken) => handler.Invoke(request, cancellationToken),
-            (request, cancellationToken) => handler.InvokeAsync(request, cancellationToken));
+            (request, cancellationToken) => handler.InvokeAsync(request, cancellationToken),
+            localFilter);
 
       private static string _sha1Hex(string value)
 #pragma warning disable CA5350 // Test helper mirroring the production HIBP SHA-1 requirement
          => Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(value)));
 #pragma warning restore CA5350
+
+      private sealed class RecordingBloom : ILocalLeakFilter
+      {
+         private readonly bool _mightContain;
+
+         public RecordingBloom(bool mightContain) => _mightContain = mightContain;
+
+         public int QueryCount;
+
+         public string? Path => null;
+
+         public DateTime BuiltUtc => DateTime.UnixEpoch;
+
+         public ulong InsertedCount => 0;
+
+         public bool MightContain(ReadOnlySpan<byte> sha1)
+         {
+            _ = Interlocked.Increment(ref QueryCount);
+            return _mightContain;
+         }
+
+         public void Dispose()
+         {
+         }
+      }
 
       /// <summary>
       /// Routes mock responses by host so HIBP and XposedOrNot failover can be

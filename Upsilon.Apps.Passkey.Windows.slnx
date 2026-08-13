@@ -3,4 +3,5 @@
   <Project Path="Core/Upsilon.Apps.Passkey.Core.csproj" />
   <Project Path="GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj" />
   <Project Path="UnitTests/UnitTests.csproj" />
+  <Project Path="Tools/LeakFilterBuilder/LeakFilterBuilder.csproj" />
 </Solution>
