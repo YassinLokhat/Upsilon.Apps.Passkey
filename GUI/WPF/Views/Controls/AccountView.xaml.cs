@@ -259,8 +259,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         AppServices.Clipboard.SetText(((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier,
-            ClipboardManager.AutoClearAfter);
+         string? identifier = GetIdentifier();
+
+         if (identifier is null)
+         {
+            return;
+         }
+
+         AppServices.Clipboard.SetText(identifier, ClipboardManager.AutoClearAfter);
       }
 
       private void _showQrCodeIdentifier_Clicked(object sender, RoutedEventArgs e)
