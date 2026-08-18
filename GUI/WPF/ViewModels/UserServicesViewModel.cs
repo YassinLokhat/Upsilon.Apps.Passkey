@@ -6,6 +6,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -23,6 +24,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set => SetProperty(ref field, value);
       } = string.Empty;
+
+      public static string UserId => $"User Id : {AppServices.Session.User?.ItemId}";
 
       public string ShowWarnings
       {
@@ -110,6 +113,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public ObservableCollection<ServiceViewModel> Services { get; } = [];
 
+      private readonly Dictionary<string, ServiceViewModel> _serviceViewModelsById = new(StringComparer.Ordinal);
+
       public ICommand ClearFiltersCommand { get; }
 
       public event EventHandler? FiltersRefreshed;
@@ -138,7 +143,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void Dispose()
       {
-         if (_disposed) return;
+         if (_disposed)
+         {
+            return;
+         }
 
          _titleTimer.Stop();
          _titleTimer.Tick -= _onTitleTimerElapsed;
@@ -156,7 +164,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          if (serviceViewModel is null && AppServices.Session.User is { } user)
          {
-            serviceViewModel = new(user.AddService("New Service #" + DateTime.Now.Ticks));
+            IService service = user.AddService("New Service #" + DateTime.Now.Ticks);
+            serviceViewModel = new ServiceViewModel(service);
+            _serviceViewModelsById[service.ItemId] = serviceViewModel;
             Services.Insert(0, serviceViewModel);
          }
 
@@ -168,6 +178,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          int index = Services.IndexOf(serviceViewModel);
 
          _ = Services.Remove(serviceViewModel);
+         _ = _serviceViewModelsById.Remove(serviceViewModel.Service.ItemId);
          AppServices.Session.User?.DeleteService(serviceViewModel.Service);
 
          return index < Services.Count ? index : Services.Count - 1;
@@ -181,25 +192,53 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void RefreshFilters()
       {
-         Services.Clear();
-
          if (AppServices.Session.User is not { } user)
          {
+            Services.Clear();
+            _serviceViewModelsById.Clear();
             FiltersRefreshed?.Invoke(this, EventArgs.Empty);
             return;
          }
 
-         ServiceViewModel[] services = [.. user.Services
-            .Where(x => x.MeetsFilterConditions(ServiceFilter, IdentifierFilter, TextFilter, ChangedItemsOnly))
-            .OrderBy(x => x.ServiceName)
-            .Select(x => new ServiceViewModel(x, IdentifierFilter, TextFilter, ChangedItemsOnly))];
+         _ensureServiceViewModels(user);
 
-         foreach (ServiceViewModel service in services)
+         ServiceViewModel[] visible = [.. _serviceViewModelsById.Values
+            .Where(x => x.Service.MeetsFilterConditions(ServiceFilter, IdentifierFilter, TextFilter, ChangedItemsOnly))
+            .OrderBy(x => x.Service.ServiceName)];
+
+         foreach (ServiceViewModel serviceViewModel in visible)
          {
-            Services.Add(service);
+            serviceViewModel.ApplyFilters(IdentifierFilter, TextFilter, ChangedItemsOnly);
+         }
+
+         Services.Clear();
+
+         foreach (ServiceViewModel serviceViewModel in visible)
+         {
+            Services.Add(serviceViewModel);
          }
 
          FiltersRefreshed?.Invoke(this, EventArgs.Empty);
+      }
+
+      private void _ensureServiceViewModels(IUser user)
+      {
+         HashSet<string> liveIds = [.. user.Services.Select(x => x.ItemId)];
+
+         foreach (string id in _serviceViewModelsById.Keys.Where(k => !liveIds.Contains(k)).ToList())
+         {
+            _ = _serviceViewModelsById.Remove(id);
+         }
+
+         foreach (IService service in user.Services)
+         {
+            if (_serviceViewModelsById.ContainsKey(service.ItemId))
+            {
+               continue;
+            }
+
+            _serviceViewModelsById[service.ItemId] = new ServiceViewModel(service);
+         }
       }
 
       private void _scheduleRefresh()

@@ -27,6 +27,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       /// <summary>
       /// Closes the current session, if any.
       /// </summary>
-      void EndSession();
+      /// <param name="closeDatabase">
+      /// When <see langword="true"/> (default), calls <see cref="IDatabase.Close"/> on the
+      /// active database. Pass <see langword="false"/> when the database has already
+      /// closed itself (e.g. from a <c>DatabaseClosed</c> handler) so the session is
+      /// only cleared.
+      /// </param>
+      void EndSession(bool closeDatabase = true);
    }
 }

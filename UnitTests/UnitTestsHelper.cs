@@ -9,6 +9,7 @@ using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
@@ -104,6 +105,24 @@ namespace Upsilon.Apps.Passkey.UnitTests
          list[1] = first;
 
          _writeActivityNode(databaseFile, node);
+      }
+
+      // Reproduces the FileLocker pipeline for the (unencrypted) header entry:
+      // the stored content is base64(gzip(json)). Lowers the work factor so
+      // Open's KDF floor can be exercised without minting a whole weak vault.
+      public static void TamperKdfHeaderIterations(string databaseFile, int iterations)
+      {
+         JsonNode node = JsonNode.Parse(_decompress(ReadFileZipEntry(databaseFile, "header")))!;
+         node["Iterations"] = iterations;
+         WriteFileZipEntry(databaseFile, "header", _compress(node.ToJsonString()));
+      }
+
+      // Replaces the encrypted database entry with opaque garbage so Login with
+      // the correct passkeys fails the outer AEAD layer as CorruptedSourceException
+      // rather than WrongPasswordException.
+      public static void TamperDatabaseEntryCorrupt(string databaseFile)
+      {
+         WriteFileZipEntry(databaseFile, "database", Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)));
       }
 
       private static JsonNode _readActivityNode(string databaseFile)
@@ -259,6 +278,46 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return (int)value;
       }
 
+      /// <summary>
+      /// Subscribes to <see cref="IDatabase.WarningsUpdated"/> then runs
+      /// <paramref name="trigger"/> (typically <see cref="IDatabase.Save"/>) and
+      /// waits until a warning of <paramref name="type"/> is reported.
+      /// </summary>
+      public static IWarning[] WaitForWarningType(IDatabase database, WarningType type, Action trigger, TimeSpan? timeout = null)
+      {
+         timeout ??= TimeSpan.FromSeconds(15);
+         TaskCompletionSource<IWarning[]> tcs = new();
+
+         void Handler(object? sender, WarningsUpdatedEventArgs e)
+         {
+            IWarning[] reported = [.. e.Warnings];
+            IWarning[] current = database.Warnings is null ? reported : [.. database.Warnings];
+
+            if (current.Any(w => w.WarningType == type) || reported.Any(w => w.WarningType == type))
+            {
+               _ = tcs.TrySetResult(current);
+            }
+         }
+
+         database.WarningsUpdated += Handler;
+
+         try
+         {
+            trigger();
+
+            if (!tcs.Task.Wait(timeout.Value))
+            {
+               throw new TimeoutException($"Timed out waiting for warning '{type}'.");
+            }
+
+            return tcs.Task.Result;
+         }
+         finally
+         {
+            database.WarningsUpdated -= Handler;
+         }
+      }
+
       public static void LastActivitiesShouldMatch(IDatabase database, string[] expectedActivities)
       {
          string[] actualActivities = database.Activities.Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
@@ -276,7 +335,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
          IWarning activityWarning = database.Warnings.First(x => x.WarningType == WarningType.ActivityReviewWarning);
 
          string[] actualActivities = activityWarning.Activities
-            .OrderByDescending(x => x.DateTime)
             .Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
 
          _lastActivitiesShouldMatch(actualActivities, expectedActivities);

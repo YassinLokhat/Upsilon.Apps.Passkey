@@ -1,13 +1,9 @@
-﻿using ABI.System;
-using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using FluentAssertions;
+using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
@@ -180,13 +176,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : Service Service0's notes has been set to Service0's notes");
 
          expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
-         expectedActivities.Push($"Warning : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to Service0's Account0's notes");
          expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
          expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz) has been added to Service Service0");
-         expectedActivities.Push($"Warning : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to Service0's Account1's notes");
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
@@ -196,13 +192,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : Service Service1's notes has been set to Service1's notes");
 
          expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
-         expectedActivities.Push($"Warning : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to Service1's Account0's notes");
          expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to 3");
 
          expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz) has been added to Service Service1");
-         expectedActivities.Push($"Warning : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to Service1's Account1's notes");
          expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to 3");
@@ -346,13 +342,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : Service Service0's notes has been set to Service0's notes");
 
          expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
-         expectedActivities.Push($"Warning : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to Service0's Account0's notes");
          expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
          expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz) has been added to Service Service0");
-         expectedActivities.Push($"Warning : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to Service0's Account1's notes");
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
@@ -362,13 +358,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : Service Service1's notes has been set to Service1's notes");
 
          expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
-         expectedActivities.Push($"Warning : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to Service1's Account0's notes");
          expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to 3");
 
          expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz) has been added to Service Service1");
-         expectedActivities.Push($"Warning : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to Service1's Account1's notes");
          expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to 3");
@@ -377,6 +373,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : User {username}'s database saved");
 
          // Then
+         database.User.Settings.LogoutTimeout.Should().Be(9);
+         database.User.Settings.CleaningClipboardTimeout.Should().Be(99);
+         database.User.Settings.ShowPasswordDelay.Should().Be(999);
+         database.User.Settings.NumberOfOldPasswordToKeep.Should().Be(9);
+         database.User.Settings.NumberOfMonthActivitiesToKeep.Should().Be(9);
+         database.User.Settings.WarningsToNotify.Should().Be(WarningType.PasswordUpdateReminderWarning | WarningType.DuplicatedPasswordsWarning | WarningType.PasswordLeakedWarning);
+
          database.User.Services.Count().Should().Be(2);
 
          database.User.Services.ElementAt(0).ServiceName.Should().Be("Service0");
@@ -555,6 +558,63 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          roundTripped.Close();
          UnitTestsHelper.ClearTestEnvironment();
          UnitTestsHelper.ClearTestEnvironment(roundTripUsername);
+      }
+
+      [TestMethod]
+      /*
+       * ImportFromFileAsync and ExportToFileAsync drive the same pipeline as the
+       * synchronous methods.
+      */
+      public async Task Case15_ImportExportAsync_RoundTrip()
+      {
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.json");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export_async.json");
+
+         UnitTestsHelper.ClearTestEnvironment();
+
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         _ = (await database.ImportFromFileAsync(importFile)).Should().BeTrue();
+         _ = (await database.ExportToFileAsync(exportFile)).Should().BeTrue();
+         _ = File.Exists(exportFile).Should().BeTrue();
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * CSV import must seed password history so PasswordExpired works when a
+       * reminder delay is set (import only carries the current password).
+      */
+      public void Case14_ImportCSV_SeedsPasswordHistoryForExpiry()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         bool imported = database.ImportFromFile(importFile);
+         imported.Should().BeTrue();
+
+         foreach (IAccount account in database.User!.Services.SelectMany(s => s.Accounts))
+         {
+            account.Passwords.Should().ContainSingle(
+               "CSV import supplies only the current password; history must still be seeded");
+            account.Passwords.Values.Single().Should().Be(account.Password);
+
+            Account concrete = (Account)account;
+            concrete.PasswordUpdateReminderDelay.Should().Be(3);
+            Action evaluateExpiry = () => _ = concrete.PasswordExpired;
+            evaluateExpiry.Should().NotThrow();
+            concrete.PasswordExpired.Should().BeFalse("just-imported passwords are not expired");
+         }
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
       }
 
       // Projects a database's services/accounts onto the persisted fields only,

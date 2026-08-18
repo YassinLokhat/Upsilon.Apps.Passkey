@@ -155,5 +155,23 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          _ = large.QRCodeVersion.Should().BeGreaterThan(small.QRCodeVersion);
          _ = large.QRCodeDimension.Should().BeGreaterThan(small.QRCodeDimension);
       }
+
+      [TestMethod]
+      /*
+       * Numeric, alphanumeric and raw-byte payloads all produce a valid square
+       * matrix, covering the encoder's mode selection paths.
+      */
+      public void Case10_EncodingModes_ProduceValidMatrices()
+      {
+         bool[,] numeric = QrCode.Generate("12345678901234567890", ErrorCorrection.L);
+         bool[,] alphanumeric = QrCode.Generate("HELLO WORLD 123", ErrorCorrection.M);
+         bool[,] binary = new QrCode(Enumerable.Range(0, 64).Select(i => (byte)i).ToArray(), ErrorCorrection.Q).QRCodeMatrix;
+         bool[,] high = QrCode.Generate(new string('Q', 400), ErrorCorrection.L);
+
+         _ = numeric.GetLength(0).Should().Be(numeric.GetLength(1));
+         _ = alphanumeric.GetLength(0).Should().Be(alphanumeric.GetLength(1));
+         _ = binary.GetLength(0).Should().Be(binary.GetLength(1));
+         _ = high.GetLength(0).Should().BeGreaterThan(numeric.GetLength(0));
+      }
    }
 }

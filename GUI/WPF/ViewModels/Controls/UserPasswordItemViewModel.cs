@@ -10,17 +10,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       }
-      public string Password
-      {
-         get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = string.Empty;
+
+      /// <summary>
+      /// Seed value used only to initialize the PasswordBox, then cleared.
+      /// The live secret lives in the PasswordBox, not in this ViewModel.
+      /// </summary>
+      public string InitialPassword { get; set; } = string.Empty;
 
       public event PropertyChangedEventHandler? PropertyChanged;
-
-      private void _onPropertyChanged(string propertyName)
-      {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-      }
    }
 }

@@ -9,8 +9,10 @@
              d:DataContext="{d:DesignInstance Type=controls:AccountViewModel}"
              mc:Ignorable="d">
     <DockPanel VerticalAlignment="Stretch">
-        <GroupBox Header="{Binding AccountId}"
-                  DockPanel.Dock="Top">
+        <GroupBox Name="_account_GB"
+                  Header="{Binding AccountId}"
+                  DockPanel.Dock="Top"
+                  MouseRightButtonUp="_accountView_MouseRightButtonUp">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>

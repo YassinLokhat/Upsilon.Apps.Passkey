@@ -15,7 +15,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          identifierFilter = identifierFilter.Trim();
          globalTextFilter = globalTextFilter.Trim();
 
-         string serviceId = service.ItemId.Replace(service.User.ItemId, string.Empty, StringComparison.Ordinal).Trim();
+         string serviceId = service.ItemId.Trim();
          string serviceName = service.ServiceName.Trim();
          string url = service.Url?.OriginalString.Trim() ?? string.Empty;
          string notes = service.Notes.Trim();
@@ -38,7 +38,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          identifierFilter = identifierFilter.Trim();
          globalTextFilter = globalTextFilter.Trim();
 
-         string accountId = account.ItemId.Replace(account.Service.ItemId, string.Empty, StringComparison.Ordinal).Trim();
+         string accountId = account.ItemId.Trim();
          string label = account.Label.Trim();
          string notes = account.Notes.Trim();
          string identifiers = string.Join("\n", account.Identifiers.Select(x => x.Trim()));

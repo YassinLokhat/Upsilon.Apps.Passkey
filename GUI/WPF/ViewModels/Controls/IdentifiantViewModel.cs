@@ -39,14 +39,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                   field = value.Replace(idType.Key, idType.Value, StringComparison.Ordinal);
                }
 
-               OnPropertyChanged(nameof(Identifier));
+               _onPropertyChanged(nameof(Identifier));
             }
          }
       } = string.Empty;
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      private void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
@@ -60,7 +60,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void Refresh()
       {
-         OnPropertyChanged(nameof(IdentifierBackground));
+         _onPropertyChanged(nameof(IdentifierBackground));
       }
 
       [GeneratedRegex(@"^\+\d{1,3}[\d\s\-\.]{6,20}$")]

@@ -11,10 +11,16 @@
         <Configuration>
           <Format>Cobertura</Format>
           <CodeCoverage>
-            <!-- Coverage measures production code only, not the test assemblies
-                 nor the third-party test frameworks. -->
+            <!-- Coverage is scoped to the Core library. The WPF client, test
+                 assemblies and third-party frameworks are not measured: the
+                 quality gate is "how well is the vault logic tested?", not the
+                 UI chrome. -->
             <ModulePaths>
+              <Include>
+                <ModulePath>.*Upsilon\.Apps\.Passkey\.Core\.dll$</ModulePath>
+              </Include>
               <Exclude>
+                <ModulePath>.*Upsilon\.Apps\.Passkey\.GUI\.WPF\.dll$</ModulePath>
                 <ModulePath>.*[Uu]nit[Tt]ests\.dll$</ModulePath>
                 <ModulePath>.*[Tt]ests\.dll$</ModulePath>
                 <ModulePath>.*FluentAssertions\.dll$</ModulePath>

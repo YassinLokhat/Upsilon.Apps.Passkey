@@ -2,8 +2,8 @@
 using System.Windows;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.Views;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -115,22 +115,47 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          GeneratePassword();
 
          RegenerateCommand = new RelayCommand(GeneratePassword);
-         CopyCommand = new RelayCommand(() => QrCodeView.CopyToClipboard(GeneratedPassword));
+         CopyCommand = new RelayCommand(() => AppServices.Clipboard.SetText(GeneratedPassword, ClipboardManager.AutoClearAfter));
          InsertCommand = new RelayCommand(() =>
          {
-            QrCodeView.CopyToClipboard(GeneratedPassword);
+            AppServices.Clipboard.SetText(GeneratedPassword, ClipboardManager.AutoClearAfter);
             InsertRequested?.Invoke(this, EventArgs.Empty);
          });
       }
+
+      // Every option change restarts a generation, and each one may wait on the
+      // leak-check service. Stamping the requests lets a slow answer be dropped
+      // instead of overwriting the result of the request that came after it.
+      private int _generation;
 
       internal void GeneratePassword()
       {
          GeneratedPassword = string.Empty;
 
-         _ = Task.Run(() =>
+         _ = _generatePasswordAsync(Interlocked.Increment(ref _generation));
+      }
+
+      private async Task _generatePasswordAsync(int generation)
+      {
+         try
          {
-            GeneratedPassword = AppServices.PasswordFactory.GeneratePassword(PasswordLength, Alphabet, CheckIfLeaked);
-         });
+            string password = await AppServices.PasswordFactory
+               .GeneratePasswordAsync(PasswordLength, Alphabet, CheckIfLeaked)
+               .ConfigureAwait(true);
+
+            // Awaiting with the UI context captured means this assignment - and
+            // the binding update it raises - happens back on the UI thread.
+            if (generation == Volatile.Read(ref _generation))
+            {
+               GeneratedPassword = password;
+            }
+         }
+#pragma warning disable CA1031 // Last-resort barrier: a generation failure must not crash the dialog
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            Log.Error(ex, "Failed to generate a password");
+         }
       }
 
       private void _includeCharactersChanged()

@@ -11,7 +11,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by WPF via XAML/BAML.")]
    internal sealed partial class UserPasswordsContainer : UserControl
    {
-      public IEnumerable<string> Passkeys => [.. _passwords.Select(x => x.ViewModel.Password)];
+      public IEnumerable<string> Passkeys => [.. _passwords.Select(x => x.Password)];
 
       private readonly List<UserPasswordItem> _passwords;
 
@@ -34,6 +34,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
       }
 
+      /// <summary>
+      /// Clears every PasswordBox buffer (and any revealed copy) so secrets do
+      /// not linger after save / close.
+      /// </summary>
+      public void ClearSecrets()
+      {
+         foreach (UserPasswordItem item in _passwords)
+         {
+            item.Clear();
+         }
+      }
+
       private void _passwordItem_DeleteClicked(object? sender, EventArgs e)
       {
          if (this.GetIsBusy()
@@ -43,6 +55,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
+         passwordItem.Clear();
          int index = passwordItem.ViewModel.Index;
          _stackPanel.Children.Remove(passwordItem);
          _ = _passwords.Remove(passwordItem);
@@ -79,7 +92,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _addButton_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          _addPassword(string.Empty);
 
@@ -88,7 +104,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _addPassword(string password)
       {
-         UserPasswordItem passwordItem = new(new() { Index = _passwords.Count, Password = password });
+         UserPasswordItem passwordItem = new(new() { Index = _passwords.Count, InitialPassword = password });
          passwordItem.UpClicked += _passwordItem_UpClicked;
          passwordItem.DownClicked += _passwordItem_DownClicked;
          passwordItem.DeleteClicked += _passwordItem_DeleteClicked;

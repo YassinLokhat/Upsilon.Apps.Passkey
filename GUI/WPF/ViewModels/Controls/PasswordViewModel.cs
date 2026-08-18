@@ -9,9 +9,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      private void _onPropertyChanged(string propertyName)
+      public void Clear()
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+         Password = string.Empty;
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Password)));
       }
    }
 }

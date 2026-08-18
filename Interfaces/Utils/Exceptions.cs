@@ -7,6 +7,31 @@
       public CorruptedSourceException(string message, Exception innerException) : base(message, innerException) { }
    }
 
+   /// <summary>
+   /// Thrown when key-derivation parameters (e.g. from a database header) fall
+   /// below the floor this crypto center accepts, so a weakened or malformed
+   /// header is never used to stretch passkeys.
+   /// </summary>
+   public sealed class InsufficientKdfParametersException : Exception
+   {
+      public InsufficientKdfParametersException() : base() { }
+      public InsufficientKdfParametersException(string message) : base(message) { }
+      public InsufficientKdfParametersException(string message, Exception innerException) : base(message, innerException) { }
+   }
+
+   /// <summary>
+   /// Thrown during progressive login when the supplied passkeys decrypted their
+   /// onion layers successfully but the result is not yet a valid compressed
+   /// payload — typically because more passkeys are still required. Callers
+   /// treat this like a soft login miss (<see langword="null"/>), not corruption.
+   /// </summary>
+   public sealed class IncompleteOnionException : Exception
+   {
+      public IncompleteOnionException() : base() { }
+      public IncompleteOnionException(string message) : base(message) { }
+      public IncompleteOnionException(string message, Exception innerException) : base(message, innerException) { }
+   }
+
    public sealed class WrongPasswordException : Exception
    {
       public int PasswordLevel { get; private set; }

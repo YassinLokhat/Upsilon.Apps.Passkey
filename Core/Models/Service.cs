@@ -136,11 +136,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
             Passwords = passwords,
          };
 
+         // CSV/import paths often supply a current password with an empty history
+         // dictionary. Seed one dated entry so PasswordExpired and retention work.
+         if (account.Passwords.Count == 0
+            && !string.IsNullOrEmpty(password))
+         {
+            account.Passwords[DateTime.Now] = ProtectedSecret.Protect(password);
+         }
+
          Accounts.Add(Database.AutoSave.AddValue(ItemId, readableValue: account.ToString(), needsReview: false, account));
 
          _ = Database.AutoSave.UpdateValue(account.ItemId,
             fieldName: nameof(account.Password),
-            needsReview: true,
+            needsReview: false,
             oldValue: string.Empty,
             newValue: account.Password,
             readableValue: string.Empty);

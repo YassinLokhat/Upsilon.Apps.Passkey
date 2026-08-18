@@ -259,5 +259,38 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * The four AddAccount overloads all create an account, and a null Url
+       * round-trips as "no url" rather than throwing.
+      */
+      public void Case05_AddAccountOverloadsAndNullUrl()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase();
+         IService service = database.User!.AddService("OverloadService");
+
+         IAccount withLabel = service.AddAccount("Labeled", ["id-1"]);
+         IAccount withPassword = service.AddAccount(["id-2"], "secret");
+         IAccount identifiersOnly = service.AddAccount(["id-3"]);
+
+         _ = withLabel.Label.Should().Be("Labeled");
+         _ = withLabel.Password.Should().BeEmpty();
+         _ = withPassword.Label.Should().BeEmpty();
+         _ = withPassword.Password.Should().Be("secret");
+         _ = identifiersOnly.Identifiers.Should().Equal("id-3");
+         _ = service.Accounts.Should().HaveCount(3);
+
+         service.Url = null;
+         _ = service.Url.Should().BeNull();
+
+         service.DeleteAccount(withLabel);
+         Action deleteUnknown = () => service.DeleteAccount(withLabel);
+         deleteUnknown.Should().Throw<KeyNotFoundException>();
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

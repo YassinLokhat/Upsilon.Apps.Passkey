@@ -56,6 +56,8 @@ What to expect:
 
 - Confidentiality and integrity of the `.pku` database file at rest.
 - Resistance to offline brute-force against the master passkeys.
+- Friction against interactive (online) guessing during progressive login
+  (no rollback of a wrong passkey; see "Progressive login without rollback").
 - Tamper detection of stored data.
 - Limiting exposure of secrets during an active session (auto-logout, clipboard
   cleaning).
@@ -82,6 +84,11 @@ supply-chain attack surface minimal.
 
 - A database is protected by an **ordered set of passkeys** (master passwords).
   All of them, **in the correct order**, are required to decrypt the data.
+- The onion always starts with an **implicit first layer keyed by the username**:
+  `GetHash(username)` (fast SHA-512, Base64 with `/` replaced by `-`) is pushed
+  onto the stack before any stretched passkey. Changing the username therefore
+  changes the ciphertext layout; it is not a secret factor on its own, but it is
+  part of the key material used at rest.
 - Each passkey is stretched with **PBKDF2-HMAC-SHA-512, 1,000,000 iterations**
   (64-byte output) before being used as key material (`GetSlowHash`). This far
   exceeds the OWASP baseline and makes offline guessing expensive. HMAC-SHA-512
@@ -95,13 +102,22 @@ supply-chain attack surface minimal.
   usernames and passkeys. A salt is not secret; storing it unencrypted is
   standard.
 - **Crypto-agility**: the stretching parameters (algorithm, iterations, output
-  length, salt, scheme version) are recorded in an unencrypted `header` entry of
-  the `.pku` file. A database is always reopened with the exact parameters it was
-  written with, and is transparently re-stretched with the current defaults on
-  the next save. This lets the work factor and algorithm evolve over time
-  without breaking existing files. The header is not secret: tampering with it
-  only prevents the correct key from being derived, it never weakens already
-  encrypted data.
+  length, salt) are recorded in an unencrypted `header` entry of the `.pku`
+  file. A database is always reopened — and rewritten — with the **exact
+  parameters stored in that header**. There is no automatic upgrade to
+  `DefaultSlowHashParameters` on save today; the sticky header is what will let
+  a future release migrate work factor or algorithm without breaking existing
+  files. The header is not secret: lowering iterations in an *existing* file's
+  header does not weaken already encrypted data (the wrong work factor simply
+  yields the wrong key). What it *can* do is offer the user a **new** vault
+  written under a trivial work factor. To block that, Open and every
+  `GetSlowHash` call enforce a **KDF floor** via
+  `EnsureSufficientSlowHashParameters`: a known algorithm, iterations at least
+  **600,000** (PBKDF2-HMAC-SHA-256) or **210,000** (PBKDF2-HMAC-SHA-512) — the
+  OWASP Password Storage Cheat Sheet baselines — output length ≥ 32 bytes, and a
+  Base64 salt of at least 16 bytes. Parameters below the floor raise
+  `InsufficientKdfParametersException` and the file is refused. New databases
+  still use the stronger default of 1,000,000 PBKDF2-HMAC-SHA-512 iterations.
 
 ### Symmetric encryption (data at rest)
 
@@ -109,8 +125,9 @@ supply-chain attack surface minimal.
   ("onion") scheme: **each passkey adds one authenticated AES-256-GCM layer**.
 - For every layer, a fresh 32-byte key is derived with **HKDF-SHA256** from the
   passkey and a random 16-byte salt; a random 12-byte nonce and a 16-byte
-  authentication tag are used. The stored layout is
-  `salt | nonce | tag | ciphertext` (Base64), so decryption is self-describing.
+  authentication tag are used. Each layer is binary
+  `salt | nonce | tag | ciphertext`; **Base64 is applied once** to the finished
+  onion, so intermediate layers do not inflate the next by ~4/3.
 - AES-GCM is an **AEAD** cipher: any tampering with the ciphertext, nonce, or tag
   is detected and rejected on decryption.
 - A final layer keyed with a fixed, public value lets the code distinguish
@@ -135,7 +152,8 @@ login:
 
 - On every save performed **while a user is logged in**, the whole current log
   is sealed: an **RSA-PSS-SHA256 signature** (made with the user's private key)
-  is computed over the log's entries and their count. Verification only needs
+  is computed over a canonical payload of the sealed entry count, the activity
+  log's public key, and the sealed entry ciphertexts. Verification only needs
   the public key.
 - The number of sealed entries is anchored inside the **encrypted, AEAD-protected
   database** (`ActivitySealWatermark`). Since that store is tamper-proof, it lets
@@ -150,13 +168,35 @@ login:
 
 ### Storage format (`.pku`)
 
-- A `.pku` file is a **ZIP archive** containing three entries: `database`,
-  `autosave`, and `activity`.
-- Each entry pipeline is: JSON serialize → encrypt (symmetric onion for
-  `database`/`autosave`, per-record RSA for `activity`) → GZip compress →
-  Base64 → write into the ZIP entry.
+- A `.pku` file is a **ZIP archive** containing four entries: `header`,
+  `database`, `autosave`, and `activity`.
+- The `header` entry holds the sticky `KdfParameters` (algorithm, iterations,
+  output length, salt). It is not passkey-encrypted — only the shared
+  JSON → GZip → Base64 pipeline applies — because those values must be readable
+  before any key can be derived.
+- Each entry pipeline is: JSON serialize → GZip compress → Base64, then (for
+  `database`/`autosave`) the symmetric onion encrypts that compressed payload.
+  The `activity` entry skips the onion: its records are already protected
+  individually with per-record RSA hybrid encryption before that shared
+  compress/Base64 step. Compressing **before** encryption is deliberate: GZip only
+  shrinks structured plaintext, not high-entropy ciphertext.
 - File access is serialized through a re-entrant lock (`FileLocker`) to prevent
   concurrent access races (e.g. a save colliding with the session-timeout timer).
+- **Atomic ZIP commits**: each entry update builds a complete replacement archive
+  in memory, writes it to a sibling temp file (flushed with write-through), then
+  `File.Move(overwrite)` swaps it onto the `.pku` path. Readers therefore see
+  either the previous intact archive or the new one — never a torn
+  `ZipArchiveMode.Update` rewrite, and never trailing garbage when the archive
+  shrinks. The session handle is released only for that replace and reacquired
+  immediately afterwards.
+- **Deferred persistence**: while a user is logged in, autosave and activity-log
+  ZIP rewrites are coalesced with a short debounce (~500 ms) so a burst of field
+  edits becomes a single disk write. Pending work is flushed on explicit `Save`
+  and on `Close`. Pre-login events (open, failed login) still write immediately
+  so the audit trail survives a crash before the session starts.
+  The `.pku` handle is held open for the whole session (`FileShare.Read`) outside
+  the brief atomic-replace window above; other processes may still open the file
+  for reading, but not for writing.
 
 ### Randomness
 
@@ -167,28 +207,70 @@ login:
 
 ### In-memory hygiene
 
-- The `SecureString` login path copies the secret into a transient buffer that is
-  zeroed in a `finally` block, and frees the unmanaged BSTR
-  (`Marshal.ZeroFreeBSTR`).
-- Derived AES keys are wiped with `CryptographicOperations.ZeroMemory` after use.
+- `IDatabase.Login` takes a plain `string` passkey (there is no `SecureString`
+  overload on the Core API). The WPF GUI keeps the typed secret in
+  `PasswordBox.SecurePassword` and bridges it through
+  `SecureStringExtensions.UseAsString`: the unmanaged BSTR is zeroed in a
+  `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of
+  the `Login` call. The short-lived managed `string` passed to Core remains
+  subject to the usual .NET GC limitations documented under "Known Limitations".
+- Derived AES keys, per-layer UTF-8 password bytes, and GCM plaintext buffers
+  are wiped with `CryptographicOperations.ZeroMemory` after use (same pattern
+  as `ProtectedSecret`).
+
+### Progressive login without rollback (online brute-force friction)
+
+- Logging in is **progressive**: each call to `IDatabase.Login` appends one
+  stretched passkey to the in-memory onion stack and attempts decryption. There
+  is **no rollback** of a wrong attempt. A mistyped passkey permanently
+  poisons the current open session: every subsequent `Login` call keeps
+  stacking on top of the bad layer, so even the correct remaining passkeys
+  cannot recover the database until the session is closed and the file is
+  reopened from scratch.
+- That behaviour is intentional. Combined with the expensive PBKDF2 stretch on
+  every attempt, it turns an interactive guessing loop into a high-friction
+  path: each wrong guess both costs a full slow-hash and forces a full reopen
+  (and a fresh stretch of every passkey entered so far) before the attacker can
+  try again. It is a deliberate online anti-brute-force layer on top of the
+  offline hardness of the onion encryption — not an accidental UX bug.
+- The legitimate user who mistypes must close the database (or cancel the
+  login UI, which ends the session) and start over. See also the matching note
+  under "Known Limitations".
 
 ### Session protection
 
-- **Auto-logout**: after a configurable inactivity timeout (`LogoutTimeout`), the
-  session is closed automatically and the database file handle is released.
+- **Auto-logout**: after a configurable inactivity timeout
+  (`ISettings.LogoutTimeout`), the session is closed automatically and the
+  database file handle is released.
 - **Clipboard cleaning**: copied passwords are removed from the clipboard (and
   clipboard history, via the OS-specific `IClipboardManager`) after a
-  configurable delay (`CleaningClipboardTimeout`).
+  configurable delay (`ISettings.CleaningClipboardTimeout`).
 
 ### Password hygiene features
 
 - **Strong password generation** uses the CSPRNG over a configurable alphabet.
-- **Leak detection** uses the "Have I Been Pwned" range API
-  (`api.pwnedpasswords.com`) with **k-anonymity**: only the first 5 characters of
-  the SHA-1 hash are sent, never the password. This is the **only** outbound
-  network call the application makes, it is opt-in per account, and it **fails
-  open** (treats the password as "not leaked" if the service is unreachable) so a
-  network problem never blocks the user.
+  When leak-checking is enabled, generation retries at most **five** candidates
+  against the HIBP corpus and then gives up (returns empty) rather than hammering
+  the remote service.
+- **Leak detection** uses two free, no-account **k-anonymity** providers in
+  order. Primary: the Have I Been Pwned range API (`api.pwnedpasswords.com`) —
+  only the first 5 characters of the SHA-1 hash are sent. Failover: XposedOrNot's
+  anonymous password API (`passwords.xposedornot.com`) — only the first 10
+  characters of a Keccak-512 hash are sent (raw Keccak, not NIST SHA-3). The
+  password itself never leaves the device. These are the **only** outbound
+  network calls the application makes; the feature is opt-in per account. If
+  HIBP answers definitively, XON is not contacted. If **both** are unreachable,
+  the check **fails open** (reports "not leaked") so a network problem never
+  blocks the user. Failed checks are **not** cached: only successful answers are
+  kept in process (HIBP ranges by 5-character prefix, XON yes/no by 10-character
+  prefix; both bounded, never persisted), so the next generation retry, warning
+  scan, or session can ask again. Requests time out after a few seconds. The GUI
+  and the warning scan use the asynchronous API so the UI thread is not blocked
+  while waiting on the network. The UI does **not** surface a separate "could not
+  verify" state: a transient failure is expected to succeed on a later attempt,
+  and a lasting failure means the machine is offline or both providers are down —
+  cases where nagging the user that a check did not run is not actionable for a
+  local-only tool.
 - **Duplicate-password** and **password-expiry** warnings are computed locally.
 
 ## Known Limitations
@@ -204,14 +286,23 @@ These are conscious trade-offs, documented for transparency:
   memory-hard KDF such as Argon2id, because Argon2 is not part of the .NET base
   class library and the project maintains a zero-external-dependency policy for
   its core. To compensate, it uses PBKDF2-HMAC-SHA-512 (more hostile to
-  GPU/ASIC parallelism than SHA-256) with 1,000,000 iterations. The versioned
-  KDF header (see "Crypto-agility") keeps the door open to adopting a memory-hard
+  GPU/ASIC parallelism than SHA-256) with 1,000,000 iterations. The sticky KDF
+  header (see "Crypto-agility") keeps the door open to adopting a memory-hard
   KDF later, pluggably, should the policy ever be relaxed.
 - **Import/Export files**: CSV and JSON files produced by the Export feature (and
   consumed by Import) are **unencrypted plaintext** by design, for
-  interoperability. Users are responsible for protecting or deleting them.
-- **Leak check fails open**: if the Have I Been Pwned service is unreachable, a
-  potentially leaked password is reported as "not leaked".
+  interoperability. The `.csv` path is tab-separated (TSV) with JSON-encoded
+  cells and covers services/accounts only; `.json` also carries user settings.
+  Users are responsible for protecting or deleting these files.
+- **Leak check fails open**: if both Have I Been Pwned and XposedOrNot are
+  unreachable (timeout, HTTP error, offline host), the check reports "not leaked"
+  and the UI stays quiet. Failures are not cached, so a later successful reach of
+  either API can still raise a leak warning. The residual risk is a **prolonged**
+  outage of *both* providers during which a password that *is* in a breach corpus
+  remains unmarked until a check finally completes; that is accepted rather than
+  adding an "unknown / unverified" UI state that the user cannot usefully act on
+  while offline. The two corpora are not identical, so a password known only to
+  one provider may be missed when that provider is the one that is down.
 - **Unsealed activity-log tail**: the activity log is tamper-evident only for the
   portion sealed at the last login (see "Activity-log integrity"). Entries added
   since then — including events written while no one is logged in, such as failed
@@ -222,6 +313,16 @@ These are conscious trade-offs, documented for transparency:
   out of scope for a purely local, offline tool. Everything sealed at the last
   login, however, remains tamper-evident, and a wholesale rollback of the sealed
   portion is detected via the watermark stored in the encrypted database.
+- **No login-attempt rollback**: a wrong passkey cannot be undone without closing
+  and reopening the database (see "Progressive login without rollback"). This
+  raises the cost of interactive guessing at the expense of UX: a legitimate
+  mistype also requires a full restart of the login sequence.
+- **Compressed size leakage**: `database`/`autosave` are GZip-compressed before
+  encryption, so the ciphertext length tracks the compressed plaintext size.
+  An observer of the `.pku` file can therefore infer approximate vault size and,
+  in edge cases, rough compressibility of the JSON. Absolute lengths are already
+  visible for any AEAD ciphertext; this trade-off is accepted for the storage
+  savings on structured data.
 
 ## Reporting Non-Security Bugs
 

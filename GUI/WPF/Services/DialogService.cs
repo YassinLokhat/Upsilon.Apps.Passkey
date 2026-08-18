@@ -101,7 +101,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       private static Window? _resolveOwner()
       {
          Window? application = Application.Current?.MainWindow;
-         if (application is null) return null;
+         if (application is null)
+         {
+            return null;
+         }
 
          foreach (Window window in Application.Current!.Windows)
          {

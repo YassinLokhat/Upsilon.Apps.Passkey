@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
@@ -29,6 +30,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          InitializeComponent();
       }
 
+      private void _serviceView_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+      {
+         string sourceText = (e.OriginalSource as TextBlock)?.Text ?? string.Empty;
+
+         if (sourceText != _service_GB.Header.ToString())
+         {
+            return;
+         }
+
+         string? itemId = GetServiceId();
+
+         if (itemId is null)
+         {
+            return;
+         }
+
+         AppServices.Clipboard.SetText(itemId);
+
+         e.Handled = true;
+      }
+
       internal void SetDataContext(ServiceViewModel? serviceViewModel)
       {
          if (serviceViewModel is null)
@@ -36,6 +58,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             DataContext = null;
             _viewModel = null;
             _accounts_LB.ItemsSource = null;
+            _account_AV.SetDataContext(null);
 
             return;
          }
@@ -47,14 +70,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          {
             _accounts_LB.SelectedIndex = 0;
          }
+         else
+         {
+            _account_AV.SetDataContext(null);
+         }
       }
 
       private void _accounts_LB_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          AppServices.Session.User?.Shake();
-         _account_AV.SetDataContext((AccountViewModel)_accounts_LB.SelectedItem);
+         _account_AV.SetDataContext(_accounts_LB.SelectedItem as AccountViewModel);
       }
 
       private void _addAccount_Button_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -105,7 +135,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       {
          AccountViewModel? account = _viewModel?.Accounts.FirstOrDefault(x => x.Account.ItemId == itemId);
 
-         if (account is null) return false;
+         if (account is null)
+         {
+            return false;
+         }
 
          _accounts_LB.SelectedItem = account;
          _accounts_LB.ScrollIntoView(account);
@@ -128,10 +161,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             {
                UserActivitiesView view = new(needsReviewFilter: false);
                view.ViewModel.ClearFilters();
-               view.ViewModel.RefreshFilters(itemId);
+               view.ViewModel.SearchCriteria = itemId;
                return view;
             },
-            configure: view => view.ViewModel.RefreshFilters(itemId));
+            configure: view => view.ViewModel.SearchCriteria = itemId);
       }
    }
 }

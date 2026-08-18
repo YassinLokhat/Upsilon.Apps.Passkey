@@ -33,15 +33,15 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          databaseLoaded.User.Username = newUsername;
          databaseLoaded.User.Passkeys = newPasskeys;
-         databaseLoaded.User.LogoutTimeout = logoutTimeout;
-         databaseLoaded.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
+         databaseLoaded.User.Settings.LogoutTimeout = logoutTimeout;
+         databaseLoaded.User.Settings.CleaningClipboardTimeout = cleaningClipboardTimeout;
 
          // Then
          databaseLoaded.User.HasChanged().Should().BeTrue();
          databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.Username)).Should().BeTrue();
          databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.Passkeys)).Should().BeTrue();
-         databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.LogoutTimeout)).Should().BeTrue();
-         databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.CleaningClipboardTimeout)).Should().BeTrue();
+         databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.Settings.LogoutTimeout)).Should().BeTrue();
+         databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.Settings.CleaningClipboardTimeout)).Should().BeTrue();
 
          // When
          databaseLoaded.Close();
@@ -82,14 +82,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseCreated.User.Passkeys = newPasskeys;
          expectedActivities.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
-         databaseCreated.User.LogoutTimeout = logoutTimeout;
-         databaseCreated.User.LogoutTimeout = logoutTimeout;
+         databaseCreated.User.Settings.LogoutTimeout = logoutTimeout;
+         databaseCreated.User.Settings.LogoutTimeout = logoutTimeout;
          expectedActivities.Push($"Information : {databaseCreated.User}'s logout timeout has been set to {logoutTimeout}");
-         databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
-         databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
+         databaseCreated.User.Settings.CleaningClipboardTimeout = cleaningClipboardTimeout;
+         databaseCreated.User.Settings.CleaningClipboardTimeout = cleaningClipboardTimeout;
          expectedActivities.Push($"Information : {databaseCreated.User}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
-         databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
-         databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
+         databaseCreated.User.Settings.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
+         databaseCreated.User.Settings.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
          expectedActivities.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
          databaseCreated.Save();
@@ -113,8 +113,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // Then
          _ = databaseLoaded.User.Should().NotBeNull();
          _ = databaseLoaded.User.Username.Should().Be(newUsername);
-         _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
-         _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
+         _ = databaseLoaded.User.Settings.LogoutTimeout.Should().Be(logoutTimeout);
+         _ = databaseLoaded.User.Settings.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
@@ -157,14 +157,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseCreated.User.Passkeys = newPasskeys;
          expectedActivities.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
-         databaseCreated.User.LogoutTimeout = logoutTimeout;
-         databaseCreated.User.LogoutTimeout = logoutTimeout;
+         databaseCreated.User.Settings.LogoutTimeout = logoutTimeout;
+         databaseCreated.User.Settings.LogoutTimeout = logoutTimeout;
          expectedActivities.Push($"Information : {databaseCreated.User}'s logout timeout has been set to {logoutTimeout}");
-         databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
-         databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
+         databaseCreated.User.Settings.CleaningClipboardTimeout = cleaningClipboardTimeout;
+         databaseCreated.User.Settings.CleaningClipboardTimeout = cleaningClipboardTimeout;
          expectedActivities.Push($"Information : {databaseCreated.User}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
-         databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
-         databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
+         databaseCreated.User.Settings.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
+         databaseCreated.User.Settings.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
          expectedActivities.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
 
@@ -182,8 +182,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = databaseLoaded.User.HasChanged().Should().BeFalse();
          _ = databaseLoaded.User.Username.Should().Be(newUsername);
          _ = databaseLoaded.User.Passkeys.Should().BeEquivalentTo(newPasskeys);
-         _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
-         _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
+         _ = databaseLoaded.User.Settings.LogoutTimeout.Should().Be(logoutTimeout);
+         _ = databaseLoaded.User.Settings.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
          _ = warnings.Should().BeEmpty();
 
@@ -208,8 +208,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // Then
          _ = databaseLoaded.User.Username.Should().Be(newUsername);
          _ = databaseLoaded.User.Passkeys.Should().BeEquivalentTo(newPasskeys);
-         _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
-         _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
+         _ = databaseLoaded.User.Settings.LogoutTimeout.Should().Be(logoutTimeout);
+         _ = databaseLoaded.User.Settings.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
@@ -252,14 +252,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseCreated.User.Passkeys = newPasskeys;
          expectedActivities.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s passkeys has been updated");
-         databaseCreated.User.LogoutTimeout = logoutTimeout;
-         databaseCreated.User.LogoutTimeout = logoutTimeout;
+         databaseCreated.User.Settings.LogoutTimeout = logoutTimeout;
+         databaseCreated.User.Settings.LogoutTimeout = logoutTimeout;
          expectedActivities.Push($"Information : {databaseCreated.User}'s logout timeout has been set to {logoutTimeout}");
-         databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
-         databaseCreated.User.CleaningClipboardTimeout = cleaningClipboardTimeout;
+         databaseCreated.User.Settings.CleaningClipboardTimeout = cleaningClipboardTimeout;
+         databaseCreated.User.Settings.CleaningClipboardTimeout = cleaningClipboardTimeout;
          expectedActivities.Push($"Information : {databaseCreated.User}'s cleaning clipboard timeout has been set to {cleaningClipboardTimeout}");
-         databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
-         databaseCreated.User.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
+         databaseCreated.User.Settings.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
+         databaseCreated.User.Settings.WarningsToNotify = WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning;
          expectedActivities.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
          expectedLogWarnings.Push($"Warning : {databaseCreated.User}'s warnings to notify has been set to {WarningType.DuplicatedPasswordsWarning | WarningType.PasswordUpdateReminderWarning}");
 
@@ -279,10 +279,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = databaseLoaded.User.Username.Should().Be(newUsername);
          _ = databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.Passkeys)).Should().BeTrue();
          _ = databaseLoaded.User.Passkeys.Should().BeEquivalentTo(newPasskeys);
-         _ = databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.LogoutTimeout)).Should().BeTrue();
-         _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
-         _ = databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.CleaningClipboardTimeout)).Should().BeTrue();
-         _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
+         _ = databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.Settings.LogoutTimeout)).Should().BeTrue();
+         _ = databaseLoaded.User.Settings.LogoutTimeout.Should().Be(logoutTimeout);
+         _ = databaseLoaded.User.HasChanged(nameof(databaseLoaded.User.Settings.CleaningClipboardTimeout)).Should().BeTrue();
+         _ = databaseLoaded.User.Settings.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
          _ = warnings.Should().BeEmpty();
 
@@ -309,8 +309,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // Then
          _ = databaseLoaded.User.Username.Should().Be(newUsername);
          _ = databaseLoaded.User.Passkeys.Should().BeEquivalentTo(newPasskeys);
-         _ = databaseLoaded.User.LogoutTimeout.Should().Be(logoutTimeout);
-         _ = databaseLoaded.User.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
+         _ = databaseLoaded.User.Settings.LogoutTimeout.Should().Be(logoutTimeout);
+         _ = databaseLoaded.User.Settings.CleaningClipboardTimeout.Should().Be(cleaningClipboardTimeout);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
@@ -320,6 +320,62 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // Finaly
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * DontMergeAndKeepAutoSaveFile leaves the vault unchanged and keeps the
+       * recovery file so a later merge can still apply the edits.
+      */
+      public void Case05_UserUpdateButNotSaved_CaseDontMergeAndKeep()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string oldUsername = UnitTestsHelper.GetUsername();
+         string[] oldPasskeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(oldPasskeys);
+         string newUsername = "new_" + oldUsername;
+
+         databaseCreated.User.Username = newUsername;
+         databaseCreated.Close();
+
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(oldPasskeys, out _, AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile);
+
+         _ = databaseLoaded.User.Username.Should().Be(oldUsername);
+         _ = databaseLoaded.User.HasChanged().Should().BeTrue("the recovery file is kept, so pending edits stay dirty");
+
+         databaseLoaded.Close();
+
+         IDatabase merged = UnitTestsHelper.OpenTestDatabase(oldPasskeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
+         _ = merged.User.Username.Should().Be(newUsername);
+
+         merged.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Assigning an ISettings that is not the Core implementation is rejected.
+      */
+      public void Case06_SettingsSetter_RejectsUnknownImplementation()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase();
+
+         Action assign = () => database.User!.Settings = new ForeignSettings();
+         assign.Should().Throw<InvalidCastException>();
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      private sealed class ForeignSettings : ISettings
+      {
+         public int LogoutTimeout { get; set; }
+         public int CleaningClipboardTimeout { get; set; }
+         public int ShowPasswordDelay { get; set; }
+         public int NumberOfOldPasswordToKeep { get; set; }
+         public int NumberOfMonthActivitiesToKeep { get; set; }
+         public WarningType WarningsToNotify { get; set; }
       }
    }
 }

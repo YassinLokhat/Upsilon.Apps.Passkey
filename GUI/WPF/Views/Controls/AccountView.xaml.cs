@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
@@ -20,6 +21,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       public AccountView()
       {
          InitializeComponent();
+      }
+
+      private void _accountView_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+      {
+         string sourceText = (e.OriginalSource as TextBlock)?.Text ?? string.Empty;
+
+         if (sourceText != _account_GB.Header.ToString())
+         {
+            return;
+         }
+
+         string? itemId = GetAccountId();
+
+         if (itemId is null)
+         {
+            return;
+         }
+
+         AppServices.Clipboard.SetText(itemId);
+
+         e.Handled = true;
       }
 
       public string? GetIdentifier()
@@ -42,23 +64,29 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       public string? Password
       {
-         get => _viewModel?.Password;
+         get => _password_VPB.Password;
          set
          {
             ArgumentNullException.ThrowIfNull(value);
 
-            if (_viewModel is null) return;
+            if (_viewModel is null)
+            {
+               return;
+            }
 
             _viewModel.Password = value;
 
-            _password_VPB.Password = _viewModel.Password;
+            _password_VPB.Password = value;
             _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
-            _passwords_LB.ItemsSource = _viewModel.Passwords;
+            _refreshPasswordHistory();
          }
       }
 
       internal void SetDataContext(AccountViewModel? dataContext)
       {
+         // Drop any previously revealed / mirrored secrets before switching.
+         _clearSecrets();
+
          if (dataContext is null)
          {
             DataContext = null;
@@ -90,7 +118,35 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          _password_VPB.Password = _viewModel.Password;
          _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
-         _passwords_LB.ItemsSource = _viewModel.Passwords;
+         _refreshPasswordHistory();
+      }
+
+      private void _clearSecrets()
+      {
+         _password_VPB.Clear();
+
+         if (_passwords_LB.ItemsSource is IEnumerable<PasswordViewModel> history)
+         {
+            foreach (PasswordViewModel entry in history)
+            {
+               entry.Clear();
+            }
+         }
+
+         _passwords_LB.ItemsSource = null;
+      }
+
+      private void _refreshPasswordHistory()
+      {
+         if (_passwords_LB.ItemsSource is IEnumerable<PasswordViewModel> previous)
+         {
+            foreach (PasswordViewModel entry in previous)
+            {
+               entry.Clear();
+            }
+         }
+
+         _passwords_LB.ItemsSource = _viewModel?.Passwords;
       }
 
       private void _identifier_DeleteClicked(object? sender, EventArgs e)
@@ -143,7 +199,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _addButton_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          _viewModel?.AddIdentifier(string.Empty);
          _identifiers_LB.SelectedIndex = _identifiers_LB.Items.Count - 1;
@@ -174,12 +233,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          _viewModel.Password = _password_VPB.Password;
          _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
-         _passwords_LB.ItemsSource = _viewModel.Passwords;
+         _refreshPasswordHistory();
       }
 
       private void _passwords_VPB_Loaded(object sender, RoutedEventArgs e)
       {
-         if (sender is not VisiblePasswordBox passwordBox) return;
+         if (sender is not VisiblePasswordBox passwordBox)
+         {
+            return;
+         }
 
          try
          {
@@ -192,18 +254,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _copyIdentifier_Clicked(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
-         QrCodeView.CopyToClipboard(((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier);
+         string? identifier = GetIdentifier();
+
+         if (identifier is null)
+         {
+            return;
+         }
+
+         AppServices.Clipboard.SetText(identifier, ClipboardManager.AutoClearAfter);
       }
 
       private void _showQrCodeIdentifier_Clicked(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
          QrCodeView.ShowQrCode(Window.GetWindow(this),
             ((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier,
-            AppServices.Session.User?.ShowPasswordDelay ?? 0);
+            AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
       }
 
       private void _copyPassword_Clicked(object sender, RoutedEventArgs e)
@@ -214,7 +289,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         QrCodeView.CopyToClipboard(_viewModel.Password);
+         AppServices.Clipboard.SetText(_password_VPB.Password,
+          ClipboardManager.AutoClearAfter);
       }
 
       private void _showQrCodePassword_Clicked(object sender, RoutedEventArgs e)
@@ -226,8 +302,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
 
          QrCodeView.ShowQrCode(Window.GetWindow(this),
-            _viewModel.Password,
-            AppServices.Session.User?.ShowPasswordDelay ?? 0);
+            _password_VPB.Password,
+            AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
       }
 
       private void _copyPasswords_Clicked(object sender, RoutedEventArgs e)
@@ -238,7 +314,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         QrCodeView.CopyToClipboard(((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password);
+         AppServices.Clipboard.SetText(((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password,
+            ClipboardManager.AutoClearAfter);
       }
 
       private void _showQrCodePasswords_Clicked(object sender, RoutedEventArgs e)
@@ -251,7 +328,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          QrCodeView.ShowQrCode(Window.GetWindow(this),
             ((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password,
-            AppServices.Session.User?.ShowPasswordDelay ?? 0);
+            AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
       }
 
       private void _viewActivities_Button_Click(object sender, RoutedEventArgs e)
@@ -269,24 +346,33 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             {
                UserActivitiesView view = new(needsReviewFilter: false);
                view.ViewModel.ClearFilters();
-               view.ViewModel.RefreshFilters(itemId);
+               view.ViewModel.SearchCriteria = itemId;
                return view;
             },
-            configure: view => view.ViewModel.RefreshFilters(itemId));
+            configure: view => view.ViewModel.SearchCriteria = itemId);
       }
 
       private void _identifier_TextBox_KeyUp(object sender, KeyEventArgs e)
       {
-         if (this.GetIsBusy()) return;
+         if (this.GetIsBusy())
+         {
+            return;
+         }
 
-         if (sender is not TextBox identifier_TB) return;
+         if (sender is not TextBox identifier_TB)
+         {
+            return;
+         }
 
          if (e.Key is Key.Enter
             or Key.Insert)
          {
             string? identifier = InsertIdentifierView.InsertIdentifierDialog(AccountViewModel.IdentifierAutoCompleteList ?? [], identifier_TB.Text);
 
-            if (string.IsNullOrEmpty(identifier)) return;
+            if (string.IsNullOrEmpty(identifier))
+            {
+               return;
+            }
 
             identifier_TB.Text = identifier;
          }

@@ -14,20 +14,35 @@
 
       /// <summary>
       /// Returs a slow string hash of the given string, using the provided key-derivation parameters.
-      /// This enables crypto-agility: a file is always reopened with the exact parameters it was
-      /// written with (algorithm, iterations, output length and the random salt), which are stored
-      /// in its header.
+      /// Parameters are checked against
+      /// <see cref="EnsureSufficientSlowHashParameters"/> before stretching.
       /// </summary>
       /// <param name="source">The string to hash.</param>
       /// <param name="parameters">The key-derivation parameters (algorithm, iterations, output length and salt) to use.</param>
       /// <returns>The hash.</returns>
+      /// <exception cref="InsufficientKdfParametersException">
+      /// The parameters fall below the accepted floor or are malformed.
+      /// </exception>
       string GetSlowHash(string source, KdfParameters parameters);
+
+      /// <summary>
+      /// Ensures the given stretching parameters meet the minimum floor accepted by
+      /// this crypto center (iterations, output length, salt size, and a known
+      /// algorithm). Called when a database header is read and again before every
+      /// slow hash, so a weakened or malformed header is rejected instead of being
+      /// used to stretch passkeys.
+      /// </summary>
+      /// <param name="parameters">The key-derivation parameters to check.</param>
+      /// <exception cref="InsufficientKdfParametersException">
+      /// The parameters fall below the accepted floor or are malformed.
+      /// </exception>
+      void EnsureSufficientSlowHashParameters(KdfParameters parameters);
 
       /// <summary>
       /// The key-derivation parameters used to stretch passkeys for newly created databases.
       /// Each access mints a fresh random salt, so the returned instance must be captured once
-      /// per database and then recorded in its header, so the file remains readable if these
-      /// values change in a future release.
+      /// per database and then recorded in its header. Defaults always satisfy
+      /// <see cref="EnsureSufficientSlowHashParameters"/>.
       /// </summary>
       KdfParameters DefaultSlowHashParameters { get; }
 

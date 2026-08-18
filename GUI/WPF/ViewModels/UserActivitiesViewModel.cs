@@ -59,7 +59,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = ActivityEventType.None;
 
-      public string Message
+      public string SearchCriteria
       {
          get;
          set
@@ -67,7 +67,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               _onPropertyChanged(nameof(Message));
+               _onPropertyChanged(nameof(SearchCriteria));
                RefreshFilters();
             }
          }
@@ -114,7 +114,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          FromDateFilter = ToDateFilter = DateTime.Now.Date.AddDays(1);
          EventType = ActivityEventType.None;
-         Message = string.Empty;
+         SearchCriteria = string.Empty;
          NeedsReview = false;
 
          _locked = false;
@@ -122,17 +122,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          RefreshFilters();
       }
 
-      public void RefreshFilters(string itemId = "")
+      public void RefreshFilters()
       {
-         if (_locked) return;
+         if (_locked)
+         {
+            return;
+         }
 
          Activities.Clear();
 
-         if (AppServices.Session.Database?.Activities is null) return;
+         if (AppServices.Session.Database?.Activities is null)
+         {
+            return;
+         }
 
          ActivityViewModel[] activities = [.. AppServices.Session.Database.Activities
             .Select(x => new ActivityViewModel(x))
-            .Where(x => x.MeetsConditions(itemId, FromDateFilter, ToDateFilter, EventType, Message, NeedsReview))
+            .Where(x => x.MeetsConditions(FromDateFilter, ToDateFilter, EventType, SearchCriteria, NeedsReview))
             .OrderByDescending(x => x.DateTime)];
 
          foreach (ActivityViewModel activity in activities)

@@ -15,7 +15,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       IUser? IDatabase.User => User;
       int? IDatabase.SessionLeftTime => User?.SessionLeftTime;
 
-      IEnumerable<IActivity>? IDatabase.Activities => Get(ActivityCenter.Activities.OrderByDescending(x => x.DateTime).ToArray());
+      IEnumerable<IActivity>? IDatabase.Activities => Get(ActivityCenter.GetActivitiesOrdered());
 
       IEnumerable<IWarning>? IDatabase.Warnings => Get(User is not null ? Warnings : null);
 
@@ -31,7 +31,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Delete()
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
+
+         // Drop any debounced write before erasing the file so a late timer
+         // cannot recreate entries on a path that no longer exists.
+         AutoSave.Clear(deleteFile: false);
+         ActivityCenter.CancelPending();
 
          FileLocker.Delete();
 
@@ -42,6 +50,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Save() => _save(logSaveEvent: true);
 
+      // Progressive onion login: each call appends a stretched passkey and never
+      // rolls back on failure. A wrong attempt poisons the stack until Close/Open,
+      // which is deliberate online brute-force friction (see SECURITY.md).
       public IUser? Login(string passkey)
       {
          Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey, _slowHashParameters)];
@@ -52,17 +63,21 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
          catch (WrongPasswordException passwordException)
          {
+            // Soft miss: wrong passkey poisons the stack and returns null so the
+            // caller can keep stacking (or abandon). Logged for review.
             ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.LoginFailed,
                data: [Username, $"{passwordException.PasswordLevel}"],
                needsReview: true);
          }
-#pragma warning disable CA1031 // Last-resort barrier: an unexpected login failure is traced, not propagated
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (IncompleteOnionException)
          {
-            System.Diagnostics.Trace.TraceWarning($"Unexpected error during login :\n{ex.Message}");
+            // Soft miss: the layers provided so far decrypted, but the payload is
+            // not a finished vault yet (more passkeys still required). Not logged
+            // as LoginFailed — the passkeys were not wrong.
          }
+         // CorruptedSourceException and any other failure propagate: the GUI
+         // must surface them rather than treating them like a wrong passkey.
 
          if (User is not null)
          {
@@ -89,6 +104,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (FileLocker.Exists(AutoSaveFileEntry))
             {
+               AutoSave.Dispose();
                AutoSave = FileLocker.Open<AutoSave>(AutoSaveFileEntry, Passkeys);
                AutoSave.Database = this;
 
@@ -97,7 +113,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                _handleAutoSave(eventArg.MergeBehavior);
             }
 
-            _ = Task.Run(_lookAtWarnings);
+            _ = Task.Run(_lookAtWarningsAsync);
 
             User.ResetTimer();
          }
@@ -113,7 +129,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public bool ImportFromFile(string filePath)
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
          if (User.HasChanged())
          {
@@ -172,7 +191,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public bool ExportToFile(string filePath)
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
          if (User.HasChanged())
          {
@@ -223,6 +245,33 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       #endregion
 
+      #region Asynchronous entry points
+
+      // Everything the database does is CPU- and disk-bound: stretching passkeys,
+      // peeling AES layers, re-encrypting the activity log, rewriting the ZIP.
+      // There is no naturally asynchronous work to await underneath, so these
+      // entry points simply hand the synchronous operation to the thread pool and
+      // give the caller something to await. The point is not throughput, it is
+      // that a UI thread never spends a second deriving a key.
+      //
+      // The operations below share mutable state (the progressive passkey stack,
+      // the file itself), so they are not meant to overlap: await one before
+      // starting the next. Their events are raised from the worker thread.
+
+      public Task<IUser?> LoginAsync(string passkey, CancellationToken cancellationToken = default)
+         => Task.Run(() => Login(passkey), cancellationToken);
+
+      public Task SaveAsync(CancellationToken cancellationToken = default)
+         => Task.Run(Save, cancellationToken);
+
+      public Task<bool> ImportFromFileAsync(string filePath, CancellationToken cancellationToken = default)
+         => Task.Run(() => ImportFromFile(filePath), cancellationToken);
+
+      public Task<bool> ExportToFileAsync(string filePath, CancellationToken cancellationToken = default)
+         => Task.Run(() => ExportToFile(filePath), cancellationToken);
+
+      #endregion
+
       internal User? User { get; private set; }
       internal AutoSave AutoSave { get; private set; }
       internal ActivityCenter ActivityCenter { get; private set; }
@@ -270,11 +319,23 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          FileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
 
-         // New databases adopt the crypto center's current parameters; existing
-         // ones are read from the versioned header they were written with.
+         // New databases adopt the crypto center's current parameters; opened
+         // databases read the salt and work factor from the header entry.
          _slowHashParameters = fileMode == FileMode.Create
             ? CryptographyCenter.DefaultSlowHashParameters
             : FileLocker.Open<KdfParameters>(HeaderFileEntry);
+
+         try
+         {
+            CryptographyCenter.EnsureSufficientSlowHashParameters(_slowHashParameters);
+         }
+         catch
+         {
+            // Constructor failed after taking the file lock: release it so the
+            // caller can retry or inspect the .pku without a sharing violation.
+            FileLocker.Dispose();
+            throw;
+         }
 
          Passkeys = [CryptographyCenter.GetHash(username)];
 
@@ -335,7 +396,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          database.User = new()
          {
             Database = database,
-            PrivateKey = privateKey,
+            PrivateKey = ProtectedSecret.Protect(privateKey),
             ItemId = "U" + cryptographicCenter.GetHash(username),
             Username = username,
             Passkeys = [.. passkeys.Select(ProtectedSecret.Protect)],
@@ -350,6 +411,29 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          return database;
       }
+
+      /// <summary>
+      /// Same as <see cref="Create"/>, but handed to a worker thread so the
+      /// caller stays responsive. Creating a database is the single most
+      /// expensive operation of the whole application: an RSA-4096 key pair, one
+      /// stretching per passkey, then a full save.
+      /// </summary>
+      public static Task<IDatabase> CreateAsync(ICryptographyCenter cryptographicCenter,
+         ISerializationCenter serializationCenter,
+         IPasswordFactory passwordFactory,
+         IClipboardManager clipboardManager,
+         string databaseFile,
+         string username,
+         string[] passkeys,
+         CancellationToken cancellationToken = default)
+         => Task.Run(() => Create(cryptographicCenter,
+               serializationCenter,
+               passwordFactory,
+               clipboardManager,
+               databaseFile,
+               username,
+               passkeys),
+            cancellationToken);
 
       public static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
@@ -374,6 +458,26 @@ namespace Upsilon.Apps.Passkey.Core.Models
          return database;
       }
 
+      /// <summary>
+      /// Same as <see cref="Open"/>, but handed to a worker thread so the caller
+      /// stays responsive. Opening reads and decrypts the whole activity log,
+      /// which grows with the file's history.
+      /// </summary>
+      public static Task<IDatabase> OpenAsync(ICryptographyCenter cryptographicCenter,
+         ISerializationCenter serializationCenter,
+         IPasswordFactory passwordFactory,
+         IClipboardManager clipboardManager,
+         string databaseFile,
+         string username,
+         CancellationToken cancellationToken = default)
+         => Task.Run(() => Open(cryptographicCenter,
+               serializationCenter,
+               passwordFactory,
+               clipboardManager,
+               databaseFile,
+               username),
+            cancellationToken);
+
       internal T Get<T>(T value)
       {
          User?.ResetTimer();
@@ -381,15 +485,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
          return value;
       }
 
-      private void _save(bool logSaveEvent)
+      private void _save(bool logSaveEvent, bool refreshWarnings = true)
       {
          _saveActivities(rebuildStringActivities: true);
-         _saveDatabase(logSaveEvent);
+         _saveDatabase(logSaveEvent, refreshWarnings);
       }
 
-      private void _saveDatabase(bool logSaveEvent)
+      private void _saveDatabase(bool logSaveEvent, bool refreshWarnings = true)
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
          Username = User.Username;
 
@@ -400,10 +507,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          // Anchor the activity log's seal inside the (tamper-proof) database so a
          // later rollback or signature strip of the log becomes detectable. The
-         // activities were just (re)sealed by the _saveActivities call above.
-         User.ActivitySealWatermark = ActivityCenter.SealedCount;
+         // activities were just sealed by the _saveActivities call above (and
+         // re-encrypted only when retention pruning dropped entries).
+         User.ActivitySealWatermark = ActivityCenter.GetSealedCount();
 
-         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x.Reveal(), _slowHashParameters))];
+         // Re-stretching every passkey on each Save is the most expensive step of
+         // a save (PBKDF2 × N). Skip it when neither the username nor the master
+         // passkeys changed; the session already holds the derived key material.
+         if (User.CredentialChanged)
+         {
+            Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(x => CryptographyCenter.GetSlowHash(x.Reveal(), _slowHashParameters))];
+            User.CredentialChanged = false;
+         }
+
          FileLocker.Save(User, DatabaseFileEntry, Passkeys);
 
          if (logSaveEvent)
@@ -416,7 +532,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          AutoSave.Clear(deleteFile: true);
 
-         _ = Task.Run(_lookAtWarnings);
+         // DatabaseSaved (and any earlier debounced item events) must hit disk
+         // before Save returns, matching the previous durability guarantee.
+         ActivityCenter.Flush();
+
+         if (refreshWarnings)
+         {
+            _ = Task.Run(_lookAtWarningsAsync);
+         }
 
          User.ResetTimer();
 
@@ -425,7 +548,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _saveActivities(bool rebuildStringActivities)
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
          ActivityCenter.Username = User.Username;
          ActivityCenter.Save(rebuildStringActivities);
@@ -439,7 +565,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
             {
                bool needsReview = AutoSave.Any();
 
-               if (!needsReview)
+               if (needsReview)
+               {
+                  // Debounced edits may not have reached the ZIP yet; flush so
+                  // the recovery file is present for the next Open.
+                  AutoSave.Flush();
+               }
+               else
                {
                   AutoSave.Clear(deleteFile: true);
                }
@@ -454,12 +586,24 @@ namespace Upsilon.Apps.Passkey.Core.Models
                eventType: ActivityEventType.DatabaseClosed,
                data: [Username],
                needsReview: false);
+
+            // Seal + write while the private key is still available. Must run
+            // before User is cleared below.
+            ActivityCenter.Flush();
+         }
+         else
+         {
+            AutoSave.Clear(deleteFile: false);
+            ActivityCenter.CancelPending();
          }
 
          // Stop the session timer before tearing down the file handle: this both
          // blocks until any in-flight tick finishes and prevents future ticks
          // from operating on the disposed FileLocker.
          User?.StopTimer();
+
+         AutoSave.Dispose();
+         ActivityCenter.Dispose();
 
          User = null;
          Username = string.Empty;
@@ -473,7 +617,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _handleAutoSave(AutoSaveMergeBehavior mergeAutoSave)
       {
-         if (User is null) throw new NullValueException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
          if (!FileLocker.Exists(AutoSaveFileEntry))
          {
@@ -484,24 +631,41 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             case AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile:
                AutoSave.ApplyChanges(deleteFile: true);
-               _save(logSaveEvent: false);
+               // Apply may rename the user; sync before logging so the merge
+               // activity carries the post-merge username. Log before _save so
+               // the event is sealed with that save and visible to Login's
+               // warning scan (skip mid-login refresh below).
+               Username = User.Username;
+               ActivityCenter.AddActivity(itemId: string.Empty,
+                  eventType: _toActivityEventType(mergeAutoSave),
+                  data: [Username],
+                  needsReview: true);
+               _save(logSaveEvent: false, refreshWarnings: false);
                break;
             case AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile:
                AutoSave.ApplyChanges(deleteFile: false);
+               Username = User.Username;
+               ActivityCenter.AddActivity(itemId: string.Empty,
+                  eventType: _toActivityEventType(mergeAutoSave),
+                  data: [Username],
+                  needsReview: true);
                _saveActivities(rebuildStringActivities: false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear(deleteFile: true);
+               ActivityCenter.AddActivity(itemId: string.Empty,
+                  eventType: _toActivityEventType(mergeAutoSave),
+                  data: [Username],
+                  needsReview: true);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
+               ActivityCenter.AddActivity(itemId: string.Empty,
+                  eventType: _toActivityEventType(mergeAutoSave),
+                  data: [Username],
+                  needsReview: true);
                break;
          }
-
-         ActivityCenter.AddActivity(itemId: string.Empty,
-            eventType: _toActivityEventType(mergeAutoSave),
-            data: [Username],
-            needsReview: true);
       }
 
       // Maps an auto-save handling outcome to the activity event that records it.
@@ -518,15 +682,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
          _ => ActivityEventType.None,
       };
 
-      private void _lookAtWarnings()
+      private async Task _lookAtWarningsAsync()
       {
-         if (User is null) return;
+         if (User is null)
+         {
+            return;
+         }
 
          try
          {
             Warning[] activityWarnings = _lookAtActivityWarnings();
             Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
-            Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
+            Warning[] passwordLeakedWarnings = await _lookAtPasswordLeakedWarningsAsync().ConfigureAwait(false);
             Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
 
             Warnings = [..activityWarnings,
@@ -534,7 +701,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
                ..passwordLeakedWarnings,
                ..duplicatedPasswordsWarnings];
 
-            WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => User.WarningsToNotify.HasFlag(x.WarningType))]));
+            // The leak check awaits a remote service, so the session may have
+            // been closed in the meantime: notify against the user observed now,
+            // not the one observed when the scan started.
+            User? user = User;
+
+            if (user is null)
+            {
+               return;
+            }
+
+            WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => user.Settings.WarningsToNotify.HasFlag(x.WarningType))]));
          }
 #pragma warning disable CA1031 // Last-resort barrier: the background warning scan must never crash the session
          catch (Exception ex)
@@ -549,17 +726,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private Warning[] _lookAtActivityWarnings()
       {
-         if (User is null) throw new NullValueException(nameof(User));
-         if (ActivityCenter.Activities is null) throw new NullValueException(nameof(ActivityCenter.Activities));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
 
-         IActivity[] activities = [.. ActivityCenter.Activities.Where(x => x.NeedsReview)];
+         IActivity[] activities = ActivityCenter.GetActivitiesNeedingReview();
 
          return activities.Length != 0 ? [new Warning([.. activities])] : [];
       }
 
       private Warning[] _lookAtPasswordUpdateReminderWarnings()
       {
-         if (User is null) return [];
+         if (User is null)
+         {
+            return [];
+         }
 
          Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
@@ -568,17 +750,45 @@ namespace Upsilon.Apps.Passkey.Core.Models
          return accounts.Length != 0 ? [new Warning(WarningType.PasswordUpdateReminderWarning, accounts)] : [];
       }
 
-      private Warning[] _lookAtPasswordLeakedWarnings()
-      {
-         if (User is null) return [];
+      // Leak checks are the only outbound calls the application makes, and the
+      // previous parallel fan-out fired one request - and blocked one thread -
+      // per distinct password at once. Requests are now awaited rather than
+      // blocking, and issued in bounded batches so a large database cannot flood
+      // a courtesy service.
+      private const int MAX_CONCURRENT_LEAK_CHECKS = 8;
 
-         string[] leakedPasswords = [.. User.Services
+      private async Task<Warning[]> _lookAtPasswordLeakedWarningsAsync()
+      {
+         if (User is null)
+         {
+            return [];
+         }
+
+         string[] passwordsToCheck = [.. User.Services
             .SelectMany(x => x.Accounts)
             .Where(x => x.Options.HasFlag(AccountOption.WarnIfPasswordLeaked))
             .Select(x => x.Password)
-            .Distinct()
-            .AsParallel()
-            .Where(PasswordFactory.PasswordLeaked)];
+            .Distinct()];
+
+         HashSet<string> leakedPasswords = [];
+
+         foreach (string[] batch in passwordsToCheck.Chunk(MAX_CONCURRENT_LEAK_CHECKS))
+         {
+            bool[] leaked = await Task.WhenAll(batch.Select(x => PasswordFactory.PasswordLeakedAsync(x))).ConfigureAwait(false);
+
+            for (int i = 0; i < batch.Length; i++)
+            {
+               if (leaked[i])
+               {
+                  _ = leakedPasswords.Add(batch[i]);
+               }
+            }
+         }
+
+         if (User is null)
+         {
+            return [];
+         }
 
          Account[] accounts = [.. User.Services
             .SelectMany(x => x.Accounts)
@@ -595,7 +805,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private Warning[] _lookAtDuplicatedPasswordsWarnings()
       {
-         if (User is null) return [];
+         if (User is null)
+         {
+            return [];
+         }
 
          IGrouping<string, Account>[] duplicatedPasswords = [.. User.Services
             .SelectMany(x => x.Accounts)

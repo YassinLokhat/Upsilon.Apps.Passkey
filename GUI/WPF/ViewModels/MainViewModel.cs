@@ -30,6 +30,54 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = "Username :";
 
+      /// <summary>
+      /// Drives the progress indicator shown while the database is being opened
+      /// or a passkey stretched. Those operations take about a second each, which
+      /// would otherwise look like a frozen window.
+      /// </summary>
+      public bool IsBusy
+      {
+         get;
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               OnPropertyChanged(nameof(MenusEnabled));
+               OnPropertyChanged(nameof(CanTypePasskey));
+               RelayCommand.RaiseCanExecuteChanged();
+            }
+         }
+      }
+
+      public string BusyMessage
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = string.Empty;
+
+      /// <summary>
+      /// True from a successful <c>Open</c> until the user is fully logged in or
+      /// the attempt is cancelled. While set, menus and shortcuts stay disabled
+      /// so a half-open session cannot race with "New User" or "Open database".
+      /// The password box itself remains usable so the next passkey can be typed.
+      /// </summary>
+      public bool IsAwaitingPasskeys
+      {
+         get;
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               OnPropertyChanged(nameof(MenusEnabled));
+               RelayCommand.RaiseCanExecuteChanged();
+            }
+         }
+      }
+
+      public bool MenusEnabled => !IsBusy && !IsAwaitingPasskeys;
+
+      public bool CanTypePasskey => !IsBusy;
+
       public ICommand OpenDatabaseCommand { get; }
       public ICommand NewUserCommand { get; }
       public ICommand GeneratePasswordCommand { get; }
@@ -39,9 +87,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public MainViewModel()
       {
-         OpenDatabaseCommand = new RelayCommand(_openDatabase);
-         NewUserCommand = new RelayCommand(_newUser);
-         GeneratePasswordCommand = new RelayCommand(_generatePassword);
+         OpenDatabaseCommand = new RelayCommand(_openDatabase, () => MenusEnabled);
+         NewUserCommand = new RelayCommand(_newUser, () => MenusEnabled);
+         GeneratePasswordCommand = new RelayCommand(_generatePassword, () => MenusEnabled);
       }
 
       private void _openDatabase()
@@ -50,7 +98,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             "Passkey user database file|*.pku",
             "Open user database file");
 
-         if (filename is null) return;
+         if (filename is null)
+         {
+            return;
+         }
 
          ResetRequested?.Invoke(this, EventArgs.Empty);
          AppServices.Session.EndSession();

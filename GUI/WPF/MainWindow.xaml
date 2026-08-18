@@ -13,13 +13,16 @@
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         Height="150" Width="500">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="_booleanToVisibility"/>
+    </Window.Resources>
     <Window.InputBindings>
         <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenDatabaseCommand}"/>
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewUserCommand}"/>
         <KeyBinding Key="P" Modifiers="Control" Command="{Binding GeneratePasswordCommand}"/>
     </Window.InputBindings>
     <StackPanel>
-        <Menu>
+        <Menu IsEnabled="{Binding MenusEnabled}">
             <Menu.ItemsPanel>
                 <ItemsPanelTemplate>
                     <DockPanel HorizontalAlignment="Stretch"/>
@@ -37,6 +40,7 @@
         </Menu>
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -57,11 +61,24 @@
             <TextBox Name="_username_TB"
                      Grid.Row="0"
                      Grid.Column="1"
-                     Visibility="Visible"/>
+                     Visibility="Visible"
+                     IsEnabled="{Binding MenusEnabled}"/>
             <PasswordBox Name="_password_PB"
                          Grid.Row="0"
                          Grid.Column="1"
-                         Visibility="Collapsed"/>
+                         Visibility="Collapsed"
+                         IsEnabled="{Binding CanTypePasskey}"/>
+            <StackPanel Grid.Row="2"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="2"
+                        Margin="5,0,5,0"
+                        Visibility="{Binding IsBusy, Converter={StaticResource _booleanToVisibility}}">
+                <TextBlock Text="{Binding BusyMessage}"
+                           TextWrapping="Wrap"/>
+                <ProgressBar IsIndeterminate="True"
+                             Height="6"
+                             Margin="0,3,0,0"/>
+            </StackPanel>
         </Grid>
     </StackPanel>
 </Window>

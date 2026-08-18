@@ -14,11 +14,12 @@ This is a C# implementation of a local stored password manager in .Net 10. The a
 *   **Trigger warnings**: Trigger warnings when detected
 *   **Autosave**: Autosave updates
 *   **Password Generation**: Generate strong, unique passwords
+*   **Leak detection**: Opt-in checks against Have I Been Pwned, with a free XposedOrNot failover (k-anonymity; see [SECURITY.md](SECURITY.md))
 
 **Security**
 ------------
 
-*   **Encryption**: All passwords are encrypted using AES with a set of keys and RSA with a 4096-bit key
+*   **Encryption**: Vault data uses an AES-256-GCM onion (HKDF-SHA256 per layer) over ordered passkeys; the activity log uses RSA-4096 hybrid encryption. See [SECURITY.md](SECURITY.md).
 *   **Access Control**: Access to the password store is restricted to authorized users only
 
 **Models**
@@ -41,7 +42,9 @@ classDiagram
 
         class IClipboardManager {
             <<interface>>
-            +RemoveAllOccurrence(in removeList IEnumerable~string~) int
+            +SetText(in text string, in autoClearAfter TimeSpan) void
+            +SetText(in text string, in autoClearAfter int) void
+            +RemoveAllOccurrenceAsync(in removeList IEnumerable~string~, in cancellationToken CancellationToken) Task~int~
         }
 
         class IPasswordFactory {
@@ -51,16 +54,18 @@ classDiagram
             +string SpecialChars
 
             +GeneratePassword(in length int, in alphabet string, in checkIfLeaked bool) string
+            +GeneratePasswordAsync(in length int, in alphabet string, in checkIfLeaked bool, in cancellationToken CancellationToken) Task~string~
             +PasswordLeaked(in password string) bool
+            +PasswordLeakedAsync(in password string, in cancellationToken CancellationToken) Task~bool~
         }
 
         class ICryptographyCenter {
             <<interface>>
             +int HashLength
             +KdfParameters DefaultSlowHashParameters
-
             +GetHash(in source string) string
             +GetSlowHash(in source string, in parameters KdfParameters) string
+            +EnsureSufficientSlowHashParameters(in parameters KdfParameters) void
             +EncryptSymmetrically(in source string, in passwords IEnumerable~string~) string
             +DecryptSymmetrically(in source string, in passwords IEnumerable~string~) string
             +GenerateRandomKeys(out publicKey string, out privateKey string) void
@@ -72,7 +77,6 @@ classDiagram
         }
 
         class KdfParameters {
-            +int Version
             +KdfAlgorithm Algorithm
             +int Iterations
             +int OutputLength
@@ -118,15 +122,20 @@ classDiagram
             <<interface>>
             +string Username
             +IEnumerable~string~ Passkeys
+            +ISettings Settings
+            +IEnumerable~IService~ Services
+            +AddService(in serviceName string) IService
+            +DeleteService(in service IService) void
+        }
+
+        class ISettings {
+            <<interface>>
             +int LogoutTimeout
             +int CleaningClipboardTimeout
             +int ShowPasswordDelay
             +int NumberOfOldPasswordToKeep
             +int NumberOfMonthActivitiesToKeep
             +WarningType WarningsToNotify
-            +IEnumerable~IService~ Services
-            +AddService(in serviceName string) IService
-            +DeleteService(in service IService) void
         }
 
         class IDatabase {
@@ -145,14 +154,17 @@ classDiagram
             +EventHandler DatabaseSaved
             +EventHandler~LogoutEventArgs~ DatabaseClosed
             +Login(in passkey string) IUser
-            +Login(in passkey SecureString) IUser
+            +LoginAsync(in passkey string, in cancellationToken CancellationToken) Task~IUser~
             +Save(void) void
+            +SaveAsync(in cancellationToken CancellationToken) Task
             +Delete(void) void
             +Close(void) void
             +HasChanged(in itemId string) bool
             +HasChanged(in itemId string, in fieldName string) bool
             +ImportFromFile(in filePath string) bool
+            +ImportFromFileAsync(in filePath string, in cancellationToken CancellationToken) Task~bool~
             +ExportToFile(in filePath string) bool
+            +ExportToFileAsync(in filePath string, in cancellationToken CancellationToken) Task~bool~
         }
 
         class IActivity {
@@ -176,6 +188,7 @@ classDiagram
     namespace Upsilon.Apps.Passkey.Interfaces.Enums {
         class AccountOption {
             <<enumeration>>
+            <<flags>>
             None
             WarnIfPasswordLeaked
             WarnIfDuplicatedPassword
@@ -183,6 +196,7 @@ classDiagram
         
         class WarningType {
             <<enumeration>>
+            <<flags>>
             ActivityReviewWarning
             PasswordUpdateReminderWarning
             DuplicatedPasswordsWarning
@@ -251,6 +265,7 @@ classDiagram
     IUser --|> IItem
     IService --|> IItem
     IAccount --|> IItem
+    IDatabase ..|> IDisposable
     
     %% Link Relations
     IItem --> IDatabase : Database
@@ -262,6 +277,8 @@ classDiagram
     IService "0" --> "*" IAccount : Accounts
     IService --> IUser : User
     IUser "0" --> "*" IService : Services
+    IUser --> ISettings : Settings
+    ISettings --> WarningType : WarningsToNotify
     IDatabase --> ISerializationCenter : SerializationCenter
     IDatabase --> ICryptographyCenter : CryptographyCenter
     IDatabase --> IPasswordFactory : PasswordFactory
@@ -305,8 +322,14 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Create(new Upsilo
    new string[] { "master_password_1", "master_password_2", "master_password_3" });
 ```
 
-After creation, the method will directly open the database but it will not login directly to the current user.
-So to login, check the **Login to an user** use case.
+After creation, the method opens the database **and logs the user in**:
+`database.User` is already set. Do **not** call `Login` afterwards — that would
+append another onion layer on top of an already-complete stack and fail. Progressive
+`Login` is only needed after `Open` (see the next use cases).
+
+```csharp
+IUser user = database.User!;	// Already logged in after Create
+```
 
 ### Open an existing database
 
@@ -327,9 +350,11 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Open(new Upsilon.
    "username");
 ```
 
+After `Open`, `database.User` is still `null` until progressive login succeeds.
+
 ### Login to an user
 
-After opening (or creating) a database, use the `IDatabase.Login` method to login the user.
+After opening a database, use the `IDatabase.Login` method to login the user.
 To do that, call the login method with every passkeys used during the database creation process.
 Only the last call of that method, with every correct and ordered passkeys, will return the `IUser` representing the current user successfully logged in.
 Else that method will return `null`.
@@ -340,26 +365,120 @@ user = database.Login("master_password_2");			// Will also return null
 user = database.Login("master_password_3");			// Will return a IUser this time
 ```
 
-Once the IUser retrieved, it allow a full access to all services and accounts, all log history and all user parameters.
+**Important — no rollback on a wrong passkey.** Each `Login` call appends the
+passkey to the in-memory onion stack. A mistyped value is never undone: further
+`Login` calls keep stacking on top of it, so even the correct passkeys will keep
+failing until you `Close()` the database and `Open` it again. That is intentional
+(an online anti-brute-force friction layer on top of PBKDF2); see
+[SECURITY.md](SECURITY.md#progressive-login-without-rollback-online-brute-force-friction).
+In the GUI, cancelling the login (e.g. Escape) ends the session so the user can
+restart cleanly.
+
+Once the IUser retrieved, it allow a full access to all services and accounts, all log history and all user settings (`user.Settings`).
+
+`IDatabase` also implements `IDisposable`: `Dispose()` closes the session the same
+way as `Close()`. Prefer a `using` when you own the lifetime of the database.
 
 ### Saving the changes
 
 Use the `IDatabase.Save` method to save the user's updates.
-Note that any update on the user, its services and/or accounts which is not saved will be kept in a hidden autosave file.
+Note that any update on the user, its settings, services and/or accounts which is
+not saved is kept in the `autosave` entry inside the `.pku` ZIP (not a separate file).
 
 ```csharp
-user.LogoutTimeout = 5;	// Setting the logout timeout to 5 min will create a hidden autosave file
-database.Save();		// Will save the new logout timeout in the database file and remove the autosave file
+user.Settings.LogoutTimeout = 5;	// Setting the logout timeout to 5 min writes the autosave entry
+database.Save();					// Persists into the database entry and clears autosave
 ```
 
 ### Logout/Close a database
 
 To logout and close the database, use the `IDatabase.Close` method.
-All unsaved updates are stored inside the hidden autosave file.
+All unsaved updates remain in the `autosave` ZIP entry until the next successful merge/save.
 
 ```csharp
 database.Close();
 ```
+
+### Import and Export
+
+`ImportFromFile` / `ExportToFile` (and their `Async` twins) are routed by file
+extension. Only `.json` and `.csv` are supported; any other extension fails.
+
+*   **JSON** carries `Settings` and `Services` (with accounts).
+*   **CSV** is tab-separated (TSV) with JSON-encoded cells. Headers are
+    `ServiceName`, `ServiceUrl`, `ServiceNotes`, `AccountLabel`, `Identifiers`,
+    `Password`, `AccountNotes`, `AccountOptions`, `PasswordUpdateReminderDelay`.
+    Settings are not included in CSV.
+
+Import requires a logged-in user. Export and import files are **plaintext** — see
+[SECURITY.md](SECURITY.md#known-limitations).
+
+### Keeping a UI responsive
+
+Every expensive operation has an `Async` twin: `Database.CreateAsync`,
+`Database.OpenAsync`, `IDatabase.LoginAsync`, `SaveAsync`, `ImportFromFileAsync`
+and `ExportToFileAsync`.
+
+They matter because the work behind them is deliberately slow: stretching a
+single passkey costs about a second by design (see
+[SECURITY.md](SECURITY.md#master-passkeys-multi-factor-onion)), and creating a
+database also mints an RSA-4096 key pair. Running that on a UI thread freezes
+the window for the whole duration.
+
+```csharp
+IDatabase database = await Database.OpenAsync(cryptographyCenter,
+   serializationCenter,
+   passwordFactory,
+   clipboardManager,
+   "./database.pku",
+   "username");
+
+IUser? user = await database.LoginAsync("master_password_1");
+user = await database.LoginAsync("master_password_2");
+user = await database.LoginAsync("master_password_3");	// Returns the IUser
+
+await database.SaveAsync();
+```
+
+Two things to keep in mind:
+
+*   These operations share the progressive passkey stack and the database file,
+    so they are not meant to overlap: await one before starting the next.
+*   Their events (`AutoSaveDetected`, `DatabaseSaved`, `WarningsUpdated`,
+    `DatabaseClosed`) are raised from the worker thread, so a handler touching UI
+    state has to marshal back to its own thread.
+
+`IPasswordFactory` follows the same pattern with `GeneratePasswordAsync` and
+`PasswordLeakedAsync`. Those two are genuinely asynchronous rather than merely
+offloaded: they await the leak-check providers (Have I Been Pwned first, then
+XposedOrNot if HIBP is unreachable) instead of blocking a thread on the network.
+
+**Testing**
+-----------
+
+### Automated
+
+*   **Core**: `UnitTests` covers crypto, vault lifecycle, import/export, and related
+    models. Run with `dotnet test` on the Windows solution.
+*   **GUI ViewModels**: the same `UnitTests` project also references the WPF app
+    and exercises ViewModels (`UnitTests/Gui/`) through a replaceable
+    `AppServices` seam and fakes (session, dialogs, clipboard). No UI automation
+    (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, and real MessageBoxes
+    stay out of the automated suite.
+
+```bash
+dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Gui"
+```
+
+### Manual smoke (GUI)
+
+After changes that touch login, clipboard, or hotkeys, verify on Windows:
+
+1.  Create a new vault (multi-passkey) and reopen it with the same ordered passkeys.
+2.  Mistype a passkey, then close/reopen and log in correctly (progressive login, no rollback).
+3.  Copy an account password; confirm the clipboard clears after the configured timeout.
+4.  Idle until auto-logout; confirm the session closes and the vault file is released.
+5.  Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
 
 **Getting Started**
 -------------------
@@ -376,4 +495,4 @@ Contributions are welcome! Please submit a pull request with your changes.
 **License**
 -------
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v2.0. See the [LICENSE](LICENSE) file for details.

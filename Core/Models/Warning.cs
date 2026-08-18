@@ -5,11 +5,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
 {
    internal sealed class Warning : IWarning
    {
+      #region IWarning interface implicit Internal
+
       public WarningType WarningType { get; set; }
 
       public IEnumerable<IActivity>? Activities { get; set; }
 
       public IEnumerable<IAccount>? Accounts { get; set; }
+
+      #endregion
 
       public Warning(IActivity[] activities)
       {

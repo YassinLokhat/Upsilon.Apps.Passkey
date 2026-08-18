@@ -13,9 +13,17 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private const int SLOW_HASH_ITERATIONS = 1_000_000;
       private const int SLOW_HASH_SALT_SIZE = 16;
 
+      // Floors for parameters read from an unencrypted header. Defaults sit well
+      // above these; the floors follow the OWASP Password Storage Cheat Sheet
+      // (PBKDF2-HMAC-SHA-256: 600k, PBKDF2-HMAC-SHA-512: 210k) so a hand-edited
+      // or malicious .pku with Iterations = 1 cannot be used to stretch secrets.
+      private const int MIN_SLOW_HASH_ITERATIONS_SHA256 = 600_000;
+      private const int MIN_SLOW_HASH_ITERATIONS_SHA512 = 210_000;
+      private const int MIN_SLOW_HASH_OUTPUT_LENGTH = 32;
+      private const int MIN_SLOW_HASH_SALT_SIZE = 16;
+
       public KdfParameters DefaultSlowHashParameters => new()
       {
-         Version = 1,
          // HMAC-SHA-512 relies on 64-bit arithmetic, which GPUs and ASICs run
          // far less efficiently than the 32-bit operations of SHA-256. At an
          // equal iteration count this narrows an attacker's parallel-hardware
@@ -31,9 +39,51 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          Salt = Convert.ToBase64String(RandomNumberGenerator.GetBytes(SLOW_HASH_SALT_SIZE)),
       };
 
-      public string GetSlowHash(string source, KdfParameters parameters)
+      public void EnsureSufficientSlowHashParameters(KdfParameters parameters)
       {
          ArgumentNullException.ThrowIfNull(parameters);
+
+         int minIterations = parameters.Algorithm switch
+         {
+            KdfAlgorithm.Pbkdf2HmacSha256 => MIN_SLOW_HASH_ITERATIONS_SHA256,
+            KdfAlgorithm.Pbkdf2HmacSha512 => MIN_SLOW_HASH_ITERATIONS_SHA512,
+            _ => throw new InsufficientKdfParametersException(
+               $"Unsupported KDF algorithm '{parameters.Algorithm}'."),
+         };
+
+         if (parameters.Iterations < minIterations)
+         {
+            throw new InsufficientKdfParametersException(
+               $"KDF iterations '{parameters.Iterations}' for '{parameters.Algorithm}' are below the minimum of {minIterations}.");
+         }
+
+         if (parameters.OutputLength < MIN_SLOW_HASH_OUTPUT_LENGTH)
+         {
+            throw new InsufficientKdfParametersException(
+               $"KDF output length '{parameters.OutputLength}' is below the minimum of {MIN_SLOW_HASH_OUTPUT_LENGTH} bytes.");
+         }
+
+         byte[] salt;
+         try
+         {
+            salt = Convert.FromBase64String(parameters.Salt);
+         }
+         catch (FormatException ex)
+         {
+            throw new InsufficientKdfParametersException("KDF salt is not valid Base64.", ex);
+         }
+
+         if (salt.Length < MIN_SLOW_HASH_SALT_SIZE)
+         {
+            throw new InsufficientKdfParametersException(
+               $"KDF salt length '{salt.Length}' is below the minimum of {MIN_SLOW_HASH_SALT_SIZE} bytes.");
+         }
+      }
+
+      public string GetSlowHash(string source, KdfParameters parameters)
+      {
+         // Reject weakened or malformed headers before spending CPU on PBKDF2.
+         EnsureSufficientSlowHashParameters(parameters);
 
          // The salt is a random, per-database value carried in the parameters
          // (read back from the header), so it is well-formed by construction and
@@ -42,7 +92,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          // PBKDF2 is a standard password-stretching KDF. The exact algorithm,
          // work factor and salt are taken from the caller so that a database can
-         // be reopened with the parameters it was written with (crypto-agility).
+         // be reopened with the parameters stored in its header.
          byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
             Encoding.UTF8.GetBytes(source),
             salt,
@@ -68,28 +118,33 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          // Onion encryption: every passkey adds an authenticated AES-GCM layer,
          // so all of them are required - and in the right order - to recover the
-         // data.
-         string result = source;
+         // data. Layers are binary (salt | nonce | tag | ciphertext); Base64 is
+         // applied once at the outer boundary so each layer does not inflate the
+         // next by ~4/3.
+         byte[] result = Encoding.UTF8.GetBytes(source);
 
          for (int i = passwords.Length - 1; i >= 0; i--)
          {
-            result = _encryptGcmLayer(result, passwords[i]);
+            result = _encryptGcmLayerBytes(result, passwords[i]);
          }
 
          // A final layer keyed with a fixed, public value lets decryption tell
          // "corrupted or foreign data" apart from "valid data, wrong passkey".
-         return _encryptGcmLayer(result, GetHash(string.Empty));
+         result = _encryptGcmLayerBytes(result, GetHash(string.Empty));
+
+         return Convert.ToBase64String(result);
       }
 
       public string DecryptSymmetrically(string source, string[] passwords)
       {
          ArgumentNullException.ThrowIfNull(passwords);
 
-         string result;
+         byte[] result;
 
          try
          {
-            result = _decryptGcmLayer(source, GetHash(string.Empty));
+            result = Convert.FromBase64String(source);
+            result = _decryptGcmLayerBytes(result, GetHash(string.Empty));
          }
          catch
          {
@@ -100,7 +155,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             try
             {
-               result = _decryptGcmLayer(result, passwords[i]);
+               result = _decryptGcmLayerBytes(result, passwords[i]);
             }
             catch
             {
@@ -108,7 +163,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             }
          }
 
-         return result;
+         return Encoding.UTF8.GetString(result);
       }
 
       public void GenerateRandomKeys(out string publicKey, out string privateKey)
@@ -122,11 +177,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       public string EncryptAsymmetrically(string source, string key)
       {
          // The one-time AES key wraps the payload while the RSA layer protects
-         // the key itself. It must be unpredictable, so it is drawn from a
-         // CSPRNG and Base64-encoded to keep every bit of entropy (encoding raw
-         // random bytes as UTF-8 would silently drop invalid sequences).
-         byte[] randomBytes = RandomNumberGenerator.GetBytes(100);
-         string aesKey = Convert.ToBase64String(randomBytes);
+         // the key itself. A full 256-bit CSPRNG draw is enough for AES-256.
+         string aesKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(KEY_SIZE));
 
          // The payload is sealed with authenticated AES-GCM and the AES key is
          // wrapped with RSA-OAEP, so both parts already detect tampering - no
@@ -212,27 +264,36 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // right tool to expand them into a fresh AES-256 key. Brute-force
       // hardening of human-chosen passwords belongs to GetSlowHash, not here.
       private static byte[] _deriveLayerKey(string password, byte[] salt)
-         => HKDF.DeriveKey(HashAlgorithmName.SHA256, Encoding.UTF8.GetBytes(password), KEY_SIZE, salt);
+      {
+         byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
 
-      private static string _encryptGcmLayer(string plainText, string password)
+         try
+         {
+            return HKDF.DeriveKey(HashAlgorithmName.SHA256, passwordBytes, KEY_SIZE, salt);
+         }
+         finally
+         {
+            CryptographicOperations.ZeroMemory(passwordBytes);
+         }
+      }
+
+      private static byte[] _encryptGcmLayerBytes(ReadOnlySpan<byte> plainBytes, string password)
       {
          byte[] salt = RandomNumberGenerator.GetBytes(SALT_SIZE);
          byte[] nonce = RandomNumberGenerator.GetBytes(NONCE_SIZE);
          byte[] key = _deriveLayerKey(password, salt);
+         byte[] cipherBytes = new byte[plainBytes.Length];
+         byte[] tag = new byte[TAG_SIZE];
 
          try
          {
-            byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
-            byte[] cipherBytes = new byte[plainBytes.Length];
-            byte[] tag = new byte[TAG_SIZE];
-
             using (AesGcm aesGcm = new(key, TAG_SIZE))
             {
                aesGcm.Encrypt(nonce, plainBytes, cipherBytes, tag);
             }
 
             // salt | nonce | tag | ciphertext, so decryption is self-describing.
-            return Convert.ToBase64String([.. salt, .. nonce, .. tag, .. cipherBytes]);
+            return [.. salt, .. nonce, .. tag, .. cipherBytes];
          }
          finally
          {
@@ -240,27 +301,23 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
       }
 
-      private static string _decryptGcmLayer(string payload, string password)
+      private static byte[] _decryptGcmLayerBytes(ReadOnlySpan<byte> payload, string password)
       {
-         byte[] data = Convert.FromBase64String(payload);
-
-         if (data.Length < SALT_SIZE + NONCE_SIZE + TAG_SIZE)
+         if (payload.Length < SALT_SIZE + NONCE_SIZE + TAG_SIZE)
          {
             throw new CryptographicException("Ciphertext is too short to be valid.");
          }
 
-         ReadOnlySpan<byte> dataSpan = data;
-         byte[] salt = dataSpan[..SALT_SIZE].ToArray();
-         byte[] nonce = dataSpan.Slice(SALT_SIZE, NONCE_SIZE).ToArray();
-         byte[] tag = dataSpan.Slice(SALT_SIZE + NONCE_SIZE, TAG_SIZE).ToArray();
-         byte[] cipherBytes = dataSpan[(SALT_SIZE + NONCE_SIZE + TAG_SIZE)..].ToArray();
+         ReadOnlySpan<byte> salt = payload[..SALT_SIZE];
+         ReadOnlySpan<byte> nonce = payload.Slice(SALT_SIZE, NONCE_SIZE);
+         ReadOnlySpan<byte> tag = payload.Slice(SALT_SIZE + NONCE_SIZE, TAG_SIZE);
+         ReadOnlySpan<byte> cipherBytes = payload[(SALT_SIZE + NONCE_SIZE + TAG_SIZE)..];
 
-         byte[] key = _deriveLayerKey(password, salt);
+         byte[] key = _deriveLayerKey(password, salt.ToArray());
+         byte[] plainBytes = new byte[cipherBytes.Length];
 
          try
          {
-            byte[] plainBytes = new byte[cipherBytes.Length];
-
             // AES-GCM verifies the tag while decrypting and throws on any
             // tampering or wrong key, which is how callers detect both.
             using (AesGcm aesGcm = new(key, TAG_SIZE))
@@ -268,7 +325,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
             }
 
-            return Encoding.UTF8.GetString(plainBytes);
+            return plainBytes;
          }
          finally
          {

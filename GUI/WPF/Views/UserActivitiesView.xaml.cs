@@ -36,5 +36,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          AppServices.Navigation.RequestItem(ViewModel.Activities[_activities_DGV.SelectedIndex].Activity.ItemId);
       }
+
+      private void _copyButton_Click(object sender, RoutedEventArgs e)
+      {
+         AppServices.Clipboard.SetText(ViewModel.Activities[_activities_DGV.SelectedIndex].Activity.Message);
+      }
    }
 }

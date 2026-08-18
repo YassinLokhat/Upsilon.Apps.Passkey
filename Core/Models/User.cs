@@ -50,94 +50,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      int IUser.LogoutTimeout
+      ISettings IUser.Settings
       {
-         get => Database.Get(LogoutTimeout);
-         set => LogoutTimeout = Database.AutoSave.UpdateValue(ItemId,
-            fieldName: nameof(LogoutTimeout),
-            needsReview: false,
-            oldValue: LogoutTimeout,
-            newValue: value,
-            readableValue: $"{value}");
-      }
-
-      int IUser.CleaningClipboardTimeout
-      {
-         get => Database.Get(CleaningClipboardTimeout);
-         set => CleaningClipboardTimeout = Database.AutoSave.UpdateValue(ItemId,
-            fieldName: nameof(CleaningClipboardTimeout),
-            needsReview: false,
-            oldValue: CleaningClipboardTimeout,
-            newValue: value,
-            readableValue: $"{value}");
-      }
-
-      int IUser.ShowPasswordDelay
-      {
-         get => Database.Get(ShowPasswordDelay);
-         set => ShowPasswordDelay = Database.AutoSave.UpdateValue(ItemId,
-            fieldName: nameof(ShowPasswordDelay),
-            needsReview: false,
-            oldValue: ShowPasswordDelay,
-            newValue: value,
-            readableValue: $"{value}");
-      }
-
-      int IUser.NumberOfOldPasswordToKeep
-      {
-         get => Database.Get(NumberOfOldPasswordToKeep);
+         get => Database.Get(Settings);
          set
          {
-            NumberOfOldPasswordToKeep = Database.AutoSave.UpdateValue(ItemId,
-               fieldName: nameof(NumberOfOldPasswordToKeep),
-               needsReview: true,
-               oldValue: NumberOfOldPasswordToKeep,
-               newValue: value,
-               readableValue: $"{value}");
-
-            if (NumberOfOldPasswordToKeep == 0) return;
-
-            IEnumerable<Account> accounts = [.. Services.SelectMany(x => x.Accounts).Where(x => x.Passwords.Count > NumberOfOldPasswordToKeep)];
-
-            foreach (Account account in accounts)
+            if (value.GetType() != typeof(Settings))
             {
-               IEnumerable<DateTime> datesToRemove = [.. account.Passwords.Keys
-                  .OrderBy(x => x)
-                  .Take(account.Passwords.Count - NumberOfOldPasswordToKeep)];
-
-               foreach (DateTime dateToRemove in datesToRemove)
-               {
-                  _ = account.Passwords.Remove(dateToRemove);
-               }
+               throw new InvalidCastException("The ISettings object is not a known implementation");
             }
+
+            Settings = Database.Get((Settings)value);
          }
-      }
-
-      int IUser.NumberOfMonthActivitiesToKeep
-      {
-         get => Database.Get(NumberOfMonthActivitiesToKeep);
-         set
-         {
-            NumberOfMonthActivitiesToKeep = Database.AutoSave.UpdateValue(ItemId,
-               fieldName: nameof(NumberOfMonthActivitiesToKeep),
-               needsReview: true,
-               oldValue: NumberOfMonthActivitiesToKeep,
-               newValue: value,
-               readableValue: $"{value}");
-
-            Database.ActivityCenter.Save(rebuildStringActivities: true);
-         }
-      }
-
-      WarningType IUser.WarningsToNotify
-      {
-         get => Database.Get(WarningsToNotify);
-         set => WarningsToNotify = Database.AutoSave.UpdateValue(ItemId,
-            fieldName: nameof(WarningsToNotify),
-            needsReview: true,
-            oldValue: WarningsToNotify,
-            newValue: value,
-            readableValue: value.ToString());
       }
 
       IService IUser.AddService(string serviceName)
@@ -171,6 +95,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             field = value;
 
+            Settings.User = this;
+
             foreach (Service service in Services)
             {
                service.User = this;
@@ -178,7 +104,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      public string PrivateKey { get; set; } = string.Empty;
+      // RSA private key held encrypted in memory and revealed just in time (sign /
+      // decrypt / derive public key). Persistence stays a plaintext PEM string inside
+      // the onion-encrypted database entry (see ProtectedSecret).
+      public ProtectedSecret PrivateKey { get; set; } = ProtectedSecret.Protect(string.Empty);
 
       // The number of activity-log entries sealed at the last save. Stored inside
       // the encrypted (tamper-proof) database so it can act as a trusted anchor:
@@ -197,16 +126,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
       // Serialization goes through the plaintext (see ProtectedSecret).
       public IEnumerable<ProtectedSecret> Passkeys { get; set; } = [];
       public bool CredentialChanged { get; set; }
-      public int LogoutTimeout { get; set; }
-      public int CleaningClipboardTimeout { get; set; }
-      public int ShowPasswordDelay { get; set; }
-      public int NumberOfOldPasswordToKeep { get; set; }
-      public int NumberOfMonthActivitiesToKeep { get; set; }
-      public WarningType WarningsToNotify { get; set; }
-         = WarningType.ActivityReviewWarning
-         | WarningType.PasswordUpdateReminderWarning
-         | WarningType.DuplicatedPasswordsWarning
-         | WarningType.PasswordLeakedWarning;
+
+      public Settings Settings { get; set; } = new();
 
       private readonly System.Timers.Timer _timer = new()
       {
@@ -227,6 +148,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
       private readonly System.Threading.Lock _timerGate = new();
       private bool _timerStopped;
 
+      // Clipboard history scrub is async (WinRT). Overlapping ticks must not start
+      // a second scrub while one is still enumerating history.
+      private int _clipboardScrubRunning;
+
       public User()
       {
          _timer.Elapsed += _timer_Elapsed;
@@ -234,6 +159,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private void _timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
       {
+         string[]? clipboardScrubList = null;
+         IClipboardManager? clipboardManager = null;
+
          lock (_timerGate)
          {
             if (_timerStopped)
@@ -241,7 +169,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                return;
             }
 
-            if (LogoutTimeout != 0)
+            if (Settings.LogoutTimeout != 0)
             {
                SessionLeftTime--;
 
@@ -260,23 +188,59 @@ namespace Upsilon.Apps.Passkey.Core.Models
                }
             }
 
-            if (CleaningClipboardTimeout != 0)
+            if (Settings.CleaningClipboardTimeout != 0)
             {
                _clipboardLeftTime--;
 
                if (_clipboardLeftTime == 0)
                {
-                  _ = Database.ClipboardManager.RemoveAllOccurrence([.. Services.SelectMany(x => x.Accounts).SelectMany(x => x.Passwords.Values.Select(y => y.Reveal()))]);
-                  _clipboardLeftTime = CleaningClipboardTimeout;
+                  // Capture secrets and the clipboard manager inside the gate, then
+                  // scrub outside the lock so we never block the timer on WinRT I/O.
+                  clipboardScrubList =
+                  [
+                     .. Services
+                        .SelectMany(x => x.Accounts)
+                        .SelectMany(x => x.Passwords.Values.Select(y => y.Reveal())),
+                  ];
+                  clipboardManager = Database.ClipboardManager;
+                  _clipboardLeftTime = Settings.CleaningClipboardTimeout;
                }
             }
+         }
+
+         if (clipboardScrubList is not null && clipboardManager is not null)
+         {
+            _ = _scrubClipboardHistoryAsync(clipboardManager, clipboardScrubList);
+         }
+      }
+
+      private async Task _scrubClipboardHistoryAsync(IClipboardManager clipboardManager, string[] removeList)
+      {
+         if (Interlocked.CompareExchange(ref _clipboardScrubRunning, 1, 0) != 0)
+         {
+            return;
+         }
+
+         try
+         {
+            _ = await clipboardManager.RemoveAllOccurrenceAsync(removeList).ConfigureAwait(false);
+         }
+#pragma warning disable CA1031 // Last-resort barrier: clipboard scrub must never crash the session timer
+         catch (Exception ex)
+#pragma warning restore CA1031
+         {
+            System.Diagnostics.Trace.TraceWarning($"Clipboard history scrub failed: {ex}");
+         }
+         finally
+         {
+            _ = Interlocked.Exchange(ref _clipboardScrubRunning, 0);
          }
       }
 
       public void ResetTimer()
       {
-         SessionLeftTime = LogoutTimeout * 60;
-         _clipboardLeftTime = CleaningClipboardTimeout;
+         SessionLeftTime = Settings.LogoutTimeout * 60;
+         _clipboardLeftTime = Settings.CleaningClipboardTimeout;
       }
 
       internal void StopTimer()
@@ -334,14 +298,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      CredentialChanged = true;
                      Passkeys = change.NewValue.DeserializeTo<IEnumerable<ProtectedSecret>>(Database.SerializationCenter);
                      break;
-                  case nameof(LogoutTimeout):
-                     LogoutTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
+                  case nameof(Settings.LogoutTimeout):
+                     Settings.LogoutTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
                      break;
-                  case nameof(CleaningClipboardTimeout):
-                     CleaningClipboardTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
+                  case nameof(Settings.CleaningClipboardTimeout):
+                     Settings.CleaningClipboardTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
                      break;
-                  case nameof(WarningsToNotify):
-                     WarningsToNotify = change.NewValue.DeserializeTo<WarningType>(Database.SerializationCenter);
+                  case nameof(Settings.WarningsToNotify):
+                     Settings.WarningsToNotify = change.NewValue.DeserializeTo<WarningType>(Database.SerializationCenter);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");

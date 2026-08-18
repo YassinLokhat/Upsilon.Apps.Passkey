@@ -37,7 +37,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       private static void _computeTabIndex(DependencyObject depObj, ref int tabIndex)
       {
-         if (depObj == null) return;
+         if (depObj == null)
+         {
+            return;
+         }
 
          for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
          {

@@ -109,7 +109,9 @@
             </GroupBox>
         </StackPanel>
         <DockPanel Grid.Row="1">
-            <GroupBox Header="Services">
+            <GroupBox Name="_userServices_GB"
+                      Header="{Binding UserId}"
+                      MouseRightButtonUp="_userServicesView_MouseRightButtonUp">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>

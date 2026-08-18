@@ -10,10 +10,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Minimum line coverage (0.0 - 1.0) required for the build to pass. Bump this
-  # up as coverage grows to lock in non-regression; the build fails if coverage
-  # drops below it.
-  MINIMUM_LINE_COVERAGE: "0.60"
+  # Minimum line coverage (0.0 - 1.0) required for the build to pass. Scoped to
+  # Core (the WPF client is excluded). Bump this up as coverage grows to lock
+  # in non-regression; the build fails if coverage drops below it.
+  MINIMUM_LINE_COVERAGE: "0.90"
 
 jobs:
   build:

@@ -8,21 +8,29 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
    internal sealed class VisiblePasswordBoxViewModel : INotifyPropertyChanged
    {
-      public string Password
+      /// <summary>
+      /// Plaintext shown in the reveal <c>TextBox</c> only while the eye button
+      /// is held. Cleared as soon as the password is masked again so the secret
+      /// does not linger in the ViewModel.
+      /// </summary>
+      public string RevealText
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = string.Empty;
+
       public Visibility PasswordVisibility
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = Visibility.Visible;
+
       public Visibility TextVisibility
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = Visibility.Collapsed;
+
       public Visibility ButtonVisibility
       {
          get;
@@ -43,21 +51,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      private void _onPropertyChanged(string propertyName)
-      {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-      }
-
       public void ShowPassword()
       {
-         PasswordVisibility = System.Windows.Visibility.Collapsed;
-         TextVisibility = System.Windows.Visibility.Visible;
+         PasswordVisibility = Visibility.Collapsed;
+         TextVisibility = Visibility.Visible;
       }
 
       public void HidePassword()
       {
-         PasswordVisibility = System.Windows.Visibility.Visible;
-         TextVisibility = System.Windows.Visibility.Collapsed;
+         PasswordVisibility = Visibility.Visible;
+         TextVisibility = Visibility.Collapsed;
       }
    }
 }

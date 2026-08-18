@@ -1,4 +1,5 @@
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Services
@@ -22,21 +23,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          SessionChanged?.Invoke(this, EventArgs.Empty);
       }
 
-      public void EndSession()
+      public void EndSession(bool closeDatabase = true)
       {
-         SensitiveClipboard.ClearIfStillOwned();
+         ClipboardManager.ClearIfStillOwned();
 
-         if (Database is null) return;
-
-         try
+         if (Database is null)
          {
-            Database.Close();
+            return;
          }
-#pragma warning disable CA1031 // Last-resort barrier: a failed close must still tear down the session
-         catch (Exception ex)
-#pragma warning restore CA1031
+
+         if (closeDatabase)
          {
-            Log.Error(ex, "Failed to close database cleanly");
+            try
+            {
+               Database.Close();
+            }
+#pragma warning disable CA1031 // Last-resort barrier: a failed close must still tear down the session
+            catch (Exception ex)
+#pragma warning restore CA1031
+            {
+               Log.Error(ex, "Failed to close database cleanly");
+            }
          }
 
          Database = null;

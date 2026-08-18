@@ -54,7 +54,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             headersIndexes[Headers.AccountOptions] = headers.IndexOf(Headers.AccountOptions.ToString());
             headersIndexes[Headers.PasswordUpdateReminderDelay] = headers.IndexOf(Headers.PasswordUpdateReminderDelay.ToString());
 
-            if (headersIndexes.Values.Any(x => x == -1)) return $"the CSV headers should be : {string.Join(", ", headersIndexes.Keys.Select(x => $"'{x}'"))}";
+            if (headersIndexes.Values.Any(x => x == -1))
+            {
+               return $"the CSV headers should be : {string.Join(", ", headersIndexes.Keys.Select(x => $"'{x}'"))}";
+            }
 
             Service? service = null;
 
@@ -105,16 +108,16 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             return "the CSV data format is incorrect";
          }
 
-         return _importServices(database, services);
+         return services.Count == 0 ? "there is no data to import" : _importServices(database, services);
       }
 
       public static string ImportJson(this IDatabase database, string importContent)
       {
-         Service[] services;
+         Data data;
 
          try
          {
-            services = _jsonDeserializeAs<Service[]>(importContent);
+            data = _jsonDeserializeAs<Data>(importContent);
          }
 #pragma warning disable CA1031 // Intentional: any deserialization failure is reported as a user-facing error
          catch
@@ -123,14 +126,47 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             return "import file deserialization failed";
          }
 
-         return _importServices(database, [.. services]);
+         return _importData(database, data);
+      }
+
+      private static string _importData(IDatabase database, Data data)
+      {
+         string error = string.Empty;
+
+         if (data.Settings is not null)
+         {
+            error = _importSettings(database, data.Settings);
+         }
+
+         if (string.IsNullOrEmpty(error)
+            && data.Services is not null)
+         {
+            error = _importServices(database, data.Services);
+         }
+
+         return error;
+      }
+
+      private static string _importSettings(IDatabase database, Settings settings)
+      {
+         if (database.User is null)
+         {
+            return string.Empty;
+         }
+
+         settings.User = (User)database.User;
+         database.User.Settings = settings;
+
+         return string.Empty;
       }
 
       private static string _importServices(IDatabase database, List<Service> services)
       {
-         if (database.User is null) return string.Empty;
-
-         if (services.Count == 0) return "there is no data to import";
+         if (database.User is null
+            || services.Count == 0)
+         {
+            return string.Empty;
+         }
 
          Service? s0 = services.FirstOrDefault(x => database.User.Services.Any(y => y.ServiceName == x.ServiceName));
          if (s0 is not null)
@@ -165,7 +201,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public static string ExportCSV(this Database database, string filePath)
       {
-         if (database.User is null) return string.Empty;
+         if (database.User is null)
+         {
+            return string.Empty;
+         }
 
          StringBuilder sb = new(string.Join("\t", Enum.GetNames<Headers>()) + "\n");
 
@@ -196,11 +235,26 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public static string ExportJson(this Database database, string filePath)
       {
-         if (database.User is null) return string.Empty;
+         if (database.User is null)
+         {
+            return string.Empty;
+         }
 
-         File.WriteAllText(filePath, _jsonSerialize(database.User.Services));
+         Data data = new()
+         {
+            Settings = database.User.Settings.CloneWith(database.SerializationCenter),
+            Services = [.. database.User.Services],
+         };
+
+         File.WriteAllText(filePath, _jsonSerialize(data));
 
          return string.Empty;
       }
+   }
+
+   internal class Data
+   {
+      public Settings? Settings { get; set; }
+      public List<Service>? Services { get; set; }
    }
 }
