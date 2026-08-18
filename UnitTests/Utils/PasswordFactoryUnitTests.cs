@@ -336,6 +336,24 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             "ADF34F3E63A8E0BD2938F3E09DDC161125A031C3C86D06EC59574A5C723E7FDBE04C2C15D9171E05E90A9C822936185F12B9D7384B2BEDB02E75C4C5FE89E4D4");
       }
 
+      [TestMethod]
+      /*
+       * Inputs longer than the Keccak rate (72 bytes) still produce a 512-bit
+       * digest, exercising the multi-block absorb loop.
+      */
+      public void Case16_Keccak512_MultiBlockInput()
+      {
+         string longInput = new('a', 200);
+         string digest = Keccak512.HashHex(longInput);
+
+         _ = digest.Should().HaveLength(128);
+         _ = digest.Should().NotBe(Keccak512.HashHex("a"));
+         _ = Keccak512.Hash(Encoding.UTF8.GetBytes(longInput)).Should().HaveCount(64);
+
+         Action fromNull = () => Keccak512.HashHex(null!);
+         fromNull.Should().Throw<ArgumentNullException>();
+      }
+
       private static PasswordFactory _factoryFor(RoutingHandler handler)
          => new(
             (request, cancellationToken) => handler.Invoke(request, cancellationToken),

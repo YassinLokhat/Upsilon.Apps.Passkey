@@ -376,6 +376,29 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          };
          Action ensureOwaspFloor = () => crypto.EnsureSufficientSlowHashParameters(owaspFloor);
          ensureOwaspFloor.Should().NotThrow();
+
+         KdfParameters sha256Floor = new()
+         {
+            Algorithm = KdfAlgorithm.Pbkdf2HmacSha256,
+            Iterations = 600_000,
+            OutputLength = 32,
+            Salt = defaults.Salt,
+         };
+         Action ensureSha256 = () => crypto.EnsureSufficientSlowHashParameters(sha256Floor);
+         ensureSha256.Should().NotThrow();
+         string sha256Hash = crypto.GetSlowHash("passkey", sha256Floor);
+         _ = sha256Hash.Should().NotBeNullOrEmpty();
+
+         KdfParameters unsupported = new()
+         {
+            Algorithm = (KdfAlgorithm)99,
+            Iterations = defaults.Iterations,
+            OutputLength = defaults.OutputLength,
+            Salt = defaults.Salt,
+         };
+         Action ensureUnsupported = () => crypto.EnsureSufficientSlowHashParameters(unsupported);
+         ensureUnsupported.Should().Throw<InsufficientKdfParametersException>()
+            .WithMessage("*Unsupported KDF algorithm*");
       }
    }
 }

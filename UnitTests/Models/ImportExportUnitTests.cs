@@ -562,6 +562,30 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
       [TestMethod]
       /*
+       * ImportFromFileAsync and ExportToFileAsync drive the same pipeline as the
+       * synchronous methods.
+      */
+      public async Task Case15_ImportExportAsync_RoundTrip()
+      {
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.json");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export_async.json");
+
+         UnitTestsHelper.ClearTestEnvironment();
+
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         _ = (await database.ImportFromFileAsync(importFile)).Should().BeTrue();
+         _ = (await database.ExportToFileAsync(exportFile)).Should().BeTrue();
+         _ = File.Exists(exportFile).Should().BeTrue();
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
        * CSV import must seed password history so PasswordExpired works when a
        * reminder delay is set (import only carries the current password).
       */

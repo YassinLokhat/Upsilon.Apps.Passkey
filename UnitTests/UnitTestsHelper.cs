@@ -9,6 +9,7 @@ using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
@@ -275,6 +276,46 @@ namespace Upsilon.Apps.Passkey.UnitTests
          value += (uint)min;
 
          return (int)value;
+      }
+
+      /// <summary>
+      /// Subscribes to <see cref="IDatabase.WarningsUpdated"/> then runs
+      /// <paramref name="trigger"/> (typically <see cref="IDatabase.Save"/>) and
+      /// waits until a warning of <paramref name="type"/> is reported.
+      /// </summary>
+      public static IWarning[] WaitForWarningType(IDatabase database, WarningType type, Action trigger, TimeSpan? timeout = null)
+      {
+         timeout ??= TimeSpan.FromSeconds(15);
+         TaskCompletionSource<IWarning[]> tcs = new();
+
+         void Handler(object? sender, WarningsUpdatedEventArgs e)
+         {
+            IWarning[] reported = [.. e.Warnings];
+            IWarning[] current = database.Warnings is null ? reported : [.. database.Warnings];
+
+            if (current.Any(w => w.WarningType == type) || reported.Any(w => w.WarningType == type))
+            {
+               _ = tcs.TrySetResult(current);
+            }
+         }
+
+         database.WarningsUpdated += Handler;
+
+         try
+         {
+            trigger();
+
+            if (!tcs.Task.Wait(timeout.Value))
+            {
+               throw new TimeoutException($"Timed out waiting for warning '{type}'.");
+            }
+
+            return tcs.Task.Result;
+         }
+         finally
+         {
+            database.WarningsUpdated -= Handler;
+         }
       }
 
       public static void LastActivitiesShouldMatch(IDatabase database, string[] expectedActivities)

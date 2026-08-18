@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -768,6 +769,117 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // Finaly
          databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Create rejects a missing dependency rather than building a half-initialized vault.
+      */
+      public void Case15_CreateRejectsNullDependencies()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         Action missingCrypto = () => Database.Create(null!,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            databaseFile,
+            "user",
+            ["a"]);
+         missingCrypto.Should().Throw<ArgumentNullException>();
+
+         Action missingPasskeys = () => Database.Create(UnitTestsHelper.CryptographicCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            databaseFile,
+            "user",
+            null!);
+         missingPasskeys.Should().Throw<ArgumentNullException>();
+
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Delete / Import / Export require a logged-in user; after Close they throw.
+      */
+      public void Case16_MutatingApisRequireLoggedInUser()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase();
+         database.Close();
+
+         Action delete = () => database.Delete();
+         delete.Should().Throw<NullValueException>();
+
+         Action import = () => database.ImportFromFile("missing.json");
+         import.Should().Throw<NullValueException>();
+
+         Action export = () => database.ExportToFile("out.json");
+         export.Should().Throw<NullValueException>();
+
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * CleaningClipboardTimeout fires the clipboard scrub with the stored passwords.
+      */
+      public void Case17_ClipboardTimeoutScrubsPasswords()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         ClipboardManager clipboard = new();
+
+         IDatabase database = Database.Create(UnitTestsHelper.CryptographicCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.PasswordFactory,
+            clipboard,
+            databaseFile,
+            username,
+            passkeys);
+
+         IService service = database.User!.AddService("ClipService");
+         _ = service.AddAccount("Account", ["id@test"], "clipboard-secret");
+
+         User user = (User)database.User;
+         user.Settings.CleaningClipboardTimeout = 1;
+         user.ResetTimer();
+         _ = user.Settings.CleaningClipboardTimeout.Should().Be(1);
+
+         DateTime deadline = DateTime.UtcNow.AddSeconds(20);
+         while (clipboard.RemoveAllOccurrenceCallCount == 0 && DateTime.UtcNow < deadline)
+         {
+            Thread.Sleep(200);
+         }
+
+         _ = clipboard.RemoveAllOccurrenceCallCount.Should().BeGreaterThan(0);
+         _ = clipboard.LastRemoveList.Should().Contain("clipboard-secret");
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * SessionLeftTime is LogoutTimeout in minutes, converted to seconds.
+      */
+      public void Case18_SessionLeftTimeTracksLogoutTimeout()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase();
+
+         database.User!.Settings.LogoutTimeout = 5;
+         ((User)database.User).ResetTimer();
+
+         _ = database.SessionLeftTime.Should().Be(5 * 60);
+
+         database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
    }
