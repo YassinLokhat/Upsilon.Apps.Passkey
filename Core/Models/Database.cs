@@ -704,14 +704,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             // The leak check awaits a remote service, so the session may have
             // been closed in the meantime: notify against the user observed now,
             // not the one observed when the scan started.
-            User? user = User;
-
-            if (user is null)
-            {
-               return;
-            }
-
-            WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => user.Settings.WarningsToNotify.HasFlag(x.WarningType))]));
+            WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => User.Settings.WarningsToNotify.HasFlag(x.WarningType))]));
          }
 #pragma warning disable CA1031 // Last-resort barrier: the background warning scan must never crash the session
          catch (Exception ex)
@@ -783,11 +776,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
                   _ = leakedPasswords.Add(batch[i]);
                }
             }
-         }
-
-         if (User is null)
-         {
-            return [];
          }
 
          Account[] accounts = [.. User.Services
