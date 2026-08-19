@@ -6,7 +6,6 @@ name: CodeQL
 
 on:
   push:
-    branches: [ "master" ]
   pull_request:
   schedule:
     # Weekly scan so newly published queries catch issues even without a push.
