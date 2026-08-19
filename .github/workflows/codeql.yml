@@ -41,9 +41,7 @@ jobs:
       with:
         languages: csharp
         build-mode: manual
-        # "security-and-quality" adds maintainability queries on top of the
-        # default security-focused set.
-        queries: security-and-quality
+        config-file: ./.github/codeql/codeql-config.yml
 
     - name: Restore dependencies
       run: dotnet restore Upsilon.Apps.Passkey.Windows.slnx
