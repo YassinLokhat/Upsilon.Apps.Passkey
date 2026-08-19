@@ -951,10 +951,11 @@ public class QrCode
          {
             for (int colPos = 0; colPos < positionCount; ++colPos)
             {
-               bool overlapsFinder =
-                  (colPos == 0 && rowPos == 0)
-                  || (colPos == positionCount - 1 && rowPos == 0)
-                  || (colPos == 0 && rowPos == positionCount - 1);
+               bool a = colPos == 0 && rowPos == 0;
+               bool b = colPos == positionCount - 1 && rowPos == 0;
+               bool c = colPos == 0 && rowPos == positionCount - 1;
+               bool overlapsFinder = a || b || c;
+
                if (overlapsFinder)
                {
                   continue;
