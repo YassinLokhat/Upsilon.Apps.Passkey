@@ -44,6 +44,9 @@ jobs:
         # "security-and-quality" adds maintainability queries on top of the
         # default security-focused set.
         queries: security-and-quality
+        # Exclude MSBuild output and source-generated files (XAML .g.cs,
+        # RegexGenerator.g.cs, GlobalUsings.g.cs, etc.).
+        config-file: ./.github/codeql/codeql-config.yml
 
     - name: Restore dependencies
       run: dotnet restore Upsilon.Apps.Passkey.Windows.slnx
