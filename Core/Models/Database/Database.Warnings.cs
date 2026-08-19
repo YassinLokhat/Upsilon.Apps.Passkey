@@ -127,16 +127,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
          IGrouping<string, Account>[] duplicatedPasswords = [.. User.Services
             .SelectMany(x => x.Accounts)
             .GroupBy(x => x.Password)
-            .Where(x => x.Count() > 1)];
+            .Where(x => x.Count() > 1
+               && x.Any(y => y.Options.HasFlag(AccountOption.WarnIfDuplicatedPassword)))];
 
          List<Warning> warnings = [];
 
          foreach (IGrouping<string, Account> accounts in duplicatedPasswords)
          {
-            if (accounts.Any(x => x.Options.HasFlag(AccountOption.WarnIfDuplicatedPassword)))
-            {
-               warnings.Add(new(WarningType.DuplicatedPasswordsWarning, [.. accounts.Cast<Account>()]));
-            }
+            warnings.Add(new(WarningType.DuplicatedPasswordsWarning, [.. accounts.Cast<Account>()]));
          }
 
          return [.. warnings];

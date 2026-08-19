@@ -74,29 +74,28 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       public string SpecialChars => "~!@#$%^&*()_-+={[}]\\|'\";:,<.>/?";
 
       public string GeneratePassword(int length, string alphabet, bool checkIfLeaked = true)
+         => _candidates(length, alphabet).FirstOrDefault(x => !checkIfLeaked || !PasswordLeaked(x)) ?? string.Empty;
+
+      public async Task<string> GeneratePasswordAsync(int length, string alphabet, bool checkIfLeaked = true, CancellationToken cancellationToken = default)
       {
-         foreach (string candidate in _candidates(length, alphabet))
+         IEnumerable<string> candidates = _candidates(length, alphabet);
+
+         if (!checkIfLeaked)
          {
-            if (!checkIfLeaked || !PasswordLeaked(candidate))
+            return candidates.FirstOrDefault() ?? string.Empty;
+         }
+
+         using IEnumerator<string> enumerator = candidates.GetEnumerator();
+         while (enumerator.MoveNext())
+         {
+            string candidate = enumerator.Current;
+            if (!await PasswordLeakedAsync(candidate, cancellationToken).ConfigureAwait(false))
             {
                return candidate;
             }
          }
 
          // Give up rather than returning a password known to be in a breach corpus.
-         return string.Empty;
-      }
-
-      public async Task<string> GeneratePasswordAsync(int length, string alphabet, bool checkIfLeaked = true, CancellationToken cancellationToken = default)
-      {
-         foreach (string candidate in _candidates(length, alphabet))
-         {
-            if (!checkIfLeaked || !await PasswordLeakedAsync(candidate, cancellationToken).ConfigureAwait(false))
-            {
-               return candidate;
-            }
-         }
-
          return string.Empty;
       }
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Security.Principal;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
@@ -87,12 +88,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
          Accounts.Clear();
 
-         foreach (IAccount account in Service.Accounts)
+         foreach (IAccount account in Service.Accounts.Where(x => visibleIds.Contains(x.ItemId)))
          {
-            if (visibleIds.Contains(account.ItemId))
-            {
-               Accounts.Add(_accountViewModelsById[account.ItemId]);
-            }
+            Accounts.Add(_accountViewModelsById[account.ItemId]);
          }
       }
 

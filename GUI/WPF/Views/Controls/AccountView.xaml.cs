@@ -50,13 +50,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          if (identifier is not null)
          {
-            foreach (string idType in IdentifierViewModel.IdentifiersTypes.Values)
-            {
-               if (identifier.StartsWith(idType, StringComparison.Ordinal))
-               {
-                  identifier = identifier[idType.Length..];
-               }
-            }
+            int idLenght = IdentifierViewModel.IdentifiersTypes.Values.FirstOrDefault(x => identifier.StartsWith(x, StringComparison.Ordinal))?.Length ?? 0;
+            identifier = identifier[idLenght..];
          }
 
          return identifier;
