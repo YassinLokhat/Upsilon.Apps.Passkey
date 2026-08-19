@@ -61,7 +61,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public ObservableCollection<AccountViewModel> Accounts = [];
+      public readonly ObservableCollection<AccountViewModel> Accounts = [];
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
