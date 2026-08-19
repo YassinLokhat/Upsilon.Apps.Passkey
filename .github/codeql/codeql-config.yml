@@ -1,5 +1,0 @@
-name: "Upsilon.Apps.Passkey CodeQL"
-paths-ignore:
-  - '**/obj/**'
-  - '**/bin/**'
-  - '**/*.g.cs'

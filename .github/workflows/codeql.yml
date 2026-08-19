@@ -44,9 +44,6 @@ jobs:
         # "security-and-quality" adds maintainability queries on top of the
         # default security-focused set.
         queries: security-and-quality
-        # Exclude MSBuild output and source-generated files (XAML .g.cs,
-        # RegexGenerator.g.cs, GlobalUsings.g.cs, etc.).
-        config-file: ./.github/codeql/codeql-config.yml
 
     - name: Restore dependencies
       run: dotnet restore Upsilon.Apps.Passkey.Windows.slnx
@@ -58,7 +55,27 @@ jobs:
         dotnet sln Upsilon.Apps.Passkey.Windows.slnx remove UnitTests/UnitTests.csproj
         dotnet build Upsilon.Apps.Passkey.Windows.slnx --no-restore --configuration Release
 
+    # With build-mode: manual, CodeQL traces the compiler and includes generated
+    # output (obj/, bin/, *.g.cs). Filter the SARIF before upload instead.
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
       with:
+        category: "/language:csharp"
+        output: sarif-results
+        upload: failure-only
+
+    - name: Filter SARIF (exclude build output)
+      uses: advanced-security/filter-sarif@v1.1
+      with:
+        input: sarif-results/csharp.sarif
+        output: sarif-results/csharp.sarif
+        patterns: |
+          -**/bin/**
+          -**/obj/**
+          -**/*.g.cs
+
+    - name: Upload SARIF
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: sarif-results/csharp.sarif
         category: "/language:csharp"
