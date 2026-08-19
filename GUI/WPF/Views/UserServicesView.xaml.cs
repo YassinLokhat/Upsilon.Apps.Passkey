@@ -429,7 +429,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         WarningType requested = sender == _expiredPasswordWarnings_MI
+         WarningType requested = sender.Equals(_expiredPasswordWarnings_MI)
             ? WarningType.PasswordUpdateReminderWarning
             : WarningType.PasswordLeakedWarning;
 

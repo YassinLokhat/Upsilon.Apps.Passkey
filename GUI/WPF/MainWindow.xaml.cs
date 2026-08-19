@@ -109,7 +109,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
             try
             {
-               if (sender == _username_TB)
+               if (sender.Equals(_username_TB))
                {
                   await _submitUsernameAsync().ConfigureAwait(true);
                }
