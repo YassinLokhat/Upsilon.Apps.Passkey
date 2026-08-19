@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -360,9 +360,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             (request, cancellationToken) => handler.InvokeAsync(request, cancellationToken));
 
       private static string _sha1Hex(string value)
-#pragma warning disable CA5350 // Test helper mirroring the production HIBP SHA-1 requirement
          => Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(value)));
-#pragma warning restore CA5350
 
       /// <summary>
       /// Routes mock responses by host so HIBP and XposedOrNot failover can be

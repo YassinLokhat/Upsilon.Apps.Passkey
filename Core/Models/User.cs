@@ -229,9 +229,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             _ = await clipboardManager.RemoveAllOccurrenceAsync(removeList).ConfigureAwait(false);
          }
-#pragma warning disable CA1031 // Last-resort barrier: clipboard scrub must never crash the session timer
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (OperationCanceledException ex)
          {
             System.Diagnostics.Trace.TraceWarning($"Clipboard history scrub failed: {ex}");
          }

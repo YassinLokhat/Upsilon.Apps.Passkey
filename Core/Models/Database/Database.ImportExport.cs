@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.Core.Utils;
+﻿using System.Security;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
@@ -30,9 +31,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             importContent = File.ReadAllText(filePath);
          }
-#pragma warning disable CA1031 // Intentional: any file access failure is reported as a user-facing error message
-         catch
-#pragma warning restore CA1031
+         catch (Exception ex)
+            when (ex is ArgumentException
+            || ex is ArgumentNullException
+            || ex is PathTooLongException
+            || ex is DirectoryNotFoundException
+            || ex is IOException
+            || ex is UnauthorizedAccessException
+            || ex is NotSupportedException
+            || ex is SecurityException)
          {
             errorLog = $"import file is not accessible";
          }

@@ -32,9 +32,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             // not the one observed when the scan started.
             WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => User.Settings.WarningsToNotify.HasFlag(x.WarningType))]));
          }
-#pragma warning disable CA1031 // Last-resort barrier: the background warning scan must never crash the session
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (NullValueException ex)
          {
             // The warning scan runs on a background task and must never crash the
             // session; a failure only means warnings are not refreshed this round,

@@ -115,9 +115,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                return xon.Value;
             }
          }
-#pragma warning disable CA1031 // Last-resort barrier: a leak check must never crash password generation
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (OperationCanceledException ex)
          {
             return _failOpen(ex);
          }
@@ -148,12 +146,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
          {
             throw;
-         }
-#pragma warning disable CA1031 // Last-resort barrier: a leak check must never crash password generation
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            return _failOpen(ex);
          }
 
          return _failOpen(null);
@@ -190,9 +182,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             HashSet<string> parsed = _parseAndCacheHibp(prefix, reader.ReadToEnd());
             return parsed.Contains(hash[HIBP_PREFIX_LENGTH..]);
          }
-#pragma warning disable CA1031 // Provider-local barrier: fall through to XON instead of aborting the whole check
          catch (Exception ex)
-#pragma warning restore CA1031
+            when (ex is OutOfMemoryException
+            || ex is IOException)
          {
             System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
             return null;
@@ -229,13 +221,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             throw;
          }
-#pragma warning disable CA1031 // Provider-local barrier: fall through to XON instead of aborting the whole check
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
-            return null;
-         }
       }
 
       /// <summary>
@@ -259,9 +244,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             using HttpResponseMessage response = _send(request, CancellationToken.None);
             return _interpretXonResponse(prefix, response);
          }
-#pragma warning disable CA1031 // Provider-local barrier: outer PasswordLeaked still fails open
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (OperationCanceledException ex)
          {
             System.Diagnostics.Trace.TraceWarning($"XposedOrNot leak check failed: {ex}");
             return null;
@@ -287,13 +270,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
          {
             throw;
-         }
-#pragma warning disable CA1031 // Provider-local barrier: outer PasswordLeakedAsync still fails open
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            System.Diagnostics.Trace.TraceWarning($"XposedOrNot leak check failed: {ex}");
-            return null;
          }
       }
 

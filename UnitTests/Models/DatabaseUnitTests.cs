@@ -625,9 +625,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
                   account.Label = $"label-{editorIndex}-{n}";
                }
             }
-#pragma warning disable CA1031 // Test harness: capture the first failure from any worker
             catch (Exception ex)
-#pragma warning restore CA1031
             {
                _ = Interlocked.CompareExchange(ref failure, ex, null);
             }
@@ -647,9 +645,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
                   _ = database.Activities;
                }
             }
-#pragma warning disable CA1031 // Test harness: capture the first failure from any worker
             catch (Exception ex)
-#pragma warning restore CA1031
             {
                _ = Interlocked.CompareExchange(ref failure, ex, null);
             }

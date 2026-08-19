@@ -134,43 +134,32 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (_database?.User is null)
          {
-            try
+            if (MessageBox.Show($"Use default database location :\n{newDatabaseFile}", "Use default location?", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             {
-               if (MessageBox.Show($"Use default database location :\n{newDatabaseFile}", "Use default location?", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+               SaveFileDialog dialog = new()
                {
-                  SaveFileDialog dialog = new()
-                  {
-                     Title = "New user database file",
-                     Filter = "Passkey user database file|*.pku",
-                     DefaultDirectory = Path.GetDirectoryName(newDatabaseFile),
-                     FileName = Path.GetFileName(newDatabaseFile),
-                  };
+                  Title = "New user database file",
+                  Filter = "Passkey user database file|*.pku",
+                  DefaultDirectory = Path.GetDirectoryName(newDatabaseFile),
+                  FileName = Path.GetFileName(newDatabaseFile),
+               };
 
-                  if (dialog.ShowDialog() ?? false)
-                  {
-                     newDatabaseFile = dialog.FileName;
-                  }
+               if (dialog.ShowDialog() ?? false)
+               {
+                  newDatabaseFile = dialog.FileName;
                }
-
-               _database = await Database.CreateAsync(AppServices.Cryptography,
-                  AppServices.Serialization,
-                  AppServices.PasswordFactory,
-                  AppServices.Clipboard,
-                  newDatabaseFile,
-                  _viewModel.Username,
-                  [.. _passwordsContainer.Passkeys]).ConfigureAwait(true);
-
-               _database.DatabaseClosed += _database_DatabaseClosed;
-               _session.StartSession(_database);
             }
-#pragma warning disable CA1031 // Last-resort barrier: database creation errors are shown to the user, not propagated
-            catch (Exception ex)
-#pragma warning restore CA1031
-            {
-               _ = MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 
-               return;
-            }
+            _database = await Database.CreateAsync(AppServices.Cryptography,
+               AppServices.Serialization,
+               AppServices.PasswordFactory,
+               AppServices.Clipboard,
+               newDatabaseFile,
+               _viewModel.Username,
+               [.. _passwordsContainer.Passkeys]).ConfigureAwait(true);
+
+            _database.DatabaseClosed += _database_DatabaseClosed;
+            _session.StartSession(_database);
 
             newUser = true;
          }
@@ -280,13 +269,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             await _saveAsync().ConfigureAwait(true);
          }
-#pragma warning disable CA1031 // Last-resort barrier: nothing may escape an async void handler
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            Log.Error(ex, "Failed to save the user settings");
-            _ = MessageBox.Show("An unexpected error occurred while saving.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-         }
          finally
          {
             this.SetIsBusy(false);
@@ -350,13 +332,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _ = imported
                ? MessageBox.Show("Import data has been completed successfully.\nMore details in the activities.", "Import success")
                : MessageBox.Show("Import data failed.\nMore details in the activities.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
-         }
-#pragma warning disable CA1031 // Last-resort barrier: nothing may escape an async void handler
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            Log.Error(ex, "Failed to import data");
-            _ = MessageBox.Show("Import data failed.\nMore details in the activities.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
          }
          finally
          {
@@ -435,13 +410,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _ = exported
                ? MessageBox.Show("Export data has been completed successfully.\nMore details in the activities.", "Export success")
                : MessageBox.Show("Export data failed.\nMore details in the activities.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
-         }
-#pragma warning disable CA1031 // Last-resort barrier: nothing may escape an async void handler
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            Log.Error(ex, "Failed to export data");
-            _ = MessageBox.Show("Export data failed.\nMore details in the activities.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
          }
          finally
          {

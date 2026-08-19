@@ -143,9 +143,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             return new Activity(Database.CryptographyCenter.DecryptAsymmetrically(encryptedActivity, Database.User.PrivateKey.Reveal()));
          }
-#pragma warning disable CA1031 // Intentional: any decryption failure means a skipped entry, not a login abort
          catch (Exception ex)
-#pragma warning restore CA1031
+            when (ex is CorruptedSourceException
+            || ex is WrongPasswordException
+            || ex is ArgumentNullException)
          {
             // An entry that cannot be decrypted (e.g. one forged with a different
             // key) is skipped rather than aborting login; authenticity of the

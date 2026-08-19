@@ -242,9 +242,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          {
             passwordBox.Password = ((PasswordViewModel)((ContentPresenter)passwordBox.TemplatedParent).Content).Password;
          }
-#pragma warning disable CA1031 // Intentional: a transient visual-tree/binding race on load is safely ignored
-         catch { }
-#pragma warning restore CA1031
+         catch (InvalidCastException) { }
       }
 
       private void _copyIdentifier_Clicked(object sender, RoutedEventArgs e)

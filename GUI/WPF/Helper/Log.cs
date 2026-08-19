@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using System.Security;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -30,9 +31,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             TextWriterTraceListener fileListener = new(file, "PasskeyFile");
             _ = _source.Listeners.Add(fileListener);
          }
-#pragma warning disable CA1031 // Intentional: logging setup must never crash the app, fall back to in-memory
-         catch
-#pragma warning restore CA1031
+         catch (Exception ex)
+            when (ex is ArgumentException
+            || ex is ArgumentNullException
+            || ex is PathTooLongException
+            || ex is DirectoryNotFoundException
+            || ex is IOException
+            || ex is UnauthorizedAccessException
+            || ex is FileNotFoundException
+            || ex is NotSupportedException
+            || ex is PlatformNotSupportedException)
          {
             // Logging must never crash the application: silently fall back to
             // an in-memory listener when the file cannot be created.
