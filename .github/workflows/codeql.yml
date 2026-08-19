@@ -19,8 +19,9 @@ concurrency:
 jobs:
   analyze:
     name: Analyze (C#)
-    # The full solution (including the Windows-only WPF GUI) only builds on
-    # Windows, so we analyze there to cover every project.
+    # Production projects including the Windows-only WPF GUI only build on
+    # Windows, so we analyze there. Unit tests are omitted from this build so
+    # CodeQL does not scan test code.
     runs-on: windows-2025-vs2026
 
     permissions:
@@ -48,8 +49,12 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore Upsilon.Apps.Passkey.Windows.slnx
 
+    # Build production projects only. CodeQL traces this compilation, so
+    # excluding UnitTests keeps test code out of the database
     - name: Build Release
-      run: dotnet build Upsilon.Apps.Passkey.Windows.slnx --no-restore --configuration Release
+      run: |
+        dotnet sln Upsilon.Apps.Passkey.Windows.slnx remove UnitTests/UnitTests.csproj
+        dotnet build Upsilon.Apps.Passkey.Windows.slnx --no-restore --configuration Release
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
