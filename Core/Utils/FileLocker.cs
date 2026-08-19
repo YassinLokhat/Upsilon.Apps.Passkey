@@ -4,6 +4,11 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
+   /// <summary>
+   /// Exclusive owner of a <c>.pku</c> ZIP: session-long handle, atomic replace
+   /// on write, JSON → GZip → (optional onion) per entry. All public methods
+   /// take the re-entrant <c>_gate</c>.
+   /// </summary>
    internal sealed class FileLocker : IDisposable
    {
       internal string FilePath { get; private set; }

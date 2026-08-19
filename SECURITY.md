@@ -198,6 +198,13 @@ login:
   the brief atomic-replace window above; other processes may still open the file
   for reading, but not for writing.
 
+### Static analysis
+
+- GitHub **CodeQL** (`security-and-quality`) runs on every push/PR to `master`
+  and weekly. The query pack is not a NuGet dependency of Core; it runs on
+  GitHub's infrastructure against a Release build of the production projects
+  (unit tests are omitted from that compilation).
+
 ### Randomness
 
 - All security-relevant randomness uses the cryptographically secure
@@ -207,6 +214,17 @@ login:
 
 ### In-memory hygiene
 
+- **`ProtectedSecret`**: once a vault is unlocked, account passwords, password
+  history, master passkeys, and the RSA private key are held as AES-256-GCM
+  ciphertext under a random, process-wide session key (`Core/Utils/ProtectedSecret.cs`).
+  Plaintext is produced only for the duration of `Reveal()` (display, copy,
+  re-encrypt, or JSON persist into the `.pku` onion). `ToString()` never returns
+  the secret (`***`), so a protected value cannot leak into logs or activity
+  messages by accident. The session key never leaves RAM and dies with the
+  process; a dump of the wrapped blobs after exit is worthless. Persistence
+  still stores plaintext JSON **inside** the onion-encrypted `database` /
+  `autosave` entries — `ProtectedSecret` is an in-memory wrapping, not a second
+  at-rest scheme.
 - `IDatabase.Login` takes a plain `string` passkey (there is no `SecureString`
   overload on the Core API). The WPF GUI keeps the typed secret in
   `PasswordBox.SecurePassword` and bridges it through
@@ -214,9 +232,9 @@ login:
   `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of
   the `Login` call. The short-lived managed `string` passed to Core remains
   subject to the usual .NET GC limitations documented under "Known Limitations".
-- Derived AES keys, per-layer UTF-8 password bytes, and GCM plaintext buffers
-  are wiped with `CryptographicOperations.ZeroMemory` after use (same pattern
-  as `ProtectedSecret`).
+- Derived AES keys, per-layer UTF-8 password bytes, GCM plaintext buffers, and
+  `ProtectedSecret` unwrap buffers are wiped with
+  `CryptographicOperations.ZeroMemory` after use.
 
 ### Progressive login without rollback (online brute-force friction)
 
@@ -244,7 +262,9 @@ login:
   database file handle is released.
 - **Clipboard cleaning**: copied passwords are removed from the clipboard (and
   clipboard history, via the OS-specific `IClipboardManager`) after a
-  configurable delay (`ISettings.CleaningClipboardTimeout`).
+  configurable delay (`ISettings.CleaningClipboardTimeout`). The WPF paste
+  hotkeys (Ctrl+Shift+L / Ctrl+Shift+P) go through the same clipboard path
+  before synthesizing Ctrl+V.
 
 ### Password hygiene features
 
@@ -277,11 +297,18 @@ login:
 
 These are conscious trade-offs, documented for transparency:
 
-- **Secrets in managed memory**: once decrypted, passwords are handled as .NET
-  `string` values, which are immutable and cannot be reliably zeroed before
-  garbage collection. An attacker able to read process memory or the OS swap file
-  while the database is unlocked may recover secrets. This is consistent with the
+- **Secrets in managed memory**: long-lived fields hold `ProtectedSecret`
+  ciphertext, not plaintext, which shrinks the window compared to keeping
+  passwords as `string` for the whole session. `Reveal()` still returns a .NET
+  `string`, which is immutable and cannot be reliably zeroed before garbage
+  collection. An attacker able to read process memory or the OS swap file
+  while the database is unlocked — especially during display, clipboard copy,
+  QR encoding, or a save — may recover secrets. This is consistent with the
   "compromised host" out-of-scope item.
+- **On-screen QR codes**: identifiers and passwords can be shown as a QR code
+  (generated in-process, no network). That puts the secret on the display until
+  the window closes or the configured `ShowPasswordDelay` elapses. Anyone who
+  can see or photograph the screen can capture it.
 - **Password stretching algorithm**: the project uses PBKDF2 rather than a
   memory-hard KDF such as Argon2id, because Argon2 is not part of the .NET base
   class library and the project maintains a zero-external-dependency policy for

@@ -4,6 +4,10 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
+   /// <summary>
+   /// Debounced, onion-encrypted list of unsaved <see cref="Change"/>s. Lock
+   /// order when nested: AutoSave → ActivityCenter → FileLocker.
+   /// </summary>
    internal sealed class AutoSave : IDisposable
    {
       internal Database Database

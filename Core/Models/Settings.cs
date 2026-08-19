@@ -4,6 +4,10 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
+   /// <summary>
+   /// Per-user timeouts and which <see cref="WarningType"/>s to surface.
+   /// Stored on the user; edits go through autosave.
+   /// </summary>
    internal sealed class Settings : ISettings
    {
       #region ISettings interface explicit Internal

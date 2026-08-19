@@ -8,9 +8,14 @@ using Clipboard = System.Windows.Clipboard;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
 {
+   /// <summary>
+   /// Windows clipboard: writes with history/cloud/monitor exclusion formats,
+   /// auto-clears only while the text is still ours, and scrubs WinRT clipboard
+   /// history asynchronously.
+   /// </summary>
    internal sealed class ClipboardManager : IClipboardManager
    {
-      #region IAccount interface explicit Internal
+      #region IClipboardManager
 
       public void SetText(string text, TimeSpan? autoClearAfter = null)
       {
@@ -101,6 +106,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
 
       #endregion
 
+      // Windows clipboard data formats that keep a secret out of history, cloud
+      // clipboard, and clipboard-monitoring apps (undocumented but widely used).
       private const string EXCLUDE_FORMAT = "ExcludeClipboardContentFromMonitoring";
       private const string HISTORY_FORMAT = "CanIncludeInClipboardHistory";
       private const string CLOUD_FORMAT = "CanUploadToCloudClipboard";

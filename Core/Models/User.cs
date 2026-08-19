@@ -6,6 +6,10 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
+   /// <summary>
+   /// Logged-in vault owner: services, settings, passkeys, RSA private key, and
+   /// the inactivity timer. Item id is prefixed <c>U</c>.
+   /// </summary>
    internal sealed class User : IUser, IDisposable
    {
       #region IUser interface explicit Internal
@@ -237,6 +241,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
+      /// <summary>
+      /// Restarts the inactivity and clipboard-clean countdowns from the current
+      /// settings. Called on login and on every vault field read via
+      /// <see cref="Database.Get{T}"/>.
+      /// </summary>
       public void ResetTimer()
       {
          SessionLeftTime = Settings.LogoutTimeout * 60;
@@ -259,6 +268,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
+      /// <summary>
+      /// Replays an autosave change. The first character of <see cref="Change.ItemId"/>
+      /// is the type prefix: <c>U</c> user, <c>S</c> service, <c>A</c> account.
+      /// </summary>
       internal void Apply(Change change)
       {
          switch (change.ItemId[0])

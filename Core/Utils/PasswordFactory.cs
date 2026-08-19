@@ -6,6 +6,10 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
+   /// <summary>
+   /// CSPRNG password generation and opt-in leak checks (HIBP, then XposedOrNot).
+   /// Network failures fail open: "not leaked", never cached.
+   /// </summary>
    public class PasswordFactory : IPasswordFactory
    {
       // A single, shared HttpClient avoids the socket exhaustion caused by
@@ -79,8 +83,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             }
          }
 
-         // Every attempt produced a leaked password: give up rather than
-         // returning a password that is known to be compromised.
+         // Give up rather than returning a password known to be in a breach corpus.
          return string.Empty;
       }
 
@@ -333,9 +336,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             for (int i = 0; i < length; i++)
             {
-               // RandomNumberGenerator.GetInt32 is a cryptographically secure,
-               // unbiased source: unlike System.Random it cannot be predicted
-               // from the current time, which is essential when minting secrets.
                _ = stringBuilder.Append(alphabet[RandomNumberGenerator.GetInt32(alphabet.Length)]);
             }
 
