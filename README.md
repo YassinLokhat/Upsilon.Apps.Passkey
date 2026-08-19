@@ -4,26 +4,55 @@
 **Overview**
 ------------
 
-This is a C# implementation of a local stored password manager in .Net 10. The application provides a secure way to store and manage passwords locally on the user's device.
+A local-only password manager written in C# on **.NET 10**. There is no server,
+no account, and no synchronization: every secret lives in a single encrypted
+`.pku` file on the user's device. Version **2.0.0** (each assembly is versioned
+independently; see [SECURITY.md](SECURITY.md)).
 
 **Features**
 ------------
 
-*   **Password Storage**: Store accounts and services passwords securely
-*   **History log**: Log every events
-*   **Trigger warnings**: Trigger warnings when detected
-*   **Autosave**: Autosave updates
-*   **Password Generation**: Generate strong, unique passwords
-*   **Leak detection**: Opt-in checks against Have I Been Pwned, with a free XposedOrNot failover (k-anonymity; see [SECURITY.md](SECURITY.md))
+*   **Password storage**: services, accounts, identifiers, notes, and password history
+*   **Multi-passkey vault**: ordered master passkeys form an AES-256-GCM onion (see [SECURITY.md](SECURITY.md))
+*   **Activity log**: tamper-evident audit trail of vault events
+*   **Warnings**: password-update reminders, duplicates, leaks, and activity review
+*   **Autosave**: unsaved edits are kept in the `.pku` ZIP and merged on the next login
+*   **Password generation**: CSPRNG over a configurable alphabet
+*   **Leak detection**: opt-in Have I Been Pwned checks, with a free XposedOrNot failover (k-anonymity; see [SECURITY.md](SECURITY.md))
+*   **Import / Export**: plaintext JSON (settings + services) or TSV/CSV (services only)
+*   **WPF client** (Windows): dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
+
+**Architecture**
+----------------
+
+Three layers, two solution files:
+
+```
+Interfaces/     Public contracts (IDatabase, IUser, crypto, clipboard, …)
+Core/           Vault implementation. Zero NuGet packages (BCL only).
+GUI/WPF/        Windows desktop client (MVVM + a small AppServices locator).
+UnitTests/      Core tests + ViewModel tests (Windows TFM; references the WPF project).
+```
+
+| Solution | Projects |
+| -------- | -------- |
+| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Core, WPF GUI, UnitTests |
+| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces and Core only (no WPF, no tests) |
+
+Core talks to the OS only through injected ports (`IClipboardManager` is the
+one that must be OS-specific). The WPF app supplies that implementation and
+hosts dialogs, session, and navigation behind `AppServices` so ViewModels stay
+testable without a window.
 
 **Security**
 ------------
 
-*   **Encryption**: Vault data uses an AES-256-GCM onion (HKDF-SHA256 per layer) over ordered passkeys; the activity log uses RSA-4096 hybrid encryption. See [SECURITY.md](SECURITY.md).
-*   **Access Control**: Access to the password store is restricted to authorized users only
+*   **At rest**: AES-256-GCM onion (HKDF-SHA256 per layer) over ordered passkeys; the activity log uses RSA-4096 hybrid encryption plus a login-time seal. See [SECURITY.md](SECURITY.md).
+*   **In memory**: account passwords, passkeys, and the RSA private key are wrapped with `ProtectedSecret` (process-wide AES-GCM) and only revealed just in time.
+*   **Session**: configurable auto-logout, clipboard auto-clear (including Windows clipboard history), and progressive login without rollback.
+*   **Supply chain**: Core and Interfaces refuse any third-party NuGet package at build time. GitHub CodeQL scans production code on CI.
 
 **Models**
-
 ----------
 
 ### Class diagram
@@ -42,9 +71,9 @@ classDiagram
 
         class IClipboardManager {
             <<interface>>
-            +SetText(in text string, in autoClearAfter TimeSpan) void
+            +SetText(in text string, in autoClearAfter TimeSpan?) void
             +SetText(in text string, in autoClearAfter int) void
-            +RemoveAllOccurrenceAsync(in removeList IEnumerable~string~, in cancellationToken CancellationToken) Task~int~
+            +RemoveAllOccurrenceAsync(in removeList string[], in cancellationToken CancellationToken) Task~int~
         }
 
         class IPasswordFactory {
@@ -66,8 +95,8 @@ classDiagram
             +GetHash(in source string) string
             +GetSlowHash(in source string, in parameters KdfParameters) string
             +EnsureSufficientSlowHashParameters(in parameters KdfParameters) void
-            +EncryptSymmetrically(in source string, in passwords IEnumerable~string~) string
-            +DecryptSymmetrically(in source string, in passwords IEnumerable~string~) string
+            +EncryptSymmetrically(in source string, in passwords string[]) string
+            +DecryptSymmetrically(in source string, in passwords string[]) string
             +GenerateRandomKeys(out publicKey string, out privateKey string) void
             +EncryptAsymmetrically(in source string, in key string) string
             +DecryptAsymmetrically(in source string, in key string) string
@@ -108,7 +137,7 @@ classDiagram
             <<interface>>
             +IUser User
             +string ServiceName
-            +Uri Url
+            +Uri? Url
             +string Notes
             +IEnumerable~IAccount~ Accounts
             +AddAccount(in label string, in identifiers IEnumerable~string~, in password string) IAccount
@@ -141,8 +170,8 @@ classDiagram
         class IDatabase {
             <<interface>>
             +string DatabaseFile
-            +IUser User
-            +int SessionLeftTime
+            +IUser? User
+            +int? SessionLeftTime
             +IEnumerable~IActivity~ Activities
             +IEnumerable~IWarning~ Warnings
             +ISerializationCenter SerializationCenter
@@ -179,8 +208,8 @@ classDiagram
         class IWarning {
             <<interface>>
             +WarningType WarningType
-            +IEnumerable~IActivity~ Activities
-            +IEnumerable~IAccount~ Accounts
+            +IEnumerable~IActivity~? Activities
+            +IEnumerable~IAccount~? Accounts
         }
     }
     
@@ -322,6 +351,9 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Create(new Upsilo
    new string[] { "master_password_1", "master_password_2", "master_password_3" });
 ```
 
+`CreateAsync` is the same work on a worker thread (RSA-4096 keygen plus one
+PBKDF2 stretch per passkey). Prefer it from a UI.
+
 After creation, the method opens the database **and logs the user in**:
 `database.User` is already set. Do **not** call `Login` afterwards — that would
 append another onion layer on top of an already-complete stack and fail. Progressive
@@ -453,20 +485,44 @@ Two things to keep in mind:
 offloaded: they await the leak-check providers (Have I Been Pwned first, then
 XposedOrNot if HIBP is unreachable) instead of blocking a thread on the network.
 
+**WPF client (Windows)**
+------------------------
+
+The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
+(`AppServices`) instead of a DI container, so ViewModels stay unit-testable.
+
+*   **Vault files**: new users are stored next to the executable as
+    `raw/{GetHash(username)}.pku`. `Ctrl+O` opens an existing `.pku`; a path can
+    also be passed as the first command-line argument.
+*   **Login**: username, then each passkey in order. Escape cancels and closes
+    the half-open session (required: there is no passkey rollback).
+*   **Shortcuts**: `Ctrl+O` open, `Ctrl+N` new user, `Ctrl+P` password generator.
+    While the services window is open, **Ctrl+Shift+L** pastes the selected
+    identifier and **Ctrl+Shift+P** pastes the selected password into the
+    focused field (copy + synthetic Ctrl+V; clipboard still auto-clears).
+*   **QR codes**: identifiers and passwords can be shown as a QR matrix generated
+    in-process (`Core/Utils/QrCode.cs`, no network). The window closes after
+    `ISettings.ShowPasswordDelay` milliseconds when that setting is non-zero.
+*   **Theme**: dark WPF resources plus Windows immersive dark title bars.
+*   **Logs**: rolling daily files under `%LocalAppData%\Passkey\logs`.
+
 **Testing**
 -----------
 
 ### Automated
 
-*   **Core**: `UnitTests` covers crypto, vault lifecycle, import/export, and related
-    models. Run with `dotnet test` on the Windows solution.
+*   **Core**: `UnitTests` covers crypto, vault lifecycle, import/export, persistence,
+    and related models. Run with `dotnet test` on the Windows solution.
 *   **GUI ViewModels**: the same `UnitTests` project also references the WPF app
     and exercises ViewModels (`UnitTests/Gui/`) through a replaceable
     `AppServices` seam and fakes (session, dialogs, clipboard). No UI automation
     (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, and real MessageBoxes
     stay out of the automated suite.
+*   **Coverage**: `coverage.runsettings` measures **Core only**. Windows CI fails
+    the build if line coverage drops below **90%**.
 
 ```bash
+dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Gui"
 ```
 
@@ -479,18 +535,37 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 3.  Copy an account password; confirm the clipboard clears after the configured timeout.
 4.  Idle until auto-logout; confirm the session closes and the vault file is released.
 5.  Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
+6.  Show a password as a QR code and confirm the window closes after the configured delay.
+
+**CI**
+------
+
+GitHub Actions on `master` and pull requests:
+
+| Workflow | What it does |
+| -------- | ------------ |
+| `.github/workflows/csharp-dotnet-windows.yml` | Restore, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Core + Interfaces) |
+| `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on a Release build of production projects (tests excluded); weekly scan as well |
+
+Dependabot is configured for the **.NET SDK** only (`dotnet-sdk` ecosystem). Test
+NuGet packages (MSTest, FluentAssertions) are not auto-bumped.
 
 **Getting Started**
 -------------------
 
 1.  Clone the repository: `git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git`
-2. 1. Build the solution for Windows users: `dotnet build Upsilon.Apps.Passkey.Windows.slnx`
-2. 2. Build the solution for Linux users: `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
+2.  Windows (GUI + tests): `dotnet build Upsilon.Apps.Passkey.Windows.slnx` then `dotnet run --project GUI/WPF`
+3.  Linux / Core-only: `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
+
+Requires the .NET 10 SDK. The WPF app targets `net10.0-windows10.0.18362.0`.
 
 **Contributing**
 ------------
 
-Contributions are welcome! Please submit a pull request with your changes.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for layout, the zero-dependency policy,
+style rules, coverage, and what a PR should include. Security reports go through
+[SECURITY.md](SECURITY.md), not public issues.
 
 **License**
 -------
