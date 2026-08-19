@@ -2,6 +2,11 @@
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
+   /// <summary>
+   /// One unsaved field edit (or add/delete) waiting in the autosave ZIP entry.
+   /// <see cref="Index"/> is a timestamp used to replay changes in order;
+   /// <see cref="long.MaxValue"/> means "not yet sequenced".
+   /// </summary>
    internal sealed class Change
    {
       public long Index { get; set; } = long.MaxValue;

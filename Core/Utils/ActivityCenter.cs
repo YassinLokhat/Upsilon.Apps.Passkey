@@ -5,6 +5,10 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
+   /// <summary>
+   /// Tamper-evident activity log: RSA-hybrid per record, seal on save while
+   /// logged in, deferred ZIP writes. See SECURITY.md ("Activity-log integrity").
+   /// </summary>
    internal sealed class ActivityCenter : IDisposable
    {
       internal Database Database

@@ -6,6 +6,11 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
+   /// <summary>
+   /// Account stored under a <see cref="Service"/>. Explicit interface members
+   /// go through <see cref="Database.Get{T}"/> so a read resets the session timer
+   /// and through autosave so a write is persisted after a short debounce.
+   /// </summary>
    internal sealed class Account : IAccount
    {
       #region IAccount interface explicit Internal

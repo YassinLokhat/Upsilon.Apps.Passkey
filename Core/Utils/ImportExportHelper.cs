@@ -9,6 +9,10 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
+   /// <summary>
+   /// JSON and tab-separated (TSV) import/export. Files are plaintext by design;
+   /// CSV cells are JSON-encoded so commas and quotes in notes survive.
+   /// </summary>
    internal static class ImportExportHelper
    {
       private enum Headers

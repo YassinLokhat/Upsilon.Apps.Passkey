@@ -5,6 +5,11 @@ using System.Windows.Interop;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
+   /// <summary>
+   /// Global hotkeys via <c>RegisterHotKey</c>, plus <c>SendInput</c> to synthesize
+   /// Ctrl+V after copying. Returns -1 when registration fails (handle not ready,
+   /// or the combo is already taken).
+   /// </summary>
    internal static class HotkeyHelper
    {
       private const int WM_HOTKEY = 0x0312;

@@ -6,6 +6,9 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
+   /// <summary>
+   /// A site/app grouping accounts. Item ids are prefixed <c>S</c>.
+   /// </summary>
    internal sealed class Service : IService
    {
       #region IService interface explicit Internal

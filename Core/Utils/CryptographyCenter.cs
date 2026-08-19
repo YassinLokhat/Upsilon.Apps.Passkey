@@ -6,8 +6,14 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
+   /// <summary>
+   /// BCL-only crypto: SHA-512 fingerprints, PBKDF2 stretching, AES-256-GCM
+   /// onion encryption, and RSA-4096 hybrid encrypt / PSS sign. See SECURITY.md.
+   /// </summary>
    public class CryptographyCenter : ICryptographyCenter
    {
+      // Filename-safe SHA-512 (Base64 with '/' → '-'): used as the implicit first
+      // onion layer (username) and as the .pku file stem next to the WPF binary.
       public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.UTF8.GetBytes(source))).Replace("/", "-", StringComparison.Ordinal);
 
       private const int SLOW_HASH_ITERATIONS = 1_000_000;
@@ -82,17 +88,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string GetSlowHash(string source, KdfParameters parameters)
       {
-         // Reject weakened or malformed headers before spending CPU on PBKDF2.
          EnsureSufficientSlowHashParameters(parameters);
 
-         // The salt is a random, per-database value carried in the parameters
-         // (read back from the header), so it is well-formed by construction and
-         // stable for the life of the file, which is required to reopen it.
          byte[] salt = Convert.FromBase64String(parameters.Salt);
-
-         // PBKDF2 is a standard password-stretching KDF. The exact algorithm,
-         // work factor and salt are taken from the caller so that a database can
-         // be reopened with the parameters stored in its header.
          byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
             Encoding.UTF8.GetBytes(source),
             salt,
@@ -176,13 +174,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string EncryptAsymmetrically(string source, string key)
       {
-         // The one-time AES key wraps the payload while the RSA layer protects
-         // the key itself. A full 256-bit CSPRNG draw is enough for AES-256.
+         // One-time AES key for the payload; RSA-OAEP wraps only that key so
+         // activity rows can be written with the public key alone.
          string aesKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(KEY_SIZE));
-
-         // The payload is sealed with authenticated AES-GCM and the AES key is
-         // wrapped with RSA-OAEP, so both parts already detect tampering - no
-         // separate signature is needed over the envelope.
          source = EncryptSymmetrically(source, [aesKey]);
          aesKey = _encryptRsa(aesKey, key);
          KeyValuePair<string, string> s = new(aesKey, source);
@@ -248,8 +242,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          catch
 #pragma warning restore CA1031
          {
-            // Any malformed key/signature (or a mismatch) is treated as an
-            // invalid signature rather than surfacing as an exception.
             return false;
          }
       }
@@ -318,8 +310,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          try
          {
-            // AES-GCM verifies the tag while decrypting and throws on any
-            // tampering or wrong key, which is how callers detect both.
             using (AesGcm aesGcm = new(key, TAG_SIZE))
             {
                aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);

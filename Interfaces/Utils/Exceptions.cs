@@ -1,5 +1,13 @@
-﻿namespace Upsilon.Apps.Passkey.Interfaces.Utils
+﻿using Upsilon.Apps.Passkey.Interfaces.Models;
+
+namespace Upsilon.Apps.Passkey.Interfaces.Utils
 {
+   /// <summary>
+   /// Thrown when a vault payload is not a Passkey onion (wrong file, truncated
+   /// archive, or tampered ciphertext). Distinct from
+   /// <see cref="WrongPasswordException"/> so the GUI does not treat corruption
+   /// as "try the next passkey".
+   /// </summary>
    public sealed class CorruptedSourceException : Exception
    {
       public CorruptedSourceException() : base() { }
@@ -32,8 +40,18 @@
       public IncompleteOnionException(string message, Exception innerException) : base(message, innerException) { }
    }
 
+   /// <summary>
+   /// Thrown when an onion layer fails authentication: the passkey at that depth
+   /// is wrong (or a previous mistype poisoned the stack).
+   /// <see cref="IDatabase.Login"/> catches this and returns <see langword="null"/>;
+   /// there is no rollback of the stacked passkey.
+   /// </summary>
    public sealed class WrongPasswordException : Exception
    {
+      /// <summary>
+      /// 1-based index of the onion layer that failed (username layer is 1).
+      /// Useful in activity logs; not a remaining-attempts counter.
+      /// </summary>
       public int PasswordLevel { get; private set; }
 
       public WrongPasswordException(int passwordLevel) : base()
@@ -58,8 +76,16 @@
       public WrongPasswordException(string message, Exception innerException) : base(message, innerException) { }
    }
 
+   /// <summary>
+   /// Thrown when a required object is missing at runtime (typically
+   /// <c>IDatabase.User</c> before login, or an unset parent on a model).
+   /// Not a substitute for <see cref="ArgumentNullException"/> on public parameters.
+   /// </summary>
    public sealed class NullValueException : Exception
    {
+      /// <summary>
+      /// The name of the missing value (often a parameter or property name).
+      /// </summary>
       public string Name { get; private set; } = string.Empty;
 
       public NullValueException() { }

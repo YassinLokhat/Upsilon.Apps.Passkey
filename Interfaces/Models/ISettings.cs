@@ -2,39 +2,27 @@
 
 namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
-   /// <summary>
-   /// Represent the user settings.
-   /// </summary>
    public interface ISettings
    {
-      /// <summary>
-      /// The number of minutes of inactivity before auto-logout.
-      /// </summary>
+      /// <summary>Minutes of inactivity before auto-logout.</summary>
       int LogoutTimeout { get; set; }
 
-      /// <summary>
-      /// The number of second to keep existing passwords in the clipboard.
-      /// </summary>
+      /// <summary>Seconds to keep a copied secret on the clipboard.</summary>
       int CleaningClipboardTimeout { get; set; }
 
       /// <summary>
-      /// The delay to keep password visible.
+      /// Milliseconds to keep a QR-code window open (<c>0</c> = until dismissed).
+      /// Named historically for password reveal; the WPF client uses it for QR display.
       /// </summary>
       int ShowPasswordDelay { get; set; }
 
-      /// <summary>
-      /// The number of old paswords to keep.
-      /// </summary>
+      /// <summary>Max dated entries kept in password history.</summary>
       int NumberOfOldPasswordToKeep { get; set; }
 
-      /// <summary>
-      /// The number of months activities to keep.
-      /// </summary>
+      /// <summary>Months of activity history to retain.</summary>
       int NumberOfMonthActivitiesToKeep { get; set; }
 
-      /// <summary>
-      /// The warnings types which will be notified if detected.
-      /// </summary>
+      /// <summary>Which warning kinds to surface to the user.</summary>
       WarningType WarningsToNotify { get; set; }
    }
 }

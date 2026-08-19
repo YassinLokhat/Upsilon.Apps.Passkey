@@ -6,6 +6,13 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
+   /// <summary>
+   /// Vault implementation: a ZIP <c>.pku</c> with onion-encrypted user data,
+   /// an autosave entry, a sealed activity log, and a sticky KDF header.
+   /// Create with <see cref="Create"/> / <see cref="Open"/>; do not construct
+   /// directly. After <see cref="Create"/> the user is already logged in —
+   /// do not call <see cref="Login"/> again on that instance.
+   /// </summary>
    public sealed class Database : IDatabase
    {
       #region IUser interface explicit Internal
@@ -63,8 +70,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
          catch (WrongPasswordException passwordException)
          {
-            // Soft miss: wrong passkey poisons the stack and returns null so the
-            // caller can keep stacking (or abandon). Logged for review.
             ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.LoginFailed,
                data: [Username, $"{passwordException.PasswordLevel}"],
@@ -72,12 +77,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
          catch (IncompleteOnionException)
          {
-            // Soft miss: the layers provided so far decrypted, but the payload is
-            // not a finished vault yet (more passkeys still required). Not logged
-            // as LoginFailed — the passkeys were not wrong.
+            // More passkeys still required — not a LoginFailed.
          }
-         // CorruptedSourceException and any other failure propagate: the GUI
-         // must surface them rather than treating them like a wrong passkey.
+         // CorruptedSourceException and other failures propagate to the GUI.
 
          if (User is not null)
          {
@@ -280,6 +282,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal string Username { get; private set; }
       internal string[] Passkeys { get; private set; }
 
+      // ZIP entry names inside a .pku. The header is unencrypted (KDF params);
+      // database and autosave are onion-encrypted; activity records are RSA-hybrid.
       internal readonly string HeaderFileEntry = "header";
       internal readonly string DatabaseFileEntry = "database";
       internal readonly string AutoSaveFileEntry = "autosave";
@@ -355,6 +359,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
          ActivityCenter.Database = this;
       }
 
+      /// <summary>
+      /// Creates a new <c>.pku</c> file, mints an RSA-4096 key pair, stretches
+      /// every passkey, writes the vault, and returns an already-logged-in
+      /// database. <paramref name="databaseFile"/> must not already exist.
+      /// Prefer <see cref="CreateAsync"/> from a UI thread.
+      /// </summary>
       public static IDatabase Create(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
@@ -435,6 +445,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
                passkeys),
             cancellationToken);
 
+      /// <summary>
+      /// Opens an existing <c>.pku</c>. <see cref="IDatabase.User"/> stays
+      /// <see langword="null"/> until progressive <see cref="Login"/> succeeds
+      /// with every passkey, in order. Prefer <see cref="OpenAsync"/> from a UI thread.
+      /// </summary>
       public static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
@@ -478,6 +493,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
                username),
             cancellationToken);
 
+      /// <summary>
+      /// Pass-through used by explicit interface getters. Touching any vault
+      /// field also resets the inactivity timer, so a read counts as activity.
+      /// </summary>
       internal T Get<T>(T value)
       {
          User?.ResetTimer();

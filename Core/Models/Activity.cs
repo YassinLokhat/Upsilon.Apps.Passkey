@@ -4,6 +4,9 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
+   /// <summary>
+   /// One audit-log row. Ciphertext is RSA-hybrid; plaintext lives only after login.
+   /// </summary>
    internal sealed class Activity : IActivity
    {
       #region IActivity interface
@@ -67,6 +70,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
+      /// <summary>
+      /// Persistence wire format: ticks|itemId|eventType|needsReview|data… with
+      /// <c>|</c> escaped as <c>\|</c> inside data. Numeric <see cref="EventType"/>
+      /// values are a contract — do not renumber the enum.
+      /// </summary>
       public override string ToString()
       {
          string activity = $"{DateTimeTicks:X}|{ItemId}|{(int)EventType}|{(NeedsReview ? "1" : "")}";

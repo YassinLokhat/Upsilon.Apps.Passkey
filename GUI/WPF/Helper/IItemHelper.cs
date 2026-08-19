@@ -2,8 +2,16 @@
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
+   /// <summary>
+   /// Filter helpers and a session keep-alive. <see cref="Shake"/> only exists to
+   /// touch <see cref="IItem.ItemId"/>, which resets the inactivity timer via
+   /// <c>Database.Get</c> — WPF selection changes would otherwise not count as activity.
+   /// </summary>
    internal static class IItemHelper
    {
+      /// <summary>
+      /// Counts as user activity (resets auto-logout) without changing data.
+      /// </summary>
       public static void Shake(this IUser user)
       {
          _ = user.ItemId;

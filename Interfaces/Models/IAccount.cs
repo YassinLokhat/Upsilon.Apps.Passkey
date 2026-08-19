@@ -2,50 +2,31 @@
 
 namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
-   /// <summary>
-   /// Represent an account.
-   /// </summary>
    public interface IAccount : IItem
    {
-      /// <summary>
-      /// The service containing this account.
-      /// </summary>
       IService Service { get; }
 
-      /// <summary>
-      /// The label.
-      /// </summary>
       string Label { get; set; }
 
-      /// <summary>
-      /// The account's notes.
-      /// </summary>
       string Notes { get; set; }
 
       /// <summary>
-      /// The identifants.
+      /// Logins, emails, or other identifiers for this account.
       /// </summary>
       IEnumerable<string> Identifiers { get; set; }
 
-      /// <summary>
-      /// The actual password.
-      /// </summary>
       string Password { get; set; }
 
       /// <summary>
-      /// The passwords history.
+      /// Dated password history (newest kept according to settings).
       /// </summary>
       Dictionary<DateTime, string> Passwords { get; }
 
       /// <summary>
-      /// The number of month before a password update remind.
-      /// The value '0' means 'never'.
+      /// Months before a password-update reminder; <c>0</c> means never.
       /// </summary>
       int PasswordUpdateReminderDelay { get; set; }
 
-      /// <summary>
-      /// The account's options.
-      /// </summary>
       AccountOption Options { get; set; }
    }
 }

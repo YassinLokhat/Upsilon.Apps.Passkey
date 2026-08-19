@@ -3,6 +3,10 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
+   /// <summary>
+   /// One warning bucket: either activities that need review, or accounts that
+   /// share a leaked / duplicated / expired password.
+   /// </summary>
    internal sealed class Warning : IWarning
    {
       #region IWarning interface implicit Internal
