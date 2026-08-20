@@ -25,7 +25,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // so a deferred persist never snapshots a torn list.
       public List<string> ActivityList { get; set; } = [];
 
-      public string Username { get; set; } = string.Empty;
+      // Deliberately no cleartext Username on this envelope: the activity ZIP
+      // entry is readable without passkeys. Identity belongs in the onion-wrapped
+      // database (and inside RSA-hybrid event payloads), not in this metadata.
 
       public string PublicKey { get; set; } = string.Empty;
 
@@ -44,8 +46,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       public int SealedCount { get; set; }
 
       // Protects Activities, ActivityList, Signature, SealedCount, and the
-      // Username/PublicKey reads used while mutating those collections. Lock
-      // order when nested: AutoSave → ActivityCenter → FileLocker.
+      // PublicKey reads used while mutating those collections. Lock order when
+      // nested: AutoSave → ActivityCenter → FileLocker.
       private readonly Lock _gate = new();
 
       // Each AddActivity used to rewrite the ZIP activity entry (and RSA-sign it

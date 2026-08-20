@@ -204,7 +204,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
          ActivityCenter = fileMode == FileMode.Create
             ? new()
             {
-               Username = username,
                PublicKey = publicKey,
             }
             : FileLocker.Open<ActivityCenter>(ActivityFileEntry);

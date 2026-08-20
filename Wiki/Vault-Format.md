@@ -22,7 +22,7 @@ For `database` / `autosave`:
 3. Base64
 4. Symmetric onion encrypts that compressed payload
 
-The `activity` entry skips the onion: records are already protected individually with per-record RSA hybrid encryption before the shared compress/Base64 step.
+The `activity` entry skips the onion: records are already protected individually with per-record RSA hybrid encryption before the shared compress/Base64 step. The envelope itself holds seal metadata and the RSA public key only — **no cleartext username**, so a stolen `.pku` does not reveal the account name from this entry.
 
 Compressing **before** encryption is deliberate: GZip shrinks structured plaintext, not high-entropy ciphertext. The trade-off is compressed size leakage (ciphertext length tracks approximate vault size) — documented under known limitations on [[Security]].
 

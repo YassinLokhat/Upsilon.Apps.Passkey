@@ -43,7 +43,7 @@ All security-relevant randomness uses `System.Security.Cryptography.RandomNumber
 
 Ordered master passkeys form an AES-256-GCM onion (HKDF-SHA256 per layer) after PBKDF2-HMAC-SHA-512 stretching. Username hash is an implicit first layer. Sticky KDF header + KDF floor: [[Vault Format]].
 
-The activity log uses RSA-4096 hybrid encryption plus a login-time seal: [[Warnings and Activity]].
+The activity log uses RSA-4096 hybrid encryption plus a login-time seal: [[Warnings and Activity]]. The activity ZIP envelope does not store a cleartext username.
 
 ## In memory
 

@@ -1,6 +1,5 @@
 ﻿using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
-using Windows.Networking.Vpn;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {

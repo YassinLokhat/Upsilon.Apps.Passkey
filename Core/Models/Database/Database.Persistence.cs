@@ -74,7 +74,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
             throw new NullValueException(nameof(User));
          }
 
-         ActivityCenter.Username = User.Username;
          ActivityCenter.Save(rebuildStringActivities);
       }
 
