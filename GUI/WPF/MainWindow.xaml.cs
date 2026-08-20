@@ -107,16 +107,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             // leaves the user still on the credential screen.
             _timer.Stop();
 
-            if (sender == _username_TB)
+            if (sender.Equals(_username_TB))
             {
-               if (sender.Equals(_username_TB))
-               {
-                  await _submitUsernameAsync().ConfigureAwait(true);
-               }
-               else
-               {
-                  await _submitPasswordAsync().ConfigureAwait(true);
-               }
+               await _submitUsernameAsync().ConfigureAwait(true);
             }
             else
             {
