@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Interfaces.Enums;
+﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
@@ -17,10 +17,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (itemId == User?.ItemId)
          {
-            if (User is not null)
-            {
-               itemName = User.ToString();
-            }
+            itemName = User.ToString();
          }
          else if (itemId.StartsWith('S'))
          {

@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Core.Utils;
+﻿using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
@@ -18,22 +18,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       string IActivityHost.DecryptActivity(string ciphertext)
       {
-         if (User is null)
-         {
-            throw new NullValueException(nameof(User));
-         }
-
-         return CryptographyCenter.DecryptAsymmetrically(ciphertext, User.PrivateKey.Reveal());
+         return User is null
+            ? throw new NullValueException(nameof(User))
+            : CryptographyCenter.DecryptAsymmetrically(ciphertext, User.PrivateKey.Reveal());
       }
 
       string IActivityHost.GetTrustedPublicKey()
       {
-         if (User is null)
-         {
-            throw new NullValueException(nameof(User));
-         }
-
-         return CryptographyCenter.GetPublicKey(User.PrivateKey.Reveal());
+         return User is null ? throw new NullValueException(nameof(User)) : CryptographyCenter.GetPublicKey(User.PrivateKey.Reveal());
       }
 
       bool IActivityHost.VerifySeal(string canonical, string signature, string trustedPublicKey)
@@ -41,12 +33,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       string IActivityHost.SignSeal(string canonical)
       {
-         if (User is null)
-         {
-            throw new NullValueException(nameof(User));
-         }
-
-         return CryptographyCenter.Sign(canonical, User.PrivateKey.Reveal());
+         return User is null ? throw new NullValueException(nameof(User)) : CryptographyCenter.Sign(canonical, User.PrivateKey.Reveal());
       }
 
       void IActivityHost.SaveActivityLog(ActivityCenter activityCenter)
