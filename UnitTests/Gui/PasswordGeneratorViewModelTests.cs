@@ -5,6 +5,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 namespace Upsilon.Apps.Passkey.UnitTests.Gui
 {
    [TestClass]
+   [DoNotParallelize]
    public sealed class PasswordGeneratorViewModelTests
    {
       [TestInitialize]
