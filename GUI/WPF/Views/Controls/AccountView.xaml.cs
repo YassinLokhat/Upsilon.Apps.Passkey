@@ -242,7 +242,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          {
             passwordBox.Password = ((PasswordViewModel)((ContentPresenter)passwordBox.TemplatedParent).Content).Password;
          }
-         catch (InvalidCastException) { }
+         catch (InvalidCastException)
+         {
+            System.Diagnostics.Trace.TraceWarning("Loading password view failed");
+         }
       }
 
       private void _copyIdentifier_Clicked(object sender, RoutedEventArgs e)

@@ -362,6 +362,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                   || ex is NotSupportedException
                   || ex is SecurityException)
                {
+                  System.Diagnostics.Trace.TraceWarning($"Failed to delete file '{tempPath}'");
                }
             }
          }
