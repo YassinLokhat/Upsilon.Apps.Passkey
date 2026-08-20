@@ -81,7 +81,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (User is not null)
          {
-            User.Database = this;
+            User.Host = this;
 
             ActivityCenter.LoadStringActivities();
 
@@ -258,7 +258,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          database.User = new()
          {
-            Database = database,
+            Host = database,
             PrivateKey = ProtectedSecret.Protect(privateKey),
             ItemId = "U" + cryptographicCenter.GetHash(username),
             Username = username,
