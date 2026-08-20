@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          string oldServiceName = "Service_" + UnitTestsHelper.GetUsername();
          string newServiceName = "new_" + oldServiceName;
-         string url = UnitTestsHelper.GetRandomString();
+         Uri url = new($"http://{username}.test");
          string notes = UnitTestsHelper.GetRandomString();
          Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
@@ -36,7 +36,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // Then
          databaseCreated.User.HasChanged().Should().BeTrue();
          service.HasChanged().Should().BeFalse();
-         _ = databaseCreated.User.Services.Length.Should().Be(1);
+         _ = databaseCreated.User.Services.Count().Should().Be(1);
 
          // When
          service.ServiceName = newServiceName;
@@ -45,7 +45,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
          service.Url = url;
          service.Url = url;
-         expectedActivities.Push($"Information : {service}'s url has been set to {url}");
+         expectedActivities.Push($"Information : {service}'s url has been set to {url.OriginalString}");
          service.Notes = notes;
          service.Notes = notes;
          expectedActivities.Push($"Information : {service}'s notes has been set to {notes}");
@@ -69,7 +69,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : User {username} logged in");
 
          // Then
-         _ = databaseLoaded.User.Services.Length.Should().Be(1);
+         _ = databaseLoaded.User.Services.Count().Should().Be(1);
 
          // When
          IService serviceLoaded = databaseLoaded.User.Services.First();
@@ -102,7 +102,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          string oldServiceName = "Service_" + UnitTestsHelper.GetUsername();
          string newServiceName = "new_" + oldServiceName;
-         string url = UnitTestsHelper.GetRandomString();
+         Uri url = new($"http://{username}.test");
          string notes = UnitTestsHelper.GetRandomString();
          Stack<string> expectedActivities = new();
          Stack<string> expectedLogWarnings = new();
@@ -112,7 +112,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : {service} has been added to User {username}");
 
          // Then
-         _ = databaseCreated.User.Services.Length.Should().Be(1);
+         _ = databaseCreated.User.Services.Count().Should().Be(1);
 
          // When
          service.ServiceName = newServiceName;
@@ -121,7 +121,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Service {oldServiceName}'s service name has been set to {newServiceName}");
          service.Url = url;
          service.Url = url;
-         expectedActivities.Push($"Information : {service}'s url has been set to {url}");
+         expectedActivities.Push($"Information : {service}'s url has been set to {url.OriginalString}");
          service.Notes = notes;
          service.Notes = notes;
          expectedActivities.Push($"Information : {service}'s notes has been set to {notes}");
@@ -138,7 +138,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : User {username}'s autosave merged and saved");
 
          // Then
-         _ = databaseLoaded.User.Services.Length.Should().Be(1);
+         _ = databaseLoaded.User.Services.Count().Should().Be(1);
 
          // When
          IService serviceLoaded = databaseLoaded.User.Services.First();
@@ -184,7 +184,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Service {serviceName} has been removed from User {username}");
 
          // Then
-         _ = databaseLoaded.User.Services.Length.Should().Be(0);
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          // When
          databaseLoaded.Save();
@@ -198,7 +198,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : User {username} logged in");
 
          // Then
-         _ = databaseLoaded.User.Services.Length.Should().Be(0);
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
@@ -235,7 +235,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : Service {serviceName} has been removed from User {username}");
 
          // Then
-         _ = databaseLoaded.User.Services.Length.Should().Be(0);
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          // When
          databaseLoaded.Close();
@@ -250,13 +250,46 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedLogWarnings.Push($"Warning : User {username}'s autosave merged and saved");
 
          // Then
-         _ = databaseLoaded.User.Services.Length.Should().Be(0);
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * The four AddAccount overloads all create an account, and a null Url
+       * round-trips as "no url" rather than throwing.
+      */
+      public void Case05_AddAccountOverloadsAndNullUrl()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase();
+         IService service = database.User!.AddService("OverloadService");
+
+         IAccount withLabel = service.AddAccount("Labeled", ["id-1"]);
+         IAccount withPassword = service.AddAccount(["id-2"], "secret");
+         IAccount identifiersOnly = service.AddAccount(["id-3"]);
+
+         _ = withLabel.Label.Should().Be("Labeled");
+         _ = withLabel.Password.Should().BeEmpty();
+         _ = withPassword.Label.Should().BeEmpty();
+         _ = withPassword.Password.Should().Be("secret");
+         _ = identifiersOnly.Identifiers.Should().Equal("id-3");
+         _ = service.Accounts.Should().HaveCount(3);
+
+         service.Url = null;
+         _ = service.Url.Should().BeNull();
+
+         service.DeleteAccount(withLabel);
+         Action deleteUnknown = () => service.DeleteAccount(withLabel);
+         deleteUnknown.Should().Throw<KeyNotFoundException>();
+
+         database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
    }

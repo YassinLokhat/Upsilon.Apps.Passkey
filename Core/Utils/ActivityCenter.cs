@@ -1,73 +1,420 @@
 ﻿using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
-   internal class ActivityCenter
+   /// <summary>
+   /// Tamper-evident activity log: RSA-hybrid per record, seal on save while
+   /// logged in, deferred ZIP writes. See SECURITY.md ("Activity-log integrity").
+   /// </summary>
+   internal sealed class ActivityCenter : IDisposable
    {
-      internal Database Database
+      internal IActivityHost Host
       {
-         get => field ?? throw new NullReferenceException(nameof(Database));
+         get => field ?? throw new NullValueException(nameof(Host));
          set;
       }
 
+      // In-memory decrypted view. Mutated on the UI thread and read by warning
+      // scans / Flush; always accessed under _gate.
       internal List<IActivity> Activities = [];
 
+      // Serialized ciphertexts (and seal metadata below). Same gate as Activities
+      // so a deferred persist never snapshots a torn list.
       public List<string> ActivityList { get; set; } = [];
 
-      public string Username { get; set; } = string.Empty;
+      // Deliberately no cleartext Username on this envelope: the activity ZIP
+      // entry is readable without passkeys. Identity belongs in the onion-wrapped
+      // database (and inside RSA-hybrid event payloads), not in this metadata.
 
       public string PublicKey { get; set; } = string.Empty;
+
+      // Tamper-evidence for the activity log. The log must accept entries even
+      // when no user is logged in (e.g. failed logins), so writing uses only the
+      // public key and cannot be protected by a secret. Instead, on every save
+      // made while a user is logged in, the current log is sealed with an RSA
+      // signature over its entries (see _seal). Ciphertexts are produced once at
+      // AddActivity time; Save only re-encrypts when retention pruning drops
+      // rows. SealedCount records how many entries that signature covers; entries
+      // appended before the next login form an unsealed tail. Verification (see
+      // VerifyIntegrity) then detects any modification, forgery, reordering, key
+      // substitution or rollback of the sealed portion.
+      public string Signature { get; set; } = string.Empty;
+
+      public int SealedCount { get; set; }
+
+      // Protects Activities, ActivityList, Signature, SealedCount, and the
+      // PublicKey reads used while mutating those collections. Lock order when
+      // nested: AutoSave → ActivityCenter → FileLocker.
+      private readonly Lock _gate = new();
+
+      // Each AddActivity used to rewrite the ZIP activity entry (and RSA-sign it
+      // when logged in). Bursts of edits therefore paid N full archive writes.
+      // While a user is logged in we coalesce those into one flush; pre-login
+      // events still write immediately so failed-login / open audits survive a
+      // crash before the session starts.
+      private readonly DeferredPersistence _deferred;
+
+      public ActivityCenter()
+      {
+         // Deferred ZIP writes must not seal: sealing after ~500 ms idle mid-typing
+         // would freeze partial ItemUpdated rows and break field coalescing. Seal
+         // only on explicit Save / Flush (database save, logout).
+         _deferred = new DeferredPersistence(() => _persist(rebuildStringActivities: false, seal: false));
+      }
 
       internal void AddActivity(string itemId, ActivityEventType eventType, string[] data, bool needsReview)
       {
          Activity activity = new(DateTime.Now.Ticks, itemId, eventType, data, needsReview);
 
-         Activities.Insert(0, activity);
-         ActivityList.Insert(0, Database.CryptographyCenter.EncryptAsymmetrically(activity.ToString(), PublicKey));
+         // Capture the public key under the gate, encrypt outside it, then insert
+         // both plaintext and ciphertext atomically. Holding _gate across RSA
+         // would stall concurrent Flush/warning reads for no consistency gain.
+         string publicKey;
+         lock (_gate)
+         {
+            publicKey = PublicKey;
+         }
 
-         Save(rebuildStringActivities: false);
+         string encrypted = Host.EncryptActivity(activity.ToString(), publicKey);
+
+         bool flushImmediately;
+         lock (_gate)
+         {
+            // Live field bindings fire ItemUpdated on every keystroke. Mirror
+            // AutoSave._mergeChanges: keep a single unsealed row per (item, field)
+            // so the audit log does not grow with typing. Sealed entries are never
+            // rewritten (tamper-evidence). Password is excluded: it is committed
+            // only on explicit validation, and create-time vs later password
+            // changes must remain distinct audit rows.
+            if (eventType == ActivityEventType.ItemUpdated
+               && data.Length > 1
+               && !string.Equals(data[1], "Password", StringComparison.Ordinal))
+            {
+               _removeUnsealedItemUpdated_NoLock(itemId, data[1]);
+            }
+
+            Activities.Insert(0, activity);
+            ActivityList.Insert(0, encrypted);
+            flushImmediately = !Host.IsLoggedIn;
+         }
+
+         if (flushImmediately)
+         {
+            // No session yet: flush now so the audit trail is on disk even if the
+            // process dies before Login (failed attempts, DatabaseOpened, …).
+            Save(rebuildStringActivities: false);
+         }
+         else
+         {
+            _deferred.Schedule();
+         }
+      }
+
+      /// <summary>
+      /// Removes the unsealed <see cref="ActivityEventType.ItemUpdated"/> entry
+      /// for <paramref name="itemId"/>/<paramref name="fieldName"/> when AutoSave
+      /// cancels a coalesced edit (value restored to its pre-edit OldValue).
+      /// </summary>
+      internal void CancelPendingItemUpdated(string itemId, string fieldName)
+      {
+         bool removed;
+
+         lock (_gate)
+         {
+            removed = _removeUnsealedItemUpdated_NoLock(itemId, fieldName);
+         }
+
+         if (removed)
+         {
+            _deferred.Schedule();
+         }
+      }
+
+      // Caller must hold _gate. Returns true when an entry was dropped.
+      private bool _removeUnsealedItemUpdated_NoLock(string itemId, string fieldName)
+      {
+         int unsealedCount = ActivityList.Count - SealedCount;
+
+         for (int i = 0; i < unsealedCount; i++)
+         {
+            if (Activities[i] is not Activity candidate
+               || candidate.EventType != ActivityEventType.ItemUpdated
+               || candidate.ItemId != itemId
+               || candidate.Data.Length < 2
+               || candidate.Data[1] != fieldName)
+            {
+               continue;
+            }
+
+            Activities.RemoveAt(i);
+            ActivityList.RemoveAt(i);
+            return true;
+         }
+
+         return false;
       }
 
       internal void LoadStringActivities()
       {
-         Activities.Clear();
+         if (!Host.IsLoggedIn)
+         {
+            lock (_gate)
+            {
+               Activities.Clear();
+            }
 
-         if (Database.User is null) return;
+            return;
+         }
 
-         Activities = [.. ActivityList.AsParallel()
-            .Select(x => new Activity(Database.CryptographyCenter.DecryptAsymmetrically(x, Database.User.PrivateKey)))
-            .OrderByDescending(x => x.DateTime)];
+         // Snapshot ciphertexts under the gate, decrypt outside (RSA is slow and
+         // must not block AddActivity / Flush), then publish the result under the
+         // gate again. Authenticity of the sealed portion is asserted separately
+         // by VerifyIntegrity, which does not need to decrypt anything.
+         string[] encryptedSnapshot;
+         lock (_gate)
+         {
+            encryptedSnapshot = [.. ActivityList];
+         }
+
+         // Preserve ActivityList order (newest-first). AsOrdered keeps that
+         // sequence across parallel decrypts; sorting by DateTime alone was
+         // unstable when several entries shared the same tick.
+         List<IActivity> decrypted = [.. encryptedSnapshot.AsParallel()
+            .AsOrdered()
+            .Select(_tryDecrypt)
+            .Where(x => x is not null)
+            .Cast<Activity>()];
+
+         lock (_gate)
+         {
+            Activities = decrypted;
+         }
       }
+
+      private Activity? _tryDecrypt(string encryptedActivity)
+      {
+         if (!Host.IsLoggedIn)
+         {
+            return null;
+         }
+
+         try
+         {
+            return new Activity(Host.DecryptActivity(encryptedActivity));
+         }
+         catch (Exception ex)
+            when (ex is CorruptedSourceException
+            or WrongPasswordException
+            or ArgumentNullException
+            or NullValueException)
+         {
+            // An entry that cannot be decrypted (e.g. one forged with a different
+            // key) is skipped rather than aborting login; authenticity of the
+            // sealed portion is asserted separately by VerifyIntegrity. We still
+            // trace the failure so a skipped entry is diagnosable.
+            System.Diagnostics.Trace.TraceWarning($"Activity entry could not be decrypted and was skipped: {ex}");
+            return null;
+         }
+      }
+
+      /// <summary>
+      /// Verifies that the sealed portion of the log has not been tampered with.
+      /// Requires a logged-in user (the private key anchors the check). Never
+      /// throws: returns <see langword="false"/> when tampering is detected.
+      /// </summary>
+      internal bool VerifyIntegrity()
+      {
+         if (!Host.IsLoggedIn)
+         {
+            throw new NullValueException("User");
+         }
+
+         int watermark = Host.ActivitySealWatermark;
+         string signature;
+         int sealedCount;
+         int activityCount;
+         string publicKey;
+         string canonical;
+
+         lock (_gate)
+         {
+            signature = Signature;
+            sealedCount = SealedCount;
+            activityCount = ActivityList.Count;
+            publicKey = PublicKey;
+
+            // A brand-new database before its first save has nothing sealed yet.
+            if (watermark == 0 && string.IsNullOrEmpty(signature))
+            {
+               return true;
+            }
+
+            // The database (which is tamper-proof) records that the log was sealed,
+            // but the signature is now gone: a downgrade/strip attempt.
+            if (string.IsNullOrEmpty(signature))
+            {
+               return false;
+            }
+
+            // Fewer sealed entries than the trusted database recorded, or a list
+            // shorter than its own sealed count: truncation/rollback.
+            if (sealedCount < watermark || activityCount < sealedCount)
+            {
+               return false;
+            }
+
+            canonical = _canonicalSealedContent_NoLock();
+         }
+
+         // The public key stored in the (unencrypted) log must be the one that
+         // belongs to the private key held in the encrypted database. This
+         // defeats an attacker swapping in their own key pair. RSA verify runs
+         // outside the gate.
+         string trustedPublicKey = Host.GetTrustedPublicKey();
+         return trustedPublicKey == publicKey && Host.VerifySeal(canonical, signature, trustedPublicKey);
+      }
+
+      /// <summary>
+      /// Snapshot of activities newest-first for UI / public API consumers.
+      /// Insertion order is already newest-first; do not re-sort by DateTime
+      /// (ties would be unstable).
+      /// </summary>
+      internal IActivity[] GetActivitiesOrdered()
+      {
+         lock (_gate)
+         {
+            return [.. Activities];
+         }
+      }
+
+      /// <summary>
+      /// Snapshot of activities that still need user review (warning scan).
+      /// </summary>
+      internal IActivity[] GetActivitiesNeedingReview()
+      {
+         lock (_gate)
+         {
+            return [.. Activities.Where(x => x.NeedsReview)];
+         }
+      }
+
+      /// <summary>
+      /// Current seal watermark, safe to read while a flush may be in progress.
+      /// </summary>
+      internal int GetSealedCount()
+      {
+         lock (_gate)
+         {
+            return SealedCount;
+         }
+      }
+
+      /// <summary>
+      /// Forces any debounced activity write to disk and seals the log. Must run
+      /// while the user is still available so the seal can be (re)computed
+      /// (database save, logout).
+      /// </summary>
+      internal void Flush()
+      {
+         // Cancel the debounce timer without writing: in-memory Activities already
+         // hold every AddActivity. Persist once with seal so Close/Save do not
+         // leave an unsealed tail that a deferred (no-seal) write would have
+         // produced.
+         _deferred.Cancel();
+         _persist(rebuildStringActivities: false, seal: true);
+      }
+
+      /// <summary>
+      /// Drops a pending debounced write without touching the disk.
+      /// </summary>
+      internal void CancelPending() => _deferred.Cancel();
 
       internal void Save(bool rebuildStringActivities)
       {
-         if (rebuildStringActivities)
-         {
-            _removeOldActivities();
-
-            ActivityList.Clear();
-            ActivityList.AddRange(Activities
-               .OrderByDescending(x => x.DateTime)
-               .Select(x => ((Activity)x).ToString())
-               .Distinct()
-               .Select(x => Database.CryptographyCenter.EncryptAsymmetrically(x, PublicKey)));
-         }
-
-         Database.FileLocker.Save(this, Database.ActivityFileEntry);
+         // An explicit save supersedes any pending debounce.
+         _deferred.Cancel();
+         _persist(rebuildStringActivities, seal: true);
       }
 
-      private void _removeOldActivities()
+      public void Dispose() => _deferred.Dispose();
+
+      private void _persist(bool rebuildStringActivities, bool seal)
       {
-         if (Database.User is null
-            || Database.User.NumberOfMonthActivitiesToKeep == 0)
+         // Append path (deferred flushes): ActivityList already holds per-entry
+         // ciphertexts from EncryptAsymmetrically at insert time; write the ZIP
+         // without resealing so mid-typing ItemUpdated rows stay coalescable.
+         // Explicit Save / Flush: optionally prune, then seal, then write.
+         // FileLocker is taken inside the same critical section (lock order:
+         // ActivityCenter → FileLocker).
+         lock (_gate)
+         {
+            if (rebuildStringActivities && _removeOldActivities_NoLock())
+            {
+               _rebuildActivityList_NoLock();
+            }
+
+            if (seal)
+            {
+               _seal_NoLock();
+            }
+
+            Host.SaveActivityLog(this);
+         }
+      }
+
+      // Caller must hold _gate. Re-encrypts the current Activities view into
+      // ActivityList (newest-first). Used only after a prune that dropped rows.
+      private void _rebuildActivityList_NoLock()
+      {
+         ActivityList.Clear();
+         ActivityList.AddRange(Activities
+            .OrderByDescending(x => x.DateTime)
+            .Select(x => Host.EncryptActivity(((Activity)x).ToString(), PublicKey)));
+      }
+
+      // Caller must hold _gate.
+      private void _seal_NoLock()
+      {
+         // Sealing needs the private key, which is only available once a user is
+         // logged in. Activities appended before login grow an unsealed tail
+         // that is sealed by the next save after a successful login.
+         if (!Host.IsLoggedIn)
          {
             return;
          }
 
-         DateTime limitDate = DateTime.Now.AddMonths(-Database.User.NumberOfMonthActivitiesToKeep).Date.AddDays(-DateTime.Now.Day + 1);
+         SealedCount = ActivityList.Count;
+         Signature = Host.SignSeal(_canonicalSealedContent_NoLock());
+      }
+
+      // Caller must hold _gate.
+      private string _canonicalSealedContent_NoLock()
+      {
+         // Entries are stored newest-first, so the sealed set (everything that
+         // existed at the last seal) is the tail; anything prepended afterwards
+         // is the unsealed part and is excluded here.
+         IEnumerable<string> sealedEntries = ActivityList.Skip(ActivityList.Count - SealedCount);
+
+         return string.Join("\n", [$"{SealedCount}", PublicKey, .. sealedEntries]);
+      }
+
+      // Caller must hold _gate. Returns true when at least one entry was dropped
+      // so the caller knows ActivityList must be rebuilt to match.
+      private bool _removeOldActivities_NoLock()
+      {
+         if (!Host.IsLoggedIn
+            || Host.ActivityRetentionMonths == 0)
+         {
+            return false;
+         }
+
+         DateTime limitDate = DateTime.Now.AddMonths(-Host.ActivityRetentionMonths).Date.AddDays(-DateTime.Now.Day + 1);
+         int before = Activities.Count;
          Activities = [.. Activities.Where(x => x.DateTime >= limitDate || x.NeedsReview)];
+         return Activities.Count != before;
       }
    }
 }

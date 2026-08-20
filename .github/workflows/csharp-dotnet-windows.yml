@@ -4,20 +4,25 @@ on:
   push:
     branches: [ "master" ]
   pull_request:
-    branches: [ "master" ]
 
 concurrency:
   group: windows-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  # Minimum line coverage (0.0 - 1.0) required for the build to pass. Scoped to
+  # Core (the WPF client is excluded). Bump this up as coverage grows to lock
+  # in non-regression; the build fails if coverage drops below it.
+  MINIMUM_LINE_COVERAGE: "0.90"
 
 jobs:
   build:
     runs-on: windows-2025-vs2026
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 10.0.x
         
@@ -31,15 +36,49 @@ jobs:
       run: dotnet build Upsilon.Apps.Passkey.Windows.slnx --no-restore --configuration Release
 
     - name: Test
-      run: dotnet test --no-build --verbosity normal Upsilon.Apps.Passkey.Windows.slnx --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+      run: dotnet test --no-build --verbosity normal Upsilon.Apps.Passkey.Windows.slnx --logger "trx;LogFileName=test-results.trx" --results-directory TestResults --collect:"Code Coverage" --settings coverage.runsettings
 
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: test-results-windows
         path: TestResults/**/*.trx
         if-no-files-found: ignore
+
+    - name: Upload coverage report
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: coverage-windows
+        path: TestResults/**/*.cobertura.xml
+        if-no-files-found: ignore
+
+    - name: Publish coverage summary and enforce threshold
+      if: always()
+      shell: pwsh
+      run: |
+        $report = Get-ChildItem -Path TestResults -Recurse -Filter *.cobertura.xml | Select-Object -First 1
+        if ($null -eq $report) {
+          "No coverage report was produced." | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+          Write-Error "No coverage report was produced; cannot enforce the coverage threshold."
+          exit 1
+        }
+        [xml]$coverage = Get-Content -Path $report.FullName
+        $lineRate = [double]$coverage.coverage.'line-rate'
+        $branchRate = [double]$coverage.coverage.'branch-rate'
+        $threshold = [double]$env:MINIMUM_LINE_COVERAGE
+        "## Code coverage" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        "" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        ("- Line coverage: {0:P2}" -f $lineRate) | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        ("- Branch coverage: {0:P2}" -f $branchRate) | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        ("- Required line coverage: {0:P2}" -f $threshold) | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        if ($lineRate -lt $threshold) {
+          ("- Result: FAILED (line coverage below the required threshold)") | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+          Write-Error ("Line coverage {0:P2} is below the required {1:P2}." -f $lineRate, $threshold)
+          exit 1
+        }
+        "- Result: passed" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
 
 
 permissions:

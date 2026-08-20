@@ -8,90 +8,90 @@ insert_final_newline = true
 charset = utf-8-bom
 trim_trailing_whitespace = true
 
-# Security/correctness rules are kept as errors.
-# The rules below are downgraded because they would require sweeping
-# rewrites unrelated to the current focus (architecture, security and
-# performance). They can be tightened back to errors progressively.
+# -----------------------------------------------------------------------------
+# Naming conventions (more specific rules first — they win over broader ones)
+#   private / private-static fields & methods : _camelCase
+#   private const fields                      : CAPITAL_CASE (SCREAMING_SNAKE)
+#   local const                               : camelCase
+#   other symbols                             : PascalCase (interfaces: I…, type params: T…)
+# -----------------------------------------------------------------------------
 
-# Style/design suggestions: keep visible (suggestion) but not breaking.
-dotnet_diagnostic.CA1003.severity = suggestion   # EventHandler<T> with EventArgs
-dotnet_diagnostic.CA1008.severity = suggestion   # Enums should have zero value
-dotnet_diagnostic.CA1024.severity = suggestion   # Use properties where appropriate
-dotnet_diagnostic.CA1032.severity = suggestion   # Implement standard exception ctors
-dotnet_diagnostic.CA1056.severity = suggestion   # Uri properties should not be strings
-dotnet_diagnostic.CA1030.severity = suggestion   # Make method an event
-dotnet_diagnostic.CA1031.severity = suggestion   # Do not catch general Exception
-dotnet_diagnostic.CA1034.severity = suggestion   # Nested types should not be visible
-dotnet_diagnostic.CA1051.severity = suggestion   # Do not declare visible instance fields
-dotnet_diagnostic.CA1062.severity = suggestion   # Validate arguments of public methods
-dotnet_diagnostic.CA1303.severity = none         # Localised string literal
-dotnet_diagnostic.CA1304.severity = suggestion   # ToLower without culture
-dotnet_diagnostic.CA1305.severity = suggestion   # IFormatProvider missing
-dotnet_diagnostic.CA1307.severity = suggestion   # StringComparison missing
-dotnet_diagnostic.CA1308.severity = suggestion   # ToLowerInvariant vs ToUpperInvariant
-dotnet_diagnostic.CA1310.severity = suggestion   # StartsWith without StringComparison
-dotnet_diagnostic.CA1311.severity = suggestion   # Specify culture for ToLower/ToUpper
-dotnet_diagnostic.CA1707.severity = suggestion   # Underscore in identifiers
-dotnet_diagnostic.CA1716.severity = suggestion   # Reserved language identifier
-dotnet_diagnostic.CA1805.severity = suggestion   # Default value initialization
-dotnet_diagnostic.CA1810.severity = suggestion   # Init static fields inline
-dotnet_diagnostic.CA1812.severity = suggestion   # Avoid uninstantiated internal class
-dotnet_diagnostic.CA1815.severity = suggestion   # Override Equals on value types
-dotnet_diagnostic.CA1819.severity = suggestion   # Properties should not return arrays
-dotnet_diagnostic.CA1822.severity = suggestion   # Mark members static
-dotnet_diagnostic.CA1859.severity = suggestion   # Use concrete types for performance
-dotnet_diagnostic.CA1862.severity = suggestion   # StringComparison for Contains
-dotnet_diagnostic.CA2227.severity = suggestion   # Collection properties should be read-only
+# --- Styles ---
+dotnet_naming_style.pascal_case.capitalization = pascal_case
 
-# In an executable, internal types are encouraged but the existing
-# code base exposes most types publicly. Lower CA1515 to suggestion
-# to surface it without breaking the build.
-dotnet_diagnostic.CA1515.severity = suggestion
+dotnet_naming_style.camel_case.capitalization = camel_case
 
-# CA1815 / CA1851 noisy across the codebase; keep as suggestion.
-dotnet_diagnostic.CA1851.severity = suggestion
+dotnet_naming_style._camel_case.capitalization = camel_case
+dotnet_naming_style._camel_case.required_prefix = _
 
-# Security: keep dispose ownership warning visible without breaking.
-# Database lifecycle is managed by ISessionService.
-dotnet_diagnostic.CA2000.severity = suggestion
+dotnet_naming_style.capital_case.capitalization = all_upper
+dotnet_naming_style.capital_case.word_separator = _
 
-# CA5392 (DefaultDllImportSearchPaths): keep as suggestion; the
-# P/Invokes target well-known system DLLs (user32, dwmapi).
-dotnet_diagnostic.CA5392.severity = suggestion
+dotnet_naming_style.interface_style.capitalization = pascal_case
+dotnet_naming_style.interface_style.required_prefix = I
 
-# The Core/QrCode logic uses multidimensional arrays for matrix algebra.
-# Rewriting to jagged arrays would degrade readability without any gain.
-dotnet_diagnostic.CA1814.severity = suggestion
+dotnet_naming_style.type_parameter_style.capitalization = pascal_case
+dotnet_naming_style.type_parameter_style.required_prefix = T
 
-# CA1852 (seal internal types): worthwhile but currently noisy in Core.
-dotnet_diagnostic.CA1852.severity = suggestion
+# --- Symbols ---
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
 
-# CA2201 (reserved exception types): the codebase intentionally throws
-# NullReferenceException in some places; flag as suggestion until those
-# sites can be reviewed individually.
-dotnet_diagnostic.CA2201.severity = suggestion
+dotnet_naming_symbols.type_parameters.applicable_kinds = type_parameter
+dotnet_naming_symbols.type_parameters.applicable_accessibilities = *
 
-# CA1001 (type owns disposable field but is not IDisposable): User holds
-# a DispatcherTimer; the existing lifetime is tied to Database.Dispose.
-# Surfaced as suggestion for a follow-up.
-dotnet_diagnostic.CA1001.severity = suggestion
+dotnet_naming_symbols.private_const_fields.applicable_kinds = field
+dotnet_naming_symbols.private_const_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_const_fields.required_modifiers = const
 
-# Cryptography rules: the existing on-disk format relies on MD5/SHA1/
-# legacy IV derivation. Changing the algorithms would silently break
-# every existing user database, so they are kept as suggestion and the
-# follow-up will introduce versioned migrations.
-dotnet_diagnostic.CA5350.severity = suggestion
-dotnet_diagnostic.CA5351.severity = suggestion
-dotnet_diagnostic.CA5394.severity = suggestion
-dotnet_diagnostic.CA5401.severity = suggestion
+dotnet_naming_symbols.non_private_const_fields.applicable_kinds = field
+dotnet_naming_symbols.non_private_const_fields.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
+dotnet_naming_symbols.non_private_const_fields.required_modifiers = const
 
-# Visual Studio Editor-only style rules; keep silent when not relevant.
-dotnet_diagnostic.IDE0001.severity = suggestion
-dotnet_diagnostic.IDE0008.severity = suggestion
-dotnet_diagnostic.IDE0028.severity = suggestion
-dotnet_diagnostic.IDE0046.severity = suggestion
-dotnet_diagnostic.IDE0047.severity = suggestion
-dotnet_diagnostic.IDE0048.severity = suggestion
-dotnet_diagnostic.IDE0058.severity = suggestion
-dotnet_diagnostic.IDE0072.severity = suggestion
-dotnet_diagnostic.IDE0290.severity = suggestion
+dotnet_naming_symbols.local_constants.applicable_kinds = local
+dotnet_naming_symbols.local_constants.required_modifiers = const
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_symbols.private_methods.applicable_kinds = method, local_function
+dotnet_naming_symbols.private_methods.applicable_accessibilities = private
+
+dotnet_naming_symbols.non_private_members.applicable_kinds = class, struct, enum, property, method, event, namespace, local_function
+dotnet_naming_symbols.non_private_members.applicable_accessibilities = public, internal, protected, protected_internal, private_protected
+
+# --- Rules (order matters) ---
+dotnet_naming_rule.interfaces_must_begin_with_I.symbols = interfaces
+dotnet_naming_rule.interfaces_must_begin_with_I.style = interface_style
+dotnet_naming_rule.interfaces_must_begin_with_I.severity = warning
+
+dotnet_naming_rule.type_parameters_must_begin_with_T.symbols = type_parameters
+dotnet_naming_rule.type_parameters_must_begin_with_T.style = type_parameter_style
+dotnet_naming_rule.type_parameters_must_begin_with_T.severity = warning
+
+dotnet_naming_rule.private_const_fields_must_be_capital_case.symbols = private_const_fields
+dotnet_naming_rule.private_const_fields_must_be_capital_case.style = capital_case
+dotnet_naming_rule.private_const_fields_must_be_capital_case.severity = warning
+
+dotnet_naming_rule.non_private_const_fields_must_be_pascal_case.symbols = non_private_const_fields
+dotnet_naming_rule.non_private_const_fields_must_be_pascal_case.style = pascal_case
+dotnet_naming_rule.non_private_const_fields_must_be_pascal_case.severity = warning
+
+dotnet_naming_rule.local_constants_must_be_camel_case.symbols = local_constants
+dotnet_naming_rule.local_constants_must_be_camel_case.style = camel_case
+dotnet_naming_rule.local_constants_must_be_camel_case.severity = warning
+
+dotnet_naming_rule.private_fields_must_be_underscore_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_must_be_underscore_camel_case.style = _camel_case
+dotnet_naming_rule.private_fields_must_be_underscore_camel_case.severity = warning
+
+dotnet_naming_rule.private_methods_must_be_underscore_camel_case.symbols = private_methods
+dotnet_naming_rule.private_methods_must_be_underscore_camel_case.style = _camel_case
+dotnet_naming_rule.private_methods_must_be_underscore_camel_case.severity = warning
+
+dotnet_naming_rule.non_private_members_must_be_pascal_case.symbols = non_private_members
+dotnet_naming_rule.non_private_members_must_be_pascal_case.style = pascal_case
+dotnet_naming_rule.non_private_members_must_be_pascal_case.severity = warning
+
+# Surface naming violations in `dotnet build` (TreatWarningsAsErrors applies).
+dotnet_diagnostic.IDE1006.severity = warning

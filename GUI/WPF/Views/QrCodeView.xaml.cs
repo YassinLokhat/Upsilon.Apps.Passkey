@@ -12,7 +12,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for QrCodeView.xaml
    /// </summary>
-   public partial class QrCodeView : Window
+   internal sealed partial class QrCodeView : Window
    {
       private QrCodeView(string qrCode, int delay)
       {
@@ -53,19 +53,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
-      public static void CopyToClipboard(string text)
-      {
-         TimeSpan? autoClear = null;
-
-         int seconds = Services.AppServices.Session.User?.CleaningClipboardTimeout ?? 0;
-         if (seconds > 0)
-         {
-            autoClear = TimeSpan.FromSeconds(seconds);
-         }
-
-         SensitiveClipboard.SetText(text, autoClear);
-      }
-
       private static BitmapImage _getBitmap(string content)
       {
          int unit = 20;
@@ -73,7 +60,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          int height = qrCode.GetLength(0);
          int width = qrCode.GetLength(1);
 
-         Bitmap bitmap = new((height + 2) * unit, (width + 2) * unit);
+         using Bitmap bitmap = new((height + 2) * unit, (width + 2) * unit);
 
          using (Graphics g = Graphics.FromImage(bitmap))
          {

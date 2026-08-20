@@ -4,7 +4,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class UserSettingsViewModel : INotifyPropertyChanged
+   internal sealed class UserSettingsViewModel : INotifyPropertyChanged
    {
       public string Title { get; }
       public string Username
@@ -21,8 +21,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             {
                field = value;
 
-               OnPropertyChanged(nameof(LogoutTimeout));
-               OnPropertyChanged(nameof(LogoutTimeoutChecked));
+               _onPropertyChanged(nameof(LogoutTimeout));
+               _onPropertyChanged(nameof(LogoutTimeoutChecked));
             }
          }
       } = 5;
@@ -34,7 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (LogoutTimeoutChecked != value)
             {
                LogoutTimeout = value ? 5 : 0;
-               OnPropertyChanged(nameof(LogoutTimeoutChecked));
+               _onPropertyChanged(nameof(LogoutTimeoutChecked));
             }
          }
       }
@@ -47,8 +47,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             {
                field = value;
 
-               OnPropertyChanged(nameof(CleaningClipboardTimeout));
-               OnPropertyChanged(nameof(CleaningClipboardTimeoutChecked));
+               _onPropertyChanged(nameof(CleaningClipboardTimeout));
+               _onPropertyChanged(nameof(CleaningClipboardTimeoutChecked));
             }
          }
       } = 30;
@@ -60,7 +60,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (CleaningClipboardTimeoutChecked != value)
             {
                CleaningClipboardTimeout = value ? 30 : 0;
-               OnPropertyChanged(nameof(CleaningClipboardTimeoutChecked));
+               _onPropertyChanged(nameof(CleaningClipboardTimeoutChecked));
             }
          }
       }
@@ -72,8 +72,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(ShowPasswordDelay));
-               OnPropertyChanged(nameof(ShowPasswordDelayChecked));
+               _onPropertyChanged(nameof(ShowPasswordDelay));
+               _onPropertyChanged(nameof(ShowPasswordDelayChecked));
             }
          }
       } = 500;
@@ -85,7 +85,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (ShowPasswordDelayChecked != value)
             {
                ShowPasswordDelay = value ? 500 : 0;
-               OnPropertyChanged(nameof(ShowPasswordDelayChecked));
+               _onPropertyChanged(nameof(ShowPasswordDelayChecked));
             }
          }
       }
@@ -97,11 +97,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(NumberOfOldPasswordToKeep));
-               OnPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
+               _onPropertyChanged(nameof(NumberOfOldPasswordToKeep));
+               _onPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
             }
          }
-      } = 0;
+      }
       public bool NumberOfOldPasswordToKeepChecked
       {
          get => NumberOfOldPasswordToKeep != 0;
@@ -110,7 +110,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (NumberOfOldPasswordToKeepChecked != value)
             {
                NumberOfOldPasswordToKeep = value ? 10 : 0;
-               OnPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
+               _onPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
             }
          }
       }
@@ -122,11 +122,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(NumberOfMonthActivitiesToKeep));
-               OnPropertyChanged(nameof(NumberOfMonthActivitiesToKeepChecked));
+               _onPropertyChanged(nameof(NumberOfMonthActivitiesToKeep));
+               _onPropertyChanged(nameof(NumberOfMonthActivitiesToKeepChecked));
             }
          }
-      } = 0;
+      }
       public bool NumberOfMonthActivitiesToKeepChecked
       {
          get => NumberOfMonthActivitiesToKeep != 0;
@@ -135,7 +135,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (NumberOfMonthActivitiesToKeepChecked != value)
             {
                NumberOfMonthActivitiesToKeep = value ? 12 : 0;
-               OnPropertyChanged(nameof(NumberOfMonthActivitiesToKeepChecked));
+               _onPropertyChanged(nameof(NumberOfMonthActivitiesToKeepChecked));
             }
          }
       }
@@ -162,7 +162,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
@@ -181,16 +181,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
             Username = user.Username;
 
-            LogoutTimeout = user.LogoutTimeout;
-            CleaningClipboardTimeout = user.CleaningClipboardTimeout;
-            ShowPasswordDelay = user.ShowPasswordDelay;
-            NumberOfOldPasswordToKeep = user.NumberOfOldPasswordToKeep;
-            NumberOfMonthActivitiesToKeep = user.NumberOfMonthActivitiesToKeep;
+            LogoutTimeout = user.Settings.LogoutTimeout;
+            CleaningClipboardTimeout = user.Settings.CleaningClipboardTimeout;
+            ShowPasswordDelay = user.Settings.ShowPasswordDelay;
+            NumberOfOldPasswordToKeep = user.Settings.NumberOfOldPasswordToKeep;
+            NumberOfMonthActivitiesToKeep = user.Settings.NumberOfMonthActivitiesToKeep;
 
-            NotifyActivityReview = (user.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
-            NotifyPasswordUpdateReminder = (user.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
-            NotifyDuplicatedPasswords = (user.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
-            NotifyPasswordLeaked = (user.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
+            NotifyActivityReview = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
+            NotifyPasswordUpdateReminder = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
+            NotifyDuplicatedPasswords = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
+            NotifyPasswordLeaked = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
          }
       }
    }

@@ -1,6 +1,4 @@
-using System.Runtime.InteropServices;
-using System.Security;
-using Upsilon.Apps.Passkey.Core.Utils;
+﻿using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -8,18 +6,23 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
-   public sealed class Database : IDatabase
+   /// <summary>
+   /// Vault implementation: a ZIP <c>.pku</c> with onion-encrypted user data,
+   /// an autosave entry, a sealed activity log, and a sticky KDF header.
+   /// Create with <see cref="Create"/> / <see cref="Open"/>; do not construct
+   /// directly. After <see cref="Create"/> the user is already logged in —
+   /// do not call <see cref="Login"/> again on that instance.
+   /// </summary>
+   public sealed partial class Database : IDatabase
    {
-      #region IUser interface explicit Internal
-
       public string DatabaseFile { get; set; }
 
       IUser? IDatabase.User => User;
       int? IDatabase.SessionLeftTime => User?.SessionLeftTime;
 
-      IActivity[]? IDatabase.Activities => Get(ActivityCenter.Activities.OrderByDescending(x => x.DateTime).ToArray());
+      IEnumerable<IActivity>? IDatabase.Activities => Get(ActivityCenter.GetActivitiesOrdered());
 
-      IWarning[]? IDatabase.Warnings => Get(User is not null ? Warnings : null);
+      IEnumerable<IWarning>? IDatabase.Warnings => Get(User is not null ? Warnings : null);
 
       public ICryptographyCenter CryptographyCenter { get; private set; }
       public ISerializationCenter SerializationCenter { get; private set; }
@@ -33,7 +36,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Delete()
       {
-         if (User is null) throw new NullReferenceException(nameof(User));
+         if (User is null)
+         {
+            throw new NullValueException(nameof(User));
+         }
+
+         // Drop any debounced write before erasing the file so a late timer
+         // cannot recreate entries on a path that no longer exists.
+         AutoSave.Clear(deleteFile: false);
+         ActivityCenter.CancelPending();
 
          FileLocker.Delete();
 
@@ -44,39 +55,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Save() => _save(logSaveEvent: true);
 
-      public IUser? Login(SecureString passkey)
-      {
-         ArgumentNullException.ThrowIfNull(passkey);
-
-         IntPtr bstr = IntPtr.Zero;
-         char[]? chars = null;
-
-         try
-         {
-            bstr = Marshal.SecureStringToBSTR(passkey);
-            int length = passkey.Length;
-            chars = new char[length];
-            Marshal.Copy(bstr, chars, 0, length);
-
-            return Login(new string(chars));
-         }
-         finally
-         {
-            if (chars is not null)
-            {
-               Array.Clear(chars);
-            }
-
-            if (bstr != IntPtr.Zero)
-            {
-               Marshal.ZeroFreeBSTR(bstr);
-            }
-         }
-      }
-
+      // Progressive onion login: each call appends a stretched passkey and never
+      // rolls back on failure. A wrong attempt poisons the stack until Close/Open,
+      // which is deliberate online brute-force friction (see SECURITY.md).
       public IUser? Login(string passkey)
       {
-         Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey)];
+         Passkeys = [.. Passkeys, CryptographyCenter.GetSlowHash(passkey, _slowHashParameters)];
 
          try
          {
@@ -86,19 +70,33 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.LoginFailed,
-               data: [Username, passwordException.PasswordLevel.ToString()],
+               data: [Username, $"{passwordException.PasswordLevel}"],
                needsReview: true);
          }
-         catch (Exception ex)
+         catch (IncompleteOnionException)
          {
-            System.Diagnostics.Trace.TraceWarning($"Unexpected error during login :\n{ex.Message}");
+            // More passkeys still required — not a LoginFailed.
          }
+         // CorruptedSourceException and other failures propagate to the GUI.
 
          if (User is not null)
          {
-            User.Database = this;
+            User.Host = this;
 
             ActivityCenter.LoadStringActivities();
+
+            // Assert the log's sealed portion is intact now that the private key
+            // (the verification anchor) is available. On failure we record a
+            // reviewable activity rather than blocking access, so the user is
+            // alerted while still being able to log in.
+            if (!ActivityCenter.VerifyIntegrity())
+            {
+               ActivityCenter.AddActivity(itemId: string.Empty,
+                  eventType: ActivityEventType.ActivityLogTampered,
+                  data: [Username],
+                  needsReview: true);
+            }
+
             ActivityCenter.AddActivity(itemId: string.Empty,
                eventType: ActivityEventType.UserLoggedIn,
                data: [Username],
@@ -106,15 +104,16 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (FileLocker.Exists(AutoSaveFileEntry))
             {
+               AutoSave.Dispose();
                AutoSave = FileLocker.Open<AutoSave>(AutoSaveFileEntry, Passkeys);
-               AutoSave.Database = this;
+               AutoSave.Host = this;
 
                AutoSaveDetectedEventArgs eventArg = new();
                AutoSaveDetected?.Invoke(this, eventArg);
                _handleAutoSave(eventArg.MergeBehavior);
             }
 
-            _ = Task.Run(_lookAtWarnings);
+            _ = Task.Run(_lookAtWarningsAsync);
 
             User.ResetTimer();
          }
@@ -128,128 +127,28 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public bool HasChanged(string itemId, string fieldName) => AutoSave.Any(itemId, fieldName);
 
-      public bool ImportFromFile(string filePath)
-      {
-         if (User is null) throw new NullReferenceException(nameof(User));
-
-         if (User.HasChanged())
-         {
-            _save(logSaveEvent: true);
-         }
-
-         ActivityCenter.AddActivity(itemId: string.Empty,
-            eventType: ActivityEventType.ImportingDataStarted,
-            data: [filePath],
-            needsReview: true);
-
-         string importContent = string.Empty;
-         string errorLog = string.Empty;
-
-         try
-         {
-            importContent = File.ReadAllText(filePath);
-         }
-         catch
-         {
-            errorLog = $"import file is not accessible";
-         }
-
-         if (string.IsNullOrWhiteSpace(errorLog))
-         {
-            string extention = Path.GetExtension(filePath);
-
-            errorLog = extention switch
-            {
-               ".json" => this.ImportJson(importContent),
-               ".csv" => this.ImportCSV(importContent),
-               _ => $"'{extention}' extention type is not handled",
-            };
-         }
-
-         if (string.IsNullOrWhiteSpace(errorLog))
-         {
-            ActivityCenter.AddActivity(itemId: string.Empty,
-               eventType: ActivityEventType.ImportingDataSucceded,
-               data: [],
-               needsReview: true);
-            _save(logSaveEvent: true);
-         }
-         else
-         {
-            ActivityCenter.AddActivity(itemId: string.Empty,
-               eventType: ActivityEventType.ImportingDataFailed,
-               data: [errorLog],
-               needsReview: true);
-         }
-
-         return string.IsNullOrWhiteSpace(errorLog);
-      }
-
-      public bool ExportToFile(string filePath)
-      {
-         if (User is null) throw new NullReferenceException(nameof(User));
-
-         if (User.HasChanged())
-         {
-            _save(logSaveEvent: true);
-         }
-
-         ActivityCenter.AddActivity(itemId: string.Empty,
-            eventType: ActivityEventType.ExportingDataStarted,
-            data: [filePath],
-            needsReview: true);
-
-         string errorLog = string.Empty;
-
-         if (File.Exists(filePath))
-         {
-            errorLog = $"export file already exists";
-         }
-
-         if (string.IsNullOrWhiteSpace(errorLog))
-         {
-            string extention = Path.GetExtension(filePath);
-
-            errorLog = extention switch
-            {
-               ".json" => this.ExportJson(filePath),
-               ".csv" => this.ExportCSV(filePath),
-               _ => $"'{extention}' extention type is not handled",
-            };
-         }
-
-         if (string.IsNullOrWhiteSpace(errorLog))
-         {
-            ActivityCenter.AddActivity(itemId: string.Empty,
-               eventType: ActivityEventType.ExportingDataSucceded,
-               data: [],
-               needsReview: true);
-         }
-         else
-         {
-            ActivityCenter.AddActivity(itemId: string.Empty,
-               eventType: ActivityEventType.ExportingDataFailed,
-               data: [errorLog],
-               needsReview: true);
-         }
-
-         return string.IsNullOrWhiteSpace(errorLog);
-      }
-
-      #endregion
-
       internal User? User { get; private set; }
       internal AutoSave AutoSave { get; private set; }
       internal ActivityCenter ActivityCenter { get; private set; }
-      internal Warning[]? Warnings { get; private set; }
+      internal IEnumerable<Warning>? Warnings { get; private set; }
 
       internal string Username { get; private set; }
       internal string[] Passkeys { get; private set; }
 
+      // ZIP entry names inside a .pku. The header is unencrypted (KDF params);
+      // database and autosave are onion-encrypted; activity records are RSA-hybrid.
+      internal readonly string HeaderFileEntry = "header";
       internal readonly string DatabaseFileEntry = "database";
       internal readonly string AutoSaveFileEntry = "autosave";
       internal readonly string ActivityFileEntry = "activity";
       internal FileLocker FileLocker { get; private set; }
+
+      // The key-derivation parameters governing how this file's passkeys are
+      // stretched, including its random per-database salt. Taken from the crypto
+      // center when the database is created (which mints the salt), then read
+      // back from the header whenever it is reopened. A file keeps the parameters
+      // and salt it was created with.
+      private readonly KdfParameters _slowHashParameters;
 
       private Database(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
@@ -259,7 +158,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          FileMode fileMode,
          string username,
          string publicKey = "",
-         string[]? passkeys = null)
+         IEnumerable<string>? passkeys = null)
       {
          DatabaseFile = databaseFile;
 
@@ -269,39 +168,73 @@ namespace Upsilon.Apps.Passkey.Core.Models
          ClipboardManager = clipboardManager;
 
          Username = username;
-         Passkeys = [CryptographyCenter.GetHash(username)];
-
-         if (passkeys is not null)
-         {
-            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x))];
-         }
 
          AutoSave = new()
          {
-            Database = this,
+            Host = this,
          };
 
          FileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
 
+         // New databases adopt the crypto center's current parameters; opened
+         // databases read the salt and work factor from the header entry.
+         _slowHashParameters = fileMode == FileMode.Create
+            ? CryptographyCenter.DefaultSlowHashParameters
+            : FileLocker.Open<KdfParameters>(HeaderFileEntry);
+
+         try
+         {
+            CryptographyCenter.EnsureSufficientSlowHashParameters(_slowHashParameters);
+         }
+         catch
+         {
+            // Constructor failed after taking the file lock: release it so the
+            // caller can retry or inspect the .pku without a sharing violation.
+            FileLocker.Dispose();
+            throw;
+         }
+
+         Passkeys = [CryptographyCenter.GetHash(username)];
+
+         if (passkeys is not null)
+         {
+            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x, _slowHashParameters))];
+         }
+
          ActivityCenter = fileMode == FileMode.Create
             ? new()
             {
-               Username = username,
                PublicKey = publicKey,
             }
             : FileLocker.Open<ActivityCenter>(ActivityFileEntry);
 
-         ActivityCenter.Database = this;
+         ActivityCenter.Host = this;
       }
 
+      /// <summary>
+      /// Creates a new <c>.pku</c> file, mints an RSA-4096 key pair, stretches
+      /// every passkey, writes the vault, and returns an already-logged-in
+      /// database. <paramref name="databaseFile"/> must not already exist.
+      /// Prefer <see cref="CreateAsync"/> from a UI thread.
+      /// </summary>
       public static IDatabase Create(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
          IClipboardManager clipboardManager,
          string databaseFile,
          string username,
-         string[] passkeys)
+         IEnumerable<string> passkeys)
       {
+         ArgumentNullException.ThrowIfNull(cryptographicCenter);
+         ArgumentNullException.ThrowIfNull(serializationCenter);
+         ArgumentNullException.ThrowIfNull(passwordFactory);
+         ArgumentNullException.ThrowIfNull(clipboardManager);
+         ArgumentNullException.ThrowIfNull(passkeys);
+
+         // Snapshot once: Create may receive a one-shot sequence, and the
+         // constructor plus User.Passkeys both need the same ordered values.
+         string[] passkeyList = [.. passkeys];
+
          if (File.Exists(databaseFile))
          {
             throw new IOException($"'{databaseFile}' database file already exists");
@@ -324,15 +257,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
             FileMode.Create,
             username,
             publicKey,
-            passkeys);
+            passkeyList);
 
          database.User = new()
          {
-            Database = database,
-            PrivateKey = privateKey,
+            Host = database,
+            PrivateKey = ProtectedSecret.Protect(privateKey),
             ItemId = "U" + cryptographicCenter.GetHash(username),
             Username = username,
-            Passkeys = [.. passkeys],
+            Passkeys = [.. passkeyList.Select(ProtectedSecret.Protect)],
          };
 
          database.ActivityCenter.AddActivity(itemId: string.Empty,
@@ -345,6 +278,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          return database;
       }
 
+      /// <summary>
+      /// Opens an existing <c>.pku</c>. <see cref="IDatabase.User"/> stays
+      /// <see langword="null"/> until progressive <see cref="Login"/> succeeds
+      /// with every passkey, in order. Prefer <see cref="OpenAsync"/> from a UI thread.
+      /// </summary>
       public static IDatabase Open(ICryptographyCenter cryptographicCenter,
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
@@ -368,212 +306,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
          return database;
       }
 
+      /// <summary>
+      /// Pass-through used by explicit interface getters. Touching any vault
+      /// field also resets the inactivity timer, so a read counts as activity.
+      /// </summary>
       internal T Get<T>(T value)
       {
          User?.ResetTimer();
 
          return value;
-      }
-
-      private void _save(bool logSaveEvent)
-      {
-         _saveActivities(rebuildStringActivities: true);
-         _saveDatabase(logSaveEvent);
-      }
-
-      private void _saveDatabase(bool logSaveEvent)
-      {
-         if (User is null) throw new NullReferenceException(nameof(User));
-
-         Username = User.Username;
-         Passkeys = [CryptographyCenter.GetHash(User.Username), .. User.Passkeys.Select(CryptographyCenter.GetSlowHash)];
-         FileLocker.Save(User, DatabaseFileEntry, Passkeys);
-
-         if (logSaveEvent)
-         {
-            ActivityCenter.AddActivity(itemId: string.Empty,
-               eventType: ActivityEventType.DatabaseSaved,
-               data: [Username],
-               needsReview: false);
-         }
-
-         AutoSave.Clear(deleteFile: true);
-
-         _ = Task.Run(_lookAtWarnings);
-
-         User.ResetTimer();
-
-         DatabaseSaved?.Invoke(this, EventArgs.Empty);
-      }
-
-      private void _saveActivities(bool rebuildStringActivities)
-      {
-         if (User is null) throw new NullReferenceException(nameof(User));
-
-         ActivityCenter.Username = User.Username;
-         ActivityCenter.Save(rebuildStringActivities);
-      }
-
-      internal void Close(bool logCloseEvent, bool loginTimeoutReached)
-      {
-         if (logCloseEvent)
-         {
-            if (User is not null)
-            {
-               bool needsReview = AutoSave.Any();
-
-               if (!needsReview)
-               {
-                  AutoSave.Clear(deleteFile: true);
-               }
-
-               ActivityCenter.AddActivity(itemId: string.Empty,
-                  eventType: ActivityEventType.UserLoggedOut,
-                  data: [Username, needsReview ? "1" : string.Empty],
-                  needsReview);
-            }
-
-            ActivityCenter.AddActivity(itemId: string.Empty,
-               eventType: ActivityEventType.DatabaseClosed,
-               data: [Username],
-               needsReview: false);
-         }
-
-         // Stop the session timer before tearing down the file handle: this both
-         // blocks until any in-flight tick finishes and prevents future ticks
-         // from operating on the disposed FileLocker.
-         User?.StopTimer();
-
-         User = null;
-         Username = string.Empty;
-         Passkeys = [];
-         Warnings = null;
-
-         FileLocker.Dispose();
-
-         DatabaseClosed?.Invoke(this, new(loginTimeoutReached));
-      }
-
-      private void _handleAutoSave(AutoSaveMergeBehavior mergeAutoSave)
-      {
-         if (User is null) throw new NullReferenceException(nameof(User));
-
-         if (!FileLocker.Exists(AutoSaveFileEntry))
-         {
-            return;
-         }
-
-         switch (mergeAutoSave)
-         {
-            case AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile:
-               AutoSave.ApplyChanges(deleteFile: true);
-               _save(logSaveEvent: false);
-               break;
-            case AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile:
-               AutoSave.ApplyChanges(deleteFile: false);
-               _saveActivities(rebuildStringActivities: false);
-               break;
-            case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
-               AutoSave.Clear(deleteFile: true);
-               break;
-            case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
-            default:
-               break;
-         }
-
-         ActivityCenter.AddActivity(itemId: string.Empty,
-            eventType: (ActivityEventType)mergeAutoSave,
-            data: [Username],
-            needsReview: true);
-      }
-
-      private void _lookAtWarnings()
-      {
-         if (User is null) return;
-
-         try
-         {
-            Warning[] activityWarnings = _lookAtActivityWarnings();
-            Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
-            Warning[] passwordLeakedWarnings = _lookAtPasswordLeakedWarnings();
-            Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
-
-            Warnings = [..activityWarnings,
-               ..passwordUpdateReminderWarnings,
-               ..passwordLeakedWarnings,
-               ..duplicatedPasswordsWarnings];
-
-            WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => User.WarningsToNotify.HasFlag(x.WarningType))]));
-         }
-         catch { }
-      }
-
-      private Warning[] _lookAtActivityWarnings()
-      {
-         if (User is null) throw new NullReferenceException(nameof(User));
-         if (ActivityCenter.Activities is null) throw new NullReferenceException(nameof(ActivityCenter.Activities));
-
-         IActivity[] activities = [.. ActivityCenter.Activities.Where(x => x.NeedsReview)];
-
-         return activities.Length != 0 ? [new Warning([.. activities])] : [];
-      }
-
-      private Warning[] _lookAtPasswordUpdateReminderWarnings()
-      {
-         if (User is null) return [];
-
-         Account[] accounts = [.. User.Services
-            .SelectMany(x => x.Accounts)
-            .Where(x => x.PasswordExpired)];
-
-         return accounts.Length != 0 ? [new Warning(WarningType.PasswordUpdateReminderWarning, accounts)] : [];
-      }
-
-      private Warning[] _lookAtPasswordLeakedWarnings()
-      {
-         if (User is null) return [];
-
-         string[] leakedPasswords = [.. User.Services
-            .SelectMany(x => x.Accounts)
-            .Where(x => x.Options.HasFlag(AccountOption.WarnIfPasswordLeaked))
-            .Select(x => x.Password)
-            .Distinct()
-            .AsParallel()
-            .Where(PasswordFactory.PasswordLeaked)];
-
-         Account[] accounts = [.. User.Services
-            .SelectMany(x => x.Accounts)
-            .Where(x => x.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
-               && leakedPasswords.Contains(x.Password))];
-
-         foreach (Account account in accounts)
-         {
-            account.PasswordLeaked = true;
-         }
-
-         return accounts.Length != 0 ? [new Warning(WarningType.PasswordLeakedWarning, accounts)] : [];
-      }
-
-      private Warning[] _lookAtDuplicatedPasswordsWarnings()
-      {
-         if (User is null) return [];
-
-         IGrouping<string, Account>[] duplicatedPasswords = [.. User.Services
-            .SelectMany(x => x.Accounts)
-            .GroupBy(x => x.Password)
-            .Where(x => x.Count() > 1)];
-
-         List<Warning> warnings = [];
-
-         foreach (IGrouping<string, Account> accounts in duplicatedPasswords)
-         {
-            if (accounts.Any(x => x.Options.HasFlag(AccountOption.WarnIfDuplicatedPassword)))
-            {
-               warnings.Add(new(WarningType.DuplicatedPasswordsWarning, [.. accounts.Cast<Account>()]));
-            }
-         }
-
-         return [.. warnings];
       }
    }
 }

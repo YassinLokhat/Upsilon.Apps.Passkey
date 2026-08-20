@@ -1,7 +1,7 @@
 [
   {
     "ServiceName": "Service0",
-    "Url": "www.service0.xyz",
+    "Url": "http://service0.xyz",
     "Notes": "Service0\u0027s notes",
     "Accounts": [
       {
@@ -12,7 +12,7 @@
         "Notes": "Service0\u0027s Account0\u0027s notes",
         "PasswordUpdateReminderDelay": 3,
         "Options": "None"
-      }
+      },
       {
         "Label": "Account1",
         "Identifiers": [ "account1@service0.xyz", "account1_backup@service0.xyz" ],
@@ -26,7 +26,7 @@
   },
   {
     "ServiceName": "Service1",
-    "Url": "www.service1.xyz",
+    "Url": "http://service1.xyz",
     "Notes": "Service1\u0027s notes",
     "Accounts": [
       {

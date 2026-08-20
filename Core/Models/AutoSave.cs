@@ -1,17 +1,41 @@
 ﻿using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
-   internal sealed class AutoSave
+   /// <summary>
+   /// Debounced, onion-encrypted list of unsaved <see cref="Change"/>s. Lock
+   /// order when nested: AutoSave → ActivityCenter → FileLocker.
+   /// </summary>
+   internal sealed class AutoSave : IDisposable
    {
-      internal Database Database
+      internal IAutoSaveHost Host
       {
-         get => field ?? throw new NullReferenceException(nameof(Database));
+         get => field ?? throw new NullValueException(nameof(Host));
          set;
       }
 
+      // Serialized to/from the autosave ZIP entry. All in-memory reads and writes
+      // go through _gate so a deferred flush cannot enumerate a torn dictionary
+      // while the UI thread mutates it.
       public Dictionary<string, List<Change>> Changes { get; set; } = [];
+
+      // Serializes access to Changes across the UI thread (edits) and the
+      // DeferredPersistence timer / Flush path (disk writes). Lock order when
+      // nested with ActivityCenter is always AutoSave → ActivityCenter →
+      // FileLocker; never the reverse.
+      private readonly Lock _gate = new();
+
+      // Field edits often arrive in bursts (typing, multi-property forms). Writing
+      // the onion-encrypted ZIP entry on every keystroke is the dominant I/O cost
+      // of an interactive session; coalesce them into one write after a short idle.
+      private readonly DeferredPersistence _deferred;
+
+      public AutoSave()
+      {
+         _deferred = new DeferredPersistence(_writeToDisk);
+      }
 
       internal T UpdateValue<T>(string itemId,
          string fieldName,
@@ -20,12 +44,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
          T newValue,
          string readableValue) where T : notnull
       {
-         if (Database.SerializationCenter.AreDifferent(oldValue, newValue))
+         if (Host.SerializationCenter.AreDifferent(oldValue, newValue))
          {
             _addChange(itemId,
                fieldName,
-               oldValue.SerializeWith(Database.SerializationCenter),
-               newValue.SerializeWith(Database.SerializationCenter),
+               oldValue.SerializeWith(Host.SerializationCenter),
+               newValue.SerializeWith(Host.SerializationCenter),
                readableValue,
                needsReview,
                ActivityEventType.ItemUpdated);
@@ -39,7 +63,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          bool needsReview,
          T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, value.SerializeWith(Database.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemAdded);
+         _addChange(itemId, string.Empty, value.SerializeWith(Host.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemAdded);
 
          return value;
       }
@@ -49,7 +73,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          bool needsReview,
          T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, value.SerializeWith(Database.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemDeleted);
+         _addChange(itemId, string.Empty, value.SerializeWith(Host.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemDeleted);
 
          return value;
       }
@@ -70,6 +94,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
             action);
       }
 
+      private enum ChangeMergeResult
+      {
+         Recorded,
+         Cancelled,
+      }
+
       private void _addChange(string itemId,
          string fieldName,
          string? oldValue,
@@ -79,10 +109,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
          ActivityEventType action)
       {
          string changeKey = $"{itemId}\t{fieldName}";
-         if (!Changes.ContainsKey(changeKey))
-         {
-            Changes[changeKey] = [];
-         }
 
          Change currentChange = new()
          {
@@ -94,42 +120,39 @@ namespace Upsilon.Apps.Passkey.Core.Models
             NewValue = newValue,
          };
 
-         _mergeChanges(changeKey, currentChange);
+         ChangeMergeResult mergeResult;
 
-         Database.FileLocker.Save(this, Database.AutoSaveFileEntry, Database.Passkeys);
-         string itemName = string.Empty;
-         string parentName = string.Empty;
-
-         if (itemId == Database.User?.ItemId)
+         lock (_gate)
          {
-            if (Database.User is not null)
+            if (!Changes.ContainsKey(changeKey))
             {
-               itemName = Database.User.ToString();
+               Changes[changeKey] = [];
             }
+
+            mergeResult = _mergeChanges(changeKey, currentChange);
          }
-         else if (itemId.StartsWith('S'))
+
+         // Persist later; the in-memory Changes dictionary is already updated so
+         // HasChanged / ApplyChanges stay correct without waiting for the flush.
+         // Schedule outside the lock: DeferredPersistence has its own gate, and
+         // holding _gate across Schedule would nest locks needlessly.
+         _deferred.Schedule();
+
+         // Field edits coalesce both Changes and activities: keep one ItemUpdated
+         // row per (item, field) while typing, and drop it entirely on a full
+         // revert (OldValue == NewValue after merge). Password stays
+         // validate-to-commit in the UI, so its activities are left alone.
+         if (mergeResult == ChangeMergeResult.Cancelled)
          {
-            Service? s = Database.User?.Services.FirstOrDefault(x => x.ItemId == itemId);
-
-            if (s is not null)
+            if (!string.Equals(fieldName, "Password", StringComparison.Ordinal))
             {
-               itemName = s.ToString();
+               Host.CancelPendingItemUpdatedActivity(itemId, fieldName);
             }
-         }
-         else if (itemId.StartsWith('A'))
-         {
-            Account? a = Database.User?.Services.SelectMany(x => x.Accounts).FirstOrDefault(x => x.ItemId == itemId);
 
-            if (a is not null)
-            {
-               itemName = a.ToString();
-
-               if (action == ActivityEventType.ItemUpdated)
-               {
-                  parentName = a.Service.ToString();
-               }
-            }
+            return;
          }
+
+         Host.ResolveActivityNames(itemId, action, out string itemName, out string parentName);
 
          string[] data = [itemName, fieldName, readableValue];
 
@@ -138,13 +161,16 @@ namespace Upsilon.Apps.Passkey.Core.Models
             data = [.. data, parentName];
          }
 
-         Database.ActivityCenter.AddActivity(itemId: itemId,
+         // ActivityCenter takes its own gate; we deliberately do not hold _gate
+         // here so RSA encrypt + activity insert cannot stall an autosave flush.
+         Host.AddActivity(itemId: itemId,
             eventType: action,
             data,
             needsReview);
       }
 
-      private void _mergeChanges(string changeKey, Change currentChange)
+      // Caller must hold _gate.
+      private ChangeMergeResult _mergeChanges(string changeKey, Change currentChange)
       {
          Change? lastUpdate = Changes[changeKey].LastOrDefault(x => x.ActionType == ActivityEventType.ItemUpdated);
 
@@ -152,7 +178,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             || lastUpdate is null)
          {
             Changes[changeKey].Add(currentChange);
-            return;
+            return ChangeMergeResult.Recorded;
          }
 
          _ = Changes[changeKey].Remove(lastUpdate);
@@ -161,20 +187,29 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (currentChange.OldValue != currentChange.NewValue)
          {
             Changes[changeKey].Add(currentChange);
+            return ChangeMergeResult.Recorded;
          }
-         else if (Changes[changeKey].Count == 0)
+
+         if (Changes[changeKey].Count == 0)
          {
             _ = Changes.Remove(changeKey);
          }
+
+         return ChangeMergeResult.Cancelled;
       }
 
       internal void ApplyChanges(bool deleteFile)
       {
-         List<Change> changes = [.. Changes.Values.SelectMany(x => x).OrderBy(x => x.Index)];
+         List<Change> changes;
+
+         lock (_gate)
+         {
+            changes = [.. Changes.Values.SelectMany(x => x).OrderBy(x => x.Index)];
+         }
 
          foreach (Change change in changes)
          {
-            Database.User?.Apply(change);
+            Host.ApplyChange(change);
          }
 
          if (deleteFile)
@@ -185,18 +220,63 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal bool Any() => Any(string.Empty);
 
-      internal bool Any(string itemId) => Changes.Any(x => x.Key.StartsWith(itemId));
+      internal bool Any(string itemId)
+      {
+         lock (_gate)
+         {
+            return Changes.Any(x => x.Key.StartsWith(itemId, StringComparison.Ordinal));
+         }
+      }
 
-      internal bool Any(string itemId, string fieldName) => Changes.Any(x => x.Key == $"{itemId}\t{fieldName}");
+      internal bool Any(string itemId, string fieldName)
+      {
+         lock (_gate)
+         {
+            return Changes.Any(x => x.Key == $"{itemId}\t{fieldName}");
+         }
+      }
+
+      /// <summary>
+      /// Forces any debounced autosave write to disk. Must be called before Close
+      /// when <see cref="Any"/> is true so the recovery file survives the session.
+      /// </summary>
+      internal void Flush() => _deferred.Flush();
 
       internal void Clear(bool deleteFile)
       {
-         Changes.Clear();
+         // Cancel first so a timer that has not yet entered _writeToDisk drops
+         // its dirty flag; _writeToDisk still re-checks emptiness under _gate.
+         _deferred.Cancel();
+
+         lock (_gate)
+         {
+            Changes.Clear();
+         }
 
          if (deleteFile
-            && Database.FileLocker.Exists(Database.AutoSaveFileEntry))
+            && Host.AutoSaveEntryExists())
          {
-            Database.FileLocker.Delete(Database.AutoSaveFileEntry);
+            Host.DeleteAutoSaveEntry();
+         }
+      }
+
+      public void Dispose() => _deferred.Dispose();
+
+      private void _writeToDisk()
+      {
+         // Hold _gate across serialize + ZIP write so Changes cannot be mutated
+         // mid-enumeration. FileLocker has its own re-entrant gate; lock order is
+         // AutoSave → FileLocker.
+         lock (_gate)
+         {
+            // A timer flush can race with Clear (e.g. during Save). If the pending
+            // changes were discarded, do not recreate the autosave ZIP entry.
+            if (Changes.Count == 0)
+            {
+               return;
+            }
+
+            Host.SaveAutoSave(this);
          }
       }
    }

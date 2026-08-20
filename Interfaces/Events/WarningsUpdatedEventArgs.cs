@@ -3,14 +3,11 @@
 namespace Upsilon.Apps.Passkey.Interfaces.Events
 {
    /// <summary>
-   /// Represent a warning detected event argument.
+   /// Raised when the warning scan finishes (may run on a worker thread).
    /// </summary>
-   /// <param name="warning">The warnings detected.</param>
-   public class WarningsUpdatedEventArgs(IWarning[] warning) : EventArgs
+   /// <param name="warning">Warnings that match the user's notify settings.</param>
+   public class WarningsUpdatedEventArgs(IEnumerable<IWarning> warning) : EventArgs
    {
-      /// <summary>
-      /// The warnings detected.
-      /// </summary>
-      public IWarning[] Warnings { get; private set; } = warning;
+      public IEnumerable<IWarning> Warnings { get; private set; } = warning;
    }
 }

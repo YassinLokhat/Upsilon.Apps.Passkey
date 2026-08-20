@@ -8,30 +8,38 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// No external dependency is used; entries are written to a rolling daily
    /// file located under <c>%LocalAppData%\Passkey\logs</c>.
    /// </summary>
-   public static class Log
+   internal static class Log
    {
-      private static readonly TraceSource _source;
+      private static readonly TraceSource _source = new("Passkey", SourceLevels.All);
 
       static Log()
       {
-         _source = new TraceSource("Passkey", SourceLevels.All);
          _source.Listeners.Clear();
 
          try
          {
-            string directory = Path.Combine(
+            string directory = Path.Join(
                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                "Passkey",
                "logs");
 
             _ = Directory.CreateDirectory(directory);
 
-            string file = Path.Combine(directory, $"app-{DateTime.Now:yyyyMMdd}.log");
+            string file = Path.Join(directory, $"app-{DateTime.Now:yyyyMMdd}.log");
 
             TextWriterTraceListener fileListener = new(file, "PasskeyFile");
             _ = _source.Listeners.Add(fileListener);
          }
-         catch
+         catch (Exception ex)
+            when (ex is ArgumentException
+            or ArgumentNullException
+            or PathTooLongException
+            or DirectoryNotFoundException
+            or IOException
+            or UnauthorizedAccessException
+            or FileNotFoundException
+            or NotSupportedException
+            or PlatformNotSupportedException)
          {
             // Logging must never crash the application: silently fall back to
             // an in-memory listener when the file cannot be created.

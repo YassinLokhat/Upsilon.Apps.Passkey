@@ -1,139 +1,99 @@
-using System.Security;
-using Upsilon.Apps.Passkey.Interfaces.Events;
+﻿using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
    /// <summary>
-   /// Represent a database.
+   /// Open vault session: progressive login, save, import/export, warnings.
    /// </summary>
    public interface IDatabase : IDisposable
    {
-      /// <summary>
-      /// The path to the database file.
-      /// </summary>
       string DatabaseFile { get; set; }
 
-      /// <summary>
-      /// The user loaded.
-      /// </summary>
       IUser? User { get; }
 
-      /// <summary>
-      /// The number of seconds left before the session ended.
-      /// </summary>
+      /// <summary>Seconds remaining before auto-logout; <see langword="null"/> when logged out.</summary>
       int? SessionLeftTime { get; }
 
-      /// <summary>
-      /// The activities.
-      /// </summary>
-      IActivity[]? Activities { get; }
+      IEnumerable<IActivity>? Activities { get; }
 
-      /// <summary>
-      /// The warnings detected.
-      /// </summary>
-      IWarning[]? Warnings { get; }
+      IEnumerable<IWarning>? Warnings { get; }
 
-      /// <summary>
-      /// The serialization center implementation.
-      /// </summary>
       ISerializationCenter SerializationCenter { get; }
 
-      /// <summary>
-      /// The cryptographic center implementation.
-      /// </summary>
       ICryptographyCenter CryptographyCenter { get; }
 
-      /// <summary>
-      /// The password factory implementation.
-      /// </summary>
       IPasswordFactory PasswordFactory { get; }
 
-      /// <summary>
-      /// The OS specific Clipboard manager implementation.
-      /// </summary>
       IClipboardManager ClipboardManager { get; }
 
-      /// <summary>
-      /// Occurs when a warning is detected.
-      /// </summary>
       event EventHandler<WarningsUpdatedEventArgs>? WarningsUpdated;
 
-      /// <summary>
-      /// Occurs when an autosave is detected.
-      /// </summary>
       event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
 
-      /// <summary>
-      /// Occurs when the database is saved.
-      /// </summary>
       event EventHandler? DatabaseSaved;
 
-      /// <summary>
-      /// Occurs when an database is closed.
-      /// </summary>
       event EventHandler<LogoutEventArgs>? DatabaseClosed;
 
       /// <summary>
-      /// Try to load the current user.
+      /// Append one passkey to the progressive login stack. There is no rollback:
+      /// a wrong passkey poisons the session until <see cref="Close"/> (intentional
+      /// anti-brute-force friction; see SECURITY.md).
       /// </summary>
-      /// <param name="passkey">The current passkey.</param>
-      /// <returns>The loaded user.</returns>
+      /// <returns>
+      /// The user when login completes, or <see langword="null"/> for an incomplete
+      /// onion or a wrong passkey (both caught internally).
+      /// </returns>
+      /// <exception cref="CorruptedSourceException">
+      /// The database entry is corrupted or not a Passkey vault payload.
+      /// </exception>
       IUser? Login(string passkey);
 
       /// <summary>
-      /// Try to load the current user from a <see cref="SecureString"/> passkey.
-      /// The secret is materialized as a managed string for the shortest possible
-      /// time and the transient unmanaged/char buffers are zeroed right after use.
+      /// Same as <see cref="Login"/> on a worker thread (PBKDF2 is too slow for the UI thread).
       /// </summary>
-      /// <param name="passkey">The current passkey.</param>
-      /// <returns>The loaded user.</returns>
-      IUser? Login(SecureString passkey);
+      /// <remarks>
+      /// Events such as <see cref="AutoSaveDetected"/> are raised from that worker
+      /// thread; UI handlers must marshal back.
+      /// </remarks>
+      Task<IUser?> LoginAsync(string passkey, CancellationToken cancellationToken = default);
 
       /// <summary>
-      /// Save the current user to database file.
-      /// The User must be loaded, else it will throw a NullReferenceException.
+      /// Persist the logged-in user. Throws <see cref="NullValueException"/> if not logged in.
       /// </summary>
       void Save();
 
       /// <summary>
-      /// Delete the current user with all its files.
-      /// The User must be loaded, else it will throw a NullReferenceException.
+      /// Same as <see cref="Save"/> on a worker thread.
+      /// </summary>
+      /// <remarks>
+      /// <see cref="DatabaseSaved"/> and <see cref="WarningsUpdated"/> are raised from that thread.
+      /// </remarks>
+      Task SaveAsync(CancellationToken cancellationToken = default);
+
+      /// <summary>
+      /// Delete the vault file. Throws <see cref="NullValueException"/> if not logged in.
       /// </summary>
       void Delete();
 
-      /// <summary>
-      /// Close the current user and database.
-      /// </summary>
       void Close();
 
-      /// <summary>
-      /// Check if the given item has changed.
-      /// </summary>
-      /// <param name="itemId">The item id to check.</param>
-      /// <returns>True if the item changed, False else.</returns>
       bool HasChanged(string itemId);
 
-      /// <summary>
-      /// Check if the field of the given item has changed.
-      /// </summary>
-      /// <param name="itemId">The item id to check.</param>
-      /// <param name="fieldName">The field name to check.</param>
-      /// <returns>True if the field changed, False else.</returns>
       bool HasChanged(string itemId, string fieldName);
 
       /// <summary>
-      /// Import services and/or accounts from a file.
+      /// Import from <c>.json</c> or <c>.csv</c> (TSV). Requires a logged-in user.
       /// </summary>
-      /// <param name="filePath">The file path.</param>
-      /// <returns>True if the import succeded, False else.</returns>
       bool ImportFromFile(string filePath);
 
+      Task<bool> ImportFromFileAsync(string filePath, CancellationToken cancellationToken = default);
+
       /// <summary>
-      /// Export services and accounts to a file.
+      /// Export to <c>.json</c> or <c>.csv</c>. Files are plaintext — see SECURITY.md.
       /// </summary>
-      /// <param name="filePath">The file path.</param>
-      /// <returns>True if the export succeded, False else.</returns>
       bool ExportToFile(string filePath);
+
+      Task<bool> ExportToFileAsync(string filePath, CancellationToken cancellationToken = default);
    }
 }

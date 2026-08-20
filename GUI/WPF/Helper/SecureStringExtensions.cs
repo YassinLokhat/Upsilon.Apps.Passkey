@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Security;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
@@ -9,7 +9,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// keeping the unmanaged BSTR copy alive only for the duration of the
    /// supplied callback and zero-ing it out afterwards.
    /// </summary>
-   public static class SecureStringExtensions
+   internal static class SecureStringExtensions
    {
       /// <summary>
       /// Pins <paramref name="value"/> as an unmanaged BSTR, invokes

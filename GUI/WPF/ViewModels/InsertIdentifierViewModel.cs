@@ -4,13 +4,13 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class InsertIdentifierViewModel(IEnumerable<string> identifiers, string identifier) : INotifyPropertyChanged
+   internal sealed class InsertIdentifierViewModel(IEnumerable<string> identifiers, string identifier) : INotifyPropertyChanged
    {
       private readonly string[] _identifiers = [.. identifiers];
 
-      public ObservableCollection<string> Identifiers = [.. identifiers.Where(x => x.StartsWith(identifier.Trim(), StringComparison.CurrentCultureIgnoreCase)),
-            .. identifiers.Where(x => x.Contains(identifier.Trim(), StringComparison.CurrentCultureIgnoreCase)
-               && !x.StartsWith(identifier.Trim(), StringComparison.CurrentCultureIgnoreCase))];
+      public readonly ObservableCollection<string> Identifiers = [.. identifiers.Where(x => x.StartsWith(identifier.Trim(), StringComparison.OrdinalIgnoreCase)),
+            .. identifiers.Where(x => x.Contains(identifier.Trim(), StringComparison.OrdinalIgnoreCase)
+               && !x.StartsWith(identifier.Trim(), StringComparison.OrdinalIgnoreCase))];
 
       public string Identifier
       {
@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
@@ -33,9 +33,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          Identifiers.Clear();
 
-         string[] identifiers = [.. _identifiers.Where(x => x.StartsWith(Identifier, StringComparison.CurrentCultureIgnoreCase)),
-            .. _identifiers.Where(x => x.Contains(Identifier, StringComparison.CurrentCultureIgnoreCase)
-               && !x.StartsWith(Identifier, StringComparison.CurrentCultureIgnoreCase))];
+         string[] identifiers = [.. _identifiers.Where(x => x.StartsWith(Identifier, StringComparison.OrdinalIgnoreCase)),
+            .. _identifiers.Where(x => x.Contains(Identifier, StringComparison.OrdinalIgnoreCase)
+               && !x.StartsWith(Identifier, StringComparison.OrdinalIgnoreCase))];
 
          foreach (string identifier in identifiers)
          {

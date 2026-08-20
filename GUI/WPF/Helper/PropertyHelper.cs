@@ -3,7 +3,11 @@ using System.Runtime.CompilerServices;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
-   public static class PropertyHelper
+   /// <summary>
+   /// INPC helper used by a few controls that do not inherit
+   /// <see cref="ObservableObject"/> (legacy code-behind ViewModels).
+   /// </summary>
+   internal static class PropertyHelper
    {
       public static bool SetProperty<T>(ref T field,
          T newValue,

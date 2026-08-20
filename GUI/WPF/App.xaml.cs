@@ -1,13 +1,14 @@
 ﻿using System.Windows;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF
 {
    /// <summary>
    /// Interaction logic for App.xaml
    /// </summary>
-   public partial class App : Application
+   internal sealed partial class App : Application
    {
       protected override void OnStartup(StartupEventArgs e)
       {
@@ -22,6 +23,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
       protected override void OnExit(ExitEventArgs e)
       {
+         ArgumentNullException.ThrowIfNull(e);
+
+         // Close any open vault and clear owned clipboard content before the
+         // process tears down, in case MainWindow.Closed did not run first.
+         AppServices.Session.EndSession();
+
          Log.Info($"Application exiting with code {e.ApplicationExitCode}.");
          Log.Flush();
 

@@ -9,7 +9,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for ExpiredOrLeakedPasswordsWarningView.xaml
    /// </summary>
-   public partial class AccountPasswordsWarningView : Window
+   internal sealed partial class AccountPasswordsWarningView : Window
    {
       private readonly AccountPasswordsWarningViewModel _viewModel;
 

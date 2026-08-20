@@ -16,12 +16,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserSettingsView.xaml
    /// </summary>
-   public partial class UserSettingsView : Window
+   internal sealed partial class UserSettingsView : Window
    {
       private readonly UserSettingsViewModel _viewModel;
-      private Task? _saveTask;
-      private Task? _importTask;
-      private Task? _exportTask;
       private bool _isClosing;
       private IDatabase? _database;
 
@@ -37,6 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _deleteUser_MI.Visibility
             = _import_MI.Visibility
             = _export_MI.Visibility
+            = _viewActivities_MI.Visibility
             = hasUser ? Visibility.Visible : Visibility.Collapsed;
 
          DataContext = _viewModel = new UserSettingsViewModel();
@@ -47,7 +45,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _database.DatabaseClosed += _database_DatabaseClosed;
          }
 
-         _username_TB.SelectAll();
+         _username_TB.SelectedText = _viewModel.Username;
          _ = _username_TB.Focus();
 
          Loaded += (s, e) => this.PostLoadSetup();
@@ -58,9 +56,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          _isClosing = true;
 
+         _passwordsContainer.ClearSecrets();
          _database?.DatabaseClosed -= _database_DatabaseClosed;
-
-         _session.EndSession();
       }
 
       public static void ShowUserSettings(Window owner)
@@ -94,7 +91,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          return string.IsNullOrEmpty(_viewModel.Username)
             ? "Username cannot be empty."
-            : _passwordsContainer.Passkeys.Length == 0
+            : !_passwordsContainer.Passkeys.Any()
             ? "At least one password should be set."
             : _passwordsContainer.Passkeys.Any(string.IsNullOrEmpty)
             ? "No password can be empty."
@@ -111,28 +108,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         string databaseDirectory = Path.GetDirectoryName(_database.DatabaseFile) ?? string.Empty;
+         _ = Path.GetDirectoryName(_database.DatabaseFile) ?? string.Empty;
 
          _database.Delete();
-
-         if (Directory.Exists(databaseDirectory))
-         {
-            Directory.Delete(databaseDirectory, true);
-         }
 
          _ = MessageBox.Show($"'{_viewModel.Username}' user database deleted successfully", "Success");
       }
 
-      private void _save()
+      private async Task _saveAsync()
       {
          string error = _canSave();
          if (!string.IsNullOrEmpty(error))
          {
             _ = MessageBox.Show(error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            _ = Dispatcher.BeginInvoke(() =>
-            {
-               this.SetIsBusy(false);
-            });
 
             return;
          }
@@ -146,45 +134,32 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (_database?.User is null)
          {
-            try
+            if (MessageBox.Show($"Use default database location :\n{newDatabaseFile}", "Use default location?", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             {
-               if (MessageBox.Show($"Use default database location :\n{newDatabaseFile}", "Use default location?", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+               SaveFileDialog dialog = new()
                {
-                  SaveFileDialog dialog = new()
-                  {
-                     Title = "New user database file",
-                     Filter = "Passkey user database file|*.pku",
-                     DefaultDirectory = Path.GetDirectoryName(newDatabaseFile),
-                     FileName = Path.GetFileName(newDatabaseFile),
-                  };
+                  Title = "New user database file",
+                  Filter = "Passkey user database file|*.pku",
+                  DefaultDirectory = Path.GetDirectoryName(newDatabaseFile),
+                  FileName = Path.GetFileName(newDatabaseFile),
+               };
 
-                  if (dialog.ShowDialog() ?? false)
-                  {
-                     newDatabaseFile = dialog.FileName;
-                  }
+               if (dialog.ShowDialog() ?? false)
+               {
+                  newDatabaseFile = dialog.FileName;
                }
-
-               _database = Database.Create(AppServices.Cryptography,
-                  AppServices.Serialization,
-                  AppServices.PasswordFactory,
-                  AppServices.Clipboard,
-                  newDatabaseFile,
-                  _viewModel.Username,
-                  _passwordsContainer.Passkeys);
-
-               _database.DatabaseClosed += _database_DatabaseClosed;
-               _session.StartSession(_database);
             }
-            catch (Exception ex)
-            {
-               _ = MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-               _ = Dispatcher.BeginInvoke(() =>
-               {
-                  this.SetIsBusy(false);
-               });
 
-               return;
-            }
+            _database = await Database.CreateAsync(AppServices.Cryptography,
+               AppServices.Serialization,
+               AppServices.PasswordFactory,
+               AppServices.Clipboard,
+               newDatabaseFile,
+               _viewModel.Username,
+               [.. _passwordsContainer.Passkeys]).ConfigureAwait(true);
+
+            _database.DatabaseClosed += _database_DatabaseClosed;
+            _session.StartSession(_database);
 
             newUser = true;
          }
@@ -203,19 +178,35 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             _database.User.Username = _viewModel.Username;
             _database.User.Passkeys = _passwordsContainer.Passkeys;
-            _database.User.LogoutTimeout = _viewModel.LogoutTimeout;
-            _database.User.CleaningClipboardTimeout = _viewModel.CleaningClipboardTimeout;
-            _database.User.ShowPasswordDelay = _viewModel.ShowPasswordDelay;
-            _database.User.NumberOfOldPasswordToKeep = _viewModel.NumberOfOldPasswordToKeep;
-            _database.User.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
+            _database.User.Settings.LogoutTimeout = _viewModel.LogoutTimeout;
+            _database.User.Settings.CleaningClipboardTimeout = _viewModel.CleaningClipboardTimeout;
+            _database.User.Settings.ShowPasswordDelay = _viewModel.ShowPasswordDelay;
+            _database.User.Settings.NumberOfOldPasswordToKeep = _viewModel.NumberOfOldPasswordToKeep;
+            _database.User.Settings.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
             WarningType warningsToNotify = 0;
-            if (_viewModel.NotifyActivityReview) warningsToNotify |= WarningType.ActivityReviewWarning;
-            if (_viewModel.NotifyDuplicatedPasswords) warningsToNotify |= WarningType.DuplicatedPasswordsWarning;
-            if (_viewModel.NotifyPasswordUpdateReminder) warningsToNotify |= WarningType.PasswordUpdateReminderWarning;
-            if (_viewModel.NotifyPasswordLeaked) warningsToNotify |= WarningType.PasswordLeakedWarning;
-            _database.User.WarningsToNotify = warningsToNotify;
+            if (_viewModel.NotifyActivityReview)
+            {
+               warningsToNotify |= WarningType.ActivityReviewWarning;
+            }
 
-            _database.Save();
+            if (_viewModel.NotifyDuplicatedPasswords)
+            {
+               warningsToNotify |= WarningType.DuplicatedPasswordsWarning;
+            }
+
+            if (_viewModel.NotifyPasswordUpdateReminder)
+            {
+               warningsToNotify |= WarningType.PasswordUpdateReminderWarning;
+            }
+
+            if (_viewModel.NotifyPasswordLeaked)
+            {
+               warningsToNotify |= WarningType.PasswordLeakedWarning;
+            }
+
+            _database.User.Settings.WarningsToNotify = warningsToNotify;
+
+            await _database.SaveAsync().ConfigureAwait(true);
          }
 
          string message = $"'{_viewModel.Username}' user database ";
@@ -223,6 +214,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (credentialsChanged)
          {
             message = $"'{_viewModel.Username}' user's credentials has been updated.\nYou will be logged out.\nPlease login again.";
+            _passwordsContainer.ClearSecrets();
             _database.Close();
 
             string oldDatabaseDirectory = Path.GetDirectoryName(oldDatabaseFile) ?? string.Empty;
@@ -249,6 +241,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          else if (newUser)
          {
             message += $"created successfully";
+            _passwordsContainer.ClearSecrets();
             _database.Close();
          }
          else
@@ -260,34 +253,61 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = MessageBox.Show(message, "Success");
       }
 
-      private void _save_MenuItem_Click(object sender, RoutedEventArgs e)
+      private async void _save_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy()) return;
-
-         this.SetIsBusy(true);
-
-         if (_saveTask is null
-            || _saveTask.IsCompleted)
-         {
-            _saveTask = Task.Run(_save);
-         }
-      }
-
-      private static bool _credentialsChanged(string oldFileName, string[] oldPasskeys, string newFilename, string[] newPasskeys)
-      {
-         return oldFileName != newFilename || AppServices.Serialization.AreDifferent(oldPasskeys, newPasskeys);
-      }
-
-      private void _import_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _database?.User is null)
+         // The busy cursor is set synchronously before the first await, so it
+         // doubles as the re-entrancy guard against a second save being started
+         // while this one is still running.
+         if (this.GetIsBusy())
          {
             return;
          }
 
-         if (_database.User.HasChanged()
-            && MessageBox.Show("Before importing data, all unsaved changes will be saved.", "Import data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+         this.SetIsBusy(true);
+
+         try
+         {
+            await _saveAsync().ConfigureAwait(true);
+         }
+         finally
+         {
+            this.SetIsBusy(false);
+         }
+      }
+
+      private static bool _credentialsChanged(string oldFileName, IEnumerable<string> oldPasskeys, string newFilename, IEnumerable<string> newPasskeys)
+      {
+         return oldFileName != newFilename || AppServices.Serialization.AreDifferent(oldPasskeys, newPasskeys);
+      }
+
+      private static async Task<bool> _savePendingChangesAsync(IDatabase database, string title)
+      {
+         if (!database.User!.HasChanged())
+         {
+            return true;
+         }
+
+         if (MessageBox.Show("Before continuing, all unsaved changes will be saved.", title, MessageBoxButton.OKCancel)
+            != MessageBoxResult.OK)
+         {
+            return false;
+         }
+
+         await database.SaveAsync().ConfigureAwait(true);
+         return true;
+      }
+
+      private async void _import_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         IDatabase? database = _database;
+
+         if (this.GetIsBusy()
+            || database?.User is null)
+         {
+            return;
+         }
+
+         if (!await _savePendingChangesAsync(database, "Import data").ConfigureAwait(true))
          {
             return;
          }
@@ -295,70 +315,128 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          OpenFileDialog dialog = new()
          {
             Title = "Import data from a file",
-            Filter = "Tab delimited CSV file|*.csv|json file|*.json",
+            Filter = "json file|*.json|Tab delimited CSV file|*.csv",
          };
 
-         if (!(dialog.ShowDialog() ?? false)) return;
-
-         this.SetIsBusy(true);
-
-         if (_importTask is null
-            || _importTask.IsCompleted)
-         {
-            _importTask = Task.Run(() =>
-            {
-               _ = _database.ImportFromFile(dialog.FileName)
-                  ? MessageBox.Show("Import data has been completed successfully.\nMore details in the activities.", "Import success")
-                  : MessageBox.Show("Import data failed.\nMore details in the activities.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
-
-               _ = Dispatcher.BeginInvoke(() =>
-               {
-                  this.SetIsBusy(false);
-               });
-            });
-         }
-      }
-
-      private void _export_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _database?.User is null)
+         if (!(dialog.ShowDialog() ?? false))
          {
             return;
          }
 
-         if (_database.User.HasChanged()
-            && MessageBox.Show("Before exporting data, all unsaved changes will be saved.", "Export data", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+         this.SetIsBusy(true);
+
+         try
+         {
+            bool imported = await database.ImportFromFileAsync(dialog.FileName).ConfigureAwait(true);
+
+            _ = imported
+               ? MessageBox.Show("Import data has been completed successfully.\nMore details in the activities.", "Import success")
+               : MessageBox.Show("Import data failed.\nMore details in the activities.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
+         }
+         finally
+         {
+            this.SetIsBusy(false);
+         }
+      }
+
+      private async void _export_json_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         IDatabase? database = _database;
+
+         if (this.GetIsBusy()
+            || database?.User is null)
+         {
+            return;
+         }
+
+         if (!await _savePendingChangesAsync(database, "Export data").ConfigureAwait(true))
          {
             return;
          }
 
          SaveFileDialog dialog = new()
          {
-            Title = "Export data to a file",
-            Filter = "Tab delimited CSV file|*.csv|json file|*.json",
-            FileName = $"{_database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
+            Title = "Export settings and services to a JSON file",
+            Filter = "json file|*.json",
+            FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
          };
 
-         if (!(dialog.ShowDialog() ?? false)) return;
+         if (!(dialog.ShowDialog() ?? false))
+         {
+            return;
+         }
 
+         await _exportAsync(database, dialog.FileName).ConfigureAwait(true);
+      }
+
+      private async void _export_csv_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         IDatabase? database = _database;
+
+         if (this.GetIsBusy()
+            || database?.User is null)
+         {
+            return;
+         }
+
+         if (!await _savePendingChangesAsync(database, "Export data").ConfigureAwait(true))
+         {
+            return;
+         }
+
+         SaveFileDialog dialog = new()
+         {
+            Title = "Export services to a CSV file",
+            Filter = "Tab delimited CSV file|*.csv",
+            FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
+         };
+
+         if (!(dialog.ShowDialog() ?? false))
+         {
+            return;
+         }
+
+         await _exportAsync(database, dialog.FileName).ConfigureAwait(true);
+      }
+
+      private async Task _exportAsync(IDatabase database, string fileName)
+      {
          this.SetIsBusy(true);
 
-         if (_exportTask is null
-            || _exportTask.IsCompleted)
+         try
          {
-            _exportTask = Task.Run(() =>
-            {
-               _ = _database.ExportToFile(dialog.FileName)
-                  ? MessageBox.Show("Export data has been completed successfully.\nMore details in the activities.", "Export success")
-                  : MessageBox.Show("Export data failed.\nMore details in the activities.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            bool exported = await database.ExportToFileAsync(fileName).ConfigureAwait(true);
 
-               _ = Dispatcher.BeginInvoke(() =>
-               {
-                  this.SetIsBusy(false);
-               });
-            });
+            _ = exported
+               ? MessageBox.Show("Export data has been completed successfully.\nMore details in the activities.", "Export success")
+               : MessageBox.Show("Export data failed.\nMore details in the activities.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
          }
+         finally
+         {
+            this.SetIsBusy(false);
+         }
+      }
+
+      private void _viewActivities_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         if (this.GetIsBusy()
+            || _viewModel is null
+            || AppServices.Session.User is null)
+         {
+            return;
+         }
+
+         string itemId = AppServices.Session.User.ItemId;
+
+         _ = AppServices.Dialogs.ShowSingleton(
+            factory: () =>
+            {
+               UserActivitiesView view = new(needsReviewFilter: false);
+               view.ViewModel.ClearFilters();
+               view.ViewModel.SearchCriteria = itemId;
+               return view;
+            },
+            configure: view => view.ViewModel.SearchCriteria = itemId);
       }
    }
 }

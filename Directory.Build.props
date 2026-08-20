@@ -1,0 +1,31 @@
+<Project>
+
+  <!--
+    Shared MSBuild properties for every project in the solution.
+    Project-specific settings (TargetFramework, OutputType, Description, ...)
+    stay in each .csproj and override anything defined here.
+  -->
+
+  <!--
+    Version numbers are intentionally NOT set here: each component is versioned
+    independently (see SECURITY.md) and declares its own Version in its .csproj.
+  -->
+  <PropertyGroup Label="Product metadata">
+    <Authors>Yassin Lokhat</Authors>
+    <Title>$(AssemblyName)</Title>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Language">
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Code-quality gates">
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>9999</WarningLevel>
+  </PropertyGroup>
+
+</Project>

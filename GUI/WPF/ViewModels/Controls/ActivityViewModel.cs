@@ -1,14 +1,15 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal class ActivityViewModel(IActivity activity) : INotifyPropertyChanged
+   internal sealed class ActivityViewModel(IActivity activity) : INotifyPropertyChanged
    {
       public readonly IActivity Activity = activity;
-      public string DateTime => Activity.DateTime.ToString("yyyy-MM-dd HH:mm");
+      public string DateTime => Activity.DateTime.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture);
       public string EventType => Activity.EventType.ToReadableString();
       public string Message => Activity.Message;
       public bool NeedsReview
@@ -19,8 +20,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Activity.NeedsReview != value)
             {
                Activity.NeedsReview = value;
-               OnPropertyChanged(nameof(NeedsReview));
-               OnPropertyChanged(nameof(NeedsReviewString));
+               _onPropertyChanged(nameof(NeedsReview));
+               _onPropertyChanged(nameof(NeedsReviewString));
             }
          }
       }
@@ -28,19 +29,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
-      public bool MeetsConditions(string itemId, DateTime fromDateFilter, DateTime toDateFilter, ActivityEventType eventType, string message, bool needsReview)
+      public bool MeetsConditions(DateTime fromDateFilter, DateTime toDateFilter, ActivityEventType eventType, string searchCriteria, bool needsReview)
       {
-         return (string.IsNullOrEmpty(itemId) || Activity.ItemId == itemId)
-            && (fromDateFilter > System.DateTime.Now.Date
-               || Activity.DateTime.Date >= fromDateFilter) && (toDateFilter > System.DateTime.Now.Date
-               || Activity.DateTime.Date <= toDateFilter) && (eventType == ActivityEventType.None
-               || Activity.EventType == eventType) && (!needsReview
-               || Activity.NeedsReview) && Activity.Message.Contains(message, StringComparison.CurrentCultureIgnoreCase);
+         bool fromDateMatches = fromDateFilter > System.DateTime.Now.Date || Activity.DateTime.Date >= fromDateFilter;
+         bool toDateMatches = toDateFilter > System.DateTime.Now.Date || Activity.DateTime.Date <= toDateFilter;
+         bool eventTypeMatches = eventType == ActivityEventType.None || Activity.EventType == eventType;
+         bool needsReviewMatches = !needsReview || Activity.NeedsReview;
+
+         bool itemIdMatches = string.IsNullOrEmpty(Activity.ItemId)
+                  && !string.IsNullOrEmpty(AppServices.Session.User?.ItemId)
+                  && searchCriteria == AppServices.Session.User?.ItemId;
+
+         bool searchCriteriaMatches = itemIdMatches
+               || Activity.ItemId == searchCriteria
+               || Activity.Message.Contains(searchCriteria, StringComparison.OrdinalIgnoreCase);
+
+         return fromDateMatches
+            && toDateMatches
+            && eventTypeMatches
+            && needsReviewMatches
+            && searchCriteriaMatches;
       }
    }
 }

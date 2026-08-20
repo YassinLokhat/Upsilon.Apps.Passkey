@@ -1,4 +1,5 @@
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Services
@@ -22,19 +23,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          SessionChanged?.Invoke(this, EventArgs.Empty);
       }
 
-      public void EndSession()
+      public void EndSession(bool closeDatabase = true)
       {
-         SensitiveClipboard.ClearIfStillOwned();
+         ClipboardManager.ClearIfStillOwned();
 
-         if (Database is null) return;
+         if (Database is null)
+         {
+            return;
+         }
 
-         try
+         if (closeDatabase)
          {
             Database.Close();
-         }
-         catch (Exception ex)
-         {
-            Log.Error(ex, "Failed to close database cleanly");
          }
 
          Database = null;

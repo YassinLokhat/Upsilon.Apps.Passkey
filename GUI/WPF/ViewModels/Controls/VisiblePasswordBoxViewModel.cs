@@ -6,23 +6,31 @@ using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   public class VisiblePasswordBoxViewModel : INotifyPropertyChanged
+   internal sealed class VisiblePasswordBoxViewModel : INotifyPropertyChanged
    {
-      public string Password
+      /// <summary>
+      /// Plaintext shown in the reveal <c>TextBox</c> only while the eye button
+      /// is held. Cleared as soon as the password is masked again so the secret
+      /// does not linger in the ViewModel.
+      /// </summary>
+      public string RevealText
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = string.Empty;
+
       public Visibility PasswordVisibility
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = Visibility.Visible;
+
       public Visibility TextVisibility
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = Visibility.Collapsed;
+
       public Visibility ButtonVisibility
       {
          get;
@@ -41,27 +49,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = DarkMode.UnchangedBrush2;
 
-      public bool PasswordIsVisible => PasswordVisibility == System.Windows.Visibility.Collapsed;
-
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      public void ShowPassword()
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+         PasswordVisibility = Visibility.Collapsed;
+         TextVisibility = Visibility.Visible;
       }
 
-      public void TooglePasswordVisibility()
+      public void HidePassword()
       {
-         if (!PasswordIsVisible)
-         {
-            PasswordVisibility = System.Windows.Visibility.Collapsed;
-            TextVisibility = System.Windows.Visibility.Visible;
-         }
-         else
-         {
-            PasswordVisibility = System.Windows.Visibility.Visible;
-            TextVisibility = System.Windows.Visibility.Collapsed;
-         }
+         PasswordVisibility = Visibility.Visible;
+         TextVisibility = Visibility.Collapsed;
       }
    }
 }

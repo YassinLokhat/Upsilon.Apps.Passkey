@@ -1,33 +1,49 @@
-﻿using Upsilon.Apps.Passkey.Interfaces;
-using Upsilon.Apps.Passkey.Interfaces.Utils;
-using Windows.ApplicationModel.DataTransfer;
+﻿using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
+   /// <summary>
+   /// Test stub: clipboard I/O is OS-specific. Records SetText calls so GUI
+   /// ViewModel tests can assert without touching the real clipboard.
+   /// </summary>
    public class ClipboardManager : IClipboardManager
    {
-      public int RemoveAllOccurence(string[] removeList)
+      public string? LastText { get; private set; }
+
+      public TimeSpan? LastAutoClearAfter { get; private set; }
+
+      public IReadOnlyList<string> Texts => _texts;
+
+      public int RemoveAllOccurrenceCallCount { get; private set; }
+
+      public IReadOnlyList<string>? LastRemoveList { get; private set; }
+
+      private readonly List<string> _texts = [];
+
+      public void SetText(string text, TimeSpan? autoClearAfter)
       {
-         int cleanedPasswordCount = 0;
+         LastText = text;
+         LastAutoClearAfter = autoClearAfter;
+         _texts.Add(text);
+      }
 
-         IReadOnlyList<ClipboardHistoryItem> clipboardHistory = Clipboard.GetHistoryItemsAsync().AsTask().GetAwaiter().GetResult().Items;
+      public void SetText(string text, int autoClearAfter)
+         => SetText(text, autoClearAfter > 0 ? TimeSpan.FromSeconds(autoClearAfter) : null);
 
-         foreach (ClipboardHistoryItem? item in clipboardHistory)
-         {
-            DataPackageView content = item.Content;
-            if (content.Contains(StandardDataFormats.Text))
-            {
-               string text = content.GetTextAsync().AsTask().GetAwaiter().GetResult();
+      public Task<int> RemoveAllOccurrenceAsync(IEnumerable<string> removeList, CancellationToken cancellationToken = default)
+      {
+         ArgumentNullException.ThrowIfNull(removeList);
 
-               if (removeList.Any(x => x == text))
-               {
-                  _ = Clipboard.DeleteItemFromHistory(item);
-                  cleanedPasswordCount++;
-               }
-            }
-         }
+         RemoveAllOccurrenceCallCount++;
+         LastRemoveList = [.. removeList];
+         return Task.FromResult(LastRemoveList.Count);
+      }
 
-         return cleanedPasswordCount;
+      public void Clear()
+      {
+         LastText = null;
+         LastAutoClearAfter = null;
+         _texts.Clear();
       }
    }
 }

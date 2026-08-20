@@ -9,7 +9,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserLogsView.xaml
    /// </summary>
-   public partial class UserActivitiesView : Window
+   internal sealed partial class UserActivitiesView : Window
    {
       internal readonly UserActivitiesViewModel ViewModel;
 
@@ -35,6 +35,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private void _viewItemButton_Click(object sender, RoutedEventArgs e)
       {
          AppServices.Navigation.RequestItem(ViewModel.Activities[_activities_DGV.SelectedIndex].Activity.ItemId);
+      }
+
+      private void _copyButton_Click(object sender, RoutedEventArgs e)
+      {
+         AppServices.Clipboard.SetText(ViewModel.Activities[_activities_DGV.SelectedIndex].Activity.Message);
       }
    }
 }

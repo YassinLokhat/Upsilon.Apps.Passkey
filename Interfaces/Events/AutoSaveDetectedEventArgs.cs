@@ -3,13 +3,13 @@
 namespace Upsilon.Apps.Passkey.Interfaces.Events
 {
    /// <summary>
-   /// Represent the behavior of auto-save handling event argument.
+   /// Raised when an autosave entry is found at login. Set
+   /// <see cref="MergeBehavior"/> before returning from the handler.
    /// </summary>
    public class AutoSaveDetectedEventArgs : EventArgs
    {
       /// <summary>
-      /// The behavior selected.
-      /// By default it will merge then remove the auto-save file.
+      /// Defaults to merge, save, then remove the autosave entry.
       /// </summary>
       public AutoSaveMergeBehavior MergeBehavior { get; set; } = AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile;
    }

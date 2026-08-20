@@ -4,25 +4,56 @@
 **Overview**
 ------------
 
-This is a C# implementation of a local stored password manager in .Net 10. The application provides a secure way to store and manage passwords locally on the user's device.
+A local-only password manager written in C# on **.NET 10**. There is no server,
+no account, and no synchronization: every secret lives in a single encrypted
+`.pku` file on the user's device. Version **2.0.0** (each assembly is versioned
+independently; see [SECURITY.md](SECURITY.md)).
 
 **Features**
 ------------
 
-*   **Password Storage**: Store accounts and services passwords securely
-*   **History log**: Log every events
-*   **Trigger warnings**: Trigger warnings when detected
-*   **Autosave**: Autosave updates
-*   **Password Generation**: Generate strong, unique passwords
+*   **Password storage**: services, accounts, identifiers, notes, and password history
+*   **Multi-passkey vault**: ordered master passkeys form an AES-256-GCM onion (see [SECURITY.md](SECURITY.md))
+*   **Activity log**: tamper-evident audit trail of vault events
+*   **Warnings**: password-update reminders, duplicates, leaks, and activity review
+*   **Autosave**: unsaved edits are kept in the `.pku` ZIP and merged on the next login
+*   **Password generation**: CSPRNG over a configurable alphabet
+*   **Leak detection**: opt-in Have I Been Pwned checks, with a free XposedOrNot failover (k-anonymity; see [SECURITY.md](SECURITY.md))
+*   **Import / Export**: plaintext JSON (settings + services) or TSV/CSV (services only)
+*   **WPF client** (Windows): dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
+
+**Architecture**
+----------------
+
+Three layers, two solution files:
+
+```
+Interfaces/     Public contracts (IDatabase, IUser, crypto, clipboard, …)
+Core/           Vault implementation. Zero NuGet packages (BCL only).
+GUI/WPF/        Windows desktop client (MVVM + a small AppServices locator).
+UnitTests/      Core tests + ViewModel tests (Windows TFM; references the WPF project).
+```
+
+| Solution | Projects |
+| -------- | -------- |
+| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Core, WPF GUI, UnitTests |
+| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces and Core only (no WPF, no tests) |
+
+Core talks to the OS for clipboard only through an injected port
+(`IClipboardManager` must be OS-specific). File I/O and opt-in HTTP leak checks
+use the BCL directly. The WPF app supplies the clipboard implementation and
+hosts dialogs, session, and navigation behind `AppServices` so ViewModels stay
+testable without a window.
 
 **Security**
 ------------
 
-*   **Encryption**: All passwords are encrypted using AES with a set of keys and RSA with a 4096-bit key
-*   **Access Control**: Access to the password store is restricted to authorized users only
+*   **At rest**: AES-256-GCM onion (HKDF-SHA256 per layer) over ordered passkeys; the activity log uses RSA-4096 hybrid encryption plus a login-time seal. See [SECURITY.md](SECURITY.md).
+*   **In memory**: account passwords, passkeys, and the RSA private key are wrapped with `ProtectedSecret` (process-wide AES-GCM) and only revealed just in time.
+*   **Session**: configurable auto-logout, clipboard auto-clear (including Windows clipboard history), and progressive login without rollback.
+*   **Supply chain**: Core and Interfaces refuse any third-party NuGet package at build time. GitHub CodeQL scans production code on CI.
 
 **Models**
-
 ----------
 
 ### Class diagram
@@ -35,68 +66,81 @@ classDiagram
     namespace Upsilon.Apps.Passkey.Interfaces.Utils {
         class ISerializationCenter {
             <<interface>>
-            +Serialize~T~(in toSerialize T) string
-            +Deserialize~T~(in toDeserialize string) T
+            +Serialize(in toSerialize T) string
+            +Deserialize(in toDeserialize string) T
         }
 
         class IClipboardManager {
             <<interface>>
-            +RemoveAllOccurence(in removeList IEnumerable~string~) int
+            +SetText(in text string, in autoClearAfter TimeSpan?) void
+            +SetText(in text string, in autoClearAfter int) void
+            +RemoveAllOccurrenceAsync(in removeList IEnumerable~string~, in cancellationToken CancellationToken) Task~int~
         }
 
         class IPasswordFactory {
             <<interface>>
-            +Alphabetic : string
-            +Numeric : string
-            +SpecialChars : string
+            +string Alphabetic
+            +string Numeric
+            +string SpecialChars
 
             +GeneratePassword(in length int, in alphabet string, in checkIfLeaked bool) string
+            +GeneratePasswordAsync(in length int, in alphabet string, in checkIfLeaked bool, in cancellationToken CancellationToken) Task~string~
             +PasswordLeaked(in password string) bool
+            +PasswordLeakedAsync(in password string, in cancellationToken CancellationToken) Task~bool~
         }
 
         class ICryptographyCenter {
             <<interface>>
-            +HashLength : int
-
+            +int HashLength
+            +KdfParameters DefaultSlowHashParameters
             +GetHash(in source string) string
-            +GetSlowHash(in source string) string
-            +Sign(inout source string) void
-            +CheckSign(inout source string) bool
-            +EncryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
-            +DecryptSymmetrically(inout source string, in passwords IEnumerable~string~) string
+            +GetSlowHash(in source string, in parameters KdfParameters) string
+            +EnsureSufficientSlowHashParameters(in parameters KdfParameters) void
+            +EncryptSymmetrically(in source string, in passwords IEnumerable~string~) string
+            +DecryptSymmetrically(in source string, in passwords IEnumerable~string~) string
             +GenerateRandomKeys(out publicKey string, out privateKey string) void
-            +EncryptAsymmetrically(inout source string, in key string) string
-            +DecryptAsymmetrically(inout source string, in key string) string
+            +EncryptAsymmetrically(in source string, in key string) string
+            +DecryptAsymmetrically(in source string, in key string) string
+            +GetPublicKey(in privateKey string) string
+            +Sign(in source string, in privateKey string) string
+            +Verify(in source string, in signature string, in publicKey string) bool
+        }
+
+        class KdfParameters {
+            +KdfAlgorithm Algorithm
+            +int Iterations
+            +int OutputLength
+            +string Salt
         }
     }
 
     namespace Upsilon.Apps.Passkey.Interfaces.Models {
         class IItem {
             <<interface>>
-            +ItemId : string
-            +Database : IDatabase
+            +string ItemId
+            +IDatabase Database
             +HasChanged(void) bool
         }
 
         class IAccount {
             <<interface>>
-            +Service : IService
-            +Label : string
-            +Notes : string
-            +Identifiers : IEnumerable~string~
-            +Password : string
-            +Passwords : IDictionary~DateTime, string~
-            +PasswordUpdateReminderDelay : int
-            +Options : AccountOption
+            +IService Service
+            +string Label
+            +string Notes
+            +IEnumerable~string~ Identifiers
+            +string Password
+            +Dictionary~DateTime_string~ Passwords
+            +int PasswordUpdateReminderDelay
+            +AccountOption Options
         }
 
         class IService {
             <<interface>>
-            +User : IUser
-            +ServiceName : string
-            +Url : string
-            +Notes : string
-            +Accounts : IEnumerable~IAccount~
+            +IUser User
+            +string ServiceName
+            +Uri? Url
+            +string Notes
+            +IEnumerable~IAccount~ Accounts
             +AddAccount(in label string, in identifiers IEnumerable~string~, in password string) IAccount
             +AddAccount(in label string, in identifiers IEnumerable~string~) IAccount
             +AddAccount(in identifiers IEnumerable~string~, in password string) IAccount
@@ -106,56 +150,67 @@ classDiagram
 
         class IUser {
             <<interface>>
-            +Username : string
-            +Passkeys : IEnumerable~string~
-            +LogoutTimeout : int
-            +CleaningClipboardTimeout : int
-            +ShowPasswordDelay : int
-            +NumberOfOldPasswordToKeep : int
-            +WarningsToNotify : WarningType
-            +Services : IEnumerable~IService~
+            +string Username
+            +IEnumerable~string~ Passkeys
+            +ISettings Settings
+            +IEnumerable~IService~ Services
             +AddService(in serviceName string) IService
             +DeleteService(in service IService) void
         }
 
+        class ISettings {
+            <<interface>>
+            +int LogoutTimeout
+            +int CleaningClipboardTimeout
+            +int ShowPasswordDelay
+            +int NumberOfOldPasswordToKeep
+            +int NumberOfMonthActivitiesToKeep
+            +WarningType WarningsToNotify
+        }
+
         class IDatabase {
             <<interface>>
-            +DatabaseFile : string
-            +User : IUser
-            +SessionLeftTime : int
-            +Activities : IEnumerable~IActivity~
-            +Warnings : IEnumerable~IWarning~
-            +SerializationCenter : ISerializationCenter
-            +CryptographyCenter : ICryptographyCenter
-            +PasswordFactory : IPasswordFactory
-            +ClipboardManager : IClipboardManager
-            +WarningsUpdated : EventHandler~WarningsUpdatedEventArgs~
-            +AutoSaveDetected : EventHandler~AutoSaveDetectedEventArgs~
-            +DatabaseSaved : EventHandler
-            +DatabaseClosed : EventHandler~LogoutEventArgs~
+            +string DatabaseFile
+            +IUser? User
+            +int? SessionLeftTime
+            +IEnumerable~IActivity~ Activities
+            +IEnumerable~IWarning~ Warnings
+            +ISerializationCenter SerializationCenter
+            +ICryptographyCenter CryptographyCenter
+            +IPasswordFactory PasswordFactory
+            +IClipboardManager ClipboardManager
+            +EventHandler~WarningsUpdatedEventArgs~ WarningsUpdated
+            +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
+            +EventHandler DatabaseSaved
+            +EventHandler~LogoutEventArgs~ DatabaseClosed
             +Login(in passkey string) IUser
+            +LoginAsync(in passkey string, in cancellationToken CancellationToken) Task~IUser~
             +Save(void) void
+            +SaveAsync(in cancellationToken CancellationToken) Task
             +Delete(void) void
             +Close(void) void
             +HasChanged(in itemId string) bool
             +HasChanged(in itemId string, in fieldName string) bool
             +ImportFromFile(in filePath string) bool
+            +ImportFromFileAsync(in filePath string, in cancellationToken CancellationToken) Task~bool~
             +ExportToFile(in filePath string) bool
+            +ExportToFileAsync(in filePath string, in cancellationToken CancellationToken) Task~bool~
         }
 
         class IActivity {
             <<interface>>
-            +DateTime : DateTime
-            +ItemId : string
-            +Message : string
-            +NeedsReview : bool
+            +DateTime DateTime
+            +string ItemId
+            +ActivityEventType EventType
+            +string Message
+            +bool NeedsReview
         }
 
         class IWarning {
             <<interface>>
-            +WarningType : WarningType
-            +Activities : IEnumerable~IActivity~
-            +Accounts : IEnumerable~IAccount~
+            +WarningType WarningType
+            +IEnumerable~IActivity~? Activities
+            +IEnumerable~IAccount~? Accounts
         }
     }
     
@@ -163,6 +218,7 @@ classDiagram
     namespace Upsilon.Apps.Passkey.Interfaces.Enums {
         class AccountOption {
             <<enumeration>>
+            <<flags>>
             None
             WarnIfPasswordLeaked
             WarnIfDuplicatedPassword
@@ -170,7 +226,8 @@ classDiagram
         
         class WarningType {
             <<enumeration>>
-            LogReviewWarning
+            <<flags>>
+            ActivityReviewWarning
             PasswordUpdateReminderWarning
             DuplicatedPasswordsWarning
             PasswordLeakedWarning
@@ -178,25 +235,59 @@ classDiagram
         
         class AutoSaveMergeBehavior {
             <<enumeration>>
+            Undefined
             MergeAndSaveThenRemoveAutoSaveFile
             MergeWithoutSavingAndKeepAutoSaveFile
             DontMergeAndRemoveAutoSaveFile
             DontMergeAndKeepAutoSaveFile
+        }
+
+        class KdfAlgorithm {
+            <<enumeration>>
+            Pbkdf2HmacSha256
+            Pbkdf2HmacSha512
+        }
+
+        class ActivityEventType {
+            <<enumeration>>
+            None
+            MergeAndSaveThenRemoveAutoSaveFile
+            MergeWithoutSavingAndKeepAutoSaveFile
+            DontMergeAndRemoveAutoSaveFile
+            DontMergeAndKeepAutoSaveFile
+            DatabaseCreated
+            DatabaseOpened
+            DatabaseSaved
+            DatabaseClosed
+            LoginSessionTimeoutReached
+            LoginFailed
+            UserLoggedIn
+            UserLoggedOut
+            ImportingDataStarted
+            ImportingDataSucceded
+            ImportingDataFailed
+            ExportingDataStarted
+            ExportingDataSucceded
+            ExportingDataFailed
+            ItemUpdated
+            ItemAdded
+            ItemDeleted
+            ActivityLogTampered
         }
     }
     
     %% Event Args Classes
     namespace Upsilon.Apps.Passkey.Interfaces.Events {
         class AutoSaveDetectedEventArgs {
-            +MergeBehavior : AutoSaveMergeBehavior
+            +AutoSaveMergeBehavior MergeBehavior
         }
         
         class WarningsUpdatedEventArgs {
-            +Warnings : IEnumerable~IWarning~
+            +IEnumerable~IWarning~ Warnings
         }
         
         class LogoutEventArgs {
-            +LoginTimeoutReached : bool
+            +bool LoginTimeoutReached
         }
     }
 
@@ -204,14 +295,20 @@ classDiagram
     IUser --|> IItem
     IService --|> IItem
     IAccount --|> IItem
+    IDatabase ..|> IDisposable
     
     %% Link Relations
     IItem --> IDatabase : Database
     IAccount --> IService : Service
     IAccount --> AccountOption : Options
+    IActivity --> ActivityEventType : EventType
+    ICryptographyCenter --> KdfParameters : DefaultSlowHashParameters
+    KdfParameters --> KdfAlgorithm : Algorithm
     IService "0" --> "*" IAccount : Accounts
     IService --> IUser : User
     IUser "0" --> "*" IService : Services
+    IUser --> ISettings : Settings
+    ISettings --> WarningType : WarningsToNotify
     IDatabase --> ISerializationCenter : SerializationCenter
     IDatabase --> ICryptographyCenter : CryptographyCenter
     IDatabase --> IPasswordFactory : PasswordFactory
@@ -238,7 +335,7 @@ classDiagram
 To create a new database, use the `Upsilon.Apps.Passkey.Core.Models.Database.Create` static method.
 
 This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation and an `IClipboardManager` implementation.
-The namespace `Upsilon.Apps.Passkey.Core.Utils` already contains implementations for all of these intefaces except for the `IClipboardManager` which needs an OS specific implementation.
+The namespace `Upsilon.Apps.Passkey.Core.Utils` already contains implementations for all of these interfaces except for the `IClipboardManager` which needs an OS specific implementation.
 
 The next parameter is the database file itself, which will be created during the process.
 
@@ -252,11 +349,20 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Create(new Upsilo
    new OSSpecificClipboardManager(),
    "./database.pku",
    "username",
-   new string[] { "master_password_1", "master_password_2", "master_password_3" });
+   new[] { "master_password_1", "master_password_2", "master_password_3" });
 ```
 
-After creation, the method will directly open the database but it will not login directly to the current user.
-So to login, check the **Login to an user** use case.
+`CreateAsync` is the same work on a worker thread (RSA-4096 keygen plus one
+PBKDF2 stretch per passkey). Prefer it from a UI.
+
+After creation, the method opens the database **and logs the user in**:
+`database.User` is already set. Do **not** call `Login` afterwards — that would
+append another onion layer on top of an already-complete stack and fail. Progressive
+`Login` is only needed after `Open` (see the next use cases).
+
+```csharp
+IUser user = database.User!;	// Already logged in after Create
+```
 
 ### Open an existing database
 
@@ -277,11 +383,13 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Open(new Upsilon.
    "username");
 ```
 
+After `Open`, `database.User` is still `null` until progressive login succeeds.
+
 ### Login to an user
 
-After opening (or creating) a database, use the `IDatabase.Login` method to login the user.
+After opening a database, use the `IDatabase.Login` method to login the user.
 To do that, call the login method with every passkeys used during the database creation process.
-Only the last call of that method, with every correct and ordered passkeys, will return the `IUser` representing the current user successfuly loged in.
+Only the last call of that method, with every correct and ordered passkeys, will return the `IUser` representing the current user successfully logged in.
 Else that method will return `null`.
 
 ```csharp
@@ -290,40 +398,179 @@ user = database.Login("master_password_2");			// Will also return null
 user = database.Login("master_password_3");			// Will return a IUser this time
 ```
 
-Once the IUser retrieved, it allow a full access to all services and accounts, all log history and all user parameters.
+**Important — no rollback on a wrong passkey.** Each `Login` call appends the
+passkey to the in-memory onion stack. A mistyped value is never undone: further
+`Login` calls keep stacking on top of it, so even the correct passkeys will keep
+failing until you `Close()` the database and `Open` it again. That is intentional
+(an online anti-brute-force friction layer on top of PBKDF2); see
+[SECURITY.md](SECURITY.md#progressive-login-without-rollback-online-brute-force-friction).
+In the GUI, cancelling the login (e.g. Escape) ends the session so the user can
+restart cleanly.
+
+Once the IUser retrieved, it allow a full access to all services and accounts, all log history and all user settings (`user.Settings`).
+
+`IDatabase` also implements `IDisposable`: `Dispose()` closes the session the same
+way as `Close()`. Prefer a `using` when you own the lifetime of the database.
 
 ### Saving the changes
 
 Use the `IDatabase.Save` method to save the user's updates.
-Note that any update on the user, its services and/or accounts which is not saved will be keeped in a hiden autosave file.
+Note that any update on the user, its settings, services and/or accounts which is
+not saved is kept in the `autosave` entry inside the `.pku` ZIP (not a separate file).
 
 ```csharp
-user.LogoutTimeout = 5;	// Setting the logout timeout to 5 min will create a hiden autosave file
-database.Save();		// Will save the new logout timeout in the database file and remove the autosave file
+user.Settings.LogoutTimeout = 5;	// Setting the logout timeout to 5 min writes the autosave entry
+database.Save();					// Persists into the database entry and clears autosave
 ```
 
 ### Logout/Close a database
 
 To logout and close the database, use the `IDatabase.Close` method.
-All unsaved updates are stored inside the hiden autosave file.
+All unsaved updates remain in the `autosave` ZIP entry until the next successful merge/save.
 
 ```csharp
 database.Close();
 ```
 
+### Import and Export
+
+`ImportFromFile` / `ExportToFile` (and their `Async` twins) are routed by file
+extension. Only `.json` and `.csv` are supported; any other extension fails.
+
+*   **JSON** carries `Settings` and `Services` (with accounts).
+*   **CSV** is tab-separated (TSV) with JSON-encoded cells. Headers are
+    `ServiceName`, `ServiceUrl`, `ServiceNotes`, `AccountLabel`, `Identifiers`,
+    `Password`, `AccountNotes`, `AccountOptions`, `PasswordUpdateReminderDelay`.
+    Settings are not included in CSV.
+
+Import requires a logged-in user. Export and import files are **plaintext** — see
+[SECURITY.md](SECURITY.md#known-limitations). A successful import already
+persists (and both import and export save pending dirty state first). Export
+fails if the destination file already exists.
+
+### Keeping a UI responsive
+
+Every expensive operation has an `Async` twin: `Database.CreateAsync`,
+`Database.OpenAsync`, `IDatabase.LoginAsync`, `SaveAsync`, `ImportFromFileAsync`
+and `ExportToFileAsync`.
+
+They matter because the work behind them is deliberately slow: stretching a
+single passkey costs about a second by design (see
+[SECURITY.md](SECURITY.md#master-passkeys-multi-factor-onion)), and creating a
+database also mints an RSA-4096 key pair. Running that on a UI thread freezes
+the window for the whole duration.
+
+```csharp
+IDatabase database = await Database.OpenAsync(cryptographyCenter,
+   serializationCenter,
+   passwordFactory,
+   clipboardManager,
+   "./database.pku",
+   "username");
+
+IUser? user = await database.LoginAsync("master_password_1");
+user = await database.LoginAsync("master_password_2");
+user = await database.LoginAsync("master_password_3");	// Returns the IUser
+
+await database.SaveAsync();
+```
+
+Two things to keep in mind:
+
+*   These operations share the progressive passkey stack and the database file,
+    so they are not meant to overlap: await one before starting the next.
+*   Their events (`AutoSaveDetected`, `DatabaseSaved`, `WarningsUpdated`,
+    `DatabaseClosed`) are raised from the worker thread, so a handler touching UI
+    state has to marshal back to its own thread.
+
+`IPasswordFactory` follows the same pattern with `GeneratePasswordAsync` and
+`PasswordLeakedAsync`. Those two are genuinely asynchronous rather than merely
+offloaded: they await the leak-check providers (Have I Been Pwned first, then
+XposedOrNot if HIBP is unreachable) instead of blocking a thread on the network.
+
+**WPF client (Windows)**
+------------------------
+
+The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
+(`AppServices`) instead of a DI container, so ViewModels stay unit-testable.
+
+*   **Vault files**: new users are stored next to the executable as
+    `raw/{GetHash(username)}.pku`. `Ctrl+O` opens an existing `.pku`; a path can
+    also be passed as the first command-line argument.
+*   **Login**: username, then each passkey in order. Escape cancels and closes
+    the half-open session (required: there is no passkey rollback).
+*   **Shortcuts**: `Ctrl+O` open, `Ctrl+N` new user, `Ctrl+P` password generator.
+    While the services window is open, **Ctrl+Shift+L** pastes the selected
+    identifier and **Ctrl+Shift+P** pastes the selected password into the
+    focused field (copy + synthetic Ctrl+V; clipboard still auto-clears).
+*   **QR codes**: identifiers and passwords can be shown as a QR matrix generated
+    in-process (`Core/Utils/QrCode.cs`, no network). The window closes after
+    `ISettings.ShowPasswordDelay` milliseconds when that setting is non-zero.
+*   **Theme**: dark WPF resources plus Windows immersive dark title bars.
+*   **Logs**: rolling daily files under `%LocalAppData%\Passkey\logs`.
+
+**Testing**
+-----------
+
+### Automated
+
+*   **Core**: `UnitTests` covers crypto, vault lifecycle, import/export, persistence,
+    and related models. Run with `dotnet test` on the Windows solution.
+*   **GUI ViewModels**: the same `UnitTests` project also references the WPF app
+    and exercises ViewModels (`UnitTests/Gui/`) through a replaceable
+    `AppServices` seam and fakes (session, dialogs, clipboard). No UI automation
+    (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, and real MessageBoxes
+    stay out of the automated suite.
+*   **Coverage**: `coverage.runsettings` measures **Core only**. Windows CI fails
+    the build if line coverage drops below **90%**.
+
+```bash
+dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
+dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Gui"
+```
+
+### Manual smoke (GUI)
+
+After changes that touch login, clipboard, or hotkeys, verify on Windows:
+
+1.  Create a new vault (multi-passkey) and reopen it with the same ordered passkeys.
+2.  Mistype a passkey, then close/reopen and log in correctly (progressive login, no rollback).
+3.  Copy an account password; confirm the clipboard clears after the configured timeout.
+4.  Idle until auto-logout; confirm the session closes and the vault file is released.
+5.  Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
+6.  Show a password as a QR code and confirm the window closes after the configured delay.
+
+**CI**
+------
+
+GitHub Actions on `master` and pull requests:
+
+| Workflow | What it does |
+| -------- | ------------ |
+| `.github/workflows/csharp-dotnet-windows.yml` | Restore, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Core + Interfaces); `dotnet test` with no test projects |
+| `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on every push/PR (any branch) and weekly; Release build of production projects (tests excluded) |
+
+Dependabot is configured for the **.NET SDK** only (`dotnet-sdk` ecosystem). Test
+NuGet packages (MSTest, FluentAssertions) are not auto-bumped.
+
 **Getting Started**
 -------------------
 
 1.  Clone the repository: `git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git`
-2. 1. Build the solution for Windows users: `dotnet build Upsilon.Apps.Passkey.Windows.slnx`
-2. 2. Build the solution for Linux users: `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
+2.  Windows (GUI + tests): `dotnet build Upsilon.Apps.Passkey.Windows.slnx` then `dotnet run --project GUI/WPF`
+3.  Linux / Core-only: `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
+
+Requires the .NET 10 SDK. The WPF app targets `net10.0-windows10.0.18362.0`.
 
 **Contributing**
 ------------
 
-Contributions are welcome! Please submit a pull request with your changes.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for layout, the zero-dependency policy,
+style rules, coverage, and what a PR should include. Security reports go through
+[SECURITY.md](SECURITY.md), not public issues.
 
 **License**
 -------
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v2.0. See the [LICENSE](LICENSE) file for details.

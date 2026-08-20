@@ -2,8 +2,8 @@
 using System.Windows;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.Views;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -101,7 +101,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = string.Empty;
 
-      public Visibility InsertVisibility => AppServices.Session.User is not null ? Visibility.Visible : Visibility.Collapsed;
+      public static Visibility InsertVisibility => AppServices.Session.User is not null ? Visibility.Visible : Visibility.Collapsed;
 
       public ICommand RegenerateCommand { get; }
       public ICommand CopyCommand { get; }
@@ -115,22 +115,45 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          GeneratePassword();
 
          RegenerateCommand = new RelayCommand(GeneratePassword);
-         CopyCommand = new RelayCommand(() => QrCodeView.CopyToClipboard(GeneratedPassword));
+         CopyCommand = new RelayCommand(() => AppServices.Clipboard.SetText(GeneratedPassword, ClipboardManager.AutoClearAfter));
          InsertCommand = new RelayCommand(() =>
          {
-            QrCodeView.CopyToClipboard(GeneratedPassword);
+            AppServices.Clipboard.SetText(GeneratedPassword, ClipboardManager.AutoClearAfter);
             InsertRequested?.Invoke(this, EventArgs.Empty);
          });
       }
+
+      // Every option change restarts a generation, and each one may wait on the
+      // leak-check service. Stamping the requests lets a slow answer be dropped
+      // instead of overwriting the result of the request that came after it.
+      private int _generation;
 
       internal void GeneratePassword()
       {
          GeneratedPassword = string.Empty;
 
-         _ = Task.Run(() =>
+         _ = _generatePasswordAsync(Interlocked.Increment(ref _generation));
+      }
+
+      private async Task _generatePasswordAsync(int generation)
+      {
+         try
          {
-            GeneratedPassword = AppServices.PasswordFactory.GeneratePassword(PasswordLength, Alphabet, CheckIfLeaked);
-         });
+            string password = await AppServices.PasswordFactory
+               .GeneratePasswordAsync(PasswordLength, Alphabet, CheckIfLeaked)
+               .ConfigureAwait(true);
+
+            // Awaiting with the UI context captured means this assignment - and
+            // the binding update it raises - happens back on the UI thread.
+            if (generation == Volatile.Read(ref _generation))
+            {
+               GeneratedPassword = password;
+            }
+         }
+         catch (OperationCanceledException ex)
+         {
+            Log.Error(ex, "Failed to generate a password");
+         }
       }
 
       private void _includeCharactersChanged()
@@ -149,12 +172,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          if (IncludeUpperCaseAlphabet)
          {
-            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToUpper());
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToUpperInvariant());
          }
 
          if (IncludeLowerCaseAlphabet)
          {
-            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToLower());
+#pragma warning disable CA1308 // Not a normalization key: lower-case letters are a legitimate part of the password character set.
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToLowerInvariant());
+#pragma warning restore CA1308
          }
 
          if (IncludeSpecialCharacters)

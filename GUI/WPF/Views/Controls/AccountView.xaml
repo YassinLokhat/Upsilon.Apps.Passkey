@@ -1,4 +1,5 @@
 ﻿<UserControl x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.Controls.AccountView"
+             x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -8,8 +9,10 @@
              d:DataContext="{d:DesignInstance Type=controls:AccountViewModel}"
              mc:Ignorable="d">
     <DockPanel VerticalAlignment="Stretch">
-        <GroupBox Header="{Binding AccountId}"
-                  DockPanel.Dock="Top">
+        <GroupBox Name="_account_GB"
+                  Header="{Binding AccountId}"
+                  DockPanel.Dock="Top"
+                  MouseRightButtonUp="_accountView_MouseRightButtonUp">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -31,7 +34,7 @@
                             Click="_viewActivities_Button_Click"/>
                 <TextBox Grid.Row="0"
                             Grid.Column="1"
-                            Text="{Binding Label, Mode=TwoWay}"
+                            Text="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Background="{Binding LabelBackground}"/>
                 <Grid Grid.Row="1"
                       Grid.Column="0"
@@ -67,7 +70,7 @@
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBox Background="{Binding IdentifierBackground}"
-                                                 Text="{Binding Identifier, Mode=TwoWay}"
+                                                 Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  KeyUp="_identifier_TextBox_KeyUp"/>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
@@ -115,7 +118,8 @@
                                                       Grid.Column="0"
                                                       Margin="5"
                                                       Background="{Binding PasswordBackground}"
-                                                      Validated="_password_VPB_Validated"/>
+                                                      Validated="_password_VPB_Validated"
+                                                      Aborded="_password_VPB_Aborded"/>
                             <Button Grid.Row="0"
                                 Grid.Column="1"
                                 Content="📋"
@@ -170,7 +174,7 @@
                 <TextBox Grid.Row="2"
                             Grid.Column="1"
                             Grid.ColumnSpan="2"
-                            Text="{Binding Notes, Mode=TwoWay}"
+                            Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Background="{Binding NotesBackground}"
                             MaxHeight="75"
                             VerticalScrollBarVisibility="Auto"
@@ -182,19 +186,19 @@
                             Grid.ColumnSpan="3">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <CheckBox IsChecked="{Binding RemindPasswordUpdate}"
+                            <CheckBox IsChecked="{Binding RemindPasswordUpdate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         Content="Remind to update password every"/>
                             <TextBox Width="25"
                                         HorizontalContentAlignment="Center"
                                         TextChanged="_value_TextBox_TextChanged"
                                         PreviewTextInput="_value_TextBox_PreviewTextInput"
                                         DataObject.Pasting="_value_TextBox_Pasting"
-                                        Text="{Binding RemindPasswordUpdateDelay, Mode=TwoWay}"/>
+                                        Text="{Binding RemindPasswordUpdateDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <Label Margin="0">months.</Label>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <CheckBox IsChecked="{Binding WarnPasswordLeak}">Warn if the password leaked.</CheckBox>
-                            <CheckBox IsChecked="{Binding WarnIfDuplicatedPassword}">Warn if the password is same as another account's password.</CheckBox>
+                            <CheckBox IsChecked="{Binding WarnPasswordLeak, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Warn if the password leaked.</CheckBox>
+                            <CheckBox IsChecked="{Binding WarnIfDuplicatedPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Warn if the password is same as another account's password.</CheckBox>
                         </StackPanel>
                     </StackPanel>
                 </GroupBox>

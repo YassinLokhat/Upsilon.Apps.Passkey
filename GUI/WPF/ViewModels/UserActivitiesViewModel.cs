@@ -8,11 +8,11 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class UserActivitiesViewModel : INotifyPropertyChanged
+   internal sealed class UserActivitiesViewModel : INotifyPropertyChanged
    {
       public string Title { get; }
 
-      public string FiltersHeader => $"Filters : {Activities.Count} activities found over {AppServices.Session.Database?.Activities?.Length}";
+      public string FiltersHeader => $"Filters : {Activities.Count} activities found over {AppServices.Session.Database?.Activities?.Count()}";
       public DateTime FromDateFilter
       {
          get;
@@ -21,7 +21,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(FromDateFilter));
+               _onPropertyChanged(nameof(FromDateFilter));
                RefreshFilters();
             }
          }
@@ -34,7 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(ToDateFilter));
+               _onPropertyChanged(nameof(ToDateFilter));
                RefreshFilters();
             }
          }
@@ -53,13 +53,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(ReadableEventType));
+               _onPropertyChanged(nameof(ReadableEventType));
                RefreshFilters();
             }
          }
       } = ActivityEventType.None;
 
-      public string Message
+      public string SearchCriteria
       {
          get;
          set
@@ -67,7 +67,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(Message));
+               _onPropertyChanged(nameof(SearchCriteria));
                RefreshFilters();
             }
          }
@@ -81,11 +81,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               OnPropertyChanged(nameof(NeedsReview));
+               _onPropertyChanged(nameof(NeedsReview));
                RefreshFilters();
             }
          }
-      } = false;
+      }
 
       public ObservableCollection<ActivityViewModel> Activities { get; set; } = [];
 
@@ -93,7 +93,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
@@ -107,14 +107,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          RefreshFilters();
       }
 
-      private bool _locked = false;
+      private bool _locked;
       public void ClearFilters()
       {
          _locked = true;
 
          FromDateFilter = ToDateFilter = DateTime.Now.Date.AddDays(1);
          EventType = ActivityEventType.None;
-         Message = string.Empty;
+         SearchCriteria = string.Empty;
          NeedsReview = false;
 
          _locked = false;
@@ -122,17 +122,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          RefreshFilters();
       }
 
-      public void RefreshFilters(string itemId = "")
+      public void RefreshFilters()
       {
-         if (_locked) return;
+         if (_locked)
+         {
+            return;
+         }
 
          Activities.Clear();
 
-         if (AppServices.Session.Database?.Activities is null) return;
+         if (AppServices.Session.Database?.Activities is null)
+         {
+            return;
+         }
 
          ActivityViewModel[] activities = [.. AppServices.Session.Database.Activities
             .Select(x => new ActivityViewModel(x))
-            .Where(x => x.MeetsConditions(itemId, FromDateFilter, ToDateFilter, EventType, Message, NeedsReview))
+            .Where(x => x.MeetsConditions(FromDateFilter, ToDateFilter, EventType, SearchCriteria, NeedsReview))
             .OrderByDescending(x => x.DateTime)];
 
          foreach (ActivityViewModel activity in activities)
@@ -140,7 +146,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             Activities.Add(activity);
          }
 
-         OnPropertyChanged(nameof(FiltersHeader));
+         _onPropertyChanged(nameof(FiltersHeader));
       }
    }
 }

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Uses the "Code Coverage" data collector that ships with Microsoft.NET.Test.Sdk,
+  so no third-party coverage package is required. Output is Cobertura XML, which
+  is consumable by any coverage viewer.
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage">
+        <Configuration>
+          <Format>Cobertura</Format>
+          <CodeCoverage>
+            <!-- Coverage is scoped to the Core library. The WPF client, test
+                 assemblies and third-party frameworks are not measured: the
+                 quality gate is "how well is the vault logic tested?", not the
+                 UI chrome. -->
+            <ModulePaths>
+              <Include>
+                <ModulePath>.*Upsilon\.Apps\.Passkey\.Core\.dll$</ModulePath>
+              </Include>
+              <Exclude>
+                <ModulePath>.*Upsilon\.Apps\.Passkey\.GUI\.WPF\.dll$</ModulePath>
+                <ModulePath>.*[Uu]nit[Tt]ests\.dll$</ModulePath>
+                <ModulePath>.*[Tt]ests\.dll$</ModulePath>
+                <ModulePath>.*FluentAssertions\.dll$</ModulePath>
+                <ModulePath>.*MSTest.*\.dll$</ModulePath>
+              </Exclude>
+            </ModulePaths>
+            <ExcludeAssembliesWithoutSources>MissingAll</ExcludeAssembliesWithoutSources>
+            <UseVerifiableInstrumentation>False</UseVerifiableInstrumentation>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

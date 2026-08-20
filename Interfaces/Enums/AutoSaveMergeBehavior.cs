@@ -1,25 +1,14 @@
 ﻿namespace Upsilon.Apps.Passkey.Interfaces.Enums
 {
    /// <summary>
-   /// Represent the behavior of auto-save handling.
+   /// How to handle an autosave entry discovered at login.
    /// </summary>
    public enum AutoSaveMergeBehavior
    {
-      /// <summary>
-      /// The auto-save will be merged into the database and saved then the auto-save file will be removed.
-      /// </summary>
-      MergeAndSaveThenRemoveAutoSaveFile = 1,
-      /// <summary>
-      /// The auto-save will be merged into the database without saving and the auto-save file will be keeped.
-      /// </summary>
-      MergeWithoutSavingAndKeepAutoSaveFile = 2,
-      /// <summary>
-      /// The auto-save will not be merged into the database but the auto-save file will be removed.
-      /// </summary>
-      DontMergeAndRemoveAutoSaveFile = 3,
-      /// <summary>
-      /// The auto-save will not be merged into the database and the auto-save file will be keeped.
-      /// </summary>
-      DontMergeAndKeepAutoSaveFile = 4,
+      Undefined = 0,
+      MergeAndSaveThenRemoveAutoSaveFile,
+      MergeWithoutSavingAndKeepAutoSaveFile,
+      DontMergeAndRemoveAutoSaveFile,
+      DontMergeAndKeepAutoSaveFile,
    }
 }

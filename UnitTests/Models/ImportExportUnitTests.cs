@@ -1,13 +1,9 @@
-﻿using ABI.System;
-using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using FluentAssertions;
+using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests;
-using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
@@ -58,7 +54,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.ImportFromFile(importFile);
 
          expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedActivities.Push($"Warning : Import failed because '.txt' extention type is not handled");
+         expectedActivities.Push($"Warning : Import failed because '.txt' extension type is not handled");
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -119,8 +115,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Warning : Import failed because service 'Service1' already exists");
 
          // Then
-         database.User.Services.Length.Should().Be(1);
-         database.User.Services[0].Url.Should().BeEmpty();
+         database.User.Services.Count().Should().Be(1);
+         database.User.Services.ElementAt(0).Url.Should().BeNull();
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
@@ -176,33 +172,33 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
 
          expectedActivities.Push($"Information : Service Service0 has been added to User {username}");
-         expectedActivities.Push($"Information : Service Service0's url has been set to www.service0.xyz");
+         expectedActivities.Push($"Information : Service Service0's url has been set to http://service0.xyz");
          expectedActivities.Push($"Information : Service Service0's notes has been set to Service0's notes");
 
          expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
-         expectedActivities.Push($"Warning : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to Service0's Account0's notes");
          expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
          expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz) has been added to Service Service0");
-         expectedActivities.Push($"Warning : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to Service0's Account1's notes");
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
          expectedActivities.Push($"Information : Service Service1 has been added to User {username}");
-         expectedActivities.Push($"Information : Service Service1's url has been set to www.service1.xyz");
+         expectedActivities.Push($"Information : Service Service1's url has been set to http://service1.xyz");
          expectedActivities.Push($"Information : Service Service1's notes has been set to Service1's notes");
 
          expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
-         expectedActivities.Push($"Warning : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to Service1's Account0's notes");
          expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to 3");
 
          expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz) has been added to Service Service1");
-         expectedActivities.Push($"Warning : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to Service1's Account1's notes");
          expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to 3");
@@ -211,47 +207,47 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : User {username}'s database saved");
 
          // Then
-         database.User.Services.Length.Should().Be(2);
+         database.User.Services.Count().Should().Be(2);
 
-         database.User.Services[0].ServiceName.Should().Be("Service0");
-         database.User.Services[0].Url.Should().Be("www.service0.xyz");
-         database.User.Services[0].Notes.Should().Be("Service0's notes");
+         database.User.Services.ElementAt(0).ServiceName.Should().Be("Service0");
+         database.User.Services.ElementAt(0).Url.OriginalString.Should().Be("http://service0.xyz");
+         database.User.Services.ElementAt(0).Notes.Should().Be("Service0's notes");
 
-         database.User.Services[0].Accounts.Length.Should().Be(2);
+         database.User.Services.ElementAt(0).Accounts.Count().Should().Be(2);
 
-         database.User.Services[0].Accounts[0].Label.Should().Be("Account0");
-         database.User.Services[0].Accounts[0].Identifiers.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
-         database.User.Services[0].Accounts[0].Password.Should().Be("0000");
-         database.User.Services[0].Accounts[0].Notes.Should().Be("Service0's Account0's notes");
-         database.User.Services[0].Accounts[0].Options.Should().Be(AccountOption.None);
-         database.User.Services[0].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Label.Should().Be("Account0");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Identifiers.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Password.Should().Be("0000");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Notes.Should().Be("Service0's Account0's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).PasswordUpdateReminderDelay.Should().Be(3);
 
-         database.User.Services[0].Accounts[1].Label.Should().Be("Account1");
-         database.User.Services[0].Accounts[1].Identifiers.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
-         database.User.Services[0].Accounts[1].Password.Should().Be("1111");
-         database.User.Services[0].Accounts[1].Notes.Should().Be("Service0's Account1's notes");
-         database.User.Services[0].Accounts[1].Options.Should().Be(AccountOption.None);
-         database.User.Services[0].Accounts[1].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Label.Should().Be("Account1");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Identifiers.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Password.Should().Be("1111");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Notes.Should().Be("Service0's Account1's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
 
-         database.User.Services[1].ServiceName.Should().Be("Service1");
-         database.User.Services[1].Url.Should().Be("www.service1.xyz");
-         database.User.Services[1].Notes.Should().Be("Service1's notes");
+         database.User.Services.ElementAt(1).ServiceName.Should().Be("Service1");
+         database.User.Services.ElementAt(1).Url.OriginalString.Should().Be("http://service1.xyz");
+         database.User.Services.ElementAt(1).Notes.Should().Be("Service1's notes");
 
-         database.User.Services[1].Accounts.Length.Should().Be(2);
+         database.User.Services.ElementAt(1).Accounts.Count().Should().Be(2);
 
-         database.User.Services[1].Accounts[0].Label.Should().Be("Account0");
-         database.User.Services[1].Accounts[0].Identifiers.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
-         database.User.Services[1].Accounts[0].Password.Should().Be("AAAA");
-         database.User.Services[1].Accounts[0].Notes.Should().Be("Service1's Account0's notes");
-         database.User.Services[1].Accounts[0].Options.Should().Be(AccountOption.None);
-         database.User.Services[1].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Label.Should().Be("Account0");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Identifiers.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Password.Should().Be("AAAA");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Notes.Should().Be("Service1's Account0's notes");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).PasswordUpdateReminderDelay.Should().Be(3);
 
-         database.User.Services[1].Accounts[1].Label.Should().Be("Account1");
-         database.User.Services[1].Accounts[1].Identifiers.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
-         database.User.Services[1].Accounts[1].Password.Should().Be("BBBB");
-         database.User.Services[1].Accounts[1].Notes.Should().Be("Service1's Account1's notes");
-         database.User.Services[1].Accounts[1].Options.Should().Be(AccountOption.None);
-         database.User.Services[1].Accounts[1].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Label.Should().Be("Account1");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Identifiers.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Password.Should().Be("BBBB");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Notes.Should().Be("Service1's Account1's notes");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
 
          // When
          database.ExportToFile(exportFile);
@@ -342,33 +338,33 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
 
          expectedActivities.Push($"Information : Service Service0 has been added to User {username}");
-         expectedActivities.Push($"Information : Service Service0's url has been set to www.service0.xyz");
+         expectedActivities.Push($"Information : Service Service0's url has been set to http://service0.xyz");
          expectedActivities.Push($"Information : Service Service0's notes has been set to Service0's notes");
 
          expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
-         expectedActivities.Push($"Warning : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to Service0's Account0's notes");
          expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
          expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz) has been added to Service Service0");
-         expectedActivities.Push($"Warning : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to Service0's Account1's notes");
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
 
          expectedActivities.Push($"Information : Service Service1 has been added to User {username}");
-         expectedActivities.Push($"Information : Service Service1's url has been set to www.service1.xyz");
+         expectedActivities.Push($"Information : Service Service1's url has been set to http://service1.xyz");
          expectedActivities.Push($"Information : Service Service1's notes has been set to Service1's notes");
 
          expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
-         expectedActivities.Push($"Warning : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to Service1's Account0's notes");
          expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to 3");
 
          expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz) has been added to Service Service1");
-         expectedActivities.Push($"Warning : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
          expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to Service1's Account1's notes");
          expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to None");
          expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to 3");
@@ -377,47 +373,54 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : User {username}'s database saved");
 
          // Then
-         database.User.Services.Length.Should().Be(2);
+         database.User.Settings.LogoutTimeout.Should().Be(9);
+         database.User.Settings.CleaningClipboardTimeout.Should().Be(99);
+         database.User.Settings.ShowPasswordDelay.Should().Be(999);
+         database.User.Settings.NumberOfOldPasswordToKeep.Should().Be(9);
+         database.User.Settings.NumberOfMonthActivitiesToKeep.Should().Be(9);
+         database.User.Settings.WarningsToNotify.Should().Be(WarningType.PasswordUpdateReminderWarning | WarningType.DuplicatedPasswordsWarning | WarningType.PasswordLeakedWarning);
 
-         database.User.Services[0].ServiceName.Should().Be("Service0");
-         database.User.Services[0].Url.Should().Be("www.service0.xyz");
-         database.User.Services[0].Notes.Should().Be("Service0's notes");
+         database.User.Services.Count().Should().Be(2);
 
-         database.User.Services[0].Accounts.Length.Should().Be(2);
+         database.User.Services.ElementAt(0).ServiceName.Should().Be("Service0");
+         database.User.Services.ElementAt(0).Url.OriginalString.Should().Be("http://service0.xyz");
+         database.User.Services.ElementAt(0).Notes.Should().Be("Service0's notes");
 
-         database.User.Services[0].Accounts[0].Label.Should().Be("Account0");
-         database.User.Services[0].Accounts[0].Identifiers.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
-         database.User.Services[0].Accounts[0].Password.Should().Be("0000");
-         database.User.Services[0].Accounts[0].Notes.Should().Be("Service0's Account0's notes");
-         database.User.Services[0].Accounts[0].Options.Should().Be(AccountOption.None);
-         database.User.Services[0].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(0).Accounts.Count().Should().Be(2);
 
-         database.User.Services[0].Accounts[1].Label.Should().Be("Account1");
-         database.User.Services[0].Accounts[1].Identifiers.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
-         database.User.Services[0].Accounts[1].Password.Should().Be("1111");
-         database.User.Services[0].Accounts[1].Notes.Should().Be("Service0's Account1's notes");
-         database.User.Services[0].Accounts[1].Options.Should().Be(AccountOption.None);
-         database.User.Services[0].Accounts[1].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Label.Should().Be("Account0");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Identifiers.Should().BeEquivalentTo(new[] { "account0@service0.xyz", "account0_backup@service0.xyz" });
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Password.Should().Be("0000");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Notes.Should().Be("Service0's Account0's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).PasswordUpdateReminderDelay.Should().Be(3);
 
-         database.User.Services[1].ServiceName.Should().Be("Service1");
-         database.User.Services[1].Url.Should().Be("www.service1.xyz");
-         database.User.Services[1].Notes.Should().Be("Service1's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Label.Should().Be("Account1");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Identifiers.Should().BeEquivalentTo(new[] { "account1@service0.xyz", "account1_backup@service0.xyz" });
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Password.Should().Be("1111");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Notes.Should().Be("Service0's Account1's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
 
-         database.User.Services[1].Accounts.Length.Should().Be(2);
+         database.User.Services.ElementAt(1).ServiceName.Should().Be("Service1");
+         database.User.Services.ElementAt(1).Url.OriginalString.Should().Be("http://service1.xyz");
+         database.User.Services.ElementAt(1).Notes.Should().Be("Service1's notes");
 
-         database.User.Services[1].Accounts[0].Label.Should().Be("Account0");
-         database.User.Services[1].Accounts[0].Identifiers.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
-         database.User.Services[1].Accounts[0].Password.Should().Be("AAAA");
-         database.User.Services[1].Accounts[0].Notes.Should().Be("Service1's Account0's notes");
-         database.User.Services[1].Accounts[0].Options.Should().Be(AccountOption.None);
-         database.User.Services[1].Accounts[0].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(1).Accounts.Count().Should().Be(2);
 
-         database.User.Services[1].Accounts[1].Label.Should().Be("Account1");
-         database.User.Services[1].Accounts[1].Identifiers.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
-         database.User.Services[1].Accounts[1].Password.Should().Be("BBBB");
-         database.User.Services[1].Accounts[1].Notes.Should().Be("Service1's Account1's notes");
-         database.User.Services[1].Accounts[1].Options.Should().Be(AccountOption.None);
-         database.User.Services[1].Accounts[1].PasswordUpdateReminderDelay.Should().Be(3);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Label.Should().Be("Account0");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Identifiers.Should().BeEquivalentTo(new[] { "account0@service1.xyz", "account0_backup@service1.xyz" });
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Password.Should().Be("AAAA");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Notes.Should().Be("Service1's Account0's notes");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).PasswordUpdateReminderDelay.Should().Be(3);
+
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Label.Should().Be("Account1");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Identifiers.Should().BeEquivalentTo(new[] { "account1@service1.xyz", "account1_backup@service1.xyz" });
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Password.Should().Be("BBBB");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Notes.Should().Be("Service1's Account1's notes");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
@@ -506,7 +509,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          expectedActivities.Push($"Information : User {username}'s database saved");
          expectedActivities.Push($"Warning : Exporting data to file : '{exportFile}'");
-         expectedActivities.Push($"Warning : Export failed because '.txt' extention type is not handled");
+         expectedActivities.Push($"Warning : Export failed because '.txt' extension type is not handled");
 
          // Then
          File.Exists(exportFile).Should().BeFalse();
@@ -517,5 +520,121 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * Data exported to JSON can be re-imported into a fresh database and yields
+       * an equivalent set of services and accounts (a structural round-trip). A
+       * plain file comparison is not usable here because the JSON carries the
+       * per-item ItemId and password timestamps, which are regenerated on import.
+      */
+      public void Case13_ImportExportJson_RoundTrip()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string roundTripUsername = $"{username}_roundtrip";
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.json");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export_roundtrip.json");
+
+         UnitTestsHelper.ClearTestEnvironment();
+         UnitTestsHelper.ClearTestEnvironment(roundTripUsername);
+
+         IDatabase source = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         // When (import into the source database, then export it back to JSON)
+         source.ImportFromFile(importFile).Should().BeTrue();
+         source.ExportToFile(exportFile).Should().BeTrue();
+
+         // Then (the exported file can be re-imported into a fresh database)
+         IDatabase roundTripped = UnitTestsHelper.CreateTestDatabase(passkeys, roundTripUsername);
+         roundTripped.ImportFromFile(exportFile).Should().BeTrue();
+
+         // Then (both databases hold an equivalent set of services and accounts)
+         _project(source).Should().BeEquivalentTo(_project(roundTripped));
+
+         // Finaly
+         source.Close();
+         roundTripped.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+         UnitTestsHelper.ClearTestEnvironment(roundTripUsername);
+      }
+
+      [TestMethod]
+      /*
+       * ImportFromFileAsync and ExportToFileAsync drive the same pipeline as the
+       * synchronous methods.
+      */
+      public async Task Case15_ImportExportAsync_RoundTrip()
+      {
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.json");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export_async.json");
+
+         UnitTestsHelper.ClearTestEnvironment();
+
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         _ = (await database.ImportFromFileAsync(importFile)).Should().BeTrue();
+         _ = (await database.ExportToFileAsync(exportFile)).Should().BeTrue();
+         _ = File.Exists(exportFile).Should().BeTrue();
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * CSV import must seed password history so PasswordExpired works when a
+       * reminder delay is set (import only carries the current password).
+      */
+      public void Case14_ImportCSV_SeedsPasswordHistoryForExpiry()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         bool imported = database.ImportFromFile(importFile);
+         imported.Should().BeTrue();
+
+         foreach (IAccount account in database.User!.Services.SelectMany(s => s.Accounts))
+         {
+            account.Passwords.Should().ContainSingle(
+               "CSV import supplies only the current password; history must still be seeded");
+            account.Passwords.Values.Single().Should().Be(account.Password);
+
+            Account concrete = (Account)account;
+            concrete.PasswordUpdateReminderDelay.Should().Be(3);
+            Action evaluateExpiry = () => _ = concrete.PasswordExpired;
+            evaluateExpiry.Should().NotThrow();
+            concrete.PasswordExpired.Should().BeFalse("just-imported passwords are not expired");
+         }
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      // Projects a database's services/accounts onto the persisted fields only,
+      // excluding the regenerated ItemId and password timestamps, so two imports
+      // of the same data compare as equivalent.
+      private static object _project(IDatabase database)
+         => database.User.Services.Select(service => new
+         {
+            service.ServiceName,
+            Url = service.Url?.OriginalString,
+            service.Notes,
+            Accounts = service.Accounts.Select(account => new
+            {
+               account.Label,
+               Identifiers = account.Identifiers.ToArray(),
+               account.Password,
+               account.Notes,
+               account.Options,
+               account.PasswordUpdateReminderDelay,
+            }).ToArray(),
+         }).ToArray();
    }
 }

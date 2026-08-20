@@ -2,8 +2,16 @@
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
-   public static class IItemHelper
+   /// <summary>
+   /// Filter helpers and a session keep-alive. <see cref="Shake"/> only exists to
+   /// touch <see cref="IItem.ItemId"/>, which resets the inactivity timer via
+   /// <c>Database.Get</c> — WPF selection changes would otherwise not count as activity.
+   /// </summary>
+   internal static class IItemHelper
    {
+      /// <summary>
+      /// Counts as user activity (resets auto-logout) without changing data.
+      /// </summary>
       public static void Shake(this IUser user)
       {
          _ = user.ItemId;
@@ -11,47 +19,64 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       public static bool MeetsFilterConditions(this IService service, string serviceFilter, string identifierFilter, string globalTextFilter, bool changedItemsOnly)
       {
-         serviceFilter = serviceFilter.ToLower().Trim();
-         identifierFilter = identifierFilter.ToLower().Trim();
-         globalTextFilter = globalTextFilter.ToLower().Trim();
+         serviceFilter = serviceFilter.Trim();
+         identifierFilter = identifierFilter.Trim();
+         globalTextFilter = globalTextFilter.Trim();
 
-         string serviceId = service.ItemId.Replace(service.User.ItemId, string.Empty).ToLower().Trim();
-         string serviceName = service.ServiceName.ToLower().Trim();
-         string url = service.Url.ToLower().Trim();
-         string notes = service.Notes.ToLower().Trim();
+         string serviceId = service.ItemId.Trim();
+         string serviceName = service.ServiceName.Trim();
+         string url = service.Url?.OriginalString.Trim() ?? string.Empty;
+         string notes = service.Notes.Trim();
 
-         return (!string.IsNullOrWhiteSpace(globalTextFilter)
-            ? serviceId == globalTextFilter
-               || serviceName.Contains(globalTextFilter)
-               || url.Contains(globalTextFilter)
-               || notes.Contains(globalTextFilter)
-               || service.Accounts.Any(x => x.MeetsFilterConditions(string.Empty, globalTextFilter, changedItemsOnly))
-            : (string.IsNullOrWhiteSpace(serviceFilter)
-                  || (!string.IsNullOrWhiteSpace(serviceFilter) && serviceName.Contains(serviceFilter)))
-               && (string.IsNullOrWhiteSpace(identifierFilter)
-                  || service.Accounts.Any(x => x.MeetsFilterConditions(identifierFilter, globalTextFilter, changedItemsOnly))))
-            && (!changedItemsOnly || service.HasChanged());
+         bool globalTextFilterSearch = serviceId.Equals(globalTextFilter, StringComparison.OrdinalIgnoreCase)
+               || serviceName.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
+               || url.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
+               || notes.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
+               || service.Accounts.Any(x => x.MeetsFilterConditions(string.Empty, globalTextFilter, changedItemsOnly));
+
+
+         bool serviceFilterSearch = string.IsNullOrWhiteSpace(serviceFilter)
+            || serviceName.Contains(serviceFilter, StringComparison.OrdinalIgnoreCase);
+         bool identifierFilterSearch = string.IsNullOrWhiteSpace(identifierFilter)
+            || service.Accounts.Any(x => x.MeetsFilterConditions(identifierFilter, globalTextFilter, changedItemsOnly));
+
+         bool serviceAndIdentifierFilterSearch = serviceFilterSearch && identifierFilterSearch;
+
+         bool changedItemsOnlySearch = !changedItemsOnly || service.HasChanged();
+
+         bool filterSearch = !string.IsNullOrWhiteSpace(globalTextFilter)
+            ? globalTextFilterSearch
+            : serviceAndIdentifierFilterSearch;
+
+         return filterSearch && changedItemsOnlySearch;
       }
 
       public static bool MeetsFilterConditions(this IAccount account, string identifierFilter, string globalTextFilter, bool changedItemsOnly)
       {
-         identifierFilter = identifierFilter.ToLower().Trim();
-         globalTextFilter = globalTextFilter.ToLower().Trim();
+         identifierFilter = identifierFilter.Trim();
+         globalTextFilter = globalTextFilter.Trim();
 
-         string accountId = account.ItemId.Replace(account.Service.ItemId, string.Empty).ToLower().Trim();
-         string label = account.Label.ToLower().Trim();
-         string notes = account.Notes.ToLower().Trim();
-         string identifiers = string.Join("\n", account.Identifiers.Select(x => x.ToLower().Trim()));
+         string accountId = account.ItemId.Trim();
+         string label = account.Label.Trim();
+         string notes = account.Notes.Trim();
+         string identifiers = string.Join("\n", account.Identifiers.Select(x => x.Trim()));
 
-         return (!string.IsNullOrWhiteSpace(globalTextFilter)
-            ? accountId == globalTextFilter
-               || identifiers.Contains(globalTextFilter)
-               || label.ToLower().Contains(globalTextFilter)
-               || notes.ToLower().Contains(globalTextFilter)
-            : string.IsNullOrWhiteSpace(identifierFilter)
-               || identifiers.Contains(identifierFilter)
-               || label.Contains(identifierFilter))
-            && (!changedItemsOnly || account.HasChanged());
+         bool globalTextFilterSearch = accountId.Equals(globalTextFilter, StringComparison.OrdinalIgnoreCase)
+               || identifiers.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
+               || label.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
+               || notes.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase);
+
+         bool identifierFilterSearch = string.IsNullOrWhiteSpace(identifierFilter)
+               || identifiers.Contains(identifierFilter, StringComparison.OrdinalIgnoreCase)
+               || label.Contains(identifierFilter, StringComparison.OrdinalIgnoreCase);
+
+         bool changedItemsOnlySearch = !changedItemsOnly || account.HasChanged();
+
+         bool filterSearch = !string.IsNullOrWhiteSpace(globalTextFilter)
+            ? globalTextFilterSearch
+            : identifierFilterSearch;
+
+         return filterSearch && changedItemsOnlySearch;
       }
    }
 }

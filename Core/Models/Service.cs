@@ -2,24 +2,28 @@
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
+   /// <summary>
+   /// A site/app grouping accounts. Item ids are prefixed <c>S</c>.
+   /// </summary>
    internal sealed class Service : IService
    {
       #region IService interface explicit Internal
 
-      string IItem.ItemId => Database.Get(ItemId);
+      string IItem.ItemId => Host.Touch(ItemId);
 
-      IDatabase IItem.Database => Database;
+      IDatabase IItem.Database => Host.AsDatabase;
 
-      IUser IService.User => Database.Get(User);
-      IAccount[] IService.Accounts => [.. Database.Get(Accounts)];
+      IUser IService.User => Host.Touch(User);
+      IEnumerable<IAccount> IService.Accounts => [.. Host.Touch(Accounts)];
 
       string IService.ServiceName
       {
-         get => Database.Get(ServiceName);
-         set => ServiceName = Database.AutoSave.UpdateValue(ItemId,
+         get => Host.Touch(ServiceName);
+         set => ServiceName = Host.AutoSave.UpdateValue(ItemId,
             fieldName: nameof(ServiceName),
             needsReview: true,
             oldValue: ServiceName,
@@ -27,21 +31,21 @@ namespace Upsilon.Apps.Passkey.Core.Models
             readableValue: value);
       }
 
-      string IService.Url
+      Uri? IService.Url
       {
-         get => Database.Get(Url);
-         set => Url = Database.AutoSave.UpdateValue(ItemId,
+         get => !string.IsNullOrWhiteSpace(Url) ? new Uri(Host.Touch(Url)) : null;
+         set => Url = Host.AutoSave.UpdateValue(ItemId,
             fieldName: nameof(Url),
             needsReview: false,
             oldValue: Url,
-            newValue: value,
-            readableValue: value);
+            newValue: value?.OriginalString ?? string.Empty,
+            readableValue: value?.OriginalString ?? string.Empty);
       }
 
       string IService.Notes
       {
-         get => Database.Get(Notes);
-         set => Notes = Database.AutoSave.UpdateValue(ItemId,
+         get => Host.Touch(Notes);
+         set => Notes = Host.AutoSave.UpdateValue(ItemId,
             fieldName: nameof(Notes),
             needsReview: false,
             oldValue: Notes,
@@ -54,20 +58,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Account account = new()
          {
             Service = this,
-            ItemId = "A" + Database.CryptographyCenter.GetHash(ItemId + label + string.Join(string.Empty, identifiers)),
+            ItemId = "A" + Host.CryptographyCenter.GetHash(ItemId + label + string.Join(string.Empty, identifiers)),
             Label = label,
             Identifiers = [.. identifiers],
             Password = password,
          };
 
-         Accounts.Add(Database.AutoSave.AddValue(ItemId, readableValue: account.ToString(), needsReview: false, account));
+         Accounts.Add(Host.AutoSave.AddValue(ItemId, readableValue: account.ToString(), needsReview: false, account));
 
-         account.Passwords[DateTime.Now] = Database.AutoSave.UpdateValue(account.ItemId,
+         _ = Host.AutoSave.UpdateValue(account.ItemId,
             fieldName: nameof(account.Password),
             needsReview: true,
             oldValue: string.Empty,
             newValue: account.Password,
             readableValue: string.Empty);
+
+         account.Passwords[DateTime.Now] = ProtectedSecret.Protect(account.Password);
 
          return account;
       }
@@ -92,18 +98,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Account accountToRemove = Accounts.FirstOrDefault(x => x.ItemId == account.ItemId)
             ?? throw new KeyNotFoundException($"The {account}' was not found into the {this}'s accounts list");
 
-         _ = Accounts.Remove(Database.AutoSave.DeleteValue(ItemId, readableValue: accountToRemove.ToString(), needsReview: true, accountToRemove));
+         _ = Accounts.Remove(Host.AutoSave.DeleteValue(ItemId, readableValue: accountToRemove.ToString(), needsReview: true, accountToRemove));
       }
 
       #endregion
 
-      internal Database Database => User.Database;
+      internal IUserHost Host => User.Host;
 
       public string ItemId { get; set; } = string.Empty;
 
       internal User User
       {
-         get => field ?? throw new NullReferenceException(nameof(User));
+         get => field ?? throw new NullValueException(nameof(User));
          set
          {
             field = value;
@@ -121,6 +127,38 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public string Url { get; set; } = string.Empty;
       public string Notes { get; set; } = string.Empty;
 
+      public IAccount AddAccount(string label, IEnumerable<string> identifiers, string password, Dictionary<DateTime, ProtectedSecret> passwords)
+      {
+         Account account = new()
+         {
+            Service = this,
+            ItemId = "A" + Host.CryptographyCenter.GetHash(ItemId + label + string.Join(string.Empty, identifiers)),
+            Label = label,
+            Identifiers = [.. identifiers],
+            Password = password,
+            Passwords = passwords,
+         };
+
+         // CSV/import paths often supply a current password with an empty history
+         // dictionary. Seed one dated entry so PasswordExpired and retention work.
+         if (account.Passwords.Count == 0
+            && !string.IsNullOrEmpty(password))
+         {
+            account.Passwords[DateTime.Now] = ProtectedSecret.Protect(password);
+         }
+
+         Accounts.Add(Host.AutoSave.AddValue(ItemId, readableValue: account.ToString(), needsReview: false, account));
+
+         _ = Host.AutoSave.UpdateValue(account.ItemId,
+            fieldName: nameof(account.Password),
+            needsReview: false,
+            oldValue: string.Empty,
+            newValue: account.Password,
+            readableValue: string.Empty);
+
+         return account;
+      }
+
       internal void Apply(Change change)
       {
          switch (change.ActionType)
@@ -129,25 +167,25 @@ namespace Upsilon.Apps.Passkey.Core.Models
                switch (change.FieldName)
                {
                   case nameof(ServiceName):
-                     ServiceName = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
+                     ServiceName = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);
                      break;
                   case nameof(Url):
-                     Url = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
+                     Url = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);
                      break;
                   case nameof(Notes):
-                     Notes = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
+                     Notes = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
             case ActivityEventType.ItemAdded:
-               Account accountToAdd = change.NewValue.DeserializeTo<Account>(Database.SerializationCenter);
+               Account accountToAdd = change.NewValue.DeserializeTo<Account>(Host.SerializationCenter);
                accountToAdd.Service = this;
                Accounts.Add(accountToAdd);
                break;
             case ActivityEventType.ItemDeleted:
-               Account accountToDelete = change.NewValue.DeserializeTo<Account>(Database.SerializationCenter);
+               Account accountToDelete = change.NewValue.DeserializeTo<Account>(Host.SerializationCenter);
                _ = Accounts.RemoveAll(x => x.ItemId == accountToDelete.ItemId);
                break;
             default:
@@ -157,6 +195,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public override string ToString() => $"Service {ServiceName}";
 
-      public bool HasChanged() => Database.HasChanged(ItemId) || Accounts.Any(x => x.HasChanged());
+      public bool HasChanged() => Host.HasPendingChanges(ItemId) || Accounts.Any(x => x.HasChanged());
    }
 }

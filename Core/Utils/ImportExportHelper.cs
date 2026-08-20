@@ -1,12 +1,18 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
+   /// <summary>
+   /// JSON and tab-separated (TSV) import/export. Files are plaintext by design;
+   /// CSV cells are JSON-encoded so commas and quotes in notes survive.
+   /// </summary>
    internal static class ImportExportHelper
    {
       private enum Headers
@@ -26,9 +32,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          => JsonSerializer.Serialize(obj, _options);
 
       private static T _jsonDeserializeAs<T>(string json)
-         => JsonSerializer.Deserialize<T>(json, _options) ?? throw new NullReferenceException();
+         => JsonSerializer.Deserialize<T>(json, _options) ?? throw new NullValueException();
 
-      private static readonly JsonSerializerOptions _options = new() { Converters = { new JsonStringEnumConverter() }, WriteIndented = true, };
+      private static readonly JsonSerializerOptions _options = new() { Converters = { new JsonStringEnumConverter(), new ProtectedSecretJsonConverter() }, WriteIndented = true, };
 
       public static string ImportCSV(this IDatabase database, string importContent)
       {
@@ -36,7 +42,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          try
          {
-            string[] csvLines = [.. importContent.Split('\n').Select(x => x.Replace("\r", "")).Where(x => !string.IsNullOrWhiteSpace(x))];
+            string[] csvLines = [.. importContent.Split('\n').Select(x => x.Replace("\r", "", StringComparison.Ordinal)).Where(x => !string.IsNullOrWhiteSpace(x))];
 
             string[] headers = csvLines[0].Split("\t");
 
@@ -52,7 +58,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             headersIndexes[Headers.AccountOptions] = headers.IndexOf(Headers.AccountOptions.ToString());
             headersIndexes[Headers.PasswordUpdateReminderDelay] = headers.IndexOf(Headers.PasswordUpdateReminderDelay.ToString());
 
-            if (headersIndexes.Values.Any(x => x == -1)) return $"the CSV headers should be : {string.Join(", ", headersIndexes.Keys.Select(x => $"'{x}'"))}";
+            if (headersIndexes.Values.Any(x => x == -1))
+            {
+               return $"the CSV headers should be : {string.Join(", ", headersIndexes.Keys.Select(x => $"'{x}'"))}";
+            }
 
             Service? service = null;
 
@@ -96,35 +105,69 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                service.Accounts.Add(account);
             }
          }
-         catch
+         catch (Exception ex)
+            when (ex is IndexOutOfRangeException)
          {
             return "the CSV data format is incorrect";
          }
 
-         return _importServices(database, services);
+         return services.Count == 0 ? "there is no data to import" : _importServices(database, services);
       }
 
       public static string ImportJson(this IDatabase database, string importContent)
       {
-         Service[] services;
+         Data data;
 
          try
          {
-            services = _jsonDeserializeAs<Service[]>(importContent);
+            data = _jsonDeserializeAs<Data>(importContent);
          }
-         catch
+         catch (JsonException)
          {
             return "import file deserialization failed";
          }
 
-         return _importServices(database, services);
+         return _importData(database, data);
       }
 
-      private static string _importServices(IDatabase database, IEnumerable<Service> services)
+      private static string _importData(IDatabase database, Data data)
       {
-         if (database.User is null) return string.Empty;
+         string error = string.Empty;
 
-         if (!services.Any()) return "there is no data to import";
+         if (data.Settings is not null)
+         {
+            error = _importSettings(database, data.Settings);
+         }
+
+         if (string.IsNullOrEmpty(error)
+            && data.Services is not null)
+         {
+            error = _importServices(database, data.Services);
+         }
+
+         return error;
+      }
+
+      private static string _importSettings(IDatabase database, Settings settings)
+      {
+         if (database.User is null)
+         {
+            return string.Empty;
+         }
+
+         settings.User = (User)database.User;
+         database.User.Settings = settings;
+
+         return string.Empty;
+      }
+
+      private static string _importServices(IDatabase database, List<Service> services)
+      {
+         if (database.User is null
+            || services.Count == 0)
+         {
+            return string.Empty;
+         }
 
          Service? s0 = services.FirstOrDefault(x => database.User.Services.Any(y => y.ServiceName == x.ServiceName));
          if (s0 is not null)
@@ -141,12 +184,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          foreach (Service s in services)
          {
             IService service = database.User.AddService(s.ServiceName);
-            service.Url = s.Url;
+            service.Url = (!string.IsNullOrWhiteSpace(s.Url) && Uri.IsWellFormedUriString(s.Url, UriKind.RelativeOrAbsolute))
+               ? new Uri(s.Url) : null;
             service.Notes = s.Notes;
 
             foreach (Account a in s.Accounts)
             {
-               IAccount account = service.AddAccount(a.Label, a.Identifiers, a.Password);
+               IAccount account = ((Service)service).AddAccount(a.Label, a.Identifiers, a.Password, a.Passwords);
                account.Notes = a.Notes;
                account.Options = a.Options;
                account.PasswordUpdateReminderDelay = a.PasswordUpdateReminderDelay;
@@ -158,7 +202,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public static string ExportCSV(this Database database, string filePath)
       {
-         if (database.User is null) return string.Empty;
+         if (database.User is null)
+         {
+            return string.Empty;
+         }
 
          StringBuilder sb = new(string.Join("\t", Enum.GetNames<Headers>()) + "\n");
 
@@ -173,7 +220,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                string identifiers = string.Join("|", account.Identifiers.Where(x => !string.IsNullOrWhiteSpace(x)));
 
                _ = sb.Append(serviceLine);
-               _ = sb.Append($"{_jsonSerialize(account.Label.Trim())}\t" +
+               _ = sb.Append(CultureInfo.InvariantCulture, $"{_jsonSerialize(account.Label.Trim())}\t" +
                   $"{_jsonSerialize(identifiers)}\t" +
                   $"{_jsonSerialize(account.Password.Trim())}\t" +
                   $"{_jsonSerialize(account.Notes.Trim())}\t" +
@@ -189,11 +236,26 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public static string ExportJson(this Database database, string filePath)
       {
-         if (database.User is null) return string.Empty;
+         if (database.User is null)
+         {
+            return string.Empty;
+         }
 
-         File.WriteAllText(filePath, _jsonSerialize(database.User.Services));
+         Data data = new()
+         {
+            Settings = database.User.Settings.CloneWith(database.SerializationCenter),
+            Services = [.. database.User.Services],
+         };
+
+         File.WriteAllText(filePath, _jsonSerialize(data));
 
          return string.Empty;
       }
+   }
+
+   internal class Data
+   {
+      public Settings? Settings { get; set; }
+      public List<Service>? Services { get; set; }
    }
 }

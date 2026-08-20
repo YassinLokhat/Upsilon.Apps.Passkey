@@ -4,7 +4,10 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
-   internal class Activity : IActivity
+   /// <summary>
+   /// One audit-log row. Ciphertext is RSA-hybrid; plaintext lives only after login.
+   /// </summary>
+   internal sealed class Activity : IActivity
    {
       #region IActivity interface
 
@@ -60,18 +63,23 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (info.Length > 4)
          {
             activity = string.Join("|", info[4..])
-               .Replace("|", "/|")
-               .Replace("\\/|", "\\|");
+               .Replace("|", "/|", StringComparison.Ordinal)
+               .Replace("\\/|", "\\|", StringComparison.Ordinal);
             info = activity.Split("/|");
-            Data = [.. info.Select(x => x.Replace("\\|", "|"))];
+            Data = [.. info.Select(x => x.Replace("\\|", "|", StringComparison.Ordinal))];
          }
       }
 
+      /// <summary>
+      /// Persistence wire format: ticks|itemId|eventType|needsReview|data… with
+      /// <c>|</c> escaped as <c>\|</c> inside data. Numeric <see cref="EventType"/>
+      /// values are a contract — do not renumber the enum.
+      /// </summary>
       public override string ToString()
       {
          string activity = $"{DateTimeTicks:X}|{ItemId}|{(int)EventType}|{(NeedsReview ? "1" : "")}";
 
-         string[] data = [.. Data.Select(x => x.Replace("|", "\\|"))];
+         string[] data = [.. Data.Select(x => x.Replace("|", "\\|", StringComparison.Ordinal))];
          if (data.Length != 0)
          {
             activity += $"|{string.Join("|", data)}";
@@ -87,7 +95,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile => $"User {Data[0]}'s autosave merged and saved",
             ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile => $"User {Data[0]}'s autosave merged without saving",
             ActivityEventType.DontMergeAndRemoveAutoSaveFile => $"User {Data[0]}'s autosave not merged and removed",
-            ActivityEventType.DontMergeAndKeepAutoSaveFile => $"User {Data[0]}'s autosave not merged and keeped",
+            ActivityEventType.DontMergeAndKeepAutoSaveFile => $"User {Data[0]}'s autosave not merged and kept",
             ActivityEventType.DatabaseCreated => $"User {Data[0]}'s database created",
             ActivityEventType.DatabaseOpened => $"User {Data[0]}'s database opened",
             ActivityEventType.DatabaseSaved => $"User {Data[0]}'s database saved",
@@ -102,9 +110,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
             ActivityEventType.ExportingDataStarted => $"Exporting data to file : '{Data[0]}'",
             ActivityEventType.ExportingDataSucceded => $"Export completed successfully",
             ActivityEventType.ExportingDataFailed => $"Export failed because {Data[0]}",
-            ActivityEventType.ItemUpdated => $"{(Data.Length > 3 ? $"{Data[3]}'s " : "")}{Data[0]}'s {Data[1].ToSentenceCase().ToLower()} has been {(string.IsNullOrWhiteSpace(Data[2]) ? $"updated" : $"set to {Data[2]}")}",
+#pragma warning disable CA1308 // Display text, not a normalization key: the field name is intentionally lowercased for a readable sentence.
+            ActivityEventType.ItemUpdated => $"{(Data.Length > 3 ? $"{Data[3]}'s " : "")}{Data[0]}'s {Data[1].ToSentenceCase().ToLowerInvariant()} has been {(string.IsNullOrWhiteSpace(Data[2]) ? $"updated" : $"set to {Data[2]}")}",
+#pragma warning restore CA1308
             ActivityEventType.ItemAdded => $"{Data[2]} has been added to {Data[0]}",
             ActivityEventType.ItemDeleted => $"{Data[2]} has been removed from {Data[0]}",
+            ActivityEventType.ActivityLogTampered => $"User {Data[0]}'s activity log integrity check failed",
             _ => ToString(),
          };
 

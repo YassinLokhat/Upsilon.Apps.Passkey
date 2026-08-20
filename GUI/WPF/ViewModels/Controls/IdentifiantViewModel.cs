@@ -7,7 +7,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   public partial class IdentifierViewModel : INotifyPropertyChanged
+   internal sealed partial class IdentifierViewModel : INotifyPropertyChanged
    {
       private readonly IAccount _account;
 
@@ -29,24 +29,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          {
             if (field != value)
             {
-               if (IdentifiersTypes.Keys.Union(IdentifiersTypes.Values).All(x => !value.StartsWith(x, StringComparison.CurrentCultureIgnoreCase)))
+               if (IdentifiersTypes.Keys.Union(IdentifiersTypes.Values).All(x => !value.StartsWith(x, StringComparison.Ordinal)))
                {
                   value = _getIdentifierType(value);
                }
 
                foreach (KeyValuePair<string, string> idType in IdentifiersTypes)
                {
-                  field = value.Replace(idType.Key, idType.Value);
+                  field = value.Replace(idType.Key, idType.Value, StringComparison.Ordinal);
                }
 
-               OnPropertyChanged(nameof(Identifier));
+               _onPropertyChanged(nameof(Identifier));
             }
          }
       } = string.Empty;
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      protected virtual void OnPropertyChanged(string propertyName)
+      private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
@@ -60,7 +60,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void Refresh()
       {
-         OnPropertyChanged(nameof(IdentifierBackground));
+         _onPropertyChanged(nameof(IdentifierBackground));
       }
 
       [GeneratedRegex(@"^\+\d{1,3}[\d\s\-\.]{6,20}$")]

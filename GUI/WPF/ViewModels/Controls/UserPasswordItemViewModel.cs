@@ -3,24 +3,20 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   public class UserPasswordItemViewModel : INotifyPropertyChanged
+   internal sealed class UserPasswordItemViewModel : INotifyPropertyChanged
    {
       public int Index
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = 0;
-      public string Password
-      {
-         get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = string.Empty;
+      }
+
+      /// <summary>
+      /// Seed value used only to initialize the PasswordBox, then cleared.
+      /// The live secret lives in the PasswordBox, not in this ViewModel.
+      /// </summary>
+      public string InitialPassword { get; set; } = string.Empty;
 
       public event PropertyChangedEventHandler? PropertyChanged;
-
-      protected virtual void OnPropertyChanged(string propertyName)
-      {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-      }
    }
 }
