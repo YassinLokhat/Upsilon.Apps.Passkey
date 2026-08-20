@@ -209,7 +209,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             }
             : FileLocker.Open<ActivityCenter>(ActivityFileEntry);
 
-         ActivityCenter.Database = this;
+         ActivityCenter.Host = this;
       }
 
       /// <summary>
