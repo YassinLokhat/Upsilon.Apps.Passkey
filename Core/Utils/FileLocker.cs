@@ -162,6 +162,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             return _decompressStringCore(compressedText);
          }
          catch (Exception ex)
+            when (ex is ArgumentException
+            || ex is ArgumentNullException
+            || ex is FormatException
+            || ex is NotSupportedException
+            || ex is FormatException
+            || ex is ObjectDisposedException
+            || ex is IOException
+            || ex is DecoderFallbackException)
          {
             throw new CorruptedSourceException("Compressed payload could not be decoded.", ex);
          }
@@ -207,6 +215,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             return _decompressStringCore(decrypted);
          }
          catch (Exception ex)
+            when (ex is ArgumentException
+            || ex is ArgumentNullException
+            || ex is FormatException
+            || ex is NotSupportedException
+            || ex is FormatException
+            || ex is ObjectDisposedException
+            || ex is IOException
+            || ex is DecoderFallbackException)
          {
             // Layers peeled cleanly but the payload is not valid gzip yet: either
             // more passkeys are required (progressive login) or the inner bytes
