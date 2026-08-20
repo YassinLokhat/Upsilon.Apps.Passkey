@@ -118,7 +118,8 @@
                                                       Grid.Column="0"
                                                       Margin="5"
                                                       Background="{Binding PasswordBackground}"
-                                                      Validated="_password_VPB_Validated"/>
+                                                      Validated="_password_VPB_Validated"
+                                                      Aborded="_password_VPB_Aborded"/>
                             <Button Grid.Row="0"
                                 Grid.Column="1"
                                 Content="📋"

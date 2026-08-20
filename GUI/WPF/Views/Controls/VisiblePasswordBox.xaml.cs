@@ -12,7 +12,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by WPF via XAML/BAML.")]
    internal sealed partial class VisiblePasswordBox : UserControl
    {
-      private readonly VisiblePasswordBoxViewModel _viewModel;
+      private readonly VisiblePasswordBoxViewModel _viewModel = new();
 
       /// <summary>
       /// Reads from / writes to the underlying <see cref="PasswordBox"/>. The
@@ -42,10 +42,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          set => _viewModel.IsEnabled = !value;
       }
 
+      /// <summary>
+      /// Forwards to <see cref="Control.Background"/> so code-behind and XAML
+      /// bindings both paint the inner PasswordBox / reveal TextBox.
+      /// </summary>
       public Brush BackgroundColor
       {
-         get => _viewModel.Background;
-         set => _viewModel.Background = value;
+         get => Background;
+         set => Background = value;
       }
 
       public event EventHandler? PasswordChanged;
@@ -56,11 +60,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       {
          InitializeComponent();
 
-         DataContext = _viewModel = new VisiblePasswordBoxViewModel();
+         // Keep DataContext on the inner tree only: the UserControl must inherit
+         // the parent DataContext so attributes like Background="{Binding …}" resolve.
+         _root.DataContext = _viewModel;
+         _viewModel.Background = Background;
 
          _passwordBox.LostFocus += _passwordBox_LostFocus;
          _passwordBox.KeyUp += _passwordBox_KeyUp;
          _passwordBox.PasswordChanged += _passwordBox_PasswordChanged;
+      }
+
+      protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+      {
+         base.OnPropertyChanged(e);
+
+         if (e.Property == BackgroundProperty)
+         {
+            _viewModel.Background = (Brush)e.NewValue;
+         }
       }
 
       public new void Focus()
@@ -103,6 +120,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
                Validated?.Invoke(this, EventArgs.Empty);
                break;
             case Key.Escape:
+               if (ReadOnly)
+               {
+                  break;
+               }
+
+               // Clear the edit buffer, then let the host restore the committed value.
                Clear();
                Aborded?.Invoke(this, EventArgs.Empty);
                break;
