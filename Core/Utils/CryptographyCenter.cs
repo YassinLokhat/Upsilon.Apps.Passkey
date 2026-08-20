@@ -150,7 +150,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             result = Convert.FromBase64String(source);
             result = _decryptGcmLayerBytes(result, GetHash(string.Empty));
          }
-         catch
+         catch (Exception ex)
+            when (ex is ArgumentNullException
+            or FormatException
+            or CryptographicException)
          {
             throw new CorruptedSourceException();
          }
@@ -161,7 +164,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             {
                result = _decryptGcmLayerBytes(result, passwordList[i]);
             }
-            catch
+            catch (CryptographicException)
             {
                throw new WrongPasswordException(i);
             }
@@ -355,7 +358,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             byte[] bytesPlainTextData = rsa.Decrypt(bytesCypherText, RSAEncryptionPadding.OaepSHA256);
             return Encoding.UTF8.GetString(bytesPlainTextData);
          }
-         catch
+         catch (Exception ex)
+            when (ex is ArgumentException
+            or ArgumentNullException
+            or FormatException
+            or NotImplementedException
+            or CryptographicException
+            or DecoderFallbackException)
          {
             throw new WrongPasswordException(0);
          }
