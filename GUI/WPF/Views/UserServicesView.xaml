@@ -101,7 +101,7 @@
                              Text="{Binding TextFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <CheckBox Grid.Column="6"
                               Content="Unsaved items only"
-                              IsChecked="{Binding ChangedItemsOnly}"/>
+                              IsChecked="{Binding ChangedItemsOnly, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <Button Grid.Column="7"
                             Content="✕"
                             Command="{Binding ClearFiltersCommand}"/>

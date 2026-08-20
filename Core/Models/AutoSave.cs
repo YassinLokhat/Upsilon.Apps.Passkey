@@ -94,6 +94,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
             action);
       }
 
+      private enum ChangeMergeResult
+      {
+         Recorded,
+         Cancelled,
+      }
+
       private void _addChange(string itemId,
          string fieldName,
          string? oldValue,
@@ -114,6 +120,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
             NewValue = newValue,
          };
 
+         ChangeMergeResult mergeResult;
+
          lock (_gate)
          {
             if (!Changes.ContainsKey(changeKey))
@@ -121,7 +129,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                Changes[changeKey] = [];
             }
 
-            _mergeChanges(changeKey, currentChange);
+            mergeResult = _mergeChanges(changeKey, currentChange);
          }
 
          // Persist later; the in-memory Changes dictionary is already updated so
@@ -129,6 +137,20 @@ namespace Upsilon.Apps.Passkey.Core.Models
          // Schedule outside the lock: DeferredPersistence has its own gate, and
          // holding _gate across Schedule would nest locks needlessly.
          _deferred.Schedule();
+
+         // Field edits coalesce both Changes and activities: keep one ItemUpdated
+         // row per (item, field) while typing, and drop it entirely on a full
+         // revert (OldValue == NewValue after merge). Password stays
+         // validate-to-commit in the UI, so its activities are left alone.
+         if (mergeResult == ChangeMergeResult.Cancelled)
+         {
+            if (!string.Equals(fieldName, "Password", StringComparison.Ordinal))
+            {
+               Host.CancelPendingItemUpdatedActivity(itemId, fieldName);
+            }
+
+            return;
+         }
 
          Host.ResolveActivityNames(itemId, action, out string itemName, out string parentName);
 
@@ -148,7 +170,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       }
 
       // Caller must hold _gate.
-      private void _mergeChanges(string changeKey, Change currentChange)
+      private ChangeMergeResult _mergeChanges(string changeKey, Change currentChange)
       {
          Change? lastUpdate = Changes[changeKey].LastOrDefault(x => x.ActionType == ActivityEventType.ItemUpdated);
 
@@ -156,7 +178,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             || lastUpdate is null)
          {
             Changes[changeKey].Add(currentChange);
-            return;
+            return ChangeMergeResult.Recorded;
          }
 
          _ = Changes[changeKey].Remove(lastUpdate);
@@ -165,11 +187,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (currentChange.OldValue != currentChange.NewValue)
          {
             Changes[changeKey].Add(currentChange);
+            return ChangeMergeResult.Recorded;
          }
-         else if (Changes[changeKey].Count == 0)
+
+         if (Changes[changeKey].Count == 0)
          {
             _ = Changes.Remove(changeKey);
          }
+
+         return ChangeMergeResult.Cancelled;
       }
 
       internal void ApplyChanges(bool deleteFile)
