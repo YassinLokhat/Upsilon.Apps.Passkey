@@ -204,14 +204,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
       private static string _preparePath([System.Runtime.CompilerServices.CallerMemberName] string name = "")
       {
-         string directory = Path.Combine(".", "TestFiles", "FileLocker", name);
+         string directory = Path.Join(".", "TestFiles", "FileLocker", name);
          if (Directory.Exists(directory))
          {
             Directory.Delete(directory, recursive: true);
          }
 
          _ = Directory.CreateDirectory(directory);
-         return Path.Combine(directory, "archive.pku");
+         return Path.Join(directory, "archive.pku");
       }
 
       private static void _cleanup(string path)

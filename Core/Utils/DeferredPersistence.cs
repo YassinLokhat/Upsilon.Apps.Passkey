@@ -1,4 +1,4 @@
-namespace Upsilon.Apps.Passkey.Core.Utils
+﻿namespace Upsilon.Apps.Passkey.Core.Utils
 {
    /// <summary>
    /// Coalesces rapid dirty marks into a single disk write after a short delay.
@@ -120,20 +120,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       }
 
       private void _onTimer(object? state)
-      {
-         try
-         {
-            Flush();
-         }
-#pragma warning disable CA1031 // Last-resort barrier: a background flush must never tear down the process
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            // Dirty is already re-armed by Flush on failure; this catch only
-            // keeps the ThreadPool callback from throwing.
-            System.Diagnostics.Trace.TraceWarning($"Deferred persistence flush failed: {ex}");
-         }
-      }
+         => Flush();
 
       private void _cancelTimer_NoLock()
       {

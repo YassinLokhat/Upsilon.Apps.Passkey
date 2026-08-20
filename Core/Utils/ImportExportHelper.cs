@@ -9,6 +9,10 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
+   /// <summary>
+   /// JSON and tab-separated (TSV) import/export. Files are plaintext by design;
+   /// CSV cells are JSON-encoded so commas and quotes in notes survive.
+   /// </summary>
    internal static class ImportExportHelper
    {
       private enum Headers
@@ -101,9 +105,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                service.Accounts.Add(account);
             }
          }
-#pragma warning disable CA1031 // Intentional: any parsing failure is reported as a user-facing format error
-         catch
-#pragma warning restore CA1031
+         catch (Exception ex)
+            when (ex is IndexOutOfRangeException)
          {
             return "the CSV data format is incorrect";
          }
@@ -119,9 +122,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             data = _jsonDeserializeAs<Data>(importContent);
          }
-#pragma warning disable CA1031 // Intentional: any deserialization failure is reported as a user-facing error
-         catch
-#pragma warning restore CA1031
+         catch (JsonException)
          {
             return "import file deserialization failed";
          }

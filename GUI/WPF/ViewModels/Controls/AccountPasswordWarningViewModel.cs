@@ -10,7 +10,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public string ServiceString => Account.Service.ToString() ?? string.Empty;
       public string AccountString => Account.ToString() ?? string.Empty;
 
-      public IAccount Account = account;
+      public readonly IAccount Account = account;
       public WarningType WarningType { get; } = warningType;
 
       public bool MeetsConditions(WarningType warningType, string text)

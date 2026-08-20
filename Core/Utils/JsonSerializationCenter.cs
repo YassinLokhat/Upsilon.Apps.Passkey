@@ -4,6 +4,10 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
+   /// <summary>
+   /// JSON serialization for vault payloads. Enums as strings; secrets go through
+   /// <see cref="ProtectedSecretJsonConverter"/> so in-memory wrapping is restored on load.
+   /// </summary>
    public class JsonSerializationCenter : ISerializationCenter
    {
       private static readonly JsonSerializerOptions _options = new() { Converters = { new JsonStringEnumConverter(), new ProtectedSecretJsonConverter() }, };

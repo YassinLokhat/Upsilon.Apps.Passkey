@@ -91,43 +91,52 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          for (int round = 0; round < 24; round++)
          {
-            for (int x = 0; x < 5; x++)
-            {
-               c[x] = state[x] ^ state[x + 5] ^ state[x + 10] ^ state[x + 15] ^ state[x + 20];
-            }
-
-            for (int x = 0; x < 5; x++)
-            {
-               d[x] = c[(x + 4) % 5] ^ _rotl(c[(x + 1) % 5], 1);
-            }
-
-            for (int i = 0; i < 25; i++)
-            {
-               state[i] ^= d[i % 5];
-            }
-
-            for (int x = 0; x < 5; x++)
-            {
-               for (int y = 0; y < 5; y++)
-               {
-                  int index = x + (5 * y);
-                  int newX = y;
-                  int newY = ((2 * x) + (3 * y)) % 5;
-                  b[newX + (5 * newY)] = _rotl(state[index], _rotationOffsets[index]);
-               }
-            }
-
-            for (int x = 0; x < 5; x++)
-            {
-               for (int y = 0; y < 5; y++)
-               {
-                  int index = x + (5 * y);
-                  state[index] = b[index] ^ (~b[((x + 1) % 5) + (5 * y)] & b[((x + 2) % 5) + (5 * y)]);
-               }
-            }
-
-            state[0] ^= _roundConstants[round];
+            _keccakRoundPart1(state, b, c, d, round);
+            _keccakRoundPart2(state, b, c, d, round);
          }
+      }
+
+      private static void _keccakRoundPart1(Span<ulong> state, Span<ulong> b, Span<ulong> c, Span<ulong> d, int round)
+      {
+         for (int x = 0; x < 5; x++)
+         {
+            c[x] = state[x] ^ state[x + 5] ^ state[x + 10] ^ state[x + 15] ^ state[x + 20];
+         }
+
+         for (int x = 0; x < 5; x++)
+         {
+            d[x] = c[(x + 4) % 5] ^ _rotl(c[(x + 1) % 5], 1);
+         }
+
+         for (int i = 0; i < 25; i++)
+         {
+            state[i] ^= d[i % 5];
+         }
+      }
+
+      private static void _keccakRoundPart2(Span<ulong> state, Span<ulong> b, Span<ulong> c, Span<ulong> d, int round)
+      {
+         for (int x = 0; x < 5; x++)
+         {
+            for (int y = 0; y < 5; y++)
+            {
+               int index = x + (5 * y);
+               int newX = y;
+               int newY = ((2 * x) + (3 * y)) % 5;
+               b[newX + (5 * newY)] = _rotl(state[index], _rotationOffsets[index]);
+            }
+         }
+
+         for (int x = 0; x < 5; x++)
+         {
+            for (int y = 0; y < 5; y++)
+            {
+               int index = x + (5 * y);
+               state[index] = b[index] ^ (~b[((x + 1) % 5) + (5 * y)] & b[((x + 2) % 5) + (5 * y)]);
+            }
+         }
+
+         state[0] ^= _roundConstants[round];
       }
 
       private static ulong _rotl(ulong value, int bits)

@@ -3,6 +3,10 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
+   /// <summary>
+   /// Maps activity/warning enums to the strings shown in GUI filters.
+   /// <see cref="ActivityEventType.None"/> displays as "All".
+   /// </summary>
    internal static class EnumHelper
    {
       public static string ToReadableString(this ActivityEventType eventType)
@@ -37,18 +41,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       }
 
       public static ActivityEventType ActivityEventTypeFromReadableString(string readableString)
-      {
-         try
-         {
-            return Enum.GetValues<ActivityEventType>()
-               .Cast<ActivityEventType>()
-               .First(x => x.ToReadableString() == readableString);
-         }
-         catch
-         {
-            throw new InvalidOperationException($"'{readableString}' event type not handled");
-         }
-      }
+         => Enum.GetValues<ActivityEventType>()
+            .Cast<ActivityEventType>()
+            .First(x => x.ToReadableString() == readableString);
 
       public static string ToReadableString(this WarningType warningType)
       {

@@ -8,7 +8,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
    {
       private readonly string[] _identifiers = [.. identifiers];
 
-      public ObservableCollection<string> Identifiers = [.. identifiers.Where(x => x.StartsWith(identifier.Trim(), StringComparison.OrdinalIgnoreCase)),
+      public readonly ObservableCollection<string> Identifiers = [.. identifiers.Where(x => x.StartsWith(identifier.Trim(), StringComparison.OrdinalIgnoreCase)),
             .. identifiers.Where(x => x.Contains(identifier.Trim(), StringComparison.OrdinalIgnoreCase)
                && !x.StartsWith(identifier.Trim(), StringComparison.OrdinalIgnoreCase))];
 

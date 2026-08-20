@@ -4,14 +4,18 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
+   /// <summary>
+   /// Per-user timeouts and which <see cref="WarningType"/>s to surface.
+   /// Stored on the user; edits go through autosave.
+   /// </summary>
    internal sealed class Settings : ISettings
    {
       #region ISettings interface explicit Internal
 
       int ISettings.LogoutTimeout
       {
-         get => User.Database.Get(LogoutTimeout);
-         set => LogoutTimeout = User.Database.AutoSave.UpdateValue(User.ItemId,
+         get => User.Host.Touch(LogoutTimeout);
+         set => LogoutTimeout = User.Host.AutoSave.UpdateValue(User.ItemId,
             fieldName: nameof(LogoutTimeout),
             needsReview: false,
             oldValue: LogoutTimeout,
@@ -21,8 +25,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       int ISettings.CleaningClipboardTimeout
       {
-         get => User.Database.Get(CleaningClipboardTimeout);
-         set => CleaningClipboardTimeout = User.Database.AutoSave.UpdateValue(User.ItemId,
+         get => User.Host.Touch(CleaningClipboardTimeout);
+         set => CleaningClipboardTimeout = User.Host.AutoSave.UpdateValue(User.ItemId,
             fieldName: nameof(CleaningClipboardTimeout),
             needsReview: false,
             oldValue: CleaningClipboardTimeout,
@@ -32,8 +36,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       int ISettings.ShowPasswordDelay
       {
-         get => User.Database.Get(ShowPasswordDelay);
-         set => ShowPasswordDelay = User.Database.AutoSave.UpdateValue(User.ItemId,
+         get => User.Host.Touch(ShowPasswordDelay);
+         set => ShowPasswordDelay = User.Host.AutoSave.UpdateValue(User.ItemId,
             fieldName: nameof(ShowPasswordDelay),
             needsReview: false,
             oldValue: ShowPasswordDelay,
@@ -43,10 +47,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       int ISettings.NumberOfOldPasswordToKeep
       {
-         get => User.Database.Get(NumberOfOldPasswordToKeep);
+         get => User.Host.Touch(NumberOfOldPasswordToKeep);
          set
          {
-            NumberOfOldPasswordToKeep = User.Database.AutoSave.UpdateValue(User.ItemId,
+            NumberOfOldPasswordToKeep = User.Host.AutoSave.UpdateValue(User.ItemId,
                fieldName: nameof(NumberOfOldPasswordToKeep),
                needsReview: true,
                oldValue: NumberOfOldPasswordToKeep,
@@ -76,24 +80,24 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       int ISettings.NumberOfMonthActivitiesToKeep
       {
-         get => User.Database.Get(NumberOfMonthActivitiesToKeep);
+         get => User.Host.Touch(NumberOfMonthActivitiesToKeep);
          set
          {
-            NumberOfMonthActivitiesToKeep = User.Database.AutoSave.UpdateValue(User.ItemId,
+            NumberOfMonthActivitiesToKeep = User.Host.AutoSave.UpdateValue(User.ItemId,
                fieldName: nameof(NumberOfMonthActivitiesToKeep),
                needsReview: true,
                oldValue: NumberOfMonthActivitiesToKeep,
                newValue: value,
                readableValue: $"{value}");
 
-            User.Database.ActivityCenter.Save(rebuildStringActivities: true);
+            User.Host.PersistActivityLog(rebuildStringActivities: true);
          }
       }
 
       WarningType ISettings.WarningsToNotify
       {
-         get => User.Database.Get(WarningsToNotify);
-         set => WarningsToNotify = User.Database.AutoSave.UpdateValue(User.ItemId,
+         get => User.Host.Touch(WarningsToNotify);
+         set => WarningsToNotify = User.Host.AutoSave.UpdateValue(User.ItemId,
             fieldName: nameof(WarningsToNotify),
             needsReview: true,
             oldValue: WarningsToNotify,

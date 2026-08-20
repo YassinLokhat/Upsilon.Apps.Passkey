@@ -3,14 +3,47 @@
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
    /// <summary>
-   /// Test stub: clipboard I/O is OS-specific and out of scope for Core unit tests.
+   /// Test stub: clipboard I/O is OS-specific. Records SetText calls so GUI
+   /// ViewModel tests can assert without touching the real clipboard.
    /// </summary>
    public class ClipboardManager : IClipboardManager
    {
-      public void SetText(string text, TimeSpan? autoClearAfter) => throw new NotImplementedException();
-      public void SetText(string text, int autoClearAfter) => throw new NotImplementedException();
+      public string? LastText { get; private set; }
 
-      public Task<int> RemoveAllOccurrenceAsync(string[] removeList, CancellationToken cancellationToken = default)
-         => Task.FromResult(0);
+      public TimeSpan? LastAutoClearAfter { get; private set; }
+
+      public IReadOnlyList<string> Texts => _texts;
+
+      public int RemoveAllOccurrenceCallCount { get; private set; }
+
+      public IReadOnlyList<string>? LastRemoveList { get; private set; }
+
+      private readonly List<string> _texts = [];
+
+      public void SetText(string text, TimeSpan? autoClearAfter)
+      {
+         LastText = text;
+         LastAutoClearAfter = autoClearAfter;
+         _texts.Add(text);
+      }
+
+      public void SetText(string text, int autoClearAfter)
+         => SetText(text, autoClearAfter > 0 ? TimeSpan.FromSeconds(autoClearAfter) : null);
+
+      public Task<int> RemoveAllOccurrenceAsync(IEnumerable<string> removeList, CancellationToken cancellationToken = default)
+      {
+         ArgumentNullException.ThrowIfNull(removeList);
+
+         RemoveAllOccurrenceCallCount++;
+         LastRemoveList = [.. removeList];
+         return Task.FromResult(LastRemoveList.Count);
+      }
+
+      public void Clear()
+      {
+         LastText = null;
+         LastAutoClearAfter = null;
+         _texts.Clear();
+      }
    }
 }

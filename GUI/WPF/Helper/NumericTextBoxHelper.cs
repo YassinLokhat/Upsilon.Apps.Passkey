@@ -5,9 +5,12 @@ using System.Windows.Input;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
+   /// <summary>
+   /// Restricts a TextBox to non-negative integers (preview, change, and paste).
+   /// </summary>
    internal static class NumericTextBoxHelper
    {
-      private static readonly Regex _regex = new("[^0-9]+"); //regex that matches disallowed text
+      private static readonly Regex _regex = new("[^0-9]+");
 
       private static bool _isTextAllowed(string text)
       {

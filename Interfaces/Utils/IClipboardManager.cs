@@ -1,22 +1,25 @@
 ﻿namespace Upsilon.Apps.Passkey.Interfaces.Utils
 {
    /// <summary>
-   /// Represent a OS specific Clipboard manager.
+   /// OS-specific clipboard (auto-clear and history scrub).
    /// </summary>
    public interface IClipboardManager
    {
       /// <summary>
-      /// Add the given text to the clipboard then clear if after a certain time if set.
+      /// Puts <paramref name="text"/> on the clipboard and, if
+      /// <paramref name="autoClearAfter"/> is set, clears it later — but only if
+      /// the clipboard still holds that same text.
       /// </summary>
       /// <param name="text">The text to add.</param>
-      /// <param name="autoClearAfter">The duration to keep the password in the clipboard.</param>
+      /// <param name="autoClearAfter">How long to keep the secret on the clipboard; <see langword="null"/> means no auto-clear.</param>
       void SetText(string text, TimeSpan? autoClearAfter = null);
 
       /// <summary>
-      /// Add the given text to the clipboard then clear if after a certain time if set.
+      /// Same as <see cref="SetText(string, TimeSpan?)"/> with a delay in seconds
+      /// (0 or negative means no auto-clear).
       /// </summary>
       /// <param name="text">The text to add.</param>
-      /// <param name="autoClearAfter">The duration to keep the password in the clipboard.</param>
+      /// <param name="autoClearAfter">Seconds to keep the secret on the clipboard.</param>
       void SetText(string text, int autoClearAfter);
 
       /// <summary>
@@ -27,6 +30,6 @@
       /// <param name="removeList">The list of elements to remove.</param>
       /// <param name="cancellationToken">Token used to cancel the history scan.</param>
       /// <returns>The number of item removed.</returns>
-      Task<int> RemoveAllOccurrenceAsync(string[] removeList, CancellationToken cancellationToken = default);
+      Task<int> RemoveAllOccurrenceAsync(IEnumerable<string> removeList, CancellationToken cancellationToken = default);
    }
 }

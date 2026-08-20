@@ -150,9 +150,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                GeneratedPassword = password;
             }
          }
-#pragma warning disable CA1031 // Last-resort barrier: a generation failure must not crash the dialog
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (OperationCanceledException ex)
          {
             Log.Error(ex, "Failed to generate a password");
          }

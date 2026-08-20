@@ -2,11 +2,19 @@
 
 namespace Upsilon.Apps.Passkey.Core.Utils;
 
+/// <summary>
+/// QR error-correction level (ISO/IEC 18004). The GUI uses <see cref="H"/> so a
+/// partially obscured on-screen code still scans.
+/// </summary>
 public enum ErrorCorrection
 {
+   /// <summary>~7% recovery.</summary>
    L,
+   /// <summary>~15% recovery.</summary>
    M,
+   /// <summary>~25% recovery.</summary>
    Q,
+   /// <summary>~30% recovery (GUI default).</summary>
    H,
 }
 
@@ -30,6 +38,10 @@ internal enum EncodingMode
    Unknown15,
 }
 #pragma warning disable CA1814, CA1819
+/// <summary>
+/// In-process QR encoder (ISO/IEC 18004), no NuGet. Used to put identifiers and
+/// passwords on screen; it does not talk to the network.
+/// </summary>
 public class QrCode
 {
    private byte[][] _dataSegArray = [];
@@ -136,6 +148,10 @@ public class QrCode
       }
    } = -1;
 
+   /// <summary>
+   /// Encodes <paramref name="data"/> as a module matrix
+   /// (<see langword="true"/> = dark). Default correction is <see cref="ErrorCorrection.H"/>.
+   /// </summary>
    public static bool[,] Generate(string data, ErrorCorrection errorCorrection = ErrorCorrection.H)
    {
       return new QrCode(data, errorCorrection).QRCodeMatrix;
@@ -194,17 +210,15 @@ public class QrCode
 
       _dataSegArray = dataSegments;
 
-      // The full QR pipeline, one stage after another.
-      _initialization();            // pick encoding mode(s) and the smallest fitting version
-      _encodeData();                // serialize the payload into data codewords
-      _calculateErrorCorrection();  // append Reed-Solomon error-correction codewords
-      _interleaveBlocks();          // interleave data/EC codewords as the standard requires
-      _buildBaseMatrix();           // lay out the fixed function patterns
-      _loadMatrixWithData();        // route the codeword bits through the data area
-      _selectBestMask();            // try the 8 masks and keep the least penalized one
-      _addFormatInformation();      // write format (and version) information
+      _initialization();
+      _encodeData();
+      _calculateErrorCorrection();
+      _interleaveBlocks();
+      _buildBaseMatrix();
+      _loadMatrixWithData();
+      _selectBestMask();
+      _addFormatInformation();
 
-      // Expose the low bit of every module as a black/white boolean matrix.
       QRCodeMatrix = new bool[QRCodeDimension, QRCodeDimension];
       for (int row = 0; row < QRCodeDimension; ++row)
       {
@@ -225,7 +239,6 @@ public class QrCode
       _encodingSegMode = new EncodingMode[_dataSegArray.Length];
       _encodedDataBits = 0;
 
-      // ECI header bits (only when an ECI assignment value is requested).
       if (ECIAssignValue >= 0)
       {
          _encodedDataBits = ECIAssignValue > sbyte.MaxValue ? (ECIAssignValue > 16383 /*0x3FFF*/ ? 28 : 20) : 12;
@@ -236,7 +249,6 @@ public class QrCode
          byte[] segment = _dataSegArray[segmentIndex];
          int segmentLength = segment.Length;
 
-         // Choose the densest encoding mode that fits the whole segment.
          EncodingMode encodingMode = EncodingMode.Numeric;
          for (int i = 0; i < segmentLength; ++i)
          {
@@ -255,7 +267,6 @@ public class QrCode
             }
          }
 
-         // 4 bits for the mode indicator plus the payload bits for that mode.
          int segmentBits = 4;
          switch (encodingMode)
          {
@@ -288,7 +299,6 @@ public class QrCode
          _encodedDataBits += segmentBits;
       }
 
-      // Grow the version until the data plus per-segment character-count fields fit.
       int characterCountBits = 0;
       for (QRCodeVersion = 1; QRCodeVersion <= 40; ++QRCodeVersion)
       {
@@ -322,7 +332,6 @@ public class QrCode
       _bitBuffer = 0U;
       _bitBufferLen = 0;
 
-      // Optional ECI header (mode indicator + 1/2/3-byte assignment value).
       if (ECIAssignValue >= 0)
       {
          _saveBitsToCodewordsArray((int)EncodingMode.ECI, 4);
@@ -355,7 +364,6 @@ public class QrCode
          switch (mode)
          {
             case EncodingMode.Numeric:
-               // Encode digits in groups of three (10 bits per triple).
                int numericTripleEnd = segmentLength / 3 * 3;
                for (int i = 0; i < numericTripleEnd; i += 3)
                {
@@ -375,7 +383,6 @@ public class QrCode
 
                break;
             case EncodingMode.AlphaNumeric:
-               // Encode characters in pairs (11 bits per pair).
                int alphaPairEnd = segmentLength / 2 * 2;
                for (int i = 0; i < alphaPairEnd; i += 2)
                {
@@ -399,19 +406,16 @@ public class QrCode
          }
       }
 
-      // Terminator: up to 4 zero bits.
       if (_encodedDataBits < _maxDataBits)
       {
          _saveBitsToCodewordsArray(0, _maxDataBits - _encodedDataBits < 4 ? _maxDataBits - _encodedDataBits : 4);
       }
 
-      // Flush the last partial byte still sitting in the bit buffer.
       if (_bitBufferLen > 0)
       {
          _codewordsArray[_codewordsPtr++] = (byte)(_bitBuffer >> 24);
       }
 
-      // Fill the remaining data capacity with the standard alternating pad bytes.
       int padCount = _maxDataCodewords - _codewordsPtr;
       for (int i = 0; i < padCount; ++i)
       {
@@ -421,7 +425,6 @@ public class QrCode
 
    private void _saveBitsToCodewordsArray(int data, int bitCount)
    {
-      // Left-align the incoming bits in the 32-bit buffer, then drain whole bytes.
       _bitBuffer |= (uint)(data << (32 /*0x20*/ - _bitBufferLen - bitCount));
       for (_bitBufferLen += bitCount; _bitBufferLen >= 8; _bitBufferLen -= 8)
       {
@@ -438,12 +441,11 @@ public class QrCode
       int blockDataLength = _dataCodewordsGroup1;
       int polynomialLength = blockDataLength + _errCorrCodewords;
       int readIndex = 0;
-      int writeIndex = _maxDataCodewords;   // EC codewords are appended after the data area
+      int writeIndex = _maxDataCodewords;
       int totalBlocks = _blocksGroup1 + _blocksGroup2;
 
       for (int blockIndex = 0; blockIndex < totalBlocks; ++blockIndex)
       {
-         // Group 2 blocks may carry one more data codeword than group 1.
          if (blockIndex == _blocksGroup1)
          {
             blockDataLength = _dataCodewordsGroup2;
@@ -467,7 +469,6 @@ public class QrCode
      byte[] generator,
      int errorCorrectionCodewords)
    {
-      // Reed-Solomon division over GF(256) using log/antilog (IntToExp/ExpToInt) tables.
       int dataLength = polynomialLength - errorCorrectionCodewords;
       for (int i = 0; i < dataLength; ++i)
       {
@@ -486,8 +487,15 @@ public class QrCode
    {
       byte[] interleaved = new byte[_maxCodewords];
       int totalBlocks = _blocksGroup1 + _blocksGroup2;
+      int[] blockCursor = _createDataBlockCursors(totalBlocks);
+      int outputIndex = _interleaveSharedDataCodewords(interleaved, blockCursor, totalBlocks);
+      outputIndex = _interleaveExtraGroup2Codewords(interleaved, blockCursor, totalBlocks, outputIndex);
+      _interleaveErrorCorrectionCodewords(interleaved, blockCursor, totalBlocks, outputIndex);
+      _codewordsArray = interleaved;
+   }
 
-      // Read cursor pointing at the next codeword to take from each block.
+   private int[] _createDataBlockCursors(int totalBlocks)
+   {
       int[] blockCursor = new int[totalBlocks];
       for (int blockIndex = 1; blockIndex < totalBlocks; ++blockIndex)
       {
@@ -495,12 +503,14 @@ public class QrCode
             + (blockIndex <= _blocksGroup1 ? _dataCodewordsGroup1 : _dataCodewordsGroup2);
       }
 
-      int outputIndex = 0;
+      return blockCursor;
+   }
 
-      // Interleave the data codewords common to every block, one column at a time.
+   private int _interleaveSharedDataCodewords(byte[] interleaved, int[] blockCursor, int totalBlocks)
+   {
       int sharedDataCount = _dataCodewordsGroup1 * totalBlocks;
       int currentBlock = 0;
-      for (; outputIndex < sharedDataCount; ++outputIndex)
+      for (int outputIndex = 0; outputIndex < sharedDataCount; ++outputIndex)
       {
          interleaved[outputIndex] = _codewordsArray[blockCursor[currentBlock]];
          ++blockCursor[currentBlock];
@@ -511,30 +521,39 @@ public class QrCode
          }
       }
 
-      // Group 2 blocks hold one extra data codeword: interleave that last column.
-      if (_dataCodewordsGroup2 > _dataCodewordsGroup1)
+      return sharedDataCount;
+   }
+
+   private int _interleaveExtraGroup2Codewords(byte[] interleaved, int[] blockCursor, int totalBlocks, int outputIndex)
+   {
+      if (_dataCodewordsGroup2 <= _dataCodewordsGroup1)
       {
-         int currentGroup2Block = _blocksGroup1;
-         for (; outputIndex < _maxDataCodewords; ++outputIndex)
+         return outputIndex;
+      }
+
+      int currentGroup2Block = _blocksGroup1;
+      for (; outputIndex < _maxDataCodewords; ++outputIndex)
+      {
+         interleaved[outputIndex] = _codewordsArray[blockCursor[currentGroup2Block]];
+         ++blockCursor[currentGroup2Block];
+         ++currentGroup2Block;
+         if (currentGroup2Block == totalBlocks)
          {
-            interleaved[outputIndex] = _codewordsArray[blockCursor[currentGroup2Block]];
-            ++blockCursor[currentGroup2Block];
-            ++currentGroup2Block;
-            if (currentGroup2Block == totalBlocks)
-            {
-               currentGroup2Block = _blocksGroup1;
-            }
+            currentGroup2Block = _blocksGroup1;
          }
       }
 
-      // Repoint the cursors at each block's EC codewords (stored after the data area).
+      return outputIndex;
+   }
+
+   private void _interleaveErrorCorrectionCodewords(byte[] interleaved, int[] blockCursor, int totalBlocks, int outputIndex)
+   {
       blockCursor[0] = _maxDataCodewords;
       for (int blockIndex = 1; blockIndex < totalBlocks; ++blockIndex)
       {
          blockCursor[blockIndex] = blockCursor[blockIndex - 1] + _errCorrCodewords;
       }
 
-      // Interleave the EC codewords the same way.
       int currentEcBlock = 0;
       for (; outputIndex < _maxCodewords; ++outputIndex)
       {
@@ -546,28 +565,21 @@ public class QrCode
             currentEcBlock = 0;
          }
       }
-
-      _codewordsArray = interleaved;
    }
 
    private void _loadMatrixWithData()
    {
-      // Walk the data area in the standard boustrophedon (zig-zag) order, from the
-      // bottom-right corner upward, filling only the modules that are not reserved.
       int bitIndex = 0;
       int totalBits = 8 * _maxCodewords;
       int row = QRCodeDimension - 1;
       int col = QRCodeDimension - 1;
 
-      // Movement phase: 0/2 = move left within a column pair, 1/3 = step to the next
-      // row while going back right; phases 0/1 travel upward, phases 2/3 downward.
       int phase = 0;
 
       while (true)
       {
          if ((_baseMatrix[row, col] & 2) == 0)
          {
-            // Data module: set it dark when the current codeword bit is 1.
             if ((_codewordsArray[bitIndex >> 3] & (1 << (7 - (bitIndex & 7)))) != 0)
             {
                _baseMatrix[row, col] = 1;
@@ -580,7 +592,6 @@ public class QrCode
          }
          else if (col == 6)
          {
-            // Skip the vertical timing column.
             --col;
          }
 
@@ -626,8 +637,6 @@ public class QrCode
 
    private void _selectBestMask()
    {
-      // Try every mask, score it with the four standard penalty rules, and keep
-      // the matrix with the lowest total penalty.
       int bestPenalty = int.MaxValue;
       _maskCode = 0;
 
@@ -649,7 +658,6 @@ public class QrCode
       }
    }
 
-   // Penalty rule 1: runs of five or more same-colored modules in a row or column.
    private int _penaltyAdjacentModules()
    {
       int penalty = 0;
@@ -701,7 +709,6 @@ public class QrCode
       return penalty;
    }
 
-   // Penalty rule 2: every 2x2 block of identically-colored modules.
    private int _penaltyBlocks()
    {
       int penalty = 0;
@@ -716,18 +723,17 @@ public class QrCode
 
             if ((topLeft & topRight & bottomLeft & bottomRight & 1) != 0)
             {
-               penalty += 3;   // all four dark
+               penalty += 3;
             }
             else if (((topLeft | topRight | bottomLeft | bottomRight) & 1) == 0)
             {
-               penalty += 3;   // all four light
+               penalty += 3;
             }
          }
       }
       return penalty;
    }
 
-   // Penalty rule 3: 1:1:3:1:1 finder-like patterns with a 4-module clear run.
    private int _penaltyFinderLikePatterns()
    {
       int penalty = 0;
@@ -793,7 +799,6 @@ public class QrCode
       return penalty;
    }
 
-   // Penalty rule 4: deviation of the dark-module ratio from 50%.
    private int _penaltyDarkProportion()
    {
       int darkCount = 0;
@@ -808,7 +813,7 @@ public class QrCode
          }
       }
 
-      double darkRatio = darkCount / (double)(QRCodeDimension * QRCodeDimension);
+      double darkRatio = darkCount / Math.Pow(QRCodeDimension, 2);
       return darkRatio > 0.55
          ? (int)(20.0 * (darkRatio - 0.5)) * 10
          : darkRatio < 0.45
@@ -828,7 +833,6 @@ public class QrCode
 
    private void _addFormatInformation()
    {
-      // Version information block (versions 7 and up).
       if (QRCodeVersion >= 7)
       {
          int versionBlockCol = QRCodeDimension - 11;
@@ -855,13 +859,12 @@ public class QrCode
          }
       }
 
-      // Format information: error-correction level indicator combined with the mask.
       int formatEcIndex = ErrorCorrection switch
       {
          ErrorCorrection.L => 8,
          ErrorCorrection.Q => 24,
          ErrorCorrection.H => 16 /*0x10*/,
-         _ => 0,   // ErrorCorrection.M
+         _ => 0,
       };
       int formatInfo = FormatInfoArray[formatEcIndex + _maskCode];
 
@@ -873,7 +876,6 @@ public class QrCode
 
          _resultMatrix[FormatInfoOne[i, 0], FormatInfoOne[i, 1]] = moduleValue;
 
-         // The second copy uses negative offsets counted back from the far edge.
          int row = FormatInfoTwo[i, 0];
          if (row < 0)
          {
@@ -931,8 +933,14 @@ public class QrCode
    private void _buildBaseMatrix()
    {
       _baseMatrix = new byte[QRCodeDimension, QRCodeDimension];
+      _copyFinderPatternsToBaseMatrix();
+      _drawTimingPatternsOnBaseMatrix();
+      _drawAlignmentPatternsOnBaseMatrix();
+      _drawVersionInfoBlocksOnBaseMatrix();
+   }
 
-      // Three finder patterns (with their separators) at the corners.
+   private void _copyFinderPatternsToBaseMatrix()
+   {
       for (int row = 0; row < 9; ++row)
       {
          for (int col = 0; col < 9; ++col)
@@ -957,46 +965,54 @@ public class QrCode
             _baseMatrix[farCorner + row, col] = FinderPatternBottomLeft[row, col];
          }
       }
+   }
 
-      // Timing patterns: alternating modules along row 6 and column 6.
+   private void _drawTimingPatternsOnBaseMatrix()
+   {
       for (int i = 8; i < QRCodeDimension - 8; ++i)
       {
          _baseMatrix[i, 6] = _baseMatrix[6, i] = (i & 1) == 0 ? FixedBlack : FixedWhite;
       }
+   }
 
-      // Alignment patterns (version 2+).
-      if (QRCodeVersion > 1)
+   private void _drawAlignmentPatternsOnBaseMatrix()
+   {
+      if (QRCodeVersion <= 1)
       {
-         byte[] alignmentPositions = AlignmentPositionArray[QRCodeVersion] ?? [];
-         int positionCount = alignmentPositions.Length;
-         for (int rowPos = 0; rowPos < positionCount; ++rowPos)
-         {
-            for (int colPos = 0; colPos < positionCount; ++colPos)
-            {
-               // Skip the three positions that would collide with the finder patterns.
-               bool overlapsFinder =
-                  (colPos == 0 && rowPos == 0)
-                  || (colPos == positionCount - 1 && rowPos == 0)
-                  || (colPos == 0 && rowPos == positionCount - 1);
-               if (overlapsFinder)
-               {
-                  continue;
-               }
+         return;
+      }
 
-               int centerRow = alignmentPositions[rowPos];
-               int centerCol = alignmentPositions[colPos];
-               for (int dRow = -2; dRow < 3; ++dRow)
+      byte[] alignmentPositions = AlignmentPositionArray[QRCodeVersion] ?? [];
+      int positionCount = alignmentPositions.Length;
+      for (int rowPos = 0; rowPos < positionCount; ++rowPos)
+      {
+         for (int colPos = 0; colPos < positionCount; ++colPos)
+         {
+            bool a = colPos == 0 && rowPos == 0;
+            bool b = colPos == positionCount - 1 && rowPos == 0;
+            bool c = colPos == 0 && rowPos == positionCount - 1;
+            bool overlapsFinder = a || b || c;
+
+            if (overlapsFinder)
+            {
+               continue;
+            }
+
+            int centerRow = alignmentPositions[rowPos];
+            int centerCol = alignmentPositions[colPos];
+            for (int dRow = -2; dRow < 3; ++dRow)
+            {
+               for (int dCol = -2; dCol < 3; ++dCol)
                {
-                  for (int dCol = -2; dCol < 3; ++dCol)
-                  {
-                     _baseMatrix[centerRow + dRow, centerCol + dCol] = AlignmentPattern[dRow + 2, dCol + 2];
-                  }
+                  _baseMatrix[centerRow + dRow, centerCol + dCol] = AlignmentPattern[dRow + 2, dCol + 2];
                }
             }
          }
       }
+   }
 
-      // Reserve the version-information areas (version 7+).
+   private void _drawVersionInfoBlocksOnBaseMatrix()
+   {
       if (QRCodeVersion < 7)
       {
          return;
@@ -1028,7 +1044,6 @@ public class QrCode
       {
          for (int col = 0; col < QRCodeDimension; ++col)
          {
-            // Only data modules are masked; function modules keep bit 2 set.
             if ((_maskMatrix[row, col] & 2) != 0)
             {
                continue;
@@ -1042,8 +1057,6 @@ public class QrCode
       }
    }
 
-   // The eight standard QR mask patterns (ISO/IEC 18004). A module is inverted
-   // when the condition holds for its (row, col) coordinates.
    private static bool _maskCondition(int maskPattern, int row, int col) => maskPattern switch
    {
       0 => (row + col) % 2 == 0,
@@ -1058,3 +1071,4 @@ public class QrCode
    };
 }
 #pragma warning restore CA1814
+

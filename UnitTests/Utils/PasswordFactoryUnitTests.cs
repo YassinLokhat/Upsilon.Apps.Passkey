@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -339,9 +339,27 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
       [TestMethod]
       /*
+       * Inputs longer than the Keccak rate (72 bytes) still produce a 512-bit
+       * digest, exercising the multi-block absorb loop.
+      */
+      public void Case16_Keccak512_MultiBlockInput()
+      {
+         string longInput = new('a', 200);
+         string digest = Keccak512.HashHex(longInput);
+
+         _ = digest.Should().HaveLength(128);
+         _ = digest.Should().NotBe(Keccak512.HashHex("a"));
+         _ = Keccak512.Hash(Encoding.UTF8.GetBytes(longInput)).Should().HaveCount(64);
+
+         Action fromNull = () => Keccak512.HashHex(null!);
+         fromNull.Should().Throw<ArgumentNullException>();
+      }
+
+      [TestMethod]
+      /*
        * When HIBP succeeds, the offline Bloom filter must not be consulted.
       */
-      public void Case16_PasswordLeaked_DoesNotQueryBloomWhenHibpSucceeds()
+      public void Case17_PasswordLeaked_DoesNotQueryBloomWhenHibpSucceeds()
       {
          const string password = "hibp-wins-over-bloom";
          string hash = _sha1Hex(password);
@@ -360,7 +378,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       /*
        * After HIBP and XON fail, a Bloom miss is a definitive "not leaked".
       */
-      public void Case17_PasswordLeaked_BloomMissAfterNetworkFailure()
+      public void Case18_PasswordLeaked_BloomMissAfterNetworkFailure()
       {
          RecordingBloom bloom = new(mightContain: false);
          RoutingHandler handler = new(
@@ -376,7 +394,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       /*
        * After HIBP and XON fail, a Bloom hit is treated as leaked (conservative).
       */
-      public void Case18_PasswordLeaked_BloomHitAfterNetworkFailure()
+      public void Case19_PasswordLeaked_BloomHitAfterNetworkFailure()
       {
          RecordingBloom bloom = new(mightContain: true);
          RoutingHandler handler = new(
@@ -395,9 +413,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             localFilter);
 
       private static string _sha1Hex(string value)
-#pragma warning disable CA5350 // Test helper mirroring the production HIBP SHA-1 requirement
          => Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(value)));
-#pragma warning restore CA5350
 
       private sealed class RecordingBloom : ILocalLeakFilter
       {

@@ -4,11 +4,15 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
+   /// <summary>
+   /// Debounced, onion-encrypted list of unsaved <see cref="Change"/>s. Lock
+   /// order when nested: AutoSave → ActivityCenter → FileLocker.
+   /// </summary>
    internal sealed class AutoSave : IDisposable
    {
-      internal Database Database
+      internal IAutoSaveHost Host
       {
-         get => field ?? throw new NullValueException(nameof(Database));
+         get => field ?? throw new NullValueException(nameof(Host));
          set;
       }
 
@@ -40,12 +44,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
          T newValue,
          string readableValue) where T : notnull
       {
-         if (Database.SerializationCenter.AreDifferent(oldValue, newValue))
+         if (Host.SerializationCenter.AreDifferent(oldValue, newValue))
          {
             _addChange(itemId,
                fieldName,
-               oldValue.SerializeWith(Database.SerializationCenter),
-               newValue.SerializeWith(Database.SerializationCenter),
+               oldValue.SerializeWith(Host.SerializationCenter),
+               newValue.SerializeWith(Host.SerializationCenter),
                readableValue,
                needsReview,
                ActivityEventType.ItemUpdated);
@@ -59,7 +63,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          bool needsReview,
          T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, value.SerializeWith(Database.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemAdded);
+         _addChange(itemId, string.Empty, value.SerializeWith(Host.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemAdded);
 
          return value;
       }
@@ -69,7 +73,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          bool needsReview,
          T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, value.SerializeWith(Database.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemDeleted);
+         _addChange(itemId, string.Empty, value.SerializeWith(Host.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemDeleted);
 
          return value;
       }
@@ -88,6 +92,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
             readableValue,
             needsReview,
             action);
+      }
+
+      private enum ChangeMergeResult
+      {
+         Recorded,
+         Cancelled,
       }
 
       private void _addChange(string itemId,
@@ -110,6 +120,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
             NewValue = newValue,
          };
 
+         ChangeMergeResult mergeResult;
+
          lock (_gate)
          {
             if (!Changes.ContainsKey(changeKey))
@@ -117,7 +129,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                Changes[changeKey] = [];
             }
 
-            _mergeChanges(changeKey, currentChange);
+            mergeResult = _mergeChanges(changeKey, currentChange);
          }
 
          // Persist later; the in-memory Changes dictionary is already updated so
@@ -126,39 +138,21 @@ namespace Upsilon.Apps.Passkey.Core.Models
          // holding _gate across Schedule would nest locks needlessly.
          _deferred.Schedule();
 
-         string itemName = string.Empty;
-         string parentName = string.Empty;
-
-         if (itemId == Database.User?.ItemId)
+         // Field edits coalesce both Changes and activities: keep one ItemUpdated
+         // row per (item, field) while typing, and drop it entirely on a full
+         // revert (OldValue == NewValue after merge). Password stays
+         // validate-to-commit in the UI, so its activities are left alone.
+         if (mergeResult == ChangeMergeResult.Cancelled)
          {
-            if (Database.User is not null)
+            if (!string.Equals(fieldName, "Password", StringComparison.Ordinal))
             {
-               itemName = Database.User.ToString();
+               Host.CancelPendingItemUpdatedActivity(itemId, fieldName);
             }
-         }
-         else if (itemId.StartsWith('S'))
-         {
-            Service? s = Database.User?.Services.FirstOrDefault(x => x.ItemId == itemId);
 
-            if (s is not null)
-            {
-               itemName = s.ToString();
-            }
+            return;
          }
-         else if (itemId.StartsWith('A'))
-         {
-            Account? a = Database.User?.Services.SelectMany(x => x.Accounts).FirstOrDefault(x => x.ItemId == itemId);
 
-            if (a is not null)
-            {
-               itemName = a.ToString();
-
-               if (action == ActivityEventType.ItemUpdated)
-               {
-                  parentName = a.Service.ToString();
-               }
-            }
-         }
+         Host.ResolveActivityNames(itemId, action, out string itemName, out string parentName);
 
          string[] data = [itemName, fieldName, readableValue];
 
@@ -169,14 +163,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          // ActivityCenter takes its own gate; we deliberately do not hold _gate
          // here so RSA encrypt + activity insert cannot stall an autosave flush.
-         Database.ActivityCenter.AddActivity(itemId: itemId,
+         Host.AddActivity(itemId: itemId,
             eventType: action,
             data,
             needsReview);
       }
 
       // Caller must hold _gate.
-      private void _mergeChanges(string changeKey, Change currentChange)
+      private ChangeMergeResult _mergeChanges(string changeKey, Change currentChange)
       {
          Change? lastUpdate = Changes[changeKey].LastOrDefault(x => x.ActionType == ActivityEventType.ItemUpdated);
 
@@ -184,7 +178,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             || lastUpdate is null)
          {
             Changes[changeKey].Add(currentChange);
-            return;
+            return ChangeMergeResult.Recorded;
          }
 
          _ = Changes[changeKey].Remove(lastUpdate);
@@ -193,11 +187,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (currentChange.OldValue != currentChange.NewValue)
          {
             Changes[changeKey].Add(currentChange);
+            return ChangeMergeResult.Recorded;
          }
-         else if (Changes[changeKey].Count == 0)
+
+         if (Changes[changeKey].Count == 0)
          {
             _ = Changes.Remove(changeKey);
          }
+
+         return ChangeMergeResult.Cancelled;
       }
 
       internal void ApplyChanges(bool deleteFile)
@@ -211,7 +209,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          foreach (Change change in changes)
          {
-            Database.User?.Apply(change);
+            Host.ApplyChange(change);
          }
 
          if (deleteFile)
@@ -256,9 +254,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          if (deleteFile
-            && Database.FileLocker.Exists(Database.AutoSaveFileEntry))
+            && Host.AutoSaveEntryExists())
          {
-            Database.FileLocker.Delete(Database.AutoSaveFileEntry);
+            Host.DeleteAutoSaveEntry();
          }
       }
 
@@ -278,7 +276,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                return;
             }
 
-            Database.FileLocker.Save(this, Database.AutoSaveFileEntry, Database.Passkeys);
+            Host.SaveAutoSave(this);
          }
       }
    }

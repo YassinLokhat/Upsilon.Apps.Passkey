@@ -5,11 +5,15 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
+   /// <summary>
+   /// Tamper-evident activity log: RSA-hybrid per record, seal on save while
+   /// logged in, deferred ZIP writes. See SECURITY.md ("Activity-log integrity").
+   /// </summary>
    internal sealed class ActivityCenter : IDisposable
    {
-      internal Database Database
+      internal IActivityHost Host
       {
-         get => field ?? throw new NullValueException(nameof(Database));
+         get => field ?? throw new NullValueException(nameof(Host));
          set;
       }
 
@@ -21,7 +25,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // so a deferred persist never snapshots a torn list.
       public List<string> ActivityList { get; set; } = [];
 
-      public string Username { get; set; } = string.Empty;
+      // Deliberately no cleartext Username on this envelope: the activity ZIP
+      // entry is readable without passkeys. Identity belongs in the onion-wrapped
+      // database (and inside RSA-hybrid event payloads), not in this metadata.
 
       public string PublicKey { get; set; } = string.Empty;
 
@@ -40,8 +46,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       public int SealedCount { get; set; }
 
       // Protects Activities, ActivityList, Signature, SealedCount, and the
-      // Username/PublicKey reads used while mutating those collections. Lock
-      // order when nested: AutoSave → ActivityCenter → FileLocker.
+      // PublicKey reads used while mutating those collections. Lock order when
+      // nested: AutoSave → ActivityCenter → FileLocker.
       private readonly Lock _gate = new();
 
       // Each AddActivity used to rewrite the ZIP activity entry (and RSA-sign it
@@ -53,7 +59,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public ActivityCenter()
       {
-         _deferred = new DeferredPersistence(() => _persist(rebuildStringActivities: false));
+         // Deferred ZIP writes must not seal: sealing after ~500 ms idle mid-typing
+         // would freeze partial ItemUpdated rows and break field coalescing. Seal
+         // only on explicit Save / Flush (database save, logout).
+         _deferred = new DeferredPersistence(() => _persist(rebuildStringActivities: false, seal: false));
       }
 
       internal void AddActivity(string itemId, ActivityEventType eventType, string[] data, bool needsReview)
@@ -69,14 +78,27 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             publicKey = PublicKey;
          }
 
-         string encrypted = Database.CryptographyCenter.EncryptAsymmetrically(activity.ToString(), publicKey);
+         string encrypted = Host.EncryptActivity(activity.ToString(), publicKey);
 
          bool flushImmediately;
          lock (_gate)
          {
+            // Live field bindings fire ItemUpdated on every keystroke. Mirror
+            // AutoSave._mergeChanges: keep a single unsealed row per (item, field)
+            // so the audit log does not grow with typing. Sealed entries are never
+            // rewritten (tamper-evidence). Password is excluded: it is committed
+            // only on explicit validation, and create-time vs later password
+            // changes must remain distinct audit rows.
+            if (eventType == ActivityEventType.ItemUpdated
+               && data.Length > 1
+               && !string.Equals(data[1], "Password", StringComparison.Ordinal))
+            {
+               _removeUnsealedItemUpdated_NoLock(itemId, data[1]);
+            }
+
             Activities.Insert(0, activity);
             ActivityList.Insert(0, encrypted);
-            flushImmediately = Database.User is null;
+            flushImmediately = !Host.IsLoggedIn;
          }
 
          if (flushImmediately)
@@ -91,9 +113,53 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
       }
 
+      /// <summary>
+      /// Removes the unsealed <see cref="ActivityEventType.ItemUpdated"/> entry
+      /// for <paramref name="itemId"/>/<paramref name="fieldName"/> when AutoSave
+      /// cancels a coalesced edit (value restored to its pre-edit OldValue).
+      /// </summary>
+      internal void CancelPendingItemUpdated(string itemId, string fieldName)
+      {
+         bool removed;
+
+         lock (_gate)
+         {
+            removed = _removeUnsealedItemUpdated_NoLock(itemId, fieldName);
+         }
+
+         if (removed)
+         {
+            _deferred.Schedule();
+         }
+      }
+
+      // Caller must hold _gate. Returns true when an entry was dropped.
+      private bool _removeUnsealedItemUpdated_NoLock(string itemId, string fieldName)
+      {
+         int unsealedCount = ActivityList.Count - SealedCount;
+
+         for (int i = 0; i < unsealedCount; i++)
+         {
+            if (Activities[i] is not Activity candidate
+               || candidate.EventType != ActivityEventType.ItemUpdated
+               || candidate.ItemId != itemId
+               || candidate.Data.Length < 2
+               || candidate.Data[1] != fieldName)
+            {
+               continue;
+            }
+
+            Activities.RemoveAt(i);
+            ActivityList.RemoveAt(i);
+            return true;
+         }
+
+         return false;
+      }
+
       internal void LoadStringActivities()
       {
-         if (Database.User is null)
+         if (!Host.IsLoggedIn)
          {
             lock (_gate)
             {
@@ -130,18 +196,20 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private Activity? _tryDecrypt(string encryptedActivity)
       {
-         if (Database.User is null)
+         if (!Host.IsLoggedIn)
          {
             return null;
          }
 
          try
          {
-            return new Activity(Database.CryptographyCenter.DecryptAsymmetrically(encryptedActivity, Database.User.PrivateKey.Reveal()));
+            return new Activity(Host.DecryptActivity(encryptedActivity));
          }
-#pragma warning disable CA1031 // Intentional: any decryption failure means a skipped entry, not a login abort
          catch (Exception ex)
-#pragma warning restore CA1031
+            when (ex is CorruptedSourceException
+            or WrongPasswordException
+            or ArgumentNullException
+            or NullValueException)
          {
             // An entry that cannot be decrypted (e.g. one forged with a different
             // key) is skipped rather than aborting login; authenticity of the
@@ -159,12 +227,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       /// </summary>
       internal bool VerifyIntegrity()
       {
-         if (Database.User is null)
+         if (!Host.IsLoggedIn)
          {
-            throw new NullValueException(nameof(Database.User));
+            throw new NullValueException("User");
          }
 
-         int watermark = Database.User.ActivitySealWatermark;
+         int watermark = Host.ActivitySealWatermark;
          string signature;
          int sealedCount;
          int activityCount;
@@ -205,8 +273,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // belongs to the private key held in the encrypted database. This
          // defeats an attacker swapping in their own key pair. RSA verify runs
          // outside the gate.
-         string trustedPublicKey = Database.CryptographyCenter.GetPublicKey(Database.User.PrivateKey.Reveal());
-         return trustedPublicKey == publicKey && Database.CryptographyCenter.Verify(canonical, signature, trustedPublicKey);
+         string trustedPublicKey = Host.GetTrustedPublicKey();
+         return trustedPublicKey == publicKey && Host.VerifySeal(canonical, signature, trustedPublicKey);
       }
 
       /// <summary>
@@ -245,10 +313,19 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       }
 
       /// <summary>
-      /// Forces any debounced activity write to disk. Must run while the user is
-      /// still available so the seal can be (re)computed.
+      /// Forces any debounced activity write to disk and seals the log. Must run
+      /// while the user is still available so the seal can be (re)computed
+      /// (database save, logout).
       /// </summary>
-      internal void Flush() => _deferred.Flush();
+      internal void Flush()
+      {
+         // Cancel the debounce timer without writing: in-memory Activities already
+         // hold every AddActivity. Persist once with seal so Close/Save do not
+         // leave an unsealed tail that a deferred (no-seal) write would have
+         // produced.
+         _deferred.Cancel();
+         _persist(rebuildStringActivities: false, seal: true);
+      }
 
       /// <summary>
       /// Drops a pending debounced write without touching the disk.
@@ -259,18 +336,17 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          // An explicit save supersedes any pending debounce.
          _deferred.Cancel();
-         _persist(rebuildStringActivities);
+         _persist(rebuildStringActivities, seal: true);
       }
 
       public void Dispose() => _deferred.Dispose();
 
-      private void _persist(bool rebuildStringActivities)
+      private void _persist(bool rebuildStringActivities, bool seal)
       {
-         // Append path (deferred flushes, AddActivity): ActivityList already holds
-         // per-entry ciphertexts from EncryptAsymmetrically at insert time, so we
-         // only reseal and write. Rebuild path (explicit Save / retention change):
-         // prune first, and re-RSA only when entries were actually dropped —
-         // otherwise Save would pay O(n) RSA for an unchanged log.
+         // Append path (deferred flushes): ActivityList already holds per-entry
+         // ciphertexts from EncryptAsymmetrically at insert time; write the ZIP
+         // without resealing so mid-typing ItemUpdated rows stay coalescable.
+         // Explicit Save / Flush: optionally prune, then seal, then write.
          // FileLocker is taken inside the same critical section (lock order:
          // ActivityCenter → FileLocker).
          lock (_gate)
@@ -280,9 +356,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                _rebuildActivityList_NoLock();
             }
 
-            _seal_NoLock();
+            if (seal)
+            {
+               _seal_NoLock();
+            }
 
-            Database.FileLocker.Save(this, Database.ActivityFileEntry);
+            Host.SaveActivityLog(this);
          }
       }
 
@@ -293,7 +372,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          ActivityList.Clear();
          ActivityList.AddRange(Activities
             .OrderByDescending(x => x.DateTime)
-            .Select(x => Database.CryptographyCenter.EncryptAsymmetrically(((Activity)x).ToString(), PublicKey)));
+            .Select(x => Host.EncryptActivity(((Activity)x).ToString(), PublicKey)));
       }
 
       // Caller must hold _gate.
@@ -302,13 +381,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // Sealing needs the private key, which is only available once a user is
          // logged in. Activities appended before login grow an unsealed tail
          // that is sealed by the next save after a successful login.
-         if (Database.User is null)
+         if (!Host.IsLoggedIn)
          {
             return;
          }
 
          SealedCount = ActivityList.Count;
-         Signature = Database.CryptographyCenter.Sign(_canonicalSealedContent_NoLock(), Database.User.PrivateKey.Reveal());
+         Signature = Host.SignSeal(_canonicalSealedContent_NoLock());
       }
 
       // Caller must hold _gate.
@@ -326,13 +405,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // so the caller knows ActivityList must be rebuilt to match.
       private bool _removeOldActivities_NoLock()
       {
-         if (Database.User is null
-            || Database.User.Settings.NumberOfMonthActivitiesToKeep == 0)
+         if (!Host.IsLoggedIn
+            || Host.ActivityRetentionMonths == 0)
          {
             return false;
          }
 
-         DateTime limitDate = DateTime.Now.AddMonths(-Database.User.Settings.NumberOfMonthActivitiesToKeep).Date.AddDays(-DateTime.Now.Day + 1);
+         DateTime limitDate = DateTime.Now.AddMonths(-Host.ActivityRetentionMonths).Date.AddDays(-DateTime.Now.Day + 1);
          int before = Activities.Count;
          Activities = [.. Activities.Where(x => x.DateTime >= limitDate || x.NeedsReview)];
          return Activities.Count != before;

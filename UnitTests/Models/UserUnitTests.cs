@@ -321,5 +321,61 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * DontMergeAndKeepAutoSaveFile leaves the vault unchanged and keeps the
+       * recovery file so a later merge can still apply the edits.
+      */
+      public void Case05_UserUpdateButNotSaved_CaseDontMergeAndKeep()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string oldUsername = UnitTestsHelper.GetUsername();
+         string[] oldPasskeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(oldPasskeys);
+         string newUsername = "new_" + oldUsername;
+
+         databaseCreated.User.Username = newUsername;
+         databaseCreated.Close();
+
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(oldPasskeys, out _, AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile);
+
+         _ = databaseLoaded.User.Username.Should().Be(oldUsername);
+         _ = databaseLoaded.User.HasChanged().Should().BeTrue("the recovery file is kept, so pending edits stay dirty");
+
+         databaseLoaded.Close();
+
+         IDatabase merged = UnitTestsHelper.OpenTestDatabase(oldPasskeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
+         _ = merged.User.Username.Should().Be(newUsername);
+
+         merged.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Assigning an ISettings that is not the Core implementation is rejected.
+      */
+      public void Case06_SettingsSetter_RejectsUnknownImplementation()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase();
+
+         Action assign = () => database.User!.Settings = new ForeignSettings();
+         assign.Should().Throw<InvalidCastException>();
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      private sealed class ForeignSettings : ISettings
+      {
+         public int LogoutTimeout { get; set; }
+         public int CleaningClipboardTimeout { get; set; }
+         public int ShowPasswordDelay { get; set; }
+         public int NumberOfOldPasswordToKeep { get; set; }
+         public int NumberOfMonthActivitiesToKeep { get; set; }
+         public WarningType WarningsToNotify { get; set; }
+      }
    }
 }

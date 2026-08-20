@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -8,9 +9,14 @@ using Clipboard = System.Windows.Clipboard;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
 {
+   /// <summary>
+   /// Windows clipboard: writes with history/cloud/monitor exclusion formats,
+   /// auto-clears only while the text is still ours, and scrubs WinRT clipboard
+   /// history asynchronously.
+   /// </summary>
    internal sealed class ClipboardManager : IClipboardManager
    {
-      #region IAccount interface explicit Internal
+      #region IClipboardManager
 
       public void SetText(string text, TimeSpan? autoClearAfter = null)
       {
@@ -29,9 +35,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
          {
             Clipboard.SetDataObject(data, copy: true);
          }
-#pragma warning disable CA1031 // Last-resort barrier: a clipboard failure must never crash the caller
          catch (Exception ex)
-#pragma warning restore CA1031
+            when (ex is ArgumentNullException
+            or ExternalException)
          {
             Log.Error(ex, "Failed to write to clipboard");
             return;
@@ -55,8 +61,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
          SetText(text, autoClear);
       }
 
-      public async Task<int> RemoveAllOccurrenceAsync(string[] removeList, CancellationToken cancellationToken = default)
+      public async Task<int> RemoveAllOccurrenceAsync(IEnumerable<string> removeList, CancellationToken cancellationToken = default)
       {
+         ArgumentNullException.ThrowIfNull(removeList);
+
+         HashSet<string> toRemove = removeList as HashSet<string> ?? [.. removeList];
          int cleanedPasswordCount = 0;
 
          try
@@ -78,22 +87,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
 
                string text = await content.GetTextAsync().AsTask(cancellationToken).ConfigureAwait(false);
 
-               if (removeList.Contains(text)
+               if (toRemove.Contains(text)
                    && Windows.ApplicationModel.DataTransfer.Clipboard.DeleteItemFromHistory(item))
                {
                   cleanedPasswordCount++;
                }
             }
          }
-         catch (OperationCanceledException)
+         catch (Exception ex)
+            when (ex is OperationCanceledException
+            or ThreadStateException)
          {
             throw;
-         }
-#pragma warning disable CA1031 // Last-resort barrier: a clipboard failure must never crash the caller
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            Log.Error(ex, "Failed to scrub clipboard history");
          }
 
          return cleanedPasswordCount;
@@ -101,6 +106,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
 
       #endregion
 
+      // Windows clipboard data formats that keep a secret out of history, cloud
+      // clipboard, and clipboard-monitoring apps (undocumented but widely used).
       private const string EXCLUDE_FORMAT = "ExcludeClipboardContentFromMonitoring";
       private const string HISTORY_FORMAT = "CanIncludeInClipboardHistory";
       private const string CLOUD_FORMAT = "CanUploadToCloudClipboard";
@@ -137,9 +144,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
                   Clipboard.Clear();
                }
             }
-#pragma warning disable CA1031 // Last-resort barrier: a clipboard failure must never crash the caller
             catch (Exception ex)
-#pragma warning restore CA1031
+               when (ex is ArgumentNullException
+               or ExternalException)
             {
                Log.Error(ex, "Failed to clear sensitive clipboard content");
             }

@@ -2,8 +2,16 @@
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
+   /// <summary>
+   /// Filter helpers and a session keep-alive. <see cref="Shake"/> only exists to
+   /// touch <see cref="IItem.ItemId"/>, which resets the inactivity timer via
+   /// <c>Database.Get</c> — WPF selection changes would otherwise not count as activity.
+   /// </summary>
    internal static class IItemHelper
    {
+      /// <summary>
+      /// Counts as user activity (resets auto-logout) without changing data.
+      /// </summary>
       public static void Shake(this IUser user)
       {
          _ = user.ItemId;
@@ -20,17 +28,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          string url = service.Url?.OriginalString.Trim() ?? string.Empty;
          string notes = service.Notes.Trim();
 
-         return (!string.IsNullOrWhiteSpace(globalTextFilter)
-            ? serviceId.Equals(globalTextFilter, StringComparison.OrdinalIgnoreCase)
+         bool globalTextFilterSearch = serviceId.Equals(globalTextFilter, StringComparison.OrdinalIgnoreCase)
                || serviceName.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
                || url.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
                || notes.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
-               || service.Accounts.Any(x => x.MeetsFilterConditions(string.Empty, globalTextFilter, changedItemsOnly))
-            : (string.IsNullOrWhiteSpace(serviceFilter)
-                  || (!string.IsNullOrWhiteSpace(serviceFilter) && serviceName.Contains(serviceFilter, StringComparison.OrdinalIgnoreCase)))
-               && (string.IsNullOrWhiteSpace(identifierFilter)
-                  || service.Accounts.Any(x => x.MeetsFilterConditions(identifierFilter, globalTextFilter, changedItemsOnly))))
-            && (!changedItemsOnly || service.HasChanged());
+               || service.Accounts.Any(x => x.MeetsFilterConditions(string.Empty, globalTextFilter, changedItemsOnly));
+
+
+         bool serviceFilterSearch = string.IsNullOrWhiteSpace(serviceFilter)
+            || serviceName.Contains(serviceFilter, StringComparison.OrdinalIgnoreCase);
+         bool identifierFilterSearch = string.IsNullOrWhiteSpace(identifierFilter)
+            || service.Accounts.Any(x => x.MeetsFilterConditions(identifierFilter, globalTextFilter, changedItemsOnly));
+
+         bool serviceAndIdentifierFilterSearch = serviceFilterSearch && identifierFilterSearch;
+
+         bool changedItemsOnlySearch = !changedItemsOnly || service.HasChanged();
+
+         bool filterSearch = !string.IsNullOrWhiteSpace(globalTextFilter)
+            ? globalTextFilterSearch
+            : serviceAndIdentifierFilterSearch;
+
+         return filterSearch && changedItemsOnlySearch;
       }
 
       public static bool MeetsFilterConditions(this IAccount account, string identifierFilter, string globalTextFilter, bool changedItemsOnly)
@@ -43,15 +61,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          string notes = account.Notes.Trim();
          string identifiers = string.Join("\n", account.Identifiers.Select(x => x.Trim()));
 
-         return (!string.IsNullOrWhiteSpace(globalTextFilter)
-            ? accountId.Equals(globalTextFilter, StringComparison.OrdinalIgnoreCase)
+         bool globalTextFilterSearch = accountId.Equals(globalTextFilter, StringComparison.OrdinalIgnoreCase)
                || identifiers.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
                || label.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
-               || notes.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
-            : string.IsNullOrWhiteSpace(identifierFilter)
+               || notes.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase);
+
+         bool identifierFilterSearch = string.IsNullOrWhiteSpace(identifierFilter)
                || identifiers.Contains(identifierFilter, StringComparison.OrdinalIgnoreCase)
-               || label.Contains(identifierFilter, StringComparison.OrdinalIgnoreCase))
-            && (!changedItemsOnly || account.HasChanged());
+               || label.Contains(identifierFilter, StringComparison.OrdinalIgnoreCase);
+
+         bool changedItemsOnlySearch = !changedItemsOnly || account.HasChanged();
+
+         bool filterSearch = !string.IsNullOrWhiteSpace(globalTextFilter)
+            ? globalTextFilterSearch
+            : identifierFilterSearch;
+
+         return filterSearch && changedItemsOnlySearch;
       }
    }
 }

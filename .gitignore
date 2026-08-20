@@ -29,6 +29,8 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 [Cc]overage[Rr]eport*/
 .vs/
+# WPF temporary design-time projects
+*_wpftmp.csproj
 #Nuget packages folder
 packages/
 build

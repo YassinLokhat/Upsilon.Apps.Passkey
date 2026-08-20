@@ -113,7 +113,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (!string.IsNullOrEmpty(toInsert))
          {
             AppServices.Clipboard.SetText(toInsert, ClipboardManager.AutoClearAfter);
-            HotkeyHelper.Send(ModifierKeys.Control, Key.V);
+            HotkeyHelper.SendPaste();
          }
       }
 
@@ -219,13 +219,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             {
                await database.SaveAsync().ConfigureAwait(true);
             }
-         }
-#pragma warning disable CA1031 // Last-resort barrier: nothing may escape an async void handler
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            Log.Error(ex, "Failed to save the database");
-            _dialogs.Warn("An unexpected error occurred while saving.", "Save error");
          }
          finally
          {
@@ -429,7 +422,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         WarningType requested = sender == _expiredPasswordWarnings_MI
+         WarningType requested = sender.Equals(_expiredPasswordWarnings_MI)
             ? WarningType.PasswordUpdateReminderWarning
             : WarningType.PasswordLeakedWarning;
 

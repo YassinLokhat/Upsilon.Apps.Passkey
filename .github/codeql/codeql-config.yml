@@ -1,0 +1,11 @@
+name: "Passkey CodeQL config"
+
+queries:
+  - uses: security-and-quality
+
+# WPF relies on intentional Win32 interop for global hotkeys and DWM title bar theming.
+query-filters:
+  - exclude:
+      id: cs/unmanaged-code
+  - exclude:
+      id: cs/call-to-unmanaged-code

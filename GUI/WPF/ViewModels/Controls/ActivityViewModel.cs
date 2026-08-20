@@ -36,15 +36,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public bool MeetsConditions(DateTime fromDateFilter, DateTime toDateFilter, ActivityEventType eventType, string searchCriteria, bool needsReview)
       {
-         return (fromDateFilter > System.DateTime.Now.Date || Activity.DateTime.Date >= fromDateFilter)
-            && (toDateFilter > System.DateTime.Now.Date || Activity.DateTime.Date <= toDateFilter)
-            && (eventType == ActivityEventType.None || Activity.EventType == eventType)
-            && (!needsReview || Activity.NeedsReview)
-            && ((string.IsNullOrEmpty(Activity.ItemId)
+         bool fromDateMatches = fromDateFilter > System.DateTime.Now.Date || Activity.DateTime.Date >= fromDateFilter;
+         bool toDateMatches = toDateFilter > System.DateTime.Now.Date || Activity.DateTime.Date <= toDateFilter;
+         bool eventTypeMatches = eventType == ActivityEventType.None || Activity.EventType == eventType;
+         bool needsReviewMatches = !needsReview || Activity.NeedsReview;
+
+         bool itemIdMatches = string.IsNullOrEmpty(Activity.ItemId)
                   && !string.IsNullOrEmpty(AppServices.Session.User?.ItemId)
-                  && searchCriteria == AppServices.Session.User?.ItemId)
+                  && searchCriteria == AppServices.Session.User?.ItemId;
+
+         bool searchCriteriaMatches = itemIdMatches
                || Activity.ItemId == searchCriteria
-               || Activity.Message.Contains(searchCriteria, StringComparison.OrdinalIgnoreCase));
+               || Activity.Message.Contains(searchCriteria, StringComparison.OrdinalIgnoreCase);
+
+         return fromDateMatches
+            && toDateMatches
+            && eventTypeMatches
+            && needsReviewMatches
+            && searchCriteriaMatches;
       }
    }
 }

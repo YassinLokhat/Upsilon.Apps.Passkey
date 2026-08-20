@@ -107,22 +107,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             // leaves the user still on the credential screen.
             _timer.Stop();
 
-            try
+            if (sender.Equals(_username_TB))
             {
-               if (sender == _username_TB)
-               {
-                  await _submitUsernameAsync().ConfigureAwait(true);
-               }
-               else
-               {
-                  await _submitPasswordAsync().ConfigureAwait(true);
-               }
+               await _submitUsernameAsync().ConfigureAwait(true);
             }
-#pragma warning disable CA1031 // Last-resort barrier: nothing may escape an async void handler
-            catch (Exception ex)
-#pragma warning restore CA1031
+            else
             {
-               Log.Error(ex, "Unexpected error while submitting credentials");
+               await _submitPasswordAsync().ConfigureAwait(true);
             }
 
             if (_isClosing)
@@ -180,23 +171,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             database.AutoSaveDetected += _database_AutoSaveDetected;
             _session.StartSession(database);
          }
-#pragma warning disable CA1031 // Last-resort barrier: a failed open is logged and surfaced, not propagated
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (InsufficientKdfParametersException ex)
          {
             Log.Error(ex, "Failed to open database");
-            if (ex is InsufficientKdfParametersException)
-            {
-               AppServices.Dialogs.Warn(
+            AppServices.Dialogs.Warn(
                   "This database file uses key-stretching parameters below the accepted security floor and cannot be opened.",
                   "Insufficient KDF parameters");
-            }
-            else
-            {
-               AppServices.Dialogs.Warn(
-                  "The database file could not be opened. Check that the path and username are correct.",
-                  "Open failed");
-            }
             return;
          }
          finally
@@ -262,16 +242,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             AppServices.Dialogs.Warn(
                "This database file appears to be corrupted or is not a valid Passkey vault and cannot be opened.",
                "Corrupted database");
-            _resetCredentials();
-            _endSession();
-            return;
-         }
-#pragma warning disable CA1031 // Last-resort barrier: an unexpected login error is shown to the user, not propagated
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            Log.Error(ex, "Unexpected error during login");
-            AppServices.Dialogs.Warn("An unexpected error occurred while opening the database.", "Login error");
             _resetCredentials();
             _endSession();
             return;

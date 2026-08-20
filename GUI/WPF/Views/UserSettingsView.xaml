@@ -62,7 +62,7 @@
             <GroupBox Header="Settings">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding LogoutTimeoutChecked}"
+                        <CheckBox IsChecked="{Binding LogoutTimeoutChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Content="Logout after"/>
                         <TextBox Width="25"
                                  HorizontalContentAlignment="Center"
@@ -73,7 +73,7 @@
                         <Label Margin="0">minutes.</Label>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding CleaningClipboardTimeoutChecked}"
+                        <CheckBox IsChecked="{Binding CleaningClipboardTimeoutChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Content="Clean any passwords in clipboard every"/>
                         <TextBox Width="35"
                                  HorizontalContentAlignment="Center"
@@ -84,7 +84,7 @@
                         <Label Margin="0">seconds.</Label>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding ShowPasswordDelayChecked}"
+                        <CheckBox IsChecked="{Binding ShowPasswordDelayChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Content="Show QR Code during"/>
                         <TextBox Width="40"
                                  HorizontalContentAlignment="Center"
@@ -95,7 +95,7 @@
                         <Label Margin="0">milliseconds.</Label>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding NumberOfOldPasswordToKeepChecked}"
+                        <CheckBox IsChecked="{Binding NumberOfOldPasswordToKeepChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Content="Limit password history to the previous"/>
                         <TextBox Width="40"
                                  HorizontalContentAlignment="Center"
@@ -106,7 +106,7 @@
                         <Label Margin="0">entries.</Label>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding NumberOfMonthActivitiesToKeepChecked}"
+                        <CheckBox IsChecked="{Binding NumberOfMonthActivitiesToKeepChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Content="Limit activity history to the previous"/>
                         <TextBox Width="40"
                                  HorizontalContentAlignment="Center"
@@ -118,10 +118,10 @@
                     </StackPanel>
                     <GroupBox Header="Warnings">
                         <StackPanel>
-                            <CheckBox IsChecked="{Binding NotifyActivityReview}">Notify Activity Review</CheckBox>
-                            <CheckBox IsChecked="{Binding NotifyDuplicatedPasswords}">Notify Duplicated Passwords</CheckBox>
-                            <CheckBox IsChecked="{Binding NotifyPasswordUpdateReminder}">Notify Password Update Reminder</CheckBox>
-                            <CheckBox IsChecked="{Binding NotifyPasswordLeaked}">Notify Password Leaked</CheckBox>
+                            <CheckBox IsChecked="{Binding NotifyActivityReview, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Notify Activity Review</CheckBox>
+                            <CheckBox IsChecked="{Binding NotifyDuplicatedPasswords, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Notify Duplicated Passwords</CheckBox>
+                            <CheckBox IsChecked="{Binding NotifyPasswordUpdateReminder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Notify Password Update Reminder</CheckBox>
+                            <CheckBox IsChecked="{Binding NotifyPasswordLeaked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Notify Password Leaked</CheckBox>
                         </StackPanel>
                     </GroupBox>
                 </StackPanel>

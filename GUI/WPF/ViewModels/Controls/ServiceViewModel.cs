@@ -60,7 +60,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public ObservableCollection<AccountViewModel> Accounts = [];
+      public readonly ObservableCollection<AccountViewModel> Accounts = [];
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -87,12 +87,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
          Accounts.Clear();
 
-         foreach (IAccount account in Service.Accounts)
+         foreach (IAccount account in Service.Accounts.Where(x => visibleIds.Contains(x.ItemId)))
          {
-            if (visibleIds.Contains(account.ItemId))
-            {
-               Accounts.Add(_accountViewModelsById[account.ItemId]);
-            }
+            Accounts.Add(_accountViewModelsById[account.ItemId]);
          }
       }
 

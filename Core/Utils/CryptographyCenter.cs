@@ -6,8 +6,14 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
+   /// <summary>
+   /// BCL-only crypto: SHA-512 fingerprints, PBKDF2 stretching, AES-256-GCM
+   /// onion encryption, and RSA-4096 hybrid encrypt / PSS sign. See SECURITY.md.
+   /// </summary>
    public class CryptographyCenter : ICryptographyCenter
    {
+      // Filename-safe SHA-512 (Base64 with '/' → '-'): used as the implicit first
+      // onion layer (username) and as the .pku file stem next to the WPF binary.
       public string GetHash(string source) => Convert.ToBase64String(SHA512.HashData(Encoding.UTF8.GetBytes(source))).Replace("/", "-", StringComparison.Ordinal);
 
       private const int SLOW_HASH_ITERATIONS = 1_000_000;
@@ -82,17 +88,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string GetSlowHash(string source, KdfParameters parameters)
       {
-         // Reject weakened or malformed headers before spending CPU on PBKDF2.
          EnsureSufficientSlowHashParameters(parameters);
 
-         // The salt is a random, per-database value carried in the parameters
-         // (read back from the header), so it is well-formed by construction and
-         // stable for the life of the file, which is required to reopen it.
          byte[] salt = Convert.FromBase64String(parameters.Salt);
-
-         // PBKDF2 is a standard password-stretching KDF. The exact algorithm,
-         // work factor and salt are taken from the caller so that a database can
-         // be reopened with the parameters stored in its header.
          byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
             Encoding.UTF8.GetBytes(source),
             salt,
@@ -112,9 +110,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public int HashLength => GetHash(string.Empty).Length;
 
-      public string EncryptSymmetrically(string source, string[] passwords)
+      public string EncryptSymmetrically(string source, IEnumerable<string> passwords)
       {
          ArgumentNullException.ThrowIfNull(passwords);
+
+         // Snapshot so callers can pass a lazy sequence and so order is stable
+         // for the reverse-layer loop below.
+         string[] passwordList = [.. passwords];
 
          // Onion encryption: every passkey adds an authenticated AES-GCM layer,
          // so all of them are required - and in the right order - to recover the
@@ -123,9 +125,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // next by ~4/3.
          byte[] result = Encoding.UTF8.GetBytes(source);
 
-         for (int i = passwords.Length - 1; i >= 0; i--)
+         for (int i = passwordList.Length - 1; i >= 0; i--)
          {
-            result = _encryptGcmLayerBytes(result, passwords[i]);
+            result = _encryptGcmLayerBytes(result, passwordList[i]);
          }
 
          // A final layer keyed with a fixed, public value lets decryption tell
@@ -135,9 +137,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return Convert.ToBase64String(result);
       }
 
-      public string DecryptSymmetrically(string source, string[] passwords)
+      public string DecryptSymmetrically(string source, IEnumerable<string> passwords)
       {
          ArgumentNullException.ThrowIfNull(passwords);
+
+         string[] passwordList = [.. passwords];
 
          byte[] result;
 
@@ -146,18 +150,21 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             result = Convert.FromBase64String(source);
             result = _decryptGcmLayerBytes(result, GetHash(string.Empty));
          }
-         catch
+         catch (Exception ex)
+            when (ex is ArgumentNullException
+            or FormatException
+            or CryptographicException)
          {
             throw new CorruptedSourceException();
          }
 
-         for (int i = 0; i < passwords.Length; i++)
+         for (int i = 0; i < passwordList.Length; i++)
          {
             try
             {
-               result = _decryptGcmLayerBytes(result, passwords[i]);
+               result = _decryptGcmLayerBytes(result, passwordList[i]);
             }
-            catch
+            catch (CryptographicException)
             {
                throw new WrongPasswordException(i);
             }
@@ -176,13 +183,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public string EncryptAsymmetrically(string source, string key)
       {
-         // The one-time AES key wraps the payload while the RSA layer protects
-         // the key itself. A full 256-bit CSPRNG draw is enough for AES-256.
+         // One-time AES key for the payload; RSA-OAEP wraps only that key so
+         // activity rows can be written with the public key alone.
          string aesKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(KEY_SIZE));
-
-         // The payload is sealed with authenticated AES-GCM and the AES key is
-         // wrapped with RSA-OAEP, so both parts already detect tampering - no
-         // separate signature is needed over the envelope.
          source = EncryptSymmetrically(source, [aesKey]);
          aesKey = _encryptRsa(aesKey, key);
          KeyValuePair<string, string> s = new(aesKey, source);
@@ -244,12 +247,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                HashAlgorithmName.SHA256,
                RSASignaturePadding.Pss);
          }
-#pragma warning disable CA1031 // Intentional: any malformed key/signature is treated as an invalid signature
-         catch
-#pragma warning restore CA1031
+         catch (Exception ex)
+            when (ex is ArgumentNullException
+            or ArgumentException
+            or FormatException
+            or CryptographicException)
          {
-            // Any malformed key/signature (or a mismatch) is treated as an
-            // invalid signature rather than surfacing as an exception.
             return false;
          }
       }
@@ -318,8 +321,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          try
          {
-            // AES-GCM verifies the tag while decrypting and throws on any
-            // tampering or wrong key, which is how callers detect both.
             using (AesGcm aesGcm = new(key, TAG_SIZE))
             {
                aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
@@ -357,7 +358,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             byte[] bytesPlainTextData = rsa.Decrypt(bytesCypherText, RSAEncryptionPadding.OaepSHA256);
             return Encoding.UTF8.GetString(bytesPlainTextData);
          }
-         catch
+         catch (Exception ex)
+            when (ex is ArgumentException
+            or ArgumentNullException
+            or FormatException
+            or NotImplementedException
+            or CryptographicException
+            or DecoderFallbackException)
          {
             throw new WrongPasswordException(0);
          }

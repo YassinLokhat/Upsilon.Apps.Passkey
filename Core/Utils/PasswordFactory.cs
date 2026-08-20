@@ -7,6 +7,10 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
+   /// <summary>
+   /// CSPRNG password generation and opt-in leak checks (HIBP, then XposedOrNot).
+   /// Network failures fail open: "not leaked", never cached.
+   /// </summary>
    public class PasswordFactory : IPasswordFactory
    {
       // A single, shared HttpClient avoids the socket exhaustion caused by
@@ -119,30 +123,28 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       public string SpecialChars => "~!@#$%^&*()_-+={[}]\\|'\";:,<.>/?";
 
       public string GeneratePassword(int length, string alphabet, bool checkIfLeaked = true)
-      {
-         foreach (string candidate in _candidates(length, alphabet))
-         {
-            if (!checkIfLeaked || !PasswordLeaked(candidate))
-            {
-               return candidate;
-            }
-         }
-
-         // Every attempt produced a leaked password: give up rather than
-         // returning a password that is known to be compromised.
-         return string.Empty;
-      }
+         => _candidates(length, alphabet).FirstOrDefault(x => !checkIfLeaked || !PasswordLeaked(x)) ?? string.Empty;
 
       public async Task<string> GeneratePasswordAsync(int length, string alphabet, bool checkIfLeaked = true, CancellationToken cancellationToken = default)
       {
-         foreach (string candidate in _candidates(length, alphabet))
+         IEnumerable<string> candidates = _candidates(length, alphabet);
+
+         if (!checkIfLeaked)
          {
-            if (!checkIfLeaked || !await PasswordLeakedAsync(candidate, cancellationToken).ConfigureAwait(false))
+            return candidates.FirstOrDefault() ?? string.Empty;
+         }
+
+         using IEnumerator<string> enumerator = candidates.GetEnumerator();
+         while (enumerator.MoveNext())
+         {
+            string candidate = enumerator.Current;
+            if (!await PasswordLeakedAsync(candidate, cancellationToken).ConfigureAwait(false))
             {
                return candidate;
             }
          }
 
+         // Give up rather than returning a password known to be in a breach corpus.
          return string.Empty;
       }
 
@@ -168,9 +170,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                return bloom.Value;
             }
          }
-#pragma warning disable CA1031 // Last-resort barrier: a leak check must never crash password generation
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (OperationCanceledException ex)
          {
             return _failOpen(ex);
          }
@@ -207,12 +207,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
          {
             throw;
-         }
-#pragma warning disable CA1031 // Last-resort barrier: a leak check must never crash password generation
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            return _failOpen(ex);
          }
 
          return _failOpen(null);
@@ -274,9 +268,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             HashSet<string> parsed = _parseAndCacheHibp(prefix, reader.ReadToEnd());
             return parsed.Contains(hash[HIBP_PREFIX_LENGTH..]);
          }
-#pragma warning disable CA1031 // Provider-local barrier: fall through to XON instead of aborting the whole check
          catch (Exception ex)
-#pragma warning restore CA1031
+            when (ex is OutOfMemoryException
+            or IOException)
          {
             System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
             return null;
@@ -313,13 +307,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             throw;
          }
-#pragma warning disable CA1031 // Provider-local barrier: fall through to XON instead of aborting the whole check
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
-            return null;
-         }
       }
 
       /// <summary>
@@ -343,9 +330,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             using HttpResponseMessage response = _send(request, CancellationToken.None);
             return _interpretXonResponse(prefix, response);
          }
-#pragma warning disable CA1031 // Provider-local barrier: outer PasswordLeaked still fails open
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (OperationCanceledException ex)
          {
             System.Diagnostics.Trace.TraceWarning($"XposedOrNot leak check failed: {ex}");
             return null;
@@ -371,13 +356,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
          {
             throw;
-         }
-#pragma warning disable CA1031 // Provider-local barrier: outer PasswordLeakedAsync still fails open
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            System.Diagnostics.Trace.TraceWarning($"XposedOrNot leak check failed: {ex}");
-            return null;
          }
       }
 
@@ -419,9 +397,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             for (int i = 0; i < length; i++)
             {
-               // RandomNumberGenerator.GetInt32 is a cryptographically secure,
-               // unbiased source: unlike System.Random it cannot be predicted
-               // from the current time, which is essential when minting secrets.
                _ = stringBuilder.Append(alphabet[RandomNumberGenerator.GetInt32(alphabet.Length)]);
             }
 
