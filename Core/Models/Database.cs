@@ -106,7 +106,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             {
                AutoSave.Dispose();
                AutoSave = FileLocker.Open<AutoSave>(AutoSaveFileEntry, Passkeys);
-               AutoSave.Database = this;
+               AutoSave.Host = this;
 
                AutoSaveDetectedEventArgs eventArg = new();
                AutoSaveDetected?.Invoke(this, eventArg);
@@ -171,7 +171,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          AutoSave = new()
          {
-            Database = this,
+            Host = this,
          };
 
          FileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);

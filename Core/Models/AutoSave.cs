@@ -10,9 +10,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
    /// </summary>
    internal sealed class AutoSave : IDisposable
    {
-      internal Database Database
+      internal IAutoSaveHost Host
       {
-         get => field ?? throw new NullValueException(nameof(Database));
+         get => field ?? throw new NullValueException(nameof(Host));
          set;
       }
 
@@ -44,12 +44,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
          T newValue,
          string readableValue) where T : notnull
       {
-         if (Database.SerializationCenter.AreDifferent(oldValue, newValue))
+         if (Host.SerializationCenter.AreDifferent(oldValue, newValue))
          {
             _addChange(itemId,
                fieldName,
-               oldValue.SerializeWith(Database.SerializationCenter),
-               newValue.SerializeWith(Database.SerializationCenter),
+               oldValue.SerializeWith(Host.SerializationCenter),
+               newValue.SerializeWith(Host.SerializationCenter),
                readableValue,
                needsReview,
                ActivityEventType.ItemUpdated);
@@ -63,7 +63,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          bool needsReview,
          T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, value.SerializeWith(Database.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemAdded);
+         _addChange(itemId, string.Empty, value.SerializeWith(Host.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemAdded);
 
          return value;
       }
@@ -73,7 +73,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          bool needsReview,
          T value) where T : notnull
       {
-         _addChange(itemId, string.Empty, value.SerializeWith(Database.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemDeleted);
+         _addChange(itemId, string.Empty, value.SerializeWith(Host.SerializationCenter), readableValue, needsReview, ActivityEventType.ItemDeleted);
 
          return value;
       }
@@ -130,39 +130,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          // holding _gate across Schedule would nest locks needlessly.
          _deferred.Schedule();
 
-         string itemName = string.Empty;
-         string parentName = string.Empty;
-
-         if (itemId == Database.User?.ItemId)
-         {
-            if (Database.User is not null)
-            {
-               itemName = Database.User.ToString();
-            }
-         }
-         else if (itemId.StartsWith('S'))
-         {
-            Service? s = Database.User?.Services.FirstOrDefault(x => x.ItemId == itemId);
-
-            if (s is not null)
-            {
-               itemName = s.ToString();
-            }
-         }
-         else if (itemId.StartsWith('A'))
-         {
-            Account? a = Database.User?.Services.SelectMany(x => x.Accounts).FirstOrDefault(x => x.ItemId == itemId);
-
-            if (a is not null)
-            {
-               itemName = a.ToString();
-
-               if (action == ActivityEventType.ItemUpdated)
-               {
-                  parentName = a.Service.ToString();
-               }
-            }
-         }
+         Host.ResolveActivityNames(itemId, action, out string itemName, out string parentName);
 
          string[] data = [itemName, fieldName, readableValue];
 
@@ -173,7 +141,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          // ActivityCenter takes its own gate; we deliberately do not hold _gate
          // here so RSA encrypt + activity insert cannot stall an autosave flush.
-         Database.ActivityCenter.AddActivity(itemId: itemId,
+         Host.AddActivity(itemId: itemId,
             eventType: action,
             data,
             needsReview);
@@ -215,7 +183,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          foreach (Change change in changes)
          {
-            Database.User?.Apply(change);
+            Host.ApplyChange(change);
          }
 
          if (deleteFile)
@@ -260,9 +228,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          if (deleteFile
-            && Database.FileLocker.Exists(Database.AutoSaveFileEntry))
+            && Host.AutoSaveEntryExists())
          {
-            Database.FileLocker.Delete(Database.AutoSaveFileEntry);
+            Host.DeleteAutoSaveEntry();
          }
       }
 
@@ -282,7 +250,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                return;
             }
 
-            Database.FileLocker.Save(this, Database.AutoSaveFileEntry, Database.Passkeys);
+            Host.SaveAutoSave(this);
          }
       }
    }
