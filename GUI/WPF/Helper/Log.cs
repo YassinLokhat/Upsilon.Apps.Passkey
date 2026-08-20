@@ -18,14 +18,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
          try
          {
-            string directory = Path.Combine(
+            string directory = Path.Join(
                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                "Passkey",
                "logs");
 
             _ = Directory.CreateDirectory(directory);
 
-            string file = Path.Combine(directory, $"app-{DateTime.Now:yyyyMMdd}.log");
+            string file = Path.Join(directory, $"app-{DateTime.Now:yyyyMMdd}.log");
 
             TextWriterTraceListener fileListener = new(file, "PasskeyFile");
             _ = _source.Listeners.Add(fileListener);
