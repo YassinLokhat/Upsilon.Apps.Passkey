@@ -35,18 +35,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
                || service.Accounts.Any(x => x.MeetsFilterConditions(string.Empty, globalTextFilter, changedItemsOnly));
 
 
-         bool serviceFilterSearch = (string.IsNullOrWhiteSpace(serviceFilter)
-            || serviceName.Contains(serviceFilter, StringComparison.OrdinalIgnoreCase));
-         bool identifierFilterSearch = (string.IsNullOrWhiteSpace(identifierFilter)
-            || service.Accounts.Any(x => x.MeetsFilterConditions(identifierFilter, globalTextFilter, changedItemsOnly)));
+         bool serviceFilterSearch = string.IsNullOrWhiteSpace(serviceFilter)
+            || serviceName.Contains(serviceFilter, StringComparison.OrdinalIgnoreCase);
+         bool identifierFilterSearch = string.IsNullOrWhiteSpace(identifierFilter)
+            || service.Accounts.Any(x => x.MeetsFilterConditions(identifierFilter, globalTextFilter, changedItemsOnly));
 
          bool serviceAndIdentifierFilterSearch = serviceFilterSearch && identifierFilterSearch;
 
          bool changedItemsOnlySearch = !changedItemsOnly || service.HasChanged();
 
-         bool filterSearch = (!string.IsNullOrWhiteSpace(globalTextFilter)
+         bool filterSearch = !string.IsNullOrWhiteSpace(globalTextFilter)
             ? globalTextFilterSearch
-            : serviceAndIdentifierFilterSearch);
+            : serviceAndIdentifierFilterSearch;
 
          return filterSearch && changedItemsOnlySearch;
       }
@@ -72,9 +72,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
          bool changedItemsOnlySearch = !changedItemsOnly || account.HasChanged();
 
-         bool filterSearch = (!string.IsNullOrWhiteSpace(globalTextFilter)
+         bool filterSearch = !string.IsNullOrWhiteSpace(globalTextFilter)
             ? globalTextFilterSearch
-            : identifierFilterSearch);
+            : identifierFilterSearch;
 
          return filterSearch && changedItemsOnlySearch;
       }

@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.IO;
-using System.Security;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -33,14 +32,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          }
          catch (Exception ex)
             when (ex is ArgumentException
-            || ex is ArgumentNullException
-            || ex is PathTooLongException
-            || ex is DirectoryNotFoundException
-            || ex is IOException
-            || ex is UnauthorizedAccessException
-            || ex is FileNotFoundException
-            || ex is NotSupportedException
-            || ex is PlatformNotSupportedException)
+            or ArgumentNullException
+            or PathTooLongException
+            or DirectoryNotFoundException
+            or IOException
+            or UnauthorizedAccessException
+            or FileNotFoundException
+            or NotSupportedException
+            or PlatformNotSupportedException)
          {
             // Logging must never crash the application: silently fall back to
             // an in-memory listener when the file cannot be created.

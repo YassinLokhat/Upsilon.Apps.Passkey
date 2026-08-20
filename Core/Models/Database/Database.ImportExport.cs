@@ -33,13 +33,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
          catch (Exception ex)
             when (ex is ArgumentException
-            || ex is ArgumentNullException
-            || ex is PathTooLongException
-            || ex is DirectoryNotFoundException
-            || ex is IOException
-            || ex is UnauthorizedAccessException
-            || ex is NotSupportedException
-            || ex is SecurityException)
+            or ArgumentNullException
+            or PathTooLongException
+            or DirectoryNotFoundException
+            or IOException
+            or UnauthorizedAccessException
+            or NotSupportedException
+            or SecurityException)
          {
             errorLog = $"import file is not accessible";
          }

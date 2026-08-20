@@ -240,9 +240,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
          catch (Exception ex)
             when (ex is ArgumentNullException
-            || ex is ArgumentException
-            || ex is FormatException
-            || ex is CryptographicException)
+            or ArgumentException
+            or FormatException
+            or CryptographicException)
          {
             return false;
          }

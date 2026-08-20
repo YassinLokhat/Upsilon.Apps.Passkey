@@ -163,13 +163,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
          catch (Exception ex)
             when (ex is ArgumentException
-            || ex is ArgumentNullException
-            || ex is FormatException
-            || ex is NotSupportedException
-            || ex is FormatException
-            || ex is ObjectDisposedException
-            || ex is IOException
-            || ex is DecoderFallbackException)
+            or ArgumentNullException
+            or FormatException
+            or NotSupportedException
+            or FormatException
+            or ObjectDisposedException
+            or IOException
+            or DecoderFallbackException)
          {
             throw new CorruptedSourceException("Compressed payload could not be decoded.", ex);
          }
@@ -216,13 +216,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
          catch (Exception ex)
             when (ex is ArgumentException
-            || ex is ArgumentNullException
-            || ex is FormatException
-            || ex is NotSupportedException
-            || ex is FormatException
-            || ex is ObjectDisposedException
-            || ex is IOException
-            || ex is DecoderFallbackException)
+            or ArgumentNullException
+            or FormatException
+            or NotSupportedException
+            or FormatException
+            or ObjectDisposedException
+            or IOException
+            or DecoderFallbackException)
          {
             // Layers peeled cleanly but the payload is not valid gzip yet: either
             // more passkeys are required (progressive login) or the inner bytes
@@ -370,13 +370,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                }
                catch (Exception ex)
                   when (ex is ArgumentException
-                  || ex is ArgumentNullException
-                  || ex is PathTooLongException
-                  || ex is DirectoryNotFoundException
-                  || ex is IOException
-                  || ex is UnauthorizedAccessException
-                  || ex is NotSupportedException
-                  || ex is SecurityException)
+                  or ArgumentNullException
+                  or PathTooLongException
+                  or DirectoryNotFoundException
+                  or IOException
+                  or UnauthorizedAccessException
+                  or NotSupportedException
+                  or SecurityException)
                {
                   System.Diagnostics.Trace.TraceWarning($"Failed to delete file '{tempPath}'");
                }

@@ -37,7 +37,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
          }
          catch (Exception ex)
             when (ex is ArgumentNullException
-            || ex is ExternalException)
+            or ExternalException)
          {
             Log.Error(ex, "Failed to write to clipboard");
             return;
@@ -93,7 +93,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
          }
          catch (Exception ex)
             when (ex is OperationCanceledException
-            || ex is ThreadStateException)
+            or ThreadStateException)
          {
             throw;
          }
@@ -143,7 +143,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
             }
             catch (Exception ex)
                when (ex is ArgumentNullException
-               || ex is ExternalException)
+               or ExternalException)
             {
                Log.Error(ex, "Failed to clear sensitive clipboard content");
             }

@@ -184,7 +184,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
          catch (Exception ex)
             when (ex is OutOfMemoryException
-            || ex is IOException)
+            or IOException)
          {
             System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
             return null;

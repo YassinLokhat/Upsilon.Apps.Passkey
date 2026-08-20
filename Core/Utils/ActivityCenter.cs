@@ -145,8 +145,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
          catch (Exception ex)
             when (ex is CorruptedSourceException
-            || ex is WrongPasswordException
-            || ex is ArgumentNullException)
+            or WrongPasswordException
+            or ArgumentNullException)
          {
             // An entry that cannot be decrypted (e.g. one forged with a different
             // key) is skipped rather than aborting login; authenticity of the

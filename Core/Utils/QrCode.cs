@@ -813,7 +813,7 @@ public class QrCode
          }
       }
 
-      double darkRatio = (double)darkCount / Math.Pow(QRCodeDimension, 2);
+      double darkRatio = darkCount / Math.Pow(QRCodeDimension, 2);
       return darkRatio > 0.55
          ? (int)(20.0 * (darkRatio - 0.5)) * 10
          : darkRatio < 0.45
