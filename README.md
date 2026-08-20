@@ -39,8 +39,9 @@ UnitTests/      Core tests + ViewModel tests (Windows TFM; references the WPF pr
 | `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Core, WPF GUI, UnitTests |
 | `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces and Core only (no WPF, no tests) |
 
-Core talks to the OS only through injected ports (`IClipboardManager` is the
-one that must be OS-specific). The WPF app supplies that implementation and
+Core talks to the OS for clipboard only through an injected port
+(`IClipboardManager` must be OS-specific). File I/O and opt-in HTTP leak checks
+use the BCL directly. The WPF app supplies the clipboard implementation and
 hosts dialogs, session, and navigation behind `AppServices` so ViewModels stay
 testable without a window.
 
@@ -73,7 +74,7 @@ classDiagram
             <<interface>>
             +SetText(in text string, in autoClearAfter TimeSpan?) void
             +SetText(in text string, in autoClearAfter int) void
-            +RemoveAllOccurrenceAsync(in removeList string[], in cancellationToken CancellationToken) Task~int~
+            +RemoveAllOccurrenceAsync(in removeList IEnumerable~string~, in cancellationToken CancellationToken) Task~int~
         }
 
         class IPasswordFactory {
@@ -95,8 +96,8 @@ classDiagram
             +GetHash(in source string) string
             +GetSlowHash(in source string, in parameters KdfParameters) string
             +EnsureSufficientSlowHashParameters(in parameters KdfParameters) void
-            +EncryptSymmetrically(in source string, in passwords string[]) string
-            +DecryptSymmetrically(in source string, in passwords string[]) string
+            +EncryptSymmetrically(in source string, in passwords IEnumerable~string~) string
+            +DecryptSymmetrically(in source string, in passwords IEnumerable~string~) string
             +GenerateRandomKeys(out publicKey string, out privateKey string) void
             +EncryptAsymmetrically(in source string, in key string) string
             +DecryptAsymmetrically(in source string, in key string) string
@@ -348,7 +349,7 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Create(new Upsilo
    new OSSpecificClipboardManager(),
    "./database.pku",
    "username",
-   new string[] { "master_password_1", "master_password_2", "master_password_3" });
+   new[] { "master_password_1", "master_password_2", "master_password_3" });
 ```
 
 `CreateAsync` is the same work on a worker thread (RSA-4096 keygen plus one
@@ -443,7 +444,9 @@ extension. Only `.json` and `.csv` are supported; any other extension fails.
     Settings are not included in CSV.
 
 Import requires a logged-in user. Export and import files are **plaintext** — see
-[SECURITY.md](SECURITY.md#known-limitations).
+[SECURITY.md](SECURITY.md#known-limitations). A successful import already
+persists (and both import and export save pending dirty state first). Export
+fails if the destination file already exists.
 
 ### Keeping a UI responsive
 
@@ -545,8 +548,8 @@ GitHub Actions on `master` and pull requests:
 | Workflow | What it does |
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Core + Interfaces) |
-| `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on a Release build of production projects (tests excluded); weekly scan as well |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Core + Interfaces); `dotnet test` with no test projects |
+| `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on every push/PR (any branch) and weekly; Release build of production projects (tests excluded) |
 
 Dependabot is configured for the **.NET SDK** only (`dotnet-sdk` ecosystem). Test
 NuGet packages (MSTest, FluentAssertions) are not auto-bumped.

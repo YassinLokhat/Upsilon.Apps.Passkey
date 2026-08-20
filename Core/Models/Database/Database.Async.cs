@@ -40,7 +40,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          IClipboardManager clipboardManager,
          string databaseFile,
          string username,
-         string[] passkeys,
+         IEnumerable<string> passkeys,
          CancellationToken cancellationToken = default)
          => Task.Run(() => Create(cryptographicCenter,
                serializationCenter,

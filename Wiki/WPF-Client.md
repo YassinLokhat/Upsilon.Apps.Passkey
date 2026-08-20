@@ -45,7 +45,17 @@ Identifiers and passwords can be shown as a QR matrix generated **in-process** (
 
 ## Autosave in the GUI
 
-Unsaved edits are kept in the `.pku` ZIP `autosave` entry. On the next login, `AutoSaveDetected` fires. The client should ask whether to merge (see [[Vault Format]] behaviours) and must marshal that dialog onto the UI thread because the event is raised from a worker thread when using `LoginAsync`.
+Unsaved edits are kept in the `.pku` ZIP `autosave` entry. On the next login, `AutoSaveDetected` fires. The dialog must run on the UI thread because the event is raised from a worker thread when using `LoginAsync`.
+
+The WPF client uses a Yes / No / Cancel prompt and maps it as follows:
+
+| Dialog | `AutoSaveMergeBehavior` | Effect |
+| ------ | ----------------------- | ------ |
+| **Yes** | `MergeAndSaveThenRemoveAutoSaveFile` | Apply autosave, persist, remove the ZIP entry |
+| **No** | `DontMergeAndRemoveAutoSaveFile` | Discard autosave and remove the ZIP entry |
+| **Cancel** | `MergeWithoutSavingAndKeepAutoSaveFile` | Apply autosave **in memory only**, keep the ZIP entry |
+
+`DontMergeAndKeepAutoSaveFile` is available on the enum (hosts / tests) but unused by the WPF dialog. The dialog wording (“Cancel to ignore”) means “do not decide yet”: Cancel still merges into the open session; it does not leave the in-memory model untouched. Full enum meanings: [[Vault Format]].
 
 ## Manual smoke (GUI)
 

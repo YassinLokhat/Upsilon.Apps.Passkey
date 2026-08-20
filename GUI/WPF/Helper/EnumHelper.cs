@@ -1,5 +1,6 @@
 ﻿using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Windows.Networking.Vpn;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -41,18 +42,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       }
 
       public static ActivityEventType ActivityEventTypeFromReadableString(string readableString)
-      {
-         try
-         {
-            return Enum.GetValues<ActivityEventType>()
-               .Cast<ActivityEventType>()
-               .First(x => x.ToReadableString() == readableString);
-         }
-         catch
-         {
-            throw new InvalidOperationException($"'{readableString}' event type not handled");
-         }
-      }
+         => Enum.GetValues<ActivityEventType>()
+            .Cast<ActivityEventType>()
+            .First(x => x.ToReadableString() == readableString);
 
       public static string ToReadableString(this WarningType warningType)
       {

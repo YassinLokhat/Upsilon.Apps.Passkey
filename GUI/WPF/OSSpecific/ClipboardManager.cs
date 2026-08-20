@@ -61,8 +61,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
          SetText(text, autoClear);
       }
 
-      public async Task<int> RemoveAllOccurrenceAsync(string[] removeList, CancellationToken cancellationToken = default)
+      public async Task<int> RemoveAllOccurrenceAsync(IEnumerable<string> removeList, CancellationToken cancellationToken = default)
       {
+         ArgumentNullException.ThrowIfNull(removeList);
+
+         HashSet<string> toRemove = removeList as HashSet<string> ?? [.. removeList];
          int cleanedPasswordCount = 0;
 
          try
@@ -84,7 +87,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
 
                string text = await content.GetTextAsync().AsTask(cancellationToken).ConfigureAwait(false);
 
-               if (removeList.Contains(text)
+               if (toRemove.Contains(text)
                    && Windows.ApplicationModel.DataTransfer.Clipboard.DeleteItemFromHistory(item))
                {
                   cleanedPasswordCount++;

@@ -59,7 +59,7 @@ Key pairs are **RSA-4096**, exported as PEM. The audit log uses a **hybrid** sch
 
 * File access is serialized through a re-entrant lock (`FileLocker`) so a save cannot collide with the session-timeout timer.
 * Each entry update builds a complete replacement archive in memory, writes it to a sibling temp file (flushed with write-through), then `File.Move(overwrite)` swaps it onto the `.pku` path. Readers see either the previous intact archive or the new one — never a torn `ZipArchiveMode.Update` rewrite, and never trailing garbage when the archive shrinks.
-* The session handle is released only for that replace and reacquired immediately afterwards. Outside that window the handle stays open with `FileShare.Read`: other processes may read the file, but not write it.
+* The session handle is released only for that replace and reacquired immediately afterwards. Outside that window the handle stays open with `FileShare.Read | FileShare.Delete`: other processes may read the file, but not write it. `Delete` is required so the atomic `File.Replace` / move can swap the sibling temp file into place.
 
 ### Deferred persistence
 

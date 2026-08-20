@@ -38,9 +38,9 @@
       /// <summary>
       /// Onion AES-256-GCM: every passkey adds a layer; order matters.
       /// </summary>
-      string EncryptSymmetrically(string source, string[] passwords);
+      string EncryptSymmetrically(string source, IEnumerable<string> passwords);
 
-      string DecryptSymmetrically(string source, string[] passwords);
+      string DecryptSymmetrically(string source, IEnumerable<string> passwords);
 
       void GenerateRandomKeys(out string publicKey, out string privateKey);
 

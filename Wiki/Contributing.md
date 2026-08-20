@@ -8,6 +8,7 @@ This page mirrors [`CONTRIBUTING.md`](https://github.com/YassinLokhat/Upsilon.Ap
 
 * Keep Core and Interfaces free of third-party NuGet packages.
 * Prefer a small PR over a mixed refactor + feature + docs dump.
+* When changing Core internals, respect the host surfaces (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) documented in [[Architecture]] — do not reintroduce reverse dependencies from ActivityCenter / AutoSave / User into `Database` members.
 
 ## Build and test
 

@@ -317,7 +317,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             ? dir
             : ".";
 
-         string tempPath = Path.Combine(
+         string tempPath = Path.Join(
             directory,
             $"{Path.GetFileName(FilePath)}.{Guid.NewGuid():N}.tmp");
 

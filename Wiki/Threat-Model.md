@@ -55,7 +55,7 @@ Out of scope. `ProtectedSecret` shrinks the window (ciphertext in RAM, `***` in 
 
 ## Scenario: user exports JSON "for backup" to a cloud folder
 
-Out of scope by design. Export is plaintext for interoperability. The user is responsible for protecting or deleting those files. Prefer copying the encrypted `.pku` if the goal is backup — and never let two machines write it at once (`FileShare.Read` during a session is not multi-master sync).
+Out of scope by design. Export is plaintext for interoperability. The user is responsible for protecting or deleting those files. Prefer copying the encrypted `.pku` if the goal is backup — and never let two machines write it at once (`FileShare.Read | FileShare.Delete` during a session is not multi-master sync).
 
 ## Scenario: QR code on a projector or in a screenshot
 
