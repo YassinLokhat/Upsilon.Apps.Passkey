@@ -50,6 +50,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          bool needsReview)
          => ActivityCenter.AddActivity(itemId, eventType, data, needsReview);
 
+      void IAutoSaveHost.CancelPendingItemUpdatedActivity(string itemId, string fieldName)
+         => ActivityCenter.CancelPendingItemUpdated(itemId, fieldName);
+
       void IAutoSaveHost.ApplyChange(Change change) => User?.Apply(change);
 
       bool IAutoSaveHost.AutoSaveEntryExists() => FileLocker.Exists(AutoSaveFileEntry);

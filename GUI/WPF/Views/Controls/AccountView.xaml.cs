@@ -231,6 +231,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          _refreshPasswordHistory();
       }
 
+      private void _password_VPB_Aborded(object sender, EventArgs e)
+      {
+         if (this.GetIsBusy()
+            || _viewModel is null)
+         {
+            return;
+         }
+
+         // Escape cancels the in-progress edit: restore the committed password
+         // and its dirty/leak background instead of leaving an empty buffer.
+         _password_VPB.Password = _viewModel.Password;
+         _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
+      }
+
       private void _passwords_VPB_Loaded(object sender, RoutedEventArgs e)
       {
          if (sender is not VisiblePasswordBox passwordBox)

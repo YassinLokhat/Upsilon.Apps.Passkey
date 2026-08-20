@@ -22,6 +22,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
          string[] data,
          bool needsReview);
 
+      /// <summary>
+      /// Drops the unsealed <see cref="ActivityEventType.ItemUpdated"/> row for
+      /// <paramref name="itemId"/>/<paramref name="fieldName"/> when a field edit
+      /// is fully reverted (same outcome as clearing the coalesced Change).
+      /// </summary>
+      void CancelPendingItemUpdatedActivity(string itemId, string fieldName);
+
       void ApplyChange(Change change);
 
       bool AutoSaveEntryExists();

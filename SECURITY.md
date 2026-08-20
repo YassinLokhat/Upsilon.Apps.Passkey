@@ -178,7 +178,9 @@ login:
   `database`/`autosave`) the symmetric onion encrypts that compressed payload.
   The `activity` entry skips the onion: its records are already protected
   individually with per-record RSA hybrid encryption before that shared
-  compress/Base64 step. Compressing **before** encryption is deliberate: GZip only
+  compress/Base64 step. The activity envelope stores only seal metadata and the
+  RSA public key — **not** a cleartext username (that would be readable without
+  passkeys). Compressing **before** encryption is deliberate: GZip only
   shrinks structured plaintext, not high-entropy ciphertext.
 - File access is serialized through a re-entrant lock (`FileLocker`) to prevent
   concurrent access races (e.g. a save colliding with the session-timeout timer).
