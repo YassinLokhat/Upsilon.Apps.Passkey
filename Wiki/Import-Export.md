@@ -80,14 +80,20 @@ bool imported = await database.ImportFromFileAsync(@"C:\temp\migration.json");
 bool exported = await database.ExportToFileAsync(@"C:\temp\backup.csv");
 ```
 
-Both return `false` on failure (missing file, bad extension, empty data, duplicate service name, malformed cells, and so on). Details are written as `ImportingDataFailed` / `ExportingDataFailed` activities — see [[Warnings and Activity]].
+Both return `false` on failure (missing file, destination already exists on export, bad extension, empty data, duplicate service name, malformed cells, and so on). Details are written as `ImportingDataFailed` / `ExportingDataFailed` activities — see [[Warnings and Activity]].
+
+### Persistence side effects
+
+* If the vault has unsaved edits, **import and export both call `Save` first** so dirty state is not left only in `autosave`.
+* A **successful import also saves** again (imported services/settings are persisted into `database` and the activity trail is flushed). You do not need a separate `Save()` after a successful import.
+* **Export refuses to overwrite**: if the destination path already exists, export fails with `export file already exists`. Choose a new path or delete the file first.
 
 ## Concrete migration from another password manager
 
 1. Export the other tool to CSV or JSON.
 2. Reshape columns to the header list above. JSON-encode **each** TSV cell (a raw unquoted field will fail parse).
 3. Unlock Passkey. If a service named `GitHub` already exists, rename or delete it first — import is all-or-nothing on that check.
-4. `ImportFromFile("migration.csv")` then `Save()`.
+4. `ImportFromFile("migration.csv")` — on success the vault is already saved.
 5. **Securely delete** the plaintext file (and any copies in Recycle Bin / cloud sync folders).
 
 ## Failure modes (from tests)
@@ -101,5 +107,6 @@ Both return `false` on failure (missing file, bad extension, empty data, duplica
 | Blank service name | service name cannot be blank |
 | Missing TSV header | the CSV headers should be : 'ServiceName', … |
 | Broken JSON / broken TSV cells | deserialization failed / CSV data format is incorrect |
+| Export destination already exists | export file already exists |
 
 URL handling on import: a service URL is kept only if `Uri.IsWellFormedUriString` accepts it; otherwise `Url` is `null`.

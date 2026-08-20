@@ -16,7 +16,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public int RemoveAllOccurrenceCallCount { get; private set; }
 
-      public string[]? LastRemoveList { get; private set; }
+      public IReadOnlyList<string>? LastRemoveList { get; private set; }
 
       private readonly List<string> _texts = [];
 
@@ -30,11 +30,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       public void SetText(string text, int autoClearAfter)
          => SetText(text, autoClearAfter > 0 ? TimeSpan.FromSeconds(autoClearAfter) : null);
 
-      public Task<int> RemoveAllOccurrenceAsync(string[] removeList, CancellationToken cancellationToken = default)
+      public Task<int> RemoveAllOccurrenceAsync(IEnumerable<string> removeList, CancellationToken cancellationToken = default)
       {
+         ArgumentNullException.ThrowIfNull(removeList);
+
          RemoveAllOccurrenceCallCount++;
-         LastRemoveList = removeList;
-         return Task.FromResult(removeList.Length);
+         LastRemoveList = [.. removeList];
+         return Task.FromResult(LastRemoveList.Count);
       }
 
       public void Clear()

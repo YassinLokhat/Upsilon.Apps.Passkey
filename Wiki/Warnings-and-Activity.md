@@ -8,7 +8,7 @@ The vault computes **warnings** locally (except opt-in leak checks, which call k
 | ---- | ------------- |
 | `ActivityReviewWarning` | Activities marked `NeedsReview` (failed login, possible tamper, …) |
 | `PasswordUpdateReminderWarning` | Current password older than `IAccount.PasswordUpdateReminderDelay` months (`0` on the account means never) |
-| `DuplicatedPasswordsWarning` | The same secret appears on more than one account, and those accounts have `AccountOption.WarnIfDuplicatedPassword` |
+| `DuplicatedPasswordsWarning` | The same secret appears on more than one account, and **at least one** account in that group has `AccountOption.WarnIfDuplicatedPassword` (the warning lists every account in the group) |
 | `PasswordLeakedWarning` | Opt-in leak check (`AccountOption.WarnIfPasswordLeaked`) found the password in a corpus |
 
 `ISettings.WarningsToNotify` filters what is surfaced to the user. Subscribe to `IDatabase.WarningsUpdated` (`WarningsUpdatedEventArgs.Warnings`). Each `IWarning` may point at related `IActivity` rows and/or `IAccount`s.

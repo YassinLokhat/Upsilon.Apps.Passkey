@@ -30,6 +30,6 @@
       /// <param name="removeList">The list of elements to remove.</param>
       /// <param name="cancellationToken">Token used to cancel the history scan.</param>
       /// <returns>The number of item removed.</returns>
-      Task<int> RemoveAllOccurrenceAsync(string[] removeList, CancellationToken cancellationToken = default);
+      Task<int> RemoveAllOccurrenceAsync(IEnumerable<string> removeList, CancellationToken cancellationToken = default);
    }
 }

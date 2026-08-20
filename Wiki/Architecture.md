@@ -1,6 +1,6 @@
 # Architecture
 
-Upsilon.Apps.Passkey is three layers and two solution files. Core never talks to the operating system except through injected ports.
+Upsilon.Apps.Passkey is three layers and two solution files. The only **OS-specific** dependency Core needs from the host is `IClipboardManager`. Core still uses the BCL directly for file I/O and (opt-in) HTTP leak checks — those are not injected ports.
 
 ## Repository layout
 
@@ -16,7 +16,7 @@ Upsilon.Apps.Passkey is three layers and two solution files. Core never talks to
 | `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Core, WPF GUI, UnitTests |
 | `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces and Core only (no WPF, no tests: the test project targets `net10.0-windows`) |
 
-The port that **must** be OS-specific is `IClipboardManager`. The WPF app supplies that implementation and hosts dialogs, session, and navigation behind `AppServices` so ViewModels stay unit-testable without a window.
+The WPF app supplies `IClipboardManager` and hosts dialogs, session, and navigation behind `AppServices` so ViewModels stay unit-testable without a window.
 
 ## Domain graph
 
@@ -53,7 +53,7 @@ classDiagram
             <<interface>>
             +SetText(in text string, in autoClearAfter TimeSpan?) void
             +SetText(in text string, in autoClearAfter int) void
-            +RemoveAllOccurrenceAsync(in removeList string[], in cancellationToken CancellationToken) Task~int~
+            +RemoveAllOccurrenceAsync(in removeList IEnumerable~string~, in cancellationToken CancellationToken) Task~int~
         }
 
         class IPasswordFactory {
@@ -74,8 +74,8 @@ classDiagram
             +GetHash(in source string) string
             +GetSlowHash(in source string, in parameters KdfParameters) string
             +EnsureSufficientSlowHashParameters(in parameters KdfParameters) void
-            +EncryptSymmetrically(in source string, in passwords string[]) string
-            +DecryptSymmetrically(in source string, in passwords string[]) string
+            +EncryptSymmetrically(in source string, in passwords IEnumerable~string~) string
+            +DecryptSymmetrically(in source string, in passwords IEnumerable~string~) string
             +GenerateRandomKeys(out publicKey string, out privateKey string) void
             +EncryptAsymmetrically(in source string, in key string) string
             +DecryptAsymmetrically(in source string, in key string) string
@@ -150,11 +150,26 @@ classDiagram
             +int? SessionLeftTime
             +IEnumerable~IActivity~ Activities
             +IEnumerable~IWarning~ Warnings
-            +Login(in passkey string) IUser
+            +ISerializationCenter SerializationCenter
+            +ICryptographyCenter CryptographyCenter
+            +IPasswordFactory PasswordFactory
+            +IClipboardManager ClipboardManager
+            +EventHandler~WarningsUpdatedEventArgs~ WarningsUpdated
+            +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
+            +EventHandler DatabaseSaved
+            +EventHandler~LogoutEventArgs~ DatabaseClosed
+            +Login(in passkey string) IUser?
+            +LoginAsync(in passkey string, in cancellationToken CancellationToken) Task~IUser~
             +Save(void) void
+            +SaveAsync(in cancellationToken CancellationToken) Task
+            +Delete(void) void
             +Close(void) void
+            +HasChanged(in itemId string) bool
+            +HasChanged(in itemId string, in fieldName string) bool
             +ImportFromFile(in filePath string) bool
+            +ImportFromFileAsync(in filePath string, in cancellationToken CancellationToken) Task~bool~
             +ExportToFile(in filePath string) bool
+            +ExportToFileAsync(in filePath string, in cancellationToken CancellationToken) Task~bool~
         }
 
         class IActivity {
@@ -187,11 +202,18 @@ classDiagram
     IDatabase --> IUser : User
     IDatabase "0" --> "*" IWarning : Warnings
     IDatabase "0" --> "*" IActivity : Activities
+    IDatabase --> ISerializationCenter : SerializationCenter
+    IDatabase --> ICryptographyCenter : CryptographyCenter
+    IDatabase --> IPasswordFactory : PasswordFactory
+    IDatabase --> IClipboardManager : ClipboardManager
 ```
+
+Event-arg types (`WarningsUpdatedEventArgs`, `AutoSaveDetectedEventArgs`, `LogoutEventArgs`) and enums live under `Interfaces.Events` / `Interfaces.Enums` — see the fuller diagram in the repository `README.md`.
 
 ## Design choices that show up in usage
 
 * **No DI container in WPF.** `AppServices` is a small locator so tests can swap session, dialogs, clipboard, and navigation.
+* **Internal host surfaces.** `Database` is a partial class. Narrow internal hosts (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) keep `ActivityCenter`, `AutoSave`, and `User` from digging into `Database` members (CodeQL `cs/coupled-types`). Public API stays on `IDatabase` / `IUser`.
 * **Sticky KDF header** in the `.pku`. Reopen always uses the parameters stored in the file. There is no automatic upgrade to `DefaultSlowHashParameters` on save today. That header is the hook for a future work-factor or algorithm migration. See [[Vault Format]].
 * **Deferred ZIP writes** (~500 ms debounce) while logged in. Pre-login audit events (open, failed login) still write immediately so the trail survives a crash before the session starts.
 * **Zero-dependency Core and Interfaces.** An MSBuild target fails the build if a third-party `PackageReference` appears. Supply-chain surface is the .NET BCL plus CI (CodeQL on GitHub runners). See [[Contributing]].

@@ -110,9 +110,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public int HashLength => GetHash(string.Empty).Length;
 
-      public string EncryptSymmetrically(string source, string[] passwords)
+      public string EncryptSymmetrically(string source, IEnumerable<string> passwords)
       {
          ArgumentNullException.ThrowIfNull(passwords);
+
+         // Snapshot so callers can pass a lazy sequence and so order is stable
+         // for the reverse-layer loop below.
+         string[] passwordList = [.. passwords];
 
          // Onion encryption: every passkey adds an authenticated AES-GCM layer,
          // so all of them are required - and in the right order - to recover the
@@ -121,9 +125,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // next by ~4/3.
          byte[] result = Encoding.UTF8.GetBytes(source);
 
-         for (int i = passwords.Length - 1; i >= 0; i--)
+         for (int i = passwordList.Length - 1; i >= 0; i--)
          {
-            result = _encryptGcmLayerBytes(result, passwords[i]);
+            result = _encryptGcmLayerBytes(result, passwordList[i]);
          }
 
          // A final layer keyed with a fixed, public value lets decryption tell
@@ -133,9 +137,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return Convert.ToBase64String(result);
       }
 
-      public string DecryptSymmetrically(string source, string[] passwords)
+      public string DecryptSymmetrically(string source, IEnumerable<string> passwords)
       {
          ArgumentNullException.ThrowIfNull(passwords);
+
+         string[] passwordList = [.. passwords];
 
          byte[] result;
 
@@ -149,11 +155,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             throw new CorruptedSourceException();
          }
 
-         for (int i = 0; i < passwords.Length; i++)
+         for (int i = 0; i < passwordList.Length; i++)
          {
             try
             {
-               result = _decryptGcmLayerBytes(result, passwords[i]);
+               result = _decryptGcmLayerBytes(result, passwordList[i]);
             }
             catch
             {

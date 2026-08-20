@@ -218,7 +218,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      private async Task _scrubClipboardHistoryAsync(IClipboardManager clipboardManager, string[] removeList)
+      private async Task _scrubClipboardHistoryAsync(IClipboardManager clipboardManager, IEnumerable<string> removeList)
       {
          if (Interlocked.CompareExchange(ref _clipboardScrubRunning, 1, 0) != 0)
          {

@@ -15,7 +15,7 @@ focused change and enough context for review.
 | Path | Role |
 | ---- | ---- |
 | `Interfaces/` | Public contracts (`IDatabase`, crypto, serialization, clipboard). |
-| `Core/` | Vault implementation: onion encryption, `.pku` I/O, warnings, import/export. |
+| `Core/` | Vault implementation: onion encryption, `.pku` I/O, warnings, import/export. `Database` is a partial class; internal hosts (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) keep ActivityCenter / AutoSave / User from digging into Database members. |
 | `GUI/WPF/` | Windows desktop client (WPF, .NET 10 Windows TFM). |
 | `UnitTests/` | Core tests plus ViewModel tests through the `AppServices` seam. |
 

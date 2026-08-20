@@ -10,7 +10,7 @@ Each `Login` call appends a stretched passkey to the in-memory onion. A wrong va
 
 ## Can I sync the vault with Dropbox / OneDrive / git?
 
-The app does not sync. You can copy the `.pku` as a backup. Two machines must not write it at the same time: during a session the handle is held with `FileShare.Read`. Conflict copies (`file (1).pku`) are not merged. This is not a multi-master database.
+The app does not sync. You can copy the `.pku` as a backup. Two machines must not write it at the same time: during a session the handle is held with `FileShare.Read | FileShare.Delete` (readers allowed; writers denied; `Delete` enables atomic replace). Conflict copies (`file (1).pku`) are not merged. This is not a multi-master database.
 
 ## Is the CSV export really CSV?
 

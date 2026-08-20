@@ -158,7 +158,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          FileMode fileMode,
          string username,
          string publicKey = "",
-         string[]? passkeys = null)
+         IEnumerable<string>? passkeys = null)
       {
          DatabaseFile = databaseFile;
 
@@ -224,13 +224,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
          IClipboardManager clipboardManager,
          string databaseFile,
          string username,
-         string[] passkeys)
+         IEnumerable<string> passkeys)
       {
          ArgumentNullException.ThrowIfNull(cryptographicCenter);
          ArgumentNullException.ThrowIfNull(serializationCenter);
          ArgumentNullException.ThrowIfNull(passwordFactory);
          ArgumentNullException.ThrowIfNull(clipboardManager);
          ArgumentNullException.ThrowIfNull(passkeys);
+
+         // Snapshot once: Create may receive a one-shot sequence, and the
+         // constructor plus User.Passkeys both need the same ordered values.
+         string[] passkeyList = [.. passkeys];
 
          if (File.Exists(databaseFile))
          {
@@ -254,7 +258,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             FileMode.Create,
             username,
             publicKey,
-            passkeys);
+            passkeyList);
 
          database.User = new()
          {
@@ -262,7 +266,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             PrivateKey = ProtectedSecret.Protect(privateKey),
             ItemId = "U" + cryptographicCenter.GetHash(username),
             Username = username,
-            Passkeys = [.. passkeys.Select(ProtectedSecret.Protect)],
+            Passkeys = [.. passkeyList.Select(ProtectedSecret.Protect)],
          };
 
          database.ActivityCenter.AddActivity(itemId: string.Empty,

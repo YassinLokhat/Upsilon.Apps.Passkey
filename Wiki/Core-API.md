@@ -12,7 +12,7 @@ IDatabase Database.Create(
    IClipboardManager clipboardManager,
    string databaseFile,
    string username,
-   string[] passkeys);
+   IEnumerable<string> passkeys);
 
 IDatabase Database.Open(
    ICryptographyCenter cryptographicCenter,

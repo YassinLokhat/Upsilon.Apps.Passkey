@@ -194,13 +194,15 @@ login:
   edits becomes a single disk write. Pending work is flushed on explicit `Save`
   and on `Close`. Pre-login events (open, failed login) still write immediately
   so the audit trail survives a crash before the session starts.
-  The `.pku` handle is held open for the whole session (`FileShare.Read`) outside
-  the brief atomic-replace window above; other processes may still open the file
-  for reading, but not for writing.
+  The `.pku` handle is held open for the whole session
+  (`FileShare.Read | FileShare.Delete`) outside the brief atomic-replace window
+  above; other processes may still open the file for reading, but not for writing.
+  `FileShare.Delete` is required so the atomic replace can swap the sibling temp
+  file into place.
 
 ### Static analysis
 
-- GitHub **CodeQL** (`security-and-quality`) runs on every push/PR to `master`
+- GitHub **CodeQL** (`security-and-quality`) runs on every push/PR (any branch)
   and weekly. The query pack is not a NuGet dependency of Core; it runs on
   GitHub's infrastructure against a Release build of the production projects
   (unit tests are omitted from that compilation).

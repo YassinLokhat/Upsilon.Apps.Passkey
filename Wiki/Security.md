@@ -35,7 +35,7 @@ Non-security bugs: public [GitHub issues](https://github.com/YassinLokhat/Upsilo
 
 ## Supply chain
 
-All cryptography is implemented in `Core/Utils/CryptographyCenter.cs` on the .NET BCL. **Core and Interfaces refuse any third-party NuGet package at build time.** GitHub CodeQL (`security-and-quality`) scans a Release build of production projects (tests excluded) on every push/PR to `master` and weekly. The query pack is not a NuGet dependency of Core.
+All cryptography is implemented in `Core/Utils/CryptographyCenter.cs` on the .NET BCL. **Core and Interfaces refuse any third-party NuGet package at build time.** GitHub CodeQL (`security-and-quality`) scans a Release build of production projects (tests excluded) on every push/PR (any branch) and weekly. The query pack is not a NuGet dependency of Core.
 
 All security-relevant randomness uses `System.Security.Cryptography.RandomNumberGenerator` (keys, salts, nonces, generated passwords via `GetInt32`). `System.Random` is never used for secrets.
 
