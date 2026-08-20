@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -34,9 +35,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
          {
             Clipboard.SetDataObject(data, copy: true);
          }
-#pragma warning disable CA1031 // Last-resort barrier: a clipboard failure must never crash the caller
          catch (Exception ex)
-#pragma warning restore CA1031
+            when (ex is ArgumentNullException
+            or ExternalException)
          {
             Log.Error(ex, "Failed to write to clipboard");
             return;
@@ -90,15 +91,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
                }
             }
          }
-         catch (OperationCanceledException)
+         catch (Exception ex)
+            when (ex is OperationCanceledException
+            or ThreadStateException)
          {
             throw;
-         }
-#pragma warning disable CA1031 // Last-resort barrier: a clipboard failure must never crash the caller
-         catch (Exception ex)
-#pragma warning restore CA1031
-         {
-            Log.Error(ex, "Failed to scrub clipboard history");
          }
 
          return cleanedPasswordCount;
@@ -144,9 +141,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
                   Clipboard.Clear();
                }
             }
-#pragma warning disable CA1031 // Last-resort barrier: a clipboard failure must never crash the caller
             catch (Exception ex)
-#pragma warning restore CA1031
+               when (ex is ArgumentNullException
+               or ExternalException)
             {
                Log.Error(ex, "Failed to clear sensitive clipboard content");
             }

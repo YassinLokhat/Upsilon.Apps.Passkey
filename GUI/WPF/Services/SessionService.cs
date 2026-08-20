@@ -34,16 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
          if (closeDatabase)
          {
-            try
-            {
-               Database.Close();
-            }
-#pragma warning disable CA1031 // Last-resort barrier: a failed close must still tear down the session
-            catch (Exception ex)
-#pragma warning restore CA1031
-            {
-               Log.Error(ex, "Failed to close database cleanly");
-            }
+            Database.Close();
          }
 
          Database = null;

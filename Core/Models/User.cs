@@ -14,20 +14,20 @@ namespace Upsilon.Apps.Passkey.Core.Models
    {
       #region IUser interface explicit Internal
 
-      string IItem.ItemId => Database.Get(ItemId);
+      string IItem.ItemId => Host.Touch(ItemId);
 
-      IDatabase IItem.Database => Database;
+      IDatabase IItem.Database => Host.AsDatabase;
 
-      IEnumerable<IService> IUser.Services => [.. Database.Get(Services)];
+      IEnumerable<IService> IUser.Services => [.. Host.Touch(Services)];
 
       string IUser.Username
       {
-         get => Database.Get(Username);
+         get => Host.Touch(Username);
          set
          {
             CredentialChanged |= Username != value;
 
-            Username = Database.AutoSave.UpdateValue(ItemId,
+            Username = Host.AutoSave.UpdateValue(ItemId,
                fieldName: nameof(Username),
                needsReview: true,
                oldValue: Username,
@@ -38,14 +38,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       IEnumerable<string> IUser.Passkeys
       {
-         get => Database.Get<IEnumerable<string>>([.. Passkeys.Select(x => x.Reveal())]);
+         get => Host.Touch<IEnumerable<string>>([.. Passkeys.Select(x => x.Reveal())]);
          set
          {
             IEnumerable<ProtectedSecret> newPasskeys = [.. value.Select(ProtectedSecret.Protect)];
 
-            CredentialChanged |= Database.SerializationCenter.AreDifferent(Passkeys, newPasskeys);
+            CredentialChanged |= Host.SerializationCenter.AreDifferent(Passkeys, newPasskeys);
 
-            Passkeys = Database.AutoSave.UpdateValue(ItemId,
+            Passkeys = Host.AutoSave.UpdateValue(ItemId,
                fieldName: nameof(Passkeys),
                needsReview: true,
                oldValue: Passkeys,
@@ -56,7 +56,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       ISettings IUser.Settings
       {
-         get => Database.Get(Settings);
+         get => Host.Touch(Settings);
          set
          {
             if (value.GetType() != typeof(Settings))
@@ -64,7 +64,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                throw new InvalidCastException("The ISettings object is not a known implementation");
             }
 
-            Settings = Database.Get((Settings)value);
+            Settings = Host.Touch((Settings)value);
          }
       }
 
@@ -73,11 +73,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Service service = new()
          {
             User = this,
-            ItemId = "S" + Database.CryptographyCenter.GetHash(ItemId + serviceName),
+            ItemId = "S" + Host.CryptographyCenter.GetHash(ItemId + serviceName),
             ServiceName = serviceName
          };
 
-         Services.Add(Database.AutoSave.AddValue(ItemId, readableValue: service.ToString(), needsReview: false, value: service));
+         Services.Add(Host.AutoSave.AddValue(ItemId, readableValue: service.ToString(), needsReview: false, value: service));
 
          return service;
       }
@@ -87,14 +87,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Service serviceToRemove = Services.FirstOrDefault(x => x.ItemId == service.ItemId)
             ?? throw new KeyNotFoundException($"The {service} was not found into the {this}'s services list");
 
-         _ = Services.Remove(Database.AutoSave.DeleteValue(ItemId, readableValue: serviceToRemove.ToString(), needsReview: true, value: serviceToRemove));
+         _ = Services.Remove(Host.AutoSave.DeleteValue(ItemId, readableValue: serviceToRemove.ToString(), needsReview: true, value: serviceToRemove));
       }
 
       #endregion
 
-      internal Database Database
+      internal IUserHost Host
       {
-         get => field ?? throw new NullValueException(nameof(Database));
+         get => field ?? throw new NullValueException(nameof(Host));
          set
          {
             field = value;
@@ -144,11 +144,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
       private int _clipboardLeftTime;
 
       // The timer fires on a ThreadPool thread, so a tick can run concurrently
-      // with Database.Close on the UI thread. This gate serializes both: a tick
-      // already in progress completes before StopTimer disposes the timer, and a
-      // late tick that wins the race observes _timerStopped and bails out before
-      // touching the now-disposed Database/FileLocker. The lock is re-entrant, so
-      // the timeout tick path (which calls Close -> StopTimer) is safe.
+      // with CloseOnSessionTimeout on the UI thread. This gate serializes both: a
+      // tick already in progress completes before StopTimer disposes the timer,
+      // and a late tick that wins the race observes _timerStopped and bails out
+      // before touching the now-disposed vault. The lock is re-entrant, so the
+      // timeout tick path (which calls Close -> StopTimer) is safe.
       private readonly System.Threading.Lock _timerGate = new();
       private bool _timerStopped;
 
@@ -179,14 +179,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
                if (SessionLeftTime == 0)
                {
-                  Database.ActivityCenter.AddActivity(itemId: ItemId,
+                  Host.AddActivity(itemId: ItemId,
                      eventType: ActivityEventType.LoginSessionTimeoutReached,
                      data: [Username],
                      needsReview: true);
 
                   // Close stops and disposes this timer through StopTimer, so the
-                  // tick must not touch the timer or the Database afterwards.
-                  Database.Close(logCloseEvent: true, loginTimeoutReached: true);
+                  // tick must not touch the timer or the host afterwards.
+                  Host.CloseOnSessionTimeout();
 
                   return;
                }
@@ -206,7 +206,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                         .SelectMany(x => x.Accounts)
                         .SelectMany(x => x.Passwords.Values.Select(y => y.Reveal())),
                   ];
-                  clipboardManager = Database.ClipboardManager;
+                  clipboardManager = Host.ClipboardManager;
                   _clipboardLeftTime = Settings.CleaningClipboardTimeout;
                }
             }
@@ -229,9 +229,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             _ = await clipboardManager.RemoveAllOccurrenceAsync(removeList).ConfigureAwait(false);
          }
-#pragma warning disable CA1031 // Last-resort barrier: clipboard scrub must never crash the session timer
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (OperationCanceledException ex)
          {
             System.Diagnostics.Trace.TraceWarning($"Clipboard history scrub failed: {ex}");
          }
@@ -244,7 +242,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       /// <summary>
       /// Restarts the inactivity and clipboard-clean countdowns from the current
       /// settings. Called on login and on every vault field read via
-      /// <see cref="Database.Get{T}"/>.
+      /// <see cref="IUserHost.Touch{T}"/>.
       /// </summary>
       public void ResetTimer()
       {
@@ -305,32 +303,32 @@ namespace Upsilon.Apps.Passkey.Core.Models
                {
                   case nameof(Username):
                      CredentialChanged = true;
-                     Username = change.NewValue.DeserializeTo<string>(Database.SerializationCenter);
+                     Username = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);
                      break;
                   case nameof(Passkeys):
                      CredentialChanged = true;
-                     Passkeys = change.NewValue.DeserializeTo<IEnumerable<ProtectedSecret>>(Database.SerializationCenter);
+                     Passkeys = change.NewValue.DeserializeTo<IEnumerable<ProtectedSecret>>(Host.SerializationCenter);
                      break;
                   case nameof(Settings.LogoutTimeout):
-                     Settings.LogoutTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
+                     Settings.LogoutTimeout = change.NewValue.DeserializeTo<int>(Host.SerializationCenter);
                      break;
                   case nameof(Settings.CleaningClipboardTimeout):
-                     Settings.CleaningClipboardTimeout = change.NewValue.DeserializeTo<int>(Database.SerializationCenter);
+                     Settings.CleaningClipboardTimeout = change.NewValue.DeserializeTo<int>(Host.SerializationCenter);
                      break;
                   case nameof(Settings.WarningsToNotify):
-                     Settings.WarningsToNotify = change.NewValue.DeserializeTo<WarningType>(Database.SerializationCenter);
+                     Settings.WarningsToNotify = change.NewValue.DeserializeTo<WarningType>(Host.SerializationCenter);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
                }
                break;
             case ActivityEventType.ItemAdded:
-               Service serviceToAdd = change.NewValue.DeserializeTo<Service>(Database.SerializationCenter);
+               Service serviceToAdd = change.NewValue.DeserializeTo<Service>(Host.SerializationCenter);
                serviceToAdd.User = this;
                Services.Add(serviceToAdd);
                break;
             case ActivityEventType.ItemDeleted:
-               Service serviceToDelete = change.NewValue.DeserializeTo<Service>(Database.SerializationCenter);
+               Service serviceToDelete = change.NewValue.DeserializeTo<Service>(Host.SerializationCenter);
                _ = Services.RemoveAll(x => x.ItemId == serviceToDelete.ItemId);
                break;
             default:
@@ -338,9 +336,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      public override string ToString() => $"User {Database.Username}";
+      public override string ToString() => $"User {Host.Username}";
 
-      public bool HasChanged() => Database.HasChanged(ItemId) || Services.Any(x => x.HasChanged());
+      public bool HasChanged() => Host.HasPendingChanges(ItemId) || Services.Any(x => x.HasChanged());
 
       public void Dispose() => _timer?.Dispose();
    }

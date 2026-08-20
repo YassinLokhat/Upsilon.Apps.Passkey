@@ -50,13 +50,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          if (identifier is not null)
          {
-            foreach (string idType in IdentifierViewModel.IdentifiersTypes.Values)
-            {
-               if (identifier.StartsWith(idType, StringComparison.Ordinal))
-               {
-                  identifier = identifier[idType.Length..];
-               }
-            }
+            int idLenght = IdentifierViewModel.IdentifiersTypes.Values.FirstOrDefault(x => identifier.StartsWith(x, StringComparison.Ordinal))?.Length ?? 0;
+            identifier = identifier[idLenght..];
          }
 
          return identifier;
@@ -247,9 +242,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          {
             passwordBox.Password = ((PasswordViewModel)((ContentPresenter)passwordBox.TemplatedParent).Content).Password;
          }
-#pragma warning disable CA1031 // Intentional: a transient visual-tree/binding race on load is safely ignored
-         catch { }
-#pragma warning restore CA1031
+         catch (InvalidCastException)
+         {
+            System.Diagnostics.Trace.TraceWarning("Loading password view failed");
+         }
       }
 
       private void _copyIdentifier_Clicked(object sender, RoutedEventArgs e)

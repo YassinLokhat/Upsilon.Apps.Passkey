@@ -105,9 +105,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                service.Accounts.Add(account);
             }
          }
-#pragma warning disable CA1031 // Intentional: any parsing failure is reported as a user-facing format error
-         catch
-#pragma warning restore CA1031
+         catch (Exception ex)
+            when (ex is IndexOutOfRangeException)
          {
             return "the CSV data format is incorrect";
          }
@@ -123,9 +122,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             data = _jsonDeserializeAs<Data>(importContent);
          }
-#pragma warning disable CA1031 // Intentional: any deserialization failure is reported as a user-facing error
-         catch
-#pragma warning restore CA1031
+         catch (JsonException)
          {
             return "import file deserialization failed";
          }

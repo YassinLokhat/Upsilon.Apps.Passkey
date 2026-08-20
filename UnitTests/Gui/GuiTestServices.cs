@@ -7,9 +7,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
    /// <summary>
    /// Wires <see cref="AppServices"/> to fakes for ViewModel tests.
    /// Production code never calls this.
+   /// Serializes access because Reset restores the real WPF clipboard.
    /// </summary>
    internal static class GuiTestServices
    {
+      private static readonly object _appServicesGate = new();
+      private static bool _gateHeld;
+
       public static ClipboardManager Clipboard { get; private set; } = null!;
 
       public static FakeSessionService Session { get; private set; } = null!;
@@ -20,20 +24,52 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
 
       public static void Install()
       {
-         Clipboard = new ClipboardManager();
-         Session = new FakeSessionService();
-         Dialogs = new FakeDialogService();
-         Navigation = new FakeNavigationService();
+         Monitor.Enter(_appServicesGate);
+         _gateHeld = true;
 
-         AppServices.Clipboard = Clipboard;
-         AppServices.Session = Session;
-         AppServices.Dialogs = Dialogs;
-         AppServices.Navigation = Navigation;
-         AppServices.Cryptography = UnitTestsHelper.CryptographicCenter;
-         AppServices.Serialization = UnitTestsHelper.SerializationCenter;
-         AppServices.PasswordFactory = UnitTestsHelper.PasswordFactory;
+         try
+         {
+            Clipboard = new ClipboardManager();
+            Session = new FakeSessionService();
+            Dialogs = new FakeDialogService();
+            Navigation = new FakeNavigationService();
+
+            AppServices.Clipboard = Clipboard;
+            AppServices.Session = Session;
+            AppServices.Dialogs = Dialogs;
+            AppServices.Navigation = Navigation;
+            AppServices.Cryptography = UnitTestsHelper.CryptographicCenter;
+            AppServices.Serialization = UnitTestsHelper.SerializationCenter;
+            AppServices.PasswordFactory = UnitTestsHelper.PasswordFactory;
+         }
+         catch
+         {
+            _releaseGate();
+            throw;
+         }
       }
 
-      public static void Reset() => AppServices.Reset();
+      public static void Reset()
+      {
+         try
+         {
+            AppServices.Reset();
+         }
+         finally
+         {
+            _releaseGate();
+         }
+      }
+
+      private static void _releaseGate()
+      {
+         if (!_gateHeld)
+         {
+            return;
+         }
+
+         _gateHeld = false;
+         Monitor.Exit(_appServicesGate);
+      }
    }
 }

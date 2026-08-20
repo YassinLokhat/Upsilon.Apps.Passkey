@@ -32,9 +32,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             // not the one observed when the scan started.
             WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => User.Settings.WarningsToNotify.HasFlag(x.WarningType))]));
          }
-#pragma warning disable CA1031 // Last-resort barrier: the background warning scan must never crash the session
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (NullValueException ex)
          {
             // The warning scan runs on a background task and must never crash the
             // session; a failure only means warnings are not refreshed this round,
@@ -127,16 +125,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
          IGrouping<string, Account>[] duplicatedPasswords = [.. User.Services
             .SelectMany(x => x.Accounts)
             .GroupBy(x => x.Password)
-            .Where(x => x.Count() > 1)];
+            .Where(x => x.Count() > 1
+               && x.Any(y => y.Options.HasFlag(AccountOption.WarnIfDuplicatedPassword)))];
 
          List<Warning> warnings = [];
 
          foreach (IGrouping<string, Account> accounts in duplicatedPasswords)
          {
-            if (accounts.Any(x => x.Options.HasFlag(AccountOption.WarnIfDuplicatedPassword)))
-            {
-               warnings.Add(new(WarningType.DuplicatedPasswordsWarning, [.. accounts.Cast<Account>()]));
-            }
+            warnings.Add(new(WarningType.DuplicatedPasswordsWarning, [.. accounts.Cast<Account>()]));
          }
 
          return [.. warnings];

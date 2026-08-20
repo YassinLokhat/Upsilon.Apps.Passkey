@@ -1,10 +1,11 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Gui
 {
    [TestClass]
+   [DoNotParallelize]
    public sealed class PasswordGeneratorViewModelTests
    {
       [TestInitialize]
@@ -29,9 +30,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
 
          _ = alphabet.Should().Contain(factory.Numeric);
          _ = alphabet.Should().Contain(factory.Alphabetic.ToUpperInvariant());
-#pragma warning disable CA1308 // Mirror PasswordGeneratorViewModel alphabet construction
          _ = alphabet.Should().Contain(factory.Alphabetic.ToLowerInvariant());
-#pragma warning restore CA1308
          _ = alphabet.Should().Contain(factory.SpecialChars);
       }
 
@@ -46,9 +45,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
          vm.IncludeLowerCaseAlphabet = true;
          vm.IncludeSpecialCharacters = false;
 
-#pragma warning disable CA1308 // Mirror PasswordGeneratorViewModel alphabet construction
          string expected = AppServices.PasswordFactory.Alphabetic.ToLowerInvariant();
-#pragma warning restore CA1308
 
          _ = vm.Alphabet.Should().Be(expected);
       }

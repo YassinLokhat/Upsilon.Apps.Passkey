@@ -1,4 +1,5 @@
 ﻿using System.IO.Compression;
+using System.Security;
 using System.Text;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
@@ -160,9 +161,15 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             return _decompressStringCore(compressedText);
          }
-#pragma warning disable CA1031 // Domain mapping: any decode/gunzip failure is corruption for unkeyed entries
          catch (Exception ex)
-#pragma warning restore CA1031
+            when (ex is ArgumentException
+            or ArgumentNullException
+            or FormatException
+            or NotSupportedException
+            or FormatException
+            or ObjectDisposedException
+            or IOException
+            or DecoderFallbackException)
          {
             throw new CorruptedSourceException("Compressed payload could not be decoded.", ex);
          }
@@ -207,9 +214,15 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             return _decompressStringCore(decrypted);
          }
-#pragma warning disable CA1031 // Domain mapping: peel-ok / gunzip-fail means more passkeys (or junk inner bytes)
          catch (Exception ex)
-#pragma warning restore CA1031
+            when (ex is ArgumentException
+            or ArgumentNullException
+            or FormatException
+            or NotSupportedException
+            or FormatException
+            or ObjectDisposedException
+            or IOException
+            or DecoderFallbackException)
          {
             // Layers peeled cleanly but the payload is not valid gzip yet: either
             // more passkeys are required (progressive login) or the inner bytes
@@ -355,10 +368,17 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                {
                   File.Delete(tempPath);
                }
-#pragma warning disable CA1031 // Best-effort cleanup of a leftover temp; must not mask the original failure.
-               catch
-#pragma warning restore CA1031
+               catch (Exception ex)
+                  when (ex is ArgumentException
+                  or ArgumentNullException
+                  or PathTooLongException
+                  or DirectoryNotFoundException
+                  or IOException
+                  or UnauthorizedAccessException
+                  or NotSupportedException
+                  or SecurityException)
                {
+                  System.Diagnostics.Trace.TraceWarning($"Failed to delete file '{tempPath}'");
                }
             }
          }

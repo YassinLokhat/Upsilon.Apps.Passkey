@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Threading;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -13,6 +14,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    internal static class HotkeyHelper
    {
       private const int WM_HOTKEY = 0x0312;
+      private const int PASTE_DELAY_MS = 100;
       private static int _id;
 
       private static readonly Dictionary<int, Registration> _registrations = [];
@@ -73,48 +75,40 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       }
 
       /// <summary>
-      /// Synthesises a keystroke (modifiers + key) using <c>SendInput</c>, which
-      /// supersedes the legacy <c>keybd_event</c>.
+      /// Synthesises Ctrl+V in the active window after a short delay so hotkey
+      /// modifiers (Ctrl+Shift) are released before injection; immediate SendKeys
+      /// often drops the Ctrl prefix and types plain "v".
       /// </summary>
-      public static void Send(ModifierKeys modifiers, Key key)
+      public static void SendPaste()
       {
-         List<INPUT> inputs = [];
-
-         _appendModifierInputs(inputs, modifiers, keyUp: false);
-         _appendKeyInput(inputs, (ushort)KeyInterop.VirtualKeyFromKey(key), keyUp: false);
-         _appendKeyInput(inputs, (ushort)KeyInterop.VirtualKeyFromKey(key), keyUp: true);
-         _appendModifierInputs(inputs, modifiers, keyUp: true);
-
-         INPUT[] array = [.. inputs];
-         _ = SendInput((uint)array.Length, array, Marshal.SizeOf<INPUT>());
+         DispatcherTimer timer = new(DispatcherPriority.Normal, Application.Current.Dispatcher)
+         {
+            Interval = TimeSpan.FromMilliseconds(PASTE_DELAY_MS),
+         };
+         timer.Tick += (_, _) =>
+         {
+            timer.Stop();
+            _sendCtrlV();
+         };
+         timer.Start();
       }
 
-      private static void _appendModifierInputs(List<INPUT> inputs, ModifierKeys modifiers, bool keyUp)
+      private static void _sendCtrlV()
       {
-         if (modifiers.HasFlag(ModifierKeys.Control))
-         {
-            _appendKeyInput(inputs, 0x11, keyUp); // VK_CONTROL
-         }
+         INPUT[] inputs =
+         [
+            _keyInput(0x11, keyUp: false), // VK_CONTROL down
+            _keyInput(0x56, keyUp: false), // VK_V down
+            _keyInput(0x56, keyUp: true),  // VK_V up
+            _keyInput(0x11, keyUp: true),  // VK_CONTROL up
+         ];
 
-         if (modifiers.HasFlag(ModifierKeys.Shift))
-         {
-            _appendKeyInput(inputs, 0x10, keyUp); // VK_SHIFT
-         }
-
-         if (modifiers.HasFlag(ModifierKeys.Alt))
-         {
-            _appendKeyInput(inputs, 0x12, keyUp); // VK_MENU
-         }
-
-         if (modifiers.HasFlag(ModifierKeys.Windows))
-         {
-            _appendKeyInput(inputs, 0x5B, keyUp); // VK_LWIN
-         }
+         _ = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<INPUT>());
       }
 
-      private static void _appendKeyInput(List<INPUT> inputs, ushort virtualKey, bool keyUp)
+      private static INPUT _keyInput(ushort virtualKey, bool keyUp)
       {
-         inputs.Add(new INPUT
+         return new INPUT
          {
             type = INPUT_KEYBOARD,
             U = new InputUnion
@@ -128,7 +122,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
                   dwExtraInfo = IntPtr.Zero,
                },
             },
-         });
+         };
       }
 
       [DllImport("user32.dll")]
@@ -157,11 +151,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       private struct InputUnion
       {
          [FieldOffset(0)]
-         public MOUSEINPUT mi;
-         [FieldOffset(0)]
          public KEYBDINPUT ki;
-         [FieldOffset(0)]
-         public HARDWAREINPUT hi;
       }
 
       [StructLayout(LayoutKind.Sequential)]
@@ -172,25 +162,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          public uint dwFlags;
          public uint time;
          public IntPtr dwExtraInfo;
-      }
-
-      [StructLayout(LayoutKind.Sequential)]
-      private struct MOUSEINPUT
-      {
-         public int dx;
-         public int dy;
-         public uint mouseData;
-         public uint dwFlags;
-         public uint time;
-         public IntPtr dwExtraInfo;
-      }
-
-      [StructLayout(LayoutKind.Sequential)]
-      private struct HARDWAREINPUT
-      {
-         public uint uMsg;
-         public ushort wParamL;
-         public ushort wParamH;
       }
 
       private sealed record Registration(IntPtr Handle, HwndSource Source, HwndSourceHook Hook);

@@ -11,9 +11,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
    /// </summary>
    internal sealed class ActivityCenter : IDisposable
    {
-      internal Database Database
+      internal IActivityHost Host
       {
-         get => field ?? throw new NullValueException(nameof(Database));
+         get => field ?? throw new NullValueException(nameof(Host));
          set;
       }
 
@@ -73,14 +73,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             publicKey = PublicKey;
          }
 
-         string encrypted = Database.CryptographyCenter.EncryptAsymmetrically(activity.ToString(), publicKey);
+         string encrypted = Host.EncryptActivity(activity.ToString(), publicKey);
 
          bool flushImmediately;
          lock (_gate)
          {
             Activities.Insert(0, activity);
             ActivityList.Insert(0, encrypted);
-            flushImmediately = Database.User is null;
+            flushImmediately = !Host.IsLoggedIn;
          }
 
          if (flushImmediately)
@@ -97,7 +97,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       internal void LoadStringActivities()
       {
-         if (Database.User is null)
+         if (!Host.IsLoggedIn)
          {
             lock (_gate)
             {
@@ -134,18 +134,20 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private Activity? _tryDecrypt(string encryptedActivity)
       {
-         if (Database.User is null)
+         if (!Host.IsLoggedIn)
          {
             return null;
          }
 
          try
          {
-            return new Activity(Database.CryptographyCenter.DecryptAsymmetrically(encryptedActivity, Database.User.PrivateKey.Reveal()));
+            return new Activity(Host.DecryptActivity(encryptedActivity));
          }
-#pragma warning disable CA1031 // Intentional: any decryption failure means a skipped entry, not a login abort
          catch (Exception ex)
-#pragma warning restore CA1031
+            when (ex is CorruptedSourceException
+            or WrongPasswordException
+            or ArgumentNullException
+            or NullValueException)
          {
             // An entry that cannot be decrypted (e.g. one forged with a different
             // key) is skipped rather than aborting login; authenticity of the
@@ -163,12 +165,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       /// </summary>
       internal bool VerifyIntegrity()
       {
-         if (Database.User is null)
+         if (!Host.IsLoggedIn)
          {
-            throw new NullValueException(nameof(Database.User));
+            throw new NullValueException("User");
          }
 
-         int watermark = Database.User.ActivitySealWatermark;
+         int watermark = Host.ActivitySealWatermark;
          string signature;
          int sealedCount;
          int activityCount;
@@ -209,8 +211,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // belongs to the private key held in the encrypted database. This
          // defeats an attacker swapping in their own key pair. RSA verify runs
          // outside the gate.
-         string trustedPublicKey = Database.CryptographyCenter.GetPublicKey(Database.User.PrivateKey.Reveal());
-         return trustedPublicKey == publicKey && Database.CryptographyCenter.Verify(canonical, signature, trustedPublicKey);
+         string trustedPublicKey = Host.GetTrustedPublicKey();
+         return trustedPublicKey == publicKey && Host.VerifySeal(canonical, signature, trustedPublicKey);
       }
 
       /// <summary>
@@ -286,7 +288,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             _seal_NoLock();
 
-            Database.FileLocker.Save(this, Database.ActivityFileEntry);
+            Host.SaveActivityLog(this);
          }
       }
 
@@ -297,7 +299,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          ActivityList.Clear();
          ActivityList.AddRange(Activities
             .OrderByDescending(x => x.DateTime)
-            .Select(x => Database.CryptographyCenter.EncryptAsymmetrically(((Activity)x).ToString(), PublicKey)));
+            .Select(x => Host.EncryptActivity(((Activity)x).ToString(), PublicKey)));
       }
 
       // Caller must hold _gate.
@@ -306,13 +308,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // Sealing needs the private key, which is only available once a user is
          // logged in. Activities appended before login grow an unsealed tail
          // that is sealed by the next save after a successful login.
-         if (Database.User is null)
+         if (!Host.IsLoggedIn)
          {
             return;
          }
 
          SealedCount = ActivityList.Count;
-         Signature = Database.CryptographyCenter.Sign(_canonicalSealedContent_NoLock(), Database.User.PrivateKey.Reveal());
+         Signature = Host.SignSeal(_canonicalSealedContent_NoLock());
       }
 
       // Caller must hold _gate.
@@ -330,13 +332,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // so the caller knows ActivityList must be rebuilt to match.
       private bool _removeOldActivities_NoLock()
       {
-         if (Database.User is null
-            || Database.User.Settings.NumberOfMonthActivitiesToKeep == 0)
+         if (!Host.IsLoggedIn
+            || Host.ActivityRetentionMonths == 0)
          {
             return false;
          }
 
-         DateTime limitDate = DateTime.Now.AddMonths(-Database.User.Settings.NumberOfMonthActivitiesToKeep).Date.AddDays(-DateTime.Now.Day + 1);
+         DateTime limitDate = DateTime.Now.AddMonths(-Host.ActivityRetentionMonths).Date.AddDays(-DateTime.Now.Day + 1);
          int before = Activities.Count;
          Activities = [.. Activities.Where(x => x.DateTime >= limitDate || x.NeedsReview)];
          return Activities.Count != before;

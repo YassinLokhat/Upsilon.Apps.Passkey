@@ -81,7 +81,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (User is not null)
          {
-            User.Database = this;
+            User.Host = this;
 
             ActivityCenter.LoadStringActivities();
 
@@ -106,7 +106,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             {
                AutoSave.Dispose();
                AutoSave = FileLocker.Open<AutoSave>(AutoSaveFileEntry, Passkeys);
-               AutoSave.Database = this;
+               AutoSave.Host = this;
 
                AutoSaveDetectedEventArgs eventArg = new();
                AutoSaveDetected?.Invoke(this, eventArg);
@@ -171,7 +171,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          AutoSave = new()
          {
-            Database = this,
+            Host = this,
          };
 
          FileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
@@ -209,7 +209,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             }
             : FileLocker.Open<ActivityCenter>(ActivityFileEntry);
 
-         ActivityCenter.Database = this;
+         ActivityCenter.Host = this;
       }
 
       /// <summary>
@@ -258,7 +258,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          database.User = new()
          {
-            Database = database,
+            Host = database,
             PrivateKey = ProtectedSecret.Protect(privateKey),
             ItemId = "U" + cryptographicCenter.GetHash(username),
             Username = username,

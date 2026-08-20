@@ -487,7 +487,15 @@ public class QrCode
    {
       byte[] interleaved = new byte[_maxCodewords];
       int totalBlocks = _blocksGroup1 + _blocksGroup2;
+      int[] blockCursor = _createDataBlockCursors(totalBlocks);
+      int outputIndex = _interleaveSharedDataCodewords(interleaved, blockCursor, totalBlocks);
+      outputIndex = _interleaveExtraGroup2Codewords(interleaved, blockCursor, totalBlocks, outputIndex);
+      _interleaveErrorCorrectionCodewords(interleaved, blockCursor, totalBlocks, outputIndex);
+      _codewordsArray = interleaved;
+   }
 
+   private int[] _createDataBlockCursors(int totalBlocks)
+   {
       int[] blockCursor = new int[totalBlocks];
       for (int blockIndex = 1; blockIndex < totalBlocks; ++blockIndex)
       {
@@ -495,11 +503,14 @@ public class QrCode
             + (blockIndex <= _blocksGroup1 ? _dataCodewordsGroup1 : _dataCodewordsGroup2);
       }
 
-      int outputIndex = 0;
+      return blockCursor;
+   }
 
+   private int _interleaveSharedDataCodewords(byte[] interleaved, int[] blockCursor, int totalBlocks)
+   {
       int sharedDataCount = _dataCodewordsGroup1 * totalBlocks;
       int currentBlock = 0;
-      for (; outputIndex < sharedDataCount; ++outputIndex)
+      for (int outputIndex = 0; outputIndex < sharedDataCount; ++outputIndex)
       {
          interleaved[outputIndex] = _codewordsArray[blockCursor[currentBlock]];
          ++blockCursor[currentBlock];
@@ -510,21 +521,33 @@ public class QrCode
          }
       }
 
-      if (_dataCodewordsGroup2 > _dataCodewordsGroup1)
+      return sharedDataCount;
+   }
+
+   private int _interleaveExtraGroup2Codewords(byte[] interleaved, int[] blockCursor, int totalBlocks, int outputIndex)
+   {
+      if (_dataCodewordsGroup2 <= _dataCodewordsGroup1)
       {
-         int currentGroup2Block = _blocksGroup1;
-         for (; outputIndex < _maxDataCodewords; ++outputIndex)
+         return outputIndex;
+      }
+
+      int currentGroup2Block = _blocksGroup1;
+      for (; outputIndex < _maxDataCodewords; ++outputIndex)
+      {
+         interleaved[outputIndex] = _codewordsArray[blockCursor[currentGroup2Block]];
+         ++blockCursor[currentGroup2Block];
+         ++currentGroup2Block;
+         if (currentGroup2Block == totalBlocks)
          {
-            interleaved[outputIndex] = _codewordsArray[blockCursor[currentGroup2Block]];
-            ++blockCursor[currentGroup2Block];
-            ++currentGroup2Block;
-            if (currentGroup2Block == totalBlocks)
-            {
-               currentGroup2Block = _blocksGroup1;
-            }
+            currentGroup2Block = _blocksGroup1;
          }
       }
 
+      return outputIndex;
+   }
+
+   private void _interleaveErrorCorrectionCodewords(byte[] interleaved, int[] blockCursor, int totalBlocks, int outputIndex)
+   {
       blockCursor[0] = _maxDataCodewords;
       for (int blockIndex = 1; blockIndex < totalBlocks; ++blockIndex)
       {
@@ -542,8 +565,6 @@ public class QrCode
             currentEcBlock = 0;
          }
       }
-
-      _codewordsArray = interleaved;
    }
 
    private void _loadMatrixWithData()
@@ -792,7 +813,7 @@ public class QrCode
          }
       }
 
-      double darkRatio = darkCount / (double)(QRCodeDimension * QRCodeDimension);
+      double darkRatio = darkCount / Math.Pow(QRCodeDimension, 2);
       return darkRatio > 0.55
          ? (int)(20.0 * (darkRatio - 0.5)) * 10
          : darkRatio < 0.45
@@ -912,7 +933,14 @@ public class QrCode
    private void _buildBaseMatrix()
    {
       _baseMatrix = new byte[QRCodeDimension, QRCodeDimension];
+      _copyFinderPatternsToBaseMatrix();
+      _drawTimingPatternsOnBaseMatrix();
+      _drawAlignmentPatternsOnBaseMatrix();
+      _drawVersionInfoBlocksOnBaseMatrix();
+   }
 
+   private void _copyFinderPatternsToBaseMatrix()
+   {
       for (int row = 0; row < 9; ++row)
       {
          for (int col = 0; col < 9; ++col)
@@ -937,42 +965,54 @@ public class QrCode
             _baseMatrix[farCorner + row, col] = FinderPatternBottomLeft[row, col];
          }
       }
+   }
 
+   private void _drawTimingPatternsOnBaseMatrix()
+   {
       for (int i = 8; i < QRCodeDimension - 8; ++i)
       {
          _baseMatrix[i, 6] = _baseMatrix[6, i] = (i & 1) == 0 ? FixedBlack : FixedWhite;
       }
+   }
 
-      if (QRCodeVersion > 1)
+   private void _drawAlignmentPatternsOnBaseMatrix()
+   {
+      if (QRCodeVersion <= 1)
       {
-         byte[] alignmentPositions = AlignmentPositionArray[QRCodeVersion] ?? [];
-         int positionCount = alignmentPositions.Length;
-         for (int rowPos = 0; rowPos < positionCount; ++rowPos)
-         {
-            for (int colPos = 0; colPos < positionCount; ++colPos)
-            {
-               bool overlapsFinder =
-                  (colPos == 0 && rowPos == 0)
-                  || (colPos == positionCount - 1 && rowPos == 0)
-                  || (colPos == 0 && rowPos == positionCount - 1);
-               if (overlapsFinder)
-               {
-                  continue;
-               }
+         return;
+      }
 
-               int centerRow = alignmentPositions[rowPos];
-               int centerCol = alignmentPositions[colPos];
-               for (int dRow = -2; dRow < 3; ++dRow)
+      byte[] alignmentPositions = AlignmentPositionArray[QRCodeVersion] ?? [];
+      int positionCount = alignmentPositions.Length;
+      for (int rowPos = 0; rowPos < positionCount; ++rowPos)
+      {
+         for (int colPos = 0; colPos < positionCount; ++colPos)
+         {
+            bool a = colPos == 0 && rowPos == 0;
+            bool b = colPos == positionCount - 1 && rowPos == 0;
+            bool c = colPos == 0 && rowPos == positionCount - 1;
+            bool overlapsFinder = a || b || c;
+
+            if (overlapsFinder)
+            {
+               continue;
+            }
+
+            int centerRow = alignmentPositions[rowPos];
+            int centerCol = alignmentPositions[colPos];
+            for (int dRow = -2; dRow < 3; ++dRow)
+            {
+               for (int dCol = -2; dCol < 3; ++dCol)
                {
-                  for (int dCol = -2; dCol < 3; ++dCol)
-                  {
-                     _baseMatrix[centerRow + dRow, centerCol + dCol] = AlignmentPattern[dRow + 2, dCol + 2];
-                  }
+                  _baseMatrix[centerRow + dRow, centerCol + dCol] = AlignmentPattern[dRow + 2, dCol + 2];
                }
             }
          }
       }
+   }
 
+   private void _drawVersionInfoBlocksOnBaseMatrix()
+   {
       if (QRCodeVersion < 7)
       {
          return;
