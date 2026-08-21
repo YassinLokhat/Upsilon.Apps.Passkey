@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
@@ -150,7 +151,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             _mainViewModel.DatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{filename}.pku");
          }
 
-         _setBusy("Opening the database...");
+         _setBusy(Strings.Msg_OpeningDatabase);
 
          try
          {
@@ -175,8 +176,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          {
             Log.Error(ex, "Failed to open database");
             AppServices.Dialogs.Warn(
-                  "This database file uses key-stretching parameters below the accepted security floor and cannot be opened.",
-                  "Insufficient KDF parameters");
+                  Strings.Msg_InsufficientKdf,
+                  Strings.Title_InsufficientKdf);
             return;
          }
          finally
@@ -193,8 +194,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          // switch to the passkey prompt. The idle timer is restarted by the
          // caller once this method returns.
          _mainViewModel.IsAwaitingPasskeys = true;
-         _mainViewModel.CredentialsLabel = "Password :";
-
+         _mainViewModel.CredentialsLabel = Strings.Label_Password;
          _username_TB.Text = string.Empty;
          _username_TB.Visibility = Visibility.Collapsed;
 
@@ -219,8 +219,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
-         _setBusy("Checking the passkey...");
-
+         _setBusy(Strings.Msg_CheckingPasskey);
          try
          {
             // Materialize the managed copy while SecureString is still alive.
@@ -240,8 +239,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             // hard failures bubble up so the user can be told and restart cleanly.
             Log.Error(ex, "Database corrupted during login");
             AppServices.Dialogs.Warn(
-               "This database file appears to be corrupted or is not a valid Passkey vault and cannot be opened.",
-               "Corrupted database");
+               Strings.Msg_CorruptedDatabase,
+               Strings.Title_CorruptedDatabase);
             _resetCredentials();
             _endSession();
             return;
@@ -322,11 +321,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             Hide();
 
             MessageBoxResult result = AppServices.Dialogs.Confirm(
-               "Unsaved changes have been detected.\nClick Yes to apply these changes.\nClick No to discard them.\nClick Cancel to ignore and keep the save file.",
-               "Autosave detected",
+               Strings.Msg_AutosaveDetected,
+               Strings.Title_AutosaveDetected,
                MessageBoxButton.YesNoCancel,
                MessageBoxImage.Question);
-
             return result switch
             {
                MessageBoxResult.Cancel => Passkey.Interfaces.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile,
@@ -363,8 +361,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          _mainViewModel.IsAwaitingPasskeys = false;
          _mainViewModel.DatabaseFile = string.Empty;
-         _mainViewModel.CredentialsLabel = "Username :";
-
+         _mainViewModel.CredentialsLabel = Strings.Label_Username;
          _username_TB.Text = string.Empty;
          _username_TB.Visibility = Visibility.Visible;
          _ = _username_TB.Focus();

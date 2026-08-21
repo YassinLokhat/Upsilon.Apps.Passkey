@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -12,7 +13,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
    {
       public string Title { get; }
 
-      public string FiltersHeader => $"Filters : {Activities.Count} activities found over {AppServices.Session.Database?.Activities?.Count()}";
+      public string FiltersHeader => Strings.Format(nameof(Strings.Msg_FiltersHeader), Activities.Count, AppServices.Session.Database?.Activities?.Count());
       public DateTime FromDateFilter
       {
          get;
@@ -100,7 +101,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public UserActivitiesViewModel()
       {
-         Title = AppInfo.Title + " - Activities";
+         Title = Strings.Format(nameof(Strings.Title_Activities), AppInfo.Title);
 
          ClearFiltersCommand = new RelayCommand(ClearFilters);
 

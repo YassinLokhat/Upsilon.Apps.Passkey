@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -18,7 +19,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          InitializeComponent();
 
-         Title = AppInfo.Title;
+         Title = Strings.Format(nameof(Strings.Title_QrCode), AppInfo.Title);
          _qrCode_I.Source = _getBitmap(qrCode);
 
          if (delay != 0)

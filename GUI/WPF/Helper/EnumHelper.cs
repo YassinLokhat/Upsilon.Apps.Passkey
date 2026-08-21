@@ -1,11 +1,11 @@
-﻿using Upsilon.Apps.Passkey.Core.Utils;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
    /// <summary>
    /// Maps activity/warning enums to the strings shown in GUI filters.
-   /// <see cref="ActivityEventType.None"/> displays as "All".
+   /// <see cref="ActivityEventType.None"/> displays as localized "All".
    /// </summary>
    internal static class EnumHelper
    {
@@ -13,29 +13,29 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       {
          return eventType switch
          {
-            ActivityEventType.None => "All",
-            ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile => "Auto-save merged then saved",
-            ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile => "Auto-save merged but not saved",
-            ActivityEventType.DontMergeAndRemoveAutoSaveFile => "Auto-save discarded",
-            ActivityEventType.DontMergeAndKeepAutoSaveFile => "Auto-save not merged and kept",
-            ActivityEventType.DatabaseCreated
-              or ActivityEventType.DatabaseOpened
-              or ActivityEventType.DatabaseSaved
-              or ActivityEventType.DatabaseClosed
-              or ActivityEventType.LoginSessionTimeoutReached
-              or ActivityEventType.LoginFailed
-              or ActivityEventType.UserLoggedIn
-              or ActivityEventType.UserLoggedOut
-              or ActivityEventType.ImportingDataStarted
-              or ActivityEventType.ImportingDataSucceded
-              or ActivityEventType.ImportingDataFailed
-              or ActivityEventType.ExportingDataStarted
-              or ActivityEventType.ExportingDataSucceded
-              or ActivityEventType.ExportingDataFailed
-              or ActivityEventType.ItemUpdated
-              or ActivityEventType.ItemAdded
-              or ActivityEventType.ItemDeleted
-              or ActivityEventType.ActivityLogTampered => eventType.ToString().ToSentenceCase(),
+            ActivityEventType.None => Strings.Filter_All,
+            ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile => Strings.Filter_AutoSaveMergedThenSaved,
+            ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile => Strings.Filter_AutoSaveMergedNotSaved,
+            ActivityEventType.DontMergeAndRemoveAutoSaveFile => Strings.Filter_AutoSaveDiscarded,
+            ActivityEventType.DontMergeAndKeepAutoSaveFile => Strings.Filter_AutoSaveNotMergedKept,
+            ActivityEventType.DatabaseCreated => Strings.Event_DatabaseCreated,
+            ActivityEventType.DatabaseOpened => Strings.Event_DatabaseOpened,
+            ActivityEventType.DatabaseSaved => Strings.Event_DatabaseSaved,
+            ActivityEventType.DatabaseClosed => Strings.Event_DatabaseClosed,
+            ActivityEventType.LoginSessionTimeoutReached => Strings.Event_LoginSessionTimeoutReached,
+            ActivityEventType.LoginFailed => Strings.Event_LoginFailed,
+            ActivityEventType.UserLoggedIn => Strings.Event_UserLoggedIn,
+            ActivityEventType.UserLoggedOut => Strings.Event_UserLoggedOut,
+            ActivityEventType.ImportingDataStarted => Strings.Event_ImportingDataStarted,
+            ActivityEventType.ImportingDataSucceded => Strings.Event_ImportingDataSucceded,
+            ActivityEventType.ImportingDataFailed => Strings.Event_ImportingDataFailed,
+            ActivityEventType.ExportingDataStarted => Strings.Event_ExportingDataStarted,
+            ActivityEventType.ExportingDataSucceded => Strings.Event_ExportingDataSucceded,
+            ActivityEventType.ExportingDataFailed => Strings.Event_ExportingDataFailed,
+            ActivityEventType.ItemUpdated => Strings.Event_ItemUpdated,
+            ActivityEventType.ItemAdded => Strings.Event_ItemAdded,
+            ActivityEventType.ItemDeleted => Strings.Event_ItemDeleted,
+            ActivityEventType.ActivityLogTampered => Strings.Event_ActivityLogTampered,
             _ => throw new InvalidOperationException($"'{eventType}' event type not handled"),
          };
       }
@@ -49,22 +49,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       {
          return warningType switch
          {
-            WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning => "All",
-            WarningType.PasswordUpdateReminderWarning => "Expired passwords",
-            WarningType.PasswordLeakedWarning => "Leaked passwords",
+            WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning => Strings.Filter_All,
+            WarningType.PasswordUpdateReminderWarning => Strings.Filter_ExpiredPasswords,
+            WarningType.PasswordLeakedWarning => Strings.Filter_LeakedPasswords,
             _ => throw new InvalidOperationException($"'{warningType}' warning type not handled"),
          };
       }
 
       public static WarningType ActivityWarningTypeFromReadableString(string readableString)
       {
-         return readableString switch
+         if (readableString == Strings.Filter_All)
          {
-            "All" => WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning,
-            "Expired passwords" => WarningType.PasswordUpdateReminderWarning,
-            "Leaked passwords" => WarningType.PasswordLeakedWarning,
-            _ => throw new InvalidOperationException($"'{readableString}' warning type not handled"),
-         };
+            return WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning;
+         }
+
+         if (readableString == Strings.Filter_ExpiredPasswords)
+         {
+            return WarningType.PasswordUpdateReminderWarning;
+         }
+
+         if (readableString == Strings.Filter_LeakedPasswords)
+         {
+            return WarningType.PasswordLeakedWarning;
+         }
+
+         throw new InvalidOperationException($"'{readableString}' warning type not handled");
       }
    }
 }

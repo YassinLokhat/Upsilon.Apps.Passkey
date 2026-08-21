@@ -6,6 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views"
         xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
         d:DataContext="{d:DesignInstance Type=viewmodels:UserServicesViewModel}"
         mc:Ignorable="d"
         WindowState="Maximized"
@@ -42,13 +43,13 @@
                         <DockPanel HorizontalAlignment="Stretch"/>
                     </ItemsPanelTemplate>
                 </Menu.ItemsPanel>
-                <MenuItem Header="_Save"
+                <MenuItem Header="{loc:Loc Menu_Save}"
                           Command="Save"/>
-                <MenuItem Header="_User settings"
+                <MenuItem Header="{loc:Loc Menu_UserSettings}"
                           Click="_userSettings_MenuItem_Click"/>
-                <MenuItem Header="_Generate random Password"
+                <MenuItem Header="{loc:Loc Menu_GenerateRandomPassword}"
                           Command="Print"/>
-                <MenuItem Header="_Show activities"
+                <MenuItem Header="{loc:Loc Menu_ShowActivities}"
                           Click="_showActivities_MenuItem_Click"/>
                 <MenuItem Name="_warnings_MI"
                           Header="{Binding ShowWarnings}"
@@ -70,11 +71,11 @@
                               Foreground="{StaticResource DangerBrush}"
                               Click="_expiredOrLeakedPasswordWarnings_MI_Click"/>
                 </MenuItem>
-                <MenuItem Header="_Logout"
+                <MenuItem Header="{loc:Loc Menu_Logout}"
                           HorizontalAlignment="Right"
                           Click="_logout_MenuItem_Click"/>
             </Menu>
-            <GroupBox Header="Filters">
+            <GroupBox Header="{loc:Loc Label_Filters}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -88,19 +89,19 @@
                     </Grid.ColumnDefinitions>
 
                     <Label Grid.Column="0"
-                           Content="Service :"/>
+                           Content="{loc:Loc Label_Service}"/>
                     <TextBox Name="_serviceFilter_TB" Grid.Column="1"
                              Text="{Binding ServiceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Column="2"
-                           Content="Indentifier :"/>
+                           Content="{loc:Loc Label_Identifier}"/>
                     <TextBox Grid.Column="3"
                              Text="{Binding IdentifierFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Column="4"
-                           Content="Text :"/>
+                           Content="{loc:Loc Label_Text}"/>
                     <TextBox Grid.Column="5"
                              Text="{Binding TextFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <CheckBox Grid.Column="6"
-                              Content="Unsaved items only"
+                              Content="{loc:Loc Label_UnsavedItemsOnly}"
                               IsChecked="{Binding ChangedItemsOnly, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <Button Grid.Column="7"
                             Content="✕"

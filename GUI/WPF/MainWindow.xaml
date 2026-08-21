@@ -7,6 +7,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF"
         xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
         Title="{Binding AppTitle}"
@@ -29,16 +30,16 @@
                     <DockPanel HorizontalAlignment="Stretch"/>
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
-            <MenuItem Header="_Open database"
+            <MenuItem Header="{loc:Loc Menu_OpenDatabase}"
                       Command="{Binding OpenDatabaseCommand}"
                       InputGestureText="Ctrl+O"/>
-            <MenuItem Header="_New User"
+            <MenuItem Header="{loc:Loc Menu_NewUser}"
                       Command="{Binding NewUserCommand}"
                       InputGestureText="Ctrl+N"/>
-            <MenuItem Header="_App Settings"
+            <MenuItem Header="{loc:Loc Menu_AppSettings}"
                       Command="{Binding AppSettingsCommand}"
                       InputGestureText="Ctrl+,"/>
-            <MenuItem Header="_Generate random Password"
+            <MenuItem Header="{loc:Loc Menu_GenerateRandomPassword}"
                       Command="{Binding GeneratePasswordCommand}"
                       InputGestureText="Ctrl+P"
                       HorizontalAlignment="Right"/>

@@ -3,6 +3,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
@@ -25,7 +26,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public static string UserId => $"User Id : {AppServices.Session.User?.ItemId}";
+      public static string UserId => Strings.Format(nameof(Strings.Msg_UserId), AppServices.Session.User?.ItemId);
 
       public string ShowWarnings
       {
@@ -160,11 +161,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public ServiceViewModel AddService()
       {
-         ServiceViewModel? serviceViewModel = Services.FirstOrDefault(x => x.ServiceName.StartsWith("New Service #", StringComparison.Ordinal));
+         ServiceViewModel? serviceViewModel = Services.FirstOrDefault(x => x.ServiceName.StartsWith(Strings.Msg_NewServicePrefix, StringComparison.Ordinal));
 
          if (serviceViewModel is null && AppServices.Session.User is { } user)
          {
-            IService service = user.AddService("New Service #" + DateTime.Now.Ticks);
+            IService service = user.AddService(Strings.Msg_NewServicePrefix + DateTime.Now.Ticks);
             serviceViewModel = new ServiceViewModel(service);
             _serviceViewModelsById[service.ItemId] = serviceViewModel;
             Services.Insert(0, serviceViewModel);
@@ -267,7 +268,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             }
 
             int sessionLeftTime = AppServices.Session.Database.SessionLeftTime ?? 0;
-            title += $" - Left session time : {sessionLeftTime / 60:D2}:{sessionLeftTime % 60:D2}";
+            title += Strings.Format(nameof(Strings.Msg_SessionLeftTime), sessionLeftTime / 60, sessionLeftTime % 60);
          }
 
          Title = title;

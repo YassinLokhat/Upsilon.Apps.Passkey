@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
@@ -169,15 +170,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public UserSettingsViewModel()
       {
-         Title = AppInfo.Title;
-
          if (AppServices.Session.Database?.User is not { } user)
          {
-            Title += " - New user";
+            Title = Strings.Format(nameof(Strings.Title_NewUser), AppInfo.Title);
          }
          else
          {
-            Title += " - User settings";
+            Title = Strings.Format(nameof(Strings.Title_UserSettings), AppInfo.Title);
 
             Username = user.Username;
 

@@ -4,6 +4,25 @@ The Windows desktop app lives in `GUI/WPF`. It is MVVM with a small service loca
 
 Target framework: `net10.0-windows10.0.18362.0`. Dark WPF resources plus Windows immersive dark title bars.
 
+## Localization
+
+UI strings live in `GUI/WPF/Localization/`:
+
+* `Strings.resx` — English (neutral / fallback)
+* `Strings.fr.resx` — French
+* `LocalizationService.Supported` — combo-box registry
+* `{loc:Loc KeyName}` in XAML; `Strings.KeyName` / `Strings.Format(...)` in C#
+
+Language is an **app** setting (`config.json` next to the exe, property `Language`), not a vault setting. Change it under **App Settings** (`Ctrl+,`).
+
+### Adding a language
+
+1. Copy `Strings.resx` → `Strings.xx.resx` and translate values (keep key names).
+2. Append `new("xx", "Native name")` to `LocalizationService.Supported`.
+3. Run `LocalizationTests.FrenchResources_ContainEveryNeutralKey` pattern (or extend it) so every neutral key exists in the new satellite.
+
+Do not put UI strings in Core / Interfaces. Keep vault-persisted generated names (e.g. `New Service #`) culture-stable.
+
 ## Vault files and logs
 
 * New users are stored next to the executable as `raw/{GetHash(username)}.pku`.

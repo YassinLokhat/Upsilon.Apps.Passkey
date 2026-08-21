@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
@@ -16,7 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string ServiceDisplay => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service.ServiceName}";
 
-      public string ServiceId => $"Service Id : {Service.ItemId}";
+      public string ServiceId => Strings.Format(nameof(Strings.Msg_ServiceId), Service.ItemId);
 
       public Brush ServiceNameBackground => Service.HasChanged(nameof(ServiceName)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string ServiceName

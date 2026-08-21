@@ -35,6 +35,12 @@ Allowed:
 
 The WPF project currently has no NuGet packages either; keep it that way unless a Windows-only capability cannot be done with the BCL.
 
+## Adding a UI language
+
+1. Copy `GUI/WPF/Localization/Strings.resx` → `Strings.xx.resx` and translate values (do not rename keys).
+2. Register `new("xx", "Native name")` in `LocalizationService.Supported`.
+3. Prefer `{loc:Loc Key}` in XAML and `Strings.Key` / `Strings.Format` in C#. Details: [[WPF Client]].
+
 ## Code style
 
 Shared rules live in `.editorconfig` and `Directory.Build.props`:

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -25,7 +26,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             }
          }
       }
-      public string NeedsReviewString => NeedsReview ? "Needs review" : "Reviewed";
+      public string NeedsReviewString => NeedsReview ? Strings.Label_NeedsReviewValue : Strings.Label_Reviewed;
 
       public event PropertyChangedEventHandler? PropertyChanged;
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -22,7 +23,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public string AccountId => $"Account Id : {Account.ItemId}";
+      public string AccountId => Strings.Format(nameof(Strings.Msg_AccountId), Account.ItemId);
 
       public Brush LabelBackground => Account.HasChanged(nameof(Label)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Label

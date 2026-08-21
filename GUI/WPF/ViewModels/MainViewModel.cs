@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
 
@@ -22,14 +23,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = string.Empty;
 
-      public string DatabaseLabel => File.Exists(DatabaseFile) ? $"Database : {Path.GetFileName(DatabaseFile)}" : "No database loaded.";
+      public string DatabaseLabel => File.Exists(DatabaseFile)
+         ? Strings.Format(nameof(Strings.Msg_DatabaseLabel), Path.GetFileName(DatabaseFile))
+         : Strings.Msg_NoDatabaseLoaded;
 
       public string CredentialsLabel
       {
          get;
          set => SetProperty(ref field, value);
-      } = "Username :";
-
+      } = Strings.Label_Username;
       /// <summary>
       /// Drives the progress indicator shown while the database is being opened
       /// or a passkey stretched. Those operations take about a second each, which
@@ -97,9 +99,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       private void _openDatabase()
       {
          string? filename = AppServices.Dialogs.PickOpenFile(
-            "Passkey user database file|*.pku",
-            "Open user database file");
-
+            Strings.Filter_Pku,
+            Strings.Title_OpenDatabase);
          if (filename is null)
          {
             return;

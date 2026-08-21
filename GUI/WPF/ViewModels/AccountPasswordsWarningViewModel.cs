@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -57,7 +58,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public AccountPasswordsWarningViewModel()
       {
-         Title = AppInfo.Title + " - Account Passwords Warnings";
+         Title = Strings.Format(nameof(Strings.Title_AccountPasswordsWarnings), AppInfo.Title);
          ClearFiltersCommand = new RelayCommand(ClearFilters);
          RefreshFilters();
       }

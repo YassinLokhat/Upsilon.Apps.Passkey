@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
@@ -9,7 +10,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
    internal sealed class PasswordGeneratorViewModel : ObservableObject
    {
-      public static string Title => AppInfo.Title + " - Password Generator";
+      public static string Title => Strings.Format(nameof(Strings.Title_PasswordGenerator), AppInfo.Title);
 
       public bool CheckIfLeaked
       {

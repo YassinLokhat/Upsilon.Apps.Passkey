@@ -6,6 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views"
         xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
         d:DataContext="{d:DesignInstance Type=viewmodels:AppSettingsViewModel}"
         mc:Ignorable="d"
         Title="{Binding Title}"
@@ -18,26 +19,37 @@
          <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
       <Menu Grid.Row="0">
-         <MenuItem Header="_Save"
+         <MenuItem Header="{loc:Loc Menu_Save}"
                       Click="_saveMenuItem_Click"/>
-         <MenuItem Header="_Reset to default"
+         <MenuItem Header="{loc:Loc Menu_ResetToDefault}"
                       Click="_resetMenuItem_Click"/>
       </Menu>
       <StackPanel Grid.Row="1">
-         <Grid>
+         <Grid Margin="0,4">
             <Grid.ColumnDefinitions>
                <ColumnDefinition Width="Auto"/>
                <ColumnDefinition Width="*"/>
                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            
-            <Label Grid.Column="0" Margin="0">Default database directory :</Label>
+
+            <Label Grid.Column="0" Margin="0" Content="{loc:Loc Label_DefaultDatabaseDirectory}"/>
             <TextBox Grid.Column="1"
                      IsReadOnly="True"
                      Text="{Binding DefaultDatabaseDirectory}"/>
             <Button Grid.Column="2"
-                    Content="Browse"
+                    Content="{loc:Loc Label_Browse}"
                     Click="_browseButton_Click"/>
+         </Grid>
+         <Grid Margin="0,4">
+            <Grid.ColumnDefinitions>
+               <ColumnDefinition Width="Auto"/>
+               <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Margin="0" Content="{loc:Loc Label_Language}"/>
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding Languages}"
+                      SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                      DisplayMemberPath="NativeName"/>
          </Grid>
       </StackPanel>
    </Grid>

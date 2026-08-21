@@ -1,6 +1,8 @@
 ﻿using Microsoft.Win32;
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
@@ -23,7 +25,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _saveMenuItem_Click(object sender, RoutedEventArgs e)
       {
-         AppSettingsViewModel.Save();
+         bool languageChanged = _viewModel.Save();
+         if (languageChanged)
+         {
+            AppServices.Dialogs.Info(Strings.Msg_LanguageRestart, Strings.Title_LanguageChanged);
+         }
+
          DialogResult = true;
       }
 
@@ -37,7 +44,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          OpenFolderDialog dialog = new()
          {
-            Title = "Browse to the default database directory",
+            Title = Strings.Title_BrowseDatabaseDirectory,
             InitialDirectory = _viewModel.DefaultDatabaseDirectory,
          };
 
