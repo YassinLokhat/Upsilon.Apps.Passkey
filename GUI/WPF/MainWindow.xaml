@@ -13,7 +13,7 @@
         Title="{Binding AppTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="150" Width="500">
+        Height="140" Width="750">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="_booleanToVisibility"/>
     </Window.Resources>
