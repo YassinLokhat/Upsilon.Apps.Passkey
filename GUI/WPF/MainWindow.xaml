@@ -19,6 +19,7 @@
     <Window.InputBindings>
         <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenDatabaseCommand}"/>
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewUserCommand}"/>
+        <KeyBinding Key="OemComma" Modifiers="Control" Command="{Binding AppSettingsCommand}"/>
         <KeyBinding Key="P" Modifiers="Control" Command="{Binding GeneratePasswordCommand}"/>
     </Window.InputBindings>
     <StackPanel>
@@ -34,8 +35,12 @@
             <MenuItem Header="_New User"
                       Command="{Binding NewUserCommand}"
                       InputGestureText="Ctrl+N"/>
+            <MenuItem Header="_App Settings"
+                      Command="{Binding AppSettingsCommand}"
+                      InputGestureText="Ctrl+,"/>
             <MenuItem Header="_Generate random Password"
                       Command="{Binding GeneratePasswordCommand}"
+                      InputGestureText="Ctrl+P"
                       HorizontalAlignment="Right"/>
         </Menu>
         <Grid>

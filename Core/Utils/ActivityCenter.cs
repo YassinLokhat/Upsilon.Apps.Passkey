@@ -93,7 +93,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                && data.Length > 1
                && !string.Equals(data[1], "Password", StringComparison.Ordinal))
             {
-               _removeUnsealedItemUpdated_NoLock(itemId, data[1]);
+               _ = _removeUnsealedItemUpdated_NoLock(itemId, data[1]);
             }
 
             Activities.Insert(0, activity);

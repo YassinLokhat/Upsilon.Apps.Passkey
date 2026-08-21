@@ -126,7 +126,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          string newFilename = AppServices.Cryptography.GetHash(_viewModel.Username);
-         string newDatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{newFilename}.pku");
+         string newDatabaseFile = Path.GetFullPath($"{Path.Join(AppInfo.AppSettings.DefaultDatabaseDirectory, newFilename + ".pku")}");
 
          bool newUser = false;
          bool credentialsChanged = false;
