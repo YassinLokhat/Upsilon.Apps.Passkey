@@ -215,7 +215,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             message = $"'{_viewModel.Username}' user's credentials has been updated.\nYou will be logged out.\nPlease login again.";
             _passwordsContainer.ClearSecrets();
-            _database.Close();
+            _session.EndSession();
 
             string oldDatabaseDirectory = Path.GetDirectoryName(oldDatabaseFile) ?? string.Empty;
             string newDatabaseDirectory = Path.GetDirectoryName(newDatabaseFile) ?? string.Empty;
@@ -242,7 +242,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             message += $"created successfully";
             _passwordsContainer.ClearSecrets();
-            _database.Close();
+            _session.EndSession();
          }
          else
          {
