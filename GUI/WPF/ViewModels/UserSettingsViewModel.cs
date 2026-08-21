@@ -12,7 +12,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = "NewUser";
+      } = Strings.Label_NewUser;
       public int LogoutTimeout
       {
          get;
