@@ -1,5 +1,4 @@
-﻿using Microsoft.Win32;
-using System.Windows;
+﻿using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -42,15 +41,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _browseButton_Click(object sender, RoutedEventArgs e)
       {
-         OpenFolderDialog dialog = new()
-         {
-            Title = Strings.Title_BrowseDatabaseDirectory,
-            InitialDirectory = _viewModel.DefaultDatabaseDirectory,
-         };
+         string? defaultDatabaseDirectory = AppServices.Dialogs.PickBrowseFolder(Strings.Title_BrowseDatabaseDirectory, _viewModel.DefaultDatabaseDirectory);
 
-         if (dialog.ShowDialog() == true)
+         if (defaultDatabaseDirectory is not null)
          {
-            _viewModel.DefaultDatabaseDirectory = dialog.FolderName;
+            _viewModel.DefaultDatabaseDirectory = defaultDatabaseDirectory;
          }
       }
    }

@@ -75,6 +75,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       public void Warn(string text, string title)
          => _ = Confirm(text, title, MessageBoxButton.OK, MessageBoxImage.Warning);
 
+      public string? PickBrowseFolder(string title, string defaultPath)
+      {
+         OpenFolderDialog dialog = new()
+         {
+            Title = title,
+            InitialDirectory = defaultPath,
+         };
+
+         return (dialog.ShowDialog() ?? false) ? dialog.FolderName : null;
+      }
+
       public string? PickOpenFile(string filter, string title)
       {
          OpenFileDialog dialog = new()
