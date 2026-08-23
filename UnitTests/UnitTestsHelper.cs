@@ -7,6 +7,7 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
@@ -320,7 +321,9 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
       public static void LastActivitiesShouldMatch(IDatabase database, string[] expectedActivities)
       {
-         string[] actualActivities = database.Activities.Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
+         string[] actualActivities = database.Activities
+            .Select(x => new ActivityViewModel(x))
+            .Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
 
          _lastActivitiesShouldMatch(actualActivities, expectedActivities);
       }
@@ -335,6 +338,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          IWarning activityWarning = database.Warnings.First(x => x.WarningType == WarningType.ActivityReviewWarning);
 
          string[] actualActivities = activityWarning.Activities
+            .Select(x => new ActivityViewModel(x))
             .Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
 
          _lastActivitiesShouldMatch(actualActivities, expectedActivities);

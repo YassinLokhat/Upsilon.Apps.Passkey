@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
@@ -45,6 +46,55 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = activity.ParentName.Should().BeNull();
          _ = activity.EventType.Should().Be(ActivityEventType.None);
          _ = activity.NeedsReview.Should().BeTrue();
+      }
+
+      [TestMethod]
+      /*
+       * Every activity event type produces a non-empty human-readable message.
+      */
+      public void Case03_Message_CoversEveryEventType()
+      {
+         Dictionary<ActivityEventType, string[]> payloads = new()
+         {
+            [ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile] = ["alice", null, null, null],
+            [ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile] = ["alice", null, null, null],
+            [ActivityEventType.DontMergeAndRemoveAutoSaveFile] = ["alice", null, null, null],
+            [ActivityEventType.DontMergeAndKeepAutoSaveFile] = ["alice", null, null, null],
+            [ActivityEventType.DatabaseCreated] = ["alice", null, null, null],
+            [ActivityEventType.DatabaseOpened] = ["alice", null, null, null],
+            [ActivityEventType.DatabaseSaved] = ["alice", null, null, null],
+            [ActivityEventType.DatabaseClosed] = ["alice", null, null, null],
+            [ActivityEventType.LoginSessionTimeoutReached] = ["alice", null, null, null],
+            [ActivityEventType.LoginFailed] = ["alice", "2", null, null],
+            [ActivityEventType.UserLoggedIn] = ["alice", null, null, null],
+            [ActivityEventType.UserLoggedOut] = ["alice", null, null, null],
+            [ActivityEventType.ImportingDataStarted] = ["vault.json", null, null, null],
+            [ActivityEventType.ImportingDataSucceded] = [null, null, null, null],
+            [ActivityEventType.ImportingDataFailed] = ["bad format", null, null, null],
+            [ActivityEventType.ExportingDataStarted] = ["vault.csv", null, null, null],
+            [ActivityEventType.ExportingDataSucceded] = [null, null, null, null],
+            [ActivityEventType.ExportingDataFailed] = ["already exists", null, null, null],
+            [ActivityEventType.ItemUpdated] = ["Account", "Notes", "hello", "Service X"],
+            [ActivityEventType.ItemAdded] = ["User alice", null, "Service X", null],
+            [ActivityEventType.ItemDeleted] = ["User alice", null, "Service X", null],
+            [ActivityEventType.ActivityLogTampered] = ["alice", null, null, null],
+            [ActivityEventType.None] = ["fallback", null, null, null],
+         };
+
+         foreach (ActivityEventType eventType in Enum.GetValues<ActivityEventType>())
+         {
+            string[] data = payloads[eventType];
+            ActivityViewModel activity = new(new Activity(DateTime.Now.Ticks, "id", data[0], data[1], data[2], data[3], eventType, needsReview: false));
+
+            _ = activity.Message.Should().NotBeNullOrWhiteSpace($"event {eventType} must render a message");
+         }
+
+         ActivityViewModel loggedOutDirty = new(new Activity(DateTime.Now.Ticks, "id", "alice", "needsReview", "1", null, ActivityEventType.UserLoggedOut, needsReview: true));
+         _ = loggedOutDirty.Message.Should().Contain("without saving");
+
+         ActivityViewModel updatedBlank = new(new Activity(DateTime.Now.Ticks, "id", "Account", "Notes", null, null, ActivityEventType.ItemUpdated, needsReview: false));
+         _ = updatedBlank.Message.Should().Contain("updated");
+         _ = updatedBlank.Message.Should().NotContain("set to");
       }
    }
 }
