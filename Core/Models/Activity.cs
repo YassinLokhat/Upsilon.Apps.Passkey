@@ -57,25 +57,35 @@ namespace Upsilon.Apps.Passkey.Core.Models
             ItemId = info[1];
          }
 
-         if (info.Length > 2
-            && byte.TryParse(info[2], out byte eventType))
+         if (info.Length > 2)
          {
-            EventType = (ActivityEventType)eventType;
+            ItemName = info[2];
          }
 
          if (info.Length > 3)
          {
-            NeedsReview = !string.IsNullOrEmpty(info[3]);
+            FieldName = !string.IsNullOrEmpty(info[3]) ? info[3] : null;
          }
 
          if (info.Length > 4)
          {
-            FieldName = info[4];
+            FieldValue = !string.IsNullOrEmpty(info[4]) ? info[4] : null;
          }
 
          if (info.Length > 5)
          {
-            FieldValue = info[5];
+            ParentName = !string.IsNullOrEmpty(info[5]) ? info[5] : null;
+         }
+
+         if (info.Length > 6
+            && byte.TryParse(info[6], out byte eventType))
+         {
+            EventType = (ActivityEventType)eventType;
+         }
+
+         if (info.Length > 7)
+         {
+            NeedsReview = !string.IsNullOrEmpty(info[7]);
          }
       }
 
@@ -85,20 +95,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
       /// values are a contract — do not renumber the enum.
       /// </summary>
       public override string ToString()
-      {
-         string activity = $"{DateTimeTicks:X}|{ItemId}|{(int)EventType}|{(NeedsReview ? "1" : "")}";
-
-         if (!string.IsNullOrEmpty(FieldName))
-         {
-            activity += $"|{FieldName}";
-         }
-
-         if (!string.IsNullOrEmpty(FieldValue))
-         {
-            activity += $"|{FieldValue}";
-         }
-
-         return activity;
-      }
+         => $"{DateTimeTicks:X}" +
+            $"|{ItemId}" +
+            $"|{ItemName}" +
+            $"|{FieldName}" +
+            $"|{FieldValue}" +
+            $"|{ParentName}" +
+            $"|{(int)EventType}" +
+            $"|{(NeedsReview ? "1" : "")}";
    }
 }
