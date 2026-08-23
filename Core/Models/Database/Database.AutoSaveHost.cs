@@ -44,11 +44,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      void IAutoSaveHost.AddActivity(string itemId,
-         ActivityEventType eventType,
-         string[] data,
-         bool needsReview)
-         => ActivityCenter.AddActivity(itemId, eventType, data, needsReview);
+      void IAutoSaveHost.AddActivity(string itemId, string itemName, string? fieldName, string? fieldValue, string? parentName, ActivityEventType eventType, bool needsReview)
+         => ActivityCenter.AddActivity(itemId, itemName, fieldName, fieldValue, parentName, eventType, needsReview);
 
       void IAutoSaveHost.CancelPendingItemUpdatedActivity(string itemId, string fieldName)
          => ActivityCenter.CancelPendingItemUpdated(itemId, fieldName);

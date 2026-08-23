@@ -15,22 +15,31 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public string ItemId { get; } = string.Empty;
 
+      public string? ItemName { get; set; }
+
+      public string? FieldName { get; set; }
+
+      public string? FieldValue { get; set; }
+
+      public string? ParentName { get; set; }
+
       public ActivityEventType EventType { get; set; } = ActivityEventType.None;
 
       public bool NeedsReview { get; set; } = true;
-
-      public IEnumerable<string> Data { get; set; } = [];
 
       #endregion
 
       public long DateTimeTicks { get; set; }
 
-      public Activity(long dateTimeTicks, string itemId, ActivityEventType eventType, string[] data, bool needsReview)
+      public Activity(long dateTimeTicks, string itemId, string itemName, string? fieldName, string? fieldValue, string? parentName, ActivityEventType eventType, bool needsReview)
       {
          DateTimeTicks = dateTimeTicks;
          ItemId = itemId;
+         ItemName = itemName;
+         FieldName = fieldName;
+         FieldValue = fieldValue;
+         ParentName = parentName;
          EventType = eventType;
-         Data = data;
          NeedsReview = needsReview;
       }
 
@@ -61,11 +70,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (info.Length > 4)
          {
-            activity = string.Join("|", info[4..])
-               .Replace("|", "/|", StringComparison.Ordinal)
-               .Replace("\\/|", "\\|", StringComparison.Ordinal);
-            info = activity.Split("/|");
-            Data = [.. info.Select(x => x.Replace("\\|", "|", StringComparison.Ordinal))];
+            FieldName = info[4];
+         }
+
+         if (info.Length > 5)
+         {
+            FieldValue = info[5];
          }
       }
 
@@ -78,10 +88,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          string activity = $"{DateTimeTicks:X}|{ItemId}|{(int)EventType}|{(NeedsReview ? "1" : "")}";
 
-         string[] data = [.. Data.Select(x => x.Replace("|", "\\|", StringComparison.Ordinal))];
-         if (data.Length != 0)
+         if (!string.IsNullOrEmpty(FieldName))
          {
-            activity += $"|{string.Join("|", data)}";
+            activity += $"|{FieldName}";
+         }
+
+         if (!string.IsNullOrEmpty(FieldValue))
+         {
+            activity += $"|{FieldValue}";
          }
 
          return activity;

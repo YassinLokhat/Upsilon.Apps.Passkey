@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Interfaces.Enums;
+﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
@@ -31,10 +31,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       bool HasPendingChanges(string itemId);
 
-      void AddActivity(string itemId,
-         ActivityEventType eventType,
-         string[] data,
-         bool needsReview);
+      void AddActivity(string itemId, string itemName, string? fieldName, string? fieldValue, string? parentName, ActivityEventType eventType, bool needsReview);
 
       void PersistActivityLog(bool rebuildStringActivities);
 

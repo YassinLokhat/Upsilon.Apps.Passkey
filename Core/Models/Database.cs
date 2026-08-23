@@ -69,8 +69,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          catch (WrongPasswordException passwordException)
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
+               itemName: Username,
+               fieldName: nameof(passwordException.PasswordLevel),
+               fieldValue : $"{passwordException.PasswordLevel}",
+               parentName: null,
                eventType: ActivityEventType.LoginFailed,
-               data: [Username, $"{passwordException.PasswordLevel}"],
                needsReview: true);
          }
          catch (IncompleteOnionException)
@@ -92,14 +95,20 @@ namespace Upsilon.Apps.Passkey.Core.Models
             if (!ActivityCenter.VerifyIntegrity())
             {
                ActivityCenter.AddActivity(itemId: string.Empty,
+                  itemName: Username,
+                  fieldName: null,
+                  fieldValue: null,
+                  parentName: null,
                   eventType: ActivityEventType.ActivityLogTampered,
-                  data: [Username],
                   needsReview: true);
             }
 
             ActivityCenter.AddActivity(itemId: string.Empty,
+               itemName: Username,
+               fieldName: null,
+               fieldValue: null,
+               parentName: null,
                eventType: ActivityEventType.UserLoggedIn,
-               data: [Username],
                needsReview: false);
 
             if (FileLocker.Exists(AutoSaveFileEntry))
@@ -269,8 +278,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          };
 
          database.ActivityCenter.AddActivity(itemId: string.Empty,
+            itemName: username,
+            fieldName: null,
+            fieldValue: null,
+            parentName: null,
             eventType: ActivityEventType.DatabaseCreated,
-            data: [username],
             needsReview: false);
 
          database._save(logSaveEvent: false);
@@ -299,8 +311,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
             username);
 
          database.ActivityCenter.AddActivity(itemId: string.Empty,
+            itemName: username,
+            fieldName: null,
+            fieldValue: null,
+            parentName: null,
             eventType: ActivityEventType.DatabaseOpened,
-            data: [username],
             needsReview: false);
 
          return database;

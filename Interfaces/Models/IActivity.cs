@@ -8,10 +8,16 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
 
       string ItemId { get; }
 
+      string? ItemName { get; }
+
+      string? FieldName { get; }
+
+      string? FieldValue { get; }
+
+      string? ParentName { get; }
+
       ActivityEventType EventType { get; }
 
       bool NeedsReview { get; set; }
-
-      IEnumerable<string> Data { get; }
    }
 }

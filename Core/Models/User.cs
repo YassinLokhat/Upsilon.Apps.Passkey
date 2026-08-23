@@ -180,8 +180,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
                if (SessionLeftTime == 0)
                {
                   Host.AddActivity(itemId: ItemId,
+                     itemName: Username,
+                     fieldName: null,
+                     fieldValue: null,
+                     parentName: null,
                      eventType: ActivityEventType.LoginSessionTimeoutReached,
-                     data: [Username],
                      needsReview: true);
 
                   // Close stops and disposes this timer through StopTimer, so the

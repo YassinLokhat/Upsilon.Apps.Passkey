@@ -65,9 +65,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          _deferred = new DeferredPersistence(() => _persist(rebuildStringActivities: false, seal: false));
       }
 
-      internal void AddActivity(string itemId, ActivityEventType eventType, string[] data, bool needsReview)
+      internal void AddActivity(string itemId, string itemName, string? fieldName, string? fieldValue, string? parentName, ActivityEventType eventType, bool needsReview)
       {
-         Activity activity = new(DateTime.Now.Ticks, itemId, eventType, data, needsReview);
+         Activity activity = new(DateTime.Now.Ticks, itemId, itemName, fieldName, fieldValue, parentName, eventType, needsReview);
 
          // Capture the public key under the gate, encrypt outside it, then insert
          // both plaintext and ciphertext atomically. Holding _gate across RSA
@@ -90,10 +90,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             // only on explicit validation, and create-time vs later password
             // changes must remain distinct audit rows.
             if (eventType == ActivityEventType.ItemUpdated
-               && data.Length > 1
-               && !string.Equals(data[1], "Password", StringComparison.Ordinal))
+               && fieldName is not null
+               && !string.Equals(fieldName, "Password", StringComparison.Ordinal))
             {
-               _ = _removeUnsealedItemUpdated_NoLock(itemId, data[1]);
+               _ = _removeUnsealedItemUpdated_NoLock(itemId, fieldName);
             }
 
             Activities.Insert(0, activity);
@@ -143,8 +143,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             if (Activities[i] is not Activity candidate
                || candidate.EventType != ActivityEventType.ItemUpdated
                || candidate.ItemId != itemId
-               || candidate.Data.Count() < 2
-               || candidate.Data.ElementAt(1) != fieldName)
+               || candidate.FieldName != fieldName)
             {
                continue;
             }

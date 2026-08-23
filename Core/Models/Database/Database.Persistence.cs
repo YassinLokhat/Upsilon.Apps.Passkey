@@ -46,8 +46,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (logSaveEvent)
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
+               itemName: Username,
+               fieldName: null,
+               fieldValue: null,
+               parentName: null,
                eventType: ActivityEventType.DatabaseSaved,
-               data: [Username],
                needsReview: false);
          }
 
@@ -97,14 +100,20 @@ namespace Upsilon.Apps.Passkey.Core.Models
                }
 
                ActivityCenter.AddActivity(itemId: string.Empty,
+                  itemName: Username,
+                  fieldName: nameof(needsReview),
+                  fieldValue: needsReview ? "1" : string.Empty,
+                  parentName: null,
                   eventType: ActivityEventType.UserLoggedOut,
-                  data: [Username, needsReview ? "1" : string.Empty],
                   needsReview);
             }
 
             ActivityCenter.AddActivity(itemId: string.Empty,
+               itemName: Username,
+               fieldName: null,
+               fieldValue: null,
+               parentName: null,
                eventType: ActivityEventType.DatabaseClosed,
-               data: [Username],
                needsReview: false);
 
             // Seal + write while the private key is still available. Must run
@@ -157,8 +166,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
                // warning scan (skip mid-login refresh below).
                Username = User.Username;
                ActivityCenter.AddActivity(itemId: string.Empty,
+                  itemName: Username,
+                  fieldName: null,
+                  fieldValue: null,
+                  parentName: null,
                   eventType: _toActivityEventType(mergeAutoSave),
-                  data: [Username],
                   needsReview: true);
                _save(logSaveEvent: false, refreshWarnings: false);
                break;
@@ -166,23 +178,32 @@ namespace Upsilon.Apps.Passkey.Core.Models
                AutoSave.ApplyChanges(deleteFile: false);
                Username = User.Username;
                ActivityCenter.AddActivity(itemId: string.Empty,
+                  itemName: Username,
+                  fieldName: null,
+                  fieldValue: null,
+                  parentName: null,
                   eventType: _toActivityEventType(mergeAutoSave),
-                  data: [Username],
                   needsReview: true);
                _saveActivities(rebuildStringActivities: false);
                break;
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear(deleteFile: true);
                ActivityCenter.AddActivity(itemId: string.Empty,
+                  itemName: Username,
+                  fieldName: null,
+                  fieldValue: null,
+                  parentName: null,
                   eventType: _toActivityEventType(mergeAutoSave),
-                  data: [Username],
                   needsReview: true);
                break;
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
                ActivityCenter.AddActivity(itemId: string.Empty,
+                  itemName: Username,
+                  fieldName: null,
+                  fieldValue: null,
+                  parentName: null,
                   eventType: _toActivityEventType(mergeAutoSave),
-                  data: [Username],
                   needsReview: true);
                break;
          }

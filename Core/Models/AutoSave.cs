@@ -154,18 +154,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          Host.ResolveActivityNames(itemId, action, out string itemName, out string parentName);
 
-         string[] data = [itemName, fieldName, readableValue];
-
-         if (!string.IsNullOrEmpty(parentName))
-         {
-            data = [.. data, parentName];
-         }
-
          // ActivityCenter takes its own gate; we deliberately do not hold _gate
          // here so RSA encrypt + activity insert cannot stall an autosave flush.
          Host.AddActivity(itemId: itemId,
+            itemName,
+            fieldName,
+            fieldValue: readableValue,
+            parentName,
             eventType: action,
-            data,
             needsReview);
       }
 
