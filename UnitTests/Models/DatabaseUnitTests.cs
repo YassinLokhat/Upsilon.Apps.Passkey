@@ -19,9 +19,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          IDatabase database = UnitTestsHelper.CreateTestDatabase(["a", "b"], "_");
          IUser user = database.User;
-         user.Settings.LogoutTimeout = 10;
-         user.Settings.CleaningClipboardTimeout = 15;
-         user.Settings.WarningsToNotify = (WarningType)0;
+         user.Settings.LogoutTimeout = 0;
+         user.Settings.CleaningClipboardTimeout = 5;
+         user.Settings.WarningsToNotify = (WarningType)15;
          string logFile = database.DatabaseFile.Replace(".pku", ".log");
          File.WriteAllText(logFile, string.Empty);
 
@@ -68,6 +68,18 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             }
             File.AppendAllText(logFile, "\n");
          }
+
+         IService s10 = database.User.Services.First(x => x.ServiceName.StartsWith("Service10 "));
+         s10.Accounts.First().Password = "test";
+         s10.Accounts.First().Options = AccountOption.WarnIfPasswordLeaked | AccountOption.WarnIfDuplicatedPassword;
+
+         IService s2 = database.User.Services.First(x => x.ServiceName.StartsWith("Service2 "));
+         s2.Accounts.First().Password = "test";
+         s2.Accounts.First().Options = AccountOption.WarnIfPasswordLeaked;
+
+         IService s20 = database.User.Services.First(x => x.ServiceName.StartsWith("Service20 "));
+         s20.Accounts.First().Password = "test";
+         s20.Accounts.First().Options = AccountOption.WarnIfDuplicatedPassword;
 
          database.Save();
 
