@@ -695,7 +695,6 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="Label_NewUser" xml:space="preserve">
     <value>NouvelUtilisateur</value>
   </data>
-  
   <data name="Activity_MergeAndSaveThenRemoveAutoSaveFile" xml:space="preserve">
     <value>La sauvegarde automatique de l'utilisateur {0} a été fusionnée et sauvegardées</value>
   </data>
@@ -727,7 +726,7 @@ Annuler : ignorer et conserver le fichier.</value>
     <value>User {0} login failed at level {1}</value>
   </data>
   <data name="Activity_UserLoggedIn" xml:space="preserve">
-    <value>User {0} logged in</value>
+    <value>Utilisateur {0} connecté</value>
   </data>
   <data name="Activity_UserLoggedOut" xml:space="preserve">
     <value>User {0} logged out</value>

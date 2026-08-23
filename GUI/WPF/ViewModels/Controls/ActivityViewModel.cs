@@ -62,30 +62,32 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       {
          string message = activity.EventType switch
          {
-            ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile => $"User {activity.ItemName}'s autosave merged and saved",
-            ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile => $"User {activity.ItemName}'s autosave merged without saving",
-            ActivityEventType.DontMergeAndRemoveAutoSaveFile => $"User {activity.ItemName}'s autosave not merged and removed",
-            ActivityEventType.DontMergeAndKeepAutoSaveFile => $"User {activity.ItemName}'s autosave not merged and kept",
-            ActivityEventType.DatabaseCreated => $"User {activity.ItemName}'s database created",
-            ActivityEventType.DatabaseOpened => $"User {activity.ItemName}'s database opened",
-            ActivityEventType.DatabaseSaved => $"User {activity.ItemName}'s database saved",
-            ActivityEventType.DatabaseClosed => $"User {activity.ItemName}'s database closed",
-            ActivityEventType.LoginSessionTimeoutReached => $"User {activity.ItemName}'s login session timeout reached",
-            ActivityEventType.LoginFailed => $"User {activity.ItemName} login failed at level {activity.FieldValue}",
-            ActivityEventType.UserLoggedIn => $"User {activity.ItemName} logged in",
-            ActivityEventType.UserLoggedOut => $"User {activity.ItemName} logged out {(!string.IsNullOrEmpty(activity.FieldValue) ? "without saving" : "")}",
-            ActivityEventType.ImportingDataStarted => $"Importing data from file : '{activity.FieldValue}'",
-            ActivityEventType.ImportingDataSucceded => $"Import completed successfully",
-            ActivityEventType.ImportingDataFailed => $"Import failed because {activity.FieldValue}",
-            ActivityEventType.ExportingDataStarted => $"Exporting data to file : '{activity.FieldValue}'",
-            ActivityEventType.ExportingDataSucceded => $"Export completed successfully",
-            ActivityEventType.ExportingDataFailed => $"Export failed because {activity.FieldValue}",
+            ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile => Strings.Format(nameof(Strings.Activity_MergeAndSaveThenRemoveAutoSaveFile), activity.ItemName),
+            ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile => Strings.Format(nameof(Strings.Activity_MergeWithoutSavingAndKeepAutoSaveFile), activity.ItemName),
+            ActivityEventType.DontMergeAndRemoveAutoSaveFile => Strings.Format(nameof(Strings.Activity_DontMergeAndRemoveAutoSaveFile), activity.ItemName),
+            ActivityEventType.DontMergeAndKeepAutoSaveFile => Strings.Format(nameof(Strings.Activity_DontMergeAndKeepAutoSaveFile), activity.ItemName),
+            ActivityEventType.DatabaseCreated => Strings.Format(nameof(Strings.Activity_DatabaseCreated), activity.ItemName),
+            ActivityEventType.DatabaseOpened => Strings.Format(nameof(Strings.Activity_DatabaseOpened), activity.ItemName),
+            ActivityEventType.DatabaseSaved => Strings.Format(nameof(Strings.Activity_DatabaseSaved), activity.ItemName),
+            ActivityEventType.DatabaseClosed => Strings.Format(nameof(Strings.Activity_DatabaseClosed), activity.ItemName),
+            ActivityEventType.LoginSessionTimeoutReached => Strings.Format(nameof(Strings.Activity_LoginSessionTimeoutReached), activity.ItemName),
+            ActivityEventType.LoginFailed => Strings.Format(nameof(Strings.Activity_LoginFailed), activity.ItemName, activity.FieldValue),
+            ActivityEventType.UserLoggedIn => Strings.Format(nameof(Strings.Activity_UserLoggedIn), activity.ItemName),
+            ActivityEventType.UserLoggedOut => string.IsNullOrEmpty(activity.FieldValue)
+               ? Strings.Format(nameof(Strings.Activity_UserLoggedOut), activity.ItemName)
+               : Strings.Format(nameof(Strings.Activity_UserLoggedOutWithoutSaving), activity.ItemName),
+            ActivityEventType.ImportingDataStarted => Strings.Format(nameof(Strings.Activity_ImportingDataStarted), activity.FieldValue),
+            ActivityEventType.ImportingDataSucceded => Strings.Activity_ImportingDataSucceded,
+            ActivityEventType.ImportingDataFailed => Strings.Format(nameof(Strings.Activity_ImportingDataFailed), activity.FieldValue),
+            ActivityEventType.ExportingDataStarted => Strings.Format(nameof(Strings.Activity_ExportingDataStarted), activity.FieldValue),
+            ActivityEventType.ExportingDataSucceded => Strings.Activity_ExportingDataSucceded,
+            ActivityEventType.ExportingDataFailed => Strings.Format(nameof(Strings.Activity_ExportingDataFailed), activity.FieldValue),
 #pragma warning disable CA1308 // Display text, not a normalization key: the field name is intentionally lowercased for a readable sentence.
             ActivityEventType.ItemUpdated => $"{(!string.IsNullOrEmpty(activity.ParentName) ? $"{activity.ParentName}'s " : "")}{activity.ItemName}'s {activity.FieldName?.ToSentenceCase().ToLowerInvariant()} has been {(string.IsNullOrWhiteSpace(activity.FieldValue) ? $"updated" : $"set to {activity.FieldValue}")}",
 #pragma warning restore CA1308
-            ActivityEventType.ItemAdded => $"{activity.FieldValue} has been added to {activity.ItemName}",
-            ActivityEventType.ItemDeleted => $"{activity.FieldValue} has been removed from {activity.ItemName}",
-            ActivityEventType.ActivityLogTampered => $"User {activity.ItemName}'s activity log integrity check failed",
+            ActivityEventType.ItemAdded => Strings.Format(nameof(Strings.Activity_ItemAdded), activity.FieldValue, activity.ItemName),
+            ActivityEventType.ItemDeleted => Strings.Format(nameof(Strings.Activity_ItemDeleted), activity.FieldValue, activity.ItemName),
+            ActivityEventType.ActivityLogTampered => Strings.Format(nameof(Strings.Activity_ActivityLogTampered), activity.ItemName),
             _ => $"{activity}",
          };
 
