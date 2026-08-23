@@ -341,7 +341,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then
-         _ = database.Activities.FirstOrDefault(x => x.Message == $"User {username}'s login session timeout reached" && x.NeedsReview).Should().NotBeNull();
+         _ = database.Activities.FirstOrDefault(x => x.ItemName == username
+            && x.EventType == ActivityEventType.LoginSessionTimeoutReached
+            && x.NeedsReview).Should().NotBeNull();
 
          // Finaly
          database.Close();
@@ -359,7 +361,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string tamperMessage = $"User {username}'s activity log integrity check failed";
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -369,7 +370,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (no tampering detected)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+            && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
 
          // When (tampered: the sealed signature is stripped from the log)
          databaseLoaded.Close();
@@ -377,7 +379,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (tampering detected and flagged for review)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+            && x.EventType == ActivityEventType.ActivityLogTampered
+            && x.NeedsReview).Should().BeTrue();
 
          // Finaly
          databaseLoaded.Close();
@@ -396,7 +400,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string tamperMessage = $"User {username}'s activity log integrity check failed";
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -406,7 +409,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (no tampering detected)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+            && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
 
          // When (tampered: one sealed entry is removed from the log)
          databaseLoaded.Close();
@@ -414,7 +418,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (tampering detected and flagged for review)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+            && x.EventType == ActivityEventType.ActivityLogTampered
+            && x.NeedsReview).Should().BeTrue();
 
          // Finaly
          databaseLoaded.Close();
@@ -433,7 +439,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string tamperMessage = $"User {username}'s activity log integrity check failed";
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -443,7 +448,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (no tampering detected)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+            && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
 
          // When (tampered: the log's public key is swapped for an attacker's)
          databaseLoaded.Close();
@@ -451,7 +457,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (tampering detected and flagged for review)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+            && x.EventType == ActivityEventType.ActivityLogTampered
+            && x.NeedsReview).Should().BeTrue();
 
          // Finaly
          databaseLoaded.Close();
@@ -470,7 +478,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string tamperMessage = $"User {username}'s activity log integrity check failed";
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -480,7 +487,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (no tampering detected)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+            && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
 
          // When (tampered: two sealed entries are swapped)
          databaseLoaded.Close();
@@ -488,7 +496,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (tampering detected and flagged for review)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+            && x.EventType == ActivityEventType.ActivityLogTampered
+            && x.NeedsReview).Should().BeTrue();
 
          // Finaly
          databaseLoaded.Close();
