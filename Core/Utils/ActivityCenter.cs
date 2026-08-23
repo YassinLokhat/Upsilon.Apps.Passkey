@@ -143,8 +143,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             if (Activities[i] is not Activity candidate
                || candidate.EventType != ActivityEventType.ItemUpdated
                || candidate.ItemId != itemId
-               || candidate.Data.Length < 2
-               || candidate.Data[1] != fieldName)
+               || candidate.Data.Count() < 2
+               || candidate.Data.ElementAt(1) != fieldName)
             {
                continue;
             }

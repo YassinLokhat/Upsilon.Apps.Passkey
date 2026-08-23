@@ -19,12 +19,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public bool NeedsReview { get; set; } = true;
 
-      public string Message => _buildMessage();
+      public IEnumerable<string> Data { get; set; } = [];
 
       #endregion
 
       public long DateTimeTicks { get; set; }
-      public string[] Data { get; set; } = [];
 
       public Activity(long dateTimeTicks, string itemId, ActivityEventType eventType, string[] data, bool needsReview)
       {
@@ -86,40 +85,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          return activity;
-      }
-
-      private string _buildMessage()
-      {
-         string message = EventType switch
-         {
-            ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile => $"User {Data[0]}'s autosave merged and saved",
-            ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile => $"User {Data[0]}'s autosave merged without saving",
-            ActivityEventType.DontMergeAndRemoveAutoSaveFile => $"User {Data[0]}'s autosave not merged and removed",
-            ActivityEventType.DontMergeAndKeepAutoSaveFile => $"User {Data[0]}'s autosave not merged and kept",
-            ActivityEventType.DatabaseCreated => $"User {Data[0]}'s database created",
-            ActivityEventType.DatabaseOpened => $"User {Data[0]}'s database opened",
-            ActivityEventType.DatabaseSaved => $"User {Data[0]}'s database saved",
-            ActivityEventType.DatabaseClosed => $"User {Data[0]}'s database closed",
-            ActivityEventType.LoginSessionTimeoutReached => $"User {Data[0]}'s login session timeout reached",
-            ActivityEventType.LoginFailed => $"User {Data[0]} login failed at level {Data[1]}",
-            ActivityEventType.UserLoggedIn => $"User {Data[0]} logged in",
-            ActivityEventType.UserLoggedOut => $"User {Data[0]} logged out {(!string.IsNullOrEmpty(Data[1]) ? "without saving" : "")}",
-            ActivityEventType.ImportingDataStarted => $"Importing data from file : '{Data[0]}'",
-            ActivityEventType.ImportingDataSucceded => $"Import completed successfully",
-            ActivityEventType.ImportingDataFailed => $"Import failed because {Data[0]}",
-            ActivityEventType.ExportingDataStarted => $"Exporting data to file : '{Data[0]}'",
-            ActivityEventType.ExportingDataSucceded => $"Export completed successfully",
-            ActivityEventType.ExportingDataFailed => $"Export failed because {Data[0]}",
-#pragma warning disable CA1308 // Display text, not a normalization key: the field name is intentionally lowercased for a readable sentence.
-            ActivityEventType.ItemUpdated => $"{(Data.Length > 3 ? $"{Data[3]}'s " : "")}{Data[0]}'s {Data[1].ToSentenceCase().ToLowerInvariant()} has been {(string.IsNullOrWhiteSpace(Data[2]) ? $"updated" : $"set to {Data[2]}")}",
-#pragma warning restore CA1308
-            ActivityEventType.ItemAdded => $"{Data[2]} has been added to {Data[0]}",
-            ActivityEventType.ItemDeleted => $"{Data[2]} has been removed from {Data[0]}",
-            ActivityEventType.ActivityLogTampered => $"User {Data[0]}'s activity log integrity check failed",
-            _ => ToString(),
-         };
-
-         return message.Trim();
       }
    }
 }

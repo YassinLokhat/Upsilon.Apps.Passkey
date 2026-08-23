@@ -12,6 +12,6 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
 
       bool NeedsReview { get; set; }
 
-      string Message { get; }
+      IEnumerable<string> Data { get; }
    }
 }
