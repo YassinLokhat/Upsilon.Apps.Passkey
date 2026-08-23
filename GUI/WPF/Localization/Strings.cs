@@ -20,6 +20,32 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Format(string name, params object?[] args)
          => string.Format(CultureInfo.CurrentCulture, Get(name), args);
 
+      public static string Activity_MergeAndSaveThenRemoveAutoSaveFile => Get(nameof(Activity_MergeAndSaveThenRemoveAutoSaveFile));
+      public static string Activity_MergeWithoutSavingAndKeepAutoSaveFile => Get(nameof(Activity_MergeWithoutSavingAndKeepAutoSaveFile));
+      public static string Activity_DontMergeAndRemoveAutoSaveFile => Get(nameof(Activity_DontMergeAndRemoveAutoSaveFile));
+      public static string Activity_DontMergeAndKeepAutoSaveFile => Get(nameof(Activity_DontMergeAndKeepAutoSaveFile));
+      public static string Activity_DatabaseCreated => Get(nameof(Activity_DatabaseCreated));
+      public static string Activity_DatabaseOpened => Get(nameof(Activity_DatabaseOpened));
+      public static string Activity_DatabaseSaved => Get(nameof(Activity_DatabaseSaved));
+      public static string Activity_DatabaseClosed => Get(nameof(Activity_DatabaseClosed));
+      public static string Activity_LoginSessionTimeoutReached => Get(nameof(Activity_LoginSessionTimeoutReached));
+      public static string Activity_LoginFailed => Get(nameof(Activity_LoginFailed));
+      public static string Activity_UserLoggedIn => Get(nameof(Activity_UserLoggedIn));
+      public static string Activity_UserLoggedOut => Get(nameof(Activity_UserLoggedOut));
+      public static string Activity_UserLoggedOutWithoutSaving => Get(nameof(Activity_UserLoggedOutWithoutSaving));
+      public static string Activity_ImportingDataStarted => Get(nameof(Activity_ImportingDataStarted));
+      public static string Activity_ImportingDataSucceded => Get(nameof(Activity_ImportingDataSucceded));
+      public static string Activity_ImportingDataFailed => Get(nameof(Activity_ImportingDataFailed));
+      public static string Activity_ExportingDataStarted => Get(nameof(Activity_ExportingDataStarted));
+      public static string Activity_ExportingDataSucceded => Get(nameof(Activity_ExportingDataSucceded));
+      public static string Activity_ExportingDataFailed => Get(nameof(Activity_ExportingDataFailed));
+      public static string Activity_AccountUpdated => Get(nameof(Activity_AccountUpdated));
+      public static string Activity_AccountSet => Get(nameof(Activity_AccountSet));
+      public static string Activity_ItemUpdated => Get(nameof(Activity_ItemUpdated));
+      public static string Activity_ItemSet => Get(nameof(Activity_ItemSet));
+      public static string Activity_ItemAdded => Get(nameof(Activity_ItemAdded));
+      public static string Activity_ItemDeleted => Get(nameof(Activity_ItemDeleted));
+      public static string Activity_ActivityLogTampered => Get(nameof(Activity_ActivityLogTampered));
       public static string Event_ActivityLogTampered => Get(nameof(Event_ActivityLogTampered));
       public static string Event_DatabaseClosed => Get(nameof(Event_DatabaseClosed));
       public static string Event_DatabaseCreated => Get(nameof(Event_DatabaseCreated));
