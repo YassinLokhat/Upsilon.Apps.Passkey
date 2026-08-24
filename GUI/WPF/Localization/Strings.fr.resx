@@ -612,10 +612,10 @@ Annuler : ignorer et conserver le fichier.</value>
     <value> - Temps de session restant : {0:D2}:{1:D2}</value>
   </data>
   <data name="Msg_FiltersHeader" xml:space="preserve">
-    <value>Filtres : {0} activités trouvées sur {1}</value>
+    <value>Filtres : '{0}' activités trouvées sur {1}</value>
   </data>
   <data name="Msg_DuplicatedPasswordAccounts" xml:space="preserve">
-    <value>{0} comptes avec le même mot de passe</value>
+    <value>'{0}' comptes avec le même mot de passe</value>
   </data>
   <data name="Msg_NewServicePrefix" xml:space="preserve">
     <value>New Service #</value>
@@ -654,7 +654,7 @@ Annuler : ignorer et conserver le fichier.</value>
     <value>Élément ajouté</value>
   </data>
   <data name="Title_QrCode" xml:space="preserve">
-    <value>{0} - QR code</value>
+    <value>'{0}' - QR code</value>
   </data>
   <data name="Event_ExportingDataFailed" xml:space="preserve">
     <value>Export échoué</value>
@@ -696,43 +696,43 @@ Annuler : ignorer et conserver le fichier.</value>
     <value>NouvelUtilisateur</value>
   </data>
   <data name="Activity_MergeAndSaveThenRemoveAutoSaveFile" xml:space="preserve">
-    <value>Sauvegarde automatique de l'utilisateur {0} fusionnée et enregistrée</value>
+    <value>Sauvegarde automatique de l'utilisateur '{0}' fusionnée et enregistrée</value>
   </data>
   <data name="Activity_MergeWithoutSavingAndKeepAutoSaveFile" xml:space="preserve">
-    <value>Sauvegarde automatique de l'utilisateur {0} fusionnée sans enregistrement</value>
+    <value>Sauvegarde automatique de l'utilisateur '{0}' fusionnée sans enregistrement</value>
   </data>
   <data name="Activity_DontMergeAndRemoveAutoSaveFile" xml:space="preserve">
-    <value>Sauvegarde automatique de l'utilisateur {0} non fusionnée et supprimée</value>
+    <value>Sauvegarde automatique de l'utilisateur '{0}' non fusionnée et supprimée</value>
   </data>
   <data name="Activity_DontMergeAndKeepAutoSaveFile" xml:space="preserve">
-    <value>Sauvegarde automatique de l'utilisateur {0} non fusionnée et conservée</value>
+    <value>Sauvegarde automatique de l'utilisateur '{0}' non fusionnée et conservée</value>
   </data>
   <data name="Activity_DatabaseCreated" xml:space="preserve">
-    <value>Base de données de l'utilisateur {0} créée</value>
+    <value>Base de données de l'utilisateur '{0}' créée</value>
   </data>
   <data name="Activity_DatabaseOpened" xml:space="preserve">
-    <value>Base de données de l'utilisateur {0} ouverte</value>
+    <value>Base de données de l'utilisateur '{0}' ouverte</value>
   </data>
   <data name="Activity_DatabaseSaved" xml:space="preserve">
-    <value>Base de données de l'utilisateur {0} enregistrée</value>
+    <value>Base de données de l'utilisateur '{0}' enregistrée</value>
   </data>
   <data name="Activity_DatabaseClosed" xml:space="preserve">
-    <value>Base de données de l'utilisateur {0} fermée</value>
+    <value>Base de données de l'utilisateur '{0}' fermée</value>
   </data>
   <data name="Activity_LoginSessionTimeoutReached" xml:space="preserve">
-    <value>Délai de session de l'utilisateur {0} atteint</value>
+    <value>Délai de session de l'utilisateur '{0}' atteint</value>
   </data>
   <data name="Activity_LoginFailed" xml:space="preserve">
-    <value>Échec de connexion de l'utilisateur {0} au niveau {1}</value>
+    <value>Échec de connexion de l'utilisateur '{0}' au niveau {1}</value>
   </data>
   <data name="Activity_UserLoggedIn" xml:space="preserve">
-    <value>Utilisateur {0} connecté</value>
+    <value>Utilisateur '{0}' connecté</value>
   </data>
   <data name="Activity_UserLoggedOut" xml:space="preserve">
-    <value>Utilisateur {0} déconnecté</value>
+    <value>Utilisateur '{0}' déconnecté</value>
   </data>
   <data name="Activity_UserLoggedOutWithoutSaving" xml:space="preserve">
-    <value>Utilisateur {0} déconnecté sans enregistrement</value>
+    <value>Utilisateur '{0}' déconnecté sans enregistrement</value>
   </data>
   <data name="Activity_ImportingDataStarted" xml:space="preserve">
     <value>Import des données depuis le fichier : '{0}'</value>
@@ -753,25 +753,25 @@ Annuler : ignorer et conserver le fichier.</value>
     <value>Échec de l'export : {0}</value>
   </data>
   <data name="Activity_AccountUpdated" xml:space="preserve">
-    <value>{1} de {0} ({2}) a été mis à jour</value>
+    <value>{1} du '{0}' du '{2}' a été mis à jour</value>
   </data>
   <data name="Activity_AccountSet" xml:space="preserve">
-    <value>{1} de {0} ({3}) a été défini à {2}</value>
+    <value>{1} du '{0}' du '{2}' a été défini à '{3}'</value>
   </data>
   <data name="Activity_ItemUpdated" xml:space="preserve">
-    <value>{1} de {0} a été mis à jour</value>
+    <value>{1} du '{0}' a été mis à jour</value>
   </data>
   <data name="Activity_ItemSet" xml:space="preserve">
-    <value>{1} de {0} a été défini à {2}</value>
+    <value>{1} du '{0}' a été défini à '{2}'</value>
   </data>
   <data name="Activity_ItemAdded" xml:space="preserve">
-    <value>{1} a été ajouté à {0}</value>
+    <value>'{1}' a été ajouté à '{0}'</value>
   </data>
   <data name="Activity_ItemDeleted" xml:space="preserve">
-    <value>{1} a été retiré de {0}</value>
+    <value>'{1}' a été retiré de '{0}'</value>
   </data>
   <data name="Activity_ActivityLogTampered" xml:space="preserve">
-    <value>Échec du contrôle d'intégrité du journal d'activité de l'utilisateur {0}</value>
+    <value>Échec du contrôle d'intégrité du journal d'activité de l'utilisateur '{0}'</value>
   </data>
   <data name="FieldName_Label" xml:space="preserve">
     <value>Libellé</value>

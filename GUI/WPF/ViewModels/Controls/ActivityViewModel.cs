@@ -73,9 +73,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             ActivityEventType.LoginSessionTimeoutReached => Strings.Format(nameof(Strings.Activity_LoginSessionTimeoutReached), activity.ItemName),
             ActivityEventType.LoginFailed => Strings.Format(nameof(Strings.Activity_LoginFailed), activity.ItemName, activity.FieldValue),
             ActivityEventType.UserLoggedIn => Strings.Format(nameof(Strings.Activity_UserLoggedIn), activity.ItemName),
-            ActivityEventType.UserLoggedOut => string.IsNullOrEmpty(activity.FieldValue)
-               ? Strings.Format(nameof(Strings.Activity_UserLoggedOut), activity.ItemName)
-               : Strings.Format(nameof(Strings.Activity_UserLoggedOutWithoutSaving), activity.ItemName),
+            ActivityEventType.UserLoggedOut => StringsHelper.ComputeUserLoggedOutStrings(activity.FieldValue, activity.ItemName),
             ActivityEventType.ImportingDataStarted => Strings.Format(nameof(Strings.Activity_ImportingDataStarted), activity.FieldValue),
             ActivityEventType.ImportingDataSucceded => Strings.Activity_ImportingDataSucceded,
             ActivityEventType.ImportingDataFailed => Strings.Format(nameof(Strings.Activity_ImportingDataFailed), activity.FieldValue),
@@ -83,7 +81,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             ActivityEventType.ExportingDataSucceded => Strings.Activity_ExportingDataSucceded,
             ActivityEventType.ExportingDataFailed => Strings.Format(nameof(Strings.Activity_ExportingDataFailed), activity.FieldValue),
 #pragma warning disable CA1308 // Display text, not a normalization key: the field name is intentionally lowercased for a readable sentence.
-            ActivityEventType.ItemUpdated => $"{(!string.IsNullOrEmpty(activity.ParentName) ? $"{activity.ParentName}'s " : "")}{activity.ItemName}'s {activity.FieldName?.ToSentenceCase().ToLowerInvariant()} has been {(string.IsNullOrWhiteSpace(activity.FieldValue) ? $"updated" : $"set to {activity.FieldValue}")}",
+            ActivityEventType.ItemUpdated => StringsHelper.ComputeItemUpdatedStrings(activity.ItemName, activity.FieldName, activity.FieldValue, activity.ParentName),
 #pragma warning restore CA1308
             ActivityEventType.ItemAdded => Strings.Format(nameof(Strings.Activity_ItemAdded), activity.ItemName, activity.FieldValue),
             ActivityEventType.ItemDeleted => Strings.Format(nameof(Strings.Activity_ItemDeleted), activity.ItemName, activity.FieldValue),
