@@ -774,4 +774,52 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="Activity_ActivityLogTampered" xml:space="preserve">
     <value>User {0}'s activity log integrity check failed</value>
   </data>
+  <data name="FieldName_Label" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="FieldName_Identifiers" xml:space="preserve">
+    <value>Identifiers</value>
+  </data>
+  <data name="FieldName_Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="FieldName_Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="FieldName_PasswordUpdateReminderDelay" xml:space="preserve">
+    <value>Password update reminder delay</value>
+  </data>
+  <data name="FieldName_Options" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="FieldName_ServiceName" xml:space="preserve">
+    <value>Service name</value>
+  </data>
+  <data name="FieldName_Url" xml:space="preserve">
+    <value>Url</value>
+  </data>
+  <data name="FieldName_LogoutTimeout" xml:space="preserve">
+    <value>Logout timeout</value>
+  </data>
+  <data name="FieldName_CleaningClipboardTimeout" xml:space="preserve">
+    <value>Cleaning clipboard timeout</value>
+  </data>
+  <data name="FieldName_ShowPasswordDelay" xml:space="preserve">
+    <value>Show password delay</value>
+  </data>
+  <data name="FieldName_NumberOfOldPasswordToKeep" xml:space="preserve">
+    <value>Number of old password to keep</value>
+  </data>
+  <data name="FieldName_NumberOfMonthActivitiesToKeep" xml:space="preserve">
+    <value>Number of month activities to keep</value>
+  </data>
+  <data name="FieldName_WarningsToNotify" xml:space="preserve">
+    <value>Warnings to notify</value>
+  </data>
+  <data name="FieldName_Username" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="FieldName_Passkeys" xml:space="preserve">
+    <value>Passkeys</value>
+  </data>
 </root>

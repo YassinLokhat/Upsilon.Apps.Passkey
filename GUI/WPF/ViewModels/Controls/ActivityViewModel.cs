@@ -85,8 +85,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 #pragma warning disable CA1308 // Display text, not a normalization key: the field name is intentionally lowercased for a readable sentence.
             ActivityEventType.ItemUpdated => $"{(!string.IsNullOrEmpty(activity.ParentName) ? $"{activity.ParentName}'s " : "")}{activity.ItemName}'s {activity.FieldName?.ToSentenceCase().ToLowerInvariant()} has been {(string.IsNullOrWhiteSpace(activity.FieldValue) ? $"updated" : $"set to {activity.FieldValue}")}",
 #pragma warning restore CA1308
-            ActivityEventType.ItemAdded => Strings.Format(nameof(Strings.Activity_ItemAdded), activity.FieldValue, activity.ItemName),
-            ActivityEventType.ItemDeleted => Strings.Format(nameof(Strings.Activity_ItemDeleted), activity.FieldValue, activity.ItemName),
+            ActivityEventType.ItemAdded => Strings.Format(nameof(Strings.Activity_ItemAdded), activity.ItemName, activity.FieldValue),
+            ActivityEventType.ItemDeleted => Strings.Format(nameof(Strings.Activity_ItemDeleted), activity.ItemName, activity.FieldValue),
             ActivityEventType.ActivityLogTampered => Strings.Format(nameof(Strings.Activity_ActivityLogTampered), activity.ItemName),
             _ => $"{activity}",
          };

@@ -773,4 +773,52 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="Activity_ActivityLogTampered" xml:space="preserve">
     <value>Échec du contrôle d'intégrité du journal d'activité de l'utilisateur {0}</value>
   </data>
+  <data name="FieldName_Label" xml:space="preserve">
+    <value>Libellé</value>
+  </data>
+  <data name="FieldName_Identifiers" xml:space="preserve">
+    <value>Identifiants</value>
+  </data>
+  <data name="FieldName_Password" xml:space="preserve">
+    <value>Mot de passe</value>
+  </data>
+  <data name="FieldName_Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="FieldName_PasswordUpdateReminderDelay" xml:space="preserve">
+    <value>Délais avant rappel de mise à jour de mot de passe</value>
+  </data>
+  <data name="FieldName_Options" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="FieldName_ServiceName" xml:space="preserve">
+    <value>Nom de service</value>
+  </data>
+  <data name="FieldName_Url" xml:space="preserve">
+    <value>Url</value>
+  </data>
+  <data name="FieldName_LogoutTimeout" xml:space="preserve">
+    <value>Délais de session</value>
+  </data>
+  <data name="FieldName_CleaningClipboardTimeout" xml:space="preserve">
+    <value>Délais de nettoyage du presse-papier</value>
+  </data>
+  <data name="FieldName_ShowPasswordDelay" xml:space="preserve">
+    <value>Durée d'affichage de mot de passe</value>
+  </data>
+  <data name="FieldName_NumberOfOldPasswordToKeep" xml:space="preserve">
+    <value>Nombre de mot de passe à garder</value>
+  </data>
+  <data name="FieldName_NumberOfMonthActivitiesToKeep" xml:space="preserve">
+    <value>Nombre de mois d'activitées à garder</value>
+  </data>
+  <data name="FieldName_WarningsToNotify" xml:space="preserve">
+    <value>Alertes à remonter</value>
+  </data>
+  <data name="FieldName_Username" xml:space="preserve">
+    <value>Nom d'utilisateur</value>
+  </data>
+  <data name="FieldName_Passkeys" xml:space="preserve">
+    <value>Clés d'accès</value>
+  </data>
 </root>

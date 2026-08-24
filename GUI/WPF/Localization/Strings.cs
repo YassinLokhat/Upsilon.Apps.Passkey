@@ -234,5 +234,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Title_Success => Get(nameof(Title_Success));
       public static string Title_UseDefaultLocation => Get(nameof(Title_UseDefaultLocation));
       public static string Title_UserSettings => Get(nameof(Title_UserSettings));
+      public static string FieldName_Label => Get(nameof(FieldName_Label));
+      public static string FieldName_Identifiers => Get(nameof(FieldName_Identifiers));
+      public static string FieldName_Password => Get(nameof(FieldName_Password));
+      public static string FieldName_Notes => Get(nameof(FieldName_Notes));
+      public static string FieldName_PasswordUpdateReminderDelay => Get(nameof(FieldName_PasswordUpdateReminderDelay));
+      public static string FieldName_Options => Get(nameof(FieldName_Options));
+      public static string FieldName_ServiceName => Get(nameof(FieldName_ServiceName));
+      public static string FieldName_Url => Get(nameof(FieldName_Url));
+      public static string FieldName_LogoutTimeout => Get(nameof(FieldName_LogoutTimeout));
+      public static string FieldName_CleaningClipboardTimeout => Get(nameof(FieldName_CleaningClipboardTimeout));
+      public static string FieldName_ShowPasswordDelay => Get(nameof(FieldName_ShowPasswordDelay));
+      public static string FieldName_NumberOfOldPasswordToKeep => Get(nameof(FieldName_NumberOfOldPasswordToKeep));
+      public static string FieldName_NumberOfMonthActivitiesToKeep => Get(nameof(FieldName_NumberOfMonthActivitiesToKeep));
+      public static string FieldName_WarningsToNotify => Get(nameof(FieldName_WarningsToNotify));
+      public static string FieldName_Username => Get(nameof(FieldName_Username));
+      public static string FieldName_Passkeys => Get(nameof(FieldName_Passkeys));
    }
 }
