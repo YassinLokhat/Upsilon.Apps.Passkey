@@ -3,6 +3,7 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -71,7 +72,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             ActivityCenter.AddActivity(itemId: string.Empty,
                itemName: Username,
                fieldName: nameof(passwordException.PasswordLevel),
-               fieldValue : $"{passwordException.PasswordLevel}",
+               fieldValue: $"{passwordException.PasswordLevel}",
                parentName: null,
                eventType: ActivityEventType.LoginFailed,
                needsReview: true);

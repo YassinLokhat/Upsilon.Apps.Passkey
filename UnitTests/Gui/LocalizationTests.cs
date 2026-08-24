@@ -1,6 +1,6 @@
+﻿using FluentAssertions;
 using System.Globalization;
 using System.Resources;
-using FluentAssertions;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Gui

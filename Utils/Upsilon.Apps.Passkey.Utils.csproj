@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <Description>A local stored Password Manager Core.</Description>
+    <Description>A local stored Password Manager utils.</Description>
     <Version>2.0.0</Version>
     <AssemblyVersion>2.0.0</AssemblyVersion>
     <FileVersion>2.0.0</FileVersion>
@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Interfaces\Upsilon.Apps.Passkey.Interfaces.csproj" />
-    <ProjectReference Include="..\Utils\Upsilon.Apps.Passkey.Utils.csproj" />
   </ItemGroup>
 
   <ItemGroup>
