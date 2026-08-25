@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Utils
@@ -14,9 +14,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       public void Case01_ToSentenceCase()
       {
          // Given / When / Then
-         _ = "ServiceName".ToSentenceCase().Should().Be("Service name");
-         _ = "PasswordUpdateReminderDelay".ToSentenceCase().Should().Be("Password update reminder delay");
-         _ = "Notes".ToSentenceCase().Should().Be("Notes");
+         _ = "service name".ToSentenceCase().Should().Be("Service name");
+         _ = "Password update reminder delay".ToSentenceCase().Should().Be("Password update reminder delay");
+         _ = "notes".ToSentenceCase().Should().Be("Notes");
          _ = string.Empty.ToSentenceCase().Should().BeEmpty();
       }
 

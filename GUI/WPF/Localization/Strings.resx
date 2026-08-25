@@ -695,7 +695,6 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="Label_NewUser" xml:space="preserve">
     <value>NewUser</value>
   </data>
-
   <data name="Activity_MergeAndSaveThenRemoveAutoSaveFile" xml:space="preserve">
     <value>User '{0}'s autosave merged and saved</value>
   </data>
@@ -757,7 +756,7 @@ Click Cancel to ignore and keep the save file.</value>
     <value>Service '{2}'s Account '{0}'s {1} has been updated</value>
   </data>
   <data name="Activity_AccountSet" xml:space="preserve">
-    <value>Service '{3}'s Account '{0}'s {1} has been set to '{2}'</value>
+    <value>Service '{2}'s Account '{0}'s {1} has been set to '{3}'</value>
   </data>
   <data name="Activity_ItemUpdated" xml:space="preserve">
     <value>{0} '{1}'s {2} has been updated</value>
@@ -784,51 +783,51 @@ Click Cancel to ignore and keep the save file.</value>
     <value>Account</value>
   </data>
   <data name="FieldName_Label" xml:space="preserve">
-    <value>Label</value>
+    <value>label</value>
   </data>
   <data name="FieldName_Identifiers" xml:space="preserve">
-    <value>Identifiers</value>
+    <value>identifiers</value>
   </data>
   <data name="FieldName_Password" xml:space="preserve">
-    <value>Password</value>
+    <value>password</value>
   </data>
   <data name="FieldName_Notes" xml:space="preserve">
-    <value>Notes</value>
+    <value>notes</value>
   </data>
   <data name="FieldName_PasswordUpdateReminderDelay" xml:space="preserve">
-    <value>Password update reminder delay</value>
+    <value>password update reminder delay</value>
   </data>
   <data name="FieldName_Options" xml:space="preserve">
-    <value>Options</value>
+    <value>options</value>
   </data>
   <data name="FieldName_ServiceName" xml:space="preserve">
-    <value>Service name</value>
+    <value>service name</value>
   </data>
   <data name="FieldName_Url" xml:space="preserve">
-    <value>Url</value>
+    <value>url</value>
   </data>
   <data name="FieldName_LogoutTimeout" xml:space="preserve">
-    <value>Logout timeout</value>
+    <value>logout timeout</value>
   </data>
   <data name="FieldName_CleaningClipboardTimeout" xml:space="preserve">
-    <value>Cleaning clipboard timeout</value>
+    <value>cleaning clipboard timeout</value>
   </data>
   <data name="FieldName_ShowPasswordDelay" xml:space="preserve">
-    <value>Show password delay</value>
+    <value>show password delay</value>
   </data>
   <data name="FieldName_NumberOfOldPasswordToKeep" xml:space="preserve">
-    <value>Number of old password to keep</value>
+    <value>number of old password to keep</value>
   </data>
   <data name="FieldName_NumberOfMonthActivitiesToKeep" xml:space="preserve">
-    <value>Number of month activities to keep</value>
+    <value>number of month activities to keep</value>
   </data>
   <data name="FieldName_WarningsToNotify" xml:space="preserve">
-    <value>Warnings to notify</value>
+    <value>warnings to notify</value>
   </data>
   <data name="FieldName_Username" xml:space="preserve">
-    <value>Username</value>
+    <value>username</value>
   </data>
   <data name="FieldName_Passkeys" xml:space="preserve">
-    <value>Passkeys</value>
+    <value>passkeys</value>
   </data>
 </root>

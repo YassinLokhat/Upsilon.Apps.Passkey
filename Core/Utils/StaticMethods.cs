@@ -12,7 +12,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       /// Inserts a space before an internal capital: <c>ItemUpdated</c> → <c>Item updated</c>.
       /// Used for activity messages, not as a locale-aware formatter.
       /// </summary>
-      public static string ToSentenceCase(this string str) => Regex.Replace(str, "[a-z][A-Z]", m => $"{m.Value[0]} {char.ToLowerInvariant(m.Value[1])}");
+      public static string ToSentenceCase(this string str)
+         => string.IsNullOrEmpty(str) ? str : str[..1].ToUpperInvariant() + str[1..];
 
       public static string SerializeWith<T>(this T obj, ISerializationCenter serializationCenter) where T : notnull
       {

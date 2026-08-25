@@ -87,7 +87,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             _ => $"{activity}",
          };
 
-         return message.Trim();
+         return message.Trim().ToSentenceCase();
       }
    }
 }
