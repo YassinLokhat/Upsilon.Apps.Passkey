@@ -119,9 +119,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (info.Length > index)
          {
             info = info[index..];
-            FieldName = string.Join('|', info);
+            FieldValue = string.Join('|', info);
 
-            if (string.IsNullOrEmpty(FieldName))
+            if (string.IsNullOrEmpty(FieldValue))
             {
                FieldValue = null;
             }

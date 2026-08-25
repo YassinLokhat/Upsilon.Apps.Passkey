@@ -754,25 +754,34 @@ Click Cancel to ignore and keep the save file.</value>
     <value>Export failed because {0}</value>
   </data>
   <data name="Activity_AccountUpdated" xml:space="preserve">
-    <value>'{2}'s '{0}'s {1} has been updated</value>
+    <value>Service '{2}'s Account '{0}'s {1} has been updated</value>
   </data>
   <data name="Activity_AccountSet" xml:space="preserve">
-    <value>'{3}'s '{0}'s {1} has been set to '{2}'</value>
+    <value>Service '{3}'s Account '{0}'s {1} has been set to '{2}'</value>
   </data>
   <data name="Activity_ItemUpdated" xml:space="preserve">
-    <value>'{0}'s {1} has been updated</value>
+    <value>{0} '{1}'s {2} has been updated</value>
   </data>
   <data name="Activity_ItemSet" xml:space="preserve">
-    <value>'{0}'s {1} has been set to '{2}'</value>
+    <value>{0} '{1}'s {2} has been set to '{3}'</value>
   </data>
   <data name="Activity_ItemAdded" xml:space="preserve">
-    <value>'{1}' has been added to '{0}'</value>
+    <value>{2} '{3}' has been added to {0} '{1}'</value>
   </data>
   <data name="Activity_ItemDeleted" xml:space="preserve">
-    <value>'{1}' has been removed from '{0}'</value>
+    <value>{2} '{3}' has been removed from {0} '{1}'</value>
   </data>
   <data name="Activity_ActivityLogTampered" xml:space="preserve">
     <value>User '{0}'s activity log integrity check failed</value>
+  </data>
+  <data name="Activity_User" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="Activity_Service" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <data name="Activity_Account" xml:space="preserve">
+    <value>Account</value>
   </data>
   <data name="FieldName_Label" xml:space="preserve">
     <value>Label</value>

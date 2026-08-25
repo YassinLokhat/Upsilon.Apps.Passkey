@@ -46,6 +46,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Activity_ItemAdded => Get(nameof(Activity_ItemAdded));
       public static string Activity_ItemDeleted => Get(nameof(Activity_ItemDeleted));
       public static string Activity_ActivityLogTampered => Get(nameof(Activity_ActivityLogTampered));
+      public static string Activity_User => Get(nameof(Activity_User));
+      public static string Activity_Service => Get(nameof(Activity_Service));
+      public static string Activity_Account => Get(nameof(Activity_Account));
       public static string Event_ActivityLogTampered => Get(nameof(Event_ActivityLogTampered));
       public static string Event_DatabaseClosed => Get(nameof(Event_DatabaseClosed));
       public static string Event_DatabaseCreated => Get(nameof(Event_DatabaseCreated));

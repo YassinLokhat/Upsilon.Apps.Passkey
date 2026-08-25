@@ -753,25 +753,34 @@ Annuler : ignorer et conserver le fichier.</value>
     <value>Échec de l'export : {0}</value>
   </data>
   <data name="Activity_AccountUpdated" xml:space="preserve">
-    <value>{1} du '{0}' du '{2}' a été mis à jour</value>
+    <value>{1} du Compte '{0}' du Service '{2}' a été mis à jour</value>
   </data>
   <data name="Activity_AccountSet" xml:space="preserve">
-    <value>{1} du '{0}' du '{2}' a été défini à '{3}'</value>
+    <value>{1} du Compte '{0}' du Service '{2}' a été défini à '{3}'</value>
   </data>
   <data name="Activity_ItemUpdated" xml:space="preserve">
-    <value>{1} du '{0}' a été mis à jour</value>
+    <value>{2} dans {0} '{1}' a été mis à jour</value>
   </data>
   <data name="Activity_ItemSet" xml:space="preserve">
-    <value>{1} du '{0}' a été défini à '{2}'</value>
+    <value>{2} dans {0} '{1}' a été défini à '{3}'</value>
   </data>
   <data name="Activity_ItemAdded" xml:space="preserve">
-    <value>'{1}' a été ajouté à '{0}'</value>
+    <value>{2} '{3}' a été ajouté dans {0} '{1}'</value>
   </data>
   <data name="Activity_ItemDeleted" xml:space="preserve">
-    <value>'{1}' a été retiré de '{0}'</value>
+    <value>{2} '{3}' a été retiré de {0} '{1}'</value>
   </data>
   <data name="Activity_ActivityLogTampered" xml:space="preserve">
     <value>Échec du contrôle d'intégrité du journal d'activité de l'utilisateur '{0}'</value>
+  </data>
+  <data name="Activity_User" xml:space="preserve">
+    <value>Utilisateur</value>
+  </data>
+  <data name="Activity_Service" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <data name="Activity_Account" xml:space="preserve">
+    <value>Compte</value>
   </data>
   <data name="FieldName_Label" xml:space="preserve">
     <value>Libellé</value>
