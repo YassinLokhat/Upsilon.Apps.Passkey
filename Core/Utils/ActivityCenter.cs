@@ -65,9 +65,26 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          _deferred = new DeferredPersistence(() => _persist(rebuildStringActivities: false, seal: false));
       }
 
-      internal void AddActivity(string itemId, string itemName, string? fieldName, string? fieldValue, string? parentName, ActivityEventType eventType, bool needsReview)
+      internal void AddActivity(string itemId,
+         string? username,
+         string? serviceName,
+         string? accountName,
+         string? fieldName,
+         string? fieldValue,
+         string? parentName,
+         ActivityEventType eventType,
+         bool needsReview)
       {
-         Activity activity = new(DateTime.Now.Ticks, itemId, itemName, fieldName, fieldValue, parentName, eventType, needsReview);
+         Activity activity = new(DateTime.Now.Ticks,
+            itemId,
+            username,
+            serviceName,
+            accountName,
+            fieldName,
+            fieldValue,
+            parentName,
+            eventType,
+            needsReview);
 
          // Capture the public key under the gate, encrypt outside it, then insert
          // both plaintext and ciphertext atomically. Holding _gate across RSA

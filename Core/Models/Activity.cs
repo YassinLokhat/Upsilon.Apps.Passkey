@@ -14,7 +14,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public string ItemId { get; } = string.Empty;
 
-      public string? ItemName { get; set; }
+      public string? Username { get; set; }
+
+      public string? ServiceName { get; set; }
+
+      public string? AccountName { get; set; }
 
       public string? FieldName { get; set; }
 
@@ -30,11 +34,21 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public long DateTimeTicks { get; set; }
 
-      public Activity(long dateTimeTicks, string itemId, string itemName, string? fieldName, string? fieldValue, string? parentName, ActivityEventType eventType, bool needsReview)
+      public Activity(long dateTimeTicks,
+         string itemId,
+         string? username,
+         string? serviceName,
+         string? accountName,
+         string? fieldName,
+         string? fieldValue,
+         string? parentName,
+         ActivityEventType eventType, bool needsReview)
       {
          DateTimeTicks = dateTimeTicks;
          ItemId = itemId;
-         ItemName = itemName;
+         Username = username;
+         ServiceName = serviceName;
+         AccountName = accountName;
          FieldName = fieldName;
          FieldValue = fieldValue;
          ParentName = parentName;
@@ -45,62 +59,90 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public Activity(string activity)
       {
          string[] info = activity.Split('|');
+         int index = 0;
 
-         if (info.Length > 0)
+         if (info.Length > index)
          {
-            DateTimeTicks = Convert.ToInt64(info[0], 16);
+            DateTimeTicks = Convert.ToInt64(info[index], 16);
          }
 
-         if (info.Length > 1)
+         index++;
+         if (info.Length > index)
          {
-            ItemId = info[1];
+            ItemId = info[index];
          }
 
-         if (info.Length > 2)
+         index++;
+         if (info.Length > index)
          {
-            ItemName = info[2];
+            Username = info[index];
          }
 
-         if (info.Length > 3)
+         index++;
+         if (info.Length > index)
          {
-            FieldName = !string.IsNullOrEmpty(info[3]) ? info[3] : null;
+            ServiceName = info[index];
          }
 
-         if (info.Length > 4)
+         index++;
+         if (info.Length > index)
          {
-            FieldValue = !string.IsNullOrEmpty(info[4]) ? info[4] : null;
+            AccountName = info[index];
          }
 
-         if (info.Length > 5)
-         {
-            ParentName = !string.IsNullOrEmpty(info[5]) ? info[5] : null;
-         }
-
-         if (info.Length > 6
-            && byte.TryParse(info[6], out byte eventType))
+         index++;
+         if (info.Length > index
+            && byte.TryParse(info[index], out byte eventType))
          {
             EventType = (ActivityEventType)eventType;
          }
 
-         if (info.Length > 7)
+         index++;
+         if (info.Length > index)
          {
-            NeedsReview = !string.IsNullOrEmpty(info[7]);
+            NeedsReview = !string.IsNullOrEmpty(info[index]);
+         }
+
+         index++;
+         if (info.Length > index)
+         {
+            ParentName = !string.IsNullOrEmpty(info[index]) ? info[index] : null;
+         }
+
+         index++;
+         if (info.Length > index)
+         {
+            FieldName = !string.IsNullOrEmpty(info[index]) ? info[index] : null;
+         }
+
+         index++;
+         if (info.Length > index)
+         {
+            info = info[index..];
+            FieldName = string.Join('|', info);
+
+            if (string.IsNullOrEmpty(FieldName))
+            {
+               FieldValue = null;
+            }
          }
       }
 
       /// <summary>
-      /// Persistence wire format: ticks|itemId|eventType|needsReview|data… with
+      /// Persistence wire format: ticks|itemId|username|serviceName|accountName|fieldName|fieldValue|parentName|eventType|needsReview with
       /// <c>|</c> escaped as <c>\|</c> inside data. Numeric <see cref="EventType"/>
       /// values are a contract — do not renumber the enum.
       /// </summary>
       public override string ToString()
          => $"{DateTimeTicks:X}" +
             $"|{ItemId}" +
-            $"|{ItemName}" +
-            $"|{FieldName}" +
-            $"|{FieldValue}" +
-            $"|{ParentName}" +
+            $"|{Username}" +
+            $"|{ServiceName}" +
+            $"|{AccountName}" +
             $"|{(int)EventType}" +
-            $"|{(NeedsReview ? "1" : "")}";
+            $"|{(NeedsReview ? "1" : "")}" +
+            $"|{ParentName}" +
+            $"|{FieldName}" +
+            $"|{FieldValue}";
    }
 }

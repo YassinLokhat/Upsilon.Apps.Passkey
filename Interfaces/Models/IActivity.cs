@@ -8,7 +8,11 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
 
       string ItemId { get; }
 
-      string? ItemName { get; }
+      string? Username { get; }
+
+      string? ServiceName { get; }
+
+      string? AccountName { get; }
 
       string? FieldName { get; }
 
