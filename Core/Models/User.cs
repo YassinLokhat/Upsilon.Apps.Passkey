@@ -340,7 +340,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      public override string ToString() => $"User {Host.Username}";
+      public override string ToString() => Host.Username;
 
       public bool HasChanged() => Host.HasPendingChanges(ItemId) || Services.Any(x => x.HasChanged());
 

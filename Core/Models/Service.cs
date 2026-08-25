@@ -194,7 +194,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      public override string ToString() => $"Service {ServiceName}";
+      public override string ToString() => ServiceName;
 
       public bool HasChanged() => Host.HasPendingChanges(ItemId) || Accounts.Any(x => x.HasChanged());
    }

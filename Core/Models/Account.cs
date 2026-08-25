@@ -207,17 +207,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      public override string ToString()
-      {
-         string account = "Account ";
-
-         if (!string.IsNullOrEmpty(Label))
-         {
-            account += $"{Label} ";
-         }
-
-         return account + $"({string.Join(", ", Identifiers)})";
-      }
+      public override string ToString() => $"{Label} ({string.Join(", ", Identifiers)})".Trim();
 
       public bool HasChanged() => Host.HasPendingChanges(ItemId);
    }
