@@ -87,6 +87,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          if (database.ExportToFile(exportFile))
          {
+            database.Close();
             database.Delete();
 
             database = UnitTestsHelper.CreateTestDatabase(["a", "b"], "_");
@@ -353,7 +354,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then
-         _ = database.Activities.FirstOrDefault(x => x.ItemName == username
+         _ = database.Activities.FirstOrDefault(x => x.Username == username
             && x.EventType == ActivityEventType.LoginSessionTimeoutReached
             && x.NeedsReview).Should().NotBeNull();
 
@@ -382,7 +383,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (no tampering detected)
-         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
             && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
 
          // When (tampered: the sealed signature is stripped from the log)
@@ -391,7 +392,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (tampering detected and flagged for review)
-         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
             && x.EventType == ActivityEventType.ActivityLogTampered
             && x.NeedsReview).Should().BeTrue();
 
@@ -421,7 +422,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (no tampering detected)
-         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
             && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
 
          // When (tampered: one sealed entry is removed from the log)
@@ -430,7 +431,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (tampering detected and flagged for review)
-         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
             && x.EventType == ActivityEventType.ActivityLogTampered
             && x.NeedsReview).Should().BeTrue();
 
@@ -460,7 +461,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (no tampering detected)
-         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
             && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
 
          // When (tampered: the log's public key is swapped for an attacker's)
@@ -469,7 +470,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (tampering detected and flagged for review)
-         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
             && x.EventType == ActivityEventType.ActivityLogTampered
             && x.NeedsReview).Should().BeTrue();
 
@@ -499,7 +500,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (no tampering detected)
-         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
             && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
 
          // When (tampered: two sealed entries are swapped)
@@ -508,7 +509,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (tampering detected and flagged for review)
-         _ = databaseLoaded.Activities.Any(x => x.ItemName == username
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
             && x.EventType == ActivityEventType.ActivityLogTampered
             && x.NeedsReview).Should().BeTrue();
 

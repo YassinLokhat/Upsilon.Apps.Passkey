@@ -74,8 +74,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          Database core = (Database)database;
          string username = database.User!.Username;
 
-         Activity oldInfo = new(DateTime.Now.AddYears(-2).Ticks, string.Empty, username, null, null, null, ActivityEventType.DatabaseSaved, needsReview: false);
-         Activity oldReview = new(DateTime.Now.AddYears(-2).Ticks, string.Empty, username, "PasswordLevel", "1", null, ActivityEventType.LoginFailed, needsReview: true);
+         Activity oldInfo = new(DateTime.Now.AddYears(-2).Ticks, string.Empty, username, null, null, null, null, null, ActivityEventType.DatabaseSaved, needsReview: false);
+         Activity oldReview = new(DateTime.Now.AddYears(-2).Ticks, string.Empty, username, null, null, "PasswordLevel", "1", null, ActivityEventType.LoginFailed, needsReview: true);
          core.ActivityCenter.Activities.Add(oldInfo);
          core.ActivityCenter.Activities.Add(oldReview);
 
