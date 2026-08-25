@@ -152,12 +152,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
             return;
          }
 
-         Host.ResolveActivityNames(itemId, action, out string itemName, out string parentName);
+         Host.ResolveActivityNames(itemId, action, out string? username, out string? serviceName, out string? accountName, out string? parentName);
 
          // ActivityCenter takes its own gate; we deliberately do not hold _gate
          // here so RSA encrypt + activity insert cannot stall an autosave flush.
          Host.AddActivity(itemId: itemId,
-            itemName,
+            username,
+            serviceName,
+            accountName,
             fieldName,
             fieldValue: readableValue,
             parentName,

@@ -22,8 +22,24 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       bool IUserHost.HasPendingChanges(string itemId) => HasChanged(itemId);
 
-      void IUserHost.AddActivity(string itemId, string itemName, string? fieldName, string? fieldValue, string? parentName, ActivityEventType eventType, bool needsReview)
-         => ActivityCenter.AddActivity(itemId, itemName, fieldName, fieldValue, parentName, eventType, needsReview);
+      void IUserHost.AddActivity(string itemId,
+         string? username,
+         string? serviceName,
+         string? accountName,
+         string? fieldName,
+         string? fieldValue,
+         string? parentName,
+         ActivityEventType eventType,
+         bool needsReview)
+         => ActivityCenter.AddActivity(itemId,
+            username,
+            serviceName,
+            accountName,
+            fieldName,
+            fieldValue,
+            parentName,
+            eventType,
+            needsReview);
 
       void IUserHost.PersistActivityLog(bool rebuildStringActivities)
          => ActivityCenter.Save(rebuildStringActivities);

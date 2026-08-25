@@ -181,7 +181,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
                if (SessionLeftTime == 0)
                {
                   Host.AddActivity(itemId: ItemId,
-                     itemName: Username,
+                     Username,
+                     serviceName: null,
+                     accountName: null,
                      fieldName: null,
                      fieldValue: null,
                      parentName: null,

@@ -20,7 +20,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          ActivityCenter.AddActivity(itemId: string.Empty,
-            itemName: Username,
+            Username,
+            serviceName: null,
+            accountName: null,
             fieldName: nameof(filePath),
             fieldValue: filePath,
             parentName: null,
@@ -62,7 +64,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (string.IsNullOrWhiteSpace(errorLog))
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
-               itemName: Username,
+               Username,
+               serviceName: null,
+               accountName: null,
                fieldName: null,
                fieldValue: null,
                parentName: null,
@@ -73,7 +77,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          else
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
-               itemName: Username,
+               Username,
+               serviceName: null,
+               accountName: null,
                fieldName: nameof(errorLog),
                fieldValue: errorLog,
                parentName: null,
@@ -97,7 +103,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          ActivityCenter.AddActivity(itemId: string.Empty,
-            itemName: Username,
+            Username,
+            serviceName: null,
+            accountName: null,
             fieldName: nameof(filePath),
             fieldValue: filePath,
             parentName: null,
@@ -126,7 +134,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (string.IsNullOrWhiteSpace(errorLog))
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
-               itemName: Username,
+               Username,
+               serviceName: null,
+               accountName: null,
                fieldName: null,
                fieldValue: null,
                parentName: null,
@@ -136,7 +146,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          else
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
-               itemName: Username,
+               Username,
+               serviceName: null,
+               accountName: null,
                fieldName: nameof(errorLog),
                fieldValue: errorLog,
                parentName: null,

@@ -9,15 +9,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       void IAutoSaveHost.ResolveActivityNames(string itemId,
          ActivityEventType action,
-         out string itemName,
-         out string parentName)
+         out string? usernname,
+         out string? serviceName,
+         out string? accountName,
+         out string? parentName)
       {
-         itemName = string.Empty;
-         parentName = string.Empty;
+         usernname = null;
+         serviceName = null;
+         accountName = null;
+         parentName = null;
 
          if (itemId == User?.ItemId)
          {
-            itemName = User.ToString();
+            usernname = User.ToString();
          }
          else if (itemId.StartsWith('S'))
          {
@@ -25,7 +29,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (s is not null)
             {
-               itemName = s.ToString();
+               serviceName = s.ToString();
             }
          }
          else if (itemId.StartsWith('A'))
@@ -34,7 +38,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (a is not null)
             {
-               itemName = a.ToString();
+               accountName = a.ToString();
 
                if (action == ActivityEventType.ItemUpdated)
                {
@@ -44,8 +48,24 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      void IAutoSaveHost.AddActivity(string itemId, string itemName, string? fieldName, string? fieldValue, string? parentName, ActivityEventType eventType, bool needsReview)
-         => ActivityCenter.AddActivity(itemId, itemName, fieldName, fieldValue, parentName, eventType, needsReview);
+      void IAutoSaveHost.AddActivity(string itemId,
+         string? username,
+         string? serviceName,
+         string? accountName,
+         string? fieldName,
+         string? fieldValue,
+         string? parentName,
+         ActivityEventType eventType,
+         bool needsReview)
+         => ActivityCenter.AddActivity(itemId,
+            username,
+            serviceName,
+            accountName,
+            fieldName,
+            fieldValue,
+            parentName,
+            eventType,
+            needsReview);
 
       void IAutoSaveHost.CancelPendingItemUpdatedActivity(string itemId, string fieldName)
          => ActivityCenter.CancelPendingItemUpdated(itemId, fieldName);

@@ -12,9 +12,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
    {
       ISerializationCenter SerializationCenter { get; }
 
-      void ResolveActivityNames(string itemId, ActivityEventType action, out string itemName, out string parentName);
+      void ResolveActivityNames(string itemId,
+         ActivityEventType action,
+         out string? usernname,
+         out string? serviceName,
+         out string? accountName,
+         out string? parentName);
 
-      void AddActivity(string itemId, string itemName, string? fieldName, string? fieldValue, string? parentName, ActivityEventType eventType, bool needsReview);
+      void AddActivity(string itemId,
+         string? username,
+         string? serviceName,
+         string? accountName,
+         string? fieldName,
+         string? fieldValue,
+         string? parentName,
+         ActivityEventType eventType,
+         bool needsReview);
 
       /// <summary>
       /// Drops the unsealed <see cref="ActivityEventType.ItemUpdated"/> row for

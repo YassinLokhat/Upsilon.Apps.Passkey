@@ -46,7 +46,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (logSaveEvent)
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
-               itemName: Username,
+               Username,
+               serviceName: null,
+               accountName: null,
                fieldName: null,
                fieldValue: null,
                parentName: null,
@@ -100,7 +102,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
                }
 
                ActivityCenter.AddActivity(itemId: string.Empty,
-                  itemName: Username,
+                  Username,
+                  serviceName: null,
+                  accountName: null,
                   fieldName: nameof(needsReview),
                   fieldValue: needsReview ? "1" : string.Empty,
                   parentName: null,
@@ -109,7 +113,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
             }
 
             ActivityCenter.AddActivity(itemId: string.Empty,
-               itemName: Username,
+               Username,
+               serviceName: null,
+               accountName: null,
                fieldName: null,
                fieldValue: null,
                parentName: null,
@@ -166,7 +172,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
                // warning scan (skip mid-login refresh below).
                Username = User.Username;
                ActivityCenter.AddActivity(itemId: string.Empty,
-                  itemName: Username,
+                  Username,
+                  serviceName: null,
+                  accountName: null,
                   fieldName: null,
                   fieldValue: null,
                   parentName: null,
@@ -178,7 +186,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
                AutoSave.ApplyChanges(deleteFile: false);
                Username = User.Username;
                ActivityCenter.AddActivity(itemId: string.Empty,
-                  itemName: Username,
+                  Username,
+                  serviceName: null,
+                  accountName: null,
                   fieldName: null,
                   fieldValue: null,
                   parentName: null,
@@ -189,7 +199,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
             case AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile:
                AutoSave.Clear(deleteFile: true);
                ActivityCenter.AddActivity(itemId: string.Empty,
-                  itemName: Username,
+                  Username,
+                  serviceName: null,
+                  accountName: null,
                   fieldName: null,
                   fieldValue: null,
                   parentName: null,
@@ -199,7 +211,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
             case AutoSaveMergeBehavior.DontMergeAndKeepAutoSaveFile:
             default:
                ActivityCenter.AddActivity(itemId: string.Empty,
-                  itemName: Username,
+                  Username,
+                  serviceName: null,
+                  accountName: null,
                   fieldName: null,
                   fieldValue: null,
                   parentName: null,

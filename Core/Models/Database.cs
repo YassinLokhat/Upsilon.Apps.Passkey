@@ -70,7 +70,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          catch (WrongPasswordException passwordException)
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
-               itemName: Username,
+               username: Username,
+               serviceName: null,
+               accountName: null,
                fieldName: nameof(passwordException.PasswordLevel),
                fieldValue: $"{passwordException.PasswordLevel}",
                parentName: null,
@@ -96,7 +98,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
             if (!ActivityCenter.VerifyIntegrity())
             {
                ActivityCenter.AddActivity(itemId: string.Empty,
-                  itemName: Username,
+                  username: Username,
+                  serviceName: null,
+                  accountName: null,
                   fieldName: null,
                   fieldValue: null,
                   parentName: null,
@@ -105,7 +109,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
             }
 
             ActivityCenter.AddActivity(itemId: string.Empty,
-               itemName: Username,
+               username: Username,
+               serviceName: null,
+               accountName: null,
                fieldName: null,
                fieldValue: null,
                parentName: null,
@@ -279,7 +285,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          };
 
          database.ActivityCenter.AddActivity(itemId: string.Empty,
-            itemName: username,
+            username: username,
+            serviceName: null,
+            accountName: null,
             fieldName: null,
             fieldValue: null,
             parentName: null,
@@ -312,7 +320,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
             username);
 
          database.ActivityCenter.AddActivity(itemId: string.Empty,
-            itemName: username,
+            username: username,
+            serviceName: null,
+            accountName: null,
             fieldName: null,
             fieldValue: null,
             parentName: null,
