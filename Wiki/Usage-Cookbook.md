@@ -6,9 +6,9 @@ Worked examples against Core. Replace `OsClipboardManager` with your `IClipboard
 
 ```csharp
 using Upsilon.Apps.Passkey.Core.Models;
-using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Utils;
 
 var crypto = new CryptographyCenter();
 var json = new JsonSerializationCenter();
