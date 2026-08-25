@@ -6,7 +6,7 @@ This page mirrors [`CONTRIBUTING.md`](https://github.com/YassinLokhat/Upsilon.Ap
 
 ## Before you start
 
-* Keep Core and Interfaces free of third-party NuGet packages.
+* Keep Core, Utils, and Interfaces free of third-party NuGet packages.
 * Prefer a small PR over a mixed refactor + feature + docs dump.
 * When changing Core internals, respect the host surfaces (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) documented in [[Architecture]] — do not reintroduce reverse dependencies from ActivityCenter / AutoSave / User into `Database` members.
 
@@ -23,9 +23,9 @@ GUI ViewModel tests:
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Gui"
 ```
 
-## Zero-dependency policy (Core and Interfaces)
+## Zero-dependency policy (Core, Utils, and Interfaces)
 
-`Core` and `Interfaces` must not take a `PackageReference`. An MSBuild target fails the build if one appears. That keeps the vault's supply-chain surface limited to the .NET BCL.
+`Core`, `Utils`, and `Interfaces` must not take a `PackageReference`. An MSBuild target fails the build if one appears. That keeps the vault's supply-chain surface limited to the .NET BCL.
 
 Allowed:
 
@@ -55,7 +55,7 @@ Match the surrounding file. Do not reformat unrelated code.
 
 ## What a PR should include
 
-* Tests for Core behaviour you change
+* Tests for Core/Utils behaviour you change
 * ViewModel tests when you change GUI logic behind `AppServices`
 * README / SECURITY.md / wiki updates when you change a public contract, a threat-model assumption, or a user-visible security behaviour
 * No secrets: vault files, exported JSON/CSV, logs, or credentials

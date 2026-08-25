@@ -21,7 +21,7 @@ Language is an **app** setting (`config.json` next to the exe, property `Languag
 2. Append `new("xx", "Native name")` to `LocalizationService.Supported`.
 3. Run `LocalizationTests.FrenchResources_ContainEveryNeutralKey` pattern (or extend it) so every neutral key exists in the new satellite.
 
-Do not put UI strings in Core / Interfaces. Keep vault-persisted generated names (e.g. `New Service #`) culture-stable.
+Do not put UI strings in Core, Utils, or Interfaces. Keep vault-persisted generated names (e.g. `New Service #`) culture-stable.
 
 ## Vault files and logs
 

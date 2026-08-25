@@ -58,22 +58,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       public static WarningType ActivityWarningTypeFromReadableString(string readableString)
       {
-         if (readableString == Strings.Filter_All)
-         {
-            return WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning;
-         }
-
-         if (readableString == Strings.Filter_ExpiredPasswords)
-         {
-            return WarningType.PasswordUpdateReminderWarning;
-         }
-
-         if (readableString == Strings.Filter_LeakedPasswords)
-         {
-            return WarningType.PasswordLeakedWarning;
-         }
-
-         throw new InvalidOperationException($"'{readableString}' warning type not handled");
+         return readableString == Strings.Filter_All
+            ? WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning
+            : readableString == Strings.Filter_ExpiredPasswords
+            ? WarningType.PasswordUpdateReminderWarning
+            : readableString == Strings.Filter_LeakedPasswords
+            ? WarningType.PasswordLeakedWarning
+            : throw new InvalidOperationException($"'{readableString}' warning type not handled");
       }
    }
 }
