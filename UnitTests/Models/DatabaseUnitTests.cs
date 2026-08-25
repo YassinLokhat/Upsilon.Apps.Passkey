@@ -116,7 +116,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         expectedActivities.Push($"Information : {databaseCreated.User}'s database created");
+         expectedActivities.Push($"Information : User '{databaseCreated.User}'s database created");
 
          // Then
          _ = databaseCreated.DatabaseFile.Should().Be(databaseFile);
@@ -130,8 +130,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          databaseCreated.Close();
-         expectedActivities.Push($"Information : User {username} logged out");
-         expectedActivities.Push($"Information : User {username}'s database closed");
+         expectedActivities.Push($"Information : User '{username}' logged out");
+         expectedActivities.Push($"Information : User '{username}'s database closed");
 
          // Then
          _ = databaseCreated.User.Should().BeNull();
@@ -139,8 +139,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
-         expectedActivities.Push($"Information : {databaseLoaded.User}'s database opened");
-         expectedActivities.Push($"Information : {databaseLoaded.User} logged in");
+         expectedActivities.Push($"Information : User '{databaseLoaded.User}'s database opened");
+         expectedActivities.Push($"Information : User '{databaseLoaded.User}' logged in");
 
          // Then
          _ = databaseLoaded.Should().NotBeNull();
@@ -286,11 +286,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(wrongPasskeys, out _);
-         expectedActivities.Push($"Information : User {username}'s database opened");
+         expectedActivities.Push($"Information : User '{username}'s database opened");
          for (int i = wrongKeyIndex; i < wrongPasskeys.Length; i++)
          {
-            expectedActivities.Push($"Warning : User {username} login failed at level {wrongKeyIndex + 1}");
-            expectedLogWarnings.Push($"Warning : User {username} login failed at level {wrongKeyIndex + 1}");
+            expectedActivities.Push($"Warning : User '{username}' login failed at level {wrongKeyIndex + 1}");
+            expectedLogWarnings.Push($"Warning : User '{username}' login failed at level {wrongKeyIndex + 1}");
          }
 
          // Then
@@ -298,10 +298,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          databaseLoaded.Close();
-         expectedActivities.Push($"Information : User {username}'s database closed");
+         expectedActivities.Push($"Information : User '{username}'s database closed");
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
-         expectedActivities.Push($"Information : User {username}'s database opened");
-         expectedActivities.Push($"Information : User {username} logged in");
+         expectedActivities.Push($"Information : User '{username}'s database opened");
+         expectedActivities.Push($"Information : User '{username}' logged in");
 
          // Then
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
