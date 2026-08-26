@@ -114,7 +114,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (!string.IsNullOrEmpty(toInsert))
          {
             AppServices.Clipboard.SetText(toInsert, ClipboardManager.AutoClearAfter);
-            HotkeyHelper.SendPaste();
+            HotkeyHelper.Send(ModifierKeys.Control, Key.V);
          }
       }
 
