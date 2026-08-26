@@ -14,12 +14,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       public static string ToReadableString(this ActivityEventType eventType)
       {
-         if (eventType == ActivityEventType.None)
-         {
-            return Strings.Filter_All;
-         }
-
-         return Strings.Get($"{ACTIVITY_EVENT_TYPE_PREFIX}{eventType}");
+         return eventType == ActivityEventType.None ? Strings.Filter_All : Strings.Get($"{ACTIVITY_EVENT_TYPE_PREFIX}{eventType}");
       }
 
       public static ActivityEventType ActivityEventTypeFromReadableString(string readableString)
@@ -42,12 +37,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       public static string ToReadableString(this WarningType warningType)
       {
-         if (warningType == (WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning))
-         {
-            return Strings.Filter_All;
-         }
-
-         return Strings.Get($"{WARNING_TYPE_PREFIX}{warningType}");
+         return warningType == (WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning)
+            ? Strings.Filter_All
+            : Strings.Get($"{WARNING_TYPE_PREFIX}{warningType}");
       }
 
       public static WarningType ActivityWarningTypeFromReadableString(string readableString)

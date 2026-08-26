@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Interfaces.Enums;
+﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
 {
@@ -13,37 +13,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
 
       public static string FormatFieldValue(string? fieldName, string? fieldValue)
       {
-         if (string.IsNullOrWhiteSpace(fieldValue))
-         {
-            return fieldValue ?? string.Empty;
-         }
-
-         return fieldName switch
-         {
-            nameof(AccountOption) or "Options" => _formatAccountOption(fieldValue),
-            nameof(WarningType) or "WarningsToNotify" => _formatWarningType(fieldValue),
-            _ => fieldValue,
-         };
+         return string.IsNullOrWhiteSpace(fieldValue)
+            ? fieldValue ?? string.Empty
+            : fieldName switch
+            {
+               nameof(AccountOption) or "Options" => _formatAccountOption(fieldValue),
+               nameof(WarningType) or "WarningsToNotify" => _formatWarningType(fieldValue),
+               _ => fieldValue,
+            };
       }
 
       private static string _formatAccountOption(string stored)
       {
-         if (stored is "None" or "0")
-         {
-            return Strings.EnumValue_None;
-         }
-
-         return _formatFlags(stored, _accountOptionLabel);
+         return stored is "None" or "0" ? Strings.EnumValue_None : _formatFlags(stored, _accountOptionLabel);
       }
 
       private static string _formatWarningType(string stored)
       {
-         if (stored is "None" or "0")
-         {
-            return Strings.EnumValue_None;
-         }
-
-         return _formatFlags(stored, _warningTypeLabel);
+         return stored is "None" or "0" ? Strings.EnumValue_None : _formatFlags(stored, _warningTypeLabel);
       }
 
       private static string _formatFlags(string stored, Func<string, string> labelForMember)
