@@ -28,7 +28,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          {
             return Enum.GetValues<ActivityEventType>().First(x => x != ActivityEventType.None && x.ToReadableString() == readableString);
          }
-         catch (NullReferenceException)
+         catch (Exception ex)
+            when (ex is InvalidOperationException
+            or ArgumentNullException)
          {
             throw new InvalidOperationException($"'{readableString}' event type not handled");
          }
@@ -52,7 +54,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          {
             return Enum.GetValues<WarningType>().First(x => x.ToReadableString() == readableString);
          }
-         catch (NullReferenceException)
+         catch (Exception ex)
+            when (ex is InvalidOperationException
+            or ArgumentNullException)
          {
             throw new InvalidOperationException($"'{readableString}' warning type not handled");
          }
