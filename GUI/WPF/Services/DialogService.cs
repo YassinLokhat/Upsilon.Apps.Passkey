@@ -29,7 +29,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          }
 
          TWindow window = factory();
-         window.Owner = _resolveOwner();
 
          configure?.Invoke(window);
 
