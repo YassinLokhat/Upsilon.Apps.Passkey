@@ -830,4 +830,10 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="FieldName_Passkeys" xml:space="preserve">
     <value>clés d'accès</value>
   </data>
+  <data name="EnumValue_AccountOption_None" xml:space="preserve">
+    <value>Aucune</value>
+  </data>
+  <data name="EnumValue_WarningType_None" xml:space="preserve">
+    <value>Aucune</value>
+  </data>
 </root>

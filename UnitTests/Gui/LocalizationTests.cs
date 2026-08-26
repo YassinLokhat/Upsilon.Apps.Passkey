@@ -2,12 +2,19 @@
 using System.Globalization;
 using System.Resources;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Gui
 {
    [TestClass]
    public sealed class LocalizationTests
    {
+      [TestInitialize]
+      public void Initialize()
+      {
+         LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
+      }
+
       [TestMethod]
       public void FrenchResources_ContainEveryNeutralKey()
       {
@@ -33,6 +40,35 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       {
          _ = LocalizationService.Supported.Select(l => l.Code)
             .Should().Contain(["en", "fr"]);
+      }
+
+      [TestMethod]
+      public void EnumDisplayHelper_FormatsAccountOptionFlags_InEnglish()
+      {
+         _ = EnumDisplayHelper.FormatFieldValue("Options", "None")
+            .Should().Be("None");
+
+         _ = EnumDisplayHelper.FormatFieldValue("Options", nameof(AccountOption.WarnIfPasswordLeaked))
+            .Should().Be(Strings.Label_WarnPasswordLeak);
+
+         string combined = EnumDisplayHelper.FormatFieldValue("Options",
+            $"{nameof(AccountOption.WarnIfPasswordLeaked)}, {nameof(AccountOption.WarnIfDuplicatedPassword)}");
+
+         _ = combined.Should().Be($"{Strings.Label_WarnPasswordLeak}, {Strings.Label_WarnDuplicatedPassword}");
+      }
+
+      [TestMethod]
+      public void EnumDisplayHelper_FormatsWarningTypeFlags_InFrench()
+      {
+         LocalizationService.Apply("fr");
+
+         _ = EnumDisplayHelper.FormatFieldValue("WarningsToNotify", "None")
+            .Should().Be("Aucune");
+
+         string combined = EnumDisplayHelper.FormatFieldValue("WarningsToNotify",
+            $"{nameof(WarningType.ActivityReviewWarning)}, {nameof(WarningType.PasswordLeakedWarning)}");
+
+         _ = combined.Should().Be($"{Strings.Label_NotifyActivityReview}, {Strings.Label_NotifyPasswordLeaked}");
       }
 
       [TestCleanup]

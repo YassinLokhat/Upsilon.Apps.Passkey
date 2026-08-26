@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -87,7 +86,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             _ => $"{activity}",
          };
 
-         return message.Trim().ToSentenceCase();
+         return TextHelper.ToSentenceCase(message.Trim());
       }
    }
 }

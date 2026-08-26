@@ -253,5 +253,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string FieldName_WarningsToNotify => Get(nameof(FieldName_WarningsToNotify));
       public static string FieldName_Username => Get(nameof(FieldName_Username));
       public static string FieldName_Passkeys => Get(nameof(FieldName_Passkeys));
+      public static string EnumValue_AccountOption_None => Get(nameof(EnumValue_AccountOption_None));
+      public static string EnumValue_WarningType_None => Get(nameof(EnumValue_WarningType_None));
    }
 }

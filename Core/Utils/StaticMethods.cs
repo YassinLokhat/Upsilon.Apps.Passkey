@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using Upsilon.Apps.Passkey.Interfaces.Utils;
+﻿using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
@@ -8,13 +7,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
    /// </summary>
    public static class StaticMethods
    {
-      /// <summary>
-      /// Inserts a space before an internal capital: <c>ItemUpdated</c> → <c>Item updated</c>.
-      /// Used for activity messages, not as a locale-aware formatter.
-      /// </summary>
-      public static string ToSentenceCase(this string str)
-         => string.IsNullOrEmpty(str) ? str : str[..1].ToUpperInvariant() + str[1..];
-
       public static string SerializeWith<T>(this T obj, ISerializationCenter serializationCenter) where T : notnull
       {
          ArgumentNullException.ThrowIfNull(serializationCenter);

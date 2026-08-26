@@ -830,4 +830,10 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="FieldName_Passkeys" xml:space="preserve">
     <value>passkeys</value>
   </data>
+  <data name="EnumValue_AccountOption_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="EnumValue_WarningType_None" xml:space="preserve">
+    <value>None</value>
+  </data>
 </root>
