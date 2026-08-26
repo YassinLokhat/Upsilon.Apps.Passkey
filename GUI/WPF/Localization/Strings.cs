@@ -47,35 +47,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Activity_ItemDeleted => Get(nameof(Activity_ItemDeleted));
       public static string Activity_ActivityLogTampered => Get(nameof(Activity_ActivityLogTampered));
       public static string Activity_User => Get(nameof(Activity_User));
-      public static string Activity_Service => Get(nameof(Activity_Service));
-      public static string Activity_Account => Get(nameof(Activity_Account));
-      public static string Event_ActivityLogTampered => Get(nameof(Event_ActivityLogTampered));
-      public static string Event_DatabaseClosed => Get(nameof(Event_DatabaseClosed));
-      public static string Event_DatabaseCreated => Get(nameof(Event_DatabaseCreated));
-      public static string Event_DatabaseOpened => Get(nameof(Event_DatabaseOpened));
-      public static string Event_DatabaseSaved => Get(nameof(Event_DatabaseSaved));
-      public static string Event_ExportingDataFailed => Get(nameof(Event_ExportingDataFailed));
-      public static string Event_ExportingDataStarted => Get(nameof(Event_ExportingDataStarted));
-      public static string Event_ExportingDataSucceded => Get(nameof(Event_ExportingDataSucceded));
-      public static string Event_ImportingDataFailed => Get(nameof(Event_ImportingDataFailed));
-      public static string Event_ImportingDataStarted => Get(nameof(Event_ImportingDataStarted));
-      public static string Event_ImportingDataSucceded => Get(nameof(Event_ImportingDataSucceded));
-      public static string Event_ItemAdded => Get(nameof(Event_ItemAdded));
-      public static string Event_ItemDeleted => Get(nameof(Event_ItemDeleted));
-      public static string Event_ItemUpdated => Get(nameof(Event_ItemUpdated));
-      public static string Event_LoginFailed => Get(nameof(Event_LoginFailed));
-      public static string Event_LoginSessionTimeoutReached => Get(nameof(Event_LoginSessionTimeoutReached));
-      public static string Event_UserLoggedIn => Get(nameof(Event_UserLoggedIn));
-      public static string Event_UserLoggedOut => Get(nameof(Event_UserLoggedOut));
       public static string Filter_All => Get(nameof(Filter_All));
-      public static string Filter_AutoSaveDiscarded => Get(nameof(Filter_AutoSaveDiscarded));
-      public static string Filter_AutoSaveMergedNotSaved => Get(nameof(Filter_AutoSaveMergedNotSaved));
-      public static string Filter_AutoSaveMergedThenSaved => Get(nameof(Filter_AutoSaveMergedThenSaved));
-      public static string Filter_AutoSaveNotMergedKept => Get(nameof(Filter_AutoSaveNotMergedKept));
       public static string Filter_Csv => Get(nameof(Filter_Csv));
-      public static string Filter_ExpiredPasswords => Get(nameof(Filter_ExpiredPasswords));
       public static string Filter_Json => Get(nameof(Filter_Json));
-      public static string Filter_LeakedPasswords => Get(nameof(Filter_LeakedPasswords));
       public static string Filter_Pku => Get(nameof(Filter_Pku));
       public static string IdentifierType_AuthenticatorApp => Get(nameof(IdentifierType_AuthenticatorApp));
       public static string IdentifierType_Email => Get(nameof(IdentifierType_Email));
@@ -115,7 +89,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Label_Months => Get(nameof(Label_Months));
       public static string Label_NeedsReview => Get(nameof(Label_NeedsReview));
       public static string Label_NeedsReviewOnly => Get(nameof(Label_NeedsReviewOnly));
-      public static string Label_NeedsReviewValue => Get(nameof(Label_NeedsReviewValue));
       public static string Label_NewUser => Get(nameof(Label_NewUser));
       public static string Label_Notes => Get(nameof(Label_Notes));
       public static string Label_NotifyActivityReview => Get(nameof(Label_NotifyActivityReview));
@@ -253,7 +226,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string FieldName_WarningsToNotify => Get(nameof(FieldName_WarningsToNotify));
       public static string FieldName_Username => Get(nameof(FieldName_Username));
       public static string FieldName_Passkeys => Get(nameof(FieldName_Passkeys));
-      public static string EnumValue_AccountOption_None => Get(nameof(EnumValue_AccountOption_None));
-      public static string EnumValue_WarningType_None => Get(nameof(EnumValue_WarningType_None));
+      public static string EnumValue_None => Get(nameof(EnumValue_None));
    }
 }

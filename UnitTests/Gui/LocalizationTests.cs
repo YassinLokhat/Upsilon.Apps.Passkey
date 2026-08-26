@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using System.Globalization;
 using System.Resources;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
@@ -36,6 +37,26 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       }
 
       [TestMethod]
+      public void NeutralAndFrenchResources_HaveSameKeys()
+      {
+         ResourceManager manager = new(
+            "Upsilon.Apps.Passkey.GUI.WPF.Localization.Strings",
+            typeof(Strings).Assembly);
+
+         using ResourceSet? neutral = manager.GetResourceSet(CultureInfo.InvariantCulture, createIfNotExists: true, tryParents: true);
+         using ResourceSet? french = manager.GetResourceSet(CultureInfo.GetCultureInfo("fr"), createIfNotExists: true, tryParents: false);
+
+         HashSet<string> neutralKeys = neutral!.Cast<System.Collections.DictionaryEntry>()
+            .Select(e => (string)e.Key)
+            .ToHashSet(StringComparer.Ordinal);
+         HashSet<string> frenchKeys = french!.Cast<System.Collections.DictionaryEntry>()
+            .Select(e => (string)e.Key)
+            .ToHashSet(StringComparer.Ordinal);
+
+         _ = neutralKeys.Should().BeEquivalentTo(frenchKeys);
+      }
+
+      [TestMethod]
       public void SupportedLanguages_IncludeEnglishAndFrench()
       {
          _ = LocalizationService.Supported.Select(l => l.Code)
@@ -46,7 +67,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       public void EnumDisplayHelper_FormatsAccountOptionFlags_InEnglish()
       {
          _ = EnumDisplayHelper.FormatFieldValue("Options", "None")
-            .Should().Be("None");
+            .Should().Be(Strings.EnumValue_None);
 
          _ = EnumDisplayHelper.FormatFieldValue("Options", nameof(AccountOption.WarnIfPasswordLeaked))
             .Should().Be(Strings.Label_WarnPasswordLeak);
@@ -63,12 +84,57 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
          LocalizationService.Apply("fr");
 
          _ = EnumDisplayHelper.FormatFieldValue("WarningsToNotify", "None")
-            .Should().Be("Aucune");
+            .Should().Be(Strings.EnumValue_None);
 
          string combined = EnumDisplayHelper.FormatFieldValue("WarningsToNotify",
             $"{nameof(WarningType.ActivityReviewWarning)}, {nameof(WarningType.PasswordLeakedWarning)}");
 
          _ = combined.Should().Be($"{Strings.Label_NotifyActivityReview}, {Strings.Label_NotifyPasswordLeaked}");
+      }
+
+      [TestMethod]
+      public void ActivityEventType_ToReadableString_HasTranslationForEveryMember()
+      {
+         foreach (ActivityEventType eventType in Enum.GetValues<ActivityEventType>())
+         {
+            if (eventType == ActivityEventType.None)
+            {
+               _ = eventType.ToReadableString().Should().Be(Strings.Filter_All);
+               continue;
+            }
+
+            string label = eventType.ToReadableString();
+            _ = label.Should().NotBeNullOrWhiteSpace();
+            _ = label.Should().NotBe(eventType.ToString());
+         }
+      }
+
+      [TestMethod]
+      public void WarningType_ToReadableString_HasTranslationForEveryMember()
+      {
+         foreach (WarningType warningType in Enum.GetValues<WarningType>())
+         {
+            string label = warningType.ToReadableString();
+            _ = label.Should().NotBeNullOrWhiteSpace();
+            _ = label.Should().NotBe(warningType.ToString());
+         }
+
+         _ = (WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning)
+            .ToReadableString()
+            .Should().Be(Strings.Filter_All);
+      }
+
+      [TestMethod]
+      public void ActivityEventType_ToReadableString_IsLocalizedInFrench()
+      {
+         LocalizationService.Apply("en");
+         string englishLabel = ActivityEventType.DatabaseOpened.ToReadableString();
+
+         LocalizationService.Apply("fr");
+         string frenchLabel = ActivityEventType.DatabaseOpened.ToReadableString();
+
+         _ = frenchLabel.Should().NotBe(nameof(ActivityEventType.DatabaseOpened));
+         _ = frenchLabel.Should().NotBe(englishLabel);
       }
 
       [TestCleanup]

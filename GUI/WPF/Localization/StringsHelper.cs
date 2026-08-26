@@ -22,8 +22,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
          else if (!string.IsNullOrEmpty(activity.ServiceName))
          {
             return !string.IsNullOrWhiteSpace(activity.FieldValue)
-                  ? Strings.Format(nameof(Strings.Activity_ItemSet), Strings.Activity_Service, activity.ServiceName, Strings.Get($"FieldName_{activity.FieldName}"), displayValue)
-                  : Strings.Format(nameof(Strings.Activity_ItemUpdated), Strings.Activity_Service, activity.ServiceName, Strings.Get($"FieldName_{activity.FieldName}"));
+                  ? Strings.Format(nameof(Strings.Activity_ItemSet), Strings.Label_ServiceColumn, activity.ServiceName, Strings.Get($"FieldName_{activity.FieldName}"), displayValue)
+                  : Strings.Format(nameof(Strings.Activity_ItemUpdated), Strings.Label_ServiceColumn, activity.ServiceName, Strings.Get($"FieldName_{activity.FieldName}"));
          }
          else if (!string.IsNullOrEmpty(activity.AccountName))
          {
@@ -39,11 +39,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       {
          if (!string.IsNullOrEmpty(activity.Username))
          {
-            return Strings.Format(nameof(Strings.Activity_ItemAdded), Strings.Activity_User, activity.Username, Strings.Activity_Service, activity.FieldValue);
+            return Strings.Format(nameof(Strings.Activity_ItemAdded), Strings.Activity_User, activity.Username, Strings.Label_ServiceColumn, activity.FieldValue);
          }
          else if (!string.IsNullOrEmpty(activity.ServiceName))
          {
-            return Strings.Format(nameof(Strings.Activity_ItemAdded), Strings.Activity_Service, activity.ServiceName, Strings.Activity_Account, activity.FieldValue);
+            return Strings.Format(nameof(Strings.Activity_ItemAdded), Strings.Label_ServiceColumn, activity.ServiceName, Strings.Label_AccountColumn, activity.FieldValue);
          }
 
          throw new InvalidOperationException();
@@ -53,11 +53,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       {
          if (!string.IsNullOrEmpty(activity.Username))
          {
-            return Strings.Format(nameof(Strings.Activity_ItemDeleted), Strings.Activity_User, activity.Username, Strings.Activity_Service, activity.FieldValue);
+            return Strings.Format(nameof(Strings.Activity_ItemDeleted), Strings.Activity_User, activity.Username, Strings.Label_ServiceColumn, activity.FieldValue);
          }
          else if (!string.IsNullOrEmpty(activity.ServiceName))
          {
-            return Strings.Format(nameof(Strings.Activity_ItemDeleted), Strings.Activity_Service, activity.ServiceName, Strings.Activity_Account, activity.FieldValue);
+            return Strings.Format(nameof(Strings.Activity_ItemDeleted), Strings.Label_ServiceColumn, activity.ServiceName, Strings.Label_AccountColumn, activity.FieldValue);
          }
 
          throw new InvalidOperationException();

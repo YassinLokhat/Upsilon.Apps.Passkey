@@ -26,7 +26,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             }
          }
       }
-      public string NeedsReviewString => NeedsReview ? Strings.Label_NeedsReviewValue : Strings.Label_Reviewed;
+      public string NeedsReviewString => NeedsReview ? Strings.Label_NeedsReview : Strings.Label_Reviewed;
 
       public event PropertyChangedEventHandler? PropertyChanged;
 

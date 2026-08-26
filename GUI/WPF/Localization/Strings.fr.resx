@@ -360,9 +360,6 @@
   <data name="Label_Reviewed" xml:space="preserve">
     <value>Revu</value>
   </data>
-  <data name="Label_NeedsReviewValue" xml:space="preserve">
-    <value>À revoir</value>
-  </data>
   <data name="Title_AppSettings" xml:space="preserve">
     <value>{0} - Paramètres de l'application</value>
   </data>
@@ -464,24 +461,6 @@
   </data>
   <data name="Filter_All" xml:space="preserve">
     <value>Tous</value>
-  </data>
-  <data name="Filter_ExpiredPasswords" xml:space="preserve">
-    <value>Mots de passe expirés</value>
-  </data>
-  <data name="Filter_LeakedPasswords" xml:space="preserve">
-    <value>Mots de passe divulgués</value>
-  </data>
-  <data name="Filter_AutoSaveMergedThenSaved" xml:space="preserve">
-    <value>Sauvegarde auto fusionnée puis enregistrée</value>
-  </data>
-  <data name="Filter_AutoSaveMergedNotSaved" xml:space="preserve">
-    <value>Sauvegarde auto fusionnée mais non enregistrée</value>
-  </data>
-  <data name="Filter_AutoSaveDiscarded" xml:space="preserve">
-    <value>Sauvegarde auto abandonnée</value>
-  </data>
-  <data name="Filter_AutoSaveNotMergedKept" xml:space="preserve">
-    <value>Sauvegarde auto non fusionnée et conservée</value>
   </data>
   <data name="Msg_NoDatabaseLoaded" xml:space="preserve">
     <value>Aucune base chargée.</value>
@@ -635,62 +614,89 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="IdentifierType_AuthenticatorApp" xml:space="preserve">
     <value>Application d'authentification</value>
   </data>
-  <data name="Event_ImportingDataStarted" xml:space="preserve">
-    <value>Import démarré</value>
+  <data name="EnumValue_ActivityEventType_MergeAndSaveThenRemoveAutoSaveFile" xml:space="preserve">
+    <value>Sauvegarde auto fusionnée puis enregistrée</value>
   </data>
-  <data name="Event_ItemDeleted" xml:space="preserve">
-    <value>Élément supprimé</value>
+  <data name="EnumValue_ActivityEventType_MergeWithoutSavingAndKeepAutoSaveFile" xml:space="preserve">
+    <value>Sauvegarde auto fusionnée mais non enregistrée</value>
   </data>
-  <data name="Event_ExportingDataStarted" xml:space="preserve">
-    <value>Export démarré</value>
+  <data name="EnumValue_ActivityEventType_DontMergeAndRemoveAutoSaveFile" xml:space="preserve">
+    <value>Sauvegarde auto abandonnée</value>
   </data>
-  <data name="Event_DatabaseSaved" xml:space="preserve">
-    <value>Base de données enregistrée</value>
+  <data name="EnumValue_ActivityEventType_DontMergeAndKeepAutoSaveFile" xml:space="preserve">
+    <value>Sauvegarde auto non fusionnée et conservée</value>
   </data>
-  <data name="Event_DatabaseOpened" xml:space="preserve">
-    <value>Base de données ouverte</value>
-  </data>
-  <data name="Event_ItemAdded" xml:space="preserve">
-    <value>Élément ajouté</value>
-  </data>
-  <data name="Title_QrCode" xml:space="preserve">
-    <value>'{0}' - QR code</value>
-  </data>
-  <data name="Event_ExportingDataFailed" xml:space="preserve">
-    <value>Export échoué</value>
-  </data>
-  <data name="Event_UserLoggedIn" xml:space="preserve">
-    <value>Utilisateur connecté</value>
-  </data>
-  <data name="Event_ActivityLogTampered" xml:space="preserve">
-    <value>Journal d'activité altéré</value>
-  </data>
-  <data name="Event_ExportingDataSucceded" xml:space="preserve">
-    <value>Export réussi</value>
-  </data>
-  <data name="Event_LoginSessionTimeoutReached" xml:space="preserve">
-    <value>Délai de session atteint</value>
-  </data>
-  <data name="Event_ItemUpdated" xml:space="preserve">
-    <value>Élément mis à jour</value>
-  </data>
-  <data name="Event_UserLoggedOut" xml:space="preserve">
-    <value>Utilisateur déconnecté</value>
-  </data>
-  <data name="Event_DatabaseCreated" xml:space="preserve">
+  <data name="EnumValue_ActivityEventType_DatabaseCreated" xml:space="preserve">
     <value>Base de données créée</value>
   </data>
-  <data name="Event_DatabaseClosed" xml:space="preserve">
+  <data name="EnumValue_ActivityEventType_DatabaseOpened" xml:space="preserve">
+    <value>Base de données ouverte</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_DatabaseSaved" xml:space="preserve">
+    <value>Base de données enregistrée</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_DatabaseClosed" xml:space="preserve">
     <value>Base de données fermée</value>
   </data>
-  <data name="Event_ImportingDataFailed" xml:space="preserve">
-    <value>Import échoué</value>
+  <data name="EnumValue_ActivityEventType_LoginSessionTimeoutReached" xml:space="preserve">
+    <value>Délai de session atteint</value>
   </data>
-  <data name="Event_ImportingDataSucceded" xml:space="preserve">
+  <data name="EnumValue_ActivityEventType_LoginFailed" xml:space="preserve">
+    <value>Échec de connexion</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_UserLoggedIn" xml:space="preserve">
+    <value>Utilisateur connecté</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_UserLoggedOut" xml:space="preserve">
+    <value>Utilisateur déconnecté</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ImportingDataStarted" xml:space="preserve">
+    <value>Import démarré</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ImportingDataSucceded" xml:space="preserve">
     <value>Import réussi</value>
   </data>
-  <data name="Event_LoginFailed" xml:space="preserve">
-    <value>Échec de connexion</value>
+  <data name="EnumValue_ActivityEventType_ImportingDataFailed" xml:space="preserve">
+    <value>Import échoué</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ExportingDataStarted" xml:space="preserve">
+    <value>Export démarré</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ExportingDataSucceded" xml:space="preserve">
+    <value>Export réussi</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ExportingDataFailed" xml:space="preserve">
+    <value>Export échoué</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ItemUpdated" xml:space="preserve">
+    <value>Élément mis à jour</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ItemAdded" xml:space="preserve">
+    <value>Élément ajouté</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ItemDeleted" xml:space="preserve">
+    <value>Élément supprimé</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ActivityLogTampered" xml:space="preserve">
+    <value>Journal d'activité altéré</value>
+  </data>
+  <data name="EnumValue_WarningType_ActivityReviewWarning" xml:space="preserve">
+    <value>Activités à revoir</value>
+  </data>
+  <data name="EnumValue_WarningType_PasswordUpdateReminderWarning" xml:space="preserve">
+    <value>Mots de passe expirés</value>
+  </data>
+  <data name="EnumValue_WarningType_DuplicatedPasswordsWarning" xml:space="preserve">
+    <value>Mots de passe dupliqués</value>
+  </data>
+  <data name="EnumValue_WarningType_PasswordLeakedWarning" xml:space="preserve">
+    <value>Mots de passe divulgués</value>
+  </data>
+  <data name="EnumValue_None" xml:space="preserve">
+    <value>Aucune</value>
+  </data>
+  <data name="Title_QrCode" xml:space="preserve">
+    <value>{0} - QR code</value>
   </data>
   <data name="Label_NewUser" xml:space="preserve">
     <value>NouvelUtilisateur</value>
@@ -776,12 +782,6 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="Activity_User" xml:space="preserve">
     <value>Utilisateur</value>
   </data>
-  <data name="Activity_Service" xml:space="preserve">
-    <value>Service</value>
-  </data>
-  <data name="Activity_Account" xml:space="preserve">
-    <value>Compte</value>
-  </data>
   <data name="FieldName_Label" xml:space="preserve">
     <value>libellé</value>
   </data>
@@ -829,11 +829,5 @@ Annuler : ignorer et conserver le fichier.</value>
   </data>
   <data name="FieldName_Passkeys" xml:space="preserve">
     <value>clés d'accès</value>
-  </data>
-  <data name="EnumValue_AccountOption_None" xml:space="preserve">
-    <value>Aucune</value>
-  </data>
-  <data name="EnumValue_WarningType_None" xml:space="preserve">
-    <value>Aucune</value>
   </data>
 </root>

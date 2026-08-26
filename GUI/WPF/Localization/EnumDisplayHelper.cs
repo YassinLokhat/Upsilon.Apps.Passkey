@@ -8,6 +8,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
    /// </summary>
    internal static class EnumDisplayHelper
    {
+      private const string ACCOUNT_OPTION_PREFIX = "EnumValue_AccountOption_";
+      private const string WARNING_TYPE_PREFIX = "EnumValue_WarningType_";
+
       public static string FormatFieldValue(string? fieldName, string? fieldValue)
       {
          if (string.IsNullOrWhiteSpace(fieldValue))
@@ -27,7 +30,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       {
          if (stored is "None" or "0")
          {
-            return Strings.EnumValue_AccountOption_None;
+            return Strings.EnumValue_None;
          }
 
          return _formatFlags(stored, _accountOptionLabel);
@@ -37,7 +40,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       {
          if (stored is "None" or "0")
          {
-            return Strings.EnumValue_WarningType_None;
+            return Strings.EnumValue_None;
          }
 
          return _formatFlags(stored, _warningTypeLabel);
@@ -55,10 +58,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       private static string _accountOptionLabel(string memberName)
          => memberName switch
          {
-            nameof(AccountOption.None) => Strings.EnumValue_AccountOption_None,
+            nameof(AccountOption.None) => Strings.EnumValue_None,
             nameof(AccountOption.WarnIfPasswordLeaked) => Strings.Label_WarnPasswordLeak,
             nameof(AccountOption.WarnIfDuplicatedPassword) => Strings.Label_WarnDuplicatedPassword,
-            _ => memberName,
+            _ => Strings.Get($"{ACCOUNT_OPTION_PREFIX}{memberName}"),
          };
 
       private static string _warningTypeLabel(string memberName)
@@ -68,7 +71,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             nameof(WarningType.PasswordUpdateReminderWarning) => Strings.Label_NotifyPasswordUpdateReminder,
             nameof(WarningType.DuplicatedPasswordsWarning) => Strings.Label_NotifyDuplicatedPasswords,
             nameof(WarningType.PasswordLeakedWarning) => Strings.Label_NotifyPasswordLeaked,
-            _ => memberName,
+            _ => Strings.Get($"{WARNING_TYPE_PREFIX}{memberName}"),
          };
    }
 }
