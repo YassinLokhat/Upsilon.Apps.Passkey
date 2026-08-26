@@ -24,15 +24,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             return ActivityEventType.None;
          }
 
-         foreach (ActivityEventType eventType in Enum.GetValues<ActivityEventType>())
+         try
          {
-            if (eventType != ActivityEventType.None && eventType.ToReadableString() == readableString)
-            {
-               return eventType;
-            }
+            return Enum.GetValues<ActivityEventType>().First(x => x != ActivityEventType.None && x.ToReadableString() == readableString);
          }
-
-         throw new InvalidOperationException($"'{readableString}' event type not handled");
+         catch (NullReferenceException)
+         {
+            throw new InvalidOperationException($"'{readableString}' event type not handled");
+         }
       }
 
       public static string ToReadableString(this WarningType warningType)
@@ -49,15 +48,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             return WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning;
          }
 
-         foreach (WarningType warningType in Enum.GetValues<WarningType>())
+         try
          {
-            if (warningType.ToReadableString() == readableString)
-            {
-               return warningType;
-            }
+            return Enum.GetValues<WarningType>().First(x => x.ToReadableString() == readableString);
          }
-
-         throw new InvalidOperationException($"'{readableString}' warning type not handled");
+         catch (NullReferenceException)
+         {
+            throw new InvalidOperationException($"'{readableString}' warning type not handled");
+         }
       }
    }
 }
