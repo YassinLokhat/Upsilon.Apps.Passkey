@@ -29,6 +29,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = restored.ParentName.Should().Be(original.ParentName);
          _ = restored.EventType.Should().Be(original.EventType);
          _ = restored.NeedsReview.Should().BeTrue();
+
+         Activity cleared = new(0xABCDEF012345, "Aitem", "an username", "a service name", "an account name", "a field name", "a field value", "a parent name", ActivityEventType.ItemUpdated, needsReview: false);
+         Activity restoredCleared = new(cleared.ToString());
+         _ = restoredCleared.NeedsReview.Should().BeFalse();
       }
 
       [TestMethod]

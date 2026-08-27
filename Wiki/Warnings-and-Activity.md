@@ -23,7 +23,7 @@ Duplicate and expiry warnings are computed locally. Leak warnings use `IPassword
 | `ItemId` | Related item, or empty for vault-level events |
 | `EventType` | `ActivityEventType` |
 | `Message` | Human-readable line built for persistence / diagnostics (never contains `ProtectedSecret` plaintext; `ToString()` on secrets is `***`). The **WPF** Activities grid does **not** show this raw string: it rebuilds a localized sentence from `EventType` + structured fields (`Activity_*` / `EnumValue_*` keys — see [[WPF Client]] Localization). |
-| `NeedsReview` | Drives `ActivityReviewWarning` |
+| `NeedsReview` | Drives `ActivityReviewWarning`. Clearing it (the Activities grid checkbox) is written back into the log on the next sealed persist (Save or logout). |
 
 Retention is `ISettings.NumberOfMonthActivitiesToKeep`.
 

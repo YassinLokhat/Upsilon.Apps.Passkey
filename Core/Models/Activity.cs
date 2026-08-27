@@ -29,9 +29,28 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public ActivityEventType EventType { get; set; } = ActivityEventType.None;
 
-      public bool NeedsReview { get; set; } = true;
+      public bool NeedsReview
+      {
+         get => _needsReview;
+         set
+         {
+            if (_needsReview == value)
+            {
+               return;
+            }
+
+            _needsReview = value;
+            PersistenceDirty = true;
+         }
+      }
 
       #endregion
+
+      // True when NeedsReview changed after the ciphertext was produced, so the
+      // next sealed persist can rewrite that one row instead of the whole log.
+      internal bool PersistenceDirty { get; set; }
+
+      private bool _needsReview = true;
 
       public long DateTimeTicks { get; set; }
 
@@ -54,7 +73,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          FieldValue = fieldValue;
          ParentName = parentName;
          EventType = eventType;
-         NeedsReview = needsReview;
+         _needsReview = needsReview;
       }
 
       public Activity(string activity)
@@ -101,7 +120,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          index++;
          if (info.Length > index)
          {
-            NeedsReview = !string.IsNullOrEmpty(info[index]);
+            _needsReview = !string.IsNullOrEmpty(info[index]);
          }
 
          index++;
