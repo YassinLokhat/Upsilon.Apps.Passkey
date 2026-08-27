@@ -254,24 +254,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       private AppLanguage _languageFromSettings(string? code)
       {
-         if (string.IsNullOrWhiteSpace(code))
-         {
-            return Languages[0];
-         }
-
-         return Languages.FirstOrDefault(l =>
+         return string.IsNullOrWhiteSpace(code)
+            ? Languages[0]
+            : Languages.FirstOrDefault(l =>
             string.Equals(l.Code, code, StringComparison.OrdinalIgnoreCase))
             ?? Languages[0];
       }
 
       private AppThemeOption _themeFromSettings(string? code)
       {
-         if (string.IsNullOrWhiteSpace(code))
-         {
-            return Themes[0];
-         }
-
-         return Themes.FirstOrDefault(t =>
+         return string.IsNullOrWhiteSpace(code)
+            ? Themes[0]
+            : Themes.FirstOrDefault(t =>
             string.Equals(t.Code, code, StringComparison.OrdinalIgnoreCase))
             ?? Themes[0];
       }

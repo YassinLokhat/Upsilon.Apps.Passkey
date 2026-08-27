@@ -1,7 +1,7 @@
+﻿using Microsoft.Win32;
 using System.IO;
 using System.Security;
 using System.Windows;
-using Microsoft.Win32;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
@@ -108,12 +108,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
       public static string ResolveAppearance(string? preference)
       {
          string code = GetThemeOrDefault(preference);
-         if (string.Equals(code, SystemCode, StringComparison.OrdinalIgnoreCase))
-         {
-            return DetectSystemLightTheme() ? LightCode : DarkCode;
-         }
-
-         return code;
+         return string.Equals(code, SystemCode, StringComparison.OrdinalIgnoreCase) ? DetectSystemLightTheme() ? LightCode : DarkCode : code;
       }
 
       /// <summary>

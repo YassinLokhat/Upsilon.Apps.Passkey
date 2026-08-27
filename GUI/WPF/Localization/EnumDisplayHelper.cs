@@ -1,5 +1,5 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
 {
