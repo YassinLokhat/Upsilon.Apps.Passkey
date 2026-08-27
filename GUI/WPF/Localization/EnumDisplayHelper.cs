@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
 {
@@ -19,6 +20,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             {
                nameof(AccountOption) or "Options" => _formatAccountOption(fieldValue),
                nameof(WarningType) or "WarningsToNotify" => _formatWarningType(fieldValue),
+               "Theme" => _formatTheme(fieldValue),
                _ => fieldValue,
             };
       }
@@ -32,6 +34,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       {
          return stored is "None" or "0" ? Strings.EnumValue_None : _formatFlags(stored, _warningTypeLabel);
       }
+
+      private static string _formatTheme(string stored)
+         => stored switch
+         {
+            ThemeService.SystemCode => Strings.EnumValue_Theme_System,
+            ThemeService.LightCode => Strings.EnumValue_Theme_Light,
+            ThemeService.DarkCode => Strings.EnumValue_Theme_Dark,
+            _ => stored,
+         };
 
       private static string _formatFlags(string stored, Func<string, string> labelForMember)
       {

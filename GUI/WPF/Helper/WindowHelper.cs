@@ -7,7 +7,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
    /// <summary>
-   /// Window chrome: wait cursor, dark title bar, tab order, and closing a modal
+   /// Window chrome: wait cursor, immersive title bar, tab order, and closing a modal
    /// vault window when the session ends.
    /// </summary>
    internal static class WindowHelper
@@ -31,12 +31,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       }
 
       /// <summary>
-      /// Applies immersive dark mode and a depth-first tab order after Loaded
+      /// Applies immersive title-bar coloring and a depth-first tab order after Loaded
       /// (the HWND is not available in the constructor).
       /// </summary>
       public static void PostLoadSetup(this Window window)
       {
-         DarkMode.SetDarkMode(window);
+         DarkMode.SetImmersiveDarkMode(window, ThemeService.IsDarkAppearance);
          ComputeTabIndex(window);
       }
 

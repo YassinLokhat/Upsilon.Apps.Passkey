@@ -381,6 +381,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          public int NumberOfMonthActivitiesToKeep { get; set; }
          public WarningType WarningsToNotify { get; set; }
          public string Language { get; set; } = string.Empty;
+         public string Theme { get; set; } = string.Empty;
       }
    }
 }

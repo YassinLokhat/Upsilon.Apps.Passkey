@@ -7,6 +7,7 @@ using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -265,16 +266,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          }
 
          _session.ApplySessionLanguage();
+         _session.ApplySessionTheme();
 
          Hide();
          _resetCredentials();
 
          bool stayOpen = UserServicesView.ShowUser(this);
 
-         // ShowUser is modal: EndSession may have applied the app language while
-         // this window was still hidden under the dialog, so Loc bindings can miss
-         // the refresh. Re-apply after the modal returns, then show the login UI.
-         _restoreAppLanguage();
+         // ShowUser is modal: EndSession may have applied the app language/theme
+         // while this window was still hidden under the dialog, so Loc bindings
+         // can miss the refresh. Re-apply after the modal returns, then show the login UI.
+         _restoreAppPreferences();
          _resetCredentials();
 
          if (!stayOpen)
@@ -287,11 +289,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          }
       }
 
-      private static void _restoreAppLanguage()
+      private static void _restoreAppPreferences()
       {
-         // forceRefresh: EndSession may already have switched the culture while
+         // forceRefresh: EndSession may already have switched culture/theme while
          // MainWindow was hidden under the modal; Loc bindings still need a nudge.
          _ = LocalizationService.Apply(AppInfo.AppSettings.Language, forceRefresh: true);
+         _ = ThemeService.Apply(AppInfo.AppSettings.Theme, forceRefresh: true);
       }
 
       private void _setBusy(string message)
@@ -367,7 +370,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             _resetCredentials();
             // The database already closed itself; only clear the session reference.
             _endSession(closeDatabase: false);
-            _restoreAppLanguage();
+            _restoreAppPreferences();
             Show();
          });
       }

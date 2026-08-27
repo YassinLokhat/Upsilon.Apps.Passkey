@@ -9,7 +9,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class ServiceViewModel : INotifyPropertyChanged
+   internal sealed class ServiceViewModel : INotifyPropertyChanged, IThemeAware
    {
       public readonly IService Service;
 
@@ -84,6 +84,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          foreach (AccountViewModel account in _accountViewModelsById.Values)
          {
             account.OnLanguageChanged();
+         }
+      }
+
+      public void OnThemeChanged()
+      {
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceNameBackground)));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UrlBackground)));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NotesBackground)));
+
+         foreach (AccountViewModel account in _accountViewModelsById.Values)
+         {
+            account.OnThemeChanged();
          }
       }
 

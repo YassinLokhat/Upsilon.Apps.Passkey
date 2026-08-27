@@ -12,7 +12,7 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class UserServicesViewModel : ObservableObject, IDisposable, ILanguageAware
+   internal sealed class UserServicesViewModel : ObservableObject, IDisposable, ILanguageAware, IThemeAware
    {
       private static readonly TimeSpan _filterDebounce = TimeSpan.FromMilliseconds(250);
 
@@ -160,6 +160,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       }
 
       public event EventHandler? LanguageRefreshed;
+
+      public void OnThemeChanged()
+      {
+         foreach (ServiceViewModel service in _serviceViewModelsById.Values)
+         {
+            service.OnThemeChanged();
+         }
+
+         ThemeRefreshed?.Invoke(this, EventArgs.Empty);
+      }
+
+      public event EventHandler? ThemeRefreshed;
 
       public void Dispose()
       {

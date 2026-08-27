@@ -118,5 +118,35 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          again.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * Theme is stored on the user; empty means "follow application theme".
+      */
+      public void Case05_Theme_RoundTrip()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         _ = database.User!.Settings.Theme.Should().BeEmpty();
+
+         database.User.Settings.Theme = "Light";
+         database.Save();
+         database.Close();
+
+         IDatabase reopened = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         _ = reopened.User!.Settings.Theme.Should().Be("Light");
+
+         reopened.User.Settings.Theme = string.Empty;
+         reopened.Save();
+         reopened.Close();
+
+         IDatabase again = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         _ = again.User!.Settings.Theme.Should().BeEmpty();
+
+         again.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

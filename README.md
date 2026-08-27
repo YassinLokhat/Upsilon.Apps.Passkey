@@ -20,7 +20,7 @@ independently; see [SECURITY.md](SECURITY.md)).
 *   **Password generation**: CSPRNG over a configurable alphabet
 *   **Leak detection**: opt-in Have I Been Pwned checks, with a free XposedOrNot failover (k-anonymity; see [SECURITY.md](SECURITY.md))
 *   **Import / Export**: plaintext JSON (settings + services) or TSV/CSV (services only)
-*   **WPF client** (Windows): dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
+*   **WPF client** (Windows): System / Light / Dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
 
 **Architecture**
 ----------------
@@ -167,6 +167,8 @@ classDiagram
             +int NumberOfOldPasswordToKeep
             +int NumberOfMonthActivitiesToKeep
             +WarningType WarningsToNotify
+            +string Language
+            +string Theme
         }
 
         class IDatabase {
@@ -507,7 +509,9 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 *   **QR codes**: identifiers and passwords can be shown as a QR matrix generated
     in-process (`Core/Utils/QrCode.cs`, no network). The window closes after
     `ISettings.ShowPasswordDelay` milliseconds when that setting is non-zero.
-*   **Theme**: dark WPF resources plus Windows immersive dark title bars.
+*   **Theme**: App Settings default (`System` / `Light` / `Dark`, stored in
+    `config.json`); each vault user can override it. `System` follows Windows
+    light/dark. Light and dark WPF dictionaries plus matching immersive title bars.
 *   **Logs**: rolling daily files under `%LocalAppData%\Passkey\logs`.
 
 **Testing**

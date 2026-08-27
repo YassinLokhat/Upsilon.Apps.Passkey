@@ -13,7 +13,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="385" Width="1000">
+        Height="425" Width="1000">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -129,6 +129,13 @@
                                       ItemsSource="{Binding Languages}"
                                       SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
                                       DisplayMemberPath="NativeName"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,4">
+                            <Label Margin="0" Content="{loc:Loc Label_Theme}"/>
+                            <ComboBox MinWidth="220"
+                                      ItemsSource="{Binding Themes}"
+                                      SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
+                                      DisplayMemberPath="DisplayName"/>
                         </StackPanel>
                         <GroupBox Header="{loc:Loc Label_Warnings}">
                             <StackPanel>

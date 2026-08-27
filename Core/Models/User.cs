@@ -336,8 +336,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
                   case nameof(Settings.Language):
                      Settings.Language = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);
                      break;
+                  case nameof(Settings.Theme):
+                     Settings.Theme = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);
+                     break;
                   default:
-                     throw new InvalidDataException("FieldName not valid");               }
+                     throw new InvalidDataException("FieldName not valid");
+               }
                break;
             case ActivityEventType.ItemAdded:
                Service serviceToAdd = change.NewValue.DeserializeTo<Service>(Host.SerializationCenter);

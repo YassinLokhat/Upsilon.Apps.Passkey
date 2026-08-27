@@ -184,6 +184,10 @@
     <value>Language :</value>
   </data>
   <data name="Label_UseAppLanguage" xml:space="preserve"><value>Use application language</value></data>
+  <data name="Label_Theme" xml:space="preserve">
+    <value>Theme :</value>
+  </data>
+  <data name="Label_UseAppTheme" xml:space="preserve"><value>Use application theme</value></data>
   <data name="Label_Browse" xml:space="preserve">
     <value>Browse</value>
   </data>
@@ -827,6 +831,21 @@ Click Cancel to ignore and keep the save file.</value>
   </data>
   <data name="FieldName_Passkeys" xml:space="preserve">
     <value>passkeys</value>
+  </data>
+  <data name="FieldName_Language" xml:space="preserve">
+    <value>language</value>
+  </data>
+  <data name="FieldName_Theme" xml:space="preserve">
+    <value>theme</value>
+  </data>
+  <data name="EnumValue_Theme_System" xml:space="preserve">
+    <value>Same as system</value>
+  </data>
+  <data name="EnumValue_Theme_Light" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="EnumValue_Theme_Dark" xml:space="preserve">
+    <value>Dark</value>
   </data>
   <data name="Activity_DateTimeFormat" xml:space="preserve">
     <value>yyyy-MM-dd HH:mm</value>
