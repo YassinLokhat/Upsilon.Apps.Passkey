@@ -88,5 +88,35 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * Language is stored on the user; empty means "follow application language".
+       */
+      public void Case04_Language_RoundTrip()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         _ = database.User!.Settings.Language.Should().BeEmpty();
+
+         database.User.Settings.Language = "fr";
+         database.Save();
+         database.Close();
+
+         IDatabase reopened = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         _ = reopened.User!.Settings.Language.Should().Be("fr");
+
+         reopened.User.Settings.Language = string.Empty;
+         reopened.Save();
+         reopened.Close();
+
+         IDatabase again = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         _ = again.User!.Settings.Language.Should().BeEmpty();
+
+         again.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

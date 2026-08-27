@@ -183,6 +183,7 @@
   <data name="Label_Language" xml:space="preserve">
     <value>Langue :</value>
   </data>
+  <data name="Label_UseAppLanguage" xml:space="preserve"><value>Utiliser la langue de l'application</value></data>
   <data name="Label_Browse" xml:space="preserve">
     <value>Parcourir</value>
   </data>

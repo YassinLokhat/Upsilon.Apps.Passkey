@@ -4,6 +4,7 @@ using System.IO;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Models;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -50,14 +51,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
 
       /// <summary>
-      /// Persists settings and applies the UI culture. Returns <see langword="true"/>
-      /// when the language code changed (open windows are refreshed in place).
+      /// Persists settings and applies the effective UI culture (user override
+      /// when a session is open, otherwise the app language).
+      /// Returns <see langword="true"/> when the culture code changed.
       /// </summary>
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Called on the bound ViewModel instance from the view.")]
       public bool Save()
       {
          AppInfo.AppSettings.Save(AppInfo.ConfigFile);
-         return LocalizationService.Apply(AppInfo.AppSettings.Language);
+         return LocalizationService.ApplyEffective(
+            AppInfo.AppSettings.Language,
+            AppServices.Session.User?.Settings.Language);
       }
 
       public void Reset()

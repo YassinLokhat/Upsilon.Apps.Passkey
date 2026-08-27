@@ -264,17 +264,34 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
+         _session.ApplySessionLanguage();
+
          Hide();
          _resetCredentials();
 
-         if (!UserServicesView.ShowUser(this))
+         bool stayOpen = UserServicesView.ShowUser(this);
+
+         // ShowUser is modal: EndSession may have applied the app language while
+         // this window was still hidden under the dialog, so Loc bindings can miss
+         // the refresh. Re-apply after the modal returns, then show the login UI.
+         _restoreAppLanguage();
+         _resetCredentials();
+
+         if (!stayOpen)
          {
             Close();
          }
          else
          {
-            _resetCredentials();
+            Show();
          }
+      }
+
+      private static void _restoreAppLanguage()
+      {
+         // forceRefresh: EndSession may already have switched the culture while
+         // MainWindow was hidden under the modal; Loc bindings still need a nudge.
+         _ = LocalizationService.Apply(AppInfo.AppSettings.Language, forceRefresh: true);
       }
 
       private void _setBusy(string message)
@@ -350,6 +367,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             _resetCredentials();
             // The database already closed itself; only clear the session reference.
             _endSession(closeDatabase: false);
+            _restoreAppLanguage();
             Show();
          });
       }

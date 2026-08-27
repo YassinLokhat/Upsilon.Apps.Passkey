@@ -165,6 +165,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = true;
 
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh the follow-app label on language change.")]
+      public IReadOnlyList<AppLanguage> Languages =>
+      [
+         new(string.Empty, Strings.Label_UseAppLanguage),
+         .. LocalizationService.Supported,
+      ];
+
+      public AppLanguage SelectedLanguage
+      {
+         get;
+         set
+         {
+            if (value is null)
+            {
+               return;
+            }
+
+            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         }
+      }
+
       public event PropertyChangedEventHandler? PropertyChanged;
 
       private void _onPropertyChanged(string propertyName)
@@ -174,6 +195,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public UserSettingsViewModel()
       {
+         SelectedLanguage = _languageFromSettings(
+            AppServices.Session.Database?.User?.Settings.Language);
+
          if (AppServices.Session.Database?.User is not { } user)
          {
             return;
@@ -194,6 +218,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       }
 
       public void OnLanguageChanged()
-         => _onPropertyChanged(nameof(Title));
+      {
+         string code = SelectedLanguage.Code;
+         _onPropertyChanged(nameof(Title));
+         _onPropertyChanged(nameof(Languages));
+         SelectedLanguage = _languageFromSettings(code);
+      }
+
+      private AppLanguage _languageFromSettings(string? code)
+      {
+         if (string.IsNullOrWhiteSpace(code))
+         {
+            return Languages[0];
+         }
+
+         return Languages.FirstOrDefault(l =>
+            string.Equals(l.Code, code, StringComparison.OrdinalIgnoreCase))
+            ?? Languages[0];
+      }
    }
 }

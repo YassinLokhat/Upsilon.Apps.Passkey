@@ -46,6 +46,30 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       }
 
       /// <summary>
+      /// User override when non-empty and supported; otherwise the application language.
+      /// </summary>
+      public static string ResolveEffectiveLanguageCode(string? appLanguage, string? userLanguageOverride)
+      {
+         if (!string.IsNullOrWhiteSpace(userLanguageOverride))
+         {
+            AppLanguage? match = Supported.FirstOrDefault(l =>
+               string.Equals(l.Code, userLanguageOverride, StringComparison.OrdinalIgnoreCase));
+            if (match is not null)
+            {
+               return match.Code;
+            }
+         }
+
+         return GetLanguageOrDefault(appLanguage).Code;
+      }
+
+      /// <summary>
+      /// Applies <see cref="ResolveEffectiveLanguageCode"/>.
+      /// </summary>
+      public static bool ApplyEffective(string? appLanguage, string? userLanguageOverride)
+         => Apply(ResolveEffectiveLanguageCode(appLanguage, userLanguageOverride));
+
+      /// <summary>
       /// Picks the OS UI language when we ship it; otherwise English.
       /// </summary>
       public static string ResolveDefaultLanguageCode()
@@ -57,11 +81,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       }
 
       /// <summary>
-      /// Sets thread / default UI culture. When the culture actually changes, refreshes
-      /// <see cref="TranslationSource"/> bindings and notifies open <see cref="ILanguageAware"/> surfaces.
+      /// Sets thread / default UI culture. When the culture actually changes (or
+      /// <paramref name="forceRefresh"/> is set), refreshes <see cref="TranslationSource"/>
+      /// bindings and notifies open <see cref="ILanguageAware"/> surfaces.
       /// </summary>
       /// <returns><see langword="true"/> when the culture code changed.</returns>
-      public static bool Apply(string? languageCode)
+      public static bool Apply(string? languageCode, bool forceRefresh = false)
       {
          AppLanguage language = GetLanguageOrDefault(languageCode);
          string previous = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
@@ -76,7 +101,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
          Thread.CurrentThread.CurrentCulture = culture;
          Thread.CurrentThread.CurrentUICulture = culture;
 
-         if (!changed)
+         if (!changed && !forceRefresh)
          {
             return false;
          }
@@ -84,7 +109,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
          TranslationSource.Instance.NotifyLanguageChanged();
          _notifyOpenWindows();
          LanguageChanged?.Invoke(null, EventArgs.Empty);
-         return true;
+         return changed;
       }
 
       private static void _notifyOpenWindows()

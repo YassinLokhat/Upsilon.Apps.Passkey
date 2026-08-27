@@ -380,6 +380,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          public int NumberOfOldPasswordToKeep { get; set; }
          public int NumberOfMonthActivitiesToKeep { get; set; }
          public WarningType WarningsToNotify { get; set; }
+         public string Language { get; set; } = string.Empty;
       }
    }
 }

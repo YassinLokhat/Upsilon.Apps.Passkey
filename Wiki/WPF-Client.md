@@ -14,7 +14,7 @@ UI strings live in `GUI/WPF/Localization/`:
 * `{loc:Loc KeyName}` in XAML (live binding via `TranslationSource`); `Strings.KeyName` / `Strings.Format(...)` in C#
 * `LocalizationService.Apply` refreshes open windows implementing `ILanguageAware` (titles, combos, computed labels) — **no restart required**
 
-Language is an **app** setting (`config.json` next to the exe, property `Language`), not a vault setting. Change it under **App Settings** (`Ctrl+,`). Open windows update immediately; new dialogs always use the current culture.
+Language is an **app** setting (`config.json`, property `Language`) under **App Settings** (`Ctrl+,`). Each vault user can **override** it under **User settings** (`ISettings.Language`). Empty user language = follow the app. On login the client applies the effective language; on logout it reverts to the app language. Open windows update immediately via `ILanguageAware`.
 
 Do not put UI strings in Core, Utils, or Interfaces. The vault persists **stable** data (enum member names, field names, `New Service #`); the WPF client localizes at display time.
 

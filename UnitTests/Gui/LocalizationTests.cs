@@ -201,6 +201,24 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
          }
       }
 
+      [TestMethod]
+      public void ResolveEffectiveLanguageCode_UserOverrideBeatsApp()
+      {
+         AppLanguage satellite = _satelliteLanguages().First();
+
+         _ = LocalizationService.ResolveEffectiveLanguageCode(LocalizationService.DefaultLanguageCode, satellite.Code)
+            .Should().Be(satellite.Code);
+
+         _ = LocalizationService.ResolveEffectiveLanguageCode(satellite.Code, null)
+            .Should().Be(satellite.Code);
+
+         _ = LocalizationService.ResolveEffectiveLanguageCode(satellite.Code, string.Empty)
+            .Should().Be(satellite.Code);
+
+         _ = LocalizationService.ResolveEffectiveLanguageCode(satellite.Code, "not-a-language")
+            .Should().Be(satellite.Code);
+      }
+
       [TestCleanup]
       public void Cleanup()
       {

@@ -78,6 +78,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Label_Identifiers => Get(nameof(Label_Identifiers));
       public static string Label_Label => Get(nameof(Label_Label));
       public static string Label_Language => Get(nameof(Label_Language));
+      public static string Label_UseAppLanguage => Get(nameof(Label_UseAppLanguage));
       public static string Label_Length => Get(nameof(Label_Length));
       public static string Label_LimitActivityHistory => Get(nameof(Label_LimitActivityHistory));
       public static string Label_LimitPasswordHistory => Get(nameof(Label_LimitPasswordHistory));
