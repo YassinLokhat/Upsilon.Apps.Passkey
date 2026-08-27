@@ -1,9 +1,12 @@
 ﻿using FluentAssertions;
 using System.Globalization;
 using System.Resources;
+using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
+using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.UnitTests;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Gui
 {
@@ -228,6 +231,63 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
             .Should().Be(Strings.EnumValue_Theme_Light);
          _ = EnumDisplayHelper.FormatFieldValue("Theme", "Dark")
             .Should().Be(Strings.EnumValue_Theme_Dark);
+      }
+
+      [TestMethod]
+      public void EnumDisplayHelper_FormatsImportExportError()
+      {
+         _ = EnumDisplayHelper.FormatFieldValue(nameof(ImportExportError), nameof(ImportExportError.None))
+            .Should().Be(Strings.EnumValue_ImportExportError_None);
+         _ = EnumDisplayHelper.FormatFieldValue(nameof(ImportExportError), nameof(ImportExportError.IncorrectCSVFormat))
+            .Should().Be(Strings.EnumValue_ImportExportError_IncorrectCSVFormat);
+         _ = EnumDisplayHelper.FormatFieldValue("errorLog", nameof(ImportExportError.ExportFileAlreadyExists))
+            .Should().Be(Strings.EnumValue_ImportExportError_ExportFileAlreadyExists);
+      }
+
+      [TestMethod]
+      public void ImportExportFailureMessages_UseLocalizedEnumLabels()
+      {
+         foreach (ImportExportError error in Enum.GetValues<ImportExportError>())
+         {
+            if (error == ImportExportError.None)
+            {
+               continue;
+            }
+
+            ActivityViewModel importFailed = new(new Activity(
+               DateTime.Now.Ticks,
+               "id",
+               username: null,
+               serviceName: null,
+               accountName: null,
+               fieldName: nameof(ImportExportError),
+               fieldValue: error.ToString(),
+               parentName: null,
+               ActivityEventType.ImportingDataFailed,
+               needsReview: true));
+
+            _ = importFailed.Message.Should().Be(
+               UnitTestsHelper.FormatImportFailed(error).Split(" : ", 2)[1],
+               because: error.ToString());
+
+            ActivityViewModel exportFailed = new(new Activity(
+               DateTime.Now.Ticks,
+               "id",
+               username: null,
+               serviceName: null,
+               accountName: null,
+               fieldName: nameof(ImportExportError),
+               fieldValue: error.ToString(),
+               parentName: null,
+               ActivityEventType.ExportingDataFailed,
+               needsReview: true));
+
+            _ = exportFailed.Message.Should().Be(
+               UnitTestsHelper.FormatExportFailed(error).Split(" : ", 2)[1],
+               because: error.ToString());
+
+            _ = importFailed.Message.Should().NotBe(error.ToString(), because: error.ToString());
+         }
       }
 
       [TestCleanup]

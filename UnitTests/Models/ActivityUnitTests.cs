@@ -2,6 +2,7 @@
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.UnitTests;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
@@ -77,10 +78,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             [ActivityEventType.UserLoggedOut] = ["alice", null, null, null, null, null],
             [ActivityEventType.ImportingDataStarted] = [null, null, null, null, "vault.json", null],
             [ActivityEventType.ImportingDataSucceded] = [null, null, null, null, null, null],
-            [ActivityEventType.ImportingDataFailed] = [null, null, null, null, "bad format", null],
+            [ActivityEventType.ImportingDataFailed] = [null, null, null, nameof(ImportExportError), nameof(ImportExportError.IncorrectCSVFormat), null],
             [ActivityEventType.ExportingDataStarted] = [null, null, null, null, "vault.csv", null],
             [ActivityEventType.ExportingDataSucceded] = [null, null, null, null, null, null],
-            [ActivityEventType.ExportingDataFailed] = [null, null, null, null, "already exists", null],
+            [ActivityEventType.ExportingDataFailed] = [null, null, null, nameof(ImportExportError), nameof(ImportExportError.ExportFileAlreadyExists), null],
             [ActivityEventType.ItemUpdated] = [null, null, "Account", "Notes", "hello", "Service X"],
             [ActivityEventType.ItemAdded] = ["User alice", null, null, null, "Service X", null],
             [ActivityEventType.ItemDeleted] = ["User alice", null, null, null, "Service X", null],
@@ -91,10 +92,36 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          foreach (ActivityEventType eventType in Enum.GetValues<ActivityEventType>())
          {
             string[] data = payloads[eventType];
-            ActivityViewModel activity = new(new Activity(DateTime.Now.Ticks, "id", data[0], data[1], data[2], data[3], data[4], data[4], eventType, needsReview: false));
+            ActivityViewModel activity = new(new Activity(DateTime.Now.Ticks, "id", data[0], data[1], data[2], data[3], data[4], data[5], eventType, needsReview: false));
 
             _ = activity.Message.Should().NotBeNullOrWhiteSpace($"event {eventType} must render a message");
          }
+
+         ActivityViewModel importFailed = new(new Activity(
+            DateTime.Now.Ticks,
+            "id",
+            username: null,
+            serviceName: null,
+            accountName: null,
+            fieldName: nameof(ImportExportError),
+            fieldValue: nameof(ImportExportError.IncorrectCSVFormat),
+            parentName: null,
+            ActivityEventType.ImportingDataFailed,
+            needsReview: true));
+         _ = importFailed.Message.Should().Be(UnitTestsHelper.FormatImportFailed(ImportExportError.IncorrectCSVFormat).Split(" : ", 2)[1]);
+
+         ActivityViewModel exportFailed = new(new Activity(
+            DateTime.Now.Ticks,
+            "id",
+            username: null,
+            serviceName: null,
+            accountName: null,
+            fieldName: nameof(ImportExportError),
+            fieldValue: nameof(ImportExportError.ExportFileAlreadyExists),
+            parentName: null,
+            ActivityEventType.ExportingDataFailed,
+            needsReview: true));
+         _ = exportFailed.Message.Should().Be(UnitTestsHelper.FormatExportFailed(ImportExportError.ExportFileAlreadyExists).Split(" : ", 2)[1]);
 
          ActivityViewModel loggedOutDirty = new(new Activity(DateTime.Now.Ticks, "id", "alice", null, null, "needsReview", "1", null, ActivityEventType.UserLoggedOut, needsReview: true));
          _ = loggedOutDirty.Message.Should().Contain("without saving");

@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -115,7 +115,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          };
 
          button.Click += (_, _) => _closeWith(result);
-         _buttonsPanel.Children.Add(button);
+         _ = _buttonsPanel.Children.Add(button);
       }
 
       private void _closeWith(MessageBoxResult result)

@@ -113,7 +113,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _database.Delete();
 
-         AppServices.Dialogs.Confirm(Strings.Format(nameof(Strings.Msg_UserDeleted), _viewModel.Username), Strings.Title_Success, MessageBoxButton.OK, MessageBoxImage.None);
+         _ = AppServices.Dialogs.Confirm(Strings.Format(nameof(Strings.Msg_UserDeleted), _viewModel.Username), Strings.Title_Success, MessageBoxButton.OK, MessageBoxImage.None);
       }
 
       private async Task _saveAsync()
@@ -121,7 +121,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          string error = _canSave();
          if (!string.IsNullOrEmpty(error))
          {
-            AppServices.Dialogs.Confirm(error, Strings.Title_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+            _ = AppServices.Dialogs.Confirm(error, Strings.Title_Error, MessageBoxButton.OK, MessageBoxImage.Error);
 
             return;
          }
@@ -255,7 +255,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             this.DatabaseClosed(_isClosing);
          }
 
-         AppServices.Dialogs.Confirm(message, Strings.Title_Success, MessageBoxButton.OK, MessageBoxImage.None);
+         _ = AppServices.Dialogs.Confirm(message, Strings.Title_Success, MessageBoxButton.OK, MessageBoxImage.None);
       }
 
       private async void _save_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -336,11 +336,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
             if (imported)
             {
-               AppServices.Dialogs.Confirm(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess, MessageBoxButton.OK, MessageBoxImage.None);
+               _ = AppServices.Dialogs.Confirm(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess, MessageBoxButton.OK, MessageBoxImage.None);
             }
             else
             {
-               AppServices.Dialogs.Confirm(Strings.Msg_ImportFailed, Strings.Title_ImportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
+               _ = AppServices.Dialogs.Confirm(Strings.Msg_ImportFailed, Strings.Title_ImportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
             }
          }
          finally
@@ -419,11 +419,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
             if (exported)
             {
-               AppServices.Dialogs.Confirm(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess, MessageBoxButton.OK, MessageBoxImage.None);
+               _ = AppServices.Dialogs.Confirm(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess, MessageBoxButton.OK, MessageBoxImage.None);
             }
             else
             {
-               AppServices.Dialogs.Confirm(Strings.Msg_ExportFailed, Strings.Title_ExportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
+               _ = AppServices.Dialogs.Confirm(Strings.Msg_ExportFailed, Strings.Title_ExportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
             }
          }
          finally

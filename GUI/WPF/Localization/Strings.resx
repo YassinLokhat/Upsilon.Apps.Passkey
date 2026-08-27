@@ -862,4 +862,34 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="Activity_DateTimeFormat" xml:space="preserve">
     <value>yyyy-MM-dd HH:mm</value>
   </data>
+  <data name="EnumValue_ImportExportError_None" xml:space="preserve">
+    <value>none</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ImportFileNotAccessible" xml:space="preserve">
+    <value>import file is not accessible</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ExtentionFileNotSupported" xml:space="preserve">
+    <value>file extension type is not supported</value>
+  </data>
+  <data name="EnumValue_ImportExportError_CSVHeadersDontMatch" xml:space="preserve">
+    <value>the CSV header does not match</value>
+  </data>
+  <data name="EnumValue_ImportExportError_IncorrectCSVFormat" xml:space="preserve">
+    <value>the CSV format is incorrect</value>
+  </data>
+  <data name="EnumValue_ImportExportError_NoDataToImport" xml:space="preserve">
+    <value>no data to import</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ImportFileDeserializationFailed" xml:space="preserve">
+    <value>import file deserialization failed</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ServiceAlreadyExists" xml:space="preserve">
+    <value>a service already exists</value>
+  </data>
+  <data name="EnumValue_ImportExportError_BlankService" xml:space="preserve">
+    <value>a service is blank</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ExportFileAlreadyExists" xml:space="preserve">
+    <value>export file already exists</value>
+  </data>
 </root>

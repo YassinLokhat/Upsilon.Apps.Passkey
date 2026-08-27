@@ -862,4 +862,34 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="Activity_DateTimeFormat" xml:space="preserve">
     <value>dd/MM/yyyy HH:mm</value>
   </data>
+  <data name="EnumValue_ImportExportError_None" xml:space="preserve">
+    <value>aucune</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ImportFileNotAccessible" xml:space="preserve">
+    <value>le fichier d'import n'est pas accessible</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ExtentionFileNotSupported" xml:space="preserve">
+    <value>le type d'extention de fichier n'est pas supporté</value>
+  </data>
+  <data name="EnumValue_ImportExportError_CSVHeadersDontMatch" xml:space="preserve">
+    <value>l'entête du CSV est incorrecte</value>
+  </data>
+  <data name="EnumValue_ImportExportError_IncorrectCSVFormat" xml:space="preserve">
+    <value>l'entête du CSV est incorrecte</value>
+  </data>
+  <data name="EnumValue_ImportExportError_NoDataToImport" xml:space="preserve">
+    <value>aucune donnée à importer</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ImportFileDeserializationFailed" xml:space="preserve">
+    <value>la déserialisation du fichier a échoué</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ServiceAlreadyExists" xml:space="preserve">
+    <value>un service existe déjà</value>
+  </data>
+  <data name="EnumValue_ImportExportError_BlankService" xml:space="preserve">
+    <value>un service est vide</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ExportFileAlreadyExists" xml:space="preserve">
+    <value>le fichier d'export existe déjà</value>
+  </data>
 </root>
