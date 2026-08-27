@@ -141,7 +141,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             $"|{_escapePipes(ServiceName)}" +
             $"|{_escapePipes(AccountName)}" +
             $"|{(int)EventType}" +
-            $"|{(NeedsReview ? "1" : "")})" +
+            $"|{(NeedsReview ? "1" : "")}" +
             $"|{_escapePipes(ParentName)}" +
             $"|{FieldName}" +
             $"|{_escapePipes(FieldValue)}";
