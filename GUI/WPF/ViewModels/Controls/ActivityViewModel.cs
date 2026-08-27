@@ -57,6 +57,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             && searchCriteriaMatches;
       }
 
+      /// <summary>
+      /// Builds the Activities grid Message column from <see cref="IActivity"/> fields.
+      /// Uses <c>Activity_*</c> templates (not <c>EnumValue_ActivityEventType_*</c>, which are short filter labels).
+      /// </summary>
       private static string _buildMessage(IActivity activity)
       {
          string message = activity.EventType switch

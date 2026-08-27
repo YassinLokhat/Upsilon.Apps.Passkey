@@ -68,7 +68,11 @@ a Windows-only capability cannot be done with the BCL.
    values (do not rename keys).
 2. Register `new("xx", "Native name")` in `LocalizationService.Supported`.
 3. Prefer `{loc:Loc Key}` in XAML and `Strings.Key` / `Strings.Format` in C#.
-   See `Wiki/WPF-Client.md`.
+
+Key prefixes, and why each `ActivityEventType` has both
+`EnumValue_ActivityEventType_*` (short filter label) and `Activity_*` (full
+Message sentence), are documented under **Localization** in
+`Wiki/WPF-Client.md`.
 
 ## Code style
 

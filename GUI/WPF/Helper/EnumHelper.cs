@@ -6,6 +6,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// <summary>
    /// Maps activity/warning enums to localized strings in <c>Strings.resx</c>
    /// (<c>EnumValue_{EnumType}_{member}</c> keys).
+   /// These are the short labels for filters / the Event type column.
+   /// Full Message sentences use the parallel <c>Activity_*</c> keys — see Wiki WPF Client Localization.
    /// </summary>
    internal static class EnumHelper
    {

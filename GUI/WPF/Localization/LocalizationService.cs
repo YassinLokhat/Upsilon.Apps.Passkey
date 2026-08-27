@@ -6,6 +6,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
    /// Applies the UI culture and lists languages shipping with the WPF client.
    /// To add a language: copy <c>Strings.resx</c> → <c>Strings.xx.resx</c>, translate,
    /// then append one entry to <see cref="Supported"/>.
+   /// Translators must keep both <c>EnumValue_ActivityEventType_*</c> (short labels)
+   /// and <c>Activity_*</c> (full Message sentences) in sync — see Wiki WPF Client Localization.
    /// </summary>
    internal static class LocalizationService
    {
