@@ -428,12 +428,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // Caller must hold _gate.
       private void _clearPersistenceDirty_NoLock()
       {
-         foreach (IActivity activity in Activities)
+         foreach (Activity activity in Activities.Where(x => x is Activity).Cast<Activity>())
          {
-            if (activity is Activity concrete)
-            {
-               concrete.PersistenceDirty = false;
-            }
+            activity.PersistenceDirty = false;
          }
       }
 
