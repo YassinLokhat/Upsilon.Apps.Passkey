@@ -10,7 +10,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class AccountViewModel(IAccount account) : INotifyPropertyChanged
+   internal sealed class AccountViewModel(IAccount account) : INotifyPropertyChanged, IThemeAware
    {
       public readonly IAccount Account = account;
 
@@ -175,6 +175,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void OnLanguageChanged()
          => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountId)));
+
+      public void OnThemeChanged()
+      {
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LabelBackground)));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PasswordBackground)));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NotesBackground)));
+
+         foreach (IdentifierViewModel identifier in Identifiers)
+         {
+            identifier.OnThemeChanged();
+         }
+      }
 
       private void _onPropertyChanged(string propertyName)
       {

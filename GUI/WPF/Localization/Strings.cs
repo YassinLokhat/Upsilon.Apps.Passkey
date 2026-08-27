@@ -79,6 +79,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Label_Label => Get(nameof(Label_Label));
       public static string Label_Language => Get(nameof(Label_Language));
       public static string Label_UseAppLanguage => Get(nameof(Label_UseAppLanguage));
+      public static string Label_Theme => Get(nameof(Label_Theme));
+      public static string Label_UseAppTheme => Get(nameof(Label_UseAppTheme));
       public static string Label_Length => Get(nameof(Label_Length));
       public static string Label_LimitActivityHistory => Get(nameof(Label_LimitActivityHistory));
       public static string Label_LimitPasswordHistory => Get(nameof(Label_LimitPasswordHistory));
@@ -227,6 +229,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string FieldName_WarningsToNotify => Get(nameof(FieldName_WarningsToNotify));
       public static string FieldName_Username => Get(nameof(FieldName_Username));
       public static string FieldName_Passkeys => Get(nameof(FieldName_Passkeys));
+      public static string FieldName_Language => Get(nameof(FieldName_Language));
+      public static string FieldName_Theme => Get(nameof(FieldName_Theme));
       public static string EnumValue_None => Get(nameof(EnumValue_None));
+      public static string EnumValue_Theme_System => Get(nameof(EnumValue_Theme_System));
+      public static string EnumValue_Theme_Light => Get(nameof(EnumValue_Theme_Light));
+      public static string EnumValue_Theme_Dark => Get(nameof(EnumValue_Theme_Dark));
    }
 }

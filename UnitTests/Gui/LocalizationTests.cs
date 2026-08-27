@@ -219,6 +219,17 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
             .Should().Be(satellite.Code);
       }
 
+      [TestMethod]
+      public void EnumDisplayHelper_FormatsThemePreference()
+      {
+         _ = EnumDisplayHelper.FormatFieldValue("Theme", "System")
+            .Should().Be(Strings.EnumValue_Theme_System);
+         _ = EnumDisplayHelper.FormatFieldValue("Theme", "Light")
+            .Should().Be(Strings.EnumValue_Theme_Light);
+         _ = EnumDisplayHelper.FormatFieldValue("Theme", "Dark")
+            .Should().Be(Strings.EnumValue_Theme_Dark);
+      }
+
       [TestCleanup]
       public void Cleanup()
       {

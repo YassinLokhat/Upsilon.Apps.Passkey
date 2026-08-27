@@ -185,6 +185,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _database.User.Settings.NumberOfOldPasswordToKeep = _viewModel.NumberOfOldPasswordToKeep;
             _database.User.Settings.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
             _database.User.Settings.Language = _viewModel.SelectedLanguage.Code;
+            _database.User.Settings.Theme = _viewModel.SelectedTheme.Code;
             WarningType warningsToNotify = 0;
             if (_viewModel.NotifyActivityReview)
             {
@@ -210,6 +211,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
             await _database.SaveAsync().ConfigureAwait(true);
             _session.ApplySessionLanguage();
+            _session.ApplySessionTheme();
          }
 
          string message;

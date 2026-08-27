@@ -28,7 +28,7 @@ Each assembly is versioned independently. At the time of writing they share **2.
 | Generation | CSPRNG over a configurable alphabet |
 | Leak checks | Opt-in Have I Been Pwned, with a free XposedOrNot failover (k-anonymity) |
 | Import / export | Plaintext JSON (settings + services) or TSV/CSV (services only) |
-| Windows client | Dark theme, QR codes, global paste hotkeys, autosave merge on next login |
+| Windows client | System / Light / Dark theme, QR codes, global paste hotkeys, autosave merge on next login |
 
 ## Start here
 

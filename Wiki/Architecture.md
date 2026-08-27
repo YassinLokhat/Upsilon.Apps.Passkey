@@ -142,6 +142,8 @@ classDiagram
             +int NumberOfOldPasswordToKeep
             +int NumberOfMonthActivitiesToKeep
             +WarningType WarningsToNotify
+            +string Language
+            +string Theme
         }
 
         class IDatabase {

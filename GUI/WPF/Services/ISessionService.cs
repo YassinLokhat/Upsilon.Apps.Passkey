@@ -40,5 +40,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       /// when logged in, otherwise the application language).
       /// </summary>
       void ApplySessionLanguage();
+
+      /// <summary>
+      /// Applies the effective UI theme for the current session (user override
+      /// when logged in, otherwise the application theme).
+      /// </summary>
+      void ApplySessionTheme();
    }
 }

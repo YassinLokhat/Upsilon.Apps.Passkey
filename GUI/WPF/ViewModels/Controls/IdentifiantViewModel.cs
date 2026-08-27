@@ -7,7 +7,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed partial class IdentifierViewModel : INotifyPropertyChanged
+   internal sealed partial class IdentifierViewModel : INotifyPropertyChanged, IThemeAware
    {
       private readonly IAccount _account;
 
@@ -62,6 +62,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       {
          _onPropertyChanged(nameof(IdentifierBackground));
       }
+
+      public void OnThemeChanged() => Refresh();
 
       [GeneratedRegex(@"^\+\d{1,3}[\d\s\-\.]{6,20}$")]
       private static partial Regex _phoneRegex();

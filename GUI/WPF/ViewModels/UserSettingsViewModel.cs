@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -186,6 +187,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       }
 
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh theme labels on language change.")]
+      public IReadOnlyList<AppThemeOption> Themes =>
+      [
+         new(string.Empty, Strings.Label_UseAppTheme),
+         .. ThemeService.Supported,
+      ];
+
+      public AppThemeOption SelectedTheme
+      {
+         get;
+         set
+         {
+            if (value is null)
+            {
+               return;
+            }
+
+            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         }
+      }
+
       public event PropertyChangedEventHandler? PropertyChanged;
 
       private void _onPropertyChanged(string propertyName)
@@ -197,6 +219,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          SelectedLanguage = _languageFromSettings(
             AppServices.Session.Database?.User?.Settings.Language);
+         SelectedTheme = _themeFromSettings(
+            AppServices.Session.Database?.User?.Settings.Theme);
 
          if (AppServices.Session.Database?.User is not { } user)
          {
@@ -219,10 +243,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnLanguageChanged()
       {
-         string code = SelectedLanguage.Code;
+         string languageCode = SelectedLanguage.Code;
+         string themeCode = SelectedTheme.Code;
          _onPropertyChanged(nameof(Title));
          _onPropertyChanged(nameof(Languages));
-         SelectedLanguage = _languageFromSettings(code);
+         _onPropertyChanged(nameof(Themes));
+         SelectedLanguage = _languageFromSettings(languageCode);
+         SelectedTheme = _themeFromSettings(themeCode);
       }
 
       private AppLanguage _languageFromSettings(string? code)
@@ -235,6 +262,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          return Languages.FirstOrDefault(l =>
             string.Equals(l.Code, code, StringComparison.OrdinalIgnoreCase))
             ?? Languages[0];
+      }
+
+      private AppThemeOption _themeFromSettings(string? code)
+      {
+         if (string.IsNullOrWhiteSpace(code))
+         {
+            return Themes[0];
+         }
+
+         return Themes.FirstOrDefault(t =>
+            string.Equals(t.Code, code, StringComparison.OrdinalIgnoreCase))
+            ?? Themes[0];
       }
    }
 }

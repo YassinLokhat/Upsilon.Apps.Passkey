@@ -2,7 +2,7 @@
 
 The Windows desktop app lives in `GUI/WPF`. It is MVVM with a small service locator (`AppServices`) instead of a DI container, so ViewModels stay unit-testable. The project currently has no NuGet packages either; keep it that way unless a Windows-only capability cannot be done with the BCL.
 
-Target framework: `net10.0-windows10.0.18362.0`. Dark WPF resources plus Windows immersive dark title bars.
+Target framework: `net10.0-windows10.0.18362.0`. Light and dark WPF resource dictionaries, with Windows immersive title bars matching the active appearance.
 
 ## Localization
 
@@ -15,6 +15,12 @@ UI strings live in `GUI/WPF/Localization/`:
 * `LocalizationService.Apply` refreshes open windows implementing `ILanguageAware` (titles, combos, computed labels) — **no restart required**
 
 Language is an **app** setting (`config.json`, property `Language`) under **App Settings** (`Ctrl+,`). Each vault user can **override** it under **User settings** (`ISettings.Language`). Empty user language = follow the app. On login the client applies the effective language; on logout it reverts to the app language. Open windows update immediately via `ILanguageAware`.
+
+## Theme
+
+Color brushes live in `GUI/WPF/Themes/DarkTheme.xaml` and `LightTheme.xaml` (same keys). Control styles in `Controls.xaml` use `{DynamicResource}` so a dictionary swap repaints open windows — **no restart required**. `ThemeService.Apply` also updates immersive title bars and notifies `IThemeAware` surfaces (code-behind brushes on account/service fields).
+
+Theme is an **app** setting (`config.json`, property `Theme`: `System`, `Light`, or `Dark`) under **App Settings**. Each vault user can **override** it under **User settings** (`ISettings.Theme`). Empty user theme = follow the app. `System` follows Windows `AppsUseLightTheme`. On login the client applies the effective theme; on logout it reverts to the app theme. If the effective preference is `System`, an OS light/dark change is applied live.
 
 Do not put UI strings in Core, Utils, or Interfaces. The vault persists **stable** data (enum member names, field names, `New Service #`); the WPF client localizes at display time.
 
