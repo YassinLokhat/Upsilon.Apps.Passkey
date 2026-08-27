@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
+﻿using System.Text.RegularExpressions;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
@@ -6,7 +7,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
    /// <summary>
    /// One audit-log row. Ciphertext is RSA-hybrid; plaintext lives only after login.
    /// </summary>
-   internal sealed class Activity : IActivity
+   internal sealed partial class Activity : IActivity
    {
       #region IActivity interface
 
@@ -58,7 +59,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public Activity(string activity)
       {
-         string[] info = activity.Split('|');
+         string[] info = _splitUnescapePipes(activity);
          int index = 0;
 
          if (info.Length > index)
@@ -136,13 +137,22 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public override string ToString()
          => $"{DateTimeTicks:X}" +
             $"|{ItemId}" +
-            $"|{Username}" +
-            $"|{ServiceName}" +
-            $"|{AccountName}" +
+            $"|{_escapePipes(Username)}" +
+            $"|{_escapePipes(ServiceName)}" +
+            $"|{_escapePipes(AccountName)}" +
             $"|{(int)EventType}" +
-            $"|{(NeedsReview ? "1" : "")}" +
-            $"|{ParentName}" +
+            $"|{(NeedsReview ? "1" : "")})" +
+            $"|{_escapePipes(ParentName)}" +
             $"|{FieldName}" +
-            $"|{FieldValue}";
+            $"|{_escapePipes(FieldValue)}";
+
+      private static string[] _splitUnescapePipes(string source)
+         => SplitUnescapePipes().Split(source);
+
+      private static string? _escapePipes(string? source)
+         => source?.Replace("|", "\\|", StringComparison.InvariantCulture);
+
+      [GeneratedRegex(@"(?<!\\)\|")]
+      private static partial Regex SplitUnescapePipes();
    }
 }
