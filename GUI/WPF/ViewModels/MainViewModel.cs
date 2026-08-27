@@ -80,6 +80,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public ICommand OpenDatabaseCommand { get; }
       public ICommand NewUserCommand { get; }
+      public ICommand AppSettingsCommand { get; }
       public ICommand GeneratePasswordCommand { get; }
 
       public event EventHandler? DatabaseSelected;
@@ -89,6 +90,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          OpenDatabaseCommand = new RelayCommand(_openDatabase, () => MenusEnabled);
          NewUserCommand = new RelayCommand(_newUser, () => MenusEnabled);
+         AppSettingsCommand = new RelayCommand(_appSettings, () => MenusEnabled);
          GeneratePasswordCommand = new RelayCommand(_generatePassword, () => MenusEnabled);
       }
 
@@ -112,6 +114,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       private static void _newUser()
       {
          _ = AppServices.Dialogs.ShowDialog(new UserSettingsView());
+      }
+
+      private static void _appSettings()
+      {
+         _ = AppServices.Dialogs.ShowDialog(new AppSettingsView());
       }
 
       private static void _generatePassword()

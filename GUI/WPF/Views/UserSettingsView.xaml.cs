@@ -127,7 +127,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          string newFilename = AppServices.Cryptography.GetHash(_viewModel.Username);
-         string newDatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{newFilename}.pku");
+         string newDatabaseFile = Path.GetFullPath($"{Path.Join(AppInfo.AppSettings.DefaultDatabaseDirectory, newFilename + ".pku")}");
 
          bool newUser = false;
          bool credentialsChanged = false;
@@ -216,7 +216,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             message = $"'{_viewModel.Username}' user's credentials has been updated.\nYou will be logged out.\nPlease login again.";
             _passwordsContainer.ClearSecrets();
-            _database.Close();
+            _session.EndSession();
 
             string oldDatabaseDirectory = Path.GetDirectoryName(oldDatabaseFile) ?? string.Empty;
             string newDatabaseDirectory = Path.GetDirectoryName(newDatabaseFile) ?? string.Empty;
@@ -243,7 +243,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             message += $"created successfully";
             _passwordsContainer.ClearSecrets();
-            _database.Close();
+            _session.EndSession();
          }
          else
          {
