@@ -20,7 +20,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          Log.Info($"Application starting (PID {Environment.ProcessId}).");
 
          _ = AppInfo.ConfigFile;
-         LocalizationService.Apply(AppInfo.AppSettings.Language);
+         _ = LocalizationService.Apply(AppInfo.AppSettings.Language);
 
          if (AppInfo.ConfigLoadHadError)
          {

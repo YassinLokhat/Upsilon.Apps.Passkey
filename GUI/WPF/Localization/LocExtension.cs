@@ -1,5 +1,4 @@
-using System.Windows;
-using System.Windows.Data;
+﻿using System.Windows.Data;
 using System.Windows.Markup;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
@@ -24,13 +23,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
          };
 
          // Design-time / template shared DP: still return a live Binding.
-         if (serviceProvider.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget target
-            && target.TargetObject.GetType().FullName == "System.Windows.SharedDp")
-         {
-            return binding;
-         }
-
-         return binding.ProvideValue(serviceProvider);
+         return serviceProvider.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget target
+            && target.TargetObject.GetType().FullName == "System.Windows.SharedDp"
+            ? binding
+            : binding.ProvideValue(serviceProvider);
       }
    }
 }
