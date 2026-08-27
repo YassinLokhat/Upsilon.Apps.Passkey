@@ -7,7 +7,7 @@ focused change and enough context for review.
 
 - **Security issues** must not be filed as public GitHub issues. Follow
   [SECURITY.md](SECURITY.md) instead.
-- Keep Core and Interfaces free of third-party NuGet packages (see below).
+- Keep Core, Utils, and Interfaces free of third-party NuGet packages (see below).
 - Prefer a small PR over a mixed refactor + feature + docs dump.
 
 ## Repository layout
@@ -15,14 +15,15 @@ focused change and enough context for review.
 | Path | Role |
 | ---- | ---- |
 | `Interfaces/` | Public contracts (`IDatabase`, crypto, serialization, clipboard). |
+| `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `ProtectedSecret`. Same zero-NuGet policy as Core. |
 | `Core/` | Vault implementation: onion encryption, `.pku` I/O, warnings, import/export. `Database` is a partial class; internal hosts (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) keep ActivityCenter / AutoSave / User from digging into Database members. |
 | `GUI/WPF/` | Windows desktop client (WPF, .NET 10 Windows TFM). |
-| `UnitTests/` | Core tests plus ViewModel tests through the `AppServices` seam. |
+| `UnitTests/` | Core/Utils tests plus ViewModel tests through the `AppServices` seam. |
 
 Two solution files exist on purpose:
 
-- `Upsilon.Apps.Passkey.Windows.slnx` — Interfaces, Core, WPF GUI, and tests.
-- `Upsilon.Apps.Passkey.Linux.slnx` — Interfaces and Core only (no WPF, no tests:
+- `Upsilon.Apps.Passkey.Windows.slnx` — Interfaces, Utils, Core, WPF GUI, and tests.
+- `Upsilon.Apps.Passkey.Linux.slnx` — Interfaces, Utils, and Core only (no WPF, no tests:
   the test project targets `net10.0-windows`).
 
 ## Build and test
@@ -33,8 +34,9 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
 ```
 
 Windows CI also enforces **90% line coverage of `Upsilon.Apps.Passkey.Core`**.
-Coverage is scoped in `coverage.runsettings`; the WPF assembly is excluded.
-Do not lower that gate without an explicit discussion in the PR.
+Coverage is scoped in `coverage.runsettings` to the Core assembly; Utils and the
+WPF assembly are excluded. Do not lower that gate without an explicit discussion
+in the PR.
 
 GUI ViewModel tests can be filtered with:
 
@@ -45,9 +47,9 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitT
 There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global
 hotkeys, and real MessageBoxes stay in the [manual smoke list](README.md#manual-smoke-gui).
 
-## Zero-dependency policy (Core and Interfaces)
+## Zero-dependency policy (Core, Utils, and Interfaces)
 
-`Core` and `Interfaces` must not take a `PackageReference`. An MSBuild target
+`Core`, `Utils`, and `Interfaces` must not take a `PackageReference`. An MSBuild target
 fails the build if one appears. That keeps the vault's supply-chain surface
 limited to the .NET BCL.
 
@@ -59,6 +61,18 @@ Allowed:
 
 The WPF project currently has no NuGet packages either; keep it that way unless
 a Windows-only capability cannot be done with the BCL.
+
+## Adding a UI language
+
+1. Copy `GUI/WPF/Localization/Strings.resx` → `Strings.xx.resx` and translate
+   values (do not rename keys).
+2. Register `new("xx", "Native name")` in `LocalizationService.Supported`.
+3. Prefer `{loc:Loc Key}` in XAML and `Strings.Key` / `Strings.Format` in C#.
+
+Key prefixes, and why each `ActivityEventType` has both
+`EnumValue_ActivityEventType_*` (short filter label) and `Activity_*` (full
+Message sentence), are documented under **Localization** in
+`Wiki/WPF-Client.md`.
 
 ## Code style
 
@@ -75,7 +89,7 @@ Match the surrounding file. Do not reformat unrelated code.
 
 ## What a PR should include
 
-- Tests for Core behaviour you change (crypto, vault lifecycle, import/export,
+- Tests for Core/Utils behaviour you change (crypto, vault lifecycle, import/export,
   warnings, persistence).
 - ViewModel tests when you change GUI logic that already sits behind
   `AppServices` (dialogs, session, clipboard, navigation).

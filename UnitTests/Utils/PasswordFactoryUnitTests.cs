@@ -2,8 +2,8 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using Upsilon.Apps.Passkey.Core.Utils;
-using Upsilon.Apps.Passkey.Core.Utils.LeakFilter;
+using Upsilon.Apps.Passkey.Utils;
+using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Utils
 {

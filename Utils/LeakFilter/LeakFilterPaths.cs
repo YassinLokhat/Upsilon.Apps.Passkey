@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Upsilon.Apps.Passkey.Core.Utils.LeakFilter
+namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 {
    /// <summary>
    /// Application-level paths and config for the optional offline HIBP Bloom filter

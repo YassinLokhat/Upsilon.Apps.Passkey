@@ -4,6 +4,69 @@ The Windows desktop app lives in `GUI/WPF`. It is MVVM with a small service loca
 
 Target framework: `net10.0-windows10.0.18362.0`. Dark WPF resources plus Windows immersive dark title bars.
 
+## Localization
+
+UI strings live in `GUI/WPF/Localization/`:
+
+* `Strings.resx` — English (neutral / fallback)
+* `Strings.fr.resx` — French
+* `LocalizationService.Supported` — combo-box registry
+* `{loc:Loc KeyName}` in XAML (live binding via `TranslationSource`); `Strings.KeyName` / `Strings.Format(...)` in C#
+* `LocalizationService.Apply` refreshes open windows implementing `ILanguageAware` (titles, combos, computed labels) — **no restart required**
+
+Language is an **app** setting (`config.json`, property `Language`) under **App Settings** (`Ctrl+,`). Each vault user can **override** it under **User settings** (`ISettings.Language`). Empty user language = follow the app. On login the client applies the effective language; on logout it reverts to the app language. Open windows update immediately via `ILanguageAware`.
+
+Do not put UI strings in Core, Utils, or Interfaces. The vault persists **stable** data (enum member names, field names, `New Service #`); the WPF client localizes at display time.
+
+### Key prefixes
+
+| Prefix | Role | Example |
+| ------ | ---- | ------- |
+| `Menu_` | Menu items | `Menu_Save` → `_Save` |
+| `Label_` | Labels, checkboxes, column headers | `Label_Username` |
+| `Title_` | Window / dialog titles | `Title_UserSettings` → `{0} - User settings` |
+| `Msg_` | MessageBox / busy / status text | `Msg_OpeningDatabase` |
+| `Filter_` | File dialog filters and “All” | `Filter_Pku` |
+| `IdentifierType_` | Insert-identifier buttons | `IdentifierType_Email` |
+| `FieldName_` | Field names inside activity sentences | `FieldName_ServiceName` → `service name` |
+| `EnumValue_*_` | Short enum labels (filters, combo boxes) | see below |
+| `Activity_` | Full activity **Message** sentences | see below |
+
+When you add a key: update `Strings.resx`, every satellite (e.g. `Strings.fr.resx`), and the typed accessor in `Strings.cs` unless the key is only loaded via `Strings.Get("…")` (dynamic `FieldName_*` / `EnumValue_*` lookups).
+
+### Activity events: two keys per `ActivityEventType`
+
+Each `ActivityEventType` (except `None`) usually needs **two** resource entries. They are not duplicates — they serve different UI surfaces.
+
+| Key family | Used by | Shape | Example (`DatabaseOpened`) |
+| ---------- | ------- | ----- | -------------------------- |
+| `EnumValue_ActivityEventType_{Member}` | `EnumHelper.ToReadableString` → filter combo / Event type column | Short noun phrase, no placeholders | EN: `Database opened` · FR: `Base de données ouverte` |
+| `Activity_{Member}` | `ActivityViewModel` → Message column | Full sentence; `{0}`, `{1}`, … for username / path / etc. | EN: `User '{0}'s database opened` · FR: `Base de données de l'utilisateur '{0}' ouverte` |
+
+```
+ActivityEventType.DatabaseOpened
+        │
+        ├─► EnumValue_ActivityEventType_DatabaseOpened   (filters / Event type)
+        └─► Activity_DatabaseOpened                      (Message column)
+```
+
+**Translator checklist when adding or changing an event type:**
+
+1. Add / update `EnumValue_ActivityEventType_<Member>` in every language file.
+2. Add / update `Activity_<Member>` (and any variants such as `Activity_UserLoggedOutWithoutSaving`) with the correct placeholder count.
+3. Wire the Message path in `ActivityViewModel` / `StringsHelper` if the event is new.
+4. Keep Core persistence unchanged: store enum names and field ids, never translated text.
+
+Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (`EnumValue_WarningType_*`, optional `EnumValue_AccountOption_*`). Warning filter strings may reuse existing `Label_Notify*` keys via `EnumDisplayHelper` when the wording already matches the settings UI.
+
+`FieldName_*` keys localize the middle of ItemUpdated-style sentences (`Strings.Get($"FieldName_{activity.FieldName}")`). If Core starts persisting a new field name, add a matching `FieldName_` entry or the UI falls back to the raw key.
+
+### Adding a language
+
+1. Copy `Strings.resx` → `Strings.xx.resx` and translate values (keep key names). Pay special attention to **both** `EnumValue_ActivityEventType_*` and `Activity_*` for every event.
+2. Append `new("xx", "Native name")` to `LocalizationService.Supported`.
+3. Run `LocalizationTests` — they loop every non-English entry in `Supported` (`SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
+
 ## Vault files and logs
 
 * New users are stored next to the executable as `raw/{GetHash(username)}.pku`.

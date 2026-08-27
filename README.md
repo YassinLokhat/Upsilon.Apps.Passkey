@@ -25,25 +25,26 @@ independently; see [SECURITY.md](SECURITY.md)).
 **Architecture**
 ----------------
 
-Three layers, two solution files:
+Four layers, two solution files:
 
 ```
 Interfaces/     Public contracts (IDatabase, IUser, crypto, clipboard, …)
+Utils/          Default crypto, JSON, password factory, ProtectedSecret. Zero NuGet (BCL only).
 Core/           Vault implementation. Zero NuGet packages (BCL only).
 GUI/WPF/        Windows desktop client (MVVM + a small AppServices locator).
-UnitTests/      Core tests + ViewModel tests (Windows TFM; references the WPF project).
+UnitTests/      Core/Utils tests + ViewModel tests (Windows TFM; references the WPF project).
 ```
 
 | Solution | Projects |
 | -------- | -------- |
-| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Core, WPF GUI, UnitTests |
-| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces and Core only (no WPF, no tests) |
+| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, WPF GUI, UnitTests |
+| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, and Core only (no WPF, no tests) |
 
 Core talks to the OS for clipboard only through an injected port
-(`IClipboardManager` must be OS-specific). File I/O and opt-in HTTP leak checks
-use the BCL directly. The WPF app supplies the clipboard implementation and
-hosts dialogs, session, and navigation behind `AppServices` so ViewModels stay
-testable without a window.
+(`IClipboardManager` must be OS-specific). File I/O uses the BCL in Core.
+Opt-in HTTP leak checks live in Utils (`PasswordFactory`). The WPF app supplies
+the clipboard implementation and hosts dialogs, session, and navigation behind
+`AppServices` so ViewModels stay testable without a window.
 
 **Security**
 ------------
@@ -51,7 +52,7 @@ testable without a window.
 *   **At rest**: AES-256-GCM onion (HKDF-SHA256 per layer) over ordered passkeys; the activity log uses RSA-4096 hybrid encryption plus a login-time seal. See [SECURITY.md](SECURITY.md).
 *   **In memory**: account passwords, passkeys, and the RSA private key are wrapped with `ProtectedSecret` (process-wide AES-GCM) and only revealed just in time.
 *   **Session**: configurable auto-logout, clipboard auto-clear (including Windows clipboard history), and progressive login without rollback.
-*   **Supply chain**: Core and Interfaces refuse any third-party NuGet package at build time. GitHub CodeQL scans production code on CI.
+*   **Supply chain**: Core, Utils, and Interfaces refuse any third-party NuGet package at build time. GitHub CodeQL scans production code on CI.
 
 **Models**
 ----------
@@ -335,7 +336,7 @@ classDiagram
 To create a new database, use the `Upsilon.Apps.Passkey.Core.Models.Database.Create` static method.
 
 This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation and an `IClipboardManager` implementation.
-The namespace `Upsilon.Apps.Passkey.Core.Utils` already contains implementations for all of these interfaces except for the `IClipboardManager` which needs an OS specific implementation.
+The namespace `Upsilon.Apps.Passkey.Utils` already contains implementations for all of these interfaces except for the `IClipboardManager` which needs an OS specific implementation.
 
 The next parameter is the database file itself, which will be created during the process.
 
@@ -343,9 +344,9 @@ Finally, the method take the username and the passkeys.
 Note that the passkeys are used as master passwords to encrypt the database (and the other files).
 
 ```csharp
-IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Create(new Upsilon.Apps.Passkey.Core.Utils.CryptographyCenter(),
-   new Upsilon.Apps.Passkey.Core.Utils.JsonSerializationCenter(),
-   new Upsilon.Apps.Passkey.Core.Utils.PasswordFactory(),
+IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Create(new Upsilon.Apps.Passkey.Utils.CryptographyCenter(),
+   new Upsilon.Apps.Passkey.Utils.JsonSerializationCenter(),
+   new Upsilon.Apps.Passkey.Utils.PasswordFactory(),
    new OSSpecificClipboardManager(),
    "./database.pku",
    "username",
@@ -375,9 +376,9 @@ The next parameter is the database file itself and must, obviously, exist.
 Finally, the method take the username.
 
 ```csharp
-IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Open(new Upsilon.Apps.Passkey.Core.Utils.CryptographyCenter(),
-   new Upsilon.Apps.Passkey.Core.Utils.JsonSerializationCenter(),
-   new Upsilon.Apps.Passkey.Core.Utils.PasswordFactory(),
+IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Open(new Upsilon.Apps.Passkey.Utils.CryptographyCenter(),
+   new Upsilon.Apps.Passkey.Utils.JsonSerializationCenter(),
+   new Upsilon.Apps.Passkey.Utils.PasswordFactory(),
    new OSSpecificClipboardManager(),
    "./database.pku",
    "username");
@@ -534,15 +535,16 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 
 ### Automated
 
-*   **Core**: `UnitTests` covers crypto, vault lifecycle, import/export, persistence,
+*   **Core / Utils**: `UnitTests` covers crypto, vault lifecycle, import/export, persistence,
     and related models. Run with `dotnet test` on the Windows solution.
 *   **GUI ViewModels**: the same `UnitTests` project also references the WPF app
     and exercises ViewModels (`UnitTests/Gui/`) through a replaceable
     `AppServices` seam and fakes (session, dialogs, clipboard). No UI automation
     (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, and real MessageBoxes
     stay out of the automated suite.
-*   **Coverage**: `coverage.runsettings` measures **Core only**. Windows CI fails
-    the build if line coverage drops below **90%**.
+*   **Coverage**: `coverage.runsettings` measures **Core only** (Utils is a
+    separate assembly and is not in that gate). Windows CI fails the build if
+    line coverage drops below **90%**.
 
 ```bash
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
@@ -568,7 +570,7 @@ GitHub Actions on `master` and pull requests:
 | Workflow | What it does |
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Core + Interfaces); `dotnet test` with no test projects |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
 | `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on every push/PR (any branch) and weekly; Release build of production projects (tests excluded) |
 
 Dependabot is configured for the **.NET SDK** only (`dotnet-sdk` ecosystem). Test
@@ -579,7 +581,7 @@ NuGet packages (MSTest, FluentAssertions) are not auto-bumped.
 
 1.  Clone the repository: `git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git`
 2.  Windows (GUI + tests): `dotnet build Upsilon.Apps.Passkey.Windows.slnx` then `dotnet run --project GUI/WPF`
-3.  Linux / Core-only: `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
+3.  Linux (Interfaces + Utils + Core): `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
 
 Requires the .NET 10 SDK. The WPF app targets `net10.0-windows10.0.18362.0`.
 

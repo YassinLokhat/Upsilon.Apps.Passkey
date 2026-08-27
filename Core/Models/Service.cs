@@ -3,6 +3,7 @@ using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -193,7 +194,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      public override string ToString() => $"Service {ServiceName}";
+      public override string ToString() => ServiceName;
 
       public bool HasChanged() => Host.HasPendingChanges(ItemId) || Accounts.Any(x => x.HasChanged());
    }

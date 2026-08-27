@@ -1,17 +1,25 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class UserSettingsViewModel : INotifyPropertyChanged
+   internal sealed class UserSettingsViewModel : INotifyPropertyChanged, ILanguageAware
    {
-      public string Title { get; }
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
+      public string Title => AppServices.Session.Database?.User is null
+         ? Strings.Format(nameof(Strings.Title_NewUser), AppInfo.Title)
+         : Strings.Format(nameof(Strings.Title_UserSettings), AppInfo.Title);
       public string Username
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = "NewUser";
+      } = Strings.Label_NewUser;
       public int LogoutTimeout
       {
          get;
@@ -160,6 +168,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = true;
 
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh the follow-app label on language change.")]
+      public IReadOnlyList<AppLanguage> Languages =>
+      [
+         new(string.Empty, Strings.Label_UseAppLanguage),
+         .. LocalizationService.Supported,
+      ];
+
+      public AppLanguage SelectedLanguage
+      {
+         get;
+         set
+         {
+            if (value is null)
+            {
+               return;
+            }
+
+            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         }
+      }
+
       // --- Application-level offline leak filter (not saved in the vault) ---
 
       public bool OfflineLeakFilterEnabled
@@ -216,52 +245,69 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public UserSettingsViewModel()
       {
-         Title = AppInfo.Title;
+         SelectedLanguage = _languageFromSettings(
+            AppServices.Session.Database?.User?.Settings.Language);
+
+         RefreshOfflineLeakFilterStatus();
 
          if (AppServices.Session.Database?.User is not { } user)
          {
-            Title += " - New user";
-         }
-         else
-         {
-            Title += " - User settings";
-
-            Username = user.Username;
-
-            LogoutTimeout = user.Settings.LogoutTimeout;
-            CleaningClipboardTimeout = user.Settings.CleaningClipboardTimeout;
-            ShowPasswordDelay = user.Settings.ShowPasswordDelay;
-            NumberOfOldPasswordToKeep = user.Settings.NumberOfOldPasswordToKeep;
-            NumberOfMonthActivitiesToKeep = user.Settings.NumberOfMonthActivitiesToKeep;
-
-            NotifyActivityReview = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
-            NotifyPasswordUpdateReminder = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
-            NotifyDuplicatedPasswords = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
-            NotifyPasswordLeaked = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
+            return;
          }
 
-         RefreshOfflineLeakFilterStatus();
+         Username = user.Username;
+
+         LogoutTimeout = user.Settings.LogoutTimeout;
+         CleaningClipboardTimeout = user.Settings.CleaningClipboardTimeout;
+         ShowPasswordDelay = user.Settings.ShowPasswordDelay;
+         NumberOfOldPasswordToKeep = user.Settings.NumberOfOldPasswordToKeep;
+         NumberOfMonthActivitiesToKeep = user.Settings.NumberOfMonthActivitiesToKeep;
+
+         NotifyActivityReview = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
+         NotifyPasswordUpdateReminder = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
+         NotifyDuplicatedPasswords = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
+         NotifyPasswordLeaked = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
+      }
+
+      public void OnLanguageChanged()
+      {
+         string code = SelectedLanguage.Code;
+         _onPropertyChanged(nameof(Title));
+         _onPropertyChanged(nameof(Languages));
+         SelectedLanguage = _languageFromSettings(code);
       }
 
       public void RefreshOfflineLeakFilterStatus()
       {
-         Core.Utils.LeakFilter.LeakFilterConfig config = Core.Utils.LeakFilter.LeakFilterPaths.LoadConfig();
+         LeakFilterConfig config = LeakFilterPaths.LoadConfig();
          OfflineLeakFilterEnabled = config.Enabled;
 
-         string path = Core.Utils.LeakFilter.LeakFilterPaths.ResolveFilterFilePath(config);
+         string path = LeakFilterPaths.ResolveFilterFilePath(config);
 
-         if (!System.IO.File.Exists(path))
+         if (!File.Exists(path))
          {
-            OfflineLeakFilterStatus = $"Absent under {Core.Utils.LeakFilter.LeakFilterPaths.RootDirectory}";
+            OfflineLeakFilterStatus = $"Absent under {LeakFilterPaths.RootDirectory}";
             return;
          }
 
-         System.IO.FileInfo info = new(path);
+         FileInfo info = new(path);
          string size = $"{info.Length / (1024d * 1024d * 1024d):0.00} GiB";
-         string updated = info.LastWriteTimeUtc.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) + " UTC";
+         string updated = info.LastWriteTimeUtc.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + " UTC";
          OfflineLeakFilterStatus = config.Enabled
             ? $"Present · {size} · updated {updated} · {path}"
             : $"Present on disk · {size} · updated {updated} · disabled · {path}";
+      }
+
+      private AppLanguage _languageFromSettings(string? code)
+      {
+         if (string.IsNullOrWhiteSpace(code))
+         {
+            return Languages[0];
+         }
+
+         return Languages.FirstOrDefault(l =>
+            string.Equals(l.Code, code, StringComparison.OrdinalIgnoreCase))
+            ?? Languages[0];
       }
    }
 }

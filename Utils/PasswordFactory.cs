@@ -1,11 +1,11 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using Upsilon.Apps.Passkey.Core.Utils.LeakFilter;
+using Upsilon.Apps.Passkey.Utils.LeakFilter;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
-namespace Upsilon.Apps.Passkey.Core.Utils
+namespace Upsilon.Apps.Passkey.Utils
 {
    /// <summary>
    /// CSPRNG password generation and opt-in leak checks (HIBP, then XposedOrNot).

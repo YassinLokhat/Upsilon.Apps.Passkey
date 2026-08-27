@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Net.Http;
 
-namespace Upsilon.Apps.Passkey.Core.Utils.LeakFilter
+namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 {
    /// <summary>
    /// Downloads HIBP SHA-1 ranges and builds a local <c>.pkbf</c> Bloom filter.

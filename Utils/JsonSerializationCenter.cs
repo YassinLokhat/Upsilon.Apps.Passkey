@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
-namespace Upsilon.Apps.Passkey.Core.Utils
+namespace Upsilon.Apps.Passkey.Utils
 {
    /// <summary>
    /// JSON serialization for vault payloads. Enums as strings; secrets go through

@@ -1,4 +1,4 @@
-namespace Upsilon.Apps.Passkey.Core.Utils.LeakFilter
+namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 {
    /// <summary>
    /// Local, offline membership probe for SHA-1 password hashes (HIBP corpus).

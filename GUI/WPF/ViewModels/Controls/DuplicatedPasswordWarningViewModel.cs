@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Models;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Localization;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
@@ -6,7 +7,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
    {
       private readonly IWarning _warning;
 
-      public string DuplicatedPassword => $"{_warning.Accounts?.Count()} accounts with same passwords";
+      public string DuplicatedPassword => Strings.Format(nameof(Strings.Msg_DuplicatedPasswordAccounts), _warning.Accounts?.Count());
       public AccountPasswordWarningViewModel[] Accounts { get; set; }
 
       public DuplicatedPasswordWarningViewModel(IWarning warning)

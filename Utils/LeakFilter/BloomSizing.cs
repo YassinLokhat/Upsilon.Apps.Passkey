@@ -1,4 +1,4 @@
-namespace Upsilon.Apps.Passkey.Core.Utils.LeakFilter
+namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 {
    /// <summary>
    /// Optimal Bloom-filter sizing for a target capacity and false-positive rate.

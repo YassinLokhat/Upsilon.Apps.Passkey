@@ -1,6 +1,6 @@
 # Vault Format
 
-A `.pku` file is a **ZIP archive** with four entries. All cryptography is in `Core/Utils/CryptographyCenter.cs` on top of `System.Security.Cryptography`.
+A `.pku` file is a **ZIP archive** with four entries. All cryptography is in `Utils/CryptographyCenter.cs` on top of `System.Security.Cryptography`.
 
 ## ZIP entries
 

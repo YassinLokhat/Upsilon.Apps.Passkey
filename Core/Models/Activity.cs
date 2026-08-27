@@ -1,4 +1,4 @@
-﻿using Upsilon.Apps.Passkey.Core.Utils;
+﻿using System.Text.RegularExpressions;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -7,7 +7,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
    /// <summary>
    /// One audit-log row. Ciphertext is RSA-hybrid; plaintext lives only after login.
    /// </summary>
-   internal sealed class Activity : IActivity
+   internal sealed partial class Activity : IActivity
    {
       #region IActivity interface
 
@@ -15,111 +15,144 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public string ItemId { get; } = string.Empty;
 
+      public string? Username { get; set; }
+
+      public string? ServiceName { get; set; }
+
+      public string? AccountName { get; set; }
+
+      public string? FieldName { get; set; }
+
+      public string? FieldValue { get; set; }
+
+      public string? ParentName { get; set; }
+
       public ActivityEventType EventType { get; set; } = ActivityEventType.None;
 
       public bool NeedsReview { get; set; } = true;
 
-      public string Message => _buildMessage();
-
       #endregion
 
       public long DateTimeTicks { get; set; }
-      public string[] Data { get; set; } = [];
 
-      public Activity(long dateTimeTicks, string itemId, ActivityEventType eventType, string[] data, bool needsReview)
+      public Activity(long dateTimeTicks,
+         string itemId,
+         string? username,
+         string? serviceName,
+         string? accountName,
+         string? fieldName,
+         string? fieldValue,
+         string? parentName,
+         ActivityEventType eventType, bool needsReview)
       {
          DateTimeTicks = dateTimeTicks;
          ItemId = itemId;
+         Username = username;
+         ServiceName = serviceName;
+         AccountName = accountName;
+         FieldName = fieldName;
+         FieldValue = fieldValue;
+         ParentName = parentName;
          EventType = eventType;
-         Data = data;
          NeedsReview = needsReview;
       }
 
       public Activity(string activity)
       {
-         string[] info = activity.Split('|');
+         string[] info = _splitUnescapePipes(activity);
+         int index = 0;
 
-         if (info.Length > 0)
+         if (info.Length > index)
          {
-            DateTimeTicks = Convert.ToInt64(info[0], 16);
+            DateTimeTicks = Convert.ToInt64(info[index], 16);
          }
 
-         if (info.Length > 1)
+         index++;
+         if (info.Length > index)
          {
-            ItemId = info[1];
+            ItemId = info[index];
          }
 
-         if (info.Length > 2
-            && byte.TryParse(info[2], out byte eventType))
+         index++;
+         if (info.Length > index)
+         {
+            Username = info[index];
+         }
+
+         index++;
+         if (info.Length > index)
+         {
+            ServiceName = info[index];
+         }
+
+         index++;
+         if (info.Length > index)
+         {
+            AccountName = info[index];
+         }
+
+         index++;
+         if (info.Length > index
+            && byte.TryParse(info[index], out byte eventType))
          {
             EventType = (ActivityEventType)eventType;
          }
 
-         if (info.Length > 3)
+         index++;
+         if (info.Length > index)
          {
-            NeedsReview = !string.IsNullOrEmpty(info[3]);
+            NeedsReview = !string.IsNullOrEmpty(info[index]);
          }
 
-         if (info.Length > 4)
+         index++;
+         if (info.Length > index)
          {
-            activity = string.Join("|", info[4..])
-               .Replace("|", "/|", StringComparison.Ordinal)
-               .Replace("\\/|", "\\|", StringComparison.Ordinal);
-            info = activity.Split("/|");
-            Data = [.. info.Select(x => x.Replace("\\|", "|", StringComparison.Ordinal))];
+            ParentName = !string.IsNullOrEmpty(info[index]) ? info[index] : null;
+         }
+
+         index++;
+         if (info.Length > index)
+         {
+            FieldName = !string.IsNullOrEmpty(info[index]) ? info[index] : null;
+         }
+
+         index++;
+         if (info.Length > index)
+         {
+            info = info[index..];
+            FieldValue = string.Join('|', info);
+
+            if (string.IsNullOrEmpty(FieldValue))
+            {
+               FieldValue = null;
+            }
          }
       }
 
       /// <summary>
-      /// Persistence wire format: ticks|itemId|eventType|needsReview|data… with
+      /// Persistence wire format: ticks|itemId|username|serviceName|accountName|fieldName|fieldValue|parentName|eventType|needsReview with
       /// <c>|</c> escaped as <c>\|</c> inside data. Numeric <see cref="EventType"/>
       /// values are a contract — do not renumber the enum.
       /// </summary>
       public override string ToString()
-      {
-         string activity = $"{DateTimeTicks:X}|{ItemId}|{(int)EventType}|{(NeedsReview ? "1" : "")}";
+         => $"{DateTimeTicks:X}" +
+            $"|{ItemId}" +
+            $"|{_escapePipes(Username)}" +
+            $"|{_escapePipes(ServiceName)}" +
+            $"|{_escapePipes(AccountName)}" +
+            $"|{(int)EventType}" +
+            $"|{(NeedsReview ? "1" : "")}" +
+            $"|{_escapePipes(ParentName)}" +
+            $"|{FieldName}" +
+            $"|{_escapePipes(FieldValue)}";
 
-         string[] data = [.. Data.Select(x => x.Replace("|", "\\|", StringComparison.Ordinal))];
-         if (data.Length != 0)
-         {
-            activity += $"|{string.Join("|", data)}";
-         }
+      private static string[] _splitUnescapePipes(string source)
+         => SplitUnescapePipes().Split(source);
 
-         return activity;
-      }
+      private static string? _escapePipes(string? source)
+         => source?.Replace("|", "\\|", StringComparison.InvariantCulture);
 
-      private string _buildMessage()
-      {
-         string message = EventType switch
-         {
-            ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile => $"User {Data[0]}'s autosave merged and saved",
-            ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile => $"User {Data[0]}'s autosave merged without saving",
-            ActivityEventType.DontMergeAndRemoveAutoSaveFile => $"User {Data[0]}'s autosave not merged and removed",
-            ActivityEventType.DontMergeAndKeepAutoSaveFile => $"User {Data[0]}'s autosave not merged and kept",
-            ActivityEventType.DatabaseCreated => $"User {Data[0]}'s database created",
-            ActivityEventType.DatabaseOpened => $"User {Data[0]}'s database opened",
-            ActivityEventType.DatabaseSaved => $"User {Data[0]}'s database saved",
-            ActivityEventType.DatabaseClosed => $"User {Data[0]}'s database closed",
-            ActivityEventType.LoginSessionTimeoutReached => $"User {Data[0]}'s login session timeout reached",
-            ActivityEventType.LoginFailed => $"User {Data[0]} login failed at level {Data[1]}",
-            ActivityEventType.UserLoggedIn => $"User {Data[0]} logged in",
-            ActivityEventType.UserLoggedOut => $"User {Data[0]} logged out {(!string.IsNullOrEmpty(Data[1]) ? "without saving" : "")}",
-            ActivityEventType.ImportingDataStarted => $"Importing data from file : '{Data[0]}'",
-            ActivityEventType.ImportingDataSucceded => $"Import completed successfully",
-            ActivityEventType.ImportingDataFailed => $"Import failed because {Data[0]}",
-            ActivityEventType.ExportingDataStarted => $"Exporting data to file : '{Data[0]}'",
-            ActivityEventType.ExportingDataSucceded => $"Export completed successfully",
-            ActivityEventType.ExportingDataFailed => $"Export failed because {Data[0]}",
-#pragma warning disable CA1308 // Display text, not a normalization key: the field name is intentionally lowercased for a readable sentence.
-            ActivityEventType.ItemUpdated => $"{(Data.Length > 3 ? $"{Data[3]}'s " : "")}{Data[0]}'s {Data[1].ToSentenceCase().ToLowerInvariant()} has been {(string.IsNullOrWhiteSpace(Data[2]) ? $"updated" : $"set to {Data[2]}")}",
-#pragma warning restore CA1308
-            ActivityEventType.ItemAdded => $"{Data[2]} has been added to {Data[0]}",
-            ActivityEventType.ItemDeleted => $"{Data[2]} has been removed from {Data[0]}",
-            ActivityEventType.ActivityLogTampered => $"User {Data[0]}'s activity log integrity check failed",
-            _ => ToString(),
-         };
-
-         return message.Trim();
-      }
+      [GeneratedRegex(@"(?<!\\)\|")]
+      private static partial Regex SplitUnescapePipes();
    }
 }

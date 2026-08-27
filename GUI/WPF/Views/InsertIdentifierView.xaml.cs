@@ -69,7 +69,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _insertIdentifierType_Button_Click(object sender, RoutedEventArgs e)
       {
-         string? idType = ((Button)sender).Content as string;
+         string? idType = ((Button)sender).Tag as string;
 
          if (idType is not null)
          {

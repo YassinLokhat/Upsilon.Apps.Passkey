@@ -6,6 +6,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views.Controls"
              xmlns:controls="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls"
+             xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
              d:DataContext="{d:DesignInstance Type=controls:AccountViewModel}"
              mc:Ignorable="d">
     <DockPanel VerticalAlignment="Stretch">
@@ -27,7 +28,7 @@
                 </Grid.ColumnDefinitions>
                 <Label Grid.Row="0"
                         Grid.Column="0"
-                        Content="Label : "/>
+                        Content="{loc:Loc Label_Label}"/>
                 <Button Grid.Row="0"
                             Grid.Column="2"
                             Content="👓"
@@ -43,7 +44,7 @@
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="3*"/>
                     </Grid.ColumnDefinitions>
-                    <GroupBox Header="Identifiers"
+                    <GroupBox Header="{loc:Loc Label_Identifiers}"
                               Grid.Column="0">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -101,7 +102,7 @@
                                 Click="_showQrCodeIdentifier_Clicked"/>
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Password"
+                    <GroupBox Header="{loc:Loc Label_PasswordGroup}"
                               Grid.Column="1">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -170,7 +171,7 @@
 
                 <Label Grid.Row="2"
                         Grid.Column="0"
-                        Content="Notes : "/>
+                        Content="{loc:Loc Label_Notes}"/>
                 <TextBox Grid.Row="2"
                             Grid.Column="1"
                             Grid.ColumnSpan="2"
@@ -180,25 +181,27 @@
                             VerticalScrollBarVisibility="Auto"
                             AcceptsReturn="True"
                             AcceptsTab="True"/>
-                <GroupBox Header="Options"
+                <GroupBox Header="{loc:Loc Label_Options}"
                             Grid.Row="3"
                             Grid.Column="0"
                             Grid.ColumnSpan="3">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <CheckBox IsChecked="{Binding RemindPasswordUpdate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                        Content="Remind to update password every"/>
+                                        Content="{loc:Loc Label_RemindPasswordUpdate}"/>
                             <TextBox Width="25"
                                         HorizontalContentAlignment="Center"
                                         TextChanged="_value_TextBox_TextChanged"
                                         PreviewTextInput="_value_TextBox_PreviewTextInput"
                                         DataObject.Pasting="_value_TextBox_Pasting"
                                         Text="{Binding RemindPasswordUpdateDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                            <Label Margin="0">months.</Label>
+                            <Label Margin="0" Content="{loc:Loc Label_Months}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
-                            <CheckBox IsChecked="{Binding WarnPasswordLeak, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Warn if the password leaked.</CheckBox>
-                            <CheckBox IsChecked="{Binding WarnIfDuplicatedPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Warn if the password is same as another account's password.</CheckBox>
+                            <CheckBox IsChecked="{Binding WarnPasswordLeak, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Content="{loc:Loc Label_WarnPasswordLeak}"/>
+                            <CheckBox IsChecked="{Binding WarnIfDuplicatedPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Content="{loc:Loc Label_WarnDuplicatedPassword}"/>
                         </StackPanel>
                     </StackPanel>
                 </GroupBox>

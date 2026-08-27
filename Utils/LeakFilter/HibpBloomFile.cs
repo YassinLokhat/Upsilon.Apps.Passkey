@@ -1,7 +1,7 @@
 using System.IO.MemoryMappedFiles;
 using System.Text;
 
-namespace Upsilon.Apps.Passkey.Core.Utils.LeakFilter
+namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 {
    /// <summary>
    /// On-disk HIBP SHA-1 Bloom filter (<c>.pkbf</c>) backed by a memory-mapped bit array.

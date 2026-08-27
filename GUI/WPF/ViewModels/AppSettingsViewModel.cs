@@ -1,14 +1,19 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Text.Json;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Models;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class AppSettingsViewModel : INotifyPropertyChanged
+   internal class AppSettingsViewModel : INotifyPropertyChanged, ILanguageAware
    {
-      public string Title { get; } = AppInfo.Title + " - App Settings";
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
+      public string Title => Strings.Format(nameof(Strings.Title_AppSettings), AppInfo.Title);
+
+      public IReadOnlyList<AppLanguage> Languages { get; } = LocalizationService.Supported;
 
       public string DefaultDatabaseDirectory
       {
@@ -25,20 +30,48 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = AppInfo.AppSettings.DefaultDatabaseDirectory;
 
+      public AppLanguage SelectedLanguage
+      {
+         get;
+         set
+         {
+            if (value is null)
+            {
+               return;
+            }
+
+            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+            AppInfo.AppSettings.Language = field.Code;
+         }
+      } = LocalizationService.GetLanguageOrDefault(AppInfo.AppSettings.Language);
+
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      public AppSettingsViewModel() { }
+      public void OnLanguageChanged()
+         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
 
-      public static void Save()
-         => AppInfo.AppSettings.Save(AppInfo.ConfigFile);
+      /// <summary>
+      /// Persists settings and applies the effective UI culture (user override
+      /// when a session is open, otherwise the app language).
+      /// Returns <see langword="true"/> when the culture code changed.
+      /// </summary>
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Called on the bound ViewModel instance from the view.")]
+      public bool Save()
+      {
+         AppInfo.AppSettings.Save(AppInfo.ConfigFile);
+         return LocalizationService.ApplyEffective(
+            AppInfo.AppSettings.Language,
+            AppServices.Session.User?.Settings.Language);
+      }
 
       public void Reset()
       {
          AppInfo.AppSettings = new AppSettings();
 
          DefaultDatabaseDirectory = AppInfo.AppSettings.DefaultDatabaseDirectory;
+         SelectedLanguage = LocalizationService.GetLanguageOrDefault(AppInfo.AppSettings.Language);
 
-         Save();
+         _ = Save();
       }
    }
 }
