@@ -11,6 +11,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
    [DoNotParallelize]
    public sealed class LocalizationTests
    {
+      private static readonly ResourceManager Manager = new(
+         "Upsilon.Apps.Passkey.GUI.WPF.Localization.Strings",
+         typeof(Strings).Assembly);
+
+      /// <summary>
+      /// Every registered UI language except the neutral English fallback.
+      /// Adding <c>new("xx", …)</c> to <see cref="LocalizationService.Supported"/>
+      /// automatically includes that satellite in key-parity and localization checks.
+      /// </summary>
+      private static IEnumerable<AppLanguage> _satelliteLanguages()
+         => LocalizationService.Supported.Where(l =>
+            !string.Equals(l.Code, LocalizationService.DefaultLanguageCode, StringComparison.OrdinalIgnoreCase));
+
       [TestInitialize]
       public void Initialize()
       {
@@ -18,54 +31,53 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       }
 
       [TestMethod]
-      public void FrenchResources_ContainEveryNeutralKey()
+      public void SupportedLanguages_IncludeDefaultAndAtLeastOneSatellite()
       {
-         ResourceManager manager = new(
-            "Upsilon.Apps.Passkey.GUI.WPF.Localization.Strings",
-            typeof(Strings).Assembly);
+         IReadOnlyList<string> codes = [.. LocalizationService.Supported.Select(l => l.Code)];
 
-         using ResourceSet? neutral = manager.GetResourceSet(CultureInfo.InvariantCulture, createIfNotExists: true, tryParents: true);
-         using ResourceSet? french = manager.GetResourceSet(CultureInfo.GetCultureInfo("fr"), createIfNotExists: true, tryParents: false);
-
-         _ = neutral.Should().NotBeNull();
-         _ = french.Should().NotBeNull();
-
-         foreach (System.Collections.DictionaryEntry entry in neutral!)
-         {
-            string key = (string)entry.Key;
-            _ = french!.GetString(key).Should().NotBeNullOrEmpty($"French resource missing key '{key}'");
-         }
+         _ = codes.Should().Contain(LocalizationService.DefaultLanguageCode);
+         _ = codes.Should().OnlyHaveUniqueItems();
+         _ = _satelliteLanguages().Should().NotBeEmpty(
+            "at least one translated satellite (e.g. fr) must ship with the client");
       }
 
       [TestMethod]
-      public void NeutralAndFrenchResources_HaveSameKeys()
+      public void SatelliteResources_ContainEveryNeutralKey()
       {
-         ResourceManager manager = new(
-            "Upsilon.Apps.Passkey.GUI.WPF.Localization.Strings",
-            typeof(Strings).Assembly);
-
-         using ResourceSet? neutral = manager.GetResourceSet(CultureInfo.InvariantCulture, createIfNotExists: true, tryParents: true);
-         using ResourceSet? french = manager.GetResourceSet(CultureInfo.GetCultureInfo("fr"), createIfNotExists: true, tryParents: false);
+         using ResourceSet? neutral = Manager.GetResourceSet(CultureInfo.InvariantCulture, createIfNotExists: true, tryParents: true);
+         _ = neutral.Should().NotBeNull();
 
          HashSet<string> neutralKeys = neutral!.Cast<System.Collections.DictionaryEntry>()
             .Select(e => (string)e.Key)
             .ToHashSet(StringComparer.Ordinal);
-         HashSet<string> frenchKeys = french!.Cast<System.Collections.DictionaryEntry>()
-            .Select(e => (string)e.Key)
-            .ToHashSet(StringComparer.Ordinal);
 
-         _ = neutralKeys.Should().BeEquivalentTo(frenchKeys);
+         foreach (AppLanguage language in _satelliteLanguages())
+         {
+            using ResourceSet? satellite = Manager.GetResourceSet(
+               CultureInfo.GetCultureInfo(language.Code),
+               createIfNotExists: true,
+               tryParents: false);
+
+            _ = satellite.Should().NotBeNull($"missing satellite resources for '{language.Code}'");
+
+            HashSet<string> satelliteKeys = satellite!.Cast<System.Collections.DictionaryEntry>()
+               .Select(e => (string)e.Key)
+               .ToHashSet(StringComparer.Ordinal);
+
+            _ = satelliteKeys.Should().BeEquivalentTo(
+               neutralKeys,
+               because: $"'{language.Code}' must have the same keys as the neutral Strings.resx");
+
+            foreach (string key in neutralKeys)
+            {
+               _ = satellite.GetString(key).Should().NotBeNullOrEmpty(
+                  $"'{language.Code}' resource missing or empty for key '{key}'");
+            }
+         }
       }
 
       [TestMethod]
-      public void SupportedLanguages_IncludeEnglishAndFrench()
-      {
-         _ = LocalizationService.Supported.Select(l => l.Code)
-            .Should().Contain(["en", "fr"]);
-      }
-
-      [TestMethod]
-      public void EnumDisplayHelper_FormatsAccountOptionFlags_InEnglish()
+      public void EnumDisplayHelper_FormatsAccountOptionFlags_InDefaultLanguage()
       {
          _ = EnumDisplayHelper.FormatFieldValue("Options", "None")
             .Should().Be(Strings.EnumValue_None);
@@ -80,17 +92,22 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       }
 
       [TestMethod]
-      public void EnumDisplayHelper_FormatsWarningTypeFlags_InFrench()
+      public void EnumDisplayHelper_FormatsWarningTypeFlags_InEachSatelliteLanguage()
       {
-         LocalizationService.Apply("fr");
+         foreach (AppLanguage language in _satelliteLanguages())
+         {
+            LocalizationService.Apply(language.Code);
 
-         _ = EnumDisplayHelper.FormatFieldValue("WarningsToNotify", "None")
-            .Should().Be(Strings.EnumValue_None);
+            _ = EnumDisplayHelper.FormatFieldValue("WarningsToNotify", "None")
+               .Should().Be(Strings.EnumValue_None, because: language.Code);
 
-         string combined = EnumDisplayHelper.FormatFieldValue("WarningsToNotify",
-            $"{nameof(WarningType.ActivityReviewWarning)}, {nameof(WarningType.PasswordLeakedWarning)}");
+            string combined = EnumDisplayHelper.FormatFieldValue("WarningsToNotify",
+               $"{nameof(WarningType.ActivityReviewWarning)}, {nameof(WarningType.PasswordLeakedWarning)}");
 
-         _ = combined.Should().Be($"{Strings.Label_NotifyActivityReview}, {Strings.Label_NotifyPasswordLeaked}");
+            _ = combined.Should().Be(
+               $"{Strings.Label_NotifyActivityReview}, {Strings.Label_NotifyPasswordLeaked}",
+               because: language.Code);
+         }
       }
 
       [TestMethod]
@@ -126,35 +143,40 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       }
 
       [TestMethod]
-      public void ActivityEventType_ToReadableString_IsLocalizedInFrench()
+      public void ActivityEventType_ToReadableString_DiffersFromEnglish_InEachSatellite()
       {
-         LocalizationService.Apply("en");
+         LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
          string englishLabel = ActivityEventType.DatabaseOpened.ToReadableString();
 
-         LocalizationService.Apply("fr");
-         string frenchLabel = ActivityEventType.DatabaseOpened.ToReadableString();
+         foreach (AppLanguage language in _satelliteLanguages())
+         {
+            LocalizationService.Apply(language.Code);
+            string localized = ActivityEventType.DatabaseOpened.ToReadableString();
 
-         _ = frenchLabel.Should().NotBe(nameof(ActivityEventType.DatabaseOpened));
-         _ = frenchLabel.Should().NotBe(englishLabel);
+            _ = localized.Should().NotBe(nameof(ActivityEventType.DatabaseOpened), because: language.Code);
+            _ = localized.Should().NotBe(englishLabel, because: language.Code);
+         }
       }
 
       [TestMethod]
       public void Apply_RaisesLanguageChanged_OnlyWhenCultureChanges()
       {
-         LocalizationService.Apply("en");
+         LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
 
          int raised = 0;
          void handler(object? _, EventArgs __) => raised++;
          LocalizationService.LanguageChanged += handler;
          try
          {
-            _ = LocalizationService.Apply("en").Should().BeFalse();
+            AppLanguage satellite = _satelliteLanguages().First();
+
+            _ = LocalizationService.Apply(LocalizationService.DefaultLanguageCode).Should().BeFalse();
             _ = raised.Should().Be(0);
 
-            _ = LocalizationService.Apply("fr").Should().BeTrue();
+            _ = LocalizationService.Apply(satellite.Code).Should().BeTrue();
             _ = raised.Should().Be(1);
 
-            _ = LocalizationService.Apply("fr").Should().BeFalse();
+            _ = LocalizationService.Apply(satellite.Code).Should().BeFalse();
             _ = raised.Should().Be(1);
          }
          finally
@@ -164,16 +186,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       }
 
       [TestMethod]
-      public void TranslationSource_Indexer_FollowsCurrentUiCulture()
+      public void TranslationSource_Indexer_FollowsEachSatelliteCulture()
       {
-         LocalizationService.Apply("en");
+         LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
          string english = TranslationSource.Instance[nameof(Strings.Menu_Save)];
 
-         LocalizationService.Apply("fr");
-         string french = TranslationSource.Instance[nameof(Strings.Menu_Save)];
+         foreach (AppLanguage language in _satelliteLanguages())
+         {
+            LocalizationService.Apply(language.Code);
+            string localized = TranslationSource.Instance[nameof(Strings.Menu_Save)];
 
-         _ = french.Should().NotBe(english);
-         _ = french.Should().Be(Strings.Menu_Save);
+            _ = localized.Should().NotBe(english, because: language.Code);
+            _ = localized.Should().Be(Strings.Menu_Save, because: language.Code);
+         }
       }
 
       [TestCleanup]

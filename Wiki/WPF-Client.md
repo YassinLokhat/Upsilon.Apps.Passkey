@@ -65,7 +65,7 @@ Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (`Enum
 
 1. Copy `Strings.resx` → `Strings.xx.resx` and translate values (keep key names). Pay special attention to **both** `EnumValue_ActivityEventType_*` and `Activity_*` for every event.
 2. Append `new("xx", "Native name")` to `LocalizationService.Supported`.
-3. Extend `LocalizationTests` so every non-English satellite has the same keys as the neutral file (today: `FrenchResources_ContainEveryNeutralKey` / `NeutralAndFrenchResources_HaveSameKeys`).
+3. Run `LocalizationTests` — they loop every non-English entry in `Supported` (`SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
 
 ## Vault files and logs
 
