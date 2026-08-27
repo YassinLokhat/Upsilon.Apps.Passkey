@@ -830,4 +830,7 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="FieldName_Passkeys" xml:space="preserve">
     <value>clés d'accès</value>
   </data>
+  <data name="Activity_DateTimeFormat" xml:space="preserve">
+    <value>dd/MM/yyyy HH:mm</value>
+  </data>
 </root>

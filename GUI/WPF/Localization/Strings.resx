@@ -830,4 +830,7 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="FieldName_Passkeys" xml:space="preserve">
     <value>passkeys</value>
   </data>
+  <data name="Activity_DateTimeFormat" xml:space="preserve">
+    <value>yyyy-MM-dd HH:mm</value>
+  </data>
 </root>

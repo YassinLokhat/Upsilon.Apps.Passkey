@@ -28,6 +28,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Activity_DatabaseOpened => Get(nameof(Activity_DatabaseOpened));
       public static string Activity_DatabaseSaved => Get(nameof(Activity_DatabaseSaved));
       public static string Activity_DatabaseClosed => Get(nameof(Activity_DatabaseClosed));
+      public static string Activity_DateTimeFormat => Get(nameof(Activity_DateTimeFormat));
       public static string Activity_LoginSessionTimeoutReached => Get(nameof(Activity_LoginSessionTimeoutReached));
       public static string Activity_LoginFailed => Get(nameof(Activity_LoginFailed));
       public static string Activity_UserLoggedIn => Get(nameof(Activity_UserLoggedIn));

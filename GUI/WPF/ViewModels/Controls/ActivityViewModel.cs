@@ -10,7 +10,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
    internal sealed class ActivityViewModel(IActivity activity) : INotifyPropertyChanged
    {
       public readonly IActivity Activity = activity;
-      public string DateTime => Activity.DateTime.ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+      public string DateTime => Activity.DateTime.ToString(Strings.Activity_DateTimeFormat, System.Globalization.CultureInfo.InvariantCulture);
       public string EventType => Activity.EventType.ToReadableString();
       public string Message => _buildMessage(Activity);
       public bool NeedsReview
@@ -86,7 +86,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             _ => $"{activity}",
          };
 
-         return TextHelper.ToSentenceCase(message.Trim());
+         message = message.Trim();
+         return message[..1].ToUpperInvariant() + message[1..];
       }
    }
 }
