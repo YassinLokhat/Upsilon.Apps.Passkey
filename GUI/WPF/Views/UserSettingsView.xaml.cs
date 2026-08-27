@@ -103,8 +103,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          if (this.GetIsBusy()
             || _database?.User is null
-            || MessageBox.Show(Strings.Msg_DeleteUserConfirm1, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes
-            || MessageBox.Show(Strings.Msg_DeleteUserConfirm2, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            || AppServices.Dialogs.Confirm(Strings.Msg_DeleteUserConfirm1, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes
+            || AppServices.Dialogs.Confirm(Strings.Msg_DeleteUserConfirm2, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) != MessageBoxResult.Yes)
          {
             return;
          }
@@ -113,7 +113,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _database.Delete();
 
-         _ = MessageBox.Show(Strings.Format(nameof(Strings.Msg_UserDeleted), _viewModel.Username), Strings.Title_Success);
+         _ = AppServices.Dialogs.Confirm(Strings.Format(nameof(Strings.Msg_UserDeleted), _viewModel.Username), Strings.Title_Success, MessageBoxButton.OK, MessageBoxImage.None);
       }
 
       private async Task _saveAsync()
@@ -121,7 +121,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          string error = _canSave();
          if (!string.IsNullOrEmpty(error))
          {
-            _ = MessageBox.Show(error, Strings.Title_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+            _ = AppServices.Dialogs.Confirm(error, Strings.Title_Error, MessageBoxButton.OK, MessageBoxImage.Error);
 
             return;
          }
@@ -135,7 +135,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (_database?.User is null)
          {
-            if (MessageBox.Show(Strings.Format(nameof(Strings.Msg_UseDefaultLocation), newDatabaseFile), Strings.Title_UseDefaultLocation, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            if (AppServices.Dialogs.Confirm(Strings.Format(nameof(Strings.Msg_UseDefaultLocation), newDatabaseFile), Strings.Title_UseDefaultLocation, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             {
                SaveFileDialog dialog = new()
                {
@@ -255,7 +255,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             this.DatabaseClosed(_isClosing);
          }
 
-         _ = MessageBox.Show(message, Strings.Title_Success);
+         _ = AppServices.Dialogs.Confirm(message, Strings.Title_Success, MessageBoxButton.OK, MessageBoxImage.None);
       }
 
       private async void _save_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -292,7 +292,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return true;
          }
 
-         if (MessageBox.Show(Strings.Msg_SaveBeforeContinue, title, MessageBoxButton.OKCancel)
+         if (AppServices.Dialogs.Confirm(Strings.Msg_SaveBeforeContinue, title, MessageBoxButton.OKCancel, MessageBoxImage.None)
             != MessageBoxResult.OK)
          {
             return false;
@@ -335,8 +335,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             bool imported = await database.ImportFromFileAsync(dialog.FileName).ConfigureAwait(true);
 
             _ = imported
-               ? MessageBox.Show(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess)
-               : MessageBox.Show(Strings.Msg_ImportFailed, Strings.Title_ImportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
+               ? AppServices.Dialogs.Confirm(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess, MessageBoxButton.OK, MessageBoxImage.None)
+               : AppServices.Dialogs.Confirm(Strings.Msg_ImportFailed, Strings.Title_ImportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
          }
          finally
          {
@@ -413,8 +413,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             bool exported = await database.ExportToFileAsync(fileName).ConfigureAwait(true);
 
             _ = exported
-               ? MessageBox.Show(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess)
-               : MessageBox.Show(Strings.Msg_ExportFailed, Strings.Title_ExportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
+               ? AppServices.Dialogs.Confirm(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess, MessageBoxButton.OK, MessageBoxImage.None)
+               : AppServices.Dialogs.Confirm(Strings.Msg_ExportFailed, Strings.Title_ExportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
          }
          finally
          {

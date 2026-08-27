@@ -25,8 +25,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ImportFromFile(importFile);
 
-         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedActivities.Push($"Warning : Import failed because import file is not accessible");
+         expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
+         expectedActivities.Push(UnitTestsHelper.FormatImportFailed(ImportExportError.ImportFileNotAccessible));
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -53,8 +53,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ImportFromFile(importFile);
 
-         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedActivities.Push($"Warning : Import failed because '.txt' extension type is not handled");
+         expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
+         expectedActivities.Push(UnitTestsHelper.FormatImportFailed(ImportExportError.ExtentionFileNotSupported));
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -81,8 +81,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ImportFromFile(importFile);
 
-         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedActivities.Push($"Warning : Import failed because there is no data to import");
+         expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
+         expectedActivities.Push(UnitTestsHelper.FormatImportFailed(ImportExportError.NoDataToImport));
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -111,8 +111,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.ImportFromFile(importFile);
 
          expectedActivities.Push($"Information : User '{username}'s database saved");
-         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedActivities.Push($"Warning : Import failed because service 'Service1' already exists");
+         expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
+         expectedActivities.Push(UnitTestsHelper.FormatImportFailed(ImportExportError.ServiceAlreadyExists));
 
          // Then
          database.User.Services.Count().Should().Be(1);
@@ -140,8 +140,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ImportFromFile(importFile);
 
-         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedActivities.Push($"Warning : Import failed because service name cannot be blank");
+         expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
+         expectedActivities.Push(UnitTestsHelper.FormatImportFailed(ImportExportError.BlankService));
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -169,7 +169,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ImportFromFile(importFile);
 
-         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
 
          expectedActivities.Push($"Information : Service 'Service0' has been added to User '{username}'");
          expectedActivities.Push($"Information : Service 'Service0's url has been set to 'http://service0.xyz'");
@@ -203,7 +203,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to 'None'");
          expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to '3'");
 
-         expectedActivities.Push($"Warning : Import completed successfully");
+         expectedActivities.Push(UnitTestsHelper.FormatImportSucceeded());
          expectedActivities.Push($"Information : User '{username}'s database saved");
 
          // Then
@@ -251,8 +251,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          database.ExportToFile(exportFile);
-         expectedActivities.Push($"Warning : Exporting data to file : '{exportFile}'");
-         expectedActivities.Push($"Warning : Export completed successfully");
+         expectedActivities.Push(UnitTestsHelper.FormatExportStarted(exportFile));
+         expectedActivities.Push(UnitTestsHelper.FormatExportSucceeded());
 
          // Then
          File.ReadAllText(importFile).Replace("\r", "").Should().Be(File.ReadAllText(exportFile).Replace("\r", ""));
@@ -279,8 +279,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ImportFromFile(importFile);
 
-         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedActivities.Push($"Warning : Import failed because the CSV headers should be : 'ServiceName', 'ServiceUrl', 'ServiceNotes', 'AccountLabel', 'Identifiers', 'Password', 'AccountNotes', 'AccountOptions', 'PasswordUpdateReminderDelay'");
+         expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
+         expectedActivities.Push(UnitTestsHelper.FormatImportFailed(ImportExportError.CSVHeadersDontMatch));
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -307,8 +307,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ImportFromFile(importFile);
 
-         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedActivities.Push($"Warning : Import failed because the CSV data format is incorrect");
+         expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
+         expectedActivities.Push(UnitTestsHelper.FormatImportFailed(ImportExportError.IncorrectCSVFormat));
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -335,7 +335,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ImportFromFile(importFile);
 
-         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
+         expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
 
          expectedActivities.Push($"Information : Service 'Service0' has been added to User '{username}'");
          expectedActivities.Push($"Information : Service 'Service0's url has been set to 'http://service0.xyz'");
@@ -369,7 +369,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to 'None'");
          expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to '3'");
 
-         expectedActivities.Push($"Warning : Import completed successfully");
+         expectedActivities.Push(UnitTestsHelper.FormatImportSucceeded());
          expectedActivities.Push($"Information : User '{username}'s database saved");
 
          // Then
@@ -444,8 +444,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ImportFromFile(importFile);
 
-         expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
-         expectedActivities.Push($"Warning : Import failed because import file deserialization failed");
+         expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
+         expectedActivities.Push(UnitTestsHelper.FormatImportFailed(ImportExportError.ImportFileDeserializationFailed));
 
          // Then
          database.User.Services.Should().BeEmpty();
@@ -476,8 +476,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.ExportToFile(exportFile);
 
          expectedActivities.Push($"Information : User '{username}'s database saved");
-         expectedActivities.Push($"Warning : Exporting data to file : '{exportFile}'");
-         expectedActivities.Push($"Warning : Export failed because export file already exists");
+         expectedActivities.Push(UnitTestsHelper.FormatExportStarted(exportFile));
+         expectedActivities.Push(UnitTestsHelper.FormatExportFailed(ImportExportError.ExportFileAlreadyExists));
 
          // Then
          File.Exists(exportFile).Should().BeTrue();
@@ -508,8 +508,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.ExportToFile(exportFile);
 
          expectedActivities.Push($"Information : User '{username}'s database saved");
-         expectedActivities.Push($"Warning : Exporting data to file : '{exportFile}'");
-         expectedActivities.Push($"Warning : Export failed because '.txt' extension type is not handled");
+         expectedActivities.Push(UnitTestsHelper.FormatExportStarted(exportFile));
+         expectedActivities.Push(UnitTestsHelper.FormatExportFailed(ImportExportError.ExtentionFileNotSupported));
 
          // Then
          File.Exists(exportFile).Should().BeFalse();

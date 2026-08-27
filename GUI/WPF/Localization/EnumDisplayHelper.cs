@@ -11,6 +11,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
    {
       private const string ACCOUNT_OPTION_PREFIX = "EnumValue_AccountOption_";
       private const string WARNING_TYPE_PREFIX = "EnumValue_WarningType_";
+      private const string IMPORT_EXPORT_ERROR_PREFIX = "EnumValue_ImportExportError_";
 
       public static string FormatFieldValue(string? fieldName, string? fieldValue)
       {
@@ -21,6 +22,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
                nameof(AccountOption) or "Options" => _formatAccountOption(fieldValue),
                nameof(WarningType) or "WarningsToNotify" => _formatWarningType(fieldValue),
                "Theme" => _formatTheme(fieldValue),
+               nameof(ImportExportError) or "errorLog" => _formatImportExportError(fieldValue),
                _ => fieldValue,
             };
       }
@@ -43,6 +45,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             ThemeService.DarkCode => Strings.EnumValue_Theme_Dark,
             _ => stored,
          };
+
+      private static string _formatImportExportError(string stored)
+         => stored is nameof(ImportExportError.None) or "0"
+            ? Strings.EnumValue_ImportExportError_None
+            : Strings.Get($"{IMPORT_EXPORT_ERROR_PREFIX}{stored}");
 
       private static string _formatFlags(string stored, Func<string, string> labelForMember)
       {

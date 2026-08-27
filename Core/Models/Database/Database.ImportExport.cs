@@ -30,7 +30,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: true);
 
          string importContent = string.Empty;
-         string errorLog = string.Empty;
+         ImportExportError errorLog = ImportExportError.None;
 
          try
          {
@@ -46,10 +46,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
             or NotSupportedException
             or SecurityException)
          {
-            errorLog = $"import file is not accessible";
+            errorLog = ImportExportError.ImportFileNotAccessible;
          }
 
-         if (string.IsNullOrWhiteSpace(errorLog))
+         if (errorLog == ImportExportError.None)
          {
             string extension = Path.GetExtension(filePath);
 
@@ -57,11 +57,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
             {
                ".json" => this.ImportJson(importContent),
                ".csv" => this.ImportCSV(importContent),
-               _ => $"'{extension}' extension type is not handled",
+               _ => ImportExportError.ExtentionFileNotSupported,
             };
          }
 
-         if (string.IsNullOrWhiteSpace(errorLog))
+         if (errorLog == ImportExportError.None)
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
                Username,
@@ -80,14 +80,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
                Username,
                serviceName: null,
                accountName: null,
-               fieldName: nameof(errorLog),
-               fieldValue: errorLog,
+               fieldName: nameof(ImportExportError),
+               fieldValue: $"{errorLog}",
                parentName: null,
                eventType: ActivityEventType.ImportingDataFailed,
                needsReview: true);
          }
 
-         return string.IsNullOrWhiteSpace(errorLog);
+         return errorLog == ImportExportError.None;
       }
 
       public bool ExportToFile(string filePath)
@@ -112,14 +112,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
             eventType: ActivityEventType.ExportingDataStarted,
             needsReview: true);
 
-         string errorLog = string.Empty;
+         ImportExportError errorLog = ImportExportError.None;
 
          if (File.Exists(filePath))
          {
-            errorLog = $"export file already exists";
+            errorLog = ImportExportError.ExportFileAlreadyExists;
          }
 
-         if (string.IsNullOrWhiteSpace(errorLog))
+         if (errorLog == ImportExportError.None)
          {
             string extension = Path.GetExtension(filePath);
 
@@ -127,11 +127,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
             {
                ".json" => this.ExportJson(filePath),
                ".csv" => this.ExportCSV(filePath),
-               _ => $"'{extension}' extension type is not handled",
+               _ => ImportExportError.ExtentionFileNotSupported,
             };
          }
 
-         if (string.IsNullOrWhiteSpace(errorLog))
+         if (errorLog == ImportExportError.None)
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
                Username,
@@ -149,14 +149,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
                Username,
                serviceName: null,
                accountName: null,
-               fieldName: nameof(errorLog),
-               fieldValue: errorLog,
+               fieldName: nameof(ImportExportError),
+               fieldValue: $"{errorLog}",
                parentName: null,
                eventType: ActivityEventType.ExportingDataFailed,
                needsReview: true);
          }
 
-         return string.IsNullOrWhiteSpace(errorLog);
+         return errorLog == ImportExportError.None;
       }
    }
 }

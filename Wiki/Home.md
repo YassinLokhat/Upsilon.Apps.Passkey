@@ -2,7 +2,7 @@
 
 A **local-only** password manager written in C# on **.NET 10**. There is no server, no account, and no synchronization: every secret lives in a single encrypted `.pku` file on the user's device.
 
-Each assembly is versioned independently. At the time of writing they share **2.0.x**, but that is not guaranteed to remain the case. Always upgrade to the latest release of a component before reporting an issue.
+Each assembly is versioned independently. At the time of writing they share **1.0.x**, but that is not guaranteed to remain the case. Always upgrade to the latest release of a component before reporting an issue.
 
 ## What it stores
 
@@ -48,6 +48,6 @@ Each assembly is versioned independently. At the time of writing they share **2.
 * **Security vulnerabilities** — GitHub Security Advisories or email. Never public issues. See [[Security]].
 * **Bugs and features** — [GitHub issues](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/issues).
 
-**License:** GNU General Public License v2.0. See [`LICENSE`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/LICENSE).
+**License:** GNU General Public License v1.0. See [`LICENSE`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/LICENSE).
 
 This wiki lives in the `Wiki/` folder of the source repository so it can be reviewed with the code. To publish it as the GitHub Wiki, copy the Markdown files to the `Upsilon.Apps.Passkey.wiki.git` remote (see [[Getting Started]]).

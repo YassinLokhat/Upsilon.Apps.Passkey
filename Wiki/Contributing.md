@@ -39,7 +39,8 @@ The WPF project currently has no NuGet packages either; keep it that way unless 
 
 1. Copy `GUI/WPF/Localization/Strings.resx` → `Strings.xx.resx` and translate values (do not rename keys).
 2. Register `new("xx", "Native name")` in `LocalizationService.Supported`.
-3. Prefer `{loc:Loc Key}` in XAML and `Strings.Key` / `Strings.Format` in C#.
+3. Run `dotnet test … --filter "FullyQualifiedName~LocalizationTests"` (or the full GUI filter). Tests verify satellite key parity and localized enum/activity strings.
+4. Prefer `{loc:Loc Key}` in XAML and `Strings.Key` / `Strings.Format` in C#.
 
 Key prefixes, and why each `ActivityEventType` has both `EnumValue_ActivityEventType_*` (short filter label) and `Activity_*` (full Message sentence), are documented under **Localization** in [[WPF Client]].
 

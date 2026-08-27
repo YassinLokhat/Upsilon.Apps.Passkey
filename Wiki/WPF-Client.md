@@ -36,6 +36,7 @@ Do not put UI strings in Core, Utils, or Interfaces. The vault persists **stable
 | `IdentifierType_` | Insert-identifier buttons | `IdentifierType_Email` |
 | `FieldName_` | Field names inside activity sentences | `FieldName_ServiceName` → `service name` |
 | `EnumValue_*_` | Short enum labels (filters, combo boxes) | see below |
+| `EnumValue_ImportExportError_*` | Import/export failure reasons in activity messages | `EnumValue_ImportExportError_NoDataToImport` → `no data to import` |
 | `Activity_` | Full activity **Message** sentences | see below |
 
 When you add a key: update `Strings.resx`, every satellite (e.g. `Strings.fr.resx`), and the typed accessor in `Strings.cs` unless the key is only loaded via `Strings.Get("…")` (dynamic `FieldName_*` / `EnumValue_*` lookups).
@@ -60,10 +61,10 @@ ActivityEventType.DatabaseOpened
 
 1. Add / update `EnumValue_ActivityEventType_<Member>` in every language file.
 2. Add / update `Activity_<Member>` (and any variants such as `Activity_UserLoggedOutWithoutSaving`) with the correct placeholder count.
-3. Wire the Message path in `ActivityViewModel` / `StringsHelper` if the event is new.
+3. Wire the Message path in `ActivityViewModel`, `StringsHelper`, and/or `EnumDisplayHelper` depending on event shape.
 4. Keep Core persistence unchanged: store enum names and field ids, never translated text.
 
-Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (`EnumValue_WarningType_*`, optional `EnumValue_AccountOption_*`). Warning filter strings may reuse existing `Label_Notify*` keys via `EnumDisplayHelper` when the wording already matches the settings UI.
+Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (`EnumValue_WarningType_*`, optional `EnumValue_AccountOption_*`, `EnumValue_ImportExportError_*`, `EnumValue_Theme_*`). `EnumDisplayHelper.FormatFieldValue` localizes values stored in activity `FieldValue` (Core persists `Enum.ToString()` names, not translated text). Import/export failure reasons use `EnumValue_ImportExportError_{Member}`; theme preference values use `EnumValue_Theme_*`. Warning filter strings may reuse existing `Label_Notify*` keys via `EnumDisplayHelper` when the wording already matches the settings UI.
 
 `FieldName_*` keys localize the middle of ItemUpdated-style sentences (`Strings.Get($"FieldName_{activity.FieldName}")`). If Core starts persisting a new field name, add a matching `FieldName_` entry or the UI falls back to the raw key.
 
@@ -72,6 +73,14 @@ Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (`Enum
 1. Copy `Strings.resx` → `Strings.xx.resx` and translate values (keep key names). Pay special attention to **both** `EnumValue_ActivityEventType_*` and `Activity_*` for every event.
 2. Append `new("xx", "Native name")` to `LocalizationService.Supported`.
 3. Run `LocalizationTests` — they loop every non-English entry in `Supported` (`SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
+
+## User settings — import and export
+
+While logged in, **User settings** offers **Import** (`.json` or `.csv`) and **Export → JSON / CSV**. Unsaved edits are saved first after confirmation (`Msg_SaveBeforeContinue`). Success and failure dialogs are generic (`Msg_ImportSuccess` / `Msg_ImportFailed`, etc.); the localized reason appears in the Activities grid (`ImportingDataFailed` / `ExportingDataFailed`). JSON export/import includes settings; CSV is services/accounts only (see [[Import Export]]).
+
+## Dialogs
+
+Confirmations and alerts use `ThemedMessageBoxView` (via `DialogService.Confirm`) — a themed in-app window that follows application light/dark resources, not `System.Windows.MessageBox.Show`.
 
 ## Vault files and logs
 
@@ -137,4 +146,4 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 5. Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
 6. Show a password as a QR code and confirm the window closes after the configured delay.
 
-There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and real MessageBoxes stay out of the automated suite — [[Testing and CI]].
+There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay out of the automated suite — [[Testing and CI]].

@@ -9,7 +9,7 @@ Import requires a logged-in user. Export and import files are **unencrypted plai
 | Format | Settings | Services and accounts | Password history |
 | ------ | -------- | --------------------- | ---------------- |
 | `.json` | Yes | Yes | Yes (`Passwords` dictionary) |
-| `.csv` | No | Yes | No (current password only) |
+| `.csv` | No | Yes | No in the file (current password only); import seeds one dated history entry from that password so password-update reminders and expiry checks work immediately |
 
 The `.csv` path is **tab-separated (TSV)** with **JSON-encoded cells**, so commas, quotes, and notes survive. Identifiers inside a cell are joined with `|`.
 
@@ -80,13 +80,13 @@ bool imported = await database.ImportFromFileAsync(@"C:\temp\migration.json");
 bool exported = await database.ExportToFileAsync(@"C:\temp\backup.csv");
 ```
 
-Both return `false` on failure (missing file, destination already exists on export, bad extension, empty data, duplicate service name, malformed cells, and so on). Details are written as `ImportingDataFailed` / `ExportingDataFailed` activities — see [[Warnings and Activity]].
+Both return `false` on failure (missing file, destination already exists on export, bad extension, empty data, duplicate service name, malformed cells, and so on). Failures append `ImportingDataFailed` / `ExportingDataFailed` activities with `FieldName = ImportExportError`, `FieldValue = <enum member name>`, and `NeedsReview = true`. Localization happens in the WPF client — see [[Warnings and Activity]].
 
 ### Persistence side effects
 
 * If the vault has unsaved edits, **import and export both call `Save` first** so dirty state is not left only in `autosave`.
 * A **successful import also saves** again (imported services/settings are persisted into `database` and the activity trail is flushed). You do not need a separate `Save()` after a successful import.
-* **Export refuses to overwrite**: if the destination path already exists, export fails with `export file already exists`. Choose a new path or delete the file first.
+* **Export refuses to overwrite**: if the destination path already exists, export fails with `ImportExportError.ExportFileAlreadyExists` (localized as “export file already exists” inside the activity sentence). Choose a new path or delete the file first.
 
 ## Concrete migration from another password manager
 
@@ -98,15 +98,18 @@ Both return `false` on failure (missing file, destination already exists on expo
 
 ## Failure modes (from tests)
 
-| Situation | Typical activity message |
-| --------- | ------------------------ |
-| File missing | import file is not accessible |
-| Extension `.txt` (or anything but `.json` / `.csv`) | extension type is not handled |
-| Headers only / no rows | there is no data to import |
-| Service name already in the vault | service '…' already exists |
-| Blank service name | service name cannot be blank |
-| Missing TSV header | the CSV headers should be : 'ServiceName', … |
-| Broken JSON / broken TSV cells | deserialization failed / CSV data format is incorrect |
-| Export destination already exists | export file already exists |
+Core records failures as `ImportingDataFailed` / `ExportingDataFailed` activities with `FieldName = ImportExportError` and `FieldValue = <ImportExportError member name>`. The WPF client localizes the reason via `EnumValue_ImportExportError_*` keys; the full Message column uses `Activity_ImportingDataFailed` / `Activity_ExportingDataFailed` (`Import failed because {0}` / `Export failed because {0}`).
+
+| Situation | `ImportExportError` | English reason (`EnumValue_ImportExportError_*`) |
+| --------- | ------------------- | ------------------------------------------------ |
+| File missing | `ImportFileNotAccessible` | import file is not accessible |
+| Extension `.txt` (or anything but `.json` / `.csv`) | `ExtentionFileNotSupported` | file extension type is not supported |
+| Headers only / no rows | `NoDataToImport` | no data to import |
+| Service name already in the vault | `ServiceAlreadyExists` | a service already exists |
+| Blank service name | `BlankService` | a service is blank |
+| Missing TSV header | `CSVHeadersDontMatch` | the CSV header does not match |
+| Broken JSON | `ImportFileDeserializationFailed` | import file deserialization failed |
+| Broken TSV cells | `IncorrectCSVFormat` | the CSV format is incorrect |
+| Export destination already exists | `ExportFileAlreadyExists` | export file already exists |
 
 URL handling on import: a service URL is kept only if `Uri.IsWellFormedUriString` accepts it; otherwise `Url` is `null`.

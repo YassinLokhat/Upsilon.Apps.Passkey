@@ -36,11 +36,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // public key and cannot be protected by a secret. Instead, on every save
       // made while a user is logged in, the current log is sealed with an RSA
       // signature over its entries (see _seal). Ciphertexts are produced once at
-      // AddActivity time; Save only re-encrypts when retention pruning drops
-      // rows. SealedCount records how many entries that signature covers; entries
-      // appended before the next login form an unsealed tail. Verification (see
-      // VerifyIntegrity) then detects any modification, forgery, reordering, key
-      // substitution or rollback of the sealed portion.
+      // AddActivity time; a sealed persist re-encrypts only when retention
+      // pruning drops rows or when NeedsReview was edited in memory. SealedCount
+      // records how many entries that signature covers; entries appended before
+      // the next login form an unsealed tail. Verification (see VerifyIntegrity)
+      // then detects any modification, forgery, reordering, key substitution or
+      // rollback of the sealed portion.
       public string Signature { get; set; } = string.Empty;
 
       public int SealedCount { get; set; }
@@ -362,14 +363,19 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // Append path (deferred flushes): ActivityList already holds per-entry
          // ciphertexts from EncryptAsymmetrically at insert time; write the ZIP
          // without resealing so mid-typing ItemUpdated rows stay coalescable.
-         // Explicit Save / Flush: optionally prune, then seal, then write.
-         // FileLocker is taken inside the same critical section (lock order:
-         // ActivityCenter → FileLocker).
+         // Explicit Save / Flush: optionally prune, rewrite dirty NeedsReview
+         // rows, then seal, then write. FileLocker is taken inside the same
+         // critical section (lock order: ActivityCenter → FileLocker).
          lock (_gate)
          {
             if (rebuildStringActivities && _removeOldActivities_NoLock())
             {
                _rebuildActivityList_NoLock();
+               _clearPersistenceDirty_NoLock();
+            }
+            else if (seal)
+            {
+               _rewriteDirtyActivities_NoLock();
             }
 
             if (seal)
@@ -382,13 +388,50 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       }
 
       // Caller must hold _gate. Re-encrypts the current Activities view into
-      // ActivityList (newest-first). Used only after a prune that dropped rows.
+      // ActivityList, preserving in-memory order so the two lists stay aligned
+      // (newest-first). Used after a prune that dropped rows.
       private void _rebuildActivityList_NoLock()
       {
          ActivityList.Clear();
          ActivityList.AddRange(Activities
-            .OrderByDescending(x => x.DateTime)
             .Select(x => Host.EncryptActivity(((Activity)x).ToString(), PublicKey)));
+      }
+
+      // Caller must hold _gate. Re-encrypts only rows whose NeedsReview flag
+      // changed since the ciphertext was produced. Must run before a seal so
+      // the signature covers the updated payloads.
+      private void _rewriteDirtyActivities_NoLock()
+      {
+         if (Activities.Count != ActivityList.Count)
+         {
+            if (Activities.OfType<Activity>().Any(x => x.PersistenceDirty))
+            {
+               _rebuildActivityList_NoLock();
+               _clearPersistenceDirty_NoLock();
+            }
+
+            return;
+         }
+
+         for (int i = 0; i < Activities.Count; i++)
+         {
+            if (Activities[i] is not Activity activity || !activity.PersistenceDirty)
+            {
+               continue;
+            }
+
+            ActivityList[i] = Host.EncryptActivity(activity.ToString(), PublicKey);
+            activity.PersistenceDirty = false;
+         }
+      }
+
+      // Caller must hold _gate.
+      private void _clearPersistenceDirty_NoLock()
+      {
+         foreach (Activity activity in Activities.Where(x => x is Activity).Cast<Activity>())
+         {
+            activity.PersistenceDirty = false;
+         }
       }
 
       // Caller must hold _gate.

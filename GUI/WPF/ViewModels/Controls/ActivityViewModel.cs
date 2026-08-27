@@ -79,10 +79,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             ActivityEventType.UserLoggedOut => StringsHelper.ComputeUserLoggedOutStrings(activity),
             ActivityEventType.ImportingDataStarted => Strings.Format(nameof(Strings.Activity_ImportingDataStarted), activity.FieldValue),
             ActivityEventType.ImportingDataSucceded => Strings.Activity_ImportingDataSucceded,
-            ActivityEventType.ImportingDataFailed => Strings.Format(nameof(Strings.Activity_ImportingDataFailed), activity.FieldValue),
+            ActivityEventType.ImportingDataFailed => Strings.Format(
+               nameof(Strings.Activity_ImportingDataFailed),
+               EnumDisplayHelper.FormatFieldValue(activity.FieldName, activity.FieldValue)),
             ActivityEventType.ExportingDataStarted => Strings.Format(nameof(Strings.Activity_ExportingDataStarted), activity.FieldValue),
             ActivityEventType.ExportingDataSucceded => Strings.Activity_ExportingDataSucceded,
-            ActivityEventType.ExportingDataFailed => Strings.Format(nameof(Strings.Activity_ExportingDataFailed), activity.FieldValue),
+            ActivityEventType.ExportingDataFailed => Strings.Format(
+               nameof(Strings.Activity_ExportingDataFailed),
+               EnumDisplayHelper.FormatFieldValue(activity.FieldName, activity.FieldValue)),
             ActivityEventType.ItemUpdated => StringsHelper.ComputeItemUpdatedStrings(activity),
             ActivityEventType.ItemAdded => StringsHelper.ComputeItemAddedStrings(activity),
             ActivityEventType.ItemDeleted => StringsHelper.ComputeItemItemDeletedStrings(activity),

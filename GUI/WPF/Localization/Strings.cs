@@ -48,6 +48,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Activity_ItemDeleted => Get(nameof(Activity_ItemDeleted));
       public static string Activity_ActivityLogTampered => Get(nameof(Activity_ActivityLogTampered));
       public static string Activity_User => Get(nameof(Activity_User));
+      public static string Button_Cancel => Get(nameof(Button_Cancel));
+      public static string Button_No => Get(nameof(Button_No));
+      public static string Button_OK => Get(nameof(Button_OK));
+      public static string Button_Yes => Get(nameof(Button_Yes));
       public static string Filter_All => Get(nameof(Filter_All));
       public static string Filter_Csv => Get(nameof(Filter_Csv));
       public static string Filter_Json => Get(nameof(Filter_Json));
@@ -235,5 +239,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string EnumValue_Theme_System => Get(nameof(EnumValue_Theme_System));
       public static string EnumValue_Theme_Light => Get(nameof(EnumValue_Theme_Light));
       public static string EnumValue_Theme_Dark => Get(nameof(EnumValue_Theme_Dark));
+      public static string EnumValue_ImportExportError_None => Get(nameof(EnumValue_ImportExportError_None));
+      public static string EnumValue_ImportExportError_ImportFileNotAccessible => Get(nameof(EnumValue_ImportExportError_ImportFileNotAccessible));
+      public static string EnumValue_ImportExportError_ExtentionFileNotSupported => Get(nameof(EnumValue_ImportExportError_ExtentionFileNotSupported));
+      public static string EnumValue_ImportExportError_CSVHeadersDontMatch => Get(nameof(EnumValue_ImportExportError_CSVHeadersDontMatch));
+      public static string EnumValue_ImportExportError_IncorrectCSVFormat => Get(nameof(EnumValue_ImportExportError_IncorrectCSVFormat));
+      public static string EnumValue_ImportExportError_NoDataToImport => Get(nameof(EnumValue_ImportExportError_NoDataToImport));
+      public static string EnumValue_ImportExportError_ImportFileDeserializationFailed => Get(nameof(EnumValue_ImportExportError_ImportFileDeserializationFailed));
+      public static string EnumValue_ImportExportError_ServiceAlreadyExists => Get(nameof(EnumValue_ImportExportError_ServiceAlreadyExists));
+      public static string EnumValue_ImportExportError_BlankService => Get(nameof(EnumValue_ImportExportError_BlankService));
+      public static string EnumValue_ImportExportError_ExportFileAlreadyExists => Get(nameof(EnumValue_ImportExportError_ExportFileAlreadyExists));
+
    }
 }

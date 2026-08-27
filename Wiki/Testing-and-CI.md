@@ -4,7 +4,11 @@
 
 The `UnitTests` project covers Core and Utils (crypto, vault lifecycle, import/export, persistence, models) and GUI ViewModels (`UnitTests/Gui/`) through a replaceable `AppServices` seam and fakes (session, dialogs, clipboard). It references the WPF app and therefore uses a **Windows** TFM.
 
-There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and real MessageBoxes stay on the [[WPF Client]] manual smoke list.
+There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay on the [[WPF Client]] manual smoke list.
+
+### Activity log assertions
+
+Import/export and persistence tests compare localized activity lines via `UnitTestsHelper.LastActivitiesShouldMatch`, which renders through `ActivityViewModel` (the same path as the WPF Activities grid). For import/export failures, prefer `UnitTestsHelper.FormatImportFailed(ImportExportError.…)` / `FormatExportFailed(…)` instead of hard-coded English strings. GUI localization coverage lives in `UnitTests/Gui/LocalizationTests.cs` (satellite key parity, `EnumDisplayHelper`, import/export failure messages).
 
 ```bash
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings

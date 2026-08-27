@@ -179,8 +179,13 @@ classDiagram
             <<interface>>
             +DateTime DateTime
             +string ItemId
+            +string? Username
+            +string? ServiceName
+            +string? AccountName
+            +string? FieldName
+            +string? FieldValue
+            +string? ParentName
             +ActivityEventType EventType
-            +string Message
             +bool NeedsReview
         }
 

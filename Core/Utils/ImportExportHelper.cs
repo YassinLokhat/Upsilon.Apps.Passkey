@@ -37,7 +37,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private static readonly JsonSerializerOptions _options = new() { Converters = { new JsonStringEnumConverter(), new ProtectedSecretJsonConverter() }, WriteIndented = true, };
 
-      public static string ImportCSV(this IDatabase database, string importContent)
+      public static ImportExportError ImportCSV(this IDatabase database, string importContent)
       {
          List<Service> services = [];
 
@@ -61,7 +61,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             if (headersIndexes.Values.Any(x => x == -1))
             {
-               return $"the CSV headers should be : {string.Join(", ", headersIndexes.Keys.Select(x => $"'{x}'"))}";
+               return ImportExportError.CSVHeadersDontMatch;
             }
 
             Service? service = null;
@@ -109,13 +109,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          catch (Exception ex)
             when (ex is IndexOutOfRangeException)
          {
-            return "the CSV data format is incorrect";
+            return ImportExportError.IncorrectCSVFormat;
          }
 
-         return services.Count == 0 ? "there is no data to import" : _importServices(database, services);
+         return services.Count == 0 ? ImportExportError.NoDataToImport : _importServices(database, services);
       }
 
-      public static string ImportJson(this IDatabase database, string importContent)
+      public static ImportExportError ImportJson(this IDatabase database, string importContent)
       {
          ImportExportData data;
 
@@ -125,22 +125,22 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          }
          catch (JsonException)
          {
-            return "import file deserialization failed";
+            return ImportExportError.ImportFileDeserializationFailed;
          }
 
          return _importData(database, data);
       }
 
-      private static string _importData(IDatabase database, ImportExportData data)
+      private static ImportExportError _importData(IDatabase database, ImportExportData data)
       {
-         string error = string.Empty;
+         ImportExportError error = ImportExportError.None;
 
          if (data.Settings is not null)
          {
             error = _importSettings(database, data.Settings);
          }
 
-         if (string.IsNullOrEmpty(error)
+         if (error == ImportExportError.None
             && data.Services is not null)
          {
             error = _importServices(database, data.Services);
@@ -149,37 +149,35 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return error;
       }
 
-      private static string _importSettings(IDatabase database, Settings settings)
+      private static ImportExportError _importSettings(IDatabase database, Settings settings)
       {
-         if (database.User is null)
+         if (database.User is not null)
          {
-            return string.Empty;
+            settings.User = (User)database.User;
+            database.User.Settings = settings;
          }
 
-         settings.User = (User)database.User;
-         database.User.Settings = settings;
-
-         return string.Empty;
+         return ImportExportError.None;
       }
 
-      private static string _importServices(IDatabase database, List<Service> services)
+      private static ImportExportError _importServices(IDatabase database, List<Service> services)
       {
          if (database.User is null
             || services.Count == 0)
          {
-            return string.Empty;
+            return ImportExportError.None;
          }
 
          Service? s0 = services.FirstOrDefault(x => database.User.Services.Any(y => y.ServiceName == x.ServiceName));
          if (s0 is not null)
          {
-            return $"service '{s0.ServiceName}' already exists";
+            return ImportExportError.ServiceAlreadyExists;
          }
 
          s0 = services.FirstOrDefault(x => string.IsNullOrWhiteSpace(x.ServiceName));
          if (s0 is not null)
          {
-            return $"service name cannot be blank";
+            return ImportExportError.BlankService;
          }
 
          foreach (Service s in services)
@@ -198,14 +196,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             }
          }
 
-         return string.Empty;
+         return ImportExportError.None;
       }
 
-      public static string ExportCSV(this Database database, string filePath)
+      public static ImportExportError ExportCSV(this Database database, string filePath)
       {
          if (database.User is null)
          {
-            return string.Empty;
+            return ImportExportError.None;
          }
 
          StringBuilder sb = new(string.Join("\t", Enum.GetNames<Headers>()) + "\n");
@@ -232,14 +230,14 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          File.WriteAllText(filePath, sb.ToString());
 
-         return string.Empty;
+         return ImportExportError.None;
       }
 
-      public static string ExportJson(this Database database, string filePath)
+      public static ImportExportError ExportJson(this Database database, string filePath)
       {
          if (database.User is null)
          {
-            return string.Empty;
+            return ImportExportError.None;
          }
 
          ImportExportData data = new()
@@ -250,7 +248,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          File.WriteAllText(filePath, _jsonSerialize(data));
 
-         return string.Empty;
+         return ImportExportError.None;
       }
    }
 

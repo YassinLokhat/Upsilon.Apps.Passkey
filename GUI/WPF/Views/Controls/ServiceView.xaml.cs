@@ -104,7 +104,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          if (this.GetIsBusy()
             || _viewModel is null
             || _accounts_LB.SelectedItem is not AccountViewModel accountViewModel
-            || MessageBox.Show(Strings.Format(nameof(Strings.Msg_DeleteAccount), accountViewModel.AccountDisplay), Strings.Title_DeleteAccount, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            || AppServices.Dialogs.Confirm(Strings.Format(nameof(Strings.Msg_DeleteAccount), accountViewModel.AccountDisplay), Strings.Title_DeleteAccount) != MessageBoxResult.Yes)
          {
             return;
          }

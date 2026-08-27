@@ -6,7 +6,7 @@
 
 A local-only password manager written in C# on **.NET 10**. There is no server,
 no account, and no synchronization: every secret lives in a single encrypted
-`.pku` file on the user's device. Version **2.0.0** (each assembly is versioned
+`.pku` file on the user's device. Version **1.0.0** (each assembly is versioned
 independently; see [SECURITY.md](SECURITY.md)).
 
 **Features**
@@ -204,8 +204,13 @@ classDiagram
             <<interface>>
             +DateTime DateTime
             +string ItemId
+            +string? Username
+            +string? ServiceName
+            +string? AccountName
+            +string? FieldName
+            +string? FieldValue
+            +string? ParentName
             +ActivityEventType EventType
-            +string Message
             +bool NeedsReview
         }
 
@@ -497,6 +502,8 @@ XposedOrNot if HIBP is unreachable) instead of blocking a thread on the network.
 The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 (`AppServices`) instead of a DI container, so ViewModels stay unit-testable.
 
+*   **Localization**: English + French; app default in `config.json`, per-user override in User settings. Activity and enum labels are localized at display time (`ActivityViewModel`, `EnumDisplayHelper`).
+*   **Import / export UI**: User settings menu — Import (`.json` / `.csv`) and Export → JSON / CSV. Success and failure dialogs are generic; the localized reason appears in the Activities grid.
 *   **Vault files**: new users are stored next to the executable as
     `raw/{GetHash(username)}.pku`. `Ctrl+O` opens an existing `.pku`; a path can
     also be passed as the first command-line argument.
@@ -523,9 +530,11 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     and related models. Run with `dotnet test` on the Windows solution.
 *   **GUI ViewModels**: the same `UnitTests` project also references the WPF app
     and exercises ViewModels (`UnitTests/Gui/`) through a replaceable
-    `AppServices` seam and fakes (session, dialogs, clipboard). No UI automation
-    (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, and real MessageBoxes
-    stay out of the automated suite.
+    `AppServices` seam and fakes (session, dialogs, clipboard). Import/export tests
+    compare localized activity lines via `UnitTestsHelper.FormatImportFailed` /
+    `FormatExportFailed` (same path as the WPF Activities grid). No UI automation
+    (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, and themed confirmation
+    dialogs (`ThemedMessageBoxView` via `DialogService`) stay out of the automated suite.
 *   **Coverage**: `coverage.runsettings` measures **Core only** (Utils is a
     separate assembly and is not in that gate). Windows CI fails the build if
     line coverage drops below **90%**.
@@ -579,4 +588,4 @@ style rules, coverage, and what a PR should include. Security reports go through
 **License**
 -------
 
-This project is licensed under the GNU General Public License v2.0. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v1.0. See the [LICENSE](LICENSE) file for details.
