@@ -8,11 +8,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
    /// so values update when the UI language changes (no restart).
    /// </summary>
    [MarkupExtensionReturnType(typeof(string))]
-   internal sealed class LocExtension : MarkupExtension
+   internal sealed class LocExtension(string key) : MarkupExtension
    {
-      public LocExtension(string key) => Key = key;
+      // Internal WPF type; not publicly accessible.
+      private static readonly Type? _sharedDpType =
+         typeof(Binding).Assembly.GetType("System.Windows.SharedDp");
 
-      public string Key { get; }
+      public string Key { get; } = key;
 
       public override object ProvideValue(IServiceProvider serviceProvider)
       {
@@ -24,7 +26,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
 
          // Design-time / template shared DP: still return a live Binding.
          return serviceProvider.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget target
-            && target.TargetObject.GetType().FullName == "System.Windows.SharedDp"
+            && _sharedDpType is not null
+            && _sharedDpType.IsInstanceOfType(target.TargetObject)
             ? binding
             : binding.ProvideValue(serviceProvider);
       }
