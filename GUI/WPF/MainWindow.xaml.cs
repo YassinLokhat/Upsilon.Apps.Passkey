@@ -68,8 +68,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _username_TB.KeyUp += _credential_TB_KeyUp;
          _password_PB.KeyUp += _credential_TB_KeyUp;
          _timer.Tick += _timer_Elapsed;
-         Loaded += (s, e) => this.PostLoadSetup();
+         Loaded += _mainWindow_Loaded;
          Closed += _window_Closed;
+      }
+
+      private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
+      {
+         this.PostLoadSetup();
+
+         if (AppInfo.TryConsumeConfigLoadError())
+         {
+            AppServices.Dialogs.Warn(Strings.Msg_ConfigFileError, Strings.Title_ConfigFileError);
+         }
       }
 
       private void _window_Closed(object? sender, EventArgs e)

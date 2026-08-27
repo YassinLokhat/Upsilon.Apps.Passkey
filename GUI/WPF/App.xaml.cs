@@ -24,11 +24,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _ = LocalizationService.Apply(AppInfo.AppSettings.Language);
          _ = ThemeService.Apply(AppInfo.AppSettings.Theme);
 
-         if (AppInfo.ConfigLoadHadError)
-         {
-            AppServices.Dialogs.Warn(Strings.Msg_ConfigFileError, Strings.Title_ConfigFileError);
-         }
-
          base.OnStartup(e);
       }
 

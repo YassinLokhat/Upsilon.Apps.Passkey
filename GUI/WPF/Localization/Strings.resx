@@ -461,6 +461,18 @@
   <data name="Filter_Csv" xml:space="preserve">
     <value>Tab delimited CSV file|*.csv</value>
   </data>
+  <data name="Button_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Button_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Button_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Button_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
   <data name="Filter_All" xml:space="preserve">
     <value>All</value>
   </data>

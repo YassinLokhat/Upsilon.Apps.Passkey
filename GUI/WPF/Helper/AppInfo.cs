@@ -27,6 +27,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       /// </summary>
       public static bool ConfigLoadHadError { get; private set; }
 
+      /// <summary>
+      /// Returns whether a config load error occurred and clears the flag so the
+      /// warning is shown at most once (after <see cref="MainWindow"/> is open).
+      /// </summary>
+      public static bool TryConsumeConfigLoadError()
+      {
+         if (!ConfigLoadHadError)
+         {
+            return false;
+         }
+
+         ConfigLoadHadError = false;
+         return true;
+      }
+
       private static string _buildTitle()
       {
          _ = ConfigFile;
