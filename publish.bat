@@ -1,0 +1,1 @@
+dotnet publish GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj -p:PublishProfile=FolderProfile -c Release
