@@ -173,6 +173,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
+      public void OnLanguageChanged()
+         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountId)));
+
       private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

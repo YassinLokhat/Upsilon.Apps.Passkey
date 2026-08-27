@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Windows;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
 {
@@ -21,6 +22,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
          new(DefaultLanguageCode, "English"),
          new("fr", "Français"),
       ];
+
+      /// <summary>
+      /// Raised on the UI thread after <see cref="Apply"/> changes the culture.
+      /// Prefer implementing <see cref="ILanguageAware"/> on open windows / DataContexts;
+      /// this event is for tests and rare non-visual listeners.
+      /// </summary>
+      public static event EventHandler? LanguageChanged;
 
       public static AppLanguage GetLanguageOrDefault(string? code)
       {
@@ -48,9 +56,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             : DefaultLanguageCode;
       }
 
-      public static void Apply(string? languageCode)
+      /// <summary>
+      /// Sets thread / default UI culture. When the culture actually changes, refreshes
+      /// <see cref="TranslationSource"/> bindings and notifies open <see cref="ILanguageAware"/> surfaces.
+      /// </summary>
+      /// <returns><see langword="true"/> when the culture code changed.</returns>
+      public static bool Apply(string? languageCode)
       {
          AppLanguage language = GetLanguageOrDefault(languageCode);
+         string previous = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+         bool changed = !string.Equals(previous, language.Code, StringComparison.OrdinalIgnoreCase);
+
          CultureInfo culture = CultureInfo.GetCultureInfo(language.Code);
 
          CultureInfo.DefaultThreadCurrentCulture = culture;
@@ -59,6 +75,50 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
          CultureInfo.CurrentUICulture = culture;
          Thread.CurrentThread.CurrentCulture = culture;
          Thread.CurrentThread.CurrentUICulture = culture;
+
+         if (!changed)
+         {
+            return false;
+         }
+
+         TranslationSource.Instance.NotifyLanguageChanged();
+         _notifyOpenWindows();
+         LanguageChanged?.Invoke(null, EventArgs.Empty);
+         return true;
+      }
+
+      private static void _notifyOpenWindows()
+      {
+         Application? app = Application.Current;
+         if (app is null)
+         {
+            return;
+         }
+
+         void notify()
+         {
+            foreach (Window window in app.Windows.Cast<Window>().ToArray())
+            {
+               if (window is ILanguageAware windowAware)
+               {
+                  windowAware.OnLanguageChanged();
+               }
+
+               if (window.DataContext is ILanguageAware dataContextAware)
+               {
+                  dataContextAware.OnLanguageChanged();
+               }
+            }
+         }
+
+         if (app.Dispatcher.CheckAccess())
+         {
+            notify();
+         }
+         else
+         {
+            app.Dispatcher.Invoke(notify);
+         }
       }
    }
 }

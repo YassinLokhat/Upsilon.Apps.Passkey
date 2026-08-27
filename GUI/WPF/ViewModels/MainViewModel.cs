@@ -7,7 +7,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Views;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class MainViewModel : ObservableObject
+   internal sealed class MainViewModel : ObservableObject, ILanguageAware
    {
       public static string AppTitle => AppInfo.Title;
 
@@ -27,11 +27,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          ? Strings.Format(nameof(Strings.Msg_DatabaseLabel), Path.GetFileName(DatabaseFile))
          : Strings.Msg_NoDatabaseLoaded;
 
-      public string CredentialsLabel
-      {
-         get;
-         set => SetProperty(ref field, value);
-      } = Strings.Label_Username;
+      public string CredentialsLabel => IsAwaitingPasskeys ? Strings.Label_Password : Strings.Label_Username;
+
       /// <summary>
       /// Drives the progress indicator shown while the database is being opened
       /// or a passkey stretched. Those operations take about a second each, which
@@ -71,6 +68,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (SetProperty(ref field, value))
             {
                OnPropertyChanged(nameof(MenusEnabled));
+               OnPropertyChanged(nameof(CredentialsLabel));
                RelayCommand.RaiseCanExecuteChanged();
             }
          }
@@ -94,6 +92,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          NewUserCommand = new RelayCommand(_newUser, () => MenusEnabled);
          AppSettingsCommand = new RelayCommand(_appSettings, () => MenusEnabled);
          GeneratePasswordCommand = new RelayCommand(_generatePassword, () => MenusEnabled);
+      }
+
+      public void OnLanguageChanged()
+      {
+         OnPropertyChanged(nameof(DatabaseLabel));
+         OnPropertyChanged(nameof(CredentialsLabel));
+         if (!string.IsNullOrEmpty(BusyMessage))
+         {
+            // Busy text was captured in the previous culture; leave message empty-safe.
+            OnPropertyChanged(nameof(BusyMessage));
+         }
       }
 
       private void _openDatabase()

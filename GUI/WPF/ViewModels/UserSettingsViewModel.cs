@@ -1,13 +1,17 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class UserSettingsViewModel : INotifyPropertyChanged
+   internal sealed class UserSettingsViewModel : INotifyPropertyChanged, ILanguageAware
    {
-      public string Title { get; }
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
+      public string Title => AppServices.Session.Database?.User is null
+         ? Strings.Format(nameof(Strings.Title_NewUser), AppInfo.Title)
+         : Strings.Format(nameof(Strings.Title_UserSettings), AppInfo.Title);
       public string Username
       {
          get;
@@ -172,25 +176,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          if (AppServices.Session.Database?.User is not { } user)
          {
-            Title = Strings.Format(nameof(Strings.Title_NewUser), AppInfo.Title);
+            return;
          }
-         else
-         {
-            Title = Strings.Format(nameof(Strings.Title_UserSettings), AppInfo.Title);
 
-            Username = user.Username;
+         Username = user.Username;
 
-            LogoutTimeout = user.Settings.LogoutTimeout;
-            CleaningClipboardTimeout = user.Settings.CleaningClipboardTimeout;
-            ShowPasswordDelay = user.Settings.ShowPasswordDelay;
-            NumberOfOldPasswordToKeep = user.Settings.NumberOfOldPasswordToKeep;
-            NumberOfMonthActivitiesToKeep = user.Settings.NumberOfMonthActivitiesToKeep;
+         LogoutTimeout = user.Settings.LogoutTimeout;
+         CleaningClipboardTimeout = user.Settings.CleaningClipboardTimeout;
+         ShowPasswordDelay = user.Settings.ShowPasswordDelay;
+         NumberOfOldPasswordToKeep = user.Settings.NumberOfOldPasswordToKeep;
+         NumberOfMonthActivitiesToKeep = user.Settings.NumberOfMonthActivitiesToKeep;
 
-            NotifyActivityReview = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
-            NotifyPasswordUpdateReminder = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
-            NotifyDuplicatedPasswords = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
-            NotifyPasswordLeaked = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
-         }
+         NotifyActivityReview = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
+         NotifyPasswordUpdateReminder = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
+         NotifyDuplicatedPasswords = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
+         NotifyPasswordLeaked = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
       }
+
+      public void OnLanguageChanged()
+         => _onPropertyChanged(nameof(Title));
    }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -9,9 +10,10 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class UserActivitiesViewModel : INotifyPropertyChanged
+   internal sealed class UserActivitiesViewModel : INotifyPropertyChanged, ILanguageAware
    {
-      public string Title { get; }
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
+      public string Title => Strings.Format(nameof(Strings.Title_Activities), AppInfo.Title);
 
       public string FiltersHeader => Strings.Format(nameof(Strings.Msg_FiltersHeader), Activities.Count, AppServices.Session.Database?.Activities?.Count());
       public DateTime FromDateFilter
@@ -101,10 +103,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public UserActivitiesViewModel()
       {
-         Title = Strings.Format(nameof(Strings.Title_Activities), AppInfo.Title);
-
          ClearFiltersCommand = new RelayCommand(ClearFilters);
 
+         RefreshFilters();
+      }
+
+      public void OnLanguageChanged()
+      {
+         _onPropertyChanged(nameof(Title));
+         _onPropertyChanged(nameof(ReadableEventType));
          RefreshFilters();
       }
 

@@ -447,9 +447,6 @@
   <data name="Title_CorruptedDatabase" xml:space="preserve">
     <value>Base de données corrompue</value>
   </data>
-  <data name="Title_LanguageChanged" xml:space="preserve">
-    <value>Langue modifiée</value>
-  </data>
   <data name="Filter_Pku" xml:space="preserve">
     <value>Fichier de base Passkey|*.pku</value>
   </data>
@@ -560,8 +557,8 @@ Oui : appliquer.
 Non : abandonner.
 Annuler : ignorer et conserver le fichier.</value>
   </data>
-  <data name="Msg_LanguageRestart" xml:space="preserve">
-    <value>Le changement de langue prendra pleinement effet après le redémarrage de l'application. Les nouvelles fenêtres utiliseront déjà la langue choisie.</value>
+  <data name="Title_UserServices" xml:space="preserve">
+    <value>{0} - '{1}'</value>
   </data>
   <data name="Msg_ShowWarnings" xml:space="preserve">
     <value>Afficher {0} alertes</value>

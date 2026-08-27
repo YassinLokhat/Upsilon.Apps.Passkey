@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -11,11 +12,12 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class UserServicesViewModel : ObservableObject, IDisposable
+   internal sealed class UserServicesViewModel : ObservableObject, IDisposable, ILanguageAware
    {
       private static readonly TimeSpan _filterDebounce = TimeSpan.FromMilliseconds(250);
 
-      private readonly string _defaultTitle;
+      private string _defaultTitle;
+      private readonly string _userDisplayName;
       private readonly DispatcherTimer _titleTimer;
       private readonly DispatcherTimer _filterDebounceTimer;
       private bool _disposed;
@@ -26,7 +28,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public static string UserId => Strings.Format(nameof(Strings.Msg_UserId), AppServices.Session.User?.ItemId);
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh UserId on language change.")]
+      public string UserId => Strings.Format(nameof(Strings.Msg_UserId), AppServices.Session.User?.ItemId);
 
       public string ShowWarnings
       {
@@ -120,9 +123,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public event EventHandler? FiltersRefreshed;
 
-      public UserServicesViewModel(string defaultTitle)
+      public UserServicesViewModel(string userDisplayName)
       {
-         Title = _defaultTitle = defaultTitle;
+         _userDisplayName = userDisplayName;
+         Title = _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
 
          ClearFiltersCommand = new RelayCommand(ClearFilters);
 
@@ -141,6 +145,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          };
          _filterDebounceTimer.Tick += _onFilterDebounceElapsed;
       }
+
+      public void OnLanguageChanged()
+      {
+         Title = _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
+         OnPropertyChanged(nameof(UserId));
+
+         foreach (ServiceViewModel service in _serviceViewModelsById.Values)
+         {
+            service.OnLanguageChanged();
+         }
+
+         LanguageRefreshed?.Invoke(this, EventArgs.Empty);
+      }
+
+      public event EventHandler? LanguageRefreshed;
 
       public void Dispose()
       {

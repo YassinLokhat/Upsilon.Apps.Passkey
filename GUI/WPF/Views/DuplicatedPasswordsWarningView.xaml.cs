@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
@@ -10,7 +11,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for DuplicatedPasswordWarningView.xaml
    /// </summary>
-   internal sealed partial class DuplicatedPasswordsWarningView : Window
+   internal sealed partial class DuplicatedPasswordsWarningView : Window, ILanguageAware
    {
       private readonly DuplicatedPasswordsWarningViewModel _viewModel;
 
@@ -28,9 +29,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
+      public void OnLanguageChanged()
+      {
+         object? selected = _warnings_LB.SelectedItem;
+         _warnings_LB.ItemsSource = _viewModel.Warnings;
+         _warnings_LB.SelectedItem = selected is DuplicatedPasswordWarningViewModel previous
+            ? _viewModel.Warnings.FirstOrDefault(w => w.Accounts.Length == previous.Accounts.Length
+               && ReferenceEquals(w.Accounts.FirstOrDefault()?.Account, previous.Accounts.FirstOrDefault()?.Account))
+              ?? _viewModel.Warnings.FirstOrDefault()
+            : _viewModel.Warnings.FirstOrDefault();
+      }
+
       private void _warnings_LB_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
-         DuplicatedPasswordWarningViewModel viewModel = (DuplicatedPasswordWarningViewModel)_warnings_LB.SelectedItem;
+         if (_warnings_LB.SelectedItem is not DuplicatedPasswordWarningViewModel viewModel)
+         {
+            return;
+         }
 
          _warnings_DGV.ItemsSource = viewModel.Accounts;
       }

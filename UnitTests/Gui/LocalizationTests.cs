@@ -8,6 +8,7 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 namespace Upsilon.Apps.Passkey.UnitTests.Gui
 {
    [TestClass]
+   [DoNotParallelize]
    public sealed class LocalizationTests
    {
       [TestInitialize]
@@ -135,6 +136,44 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
 
          _ = frenchLabel.Should().NotBe(nameof(ActivityEventType.DatabaseOpened));
          _ = frenchLabel.Should().NotBe(englishLabel);
+      }
+
+      [TestMethod]
+      public void Apply_RaisesLanguageChanged_OnlyWhenCultureChanges()
+      {
+         LocalizationService.Apply("en");
+
+         int raised = 0;
+         void handler(object? _, EventArgs __) => raised++;
+         LocalizationService.LanguageChanged += handler;
+         try
+         {
+            _ = LocalizationService.Apply("en").Should().BeFalse();
+            _ = raised.Should().Be(0);
+
+            _ = LocalizationService.Apply("fr").Should().BeTrue();
+            _ = raised.Should().Be(1);
+
+            _ = LocalizationService.Apply("fr").Should().BeFalse();
+            _ = raised.Should().Be(1);
+         }
+         finally
+         {
+            LocalizationService.LanguageChanged -= handler;
+         }
+      }
+
+      [TestMethod]
+      public void TranslationSource_Indexer_FollowsCurrentUiCulture()
+      {
+         LocalizationService.Apply("en");
+         string english = TranslationSource.Instance[nameof(Strings.Menu_Save)];
+
+         LocalizationService.Apply("fr");
+         string french = TranslationSource.Instance[nameof(Strings.Menu_Save)];
+
+         _ = french.Should().NotBe(english);
+         _ = french.Should().Be(Strings.Menu_Save);
       }
 
       [TestCleanup]

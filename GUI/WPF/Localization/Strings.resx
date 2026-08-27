@@ -447,9 +447,6 @@
   <data name="Title_CorruptedDatabase" xml:space="preserve">
     <value>Corrupted database</value>
   </data>
-  <data name="Title_LanguageChanged" xml:space="preserve">
-    <value>Language changed</value>
-  </data>
   <data name="Filter_Pku" xml:space="preserve">
     <value>Passkey user database file|*.pku</value>
   </data>
@@ -560,8 +557,8 @@ Click Yes to apply these changes.
 Click No to discard them.
 Click Cancel to ignore and keep the save file.</value>
   </data>
-  <data name="Msg_LanguageRestart" xml:space="preserve">
-    <value>The language change will take full effect after you restart the application. New windows will already use the selected language.</value>
+  <data name="Title_UserServices" xml:space="preserve">
+    <value>{0} - '{1}'</value>
   </data>
   <data name="Msg_ShowWarnings" xml:space="preserve">
     <value>Show {0} warnings</value>

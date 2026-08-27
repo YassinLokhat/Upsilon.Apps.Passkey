@@ -78,6 +78,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          _syncAccountViewModels();
       }
 
+      public void OnLanguageChanged()
+      {
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceId)));
+         foreach (AccountViewModel account in _accountViewModelsById.Values)
+         {
+            account.OnLanguageChanged();
+         }
+      }
+
       public void ApplyFilters(string identifierFilter, string textFilter, bool changedItemsOnly)
       {
          _syncAccountViewModels();

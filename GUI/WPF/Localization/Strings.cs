@@ -161,7 +161,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_ImportSuccess => Get(nameof(Msg_ImportSuccess));
       public static string Msg_InsufficientKdf => Get(nameof(Msg_InsufficientKdf));
       public static string Msg_ItemNotFound => Get(nameof(Msg_ItemNotFound));
-      public static string Msg_LanguageRestart => Get(nameof(Msg_LanguageRestart));
       public static string Msg_NewServicePrefix => Get(nameof(Msg_NewServicePrefix));
       public static string Msg_NoDatabaseLoaded => Get(nameof(Msg_NoDatabaseLoaded));
       public static string Msg_NoPasswordEmpty => Get(nameof(Msg_NoPasswordEmpty));
@@ -202,7 +201,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Title_InsertIdentifier => Get(nameof(Title_InsertIdentifier));
       public static string Title_InsufficientKdf => Get(nameof(Title_InsufficientKdf));
       public static string Title_ItemNotFound => Get(nameof(Title_ItemNotFound));
-      public static string Title_LanguageChanged => Get(nameof(Title_LanguageChanged));
       public static string Title_NewUser => Get(nameof(Title_NewUser));
       public static string Title_NewUserDatabase => Get(nameof(Title_NewUserDatabase));
       public static string Title_OpenDatabase => Get(nameof(Title_OpenDatabase));
@@ -211,6 +209,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Title_Success => Get(nameof(Title_Success));
       public static string Title_UseDefaultLocation => Get(nameof(Title_UseDefaultLocation));
       public static string Title_UserSettings => Get(nameof(Title_UserSettings));
+      public static string Title_UserServices => Get(nameof(Title_UserServices));
       public static string FieldName_Label => Get(nameof(FieldName_Label));
       public static string FieldName_Identifiers => Get(nameof(FieldName_Identifiers));
       public static string FieldName_Password => Get(nameof(FieldName_Password));

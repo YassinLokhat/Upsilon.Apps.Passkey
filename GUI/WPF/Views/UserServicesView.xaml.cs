@@ -37,8 +37,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _navigation.ItemRequested += _navigation_ItemRequested;
 
-         DataContext = _viewModel = new($"{AppInfo.Title} - '{_session.User}'");
+         DataContext = _viewModel = new($"{_session.User}");
          _viewModel.FiltersRefreshed += _viewModel_FiltersRefreshed;
+         _viewModel.LanguageRefreshed += (_, _) => _refreshWarningsMenuFromSession();
+
 
          _services_LB.ItemsSource = _viewModel.Services;
 
@@ -252,6 +254,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _ = _service_SV.SelectAccount(accountId);
          }
       }
+
+      private void _refreshWarningsMenuFromSession()
+         => _updateWarningsMenu([.. _session.Database?.Warnings ?? []]);
 
       private void _updateWarningsMenu(IWarning[] warnings)
       {

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -6,11 +7,10 @@ using Upsilon.Apps.Passkey.GUI.WPF.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class AppSettingsViewModel : INotifyPropertyChanged
+   internal class AppSettingsViewModel : INotifyPropertyChanged, ILanguageAware
    {
-      private readonly string _languageWhenOpened;
-
-      public string Title { get; } = Strings.Format(nameof(Strings.Title_AppSettings), AppInfo.Title);
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
+      public string Title => Strings.Format(nameof(Strings.Title_AppSettings), AppInfo.Title);
 
       public IReadOnlyList<AppLanguage> Languages { get; } = LocalizationService.Supported;
 
@@ -46,20 +46,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      public AppSettingsViewModel()
-      {
-         _languageWhenOpened = AppInfo.AppSettings.Language;
-      }
+      public void OnLanguageChanged()
+         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
 
       /// <summary>
       /// Persists settings and applies the UI culture. Returns <see langword="true"/>
-      /// when the language code changed (caller should tell the user to restart).
+      /// when the language code changed (open windows are refreshed in place).
       /// </summary>
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Called on the bound ViewModel instance from the view.")]
       public bool Save()
       {
          AppInfo.AppSettings.Save(AppInfo.ConfigFile);
-         LocalizationService.Apply(AppInfo.AppSettings.Language);
-         return !string.Equals(_languageWhenOpened, AppInfo.AppSettings.Language, StringComparison.OrdinalIgnoreCase);
+         return LocalizationService.Apply(AppInfo.AppSettings.Language);
       }
 
       public void Reset()

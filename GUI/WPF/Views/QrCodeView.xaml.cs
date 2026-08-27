@@ -13,13 +13,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for QrCodeView.xaml
    /// </summary>
-   internal sealed partial class QrCodeView : Window
+   internal sealed partial class QrCodeView : Window, ILanguageAware
    {
       private QrCodeView(string qrCode, int delay)
       {
          InitializeComponent();
 
-         Title = Strings.Format(nameof(Strings.Title_QrCode), AppInfo.Title);
+         _refreshTitle();
          _qrCode_I.Source = _getBitmap(qrCode);
 
          if (delay != 0)
@@ -35,6 +35,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          Loaded += (s, e) => this.PostLoadSetup();
       }
+
+      public void OnLanguageChanged()
+         => _refreshTitle();
+
+      private void _refreshTitle()
+         => Title = Strings.Format(nameof(Strings.Title_QrCode), AppInfo.Title);
 
       private void _timer_Elapsed(object? sender, EventArgs e)
       {

@@ -194,7 +194,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          // switch to the passkey prompt. The idle timer is restarted by the
          // caller once this method returns.
          _mainViewModel.IsAwaitingPasskeys = true;
-         _mainViewModel.CredentialsLabel = Strings.Label_Password;
          _username_TB.Text = string.Empty;
          _username_TB.Visibility = Visibility.Collapsed;
 
@@ -361,7 +360,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          _mainViewModel.IsAwaitingPasskeys = false;
          _mainViewModel.DatabaseFile = string.Empty;
-         _mainViewModel.CredentialsLabel = Strings.Label_Username;
          _username_TB.Text = string.Empty;
          _username_TB.Visibility = Visibility.Visible;
          _ = _username_TB.Focus();

@@ -24,12 +24,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _saveMenuItem_Click(object sender, RoutedEventArgs e)
       {
-         bool languageChanged = _viewModel.Save();
-         if (languageChanged)
-         {
-            AppServices.Dialogs.Info(Strings.Msg_LanguageRestart, Strings.Title_LanguageChanged);
-         }
-
+         _ = _viewModel.Save();
          DialogResult = true;
       }
 
