@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF
@@ -17,6 +18,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          TaskScheduler.UnobservedTaskException += _onUnobservedTaskException;
 
          Log.Info($"Application starting (PID {Environment.ProcessId}).");
+
+         _ = AppInfo.ConfigFile;
+         _ = LocalizationService.Apply(AppInfo.AppSettings.Language);
+
+         if (AppInfo.ConfigLoadHadError)
+         {
+            AppServices.Dialogs.Warn(Strings.Msg_ConfigFileError, Strings.Title_ConfigFileError);
+         }
 
          base.OnStartup(e);
       }

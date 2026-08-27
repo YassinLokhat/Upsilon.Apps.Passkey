@@ -6,6 +6,7 @@ using System.Windows.Input;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -90,11 +91,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private string _canSave()
       {
          return string.IsNullOrEmpty(_viewModel.Username)
-            ? "Username cannot be empty."
+            ? Strings.Msg_UsernameEmpty
             : !_passwordsContainer.Passkeys.Any()
-            ? "At least one password should be set."
+            ? Strings.Msg_AtLeastOnePassword
             : _passwordsContainer.Passkeys.Any(string.IsNullOrEmpty)
-            ? "No password can be empty."
+            ? Strings.Msg_NoPasswordEmpty
             : string.Empty;
       }
 
@@ -102,8 +103,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          if (this.GetIsBusy()
             || _database?.User is null
-            || MessageBox.Show("If you delete the user database, you will lost all credentials.\nAre you sure you want to delete the database anyway?", "Confirmation required", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes
-            || MessageBox.Show("This procedure is non-reversible.\nPlease confirm to proceed the deletion.", "Confirmation required", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            || MessageBox.Show(Strings.Msg_DeleteUserConfirm1, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes
+            || MessageBox.Show(Strings.Msg_DeleteUserConfirm2, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) != MessageBoxResult.Yes)
          {
             return;
          }
@@ -112,7 +113,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _database.Delete();
 
-         _ = MessageBox.Show($"'{_viewModel.Username}' user database deleted successfully", "Success");
+         _ = MessageBox.Show(Strings.Format(nameof(Strings.Msg_UserDeleted), _viewModel.Username), Strings.Title_Success);
       }
 
       private async Task _saveAsync()
@@ -120,7 +121,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          string error = _canSave();
          if (!string.IsNullOrEmpty(error))
          {
-            _ = MessageBox.Show(error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            _ = MessageBox.Show(error, Strings.Title_Error, MessageBoxButton.OK, MessageBoxImage.Error);
 
             return;
          }
@@ -134,12 +135,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (_database?.User is null)
          {
-            if (MessageBox.Show($"Use default database location :\n{newDatabaseFile}", "Use default location?", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            if (MessageBox.Show(Strings.Format(nameof(Strings.Msg_UseDefaultLocation), newDatabaseFile), Strings.Title_UseDefaultLocation, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             {
                SaveFileDialog dialog = new()
                {
-                  Title = "New user database file",
-                  Filter = "Passkey user database file|*.pku",
+                  Title = Strings.Title_NewUserDatabase,
+                  Filter = Strings.Filter_Pku,
                   DefaultDirectory = Path.GetDirectoryName(newDatabaseFile),
                   FileName = Path.GetFileName(newDatabaseFile),
                };
@@ -183,6 +184,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _database.User.Settings.ShowPasswordDelay = _viewModel.ShowPasswordDelay;
             _database.User.Settings.NumberOfOldPasswordToKeep = _viewModel.NumberOfOldPasswordToKeep;
             _database.User.Settings.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
+            _database.User.Settings.Language = _viewModel.SelectedLanguage.Code;
             WarningType warningsToNotify = 0;
             if (_viewModel.NotifyActivityReview)
             {
@@ -207,13 +209,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _database.User.Settings.WarningsToNotify = warningsToNotify;
 
             await _database.SaveAsync().ConfigureAwait(true);
+            _session.ApplySessionLanguage();
          }
 
-         string message = $"'{_viewModel.Username}' user database ";
+         string message;
 
          if (credentialsChanged)
          {
-            message = $"'{_viewModel.Username}' user's credentials has been updated.\nYou will be logged out.\nPlease login again.";
+            message = Strings.Format(nameof(Strings.Msg_CredentialsUpdated), _viewModel.Username);
             _passwordsContainer.ClearSecrets();
             _session.EndSession();
 
@@ -240,17 +243,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
          else if (newUser)
          {
-            message += $"created successfully";
+            message = Strings.Format(nameof(Strings.Msg_UserCreated), _viewModel.Username);
             _passwordsContainer.ClearSecrets();
             _session.EndSession();
          }
          else
          {
-            message += $"updated successfully";
+            message = Strings.Format(nameof(Strings.Msg_UserUpdated), _viewModel.Username);
             this.DatabaseClosed(_isClosing);
          }
 
-         _ = MessageBox.Show(message, "Success");
+         _ = MessageBox.Show(message, Strings.Title_Success);
       }
 
       private async void _save_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -287,7 +290,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return true;
          }
 
-         if (MessageBox.Show("Before continuing, all unsaved changes will be saved.", title, MessageBoxButton.OKCancel)
+         if (MessageBox.Show(Strings.Msg_SaveBeforeContinue, title, MessageBoxButton.OKCancel)
             != MessageBoxResult.OK)
          {
             return false;
@@ -307,15 +310,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (!await _savePendingChangesAsync(database, "Import data").ConfigureAwait(true))
+         if (!await _savePendingChangesAsync(database, Strings.Msg_ImportData).ConfigureAwait(true))
          {
             return;
          }
 
          OpenFileDialog dialog = new()
          {
-            Title = "Import data from a file",
-            Filter = "json file|*.json|Tab delimited CSV file|*.csv",
+            Title = Strings.Title_ImportData,
+            Filter = $"{Strings.Filter_Json}|{Strings.Filter_Csv}",
          };
 
          if (!(dialog.ShowDialog() ?? false))
@@ -330,8 +333,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             bool imported = await database.ImportFromFileAsync(dialog.FileName).ConfigureAwait(true);
 
             _ = imported
-               ? MessageBox.Show("Import data has been completed successfully.\nMore details in the activities.", "Import success")
-               : MessageBox.Show("Import data failed.\nMore details in the activities.", "Import failed", MessageBoxButton.OK, MessageBoxImage.Error);
+               ? MessageBox.Show(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess)
+               : MessageBox.Show(Strings.Msg_ImportFailed, Strings.Title_ImportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
          }
          finally
          {
@@ -349,15 +352,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (!await _savePendingChangesAsync(database, "Export data").ConfigureAwait(true))
+         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true))
          {
             return;
          }
 
          SaveFileDialog dialog = new()
          {
-            Title = "Export settings and services to a JSON file",
-            Filter = "json file|*.json",
+            Title = Strings.Title_ExportJson,
+            Filter = Strings.Filter_Json,
             FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
          };
 
@@ -379,15 +382,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (!await _savePendingChangesAsync(database, "Export data").ConfigureAwait(true))
+         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true))
          {
             return;
          }
 
          SaveFileDialog dialog = new()
          {
-            Title = "Export services to a CSV file",
-            Filter = "Tab delimited CSV file|*.csv",
+            Title = Strings.Title_ExportCsv,
+            Filter = Strings.Filter_Csv,
             FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
          };
 
@@ -408,8 +411,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             bool exported = await database.ExportToFileAsync(fileName).ConfigureAwait(true);
 
             _ = exported
-               ? MessageBox.Show("Export data has been completed successfully.\nMore details in the activities.", "Export success")
-               : MessageBox.Show("Export data failed.\nMore details in the activities.", "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
+               ? MessageBox.Show(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess)
+               : MessageBox.Show(Strings.Msg_ExportFailed, Strings.Title_ExportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
          }
          finally
          {

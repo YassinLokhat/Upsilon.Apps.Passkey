@@ -1,6 +1,6 @@
 # Core API
 
-Public contracts live in `Upsilon.Apps.Passkey.Interfaces`. The vault implementation is `Upsilon.Apps.Passkey.Core.Models.Database` plus the `Core.Utils` defaults.
+Public contracts live in `Upsilon.Apps.Passkey.Interfaces`. The vault implementation is `Upsilon.Apps.Passkey.Core.Models.Database` plus the `Upsilon.Apps.Passkey.Utils` defaults.
 
 ## Factories
 
@@ -27,7 +27,7 @@ IDatabase Database.Open(
 * `Open` — the file must exist. `User` stays `null` until progressive login succeeds with every passkey, **in order**.
 * Async twins: `CreateAsync`, `OpenAsync`. Prefer them from a UI thread (RSA-4096 keygen plus one PBKDF2 stretch per passkey).
 
-Default implementations except clipboard: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`.
+Default implementations except clipboard: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory` in `Upsilon.Apps.Passkey.Utils`.
 
 ## `IDatabase`
 

@@ -6,6 +6,7 @@ using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
@@ -116,11 +117,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public static string ImportJson(this IDatabase database, string importContent)
       {
-         Data data;
+         ImportExportData data;
 
          try
          {
-            data = _jsonDeserializeAs<Data>(importContent);
+            data = _jsonDeserializeAs<ImportExportData>(importContent);
          }
          catch (JsonException)
          {
@@ -130,7 +131,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return _importData(database, data);
       }
 
-      private static string _importData(IDatabase database, Data data)
+      private static string _importData(IDatabase database, ImportExportData data)
       {
          string error = string.Empty;
 
@@ -241,7 +242,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             return string.Empty;
          }
 
-         Data data = new()
+         ImportExportData data = new()
          {
             Settings = database.User.Settings.CloneWith(database.SerializationCenter),
             Services = [.. database.User.Services],
@@ -253,7 +254,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       }
    }
 
-   internal class Data
+   internal class ImportExportData
    {
       public Settings? Settings { get; set; }
       public List<Service>? Services { get; set; }

@@ -26,11 +26,11 @@ If both providers are down (or you are offline), the check **fails open** and re
 
 ## Why PBKDF2 instead of Argon2?
 
-Argon2 is not part of the .NET base class library. Core and Interfaces have a **zero NuGet** policy. Compensation: PBKDF2-HMAC-SHA-512 with 1,000,000 iterations, plus a sticky KDF header so a future release could adopt a memory-hard KDF without breaking old files. See [[Vault Format]].
+Argon2 is not part of the .NET base class library. Core, Utils, and Interfaces have a **zero NuGet** policy. Compensation: PBKDF2-HMAC-SHA-512 with 1,000,000 iterations, plus a sticky KDF header so a future release could adopt a memory-hard KDF without breaking old files. See [[Vault Format]].
 
 ## Can I use Core on Linux?
 
-Yes. Build `Upsilon.Apps.Passkey.Linux.slnx` (Interfaces + Core). You must implement `IClipboardManager`. There is no official Linux GUI. Unit tests do not run on that solution (Windows TFM).
+Yes. Build `Upsilon.Apps.Passkey.Linux.slnx` (Interfaces + Utils + Core). You must implement `IClipboardManager`. There is no official Linux GUI. Unit tests do not run on that solution (Windows TFM).
 
 ## Where is my vault file in the WPF app?
 

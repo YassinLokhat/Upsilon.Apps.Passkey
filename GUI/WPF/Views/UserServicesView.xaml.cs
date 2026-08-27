@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
@@ -36,8 +37,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _navigation.ItemRequested += _navigation_ItemRequested;
 
-         DataContext = _viewModel = new($"{AppInfo.Title} - '{_session.User}'");
+         DataContext = _viewModel = new($"{_session.User}");
          _viewModel.FiltersRefreshed += _viewModel_FiltersRefreshed;
+         _viewModel.LanguageRefreshed += (_, _) => _refreshWarningsMenuFromSession();
+
 
          _services_LB.ItemsSource = _viewModel.Services;
 
@@ -113,7 +116,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (!string.IsNullOrEmpty(toInsert))
          {
             AppServices.Clipboard.SetText(toInsert, ClipboardManager.AutoClearAfter);
-            HotkeyHelper.SendPaste();
+            HotkeyHelper.Send(ModifierKeys.Control, Key.V);
          }
       }
 
@@ -148,6 +151,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          _service_SV.SetSelectedPassword(password);
+      }
+
+      private void _appSettings_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         if (this.GetIsBusy())
+         {
+            return;
+         }
+
+         _ = AppServices.Dialogs.ShowDialog(new AppSettingsView());
       }
 
       private void _logout_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -242,6 +255,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
+      private void _refreshWarningsMenuFromSession()
+         => _updateWarningsMenu([.. _session.Database?.Warnings ?? []]);
+
       private void _updateWarningsMenu(IWarning[] warnings)
       {
          int totalWarningCount = 0;
@@ -269,12 +285,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                .Count();
 
             totalWarningCount = activityWarnings + expiredPasswordWarnings + duplicatedPasswordWarnings + leakedPasswordWarnings;
-            _viewModel.ShowWarnings = $"Show {totalWarningCount} warnings";
+            _viewModel.ShowWarnings = Strings.Format(nameof(Strings.Msg_ShowWarnings), totalWarningCount);
             _viewModel.ShowWarningsColor = (expiredPasswordWarnings + leakedPasswordWarnings) == 0 ? SemanticBrushes.Warning : SemanticBrushes.Danger;
-            _viewModel.ShowActivityWarnings = $"Show {activityWarnings} activities to review";
-            _viewModel.ShowExpiredPasswordWarnings = $"Show {expiredPasswordWarnings} expired passwords";
-            _viewModel.ShowDuplicatedPasswordWarnings = $"Show {duplicatedPasswordWarnings} duplicated passwords";
-            _viewModel.ShowLeakedPasswordWarnings = $"Show {leakedPasswordWarnings} leaked passwords";
+            _viewModel.ShowActivityWarnings = Strings.Format(nameof(Strings.Msg_ShowActivityWarnings), activityWarnings);
+            _viewModel.ShowExpiredPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowExpiredPasswordWarnings), expiredPasswordWarnings);
+            _viewModel.ShowDuplicatedPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowDuplicatedPasswordWarnings), duplicatedPasswordWarnings);
+            _viewModel.ShowLeakedPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowLeakedPasswordWarnings), leakedPasswordWarnings);
          }
 
          _warnings_MI.Visibility = totalWarningCount != 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -302,7 +318,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          if (_services_LB.SelectedItem is not ServiceViewModel serviceViewModel
-            || _dialogs.Confirm($"Are you sure you want to delete the service '{serviceViewModel.ServiceDisplay}'", "Delete Service") != MessageBoxResult.Yes)
+            || _dialogs.Confirm(Strings.Format(nameof(Strings.Msg_DeleteService), serviceViewModel.ServiceDisplay), Strings.Title_DeleteService) != MessageBoxResult.Yes)
          {
             return;
          }
@@ -383,7 +399,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
          else
          {
-            _dialogs.Warn($"The item '{itemId}' was not found.\nIt has been deleted.", "Item not found");
+            _dialogs.Warn(Strings.Format(nameof(Strings.Msg_ItemNotFound), itemId), Strings.Title_ItemNotFound);
          }
       }
 

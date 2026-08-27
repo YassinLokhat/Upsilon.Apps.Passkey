@@ -110,7 +110,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ImportFromFile(importFile);
 
-         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Information : User '{username}'s database saved");
          expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
          expectedActivities.Push($"Warning : Import failed because service 'Service1' already exists");
 
@@ -171,40 +171,40 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
 
-         expectedActivities.Push($"Information : Service Service0 has been added to User {username}");
-         expectedActivities.Push($"Information : Service Service0's url has been set to http://service0.xyz");
-         expectedActivities.Push($"Information : Service Service0's notes has been set to Service0's notes");
+         expectedActivities.Push($"Information : Service 'Service0' has been added to User '{username}'");
+         expectedActivities.Push($"Information : Service 'Service0's url has been set to 'http://service0.xyz'");
+         expectedActivities.Push($"Information : Service 'Service0's notes has been set to 'Service0's notes'");
 
-         expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
-         expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
-         expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to Service0's Account0's notes");
-         expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to None");
-         expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account 'Account0 (account0@service0.xyz, account0_backup@service0.xyz)' has been added to Service 'Service0'");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to 'Service0's Account0's notes'");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to 'None'");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to '3'");
 
-         expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz) has been added to Service Service0");
-         expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
-         expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to Service0's Account1's notes");
-         expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to None");
-         expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account 'Account1 (account1@service0.xyz, account1_backup@service0.xyz)' has been added to Service 'Service0'");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to 'Service0's Account1's notes'");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to 'None'");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to '3'");
 
-         expectedActivities.Push($"Information : Service Service1 has been added to User {username}");
-         expectedActivities.Push($"Information : Service Service1's url has been set to http://service1.xyz");
-         expectedActivities.Push($"Information : Service Service1's notes has been set to Service1's notes");
+         expectedActivities.Push($"Information : Service 'Service1' has been added to User '{username}'");
+         expectedActivities.Push($"Information : Service 'Service1's url has been set to 'http://service1.xyz'");
+         expectedActivities.Push($"Information : Service 'Service1's notes has been set to 'Service1's notes'");
 
-         expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
-         expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
-         expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to Service1's Account0's notes");
-         expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to None");
-         expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account 'Account0 (account0@service1.xyz, account0_backup@service1.xyz)' has been added to Service 'Service1'");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to 'Service1's Account0's notes'");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to 'None'");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to '3'");
 
-         expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz) has been added to Service Service1");
-         expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
-         expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to Service1's Account1's notes");
-         expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to None");
-         expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)' has been added to Service 'Service1'");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to 'Service1's Account1's notes'");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to 'None'");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to '3'");
 
          expectedActivities.Push($"Warning : Import completed successfully");
-         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Information : User '{username}'s database saved");
 
          // Then
          database.User.Services.Count().Should().Be(2);
@@ -337,40 +337,40 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          expectedActivities.Push($"Warning : Importing data from file : '{importFile}'");
 
-         expectedActivities.Push($"Information : Service Service0 has been added to User {username}");
-         expectedActivities.Push($"Information : Service Service0's url has been set to http://service0.xyz");
-         expectedActivities.Push($"Information : Service Service0's notes has been set to Service0's notes");
+         expectedActivities.Push($"Information : Service 'Service0' has been added to User '{username}'");
+         expectedActivities.Push($"Information : Service 'Service0's url has been set to 'http://service0.xyz'");
+         expectedActivities.Push($"Information : Service 'Service0's notes has been set to 'Service0's notes'");
 
-         expectedActivities.Push($"Information : Account Account0 (account0@service0.xyz, account0_backup@service0.xyz) has been added to Service Service0");
-         expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
-         expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to Service0's Account0's notes");
-         expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to None");
-         expectedActivities.Push($"Information : Service Service0's Account Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account 'Account0 (account0@service0.xyz, account0_backup@service0.xyz)' has been added to Service 'Service0'");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s notes has been set to 'Service0's Account0's notes'");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s options has been set to 'None'");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account0 (account0@service0.xyz, account0_backup@service0.xyz)'s password update reminder delay has been set to '3'");
 
-         expectedActivities.Push($"Information : Account Account1 (account1@service0.xyz, account1_backup@service0.xyz) has been added to Service Service0");
-         expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
-         expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to Service0's Account1's notes");
-         expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to None");
-         expectedActivities.Push($"Information : Service Service0's Account Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account 'Account1 (account1@service0.xyz, account1_backup@service0.xyz)' has been added to Service 'Service0'");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s notes has been set to 'Service0's Account1's notes'");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s options has been set to 'None'");
+         expectedActivities.Push($"Information : Service 'Service0's Account 'Account1 (account1@service0.xyz, account1_backup@service0.xyz)'s password update reminder delay has been set to '3'");
 
-         expectedActivities.Push($"Information : Service Service1 has been added to User {username}");
-         expectedActivities.Push($"Information : Service Service1's url has been set to http://service1.xyz");
-         expectedActivities.Push($"Information : Service Service1's notes has been set to Service1's notes");
+         expectedActivities.Push($"Information : Service 'Service1' has been added to User '{username}'");
+         expectedActivities.Push($"Information : Service 'Service1's url has been set to 'http://service1.xyz'");
+         expectedActivities.Push($"Information : Service 'Service1's notes has been set to 'Service1's notes'");
 
-         expectedActivities.Push($"Information : Account Account0 (account0@service1.xyz, account0_backup@service1.xyz) has been added to Service Service1");
-         expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
-         expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to Service1's Account0's notes");
-         expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to None");
-         expectedActivities.Push($"Information : Service Service1's Account Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account 'Account0 (account0@service1.xyz, account0_backup@service1.xyz)' has been added to Service 'Service1'");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s notes has been set to 'Service1's Account0's notes'");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s options has been set to 'None'");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account0 (account0@service1.xyz, account0_backup@service1.xyz)'s password update reminder delay has been set to '3'");
 
-         expectedActivities.Push($"Information : Account Account1 (account1@service1.xyz, account1_backup@service1.xyz) has been added to Service Service1");
-         expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
-         expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to Service1's Account1's notes");
-         expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to None");
-         expectedActivities.Push($"Information : Service Service1's Account Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to 3");
+         expectedActivities.Push($"Information : Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)' has been added to Service 'Service1'");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password has been updated");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s notes has been set to 'Service1's Account1's notes'");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s options has been set to 'None'");
+         expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to '3'");
 
          expectedActivities.Push($"Warning : Import completed successfully");
-         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Information : User '{username}'s database saved");
 
          // Then
          database.User.Settings.LogoutTimeout.Should().Be(9);
@@ -475,7 +475,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ExportToFile(exportFile);
 
-         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Information : User '{username}'s database saved");
          expectedActivities.Push($"Warning : Exporting data to file : '{exportFile}'");
          expectedActivities.Push($"Warning : Export failed because export file already exists");
 
@@ -507,7 +507,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ExportToFile(exportFile);
 
-         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Information : User '{username}'s database saved");
          expectedActivities.Push($"Warning : Exporting data to file : '{exportFile}'");
          expectedActivities.Push($"Warning : Export failed because '.txt' extension type is not handled");
 

@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
@@ -150,7 +151,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             _mainViewModel.DatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{filename}.pku");
          }
 
-         _setBusy("Opening the database...");
+         _setBusy(Strings.Msg_OpeningDatabase);
 
          try
          {
@@ -175,8 +176,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          {
             Log.Error(ex, "Failed to open database");
             AppServices.Dialogs.Warn(
-                  "This database file uses key-stretching parameters below the accepted security floor and cannot be opened.",
-                  "Insufficient KDF parameters");
+                  Strings.Msg_InsufficientKdf,
+                  Strings.Title_InsufficientKdf);
             return;
          }
          finally
@@ -193,8 +194,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          // switch to the passkey prompt. The idle timer is restarted by the
          // caller once this method returns.
          _mainViewModel.IsAwaitingPasskeys = true;
-         _mainViewModel.CredentialsLabel = "Password :";
-
          _username_TB.Text = string.Empty;
          _username_TB.Visibility = Visibility.Collapsed;
 
@@ -219,8 +218,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
-         _setBusy("Checking the passkey...");
-
+         _setBusy(Strings.Msg_CheckingPasskey);
          try
          {
             // Materialize the managed copy while SecureString is still alive.
@@ -240,8 +238,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             // hard failures bubble up so the user can be told and restart cleanly.
             Log.Error(ex, "Database corrupted during login");
             AppServices.Dialogs.Warn(
-               "This database file appears to be corrupted or is not a valid Passkey vault and cannot be opened.",
-               "Corrupted database");
+               Strings.Msg_CorruptedDatabase,
+               Strings.Title_CorruptedDatabase);
             _resetCredentials();
             _endSession();
             return;
@@ -266,17 +264,34 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
+         _session.ApplySessionLanguage();
+
          Hide();
          _resetCredentials();
 
-         if (!UserServicesView.ShowUser(this))
+         bool stayOpen = UserServicesView.ShowUser(this);
+
+         // ShowUser is modal: EndSession may have applied the app language while
+         // this window was still hidden under the dialog, so Loc bindings can miss
+         // the refresh. Re-apply after the modal returns, then show the login UI.
+         _restoreAppLanguage();
+         _resetCredentials();
+
+         if (!stayOpen)
          {
             Close();
          }
          else
          {
-            _resetCredentials();
+            Show();
          }
+      }
+
+      private static void _restoreAppLanguage()
+      {
+         // forceRefresh: EndSession may already have switched the culture while
+         // MainWindow was hidden under the modal; Loc bindings still need a nudge.
+         _ = LocalizationService.Apply(AppInfo.AppSettings.Language, forceRefresh: true);
       }
 
       private void _setBusy(string message)
@@ -322,11 +337,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             Hide();
 
             MessageBoxResult result = AppServices.Dialogs.Confirm(
-               "Unsaved changes have been detected.\nClick Yes to apply these changes.\nClick No to discard them.\nClick Cancel to ignore and keep the save file.",
-               "Autosave detected",
+               Strings.Msg_AutosaveDetected,
+               Strings.Title_AutosaveDetected,
                MessageBoxButton.YesNoCancel,
                MessageBoxImage.Question);
-
             return result switch
             {
                MessageBoxResult.Cancel => Passkey.Interfaces.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile,
@@ -353,6 +367,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             _resetCredentials();
             // The database already closed itself; only clear the session reference.
             _endSession(closeDatabase: false);
+            _restoreAppLanguage();
             Show();
          });
       }
@@ -363,8 +378,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          _mainViewModel.IsAwaitingPasskeys = false;
          _mainViewModel.DatabaseFile = string.Empty;
-         _mainViewModel.CredentialsLabel = "Username :";
-
          _username_TB.Text = string.Empty;
          _username_TB.Visibility = Visibility.Visible;
          _ = _username_TB.Focus();

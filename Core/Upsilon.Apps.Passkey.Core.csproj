@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Interfaces\Upsilon.Apps.Passkey.Interfaces.csproj" />
+    <ProjectReference Include="..\Utils\Upsilon.Apps.Passkey.Utils.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,8 +24,7 @@
     the policy into a hard build failure.
   -->
   <Target Name="EnforceZeroExternalDependencies" BeforeTargets="Build;Pack">
-    <Error Condition="'@(PackageReference)' != ''"
-           Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(PackageReference))." />
+    <Error Condition="'@(PackageReference)' != ''" Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(PackageReference))." />
   </Target>
 
 </Project>

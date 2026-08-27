@@ -3,6 +3,7 @@ using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -206,17 +207,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      public override string ToString()
-      {
-         string account = "Account ";
-
-         if (!string.IsNullOrEmpty(Label))
-         {
-            account += $"{Label} ";
-         }
-
-         return account + $"({string.Join(", ", Identifiers)})";
-      }
+      public override string ToString() => $"{Label} ({string.Join(", ", Identifiers)})".Trim();
 
       public bool HasChanged() => Host.HasPendingChanges(ItemId);
    }

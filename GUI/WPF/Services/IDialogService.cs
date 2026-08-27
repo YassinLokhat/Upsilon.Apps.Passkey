@@ -36,6 +36,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       /// <summary>Shows a warning dialog with the given message.</summary>
       void Warn(string text, string title);
 
+      /// <summary>Asks the user to pick an existing folder. Returns <c>null</c> when cancelled.</summary>
+      string? PickBrowseFolder(string title, string defaultPath);
+
       /// <summary>Asks the user to pick an existing file. Returns <c>null</c> when cancelled.</summary>
       string? PickOpenFile(string filter, string title);
 

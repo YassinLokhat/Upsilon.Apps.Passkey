@@ -6,6 +6,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views.Controls"
              xmlns:controls="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls"
+             xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
              d:DataContext="{d:DesignInstance Type=controls:ServiceViewModel}"
              mc:Ignorable="d">
     <DockPanel VerticalAlignment="Stretch">
@@ -31,7 +32,7 @@
                     </Grid.ColumnDefinitions>
                     <Label Grid.Row="0"
                            Grid.Column="0"
-                           Content="Service name : "/>
+                           Content="{loc:Loc Label_ServiceName}"/>
                     <TextBox Grid.Row="0"
                              Grid.Column="1"
                              Text="{Binding ServiceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -42,7 +43,7 @@
                             Click="_viewActivities_Button_Click"/>
                     <Label Grid.Row="1"
                            Grid.Column="0"
-                           Content="Url : "/>
+                           Content="{loc:Loc Label_Url}"/>
                     <TextBox Grid.Row="1"
                              Grid.Column="1"
                              Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -53,7 +54,7 @@
                             Click="_openUrl_Button_Click"/>
                     <Label Grid.Row="2"
                            Grid.Column="0"
-                           Content="Notes : "/>
+                           Content="{loc:Loc Label_Notes}"/>
                     <TextBox Grid.Row="2"
                              Grid.Column="1"
                              Grid.ColumnSpan="2"

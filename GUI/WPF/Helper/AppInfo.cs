@@ -21,6 +21,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       public static AppSettings AppSettings { get; set; } = new();
 
+      /// <summary>
+      /// Set when <see cref="ConfigFile"/> was missing or invalid and a default was written.
+      /// Consumed once at startup so the warning can be localized after culture apply.
+      /// </summary>
+      public static bool ConfigLoadHadError { get; private set; }
+
       private static string _buildTitle()
       {
          _ = ConfigFile;
@@ -51,7 +57,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             or SecurityException)
          {
             AppSettings.Save(configFile);
-            AppServices.Dialogs.Warn("It seems that there is an error in the configuration file.\n", "Config file error");
+            ConfigLoadHadError = true;
          }
 
          return configFile;

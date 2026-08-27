@@ -6,9 +6,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views"
         xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
         d:DataContext="{d:DesignInstance Type=viewmodels:InsertIdentifierViewModel}"
         mc:Ignorable="d"
-        Title="Insert identifier"
+        Title="{loc:Loc Title_InsertIdentifier}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         Height="200" Width="483">
@@ -29,15 +30,20 @@
         </StackPanel>
         <StackPanel Grid.Row="1"
                     Orientation="Horizontal">
-            <Button Content="Username"
+            <Button Content="{loc:Loc IdentifierType_Username}"
+                    Tag="Username"
                     Click="_insertIdentifierType_Button_Click"/>
-            <Button Content="Email"
+            <Button Content="{loc:Loc IdentifierType_Email}"
+                    Tag="Email"
                     Click="_insertIdentifierType_Button_Click"/>
-            <Button Content="Phone Number"
+            <Button Content="{loc:Loc IdentifierType_PhoneNumber}"
+                    Tag="Phone Number"
                     Click="_insertIdentifierType_Button_Click"/>
-            <Button Content="Passkey"
+            <Button Content="{loc:Loc IdentifierType_Passkey}"
+                    Tag="Passkey"
                     Click="_insertIdentifierType_Button_Click"/>
-            <Button Content="Authentificator App" 
+            <Button Content="{loc:Loc IdentifierType_AuthenticatorApp}"
+                    Tag="Authentificator App"
                     Click="_insertIdentifierType_Button_Click"/>
         </StackPanel>
         <ListBox Name="_identifiers_LB"

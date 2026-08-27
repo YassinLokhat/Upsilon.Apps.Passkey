@@ -20,8 +20,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          ActivityCenter.AddActivity(itemId: string.Empty,
+            Username,
+            serviceName: null,
+            accountName: null,
+            fieldName: nameof(filePath),
+            fieldValue: filePath,
+            parentName: null,
             eventType: ActivityEventType.ImportingDataStarted,
-            data: [filePath],
             needsReview: true);
 
          string importContent = string.Empty;
@@ -59,16 +64,26 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (string.IsNullOrWhiteSpace(errorLog))
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
+               Username,
+               serviceName: null,
+               accountName: null,
+               fieldName: null,
+               fieldValue: null,
+               parentName: null,
                eventType: ActivityEventType.ImportingDataSucceded,
-               data: [],
                needsReview: true);
             _save(logSaveEvent: true);
          }
          else
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
+               Username,
+               serviceName: null,
+               accountName: null,
+               fieldName: nameof(errorLog),
+               fieldValue: errorLog,
+               parentName: null,
                eventType: ActivityEventType.ImportingDataFailed,
-               data: [errorLog],
                needsReview: true);
          }
 
@@ -88,8 +103,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          ActivityCenter.AddActivity(itemId: string.Empty,
+            Username,
+            serviceName: null,
+            accountName: null,
+            fieldName: nameof(filePath),
+            fieldValue: filePath,
+            parentName: null,
             eventType: ActivityEventType.ExportingDataStarted,
-            data: [filePath],
             needsReview: true);
 
          string errorLog = string.Empty;
@@ -114,15 +134,25 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (string.IsNullOrWhiteSpace(errorLog))
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
+               Username,
+               serviceName: null,
+               accountName: null,
+               fieldName: null,
+               fieldValue: null,
+               parentName: null,
                eventType: ActivityEventType.ExportingDataSucceded,
-               data: [],
                needsReview: true);
          }
          else
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
+               Username,
+               serviceName: null,
+               accountName: null,
+               fieldName: nameof(errorLog),
+               fieldValue: errorLog,
+               parentName: null,
                eventType: ActivityEventType.ExportingDataFailed,
-               data: [errorLog],
                needsReview: true);
          }
 

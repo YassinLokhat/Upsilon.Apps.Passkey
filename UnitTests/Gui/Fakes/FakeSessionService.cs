@@ -33,5 +33,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
          Database = null;
          SessionChanged?.Invoke(this, EventArgs.Empty);
       }
+
+      public void ApplySessionLanguage()
+      {
+      }
    }
 }

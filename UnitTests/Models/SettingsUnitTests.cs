@@ -1,8 +1,9 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
@@ -73,8 +74,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          Database core = (Database)database;
          string username = database.User!.Username;
 
-         Activity oldInfo = new(DateTime.Now.AddYears(-2).Ticks, string.Empty, ActivityEventType.DatabaseSaved, [username], needsReview: false);
-         Activity oldReview = new(DateTime.Now.AddYears(-2).Ticks, string.Empty, ActivityEventType.LoginFailed, [username, "1"], needsReview: true);
+         Activity oldInfo = new(DateTime.Now.AddYears(-2).Ticks, string.Empty, username, null, null, null, null, null, ActivityEventType.DatabaseSaved, needsReview: false);
+         Activity oldReview = new(DateTime.Now.AddYears(-2).Ticks, string.Empty, username, null, null, "PasswordLevel", "1", null, ActivityEventType.LoginFailed, needsReview: true);
          core.ActivityCenter.Activities.Add(oldInfo);
          core.ActivityCenter.Activities.Add(oldReview);
 
@@ -85,6 +86,36 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = remaining.Should().Contain(x => x.NeedsReview && x.EventType == ActivityEventType.LoginFailed);
 
          database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Language is stored on the user; empty means "follow application language".
+       */
+      public void Case04_Language_RoundTrip()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         _ = database.User!.Settings.Language.Should().BeEmpty();
+
+         database.User.Settings.Language = "fr";
+         database.Save();
+         database.Close();
+
+         IDatabase reopened = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         _ = reopened.User!.Settings.Language.Should().Be("fr");
+
+         reopened.User.Settings.Language = string.Empty;
+         reopened.Save();
+         reopened.Close();
+
+         IDatabase again = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         _ = again.User!.Settings.Language.Should().BeEmpty();
+
+         again.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
    }

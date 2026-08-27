@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Interfaces.Enums;
+﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
@@ -23,10 +23,23 @@ namespace Upsilon.Apps.Passkey.Core.Models
       bool IUserHost.HasPendingChanges(string itemId) => HasChanged(itemId);
 
       void IUserHost.AddActivity(string itemId,
+         string? username,
+         string? serviceName,
+         string? accountName,
+         string? fieldName,
+         string? fieldValue,
+         string? parentName,
          ActivityEventType eventType,
-         string[] data,
          bool needsReview)
-         => ActivityCenter.AddActivity(itemId, eventType, data, needsReview);
+         => ActivityCenter.AddActivity(itemId,
+            username,
+            serviceName,
+            accountName,
+            fieldName,
+            fieldValue,
+            parentName,
+            eventType,
+            needsReview);
 
       void IUserHost.PersistActivityLog(bool rebuildStringActivities)
          => ActivityCenter.Save(rebuildStringActivities);

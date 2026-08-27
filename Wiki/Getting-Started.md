@@ -4,7 +4,7 @@
 
 * **.NET 10 SDK**
 * **Windows** for the WPF client (`net10.0-windows10.0.18362.0`) and for tests (the test project uses a Windows TFM)
-* **Linux** can build Interfaces + Core only (`Upsilon.Apps.Passkey.Linux.slnx`) — there is no official Linux GUI
+* **Linux** can build Interfaces + Utils + Core (`Upsilon.Apps.Passkey.Linux.slnx`) — there is no official Linux GUI
 
 ## Clone and build
 
@@ -16,7 +16,7 @@ cd Upsilon.Apps.Passkey
 dotnet build Upsilon.Apps.Passkey.Windows.slnx
 dotnet run --project GUI/WPF
 
-# Linux / Core-only
+# Linux: Interfaces + Utils + Core
 dotnet build Upsilon.Apps.Passkey.Linux.slnx
 ```
 
@@ -45,12 +45,12 @@ More GUI behaviour: [[WPF Client]].
 
 ## Embed Core without WPF
 
-You must supply an `IClipboardManager` (OS-specific). Core already ships `CryptographyCenter`, `JsonSerializationCenter`, and `PasswordFactory` in `Upsilon.Apps.Passkey.Core.Utils`.
+You must supply an `IClipboardManager` (OS-specific). Utils already ships `CryptographyCenter`, `JsonSerializationCenter`, and `PasswordFactory` in `Upsilon.Apps.Passkey.Utils`.
 
 ```csharp
 using Upsilon.Apps.Passkey.Core.Models;
-using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Utils;
 
 IDatabase database = Database.Create(
    new CryptographyCenter(),

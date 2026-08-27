@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
@@ -14,6 +14,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
 
       public MessageBoxResult ConfirmResult { get; set; } = MessageBoxResult.Yes;
 
+      public string? BrowseFolderResult { get; set; }
       public string? OpenFileResult { get; set; }
 
       public string? SaveFileResult { get; set; }
@@ -39,6 +40,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
       public void Info(string text, string title) => Infos.Add(text);
 
       public void Warn(string text, string title) => Warnings.Add(text);
+
+      public string? PickBrowseFolder(string title, string defaultPath) => BrowseFolderResult;
 
       public string? PickOpenFile(string filter, string title) => OpenFileResult;
 
