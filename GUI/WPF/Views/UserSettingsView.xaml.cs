@@ -334,14 +334,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             bool imported = await database.ImportFromFileAsync(dialog.FileName).ConfigureAwait(true);
 
-            if (imported)
-            {
-               _ = AppServices.Dialogs.Confirm(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess, MessageBoxButton.OK, MessageBoxImage.None);
-            }
-            else
-            {
-               _ = AppServices.Dialogs.Confirm(Strings.Msg_ImportFailed, Strings.Title_ImportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            _ = imported
+               ? AppServices.Dialogs.Confirm(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess, MessageBoxButton.OK, MessageBoxImage.None)
+               : AppServices.Dialogs.Confirm(Strings.Msg_ImportFailed, Strings.Title_ImportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
          }
          finally
          {
@@ -417,14 +412,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             bool exported = await database.ExportToFileAsync(fileName).ConfigureAwait(true);
 
-            if (exported)
-            {
-               _ = AppServices.Dialogs.Confirm(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess, MessageBoxButton.OK, MessageBoxImage.None);
-            }
-            else
-            {
-               _ = AppServices.Dialogs.Confirm(Strings.Msg_ExportFailed, Strings.Title_ExportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            _ = exported
+               ? AppServices.Dialogs.Confirm(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess, MessageBoxButton.OK, MessageBoxImage.None)
+               : AppServices.Dialogs.Confirm(Strings.Msg_ExportFailed, Strings.Title_ExportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
          }
          finally
          {
