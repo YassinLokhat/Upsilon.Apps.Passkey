@@ -8,10 +8,20 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
 
       string ItemId { get; }
 
+      string? Username { get; }
+
+      string? ServiceName { get; }
+
+      string? AccountName { get; }
+
+      string? FieldName { get; }
+
+      string? FieldValue { get; }
+
+      string? ParentName { get; }
+
       ActivityEventType EventType { get; }
 
       bool NeedsReview { get; set; }
-
-      string Message { get; }
    }
 }

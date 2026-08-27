@@ -1,9 +1,9 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Upsilon.Apps.Passkey.Core.Utils
+namespace Upsilon.Apps.Passkey.Utils
 {
    /// <summary>
    /// Holds a secret (an account password or a master passkey) encrypted in memory
@@ -20,7 +20,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
    /// plaintext instead (the .pku onion encryption is what protects it at rest); see
    /// <see cref="ProtectedSecretJsonConverter"/>.
    /// </summary>
-   internal sealed class ProtectedSecret
+   public sealed class ProtectedSecret
    {
       private const int KEY_SIZE = 32;
       private const int SALT_SIZE = 16;
@@ -115,7 +115,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
    /// encryption) while its in-memory representation stays encrypted. Deserializing
    /// immediately re-protects the value.
    /// </summary>
-   internal sealed class ProtectedSecretJsonConverter : JsonConverter<ProtectedSecret>
+   public sealed class ProtectedSecretJsonConverter : JsonConverter<ProtectedSecret>
    {
       public override ProtectedSecret Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
          => ProtectedSecret.Protect(reader.GetString());

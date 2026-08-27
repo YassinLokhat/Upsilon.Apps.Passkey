@@ -4,7 +4,7 @@ using System.Text.Json;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
-namespace Upsilon.Apps.Passkey.Core.Utils
+namespace Upsilon.Apps.Passkey.Utils
 {
    /// <summary>
    /// BCL-only crypto: SHA-512 fingerprints, PBKDF2 stretching, AES-256-GCM

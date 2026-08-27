@@ -7,12 +7,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views"
         xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
         d:DataContext="{d:DesignInstance Type=viewmodels:UserSettingsViewModel}"
         mc:Ignorable="d"
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="345" Width="870">
+        Height="425" Width="1000">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -24,107 +25,133 @@
                     <DockPanel HorizontalAlignment="Stretch"/>
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
-            <MenuItem Header="_Save"
+            <MenuItem Header="{loc:Loc Menu_Save}"
                       Click="_save_MenuItem_Click"/>
             <MenuItem Name="_import_MI"
-                      Header="_Import"
+                      Header="{loc:Loc Menu_Import}"
                       Click="_import_MenuItem_Click"/>
             <MenuItem Name="_export_MI"
-                      Header="_Export">
-                <MenuItem Header="Export as _JSON (Settings and Services)"
+                      Header="{loc:Loc Menu_Export}">
+                <MenuItem Header="{loc:Loc Menu_ExportJson}"
                           Click="_export_json_MenuItem_Click"/>
-                <MenuItem Header="Export as _CSV (Services only)"
+                <MenuItem Header="{loc:Loc Menu_ExportCsv}"
                           Click="_export_csv_MenuItem_Click"/>
             </MenuItem>
             <MenuItem Name="_viewActivities_MI"
-                      Header="View Activities"
+                      Header="{loc:Loc Menu_ViewActivities}"
                       Click="_viewActivities_MenuItem_Click"/>
             <MenuItem Name="_deleteUser_MI"
-                      Header="_Delete User"
+                      Header="{loc:Loc Menu_DeleteUser}"
                       HorizontalAlignment="Right"
                       Click="_deleteUser_MenuItem_Click"/>
         </Menu>
 
-        <StackPanel Grid.Row="1"
-                    Orientation="Horizontal">
-            <GroupBox Header="Credentials">
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Label>Username :</Label>
-                        <TextBox Name="_username_TB"
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <GroupBox Header="{loc:Loc Label_Credentials}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="{loc:Loc Label_Username}"/>
+                            <TextBox Name="_username_TB"
                                  Width="400"
                                  Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                        <Controls:UserPasswordsContainer x:Name="_passwordsContainer"/>
                     </StackPanel>
-                    <Controls:UserPasswordsContainer x:Name="_passwordsContainer"/>
-                </StackPanel>
-            </GroupBox>
-            <GroupBox Header="Settings">
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding LogoutTimeoutChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  Content="Logout after"/>
-                        <TextBox Width="25"
+                </GroupBox>
+            </StackPanel>
+            <StackPanel Grid.Column="1">
+                <GroupBox Header="{loc:Loc Label_Settings}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding LogoutTimeoutChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_LogoutAfter}"/>
+                            <TextBox Width="25"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding LogoutTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label Margin="0">minutes.</Label>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding CleaningClipboardTimeoutChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  Content="Clean any passwords in clipboard every"/>
-                        <TextBox Width="35"
+                            <Label Margin="0" Content="{loc:Loc Label_Minutes}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding CleaningClipboardTimeoutChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_CleanClipboardEvery}"/>
+                            <TextBox Width="35"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding CleaningClipboardTimeout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label Margin="0">seconds.</Label>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding ShowPasswordDelayChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  Content="Show QR Code during"/>
-                        <TextBox Width="40"
+                            <Label Margin="0" Content="{loc:Loc Label_Seconds}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding ShowPasswordDelayChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_ShowQrCodeDuring}"/>
+                            <TextBox Width="40"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding ShowPasswordDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label Margin="0">milliseconds.</Label>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding NumberOfOldPasswordToKeepChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  Content="Limit password history to the previous"/>
-                        <TextBox Width="40"
+                            <Label Margin="0" Content="{loc:Loc Label_Milliseconds}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding NumberOfOldPasswordToKeepChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_LimitPasswordHistory}"/>
+                            <TextBox Width="40"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding NumberOfOldPasswordToKeep, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label Margin="0">entries.</Label>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding NumberOfMonthActivitiesToKeepChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                  Content="Limit activity history to the previous"/>
-                        <TextBox Width="40"
+                            <Label Margin="0" Content="{loc:Loc Label_Entries}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding NumberOfMonthActivitiesToKeepChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_LimitActivityHistory}"/>
+                            <TextBox Width="40"
                                  HorizontalContentAlignment="Center"
                                  TextChanged="_value_TextBox_TextChanged"
                                  PreviewTextInput="_value_TextBox_PreviewTextInput"
                                  DataObject.Pasting="_value_TextBox_Pasting"
                                  Text="{Binding NumberOfMonthActivitiesToKeep, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Label Margin="0">months.</Label>
-                    </StackPanel>
-                    <GroupBox Header="Warnings">
-                        <StackPanel>
-                            <CheckBox IsChecked="{Binding NotifyActivityReview, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Notify Activity Review</CheckBox>
-                            <CheckBox IsChecked="{Binding NotifyDuplicatedPasswords, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Notify Duplicated Passwords</CheckBox>
-                            <CheckBox IsChecked="{Binding NotifyPasswordUpdateReminder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Notify Password Update Reminder</CheckBox>
-                            <CheckBox IsChecked="{Binding NotifyPasswordLeaked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Notify Password Leaked</CheckBox>
+                            <Label Margin="0" Content="{loc:Loc Label_Months}"/>
                         </StackPanel>
-                    </GroupBox>
-                </StackPanel>
-            </GroupBox>
-        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,4">
+                            <Label Margin="0" Content="{loc:Loc Label_Language}"/>
+                            <ComboBox MinWidth="220"
+                                      ItemsSource="{Binding Languages}"
+                                      SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                                      DisplayMemberPath="NativeName"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,4">
+                            <Label Margin="0" Content="{loc:Loc Label_Theme}"/>
+                            <ComboBox MinWidth="220"
+                                      ItemsSource="{Binding Themes}"
+                                      SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
+                                      DisplayMemberPath="DisplayName"/>
+                        </StackPanel>
+                        <GroupBox Header="{loc:Loc Label_Warnings}">
+                            <StackPanel>
+                                <CheckBox IsChecked="{Binding NotifyActivityReview, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Content="{loc:Loc Label_NotifyActivityReview}"/>
+                                <CheckBox IsChecked="{Binding NotifyDuplicatedPasswords, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Content="{loc:Loc Label_NotifyDuplicatedPasswords}"/>
+                                <CheckBox IsChecked="{Binding NotifyPasswordUpdateReminder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Content="{loc:Loc Label_NotifyPasswordUpdateReminder}"/>
+                                <CheckBox IsChecked="{Binding NotifyPasswordLeaked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Content="{loc:Loc Label_NotifyPasswordLeaked}"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

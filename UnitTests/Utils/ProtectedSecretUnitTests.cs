@@ -1,6 +1,7 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.Text.Json;
 using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Utils
 {

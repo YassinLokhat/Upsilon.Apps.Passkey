@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
@@ -38,10 +38,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             .Where(x => x.EventType == ActivityEventType.ItemUpdated)];
 
          _ = midTyping.Should().HaveCount(itemUpdatedBeforeEdits + 2);
-         _ = midTyping.Should().ContainSingle(x => x.Message.Contains("label has been", StringComparison.OrdinalIgnoreCase)
-            && x.Message.Contains("L123", StringComparison.Ordinal));
-         _ = midTyping.Should().ContainSingle(x => x.Message.Contains("notes has been", StringComparison.OrdinalIgnoreCase)
-            && x.Message.Contains("N12", StringComparison.Ordinal));
+         _ = midTyping.Should().ContainSingle(x => x.FieldName == nameof(account.Label) && x.FieldValue == account.Label);
+         _ = midTyping.Should().ContainSingle(x => x.FieldName == nameof(account.Notes) && x.FieldValue == account.Notes);
 
          account.Label = originalLabel;
 
@@ -49,8 +47,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             .Where(x => x.EventType == ActivityEventType.ItemUpdated)];
 
          _ = afterRevert.Should().HaveCount(itemUpdatedBeforeEdits + 1);
-         _ = afterRevert.Should().NotContain(x => x.Message.Contains("label has been", StringComparison.OrdinalIgnoreCase));
-         _ = afterRevert.Should().ContainSingle(x => x.Message.Contains("notes has been", StringComparison.OrdinalIgnoreCase));
+         _ = afterRevert.Should().NotContain(x => x.FieldName == nameof(account.Label));
+         _ = afterRevert.Should().ContainSingle(x => x.FieldName == nameof(account.Notes));
          _ = account.HasChanged(nameof(account.Label)).Should().BeFalse();
          _ = account.HasChanged(nameof(account.Notes)).Should().BeTrue();
 
@@ -58,7 +56,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          int notesBeforePostSealEdit = database.Activities!
             .Count(x => x.EventType == ActivityEventType.ItemUpdated
-               && x.Message.Contains("notes has been", StringComparison.OrdinalIgnoreCase));
+               && x.FieldName == nameof(account.Notes));
          int itemUpdatedAfterSave = database.Activities!
             .Count(x => x.EventType == ActivityEventType.ItemUpdated);
 
@@ -68,9 +66,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             .Where(x => x.EventType == ActivityEventType.ItemUpdated)];
 
          _ = afterSeal.Should().HaveCount(itemUpdatedAfterSave + 1);
-         _ = afterSeal.Count(x => x.Message.Contains("notes has been", StringComparison.OrdinalIgnoreCase))
+         _ = afterSeal.Count(x => x.FieldName == nameof(account.Notes))
             .Should().Be(notesBeforePostSealEdit + 1);
-         _ = afterSeal[0].Message.Should().Contain("N123");
+         _ = afterSeal[0].FieldValue.Should().Be(account.Notes);
 
          string password1 = UnitTestsHelper.GetRandomString();
          string password2 = UnitTestsHelper.GetRandomString();
@@ -79,7 +77,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          _ = database.Activities!
             .Count(x => x.EventType == ActivityEventType.ItemUpdated
-               && x.Message.Contains("password has been", StringComparison.OrdinalIgnoreCase))
+               && x.FieldName == nameof(account.Password))
             .Should().BeGreaterThanOrEqualTo(2, "password activities must not coalesce");
 
          database.Close();
@@ -103,19 +101,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          int notesBefore = database.Activities!
             .Count(x => x.EventType == ActivityEventType.ItemUpdated
-               && x.Message.Contains("notes has been", StringComparison.OrdinalIgnoreCase));
+               && x.FieldName == nameof(account.Notes));
 
          account.Notes = "I";
          Thread.Sleep(700);
-         account.Notes = "I'd like to tetst that";
+         account.Notes = "I'd like to test that";
 
          IActivity[] notesActivities = [.. database.Activities!
             .Where(x => x.EventType == ActivityEventType.ItemUpdated
-               && x.Message.Contains("notes has been", StringComparison.OrdinalIgnoreCase))];
+               && x.FieldName == nameof(account.Notes))];
 
          _ = notesActivities.Should().HaveCount(notesBefore + 1);
-         _ = notesActivities[0].Message.Should().Contain("I'd like to tetst that");
-         _ = notesActivities.Should().NotContain(x => x.Message.EndsWith("set to I", StringComparison.Ordinal));
+         _ = notesActivities[0].FieldValue.Should().Be("I'd like to test that");
+         _ = notesActivities.Should().NotContain(x => x.FieldValue == "I");
 
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();

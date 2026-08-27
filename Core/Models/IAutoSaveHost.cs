@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Interfaces.Enums;
+﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
@@ -14,12 +14,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       void ResolveActivityNames(string itemId,
          ActivityEventType action,
-         out string itemName,
-         out string parentName);
+         out string? usernname,
+         out string? serviceName,
+         out string? accountName,
+         out string? parentName);
 
       void AddActivity(string itemId,
+         string? username,
+         string? serviceName,
+         string? accountName,
+         string? fieldName,
+         string? fieldValue,
+         string? parentName,
          ActivityEventType eventType,
-         string[] data,
          bool needsReview);
 
       /// <summary>

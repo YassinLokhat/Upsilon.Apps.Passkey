@@ -3,13 +3,14 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Description>A local stored Password Manager Core.</Description>
-    <Version>2.0.0</Version>
-    <AssemblyVersion>2.0.0</AssemblyVersion>
-    <FileVersion>2.0.0</FileVersion>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Interfaces\Upsilon.Apps.Passkey.Interfaces.csproj" />
+    <ProjectReference Include="..\Utils\Upsilon.Apps.Passkey.Utils.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,8 +24,7 @@
     the policy into a hard build failure.
   -->
   <Target Name="EnforceZeroExternalDependencies" BeforeTargets="Build;Pack">
-    <Error Condition="'@(PackageReference)' != ''"
-           Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(PackageReference))." />
+    <Error Condition="'@(PackageReference)' != ''" Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(PackageReference))." />
   </Target>
 
 </Project>

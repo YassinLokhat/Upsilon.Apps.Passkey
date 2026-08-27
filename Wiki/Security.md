@@ -10,11 +10,12 @@ Each component is versioned **independently**. Security fixes apply to the lates
 
 | Component (assembly) | Supported version | Supported |
 | -------------------- | ----------------- | --------- |
-| `Upsilon.Apps.Passkey.GUI.WPF` | 2.0.x | Yes |
-| `Upsilon.Apps.Passkey.Core` | 2.0.x | Yes |
-| `Upsilon.Apps.Passkey.Interfaces` | 2.0.x | Yes |
+| `Upsilon.Apps.Passkey.GUI.WPF` | 1.0.x | Yes |
+| `Upsilon.Apps.Passkey.Core` | 1.0.x | Yes |
+| `Upsilon.Apps.Passkey.Utils` | 1.0.x | Yes |
+| `Upsilon.Apps.Passkey.Interfaces` | 1.0.x | Yes |
 
-Any version older than the latest release of a given component is not supported. The shared 2.0.x line at the time of writing is not guaranteed to remain aligned.
+Any version older than the latest release of a given component is not supported. The shared 1.0.x line at the time of writing is not guaranteed to remain aligned.
 
 ## Reporting a vulnerability
 
@@ -35,7 +36,7 @@ Non-security bugs: public [GitHub issues](https://github.com/YassinLokhat/Upsilo
 
 ## Supply chain
 
-All cryptography is implemented in `Core/Utils/CryptographyCenter.cs` on the .NET BCL. **Core and Interfaces refuse any third-party NuGet package at build time.** GitHub CodeQL (`security-and-quality`) scans a Release build of production projects (tests excluded) on every push/PR (any branch) and weekly. The query pack is not a NuGet dependency of Core.
+All cryptography is implemented in `Utils/CryptographyCenter.cs` on the .NET BCL. **Core, Utils, and Interfaces refuse any third-party NuGet package at build time.** GitHub CodeQL (`security-and-quality`) scans a Release build of production projects (tests excluded) on every push/PR (any branch) and weekly. The query pack is not a NuGet dependency of those libraries.
 
 All security-relevant randomness uses `System.Security.Cryptography.RandomNumberGenerator` (keys, salts, nonces, generated passwords via `GetInt32`). `System.Random` is never used for secrets.
 
@@ -47,7 +48,7 @@ The activity log uses RSA-4096 hybrid encryption plus a login-time seal: [[Warni
 
 ## In memory
 
-Once unlocked, account passwords, password history, master passkeys, and the RSA private key are held as AES-256-GCM ciphertext under a random, process-wide session key (`Core/Utils/ProtectedSecret.cs`). Plaintext exists only for the duration of `Reveal()` (display, copy, re-encrypt, or JSON persist into the `.pku` onion). `ToString()` never returns the secret (`***`), so a protected value cannot leak into logs or activity messages by accident.
+Once unlocked, account passwords, password history, master passkeys, and the RSA private key are held as AES-256-GCM ciphertext under a random, process-wide session key (`Utils/ProtectedSecret.cs`). Plaintext exists only for the duration of `Reveal()` (display, copy, re-encrypt, or JSON persist into the `.pku` onion). `ToString()` never returns the secret (`***`), so a protected value cannot leak into logs or activity messages by accident.
 
 The session key never leaves RAM and dies with the process; a dump of the wrapped blobs after exit is worthless. Persistence still stores plaintext JSON **inside** the onion-encrypted `database` / `autosave` entries — `ProtectedSecret` is an in-memory wrapping, not a second at-rest scheme.
 
@@ -80,7 +81,7 @@ These are conscious trade-offs:
 
 * **Secrets in managed memory.** `Reveal()` still returns a .NET `string`, which is immutable and cannot be reliably zeroed before GC. An attacker who can read process memory or the OS swap file while the database is unlocked — especially during display, clipboard copy, QR encoding, or a save — may recover secrets. Consistent with "compromised host" out of scope.
 * **On-screen QR codes.** The secret is on the display until the window closes or `ShowPasswordDelay` elapses.
-* **PBKDF2 rather than Argon2id.** Argon2 is not in the BCL; Core stays zero-dependency. Compensation: PBKDF2-HMAC-SHA-512 with 1,000,000 iterations. The sticky KDF header keeps the door open to a memory-hard KDF later if the policy is ever relaxed.
+* **PBKDF2 rather than Argon2id.** Argon2 is not in the BCL; Core, Utils, and Interfaces stay zero-dependency. Compensation: PBKDF2-HMAC-SHA-512 with 1,000,000 iterations. The sticky KDF header keeps the door open to a memory-hard KDF later if the policy is ever relaxed.
 * **Import/export files** are plaintext by design for interoperability.
 * **Leak check fails open.** Residual risk: a prolonged outage of *both* providers while a breached password stays unmarked. The two corpora are not identical, so a password known only to the provider that is down may be missed.
 * **Unsealed activity-log tail.** An attacker with write access to the file can erase unsealed events (including their own failed logins) before the legitimate user logs in again. Sealed prefix + watermark still detect rollback of what was sealed.

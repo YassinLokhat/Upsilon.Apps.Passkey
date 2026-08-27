@@ -19,9 +19,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          IDatabase database = UnitTestsHelper.CreateTestDatabase(["a", "b"], "_");
          IUser user = database.User;
-         user.Settings.LogoutTimeout = 10;
-         user.Settings.CleaningClipboardTimeout = 15;
-         user.Settings.WarningsToNotify = (WarningType)0;
+         user.Settings.LogoutTimeout = 0;
+         user.Settings.CleaningClipboardTimeout = 5;
+         user.Settings.WarningsToNotify = (WarningType)15;
          string logFile = database.DatabaseFile.Replace(".pku", ".log");
          File.WriteAllText(logFile, string.Empty);
 
@@ -69,12 +69,25 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             File.AppendAllText(logFile, "\n");
          }
 
+         IService s10 = database.User.Services.First(x => x.ServiceName.StartsWith("Service10 "));
+         s10.Accounts.First().Password = "test";
+         s10.Accounts.First().Options = AccountOption.WarnIfPasswordLeaked | AccountOption.WarnIfDuplicatedPassword;
+
+         IService s2 = database.User.Services.First(x => x.ServiceName.StartsWith("Service2 "));
+         s2.Accounts.First().Password = "test";
+         s2.Accounts.First().Options = AccountOption.WarnIfPasswordLeaked;
+
+         IService s20 = database.User.Services.First(x => x.ServiceName.StartsWith("Service20 "));
+         s20.Accounts.First().Password = "test";
+         s20.Accounts.First().Options = AccountOption.WarnIfDuplicatedPassword;
+
          database.Save();
 
          string exportFile = database.DatabaseFile.Replace(".pku", ".json");
 
          if (database.ExportToFile(exportFile))
          {
+            database.Close();
             database.Delete();
 
             database = UnitTestsHelper.CreateTestDatabase(["a", "b"], "_");
@@ -103,7 +116,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
-         expectedActivities.Push($"Information : {databaseCreated.User}'s database created");
+         expectedActivities.Push($"Information : User '{databaseCreated.User}'s database created");
 
          // Then
          _ = databaseCreated.DatabaseFile.Should().Be(databaseFile);
@@ -117,8 +130,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          databaseCreated.Close();
-         expectedActivities.Push($"Information : User {username} logged out");
-         expectedActivities.Push($"Information : User {username}'s database closed");
+         expectedActivities.Push($"Information : User '{username}' logged out");
+         expectedActivities.Push($"Information : User '{username}'s database closed");
 
          // Then
          _ = databaseCreated.User.Should().BeNull();
@@ -126,8 +139,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
-         expectedActivities.Push($"Information : {databaseLoaded.User}'s database opened");
-         expectedActivities.Push($"Information : {databaseLoaded.User} logged in");
+         expectedActivities.Push($"Information : User '{databaseLoaded.User}'s database opened");
+         expectedActivities.Push($"Information : User '{databaseLoaded.User}' logged in");
 
          // Then
          _ = databaseLoaded.Should().NotBeNull();
@@ -273,11 +286,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(wrongPasskeys, out _);
-         expectedActivities.Push($"Information : User {username}'s database opened");
+         expectedActivities.Push($"Information : User '{username}'s database opened");
          for (int i = wrongKeyIndex; i < wrongPasskeys.Length; i++)
          {
-            expectedActivities.Push($"Warning : User {username} login failed at level {wrongKeyIndex + 1}");
-            expectedLogWarnings.Push($"Warning : User {username} login failed at level {wrongKeyIndex + 1}");
+            expectedActivities.Push($"Warning : User '{username}' login failed at level {wrongKeyIndex + 1}");
+            expectedLogWarnings.Push($"Warning : User '{username}' login failed at level {wrongKeyIndex + 1}");
          }
 
          // Then
@@ -285,10 +298,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          databaseLoaded.Close();
-         expectedActivities.Push($"Information : User {username}'s database closed");
+         expectedActivities.Push($"Information : User '{username}'s database closed");
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
-         expectedActivities.Push($"Information : User {username}'s database opened");
-         expectedActivities.Push($"Information : User {username} logged in");
+         expectedActivities.Push($"Information : User '{username}'s database opened");
+         expectedActivities.Push($"Information : User '{username}' logged in");
 
          // Then
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
@@ -341,7 +354,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then
-         _ = database.Activities.FirstOrDefault(x => x.Message == $"User {username}'s login session timeout reached" && x.NeedsReview).Should().NotBeNull();
+         _ = database.Activities.FirstOrDefault(x => x.Username == username
+            && x.EventType == ActivityEventType.LoginSessionTimeoutReached
+            && x.NeedsReview).Should().NotBeNull();
 
          // Finaly
          database.Close();
@@ -359,7 +374,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string tamperMessage = $"User {username}'s activity log integrity check failed";
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -369,7 +383,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (no tampering detected)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
 
          // When (tampered: the sealed signature is stripped from the log)
          databaseLoaded.Close();
@@ -377,7 +392,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (tampering detected and flagged for review)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered
+            && x.NeedsReview).Should().BeTrue();
 
          // Finaly
          databaseLoaded.Close();
@@ -396,7 +413,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string tamperMessage = $"User {username}'s activity log integrity check failed";
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -406,7 +422,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (no tampering detected)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
 
          // When (tampered: one sealed entry is removed from the log)
          databaseLoaded.Close();
@@ -414,7 +431,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (tampering detected and flagged for review)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered
+            && x.NeedsReview).Should().BeTrue();
 
          // Finaly
          databaseLoaded.Close();
@@ -433,7 +452,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string tamperMessage = $"User {username}'s activity log integrity check failed";
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -443,7 +461,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (no tampering detected)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
 
          // When (tampered: the log's public key is swapped for an attacker's)
          databaseLoaded.Close();
@@ -451,7 +470,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (tampering detected and flagged for review)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered
+            && x.NeedsReview).Should().BeTrue();
 
          // Finaly
          databaseLoaded.Close();
@@ -470,7 +491,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         string tamperMessage = $"User {username}'s activity log integrity check failed";
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -480,7 +500,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (no tampering detected)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage).Should().BeFalse();
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
 
          // When (tampered: two sealed entries are swapped)
          databaseLoaded.Close();
@@ -488,7 +509,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
 
          // Then (tampering detected and flagged for review)
-         _ = databaseLoaded.Activities.Any(x => x.Message == tamperMessage && x.NeedsReview).Should().BeTrue();
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered
+            && x.NeedsReview).Should().BeTrue();
 
          // Finaly
          databaseLoaded.Close();
@@ -876,6 +899,48 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = database.SessionLeftTime.Should().Be(5 * 60);
 
          database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Clearing NeedsReview and saving must survive logout / login: the flag lives
+       * in the encrypted activity payload, not only in the in-memory objects.
+      */
+      public void Case19_NeedsReviewCleared_PersistsAcrossReopen()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string[] wrongPasskeys = [.. passkeys];
+         wrongPasskeys[0] = UnitTestsHelper.GetRandomString();
+
+         IDatabase created = UnitTestsHelper.CreateTestDatabase(passkeys);
+         created.Close();
+
+         IDatabase failed = UnitTestsHelper.OpenTestDatabase(wrongPasskeys, out _);
+         _ = failed.User.Should().BeNull();
+         failed.Close();
+
+         IDatabase database = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         IActivity[] failedLogins = [.. database.Activities!
+            .Where(x => x.EventType == ActivityEventType.LoginFailed)];
+         _ = failedLogins.Should().NotBeEmpty();
+         _ = failedLogins.Should().OnlyContain(x => x.NeedsReview);
+
+         foreach (IActivity activity in failedLogins)
+         {
+            activity.NeedsReview = false;
+         }
+
+         database.Save();
+         database.Close();
+
+         IDatabase reopened = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         _ = reopened.Activities!
+            .Where(x => x.EventType == ActivityEventType.LoginFailed)
+            .Should().OnlyContain(x => !x.NeedsReview);
+
+         reopened.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
    }

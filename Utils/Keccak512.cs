@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Upsilon.Apps.Passkey.Core.Utils
+namespace Upsilon.Apps.Passkey.Utils
 {
    /// <summary>
    /// Original Keccak-512 (padding <c>0x01</c>), as required by XposedOrNot's

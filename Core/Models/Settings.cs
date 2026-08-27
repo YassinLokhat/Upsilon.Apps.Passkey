@@ -105,6 +105,28 @@ namespace Upsilon.Apps.Passkey.Core.Models
             readableValue: value.ToString());
       }
 
+      string ISettings.Language
+      {
+         get => User.Host.Touch(Language);
+         set => Language = User.Host.AutoSave.UpdateValue(User.ItemId,
+            fieldName: nameof(Language),
+            needsReview: false,
+            oldValue: Language,
+            newValue: value ?? string.Empty,
+            readableValue: string.IsNullOrEmpty(value) ? "(app)" : value);
+      }
+
+      string ISettings.Theme
+      {
+         get => User.Host.Touch(Theme);
+         set => Theme = User.Host.AutoSave.UpdateValue(User.ItemId,
+            fieldName: nameof(Theme),
+            needsReview: false,
+            oldValue: Theme,
+            newValue: value ?? string.Empty,
+            readableValue: string.IsNullOrEmpty(value) ? "(app)" : value);
+      }
+
       #endregion
 
       internal User User
@@ -123,5 +145,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          | WarningType.PasswordUpdateReminderWarning
          | WarningType.DuplicatedPasswordsWarning
          | WarningType.PasswordLeakedWarning;
+
+      /// <summary>Empty = use application <c>config.json</c> language.</summary>
+      public string Language { get; set; } = string.Empty;
+
+      /// <summary>Empty = use application <c>config.json</c> theme.</summary>
+      public string Theme { get; set; } = string.Empty;
    }
 }

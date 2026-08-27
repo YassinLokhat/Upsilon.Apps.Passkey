@@ -6,7 +6,7 @@ This page mirrors [`CONTRIBUTING.md`](https://github.com/YassinLokhat/Upsilon.Ap
 
 ## Before you start
 
-* Keep Core and Interfaces free of third-party NuGet packages.
+* Keep Core, Utils, and Interfaces free of third-party NuGet packages.
 * Prefer a small PR over a mixed refactor + feature + docs dump.
 * When changing Core internals, respect the host surfaces (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) documented in [[Architecture]] — do not reintroduce reverse dependencies from ActivityCenter / AutoSave / User into `Database` members.
 
@@ -23,9 +23,9 @@ GUI ViewModel tests:
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Gui"
 ```
 
-## Zero-dependency policy (Core and Interfaces)
+## Zero-dependency policy (Core, Utils, and Interfaces)
 
-`Core` and `Interfaces` must not take a `PackageReference`. An MSBuild target fails the build if one appears. That keeps the vault's supply-chain surface limited to the .NET BCL.
+`Core`, `Utils`, and `Interfaces` must not take a `PackageReference`. An MSBuild target fails the build if one appears. That keeps the vault's supply-chain surface limited to the .NET BCL.
 
 Allowed:
 
@@ -34,6 +34,15 @@ Allowed:
 * GitHub Actions / CodeQL on the CI runners (not referenced by the libraries)
 
 The WPF project currently has no NuGet packages either; keep it that way unless a Windows-only capability cannot be done with the BCL.
+
+## Adding a UI language
+
+1. Copy `GUI/WPF/Localization/Strings.resx` → `Strings.xx.resx` and translate values (do not rename keys).
+2. Register `new("xx", "Native name")` in `LocalizationService.Supported`.
+3. Run `dotnet test … --filter "FullyQualifiedName~LocalizationTests"` (or the full GUI filter). Tests verify satellite key parity and localized enum/activity strings.
+4. Prefer `{loc:Loc Key}` in XAML and `Strings.Key` / `Strings.Format` in C#.
+
+Key prefixes, and why each `ActivityEventType` has both `EnumValue_ActivityEventType_*` (short filter label) and `Activity_*` (full Message sentence), are documented under **Localization** in [[WPF Client]].
 
 ## Code style
 
@@ -49,7 +58,7 @@ Match the surrounding file. Do not reformat unrelated code.
 
 ## What a PR should include
 
-* Tests for Core behaviour you change
+* Tests for Core/Utils behaviour you change
 * ViewModel tests when you change GUI logic behind `AppServices`
 * README / SECURITY.md / wiki updates when you change a public contract, a threat-model assumption, or a user-visible security behaviour
 * No secrets: vault files, exported JSON/CSV, logs, or credentials

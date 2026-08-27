@@ -3,6 +3,7 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -69,8 +70,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
          catch (WrongPasswordException passwordException)
          {
             ActivityCenter.AddActivity(itemId: string.Empty,
+               username: Username,
+               serviceName: null,
+               accountName: null,
+               fieldName: nameof(passwordException.PasswordLevel),
+               fieldValue: $"{passwordException.PasswordLevel}",
+               parentName: null,
                eventType: ActivityEventType.LoginFailed,
-               data: [Username, $"{passwordException.PasswordLevel}"],
                needsReview: true);
          }
          catch (IncompleteOnionException)
@@ -92,14 +98,24 @@ namespace Upsilon.Apps.Passkey.Core.Models
             if (!ActivityCenter.VerifyIntegrity())
             {
                ActivityCenter.AddActivity(itemId: string.Empty,
+                  username: Username,
+                  serviceName: null,
+                  accountName: null,
+                  fieldName: null,
+                  fieldValue: null,
+                  parentName: null,
                   eventType: ActivityEventType.ActivityLogTampered,
-                  data: [Username],
                   needsReview: true);
             }
 
             ActivityCenter.AddActivity(itemId: string.Empty,
+               username: Username,
+               serviceName: null,
+               accountName: null,
+               fieldName: null,
+               fieldValue: null,
+               parentName: null,
                eventType: ActivityEventType.UserLoggedIn,
-               data: [Username],
                needsReview: false);
 
             if (FileLocker.Exists(AutoSaveFileEntry))
@@ -269,8 +285,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
          };
 
          database.ActivityCenter.AddActivity(itemId: string.Empty,
+            username: username,
+            serviceName: null,
+            accountName: null,
+            fieldName: null,
+            fieldValue: null,
+            parentName: null,
             eventType: ActivityEventType.DatabaseCreated,
-            data: [username],
             needsReview: false);
 
          database._save(logSaveEvent: false);
@@ -299,8 +320,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
             username);
 
          database.ActivityCenter.AddActivity(itemId: string.Empty,
+            username: username,
+            serviceName: null,
+            accountName: null,
+            fieldName: null,
+            fieldValue: null,
+            parentName: null,
             eventType: ActivityEventType.DatabaseOpened,
-            data: [username],
             needsReview: false);
 
          return database;

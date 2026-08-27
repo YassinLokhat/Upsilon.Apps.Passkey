@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -9,7 +10,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class AccountViewModel(IAccount account) : INotifyPropertyChanged
+   internal sealed class AccountViewModel(IAccount account) : INotifyPropertyChanged, IThemeAware
    {
       public readonly IAccount Account = account;
 
@@ -22,7 +23,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public string AccountId => $"Account Id : {Account.ItemId}";
+      public string AccountId => Strings.Format(nameof(Strings.Msg_AccountId), Account.ItemId);
 
       public Brush LabelBackground => Account.HasChanged(nameof(Label)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
       public string Label
@@ -171,6 +172,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          .ToArray() ?? [];
 
       public event PropertyChangedEventHandler? PropertyChanged;
+
+      public void OnLanguageChanged()
+         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountId)));
+
+      public void OnThemeChanged()
+      {
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LabelBackground)));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PasswordBackground)));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NotesBackground)));
+
+         foreach (IdentifierViewModel identifier in Identifiers)
+         {
+            identifier.OnThemeChanged();
+         }
+      }
 
       private void _onPropertyChanged(string propertyName)
       {

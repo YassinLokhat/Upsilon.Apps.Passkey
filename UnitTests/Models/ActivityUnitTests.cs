@@ -1,6 +1,8 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.UnitTests;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
@@ -14,79 +16,119 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       */
       public void Case01_SerializationRoundTrip_EscapesPipes()
       {
-         string[] data = ["item|name", "field", "value with | pipes", "parent"];
-         Activity original = new(0xABCDEF012345, "Aitem", ActivityEventType.ItemUpdated, data, needsReview: true);
+         Activity original = new(0xABCDEF012345, "Aitem", "an username", "a service name", "an account name", "a field name", "a field value", "a parent name", ActivityEventType.ItemUpdated, needsReview: true);
 
          Activity restored = new(original.ToString());
 
          _ = restored.DateTimeTicks.Should().Be(original.DateTimeTicks);
          _ = restored.ItemId.Should().Be(original.ItemId);
+         _ = restored.Username.Should().Be(original.Username);
+         _ = restored.ServiceName.Should().Be(original.ServiceName);
+         _ = restored.AccountName.Should().Be(original.AccountName);
+         _ = restored.FieldName.Should().Be(original.FieldName);
+         _ = restored.FieldValue.Should().Be(original.FieldValue);
+         _ = restored.ParentName.Should().Be(original.ParentName);
          _ = restored.EventType.Should().Be(original.EventType);
          _ = restored.NeedsReview.Should().BeTrue();
-         _ = restored.Data.Should().Equal(data);
-      }
 
-      [TestMethod]
-      /*
-       * Every activity event type produces a non-empty human-readable message.
-      */
-      public void Case02_Message_CoversEveryEventType()
-      {
-         Dictionary<ActivityEventType, string[]> payloads = new()
-         {
-            [ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile] = ["alice"],
-            [ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile] = ["alice"],
-            [ActivityEventType.DontMergeAndRemoveAutoSaveFile] = ["alice"],
-            [ActivityEventType.DontMergeAndKeepAutoSaveFile] = ["alice"],
-            [ActivityEventType.DatabaseCreated] = ["alice"],
-            [ActivityEventType.DatabaseOpened] = ["alice"],
-            [ActivityEventType.DatabaseSaved] = ["alice"],
-            [ActivityEventType.DatabaseClosed] = ["alice"],
-            [ActivityEventType.LoginSessionTimeoutReached] = ["alice"],
-            [ActivityEventType.LoginFailed] = ["alice", "2"],
-            [ActivityEventType.UserLoggedIn] = ["alice"],
-            [ActivityEventType.UserLoggedOut] = ["alice", ""],
-            [ActivityEventType.ImportingDataStarted] = ["vault.json"],
-            [ActivityEventType.ImportingDataSucceded] = [],
-            [ActivityEventType.ImportingDataFailed] = ["bad format"],
-            [ActivityEventType.ExportingDataStarted] = ["vault.csv"],
-            [ActivityEventType.ExportingDataSucceded] = [],
-            [ActivityEventType.ExportingDataFailed] = ["already exists"],
-            [ActivityEventType.ItemUpdated] = ["Account", "Notes", "hello", "Service X"],
-            [ActivityEventType.ItemAdded] = ["User alice", "", "Service X"],
-            [ActivityEventType.ItemDeleted] = ["User alice", "", "Service X"],
-            [ActivityEventType.ActivityLogTampered] = ["alice"],
-            [ActivityEventType.None] = ["fallback"],
-         };
-
-         foreach (ActivityEventType eventType in Enum.GetValues<ActivityEventType>())
-         {
-            string[] data = payloads[eventType];
-            Activity activity = new(DateTime.Now.Ticks, "id", eventType, data, needsReview: false);
-
-            _ = activity.Message.Should().NotBeNullOrWhiteSpace($"event {eventType} must render a message");
-         }
-
-         Activity loggedOutDirty = new(DateTime.Now.Ticks, "id", ActivityEventType.UserLoggedOut, ["alice", "1"], needsReview: true);
-         _ = loggedOutDirty.Message.Should().Contain("without saving");
-
-         Activity updatedBlank = new(DateTime.Now.Ticks, "id", ActivityEventType.ItemUpdated, ["Account", "Notes", ""], needsReview: false);
-         _ = updatedBlank.Message.Should().Contain("updated");
-         _ = updatedBlank.Message.Should().NotContain("set to");
+         Activity cleared = new(0xABCDEF012345, "Aitem", "an username", "a service name", "an account name", "a field name", "a field value", "a parent name", ActivityEventType.ItemUpdated, needsReview: false);
+         Activity restoredCleared = new(cleared.ToString());
+         _ = restoredCleared.NeedsReview.Should().BeFalse();
       }
 
       [TestMethod]
       /*
        * A truncated serialized form still constructs without throwing.
       */
-      public void Case03_Constructor_PartialPayload()
+      public void Case02_Constructor_PartialPayload()
       {
          Activity activity = new("FF");
 
          _ = activity.DateTimeTicks.Should().Be(0xFF);
          _ = activity.ItemId.Should().BeEmpty();
+         _ = activity.Username.Should().BeNull();
+         _ = activity.ServiceName.Should().BeNull();
+         _ = activity.AccountName.Should().BeNull();
+         _ = activity.FieldName.Should().BeNull();
+         _ = activity.FieldValue.Should().BeNull();
+         _ = activity.ParentName.Should().BeNull();
          _ = activity.EventType.Should().Be(ActivityEventType.None);
-         _ = activity.Data.Should().BeEmpty();
+         _ = activity.NeedsReview.Should().BeTrue();
+      }
+
+      [TestMethod]
+      /*
+       * Every activity event type produces a non-empty human-readable message.
+      */
+      public void Case03_Message_CoversEveryEventType()
+      {
+         Dictionary<ActivityEventType, string[]> payloads = new()
+         {
+            [ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile] = ["alice", null, null, null, null, null],
+            [ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile] = ["alice", null, null, null, null, null],
+            [ActivityEventType.DontMergeAndRemoveAutoSaveFile] = ["alice", null, null, null, null, null],
+            [ActivityEventType.DontMergeAndKeepAutoSaveFile] = ["alice", null, null, null, null, null],
+            [ActivityEventType.DatabaseCreated] = ["alice", null, null, null, null, null],
+            [ActivityEventType.DatabaseOpened] = ["alice", null, null, null, null, null],
+            [ActivityEventType.DatabaseSaved] = ["alice", null, null, null, null, null],
+            [ActivityEventType.DatabaseClosed] = ["alice", null, null, null, null, null],
+            [ActivityEventType.LoginSessionTimeoutReached] = ["alice", null, null, null, null, null],
+            [ActivityEventType.LoginFailed] = ["alice", null, null, null, "2", null],
+            [ActivityEventType.UserLoggedIn] = ["alice", null, null, null, null, null],
+            [ActivityEventType.UserLoggedOut] = ["alice", null, null, null, null, null],
+            [ActivityEventType.ImportingDataStarted] = [null, null, null, null, "vault.json", null],
+            [ActivityEventType.ImportingDataSucceded] = [null, null, null, null, null, null],
+            [ActivityEventType.ImportingDataFailed] = [null, null, null, nameof(ImportExportError), nameof(ImportExportError.IncorrectCSVFormat), null],
+            [ActivityEventType.ExportingDataStarted] = [null, null, null, null, "vault.csv", null],
+            [ActivityEventType.ExportingDataSucceded] = [null, null, null, null, null, null],
+            [ActivityEventType.ExportingDataFailed] = [null, null, null, nameof(ImportExportError), nameof(ImportExportError.ExportFileAlreadyExists), null],
+            [ActivityEventType.ItemUpdated] = [null, null, "Account", "Notes", "hello", "Service X"],
+            [ActivityEventType.ItemAdded] = ["User alice", null, null, null, "Service X", null],
+            [ActivityEventType.ItemDeleted] = ["User alice", null, null, null, "Service X", null],
+            [ActivityEventType.ActivityLogTampered] = ["alice", null, null, null, null, null],
+            [ActivityEventType.None] = [null, null, null, null, "fallback", null],
+         };
+
+         foreach (ActivityEventType eventType in Enum.GetValues<ActivityEventType>())
+         {
+            string[] data = payloads[eventType];
+            ActivityViewModel activity = new(new Activity(DateTime.Now.Ticks, "id", data[0], data[1], data[2], data[3], data[4], data[5], eventType, needsReview: false));
+
+            _ = activity.Message.Should().NotBeNullOrWhiteSpace($"event {eventType} must render a message");
+         }
+
+         ActivityViewModel importFailed = new(new Activity(
+            DateTime.Now.Ticks,
+            "id",
+            username: null,
+            serviceName: null,
+            accountName: null,
+            fieldName: nameof(ImportExportError),
+            fieldValue: nameof(ImportExportError.IncorrectCSVFormat),
+            parentName: null,
+            ActivityEventType.ImportingDataFailed,
+            needsReview: true));
+         _ = importFailed.Message.Should().Be(UnitTestsHelper.FormatImportFailed(ImportExportError.IncorrectCSVFormat).Split(" : ", 2)[1]);
+
+         ActivityViewModel exportFailed = new(new Activity(
+            DateTime.Now.Ticks,
+            "id",
+            username: null,
+            serviceName: null,
+            accountName: null,
+            fieldName: nameof(ImportExportError),
+            fieldValue: nameof(ImportExportError.ExportFileAlreadyExists),
+            parentName: null,
+            ActivityEventType.ExportingDataFailed,
+            needsReview: true));
+         _ = exportFailed.Message.Should().Be(UnitTestsHelper.FormatExportFailed(ImportExportError.ExportFileAlreadyExists).Split(" : ", 2)[1]);
+
+         ActivityViewModel loggedOutDirty = new(new Activity(DateTime.Now.Ticks, "id", "alice", null, null, "needsReview", "1", null, ActivityEventType.UserLoggedOut, needsReview: true));
+         _ = loggedOutDirty.Message.Should().Contain("without saving");
+
+         ActivityViewModel updatedBlank = new(new Activity(DateTime.Now.Ticks, "id", null, null, "Account", "Notes", null, null, ActivityEventType.ItemUpdated, needsReview: false));
+         _ = updatedBlank.Message.Should().Contain("updated");
+         _ = updatedBlank.Message.Should().NotContain("set to");
       }
    }
 }

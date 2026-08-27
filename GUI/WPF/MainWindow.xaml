@@ -7,18 +7,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF"
         xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
         d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
         mc:Ignorable="d"
         Title="{Binding AppTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="150" Width="500">
+        Height="140" Width="750">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="_booleanToVisibility"/>
     </Window.Resources>
     <Window.InputBindings>
         <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenDatabaseCommand}"/>
         <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewUserCommand}"/>
+        <KeyBinding Key="OemComma" Modifiers="Control" Command="{Binding AppSettingsCommand}"/>
         <KeyBinding Key="P" Modifiers="Control" Command="{Binding GeneratePasswordCommand}"/>
     </Window.InputBindings>
     <StackPanel>
@@ -28,14 +30,18 @@
                     <DockPanel HorizontalAlignment="Stretch"/>
                 </ItemsPanelTemplate>
             </Menu.ItemsPanel>
-            <MenuItem Header="_Open database"
+            <MenuItem Header="{loc:Loc Menu_OpenDatabase}"
                       Command="{Binding OpenDatabaseCommand}"
                       InputGestureText="Ctrl+O"/>
-            <MenuItem Header="_New User"
+            <MenuItem Header="{loc:Loc Menu_NewUser}"
                       Command="{Binding NewUserCommand}"
                       InputGestureText="Ctrl+N"/>
-            <MenuItem Header="_Generate random Password"
+            <MenuItem Header="{loc:Loc Menu_AppSettings}"
+                      Command="{Binding AppSettingsCommand}"
+                      InputGestureText="Ctrl+,"/>
+            <MenuItem Header="{loc:Loc Menu_GenerateRandomPassword}"
                       Command="{Binding GeneratePasswordCommand}"
+                      InputGestureText="Ctrl+P"
                       HorizontalAlignment="Right"/>
         </Menu>
         <Grid>

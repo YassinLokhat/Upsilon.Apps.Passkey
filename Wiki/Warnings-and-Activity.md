@@ -21,9 +21,13 @@ Duplicate and expiry warnings are computed locally. Leak warnings use `IPassword
 | -------- | ------- |
 | `DateTime` | When the event was recorded |
 | `ItemId` | Related item, or empty for vault-level events |
+| `Username` / `ServiceName` / `AccountName` | Scope of the event (user, service, or account) |
+| `FieldName` / `FieldValue` | Changed field and new value, or error context (e.g. `ImportExportError` + enum member name). Never contains `ProtectedSecret` plaintext; `ToString()` on secrets is `***`. |
+| `ParentName` | Parent item name for account-level updates |
 | `EventType` | `ActivityEventType` |
-| `Message` | Human-readable line (never contains `ProtectedSecret` plaintext; `ToString()` on secrets is `***`) |
-| `NeedsReview` | Drives `ActivityReviewWarning` |
+| `NeedsReview` | Drives `ActivityReviewWarning`. Clearing it (the Activities grid checkbox) is written back into the log on the next sealed persist (Save or logout). |
+
+There is no persisted `Message` string. Core stores structured fields in a pipe-delimited wire format (`Activity.ToString()`). The **WPF** Activities grid builds localized text at display time from `EventType` + these fields via `ActivityViewModel` (`Activity_*` / `EnumValue_*` keys — see [[WPF Client]] Localization).
 
 Retention is `ISettings.NumberOfMonthActivitiesToKeep`.
 

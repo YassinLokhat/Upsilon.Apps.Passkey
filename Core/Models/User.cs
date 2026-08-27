@@ -3,6 +3,7 @@ using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -180,8 +181,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
                if (SessionLeftTime == 0)
                {
                   Host.AddActivity(itemId: ItemId,
+                     Username,
+                     serviceName: null,
+                     accountName: null,
+                     fieldName: null,
+                     fieldValue: null,
+                     parentName: null,
                      eventType: ActivityEventType.LoginSessionTimeoutReached,
-                     data: [Username],
                      needsReview: true);
 
                   // Close stops and disposes this timer through StopTimer, so the
@@ -315,8 +321,23 @@ namespace Upsilon.Apps.Passkey.Core.Models
                   case nameof(Settings.CleaningClipboardTimeout):
                      Settings.CleaningClipboardTimeout = change.NewValue.DeserializeTo<int>(Host.SerializationCenter);
                      break;
+                  case nameof(Settings.ShowPasswordDelay):
+                     Settings.ShowPasswordDelay = change.NewValue.DeserializeTo<int>(Host.SerializationCenter);
+                     break;
+                  case nameof(Settings.NumberOfOldPasswordToKeep):
+                     Settings.NumberOfOldPasswordToKeep = change.NewValue.DeserializeTo<int>(Host.SerializationCenter);
+                     break;
+                  case nameof(Settings.NumberOfMonthActivitiesToKeep):
+                     Settings.NumberOfMonthActivitiesToKeep = change.NewValue.DeserializeTo<int>(Host.SerializationCenter);
+                     break;
                   case nameof(Settings.WarningsToNotify):
                      Settings.WarningsToNotify = change.NewValue.DeserializeTo<WarningType>(Host.SerializationCenter);
+                     break;
+                  case nameof(Settings.Language):
+                     Settings.Language = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);
+                     break;
+                  case nameof(Settings.Theme):
+                     Settings.Theme = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);
                      break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
@@ -336,7 +357,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      public override string ToString() => $"User {Host.Username}";
+      public override string ToString() => Host.Username;
 
       public bool HasChanged() => Host.HasPendingChanges(ItemId) || Services.Any(x => x.HasChanged());
 

@@ -1,7 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF
 {
@@ -18,6 +20,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          Log.Info($"Application starting (PID {Environment.ProcessId}).");
 
+         _ = AppInfo.ConfigFile;
+         _ = LocalizationService.Apply(AppInfo.AppSettings.Language);
+         _ = ThemeService.Apply(AppInfo.AppSettings.Theme);
+
          base.OnStartup(e);
       }
 
@@ -28,6 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          // Close any open vault and clear owned clipboard content before the
          // process tears down, in case MainWindow.Closed did not run first.
          AppServices.Session.EndSession();
+         ThemeService.Shutdown();
 
          Log.Info($"Application exiting with code {e.ApplicationExitCode}.");
          Log.Flush();

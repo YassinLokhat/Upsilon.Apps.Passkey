@@ -11,14 +11,15 @@ protects data and how to report a problem.
 Each component is versioned **independently** and may evolve at its own pace.
 Security fixes are applied to the latest released version of each component only,
 so please always upgrade to the most recent release before reporting an issue.
-The components happen to share version 2.0.x at the time of writing, but this is
+The components happen to share version 1.0.x at the time of writing, but this is
 not guaranteed to remain the case.
 
 | Component (assembly)                  | Supported version | Supported          |
 | ------------------------------------- | ----------------- | ------------------ |
-| `Upsilon.Apps.Passkey.GUI.WPF` (app)  | 2.0.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Core`           | 2.0.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Interfaces`     | 2.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.GUI.WPF` (app)  | 1.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Core`           | 1.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Utils`          | 1.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Interfaces`     | 1.0.x             | :white_check_mark: |
 
 Any version older than the latest release of a given component is not supported.
 
@@ -74,11 +75,11 @@ What to expect:
 
 ## Security Design
 
-All cryptography is implemented in `Core/Utils/CryptographyCenter.cs` on top of
+All cryptography is implemented in `Utils/CryptographyCenter.cs` on top of
 `System.Security.Cryptography` (the .NET BCL). **The project has a strict
-zero-external-dependency policy for the `Core` and `Interfaces` libraries**: no
-third-party cryptographic package is used, which keeps the security-critical
-supply-chain attack surface minimal.
+zero-external-dependency policy for the `Core`, `Utils`, and `Interfaces`
+libraries**: no third-party cryptographic package is used, which keeps the
+security-critical supply-chain attack surface minimal.
 
 ### Master passkeys (multi-factor "onion")
 
@@ -205,9 +206,9 @@ login:
 ### Static analysis
 
 - GitHub **CodeQL** (`security-and-quality`) runs on every push/PR (any branch)
-  and weekly. The query pack is not a NuGet dependency of Core; it runs on
-  GitHub's infrastructure against a Release build of the production projects
-  (unit tests are omitted from that compilation).
+  and weekly. The query pack is not a NuGet dependency of Core, Utils, or
+  Interfaces; it runs on GitHub's infrastructure against a Release build of the
+  production projects (unit tests are omitted from that compilation).
 
 ### Randomness
 
@@ -220,7 +221,7 @@ login:
 
 - **`ProtectedSecret`**: once a vault is unlocked, account passwords, password
   history, master passkeys, and the RSA private key are held as AES-256-GCM
-  ciphertext under a random, process-wide session key (`Core/Utils/ProtectedSecret.cs`).
+  ciphertext under a random, process-wide session key (`Utils/ProtectedSecret.cs`).
   Plaintext is produced only for the duration of `Reveal()` (display, copy,
   re-encrypt, or JSON persist into the `.pku` onion). `ToString()` never returns
   the secret (`***`), so a protected value cannot leak into logs or activity
@@ -316,7 +317,7 @@ These are conscious trade-offs, documented for transparency:
 - **Password stretching algorithm**: the project uses PBKDF2 rather than a
   memory-hard KDF such as Argon2id, because Argon2 is not part of the .NET base
   class library and the project maintains a zero-external-dependency policy for
-  its core. To compensate, it uses PBKDF2-HMAC-SHA-512 (more hostile to
+  Core, Utils, and Interfaces. To compensate, it uses PBKDF2-HMAC-SHA-512 (more hostile to
   GPU/ASIC parallelism than SHA-256) with 1,000,000 iterations. The sticky KDF
   header (see "Crypto-agility") keeps the door open to adopting a memory-hard
   KDF later, pluggably, should the policy ever be relaxed.

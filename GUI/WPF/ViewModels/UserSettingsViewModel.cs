@@ -1,17 +1,23 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class UserSettingsViewModel : INotifyPropertyChanged
+   internal sealed class UserSettingsViewModel : INotifyPropertyChanged, ILanguageAware
    {
-      public string Title { get; }
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
+      public string Title => AppServices.Session.Database?.User is null
+         ? Strings.Format(nameof(Strings.Title_NewUser), AppInfo.Title)
+         : Strings.Format(nameof(Strings.Title_UserSettings), AppInfo.Title);
       public string Username
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = "NewUser";
+      } = Strings.Label_NewUser;
       public int LogoutTimeout
       {
          get;
@@ -160,6 +166,48 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = true;
 
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh the follow-app label on language change.")]
+      public IReadOnlyList<AppLanguage> Languages =>
+      [
+         new(string.Empty, Strings.Label_UseAppLanguage),
+         .. LocalizationService.Supported,
+      ];
+
+      public AppLanguage SelectedLanguage
+      {
+         get;
+         set
+         {
+            if (value is null)
+            {
+               return;
+            }
+
+            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         }
+      }
+
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh theme labels on language change.")]
+      public IReadOnlyList<AppThemeOption> Themes =>
+      [
+         new(string.Empty, Strings.Label_UseAppTheme),
+         .. ThemeService.Supported,
+      ];
+
+      public AppThemeOption SelectedTheme
+      {
+         get;
+         set
+         {
+            if (value is null)
+            {
+               return;
+            }
+
+            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         }
+      }
+
       public event PropertyChangedEventHandler? PropertyChanged;
 
       private void _onPropertyChanged(string propertyName)
@@ -169,29 +217,57 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public UserSettingsViewModel()
       {
-         Title = AppInfo.Title;
+         SelectedLanguage = _languageFromSettings(
+            AppServices.Session.Database?.User?.Settings.Language);
+         SelectedTheme = _themeFromSettings(
+            AppServices.Session.Database?.User?.Settings.Theme);
 
          if (AppServices.Session.Database?.User is not { } user)
          {
-            Title += " - New user";
+            return;
          }
-         else
-         {
-            Title += " - User settings";
 
-            Username = user.Username;
+         Username = user.Username;
 
-            LogoutTimeout = user.Settings.LogoutTimeout;
-            CleaningClipboardTimeout = user.Settings.CleaningClipboardTimeout;
-            ShowPasswordDelay = user.Settings.ShowPasswordDelay;
-            NumberOfOldPasswordToKeep = user.Settings.NumberOfOldPasswordToKeep;
-            NumberOfMonthActivitiesToKeep = user.Settings.NumberOfMonthActivitiesToKeep;
+         LogoutTimeout = user.Settings.LogoutTimeout;
+         CleaningClipboardTimeout = user.Settings.CleaningClipboardTimeout;
+         ShowPasswordDelay = user.Settings.ShowPasswordDelay;
+         NumberOfOldPasswordToKeep = user.Settings.NumberOfOldPasswordToKeep;
+         NumberOfMonthActivitiesToKeep = user.Settings.NumberOfMonthActivitiesToKeep;
 
-            NotifyActivityReview = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
-            NotifyPasswordUpdateReminder = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
-            NotifyDuplicatedPasswords = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
-            NotifyPasswordLeaked = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
-         }
+         NotifyActivityReview = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
+         NotifyPasswordUpdateReminder = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
+         NotifyDuplicatedPasswords = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
+         NotifyPasswordLeaked = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
+      }
+
+      public void OnLanguageChanged()
+      {
+         string languageCode = SelectedLanguage.Code;
+         string themeCode = SelectedTheme.Code;
+         _onPropertyChanged(nameof(Title));
+         _onPropertyChanged(nameof(Languages));
+         _onPropertyChanged(nameof(Themes));
+         SelectedLanguage = _languageFromSettings(languageCode);
+         SelectedTheme = _themeFromSettings(themeCode);
+      }
+
+      private AppLanguage _languageFromSettings(string? code)
+      {
+         return string.IsNullOrWhiteSpace(code)
+            ? Languages[0]
+            : Languages.FirstOrDefault(l =>
+            string.Equals(l.Code, code, StringComparison.OrdinalIgnoreCase))
+            ?? Languages[0];
+      }
+
+      private AppThemeOption _themeFromSettings(string? code)
+      {
+         return string.IsNullOrWhiteSpace(code)
+            ? Themes[0]
+            : Themes.FirstOrDefault(t =>
+            string.Equals(t.Code, code, StringComparison.OrdinalIgnoreCase))
+            ?? Themes[0];
       }
    }
 }

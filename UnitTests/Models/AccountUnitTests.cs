@@ -4,6 +4,7 @@ using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
@@ -38,9 +39,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IAccount account = service.AddAccount(oldAccountLabel, oldIdentifiers, oldPassword);
-         expectedActivities.Push($"Information : {account} has been added to Service {service.ServiceName}");
-         expectedActivities.Push($"Warning : {service}'s {account}'s password has been updated");
-         expectedLogWarnings.Push($"Warning : {service}'s {account}'s password has been updated");
+         expectedActivities.Push($"Information : Account '{account}' has been added to Service '{service.ServiceName}'");
+         expectedActivities.Push($"Warning : Service '{service}'s Account '{account}'s password has been updated");
+         expectedLogWarnings.Push($"Warning : Service '{service}'s Account '{account}'s password has been updated");
 
          // Then
          databaseCreated.User.HasChanged().Should().BeTrue();
@@ -55,23 +56,23 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          account.Label = newAccountLabel;
          account.Label = newAccountLabel;
-         expectedActivities.Push($"Information : {service}'s Account {oldAccountLabel} ({string.Join(", ", oldIdentifiers)})'s label has been set to {newAccountLabel}");
+         expectedActivities.Push($"Information : Service '{service}'s Account '{oldAccountLabel} ({string.Join(", ", oldIdentifiers)})'s label has been set to '{newAccountLabel}'");
          account.Identifiers = newIdentifiers;
          account.Identifiers = newIdentifiers;
-         expectedActivities.Push($"Warning : {service}'s Account {newAccountLabel} ({string.Join(", ", oldIdentifiers)})'s identifiers has been set to ({string.Join(", ", newIdentifiers)})");
-         expectedLogWarnings.Push($"Warning : {service}'s Account {newAccountLabel} ({string.Join(", ", oldIdentifiers)})'s identifiers has been set to ({string.Join(", ", newIdentifiers)})");
+         expectedActivities.Push($"Warning : Service '{service}'s Account '{newAccountLabel} ({string.Join(", ", oldIdentifiers)})'s identifiers has been set to '({string.Join(", ", newIdentifiers)})'");
+         expectedLogWarnings.Push($"Warning : Service '{service}'s Account '{newAccountLabel} ({string.Join(", ", oldIdentifiers)})'s identifiers has been set to '({string.Join(", ", newIdentifiers)})'");
          account.Password = newPassword;
          account.Password = newPassword;
-         expectedActivities.Push($"Warning : {service}'s {account}'s password has been updated");
-         expectedLogWarnings.Push($"Warning : {service}'s {account}'s password has been updated");
+         expectedActivities.Push($"Warning : Service '{service}'s Account '{account}'s password has been updated");
+         expectedLogWarnings.Push($"Warning : Service '{service}'s Account '{account}'s password has been updated");
          account.Notes = notes;
          account.Notes = notes;
-         expectedActivities.Push($"Information : {service}'s {account}'s notes has been set to {notes}");
+         expectedActivities.Push($"Information : Service '{service}'s Account '{account}'s notes has been set to '{notes}'");
          account.PasswordUpdateReminderDelay = passwordUpdateReminderDelay;
-         expectedActivities.Push($"Information : {service}'s {account}'s password update reminder delay has been set to {passwordUpdateReminderDelay}");
+         expectedActivities.Push($"Information : Service '{service}'s Account '{account}'s password update reminder delay has been set to '{passwordUpdateReminderDelay}'");
          account.Options = options;
          account.Options = options;
-         expectedActivities.Push($"Information : {service}'s {account}'s options has been set to {options}");
+         expectedActivities.Push($"Information : Service '{service}'s Account '{account}'s options has been set to '{options}'");
 
          // Then
          databaseCreated.User.HasChanged().Should().BeTrue();
@@ -87,14 +88,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          databaseCreated.Save();
-         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Information : User '{username}'s database saved");
          databaseCreated.Close();
-         expectedActivities.Push($"Information : User {username} logged out");
-         expectedActivities.Push($"Information : User {username}'s database closed");
+         expectedActivities.Push($"Information : User '{username}' logged out");
+         expectedActivities.Push($"Information : User '{username}'s database closed");
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
-         expectedActivities.Push($"Information : User {username}'s database opened");
-         expectedActivities.Push($"Information : User {username} logged in");
+         expectedActivities.Push($"Information : User '{username}'s database opened");
+         expectedActivities.Push($"Information : User '{username}' logged in");
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
@@ -148,9 +149,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          IAccount account = service.AddAccount(oldAccountLabel, oldIdentifiers, oldPassword);
-         expectedActivities.Push($"Information : {account} has been added to Service {service.ServiceName}");
-         expectedActivities.Push($"Warning : {service}'s {account}'s password has been updated");
-         expectedLogWarnings.Push($"Warning : {service}'s {account}'s password has been updated");
+         expectedActivities.Push($"Information : Account '{account}' has been added to Service '{service.ServiceName}'");
+         expectedActivities.Push($"Warning : Service '{service}'s Account '{account}'s password has been updated");
+         expectedLogWarnings.Push($"Warning : Service '{service}'s Account '{account}'s password has been updated");
 
          // Then
          _ = service.Accounts.Count().Should().Be(1);
@@ -162,34 +163,34 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          account.Label = newAccountLabel;
          account.Label = newAccountLabel;
-         expectedActivities.Push($"Information : {service}'s Account {oldAccountLabel} ({string.Join(", ", oldIdentifiers)})'s label has been set to {newAccountLabel}");
+         expectedActivities.Push($"Information : Service '{service}'s Account '{oldAccountLabel} ({string.Join(", ", oldIdentifiers)})'s label has been set to '{newAccountLabel}'");
          account.Identifiers = newIdentifiers;
          account.Identifiers = newIdentifiers;
-         expectedActivities.Push($"Warning : {service}'s Account {newAccountLabel} ({string.Join(", ", oldIdentifiers)})'s identifiers has been set to ({string.Join(", ", newIdentifiers)})");
-         expectedLogWarnings.Push($"Warning : {service}'s Account {newAccountLabel} ({string.Join(", ", oldIdentifiers)})'s identifiers has been set to ({string.Join(", ", newIdentifiers)})");
+         expectedActivities.Push($"Warning : Service '{service}'s Account '{newAccountLabel} ({string.Join(", ", oldIdentifiers)})'s identifiers has been set to '({string.Join(", ", newIdentifiers)})'");
+         expectedLogWarnings.Push($"Warning : Service '{service}'s Account '{newAccountLabel} ({string.Join(", ", oldIdentifiers)})'s identifiers has been set to '({string.Join(", ", newIdentifiers)})'");
          account.Password = newPassword;
          account.Password = newPassword;
-         expectedActivities.Push($"Warning : {service}'s {account}'s password has been updated");
-         expectedLogWarnings.Push($"Warning : {service}'s {account}'s password has been updated");
+         expectedActivities.Push($"Warning : Service '{service}'s Account '{account}'s password has been updated");
+         expectedLogWarnings.Push($"Warning : Service '{service}'s Account '{account}'s password has been updated");
          account.Notes = notes;
          account.Notes = notes;
-         expectedActivities.Push($"Information : {service}'s {account}'s notes has been set to {notes}");
+         expectedActivities.Push($"Information : Service '{service}'s Account '{account}'s notes has been set to '{notes}'");
          account.PasswordUpdateReminderDelay = passwordUpdateReminderDelay;
-         expectedActivities.Push($"Information : {service}'s {account}'s password update reminder delay has been set to {passwordUpdateReminderDelay}");
+         expectedActivities.Push($"Information : Service '{service}'s Account '{account}'s password update reminder delay has been set to '{passwordUpdateReminderDelay}'");
          account.Options = options;
          account.Options = options;
-         expectedActivities.Push($"Information : {service}'s {account}'s options has been set to {options}");
+         expectedActivities.Push($"Information : Service '{service}'s Account '{account}'s options has been set to '{options}'");
 
          databaseCreated.Close();
-         expectedActivities.Push($"Warning : User {username} logged out without saving");
-         expectedLogWarnings.Push($"Warning : User {username} logged out without saving");
-         expectedActivities.Push($"Information : User {username}'s database closed");
+         expectedActivities.Push($"Warning : User '{username}' logged out without saving");
+         expectedLogWarnings.Push($"Warning : User '{username}' logged out without saving");
+         expectedActivities.Push($"Information : User '{username}'s database closed");
 
          IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
-         expectedActivities.Push($"Information : User {username}'s database opened");
-         expectedActivities.Push($"Information : User {username} logged in");
-         expectedActivities.Push($"Warning : User {username}'s autosave merged and saved");
-         expectedLogWarnings.Push($"Warning : User {username}'s autosave merged and saved");
+         expectedActivities.Push($"Information : User '{username}'s database opened");
+         expectedActivities.Push($"Information : User '{username}' logged in");
+         expectedActivities.Push($"Warning : User '{username}'s autosave merged and saved");
+         expectedLogWarnings.Push($"Warning : User '{username}'s autosave merged and saved");
          IService serviceLoaded = databaseLoaded.User.Services.First();
 
          // Then
@@ -243,22 +244,22 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          serviceLoaded.DeleteAccount(accountLoaded);
-         expectedActivities.Push($"Warning : Account {accountLabel} ({string.Join(", ", identifiers)}) has been removed from Service {service.ServiceName}");
-         expectedLogWarnings.Push($"Warning : Account {accountLabel} ({string.Join(", ", identifiers)}) has been removed from Service {service.ServiceName}");
+         expectedActivities.Push($"Warning : Account '{accountLabel} ({string.Join(", ", identifiers)})' has been removed from Service '{service.ServiceName}'");
+         expectedLogWarnings.Push($"Warning : Account '{accountLabel} ({string.Join(", ", identifiers)})' has been removed from Service '{service.ServiceName}'");
 
          // Then
          _ = serviceLoaded.Accounts.Count().Should().Be(0);
 
          // When
          databaseLoaded.Save();
-         expectedActivities.Push($"Information : User {username}'s database saved");
+         expectedActivities.Push($"Information : User '{username}'s database saved");
          databaseLoaded.Close();
-         expectedActivities.Push($"Information : User {username} logged out");
-         expectedActivities.Push($"Information : User {username}'s database closed");
+         expectedActivities.Push($"Information : User '{username}' logged out");
+         expectedActivities.Push($"Information : User '{username}'s database closed");
 
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
-         expectedActivities.Push($"Information : User {username}'s database opened");
-         expectedActivities.Push($"Information : User {username} logged in");
+         expectedActivities.Push($"Information : User '{username}'s database opened");
+         expectedActivities.Push($"Information : User '{username}' logged in");
 
          serviceLoaded = databaseLoaded.User.Services.First();
 
@@ -301,23 +302,23 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // When
          serviceLoaded.DeleteAccount(accountLoaded);
-         expectedActivities.Push($"Warning : Account {accountLabel} ({string.Join(", ", identifiers)}) has been removed from Service {service.ServiceName}");
-         expectedLogWarnings.Push($"Warning : Account {accountLabel} ({string.Join(", ", identifiers)}) has been removed from Service {service.ServiceName}");
+         expectedActivities.Push($"Warning : Account '{accountLabel} ({string.Join(", ", identifiers)})' has been removed from Service '{service.ServiceName}'");
+         expectedLogWarnings.Push($"Warning : Account '{accountLabel} ({string.Join(", ", identifiers)})' has been removed from Service '{service.ServiceName}'");
 
          // Then
          _ = serviceLoaded.Accounts.Count().Should().Be(0);
 
          // When
          databaseLoaded.Close();
-         expectedActivities.Push($"Warning : User {username} logged out without saving");
-         expectedLogWarnings.Push($"Warning : User {username} logged out without saving");
-         expectedActivities.Push($"Information : User {username}'s database closed");
+         expectedActivities.Push($"Warning : User '{username}' logged out without saving");
+         expectedLogWarnings.Push($"Warning : User '{username}' logged out without saving");
+         expectedActivities.Push($"Information : User '{username}'s database closed");
 
          databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
-         expectedActivities.Push($"Information : User {username}'s database opened");
-         expectedActivities.Push($"Information : User {username} logged in");
-         expectedActivities.Push($"Warning : User {username}'s autosave merged and saved");
-         expectedLogWarnings.Push($"Warning : User {username}'s autosave merged and saved");
+         expectedActivities.Push($"Information : User '{username}'s database opened");
+         expectedActivities.Push($"Information : User '{username}' logged in");
+         expectedActivities.Push($"Warning : User '{username}'s autosave merged and saved");
+         expectedLogWarnings.Push($"Warning : User '{username}'s autosave merged and saved");
 
          serviceLoaded = databaseLoaded.User.Services.First();
 

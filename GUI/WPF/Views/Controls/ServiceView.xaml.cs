@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
@@ -103,7 +104,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          if (this.GetIsBusy()
             || _viewModel is null
             || _accounts_LB.SelectedItem is not AccountViewModel accountViewModel
-            || MessageBox.Show($"Are you sure you want to delete the account '{accountViewModel.AccountDisplay}'", "Delete Account", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            || AppServices.Dialogs.Confirm(Strings.Format(nameof(Strings.Msg_DeleteAccount), accountViewModel.AccountDisplay), Strings.Title_DeleteAccount) != MessageBoxResult.Yes)
          {
             return;
          }

@@ -6,6 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views"
         xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
         d:DataContext="{d:DesignInstance Type=viewmodels:UserActivitiesViewModel}"
         mc:Ignorable="d"
         WindowState="Maximized"
@@ -35,24 +36,24 @@
                     </Grid.ColumnDefinitions>
 
                     <Label Grid.Column="0"
-                           Content="From :"/>
+                           Content="{loc:Loc Label_From}"/>
                     <DatePicker Grid.Column="1"
                                 SelectedDate="{Binding FromDateFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Column="2"
-                           Content="To :"/>
+                           Content="{loc:Loc Label_To}"/>
                     <DatePicker Grid.Column="3"
                                 SelectedDate="{Binding ToDateFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Column="4"
-                           Content="Event type :"/>
+                           Content="{loc:Loc Label_EventType}"/>
                     <ComboBox Name="_eventType_CB"
                               SelectedItem="{Binding ReadableEventType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               Grid.Column="5"/>
                     <Label Grid.Column="6"
-                           Content="Message :"/>
+                           Content="{loc:Loc Label_Message}"/>
                     <TextBox Grid.Column="7"
                              Text="{Binding SearchCriteria, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <CheckBox Grid.Column="8"
-                              Content="Needs review only"
+                              Content="{loc:Loc Label_NeedsReviewOnly}"
                               IsChecked="{Binding NeedsReview}"/>
                     <Button Grid.Column="9"
                             Content="✕"
@@ -64,7 +65,7 @@
                   Grid.Row="1"
                   AutoGenerateColumns="False">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Date and Time"
+                <DataGridTextColumn Header="{loc:Loc Label_DateAndTime}"
                                     IsReadOnly="True"
                                     Width="Auto"
                                     Binding="{Binding DateTime}"
@@ -76,7 +77,7 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTemplateColumn Header="Needs review"
+                <DataGridTemplateColumn Header="{loc:Loc Label_NeedsReview}"
                                         Width="Auto"
                                         CanUserSort="True">
                     <DataGridTemplateColumn.CellTemplate>
@@ -86,7 +87,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Event type"
+                <DataGridTextColumn Header="{loc:Loc Label_EventTypeColumn}"
                                     IsReadOnly="True"
                                     Width="Auto"
                                     Binding="{Binding EventType}"
@@ -98,7 +99,7 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Message"
+                <DataGridTextColumn Header="{loc:Loc Label_MessageColumn}"
                                     Width="*"
                                     IsReadOnly="True"
                                     Binding="{Binding Message}"
@@ -111,14 +112,14 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTemplateColumn Header="Go to item">
+                <DataGridTemplateColumn Header="{loc:Loc Label_GoToItem}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Content="🔍" Click="_viewItemButton_Click"  Margin="4"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Copy">
+                <DataGridTemplateColumn Header="{loc:Loc Label_Copy}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Content="📋" Click="_copyButton_Click"  Margin="4"/>
