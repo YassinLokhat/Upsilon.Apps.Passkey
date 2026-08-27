@@ -10,12 +10,12 @@ Each component is versioned **independently**. Security fixes apply to the lates
 
 | Component (assembly) | Supported version | Supported |
 | -------------------- | ----------------- | --------- |
-| `Upsilon.Apps.Passkey.GUI.WPF` | 2.0.x | Yes |
-| `Upsilon.Apps.Passkey.Core` | 2.0.x | Yes |
-| `Upsilon.Apps.Passkey.Utils` | 2.0.x | Yes |
-| `Upsilon.Apps.Passkey.Interfaces` | 2.0.x | Yes |
+| `Upsilon.Apps.Passkey.GUI.WPF` | 1.0.x | Yes |
+| `Upsilon.Apps.Passkey.Core` | 1.0.x | Yes |
+| `Upsilon.Apps.Passkey.Utils` | 1.0.x | Yes |
+| `Upsilon.Apps.Passkey.Interfaces` | 1.0.x | Yes |
 
-Any version older than the latest release of a given component is not supported. The shared 2.0.x line at the time of writing is not guaranteed to remain aligned.
+Any version older than the latest release of a given component is not supported. The shared 1.0.x line at the time of writing is not guaranteed to remain aligned.
 
 ## Reporting a vulnerability
 

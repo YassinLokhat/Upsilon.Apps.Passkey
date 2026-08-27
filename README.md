@@ -6,7 +6,7 @@
 
 A local-only password manager written in C# on **.NET 10**. There is no server,
 no account, and no synchronization: every secret lives in a single encrypted
-`.pku` file on the user's device. Version **2.0.0** (each assembly is versioned
+`.pku` file on the user's device. Version **1.0.0** (each assembly is versioned
 independently; see [SECURITY.md](SECURITY.md)).
 
 **Features**
@@ -588,4 +588,4 @@ style rules, coverage, and what a PR should include. Security reports go through
 **License**
 -------
 
-This project is licensed under the GNU General Public License v2.0. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v1.0. See the [LICENSE](LICENSE) file for details.
