@@ -151,6 +151,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _service_SV.SetSelectedPassword(password);
       }
 
+      private void _appSettings_MenuItem_Click(object sender, RoutedEventArgs e)
+      {
+         if (this.GetIsBusy())
+         {
+            return;
+         }
+
+         _ = AppServices.Dialogs.ShowDialog(new AppSettingsView());
+      }
+
       private void _logout_MenuItem_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy())

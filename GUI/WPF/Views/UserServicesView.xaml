@@ -44,15 +44,20 @@
                     </ItemsPanelTemplate>
                 </Menu.ItemsPanel>
                 <MenuItem Header="{loc:Loc Menu_Save}"
+                          DockPanel.Dock="Left"
                           Command="Save"/>
                 <MenuItem Header="{loc:Loc Menu_UserSettings}"
+                          DockPanel.Dock="Left"
                           Click="_userSettings_MenuItem_Click"/>
                 <MenuItem Header="{loc:Loc Menu_GenerateRandomPassword}"
+                          DockPanel.Dock="Left"
                           Command="Print"/>
                 <MenuItem Header="{loc:Loc Menu_ShowActivities}"
+                          DockPanel.Dock="Left"
                           Click="_showActivities_MenuItem_Click"/>
                 <MenuItem Name="_warnings_MI"
                           Header="{Binding ShowWarnings}"
+                          DockPanel.Dock="Left"
                           Foreground="{Binding ShowWarningsColor}">
                     <MenuItem Name="_activityWarnings_MI"
                               Header="{Binding ShowActivityWarnings}"
@@ -73,7 +78,12 @@
                 </MenuItem>
                 <MenuItem Header="{loc:Loc Menu_Logout}"
                           HorizontalAlignment="Right"
+                          DockPanel.Dock="Right"
                           Click="_logout_MenuItem_Click"/>
+                <MenuItem Header="{loc:Loc Menu_AppSettings}"
+                          HorizontalAlignment="Right"
+                          DockPanel.Dock="Right"
+                          Click="_appSettings_MenuItem_Click"/>
             </Menu>
             <GroupBox Header="{loc:Loc Label_Filters}">
                 <Grid>
