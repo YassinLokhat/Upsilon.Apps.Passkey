@@ -1,0 +1,1 @@
+dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings --results-directory TestResults --collect:"Code Coverage"

@@ -2,7 +2,7 @@
 
 The Windows desktop app lives in `GUI/WPF`. It is MVVM with a small service locator (`AppServices`) instead of a DI container, so ViewModels stay unit-testable. The project currently has no NuGet packages either; keep it that way unless a Windows-only capability cannot be done with the BCL.
 
-Target framework: `net10.0-windows10.0.18362.0`. Dark WPF resources plus Windows immersive dark title bars.
+Target framework: `net10.0-windows10.0.18362.0`. Light and dark WPF resource dictionaries, with Windows immersive title bars matching the active appearance.
 
 ## Localization
 
@@ -10,13 +10,19 @@ UI strings live in `GUI/WPF/Localization/`:
 
 * `Strings.resx` — English (neutral / fallback)
 * `Strings.fr.resx` — French
-* `LocalizationService.Supported` — combo-box registry
+* `LocalizationService.Supported` — combo-box registry (`System` + shipped cultures)
 * `{loc:Loc KeyName}` in XAML (live binding via `TranslationSource`); `Strings.KeyName` / `Strings.Format(...)` in C#
 * `LocalizationService.Apply` refreshes open windows implementing `ILanguageAware` (titles, combos, computed labels) — **no restart required**
 
-Language is an **app** setting (`config.json`, property `Language`) under **App Settings** (`Ctrl+,`). Each vault user can **override** it under **User settings** (`ISettings.Language`). Empty user language = follow the app. On login the client applies the effective language; on logout it reverts to the app language. Open windows update immediately via `ILanguageAware`.
+Language is an **app** setting (`config.json`, property `Language`: `System`, `en`, `fr`, …) under **App Settings** (`Ctrl+,`). Default is `System`. Each vault user can **override** it under **User settings** (`ISettings.Language`). Empty user language = follow the app. `System` follows the OS UI language when a satellite ships, otherwise English. On login the client applies the effective language; on logout it reverts to the app language. Open windows update immediately via `ILanguageAware`.
 
-Do not put UI strings in Core, Utils, or Interfaces. The vault persists **stable** data (enum member names, field names, `New Service #`); the WPF client localizes at display time.
+## Theme
+
+Color brushes live in `GUI/WPF/Themes/DarkTheme.xaml` and `LightTheme.xaml` (same keys). Control styles in `Controls.xaml` use `{DynamicResource}` so a dictionary swap repaints open windows — **no restart required**. `ThemeService.Apply` also updates immersive title bars and notifies `IThemeAware` surfaces (code-behind brushes on account/service fields).
+
+Theme is an **app** setting (`config.json`, property `Theme`: `System`, `Light`, or `Dark`) under **App Settings**. Each vault user can **override** it under **User settings** (`ISettings.Theme`). Empty user theme = follow the app. `System` follows Windows `AppsUseLightTheme`. On login the client applies the effective theme; on logout it reverts to the app theme. If the effective preference is `System`, an OS light/dark change is applied live.
+
+Do not put UI strings in Core, Utils, or Interfaces. The vault persists **stable** data (enum member names, field names, `ISettings.FollowAppCode` = `app` when language/theme follow the application). The WPF client localizes at display time. Default service/account names (`Msg_NewServicePrefix`, `Msg_NewAccountPrefix`) are written in the current UI language.
 
 ### Key prefixes
 
@@ -30,6 +36,7 @@ Do not put UI strings in Core, Utils, or Interfaces. The vault persists **stable
 | `IdentifierType_` | Insert-identifier buttons | `IdentifierType_Email` |
 | `FieldName_` | Field names inside activity sentences | `FieldName_ServiceName` → `service name` |
 | `EnumValue_*_` | Short enum labels (filters, combo boxes) | see below |
+| `EnumValue_ImportExportError_*` | Import/export failure reasons in activity messages | `EnumValue_ImportExportError_NoDataToImport` → `no data to import` |
 | `Activity_` | Full activity **Message** sentences | see below |
 
 When you add a key: update `Strings.resx`, every satellite (e.g. `Strings.fr.resx`), and the typed accessor in `Strings.cs` unless the key is only loaded via `Strings.Get("…")` (dynamic `FieldName_*` / `EnumValue_*` lookups).
@@ -54,18 +61,26 @@ ActivityEventType.DatabaseOpened
 
 1. Add / update `EnumValue_ActivityEventType_<Member>` in every language file.
 2. Add / update `Activity_<Member>` (and any variants such as `Activity_UserLoggedOutWithoutSaving`) with the correct placeholder count.
-3. Wire the Message path in `ActivityViewModel` / `StringsHelper` if the event is new.
+3. Wire the Message path in `ActivityViewModel`, `StringsHelper`, and/or `EnumDisplayHelper` depending on event shape.
 4. Keep Core persistence unchanged: store enum names and field ids, never translated text.
 
-Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (`EnumValue_WarningType_*`, optional `EnumValue_AccountOption_*`). Warning filter strings may reuse existing `Label_Notify*` keys via `EnumDisplayHelper` when the wording already matches the settings UI.
+Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (`EnumValue_WarningType_*`, optional `EnumValue_AccountOption_*`, `EnumValue_ImportExportError_*`, `EnumValue_Theme_*`). `EnumDisplayHelper.FormatFieldValue` localizes values stored in activity `FieldValue` (Core persists `Enum.ToString()` names, not translated text). Import/export failure reasons use `EnumValue_ImportExportError_{Member}`; theme preference values use `EnumValue_Theme_*`. Empty user language/theme is logged as `app` (`ISettings.FollowAppCode`; legacy logs may still have `(app)`) and displayed via `EnumValue_FollowApp`. Warning filter strings may reuse existing `Label_Notify*` keys via `EnumDisplayHelper` when the wording already matches the settings UI.
 
 `FieldName_*` keys localize the middle of ItemUpdated-style sentences (`Strings.Get($"FieldName_{activity.FieldName}")`). If Core starts persisting a new field name, add a matching `FieldName_` entry or the UI falls back to the raw key.
 
 ### Adding a language
 
 1. Copy `Strings.resx` → `Strings.xx.resx` and translate values (keep key names). Pay special attention to **both** `EnumValue_ActivityEventType_*` and `Activity_*` for every event.
-2. Append `new("xx", "Native name")` to `LocalizationService.Supported`.
-3. Run `LocalizationTests` — they loop every non-English entry in `Supported` (`SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
+2. Append `new("xx", "Native name")` to `LocalizationService.Shipped`.
+3. Run `LocalizationTests` — they loop every non-English entry in `Shipped` (`SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
+
+## User settings — import and export
+
+While logged in, **User settings** offers **Import** (`.json` or `.csv`) and **Export → JSON / CSV**. Unsaved edits are saved first after confirmation (`Msg_SaveBeforeContinue`). Success and failure dialogs are generic (`Msg_ImportSuccess` / `Msg_ImportFailed`, etc.); the localized reason appears in the Activities grid (`ImportingDataFailed` / `ExportingDataFailed`). JSON export/import includes settings; CSV is services/accounts only (import accepts comma- or tab-delimited rows; export is tab-separated — see [[Import Export]]).
+
+## Dialogs
+
+Confirmations and alerts use `ThemedMessageBoxView` (via `DialogService.Confirm`) — a themed in-app window that follows application light/dark resources, not `System.Windows.MessageBox.Show`.
 
 ## Vault files and logs
 
@@ -131,4 +146,4 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 5. Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
 6. Show a password as a QR code and confirm the window closes after the configured delay.
 
-There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and real MessageBoxes stay out of the automated suite — [[Testing and CI]].
+There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay out of the automated suite — [[Testing and CI]].

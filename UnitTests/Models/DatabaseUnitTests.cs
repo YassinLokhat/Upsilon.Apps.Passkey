@@ -901,5 +901,47 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * Clearing NeedsReview and saving must survive logout / login: the flag lives
+       * in the encrypted activity payload, not only in the in-memory objects.
+      */
+      public void Case19_NeedsReviewCleared_PersistsAcrossReopen()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string[] wrongPasskeys = [.. passkeys];
+         wrongPasskeys[0] = UnitTestsHelper.GetRandomString();
+
+         IDatabase created = UnitTestsHelper.CreateTestDatabase(passkeys);
+         created.Close();
+
+         IDatabase failed = UnitTestsHelper.OpenTestDatabase(wrongPasskeys, out _);
+         _ = failed.User.Should().BeNull();
+         failed.Close();
+
+         IDatabase database = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         IActivity[] failedLogins = [.. database.Activities!
+            .Where(x => x.EventType == ActivityEventType.LoginFailed)];
+         _ = failedLogins.Should().NotBeEmpty();
+         _ = failedLogins.Should().OnlyContain(x => x.NeedsReview);
+
+         foreach (IActivity activity in failedLogins)
+         {
+            activity.NeedsReview = false;
+         }
+
+         database.Save();
+         database.Close();
+
+         IDatabase reopened = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         _ = reopened.Activities!
+            .Where(x => x.EventType == ActivityEventType.LoginFailed)
+            .Should().OnlyContain(x => !x.NeedsReview);
+
+         reopened.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

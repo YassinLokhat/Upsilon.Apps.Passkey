@@ -7,7 +7,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 using Windows.ApplicationModel.DataTransfer;
 using Clipboard = System.Windows.Clipboard;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.OSSpecific
+namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
 {
    /// <summary>
    /// Windows clipboard: writes with history/cloud/monitor exclusion formats,

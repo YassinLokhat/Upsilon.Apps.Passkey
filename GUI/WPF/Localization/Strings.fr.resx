@@ -145,7 +145,7 @@
     <value>Exporter en _JSON (paramètres et services)</value>
   </data>
   <data name="Menu_ExportCsv" xml:space="preserve">
-    <value>Exporter en _CSV (services uniquement)</value>
+    <value>Exporter en _CSV (tabulations, services uniquement)</value>
   </data>
   <data name="Menu_ViewActivities" xml:space="preserve">
     <value>Voir les activités</value>
@@ -184,6 +184,10 @@
     <value>Langue :</value>
   </data>
   <data name="Label_UseAppLanguage" xml:space="preserve"><value>Utiliser la langue de l'application</value></data>
+  <data name="Label_Theme" xml:space="preserve">
+    <value>Thème :</value>
+  </data>
+  <data name="Label_UseAppTheme" xml:space="preserve"><value>Utiliser le thème de l'application</value></data>
   <data name="Label_Browse" xml:space="preserve">
     <value>Parcourir</value>
   </data>
@@ -401,7 +405,7 @@
     <value>Exporter paramètres et services en JSON</value>
   </data>
   <data name="Title_ExportCsv" xml:space="preserve">
-    <value>Exporter les services en CSV</value>
+    <value>Exporter les services en CSV (délimité par tabulations)</value>
   </data>
   <data name="Title_ConfirmationRequired" xml:space="preserve">
     <value>Confirmation requise</value>
@@ -455,7 +459,22 @@
     <value>fichier JSON|*.json</value>
   </data>
   <data name="Filter_Csv" xml:space="preserve">
+    <value>Fichier CSV (virgules ou tabulations)|*.csv</value>
+  </data>
+  <data name="Filter_CsvExport" xml:space="preserve">
     <value>Fichier CSV délimité par tabulations|*.csv</value>
+  </data>
+  <data name="Button_Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="Button_No" xml:space="preserve">
+    <value>Non</value>
+  </data>
+  <data name="Button_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Button_Yes" xml:space="preserve">
+    <value>Oui</value>
   </data>
   <data name="Filter_All" xml:space="preserve">
     <value>Tous</value>
@@ -595,7 +614,10 @@ Annuler : ignorer et conserver le fichier.</value>
     <value>'{0}' comptes avec le même mot de passe</value>
   </data>
   <data name="Msg_NewServicePrefix" xml:space="preserve">
-    <value>New Service #</value>
+    <value>Nouveau service #</value>
+  </data>
+  <data name="Msg_NewAccountPrefix" xml:space="preserve">
+    <value>👤Nouveau compte #</value>
   </data>
   <data name="IdentifierType_Username" xml:space="preserve">
     <value>Nom d'utilisateur</value>
@@ -828,7 +850,55 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="FieldName_Passkeys" xml:space="preserve">
     <value>clés d'accès</value>
   </data>
+  <data name="FieldName_Language" xml:space="preserve">
+    <value>langue</value>
+  </data>
+  <data name="FieldName_Theme" xml:space="preserve">
+    <value>thème</value>
+  </data>
+  <data name="EnumValue_Theme_System" xml:space="preserve">
+    <value>Identique au système</value>
+  </data>
+  <data name="EnumValue_Theme_Light" xml:space="preserve">
+    <value>Clair</value>
+  </data>
+  <data name="EnumValue_Theme_Dark" xml:space="preserve">
+    <value>Sombre</value>
+  </data>
+  <data name="EnumValue_FollowApp" xml:space="preserve">
+    <value>Identique à l'application</value>
+  </data>
   <data name="Activity_DateTimeFormat" xml:space="preserve">
     <value>dd/MM/yyyy HH:mm</value>
+  </data>
+  <data name="EnumValue_ImportExportError_None" xml:space="preserve">
+    <value>aucune</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ImportFileNotAccessible" xml:space="preserve">
+    <value>le fichier d'import n'est pas accessible</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ExtentionFileNotSupported" xml:space="preserve">
+    <value>le type d'extention de fichier n'est pas supporté</value>
+  </data>
+  <data name="EnumValue_ImportExportError_CSVHeadersDontMatch" xml:space="preserve">
+    <value>l'entête du CSV est incorrecte</value>
+  </data>
+  <data name="EnumValue_ImportExportError_IncorrectCSVFormat" xml:space="preserve">
+    <value>l'entête du CSV est incorrecte</value>
+  </data>
+  <data name="EnumValue_ImportExportError_NoDataToImport" xml:space="preserve">
+    <value>aucune donnée à importer</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ImportFileDeserializationFailed" xml:space="preserve">
+    <value>la déserialisation du fichier a échoué</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ServiceAlreadyExists" xml:space="preserve">
+    <value>un service existe déjà</value>
+  </data>
+  <data name="EnumValue_ImportExportError_BlankService" xml:space="preserve">
+    <value>un service est vide</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ExportFileAlreadyExists" xml:space="preserve">
+    <value>le fichier d'export existe déjà</value>
   </data>
 </root>

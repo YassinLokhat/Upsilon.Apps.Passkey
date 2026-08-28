@@ -1,5 +1,6 @@
 using FluentAssertions;
 using System.Windows.Threading;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -56,7 +57,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
 
          ServiceViewModel added = vm.AddService();
 
-         _ = added.ServiceName.Should().StartWith("New Service #");
+         _ = added.ServiceName.Should().StartWith(Strings.Msg_NewServicePrefix);
          _ = vm.Services.Should().ContainSingle();
          _ = vm.Services[0].Should().BeSameAs(added);
          _ = _database!.User!.Services.Should().ContainSingle(s => s.ItemId == added.Service.ItemId);

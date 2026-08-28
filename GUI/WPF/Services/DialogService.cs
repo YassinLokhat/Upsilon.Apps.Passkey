@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System.Windows;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 {
@@ -63,9 +64,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       public MessageBoxResult Confirm(string text, string title, MessageBoxButton button = MessageBoxButton.YesNo, MessageBoxImage image = MessageBoxImage.Question)
       {
          Window? owner = _resolveOwner();
-         return owner is null
-            ? MessageBox.Show(text, title, button, image)
-            : MessageBox.Show(owner, text, title, button, image);
+         return ThemedMessageBoxView.Show(owner, text, title, button, image);
       }
 
       public void Info(string text, string title)

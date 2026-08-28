@@ -3,9 +3,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.OSSpecific;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -40,6 +40,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          DataContext = _viewModel = new($"{_session.User}");
          _viewModel.FiltersRefreshed += _viewModel_FiltersRefreshed;
          _viewModel.LanguageRefreshed += (_, _) => _refreshWarningsMenuFromSession();
+         _viewModel.ThemeRefreshed += (_, _) => _refreshWarningsMenuFromSession();
 
 
          _services_LB.ItemsSource = _viewModel.Services;
@@ -151,16 +152,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          _service_SV.SetSelectedPassword(password);
-      }
-
-      private void _appSettings_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy())
-         {
-            return;
-         }
-
-         _ = AppServices.Dialogs.ShowDialog(new AppSettingsView());
       }
 
       private void _logout_MenuItem_Click(object sender, RoutedEventArgs e)

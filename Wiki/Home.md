@@ -2,7 +2,7 @@
 
 A **local-only** password manager written in C# on **.NET 10**. There is no server, no account, and no synchronization: every secret lives in a single encrypted `.pku` file on the user's device.
 
-Each assembly is versioned independently. At the time of writing they share **2.0.x**, but that is not guaranteed to remain the case. Always upgrade to the latest release of a component before reporting an issue.
+Each assembly is versioned independently. At the time of writing they share **1.0.x**, but that is not guaranteed to remain the case. Always upgrade to the latest release of a component before reporting an issue.
 
 ## What it stores
 
@@ -27,14 +27,14 @@ Each assembly is versioned independently. At the time of writing they share **2.
 | Login | Progressive passkeys **without rollback** (online brute-force friction) |
 | Generation | CSPRNG over a configurable alphabet |
 | Leak checks | Opt-in Have I Been Pwned, with a free XposedOrNot failover (k-anonymity) |
-| Import / export | Plaintext JSON (settings + services) or TSV/CSV (services only) |
-| Windows client | Dark theme, QR codes, global paste hotkeys, autosave merge on next login |
+| Import / export | Plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited) |
+| Windows client | System / Light / Dark theme, QR codes, global paste hotkeys, autosave merge on next login |
 
 ## Start here
 
 | You want to… | Page |
 | ------------ | ---- |
-| Build and run the Windows app | [[Getting Started]] |
+| Install a Windows release or build from source | [[Getting Started]] |
 | Understand layers and solutions | [[Architecture]] |
 | Embed Core in your own host | [[Core API]] and [[Usage Cookbook]] |
 | Move data in or out | [[Import Export]] |
@@ -48,6 +48,6 @@ Each assembly is versioned independently. At the time of writing they share **2.
 * **Security vulnerabilities** — GitHub Security Advisories or email. Never public issues. See [[Security]].
 * **Bugs and features** — [GitHub issues](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/issues).
 
-**License:** GNU General Public License v2.0. See [`LICENSE`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/LICENSE).
+**License:** GNU General Public License v1.0. See [`LICENSE`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/LICENSE).
 
 This wiki lives in the `Wiki/` folder of the source repository so it can be reviewed with the code. To publish it as the GitHub Wiki, copy the Markdown files to the `Upsilon.Apps.Passkey.wiki.git` remote (see [[Getting Started]]).

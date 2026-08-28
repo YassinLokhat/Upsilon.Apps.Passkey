@@ -14,7 +14,7 @@ The app does not sync. You can copy the `.pku` as a backup. Two machines must no
 
 ## Is the CSV export really CSV?
 
-The extension is `.csv`. The content is **tab-separated (TSV)** and each cell is a **JSON string**. Settings are not included. See [[Import Export]].
+The extension is `.csv`. **Export** writes **tab-separated** rows with each cell a **JSON string**. **Import** accepts the same shape with either **commas or tabs** as delimiters. Settings are not included. See [[Import Export]].
 
 ## Does leak checking send my password to the internet?
 

@@ -37,5 +37,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
       public void ApplySessionLanguage()
       {
       }
+
+      public void ApplySessionTheme()
+      {
+      }
    }
 }

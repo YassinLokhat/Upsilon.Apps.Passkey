@@ -6,7 +6,7 @@
 
 A local-only password manager written in C# on **.NET 10**. There is no server,
 no account, and no synchronization: every secret lives in a single encrypted
-`.pku` file on the user's device. Version **2.0.0** (each assembly is versioned
+`.pku` file on the user's device. Version **1.0.0** (each assembly is versioned
 independently; see [SECURITY.md](SECURITY.md)).
 
 **Features**
@@ -19,8 +19,8 @@ independently; see [SECURITY.md](SECURITY.md)).
 *   **Autosave**: unsaved edits are kept in the `.pku` ZIP and merged on the next login
 *   **Password generation**: CSPRNG over a configurable alphabet
 *   **Leak detection**: opt-in Have I Been Pwned checks, then XposedOrNot failover, then an optional local HIBP Bloom filter (k-anonymity / offline; see [SECURITY.md](SECURITY.md))
-*   **Import / Export**: plaintext JSON (settings + services) or TSV/CSV (services only)
-*   **WPF client** (Windows): dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
+*   **Import / Export**: plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited)
+*   **WPF client** (Windows): System / Light / Dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
 
 **Architecture**
 ----------------
@@ -167,6 +167,8 @@ classDiagram
             +int NumberOfOldPasswordToKeep
             +int NumberOfMonthActivitiesToKeep
             +WarningType WarningsToNotify
+            +string Language
+            +string Theme
         }
 
         class IDatabase {
@@ -202,8 +204,13 @@ classDiagram
             <<interface>>
             +DateTime DateTime
             +string ItemId
+            +string? Username
+            +string? ServiceName
+            +string? AccountName
+            +string? FieldName
+            +string? FieldValue
+            +string? ParentName
             +ActivityEventType EventType
-            +string Message
             +bool NeedsReview
         }
 
@@ -439,7 +446,8 @@ database.Close();
 extension. Only `.json` and `.csv` are supported; any other extension fails.
 
 *   **JSON** carries `Settings` and `Services` (with accounts).
-*   **CSV** is tab-separated (TSV) with JSON-encoded cells. Headers are
+*   **CSV** uses JSON-encoded cells. Import accepts **comma- or tab-delimited**
+    rows; export writes **tab-separated** rows. Headers are
     `ServiceName`, `ServiceUrl`, `ServiceNotes`, `AccountLabel`, `Identifiers`,
     `Password`, `AccountNotes`, `AccountOptions`, `PasswordUpdateReminderDelay`.
     Settings are not included in CSV.
@@ -515,6 +523,8 @@ A full build downloads every HIBP range (~1 048 576 prefixes) and can take s
 The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 (`AppServices`) instead of a DI container, so ViewModels stay unit-testable.
 
+*   **Localization**: English + French; app default in `config.json` is `System` (follow OS UI language when a satellite ships), per-user override in User settings. Activity and enum labels are localized at display time (`ActivityViewModel`, `EnumDisplayHelper`).
+*   **Import / export UI**: User settings menu — Import (`.json` / `.csv`, comma- or tab-delimited) and Export → JSON / CSV (tab-separated). Success and failure dialogs are generic; the localized reason appears in the Activities grid.
 *   **Vault files**: new users are stored next to the executable as
     `raw/{GetHash(username)}.pku`. `Ctrl+O` opens an existing `.pku`; a path can
     also be passed as the first command-line argument.
@@ -527,7 +537,9 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 *   **QR codes**: identifiers and passwords can be shown as a QR matrix generated
     in-process (`Core/Utils/QrCode.cs`, no network). The window closes after
     `ISettings.ShowPasswordDelay` milliseconds when that setting is non-zero.
-*   **Theme**: dark WPF resources plus Windows immersive dark title bars.
+*   **Theme**: App Settings default (`System` / `Light` / `Dark`, stored in
+    `config.json`); each vault user can override it. `System` follows Windows
+    light/dark. Light and dark WPF dictionaries plus matching immersive title bars.
 *   **Logs**: rolling daily files under `%LocalAppData%\Passkey\logs`.
 
 **Testing**
@@ -539,9 +551,11 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     and related models. Run with `dotnet test` on the Windows solution.
 *   **GUI ViewModels**: the same `UnitTests` project also references the WPF app
     and exercises ViewModels (`UnitTests/Gui/`) through a replaceable
-    `AppServices` seam and fakes (session, dialogs, clipboard). No UI automation
-    (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, and real MessageBoxes
-    stay out of the automated suite.
+    `AppServices` seam and fakes (session, dialogs, clipboard). Import/export tests
+    compare localized activity lines via `UnitTestsHelper.FormatImportFailed` /
+    `FormatExportFailed` (same path as the WPF Activities grid). No UI automation
+    (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, and themed confirmation
+    dialogs (`ThemedMessageBoxView` via `DialogService`) stay out of the automated suite.
 *   **Coverage**: `coverage.runsettings` measures **Core only** (Utils is a
     separate assembly and is not in that gate). Windows CI fails the build if
     line coverage drops below **90%**.
@@ -572,12 +586,21 @@ GitHub Actions on `master` and pull requests:
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
 | `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
 | `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on every push/PR (any branch) and weekly; Release build of production projects (tests excluded) |
+| `.github/workflows/release.yml` | On `v*.*.*` tags: Release build, tests, `dotnet publish` (self-contained win-x64), GitHub Release with zip + SHA-256 |
+
+Pushing a tag such as `v1.1.0` (or `v1.1.0-rc.1` for a prerelease) creates the GitHub Release. See [CONTRIBUTING.md](CONTRIBUTING.md#cutting-a-release).
 
 Dependabot is configured for the **.NET SDK** only (`dotnet-sdk` ecosystem). Test
 NuGet packages (MSTest, FluentAssertions) are not auto-bumped.
 
 **Getting Started**
 -------------------
+
+End users: download the Windows x64 zip from
+[Releases](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/releases)
+(.NET 10 is bundled; Windows 10 1809 / build 18362 or later).
+
+To build from source:
 
 1.  Clone the repository: `git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git`
 2.  Windows (GUI + tests): `dotnet build Upsilon.Apps.Passkey.Windows.slnx` then `dotnet run --project GUI/WPF`

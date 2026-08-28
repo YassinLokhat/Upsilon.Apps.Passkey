@@ -113,7 +113,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: false,
             oldValue: Language,
             newValue: value ?? string.Empty,
-            readableValue: string.IsNullOrEmpty(value) ? "(app)" : value);
+            readableValue: string.IsNullOrEmpty(value) ? ISettings.FollowAppCode : value);
+      }
+
+      string ISettings.Theme
+      {
+         get => User.Host.Touch(Theme);
+         set => Theme = User.Host.AutoSave.UpdateValue(User.ItemId,
+            fieldName: nameof(Theme),
+            needsReview: false,
+            oldValue: Theme,
+            newValue: value ?? string.Empty,
+            readableValue: string.IsNullOrEmpty(value) ? ISettings.FollowAppCode : value);
       }
 
       #endregion
@@ -137,5 +148,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       /// <summary>Empty = use application <c>config.json</c> language.</summary>
       public string Language { get; set; } = string.Empty;
+
+      /// <summary>Empty = use application <c>config.json</c> theme.</summary>
+      public string Theme { get; set; } = string.Empty;
    }
 }

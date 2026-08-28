@@ -9,7 +9,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class ServiceViewModel : INotifyPropertyChanged
+   internal sealed class ServiceViewModel : INotifyPropertyChanged, IThemeAware
    {
       public readonly IService Service;
 
@@ -87,6 +87,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
+      public void OnThemeChanged()
+      {
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceNameBackground)));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UrlBackground)));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NotesBackground)));
+
+         foreach (AccountViewModel account in _accountViewModelsById.Values)
+         {
+            account.OnThemeChanged();
+         }
+      }
+
       public void ApplyFilters(string identifierFilter, string textFilter, bool changedItemsOnly)
       {
          _syncAccountViewModels();
@@ -105,12 +117,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public AccountViewModel AddAccount()
       {
-         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier.StartsWith("👤New Account #", StringComparison.Ordinal)))
-            ?? _accountViewModelsById.Values.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier.StartsWith("👤New Account #", StringComparison.Ordinal)));
+         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(_isNewAccountPlaceholder)
+            ?? _accountViewModelsById.Values.FirstOrDefault(_isNewAccountPlaceholder);
 
          if (accountViewModel is null)
          {
-            IAccount account = Service.AddAccount(["👤New Account #" + DateTime.Now.Ticks]);
+            IAccount account = Service.AddAccount([Strings.Msg_NewAccountPrefix + DateTime.Now.Ticks]);
             _syncAccountViewModels();
             accountViewModel = _accountViewModelsById[account.ItemId];
 
@@ -124,6 +136,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
          return accountViewModel;
       }
+
+      private static bool _isNewAccountPlaceholder(AccountViewModel account)
+         => account.Identifiers.Any(id =>
+            Strings.IsPlaceholderName(id.Identifier, nameof(Strings.Msg_NewAccountPrefix)));
 
       public int DeleteAccount(AccountViewModel accountViewModel)
       {

@@ -29,7 +29,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
          // Anchor the activity log's seal inside the (tamper-proof) database so a
          // later rollback or signature strip of the log becomes detectable. The
          // activities were just sealed by the _saveActivities call above (and
-         // re-encrypted only when retention pruning dropped entries).
+         // re-encrypted when retention pruning dropped entries or NeedsReview
+         // flags were edited).
          User.ActivitySealWatermark = ActivityCenter.GetSealedCount();
 
          // Re-stretching every passkey on each Save is the most expensive step of

@@ -131,6 +131,13 @@
                                       SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
                                       DisplayMemberPath="NativeName"/>
                         </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,4">
+                            <Label Margin="0" Content="{loc:Loc Label_Theme}"/>
+                            <ComboBox MinWidth="220"
+                                      ItemsSource="{Binding Themes}"
+                                      SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
+                                      DisplayMemberPath="DisplayName"/>
+                        </StackPanel>
                         <GroupBox Header="{loc:Loc Label_Warnings}">
                             <StackPanel>
                                 <CheckBox IsChecked="{Binding NotifyActivityReview, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

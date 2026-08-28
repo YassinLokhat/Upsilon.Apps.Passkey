@@ -5,6 +5,7 @@ using System.IO;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
@@ -189,6 +190,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       }
 
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh theme labels on language change.")]
+      public IReadOnlyList<AppThemeOption> Themes =>
+      [
+         new(string.Empty, Strings.Label_UseAppTheme),
+         .. ThemeService.Supported,
+      ];
+
+      public AppThemeOption SelectedTheme
+      {
+         get;
+         set
+         {
+            if (value is null)
+            {
+               return;
+            }
+
+            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         }
+      }
+
       // --- Application-level offline leak filter (not saved in the vault) ---
 
       public bool OfflineLeakFilterEnabled
@@ -247,6 +269,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          SelectedLanguage = _languageFromSettings(
             AppServices.Session.Database?.User?.Settings.Language);
+         SelectedTheme = _themeFromSettings(
+            AppServices.Session.Database?.User?.Settings.Theme);
 
          RefreshOfflineLeakFilterStatus();
 
@@ -271,10 +295,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnLanguageChanged()
       {
-         string code = SelectedLanguage.Code;
+         string languageCode = SelectedLanguage.Code;
+         string themeCode = SelectedTheme.Code;
          _onPropertyChanged(nameof(Title));
          _onPropertyChanged(nameof(Languages));
-         SelectedLanguage = _languageFromSettings(code);
+         _onPropertyChanged(nameof(Themes));
+         SelectedLanguage = _languageFromSettings(languageCode);
+         SelectedTheme = _themeFromSettings(themeCode);
       }
 
       public void RefreshOfflineLeakFilterStatus()
@@ -300,14 +327,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       private AppLanguage _languageFromSettings(string? code)
       {
-         if (string.IsNullOrWhiteSpace(code))
-         {
-            return Languages[0];
-         }
-
-         return Languages.FirstOrDefault(l =>
+         return string.IsNullOrWhiteSpace(code)
+            ? Languages[0]
+            : Languages.FirstOrDefault(l =>
             string.Equals(l.Code, code, StringComparison.OrdinalIgnoreCase))
             ?? Languages[0];
+      }
+
+      private AppThemeOption _themeFromSettings(string? code)
+      {
+         return string.IsNullOrWhiteSpace(code)
+            ? Themes[0]
+            : Themes.FirstOrDefault(t =>
+            string.Equals(t.Code, code, StringComparison.OrdinalIgnoreCase))
+            ?? Themes[0];
       }
    }
 }

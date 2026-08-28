@@ -12,7 +12,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="150" Width="550">
+        Height="190" Width="550">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -50,6 +50,17 @@
                       ItemsSource="{Binding Languages}"
                       SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
                       DisplayMemberPath="NativeName"/>
+         </Grid>
+         <Grid Margin="0,4">
+            <Grid.ColumnDefinitions>
+               <ColumnDefinition Width="Auto"/>
+               <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Margin="0" Content="{loc:Loc Label_Theme}"/>
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding Themes}"
+                      SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
+                      DisplayMemberPath="DisplayName"/>
          </Grid>
       </StackPanel>
    </Grid>

@@ -61,29 +61,25 @@
                           Foreground="{Binding ShowWarningsColor}">
                     <MenuItem Name="_activityWarnings_MI"
                               Header="{Binding ShowActivityWarnings}"
-                              Foreground="{StaticResource WarningBrush}"
+                              Foreground="{DynamicResource WarningBrush}"
                               Click="_activityWarnings_MI_Click"/>
                     <MenuItem Name="_duplicatedPasswordWarnings_MI"
                               Header="{Binding ShowDuplicatedPasswordWarnings}"
-                              Foreground="{StaticResource WarningBrush}"
+                              Foreground="{DynamicResource WarningBrush}"
                               Click="_duplicatedPasswordWarnings_MI_Click"/>
                     <MenuItem Name="_expiredPasswordWarnings_MI"
                               Header="{Binding ShowExpiredPasswordWarnings}"
-                              Foreground="{StaticResource DangerBrush}"
+                              Foreground="{DynamicResource DangerBrush}"
                               Click="_expiredOrLeakedPasswordWarnings_MI_Click"/>
                     <MenuItem Name="_leakedPasswordWarnings_MI"
                               Header="{Binding ShowLeakedPasswordWarnings}"
-                              Foreground="{StaticResource DangerBrush}"
+                              Foreground="{DynamicResource DangerBrush}"
                               Click="_expiredOrLeakedPasswordWarnings_MI_Click"/>
                 </MenuItem>
                 <MenuItem Header="{loc:Loc Menu_Logout}"
                           HorizontalAlignment="Right"
                           DockPanel.Dock="Right"
                           Click="_logout_MenuItem_Click"/>
-                <MenuItem Header="{loc:Loc Menu_AppSettings}"
-                          HorizontalAlignment="Right"
-                          DockPanel.Dock="Right"
-                          Click="_appSettings_MenuItem_Click"/>
             </Menu>
             <GroupBox Header="{loc:Loc Label_Filters}">
                 <Grid>

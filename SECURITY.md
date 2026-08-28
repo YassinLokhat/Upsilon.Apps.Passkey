@@ -11,15 +11,15 @@ protects data and how to report a problem.
 Each component is versioned **independently** and may evolve at its own pace.
 Security fixes are applied to the latest released version of each component only,
 so please always upgrade to the most recent release before reporting an issue.
-The components happen to share version 2.0.x at the time of writing, but this is
+The components happen to share version 1.0.x at the time of writing, but this is
 not guaranteed to remain the case.
 
 | Component (assembly)                  | Supported version | Supported          |
 | ------------------------------------- | ----------------- | ------------------ |
-| `Upsilon.Apps.Passkey.GUI.WPF` (app)  | 2.0.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Core`           | 2.0.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Utils`          | 2.0.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Interfaces`     | 2.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.GUI.WPF` (app)  | 1.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Core`           | 1.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Utils`          | 1.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Interfaces`     | 1.0.x             | :white_check_mark: |
 
 Any version older than the latest release of a given component is not supported.
 
@@ -329,8 +329,9 @@ These are conscious trade-offs, documented for transparency:
   KDF later, pluggably, should the policy ever be relaxed.
 - **Import/Export files**: CSV and JSON files produced by the Export feature (and
   consumed by Import) are **unencrypted plaintext** by design, for
-  interoperability. The `.csv` path is tab-separated (TSV) with JSON-encoded
-  cells and covers services/accounts only; `.json` also carries user settings.
+  interoperability. The `.csv` path uses JSON-encoded cells and covers
+  services/accounts only; import accepts comma- or tab-delimited rows, while
+  export writes tab-separated rows. `.json` also carries user settings.
   Users are responsible for protecting or deleting these files.
 - **Leak check fails open**: if both Have I Been Pwned and XposedOrNot are
   unreachable (timeout, HTTP error, offline host) **and** no offline Bloom
