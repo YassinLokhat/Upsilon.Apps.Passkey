@@ -38,7 +38,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             dialog.WindowStartupLocation = WindowStartupLocation.CenterScreen;
          }
 
-         dialog._messageText.Text = text;
+         dialog._messageText.Text = text.Trim();
          dialog._configureIcon(image);
          dialog._configureButtons(buttons);
          _ = dialog.ShowDialog();

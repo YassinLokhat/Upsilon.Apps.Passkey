@@ -66,7 +66,8 @@ a Windows-only capability cannot be done with the BCL.
 
 1. Copy `GUI/WPF/Localization/Strings.resx` → `Strings.xx.resx` and translate
    values (do not rename keys).
-2. Register `new("xx", "Native name")` in `LocalizationService.Supported`.
+2. Register `new("xx", "Native name")` in `LocalizationService.Shipped`
+   (keep `System` as the follow-OS preference at the top of `Supported`).
 3. Run `dotnet test … --filter "FullyQualifiedName~LocalizationTests"` (or the full
    GUI filter). Tests verify satellite key parity and localized enum/activity strings.
 4. Prefer `{loc:Loc Key}` in XAML and `Strings.Key` / `Strings.Format` in C#.
@@ -98,6 +99,23 @@ Match the surrounding file. Do not reformat unrelated code.
 - README / SECURITY.md updates when you change a public contract, a threat-model
   assumption, or a user-visible security behaviour.
 - No secrets: vault files, exported JSON/CSV, logs, or credentials.
+
+## Cutting a release
+
+GitHub Releases are produced by `.github/workflows/release.yml` when a version
+tag is pushed. Bump `<Version>` in the assemblies you intend to ship (they are
+versioned independently), merge to `master`, wait for CI, then:
+
+```bash
+git checkout master
+git pull
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+Use a prerelease suffix (`v1.1.0-rc.1`) to mark the GitHub Release as a
+prerelease. The tag stamps the published WPF exe. Do not retag an existing
+version.
 
 ## Commit messages
 

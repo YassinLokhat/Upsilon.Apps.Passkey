@@ -10,11 +10,11 @@ UI strings live in `GUI/WPF/Localization/`:
 
 * `Strings.resx` — English (neutral / fallback)
 * `Strings.fr.resx` — French
-* `LocalizationService.Supported` — combo-box registry
+* `LocalizationService.Supported` — combo-box registry (`System` + shipped cultures)
 * `{loc:Loc KeyName}` in XAML (live binding via `TranslationSource`); `Strings.KeyName` / `Strings.Format(...)` in C#
 * `LocalizationService.Apply` refreshes open windows implementing `ILanguageAware` (titles, combos, computed labels) — **no restart required**
 
-Language is an **app** setting (`config.json`, property `Language`) under **App Settings** (`Ctrl+,`). Each vault user can **override** it under **User settings** (`ISettings.Language`). Empty user language = follow the app. On login the client applies the effective language; on logout it reverts to the app language. Open windows update immediately via `ILanguageAware`.
+Language is an **app** setting (`config.json`, property `Language`: `System`, `en`, `fr`, …) under **App Settings** (`Ctrl+,`). Default is `System`. Each vault user can **override** it under **User settings** (`ISettings.Language`). Empty user language = follow the app. `System` follows the OS UI language when a satellite ships, otherwise English. On login the client applies the effective language; on logout it reverts to the app language. Open windows update immediately via `ILanguageAware`.
 
 ## Theme
 
@@ -22,7 +22,7 @@ Color brushes live in `GUI/WPF/Themes/DarkTheme.xaml` and `LightTheme.xaml` (sam
 
 Theme is an **app** setting (`config.json`, property `Theme`: `System`, `Light`, or `Dark`) under **App Settings**. Each vault user can **override** it under **User settings** (`ISettings.Theme`). Empty user theme = follow the app. `System` follows Windows `AppsUseLightTheme`. On login the client applies the effective theme; on logout it reverts to the app theme. If the effective preference is `System`, an OS light/dark change is applied live.
 
-Do not put UI strings in Core, Utils, or Interfaces. The vault persists **stable** data (enum member names, field names, `New Service #`); the WPF client localizes at display time.
+Do not put UI strings in Core, Utils, or Interfaces. The vault persists **stable** data (enum member names, field names, `ISettings.FollowAppCode` = `app` when language/theme follow the application). The WPF client localizes at display time. Default service/account names (`Msg_NewServicePrefix`, `Msg_NewAccountPrefix`) are written in the current UI language.
 
 ### Key prefixes
 
@@ -64,19 +64,19 @@ ActivityEventType.DatabaseOpened
 3. Wire the Message path in `ActivityViewModel`, `StringsHelper`, and/or `EnumDisplayHelper` depending on event shape.
 4. Keep Core persistence unchanged: store enum names and field ids, never translated text.
 
-Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (`EnumValue_WarningType_*`, optional `EnumValue_AccountOption_*`, `EnumValue_ImportExportError_*`, `EnumValue_Theme_*`). `EnumDisplayHelper.FormatFieldValue` localizes values stored in activity `FieldValue` (Core persists `Enum.ToString()` names, not translated text). Import/export failure reasons use `EnumValue_ImportExportError_{Member}`; theme preference values use `EnumValue_Theme_*`. Warning filter strings may reuse existing `Label_Notify*` keys via `EnumDisplayHelper` when the wording already matches the settings UI.
+Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (`EnumValue_WarningType_*`, optional `EnumValue_AccountOption_*`, `EnumValue_ImportExportError_*`, `EnumValue_Theme_*`). `EnumDisplayHelper.FormatFieldValue` localizes values stored in activity `FieldValue` (Core persists `Enum.ToString()` names, not translated text). Import/export failure reasons use `EnumValue_ImportExportError_{Member}`; theme preference values use `EnumValue_Theme_*`. Empty user language/theme is logged as `app` (`ISettings.FollowAppCode`; legacy logs may still have `(app)`) and displayed via `EnumValue_FollowApp`. Warning filter strings may reuse existing `Label_Notify*` keys via `EnumDisplayHelper` when the wording already matches the settings UI.
 
 `FieldName_*` keys localize the middle of ItemUpdated-style sentences (`Strings.Get($"FieldName_{activity.FieldName}")`). If Core starts persisting a new field name, add a matching `FieldName_` entry or the UI falls back to the raw key.
 
 ### Adding a language
 
 1. Copy `Strings.resx` → `Strings.xx.resx` and translate values (keep key names). Pay special attention to **both** `EnumValue_ActivityEventType_*` and `Activity_*` for every event.
-2. Append `new("xx", "Native name")` to `LocalizationService.Supported`.
-3. Run `LocalizationTests` — they loop every non-English entry in `Supported` (`SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
+2. Append `new("xx", "Native name")` to `LocalizationService.Shipped`.
+3. Run `LocalizationTests` — they loop every non-English entry in `Shipped` (`SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
 
 ## User settings — import and export
 
-While logged in, **User settings** offers **Import** (`.json` or `.csv`) and **Export → JSON / CSV**. Unsaved edits are saved first after confirmation (`Msg_SaveBeforeContinue`). Success and failure dialogs are generic (`Msg_ImportSuccess` / `Msg_ImportFailed`, etc.); the localized reason appears in the Activities grid (`ImportingDataFailed` / `ExportingDataFailed`). JSON export/import includes settings; CSV is services/accounts only (see [[Import Export]]).
+While logged in, **User settings** offers **Import** (`.json` or `.csv`) and **Export → JSON / CSV**. Unsaved edits are saved first after confirmation (`Msg_SaveBeforeContinue`). Success and failure dialogs are generic (`Msg_ImportSuccess` / `Msg_ImportFailed`, etc.); the localized reason appears in the Activities grid (`ImportingDataFailed` / `ExportingDataFailed`). JSON export/import includes settings; CSV is services/accounts only (import accepts comma- or tab-delimited rows; export is tab-separated — see [[Import Export]]).
 
 ## Dialogs
 

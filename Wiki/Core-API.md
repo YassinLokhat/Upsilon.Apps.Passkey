@@ -90,7 +90,7 @@ account.Options = AccountOption.WarnIfPasswordLeaked | AccountOption.WarnIfDupli
 | `NumberOfOldPasswordToKeep` | count | Password history cap |
 | `NumberOfMonthActivitiesToKeep` | months | Activity retention |
 | `WarningsToNotify` | `WarningType` flags | Which warnings to surface — [[Warnings and Activity]] |
-| `Language` | IETF tag or empty | UI language override. Empty = follow the WPF `config.json` language. |
+| `Language` | IETF tag / `System` or empty | UI language override. Empty = follow the WPF `config.json` language. `System` follows the OS UI language. |
 | `Theme` | `System` / `Light` / `Dark` or empty | UI theme override. Empty = follow the WPF `config.json` theme. |
 
 Any mutation that is not yet `Save()`d is kept in the `autosave` ZIP entry.

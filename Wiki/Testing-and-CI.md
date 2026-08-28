@@ -23,13 +23,32 @@ Linux CI builds Interfaces + Utils + Core. The workflow still runs `dotnet test`
 
 ## GitHub Actions
 
-Windows and Linux build workflows run on push to `master` and on pull requests. CodeQL runs on **every** push and pull request (any branch) plus a weekly schedule:
+Windows and Linux build workflows run on push to `master` and on pull requests. CodeQL runs on **every** push and pull request (any branch) plus a weekly schedule. A **Release** workflow runs when a version tag is pushed:
 
 | Workflow | What it does |
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
 | `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
 | `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on a Release build of production projects (tests excluded); weekly scan as well |
+| `.github/workflows/release.yml` | On `v*.*.*` tags: Release build, tests, publish the WPF client (`FolderProfile`: self-contained win-x64 single-file), zip + SHA-256, GitHub Release |
+
+### Cutting a GitHub Release
+
+1. Merge to `master` and wait for Windows / Linux / CodeQL to pass.
+2. Tag the commit and push it (`v1.1.0`, or `v1.1.0-rc.1` for a prerelease):
+
+```bash
+git checkout master
+git pull
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+The tag is the source of truth for the shipped exe version (`Version` / `InformationalVersion`). A `-` suffix in the tag marks the GitHub Release as a prerelease. Do not reuse a tag: `gh release create` will fail if that release already exists.
+
+The zip does **not** include debug symbols or the sample `raw/*.pku` vault used for local runs.
+
+See [`CONTRIBUTING.md`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/CONTRIBUTING.md#cutting-a-release).
 
 Dependabot is configured for the **.NET SDK** only (`dotnet-sdk` ecosystem). Test NuGet packages (MSTest, FluentAssertions) are not auto-bumped.
 

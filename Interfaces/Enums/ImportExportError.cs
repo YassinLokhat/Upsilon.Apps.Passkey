@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Upsilon.Apps.Passkey.Interfaces.Enums
+﻿namespace Upsilon.Apps.Passkey.Interfaces.Enums
 {
    public enum ImportExportError
    {

@@ -1,0 +1,145 @@
+name: Release
+
+# Publish a GitHub Release with the self-contained WPF client when a version
+# tag is pushed. Uses only GitHub-owned actions plus the runner's `gh` CLI
+# (no third-party release action), in line with the supply-chain policy.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-2025-vs2026
+
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Parse version from tag
+      id: version
+      shell: pwsh
+      run: |
+        $tag = $env:GITHUB_REF_NAME
+        if ($tag -notmatch '^v(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)$') {
+          Write-Error "Tag '$tag' must look like v1.2.3 or v1.2.3-rc.1."
+          exit 1
+        }
+        $version = $Matches[1]
+        if ($version -notmatch '^(\d+\.\d+\.\d+)') {
+          Write-Error "Could not read a numeric version from '$version'."
+          exit 1
+        }
+        $assemblyVersion = "$($Matches[1]).0"
+        $prerelease = if ($version -match '-') { 'true' } else { 'false' }
+        "version=$version" >> $env:GITHUB_OUTPUT
+        "assembly_version=$assemblyVersion" >> $env:GITHUB_OUTPUT
+        "prerelease=$prerelease" >> $env:GITHUB_OUTPUT
+        "asset_stem=Upsilon.Apps.Passkey-$version-win-x64" >> $env:GITHUB_OUTPUT
+
+    - name: Restore dependencies
+      run: dotnet restore Upsilon.Apps.Passkey.Windows.slnx
+
+    - name: Build Release
+      run: dotnet build Upsilon.Apps.Passkey.Windows.slnx --no-restore --configuration Release
+
+    - name: Test
+      run: dotnet test --no-build --verbosity normal Upsilon.Apps.Passkey.Windows.slnx --configuration Release
+
+    - name: Publish WPF client
+      shell: pwsh
+      run: |
+        dotnet publish GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj `
+          --configuration Release `
+          -p:PublishProfile=FolderProfile `
+          -p:Version=${{ steps.version.outputs.version }} `
+          -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }} `
+          -p:FileVersion=${{ steps.version.outputs.assembly_version }} `
+          -p:InformationalVersion=${{ steps.version.outputs.version }}
+
+    - name: Package zip and checksum
+      shell: pwsh
+      run: |
+        $publishDir = "GUI/WPF/bin/Release/net10.0-windows10.0.18362.0/publish/win-x64"
+        if (-not (Test-Path $publishDir)) {
+          Write-Error "Publish output was not found at $publishDir."
+          exit 1
+        }
+
+        # Demo vaults and symbols are for local/dev runs, not the shipped client.
+        Remove-Item -Path (Join-Path $publishDir "raw") -Recurse -Force -ErrorAction SilentlyContinue
+        Get-ChildItem -Path $publishDir -Filter *.pdb -File -ErrorAction SilentlyContinue | Remove-Item -Force
+
+        $exe = Get-ChildItem -Path $publishDir -Filter *.exe -File | Select-Object -First 1
+        if ($null -eq $exe) {
+          Write-Error "No executable was produced in $publishDir."
+          exit 1
+        }
+
+        $staging = Join-Path $env:RUNNER_TEMP "release-staging"
+        New-Item -ItemType Directory -Path $staging | Out-Null
+        Copy-Item -Path (Join-Path $publishDir "*") -Destination $staging -Recurse
+
+        $stem = "${{ steps.version.outputs.asset_stem }}"
+        $zipName = "$stem.zip"
+        $zipPath = Join-Path $env:RUNNER_TEMP $zipName
+        if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+        Compress-Archive -Path (Join-Path $staging "*") -DestinationPath $zipPath -CompressionLevel Optimal
+
+        $hash = (Get-FileHash -Algorithm SHA256 -Path $zipPath).Hash.ToLowerInvariant()
+        $checksumName = "$zipName.sha256"
+        $checksumPath = Join-Path $env:RUNNER_TEMP $checksumName
+        Set-Content -Path $checksumPath -Value "$hash  $zipName" -Encoding ascii
+
+        $notesPath = Join-Path $env:RUNNER_TEMP "release-notes.md"
+        $notes = @(
+          "Self-contained Windows x64 client. The .NET 10 runtime is bundled; Windows 10 (1809 / build 18362) or later is required. No SDK install is needed.",
+          "",
+          "SHA-256 (``$zipName``): ``$hash``"
+        ) -join "`n"
+        Set-Content -Path $notesPath -Value $notes -Encoding utf8
+
+        "ZIP_PATH=$zipPath" >> $env:GITHUB_ENV
+        "CHECKSUM_PATH=$checksumPath" >> $env:GITHUB_ENV
+        "NOTES_PATH=$notesPath" >> $env:GITHUB_ENV
+
+        "## Release package" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        "" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        "- Version: ${{ steps.version.outputs.version }}" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        "- Asset: $zipName" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        "- SHA-256: ``$hash``" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+
+    - name: Create GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ github.ref_name }}
+        VERSION: ${{ steps.version.outputs.version }}
+        PRERELEASE: ${{ steps.version.outputs.prerelease }}
+      shell: pwsh
+      run: |
+        $ghArgs = @(
+          "release", "create", $env:TAG,
+          $env:ZIP_PATH,
+          $env:CHECKSUM_PATH,
+          "--title", "Upsilon.Apps.Passkey $env:VERSION",
+          "--notes-file", $env:NOTES_PATH,
+          "--generate-notes"
+        )
+        if ($env:PRERELEASE -eq "true") {
+          $ghArgs += "--prerelease"
+        }
+        & gh @ghArgs

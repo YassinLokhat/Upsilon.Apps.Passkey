@@ -83,7 +83,7 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       bool HasChanged(string itemId, string fieldName);
 
       /// <summary>
-      /// Import from <c>.json</c> or <c>.csv</c> (TSV). Requires a logged-in user.
+      /// Import from <c>.json</c> or <c>.csv</c> (comma- or tab-delimited). Requires a logged-in user.
       /// </summary>
       bool ImportFromFile(string filePath);
 

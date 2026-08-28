@@ -109,6 +109,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = reopened.User!.Settings.Language.Should().Be("fr");
 
          reopened.User.Settings.Language = string.Empty;
+         IActivity? followApp = reopened.Activities?
+            .FirstOrDefault(a => a.FieldName == nameof(ISettings.Language));
+         _ = followApp.Should().NotBeNull();
+         _ = followApp!.FieldValue.Should().Be(ISettings.FollowAppCode);
          reopened.Save();
          reopened.Close();
 
@@ -139,6 +143,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = reopened.User!.Settings.Theme.Should().Be("Light");
 
          reopened.User.Settings.Theme = string.Empty;
+         IActivity? followApp = reopened.Activities?
+            .FirstOrDefault(a => a.FieldName == nameof(ISettings.Theme));
+         _ = followApp.Should().NotBeNull();
+         _ = followApp!.FieldValue.Should().Be(ISettings.FollowAppCode);
          reopened.Save();
          reopened.Close();
 

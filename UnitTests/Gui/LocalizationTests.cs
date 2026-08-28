@@ -6,6 +6,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Gui
@@ -19,27 +20,32 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
          typeof(Strings).Assembly);
 
       /// <summary>
-      /// Every registered UI language except the neutral English fallback.
-      /// Adding <c>new("xx", …)</c> to <see cref="LocalizationService.Supported"/>
-      /// automatically includes that satellite in key-parity and localization checks.
+      /// Every registered UI language except the System preference and the
+      /// neutral English fallback. Adding <c>new("xx", …)</c> to
+      /// <see cref="LocalizationService.Shipped"/> automatically includes that
+      /// satellite in key-parity and localization checks.
       /// </summary>
       private static IEnumerable<AppLanguage> _satelliteLanguages()
-         => LocalizationService.Supported.Where(l =>
+         => LocalizationService.Shipped.Where(l =>
             !string.Equals(l.Code, LocalizationService.DefaultLanguageCode, StringComparison.OrdinalIgnoreCase));
 
       [TestInitialize]
       public void Initialize()
       {
+         LocalizationService.DetectSystemLanguageCode = static () => LocalizationService.DefaultLanguageCode;
          LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
       }
 
       [TestMethod]
-      public void SupportedLanguages_IncludeDefaultAndAtLeastOneSatellite()
+      public void SupportedLanguages_IncludeSystemDefaultAndAtLeastOneSatellite()
       {
          IReadOnlyList<string> codes = [.. LocalizationService.Supported.Select(l => l.Code)];
 
+         _ = codes.Should().Contain(LocalizationService.SystemCode);
          _ = codes.Should().Contain(LocalizationService.DefaultLanguageCode);
+         _ = codes[0].Should().Be(LocalizationService.SystemCode);
          _ = codes.Should().OnlyHaveUniqueItems();
+         _ = LocalizationService.Shipped.Select(l => l.Code).Should().NotContain(LocalizationService.SystemCode);
          _ = _satelliteLanguages().Should().NotBeEmpty(
             "at least one translated satellite (e.g. fr) must ship with the client");
       }
@@ -220,6 +226,89 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
 
          _ = LocalizationService.ResolveEffectiveLanguageCode(satellite.Code, "not-a-language")
             .Should().Be(satellite.Code);
+
+         _ = LocalizationService.ResolveEffectiveLanguageCode(LocalizationService.SystemCode, null)
+            .Should().Be(LocalizationService.SystemCode);
+
+         _ = LocalizationService.ResolveEffectiveLanguageCode(LocalizationService.DefaultLanguageCode, LocalizationService.SystemCode)
+            .Should().Be(LocalizationService.SystemCode);
+      }
+
+      [TestMethod]
+      public void GetLanguageOrDefault_FallsBackToSystem()
+      {
+         _ = LocalizationService.GetLanguageOrDefault(null).Code.Should().Be(LocalizationService.SystemCode);
+         _ = LocalizationService.GetLanguageOrDefault(string.Empty).Code.Should().Be(LocalizationService.SystemCode);
+         _ = LocalizationService.GetLanguageOrDefault("not-a-language").Code.Should().Be(LocalizationService.SystemCode);
+         _ = LocalizationService.GetLanguageOrDefault("FR").Code.Should().Be("fr");
+      }
+
+      [TestMethod]
+      public void ResolveCultureCode_SystemFollowsOsSeam()
+      {
+         AppLanguage satellite = _satelliteLanguages().First();
+         LocalizationService.DetectSystemLanguageCode = () => satellite.Code;
+         _ = LocalizationService.ResolveCultureCode(LocalizationService.SystemCode).Should().Be(satellite.Code);
+
+         LocalizationService.DetectSystemLanguageCode = static () => "not-a-language";
+         _ = LocalizationService.ResolveCultureCode(LocalizationService.SystemCode)
+            .Should().Be(LocalizationService.DefaultLanguageCode);
+
+         _ = LocalizationService.ResolveCultureCode(satellite.Code).Should().Be(satellite.Code);
+         _ = LocalizationService.ResolveCultureCode(LocalizationService.DefaultLanguageCode)
+            .Should().Be(LocalizationService.DefaultLanguageCode);
+      }
+
+      [TestMethod]
+      public void Apply_SystemPreferenceUsesOsSeam()
+      {
+         AppLanguage satellite = _satelliteLanguages().First();
+         LocalizationService.DetectSystemLanguageCode = () => satellite.Code;
+
+         _ = LocalizationService.Apply(LocalizationService.SystemCode).Should().BeTrue();
+         _ = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Should().Be(satellite.Code);
+
+         _ = LocalizationService.Apply(LocalizationService.SystemCode).Should().BeFalse();
+      }
+
+      [TestMethod]
+      public void NewItemPrefixes_DifferFromEnglish_InEachSatellite()
+      {
+         LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
+         string englishService = Strings.Msg_NewServicePrefix;
+         string englishAccount = Strings.Msg_NewAccountPrefix;
+
+         foreach (AppLanguage language in _satelliteLanguages())
+         {
+            LocalizationService.Apply(language.Code);
+
+            _ = Strings.Msg_NewServicePrefix.Should().NotBe(englishService, because: language.Code);
+            _ = Strings.Msg_NewAccountPrefix.Should().NotBe(englishAccount, because: language.Code);
+            _ = Strings.EnumValue_FollowApp.Should().NotBe(
+               Strings.GetNeutral(nameof(Strings.EnumValue_FollowApp)), because: language.Code);
+         }
+      }
+
+      [TestMethod]
+      public void EnumDisplayHelper_FormatsFollowAppPreference()
+      {
+         _ = EnumDisplayHelper.FormatFieldValue("Language", ISettings.FollowAppCode)
+            .Should().Be(Strings.EnumValue_FollowApp);
+         _ = EnumDisplayHelper.FormatFieldValue("Language", "(app)")
+            .Should().Be(Strings.EnumValue_FollowApp);
+         _ = EnumDisplayHelper.FormatFieldValue("Theme", ISettings.FollowAppCode)
+            .Should().Be(Strings.EnumValue_FollowApp);
+         _ = EnumDisplayHelper.FormatFieldValue("Theme", "(app)")
+            .Should().Be(Strings.EnumValue_FollowApp);
+      }
+
+      [TestMethod]
+      public void EnumDisplayHelper_FormatsLanguagePreference()
+      {
+         _ = EnumDisplayHelper.FormatFieldValue("Language", LocalizationService.SystemCode)
+            .Should().Be(Strings.EnumValue_Theme_System);
+         _ = EnumDisplayHelper.FormatFieldValue("Language", LocalizationService.DefaultLanguageCode)
+            .Should().Be(LocalizationService.DefaultLanguageCode);
       }
 
       [TestMethod]
@@ -293,6 +382,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       [TestCleanup]
       public void Cleanup()
       {
+         LocalizationService.DetectSystemLanguageCode = static () => LocalizationService.DefaultLanguageCode;
          LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
       }
    }

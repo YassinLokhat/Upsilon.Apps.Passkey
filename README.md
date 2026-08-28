@@ -19,7 +19,7 @@ independently; see [SECURITY.md](SECURITY.md)).
 *   **Autosave**: unsaved edits are kept in the `.pku` ZIP and merged on the next login
 *   **Password generation**: CSPRNG over a configurable alphabet
 *   **Leak detection**: opt-in Have I Been Pwned checks, with a free XposedOrNot failover (k-anonymity; see [SECURITY.md](SECURITY.md))
-*   **Import / Export**: plaintext JSON (settings + services) or TSV/CSV (services only)
+*   **Import / Export**: plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited)
 *   **WPF client** (Windows): System / Light / Dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
 
 **Architecture**
@@ -446,7 +446,8 @@ database.Close();
 extension. Only `.json` and `.csv` are supported; any other extension fails.
 
 *   **JSON** carries `Settings` and `Services` (with accounts).
-*   **CSV** is tab-separated (TSV) with JSON-encoded cells. Headers are
+*   **CSV** uses JSON-encoded cells. Import accepts **comma- or tab-delimited**
+    rows; export writes **tab-separated** rows. Headers are
     `ServiceName`, `ServiceUrl`, `ServiceNotes`, `AccountLabel`, `Identifiers`,
     `Password`, `AccountNotes`, `AccountOptions`, `PasswordUpdateReminderDelay`.
     Settings are not included in CSV.
@@ -502,8 +503,8 @@ XposedOrNot if HIBP is unreachable) instead of blocking a thread on the network.
 The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 (`AppServices`) instead of a DI container, so ViewModels stay unit-testable.
 
-*   **Localization**: English + French; app default in `config.json`, per-user override in User settings. Activity and enum labels are localized at display time (`ActivityViewModel`, `EnumDisplayHelper`).
-*   **Import / export UI**: User settings menu — Import (`.json` / `.csv`) and Export → JSON / CSV. Success and failure dialogs are generic; the localized reason appears in the Activities grid.
+*   **Localization**: English + French; app default in `config.json` is `System` (follow OS UI language when a satellite ships), per-user override in User settings. Activity and enum labels are localized at display time (`ActivityViewModel`, `EnumDisplayHelper`).
+*   **Import / export UI**: User settings menu — Import (`.json` / `.csv`, comma- or tab-delimited) and Export → JSON / CSV (tab-separated). Success and failure dialogs are generic; the localized reason appears in the Activities grid.
 *   **Vault files**: new users are stored next to the executable as
     `raw/{GetHash(username)}.pku`. `Ctrl+O` opens an existing `.pku`; a path can
     also be passed as the first command-line argument.
@@ -565,12 +566,21 @@ GitHub Actions on `master` and pull requests:
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
 | `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
 | `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on every push/PR (any branch) and weekly; Release build of production projects (tests excluded) |
+| `.github/workflows/release.yml` | On `v*.*.*` tags: Release build, tests, `dotnet publish` (self-contained win-x64), GitHub Release with zip + SHA-256 |
+
+Pushing a tag such as `v1.1.0` (or `v1.1.0-rc.1` for a prerelease) creates the GitHub Release. See [CONTRIBUTING.md](CONTRIBUTING.md#cutting-a-release).
 
 Dependabot is configured for the **.NET SDK** only (`dotnet-sdk` ecosystem). Test
 NuGet packages (MSTest, FluentAssertions) are not auto-bumped.
 
 **Getting Started**
 -------------------
+
+End users: download the Windows x64 zip from
+[Releases](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/releases)
+(.NET 10 is bundled; Windows 10 1809 / build 18362 or later).
+
+To build from source:
 
 1.  Clone the repository: `git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git`
 2.  Windows (GUI + tests): `dotnet build Upsilon.Apps.Passkey.Windows.slnx` then `dotnet run --project GUI/WPF`
@@ -588,4 +598,4 @@ style rules, coverage, and what a PR should include. Security reports go through
 **License**
 -------
 
-This project is licensed under the GNU General Public License v1.0. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v2.0. See the [LICENSE](LICENSE) file for details.
