@@ -1,11 +1,13 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -65,7 +67,59 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = ThemeService.GetOptionOrDefault(AppInfo.AppSettings.Theme);
 
+      // --- Application-level offline leak filter (leak-filter.json next to exe) ---
+
+      public bool OfflineLeakFilterEnabled
+      {
+         get;
+         set
+         {
+            if (field == value)
+            {
+               return;
+            }
+
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterEnabled)));
+         }
+      }
+
+      public string OfflineLeakFilterStatus
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = "Unknown";
+
+      public bool OfflineLeakFilterBusy
+      {
+         get;
+         set
+         {
+            if (field == value)
+            {
+               return;
+            }
+
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBusy)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterIdle)));
+         }
+      }
+
+      public bool OfflineLeakFilterIdle => !OfflineLeakFilterBusy;
+
+      public string OfflineLeakFilterProgress
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = string.Empty;
+
       public event PropertyChangedEventHandler? PropertyChanged;
+
+      public AppSettingsViewModel()
+      {
+         RefreshOfflineLeakFilterStatus();
+      }
 
       public void OnLanguageChanged()
       {
@@ -105,6 +159,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          SelectedTheme = ThemeService.GetOptionOrDefault(AppInfo.AppSettings.Theme);
 
          _ = Save();
+      }
+
+      public void RefreshOfflineLeakFilterStatus()
+      {
+         LeakFilterConfig config = LeakFilterPaths.LoadConfig();
+         OfflineLeakFilterEnabled = config.Enabled;
+
+         string path = LeakFilterPaths.ResolveFilterFilePath(config);
+
+         if (!File.Exists(path))
+         {
+            OfflineLeakFilterStatus = $"Absent under {LeakFilterPaths.RootDirectory}";
+            return;
+         }
+
+         FileInfo info = new(path);
+         string size = $"{info.Length / (1024d * 1024d * 1024d):0.00} GiB";
+         string updated = info.LastWriteTimeUtc.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + " UTC";
+         OfflineLeakFilterStatus = config.Enabled
+            ? $"Present · {size} · updated {updated} · {path}"
+            : $"Present on disk · {size} · updated {updated} · disabled · {path}";
       }
    }
 }

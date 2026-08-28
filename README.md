@@ -507,8 +507,8 @@ local Bloom filter built from the HIBP SHA-1 corpus:
 *   File: `<exe>/leak-filter/pwned-sha1.pkbf` for the WPF app (~2.4 GiB for the default sizing); Core defaults to `%LocalAppData%\Passkey\` until `LeakFilterPaths.SetRootDirectory` is called
 *   Config: `<exe>/leak-filter/leak-filter.json` (`Enabled` / optional `FilterPath`) — **application-level**, shared by all vault users (not stored in the `.pku`)
 *   Order: HIBP → XposedOrNot → Bloom (if enabled and present) → fail-open
-*   Disable never deletes the file; only **Delete offline database** in Settings (or deleting the `.pkbf` manually) removes it
-*   Build from the WPF Settings panel (**Application — Offline leak database**) or:
+*   Disable never deletes the file; only **Delete offline database** in **App Settings** (or deleting the `.pkbf` manually) removes it
+*   Build / enable / delete from **App Settings** (`Ctrl+,`, section **Offline leak database**) or:
 
 ```bash
 dotnet run --project Tools/LeakFilterBuilder -- build

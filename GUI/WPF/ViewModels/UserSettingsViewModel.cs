@@ -1,12 +1,9 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.IO;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
-using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -211,53 +208,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       }
 
-      // --- Application-level offline leak filter (not saved in the vault) ---
-
-      public bool OfflineLeakFilterEnabled
-      {
-         get;
-         set
-         {
-            if (field == value)
-            {
-               return;
-            }
-
-            field = value;
-            _onPropertyChanged(nameof(OfflineLeakFilterEnabled));
-         }
-      }
-
-      public string OfflineLeakFilterStatus
-      {
-         get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = "Unknown";
-
-      public bool OfflineLeakFilterBusy
-      {
-         get;
-         set
-         {
-            if (field == value)
-            {
-               return;
-            }
-
-            field = value;
-            _onPropertyChanged(nameof(OfflineLeakFilterBusy));
-            _onPropertyChanged(nameof(OfflineLeakFilterIdle));
-         }
-      }
-
-      public bool OfflineLeakFilterIdle => !OfflineLeakFilterBusy;
-
-      public string OfflineLeakFilterProgress
-      {
-         get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = string.Empty;
-
       public event PropertyChangedEventHandler? PropertyChanged;
 
       private void _onPropertyChanged(string propertyName)
@@ -271,8 +221,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             AppServices.Session.Database?.User?.Settings.Language);
          SelectedTheme = _themeFromSettings(
             AppServices.Session.Database?.User?.Settings.Theme);
-
-         RefreshOfflineLeakFilterStatus();
 
          if (AppServices.Session.Database?.User is not { } user)
          {
@@ -302,27 +250,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          _onPropertyChanged(nameof(Themes));
          SelectedLanguage = _languageFromSettings(languageCode);
          SelectedTheme = _themeFromSettings(themeCode);
-      }
-
-      public void RefreshOfflineLeakFilterStatus()
-      {
-         LeakFilterConfig config = LeakFilterPaths.LoadConfig();
-         OfflineLeakFilterEnabled = config.Enabled;
-
-         string path = LeakFilterPaths.ResolveFilterFilePath(config);
-
-         if (!File.Exists(path))
-         {
-            OfflineLeakFilterStatus = $"Absent under {LeakFilterPaths.RootDirectory}";
-            return;
-         }
-
-         FileInfo info = new(path);
-         string size = $"{info.Length / (1024d * 1024d * 1024d):0.00} GiB";
-         string updated = info.LastWriteTimeUtc.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + " UTC";
-         OfflineLeakFilterStatus = config.Enabled
-            ? $"Present · {size} · updated {updated} · {path}"
-            : $"Present on disk · {size} · updated {updated} · disabled · {path}";
       }
 
       private AppLanguage _languageFromSettings(string? code)
