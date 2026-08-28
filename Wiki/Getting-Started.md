@@ -2,9 +2,17 @@
 
 ## Requirements
 
-* **.NET 10 SDK**
-* **Windows** for the WPF client (`net10.0-windows10.0.18362.0`) and for tests (the test project uses a Windows TFM)
+* **Windows 10** (1809 / build 18362) or later for the WPF client
+* **.NET 10 SDK** only if you build from source (release zips are self-contained)
 * **Linux** can build Interfaces + Utils + Core (`Upsilon.Apps.Passkey.Linux.slnx`) — there is no official Linux GUI
+
+## Install a release
+
+Download the latest `Upsilon.Apps.Passkey-*-win-x64.zip` from [GitHub Releases](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/releases). Unzip and run the exe. The .NET 10 runtime is bundled; you do not need to install an SDK.
+
+A `.sha256` sidecar is attached to each release if you want to verify the zip.
+
+Cutting a new release is documented in [[Testing and CI]].
 
 ## Clone and build
 

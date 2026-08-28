@@ -99,6 +99,23 @@ Match the surrounding file. Do not reformat unrelated code.
   assumption, or a user-visible security behaviour.
 - No secrets: vault files, exported JSON/CSV, logs, or credentials.
 
+## Cutting a release
+
+GitHub Releases are produced by `.github/workflows/release.yml` when a version
+tag is pushed. Bump `<Version>` in the assemblies you intend to ship (they are
+versioned independently), merge to `master`, wait for CI, then:
+
+```bash
+git checkout master
+git pull
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+Use a prerelease suffix (`v1.1.0-rc.1`) to mark the GitHub Release as a
+prerelease. The tag stamps the published WPF exe. Do not retag an existing
+version.
+
 ## Commit messages
 
 Write a short subject that states **why** the change exists (fix, add, update),

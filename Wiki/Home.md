@@ -34,7 +34,7 @@ Each assembly is versioned independently. At the time of writing they share **1.
 
 | You want to… | Page |
 | ------------ | ---- |
-| Build and run the Windows app | [[Getting Started]] |
+| Install a Windows release or build from source | [[Getting Started]] |
 | Understand layers and solutions | [[Architecture]] |
 | Embed Core in your own host | [[Core API]] and [[Usage Cookbook]] |
 | Move data in or out | [[Import Export]] |

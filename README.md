@@ -565,12 +565,21 @@ GitHub Actions on `master` and pull requests:
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
 | `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
 | `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on every push/PR (any branch) and weekly; Release build of production projects (tests excluded) |
+| `.github/workflows/release.yml` | On `v*.*.*` tags: Release build, tests, `dotnet publish` (self-contained win-x64), GitHub Release with zip + SHA-256 |
+
+Pushing a tag such as `v1.1.0` (or `v1.1.0-rc.1` for a prerelease) creates the GitHub Release. See [CONTRIBUTING.md](CONTRIBUTING.md#cutting-a-release).
 
 Dependabot is configured for the **.NET SDK** only (`dotnet-sdk` ecosystem). Test
 NuGet packages (MSTest, FluentAssertions) are not auto-bumped.
 
 **Getting Started**
 -------------------
+
+End users: download the Windows x64 zip from
+[Releases](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/releases)
+(.NET 10 is bundled; Windows 10 1809 / build 18362 or later).
+
+To build from source:
 
 1.  Clone the repository: `git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git`
 2.  Windows (GUI + tests): `dotnet build Upsilon.Apps.Passkey.Windows.slnx` then `dotnet run --project GUI/WPF`
@@ -588,4 +597,4 @@ style rules, coverage, and what a PR should include. Security reports go through
 **License**
 -------
 
-This project is licensed under the GNU General Public License v1.0. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v2.0. See the [LICENSE](LICENSE) file for details.
