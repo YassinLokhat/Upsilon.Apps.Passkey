@@ -323,8 +323,9 @@ These are conscious trade-offs, documented for transparency:
   KDF later, pluggably, should the policy ever be relaxed.
 - **Import/Export files**: CSV and JSON files produced by the Export feature (and
   consumed by Import) are **unencrypted plaintext** by design, for
-  interoperability. The `.csv` path is tab-separated (TSV) with JSON-encoded
-  cells and covers services/accounts only; `.json` also carries user settings.
+  interoperability. The `.csv` path uses JSON-encoded cells and covers
+  services/accounts only; import accepts comma- or tab-delimited rows, while
+  export writes tab-separated rows. `.json` also carries user settings.
   Users are responsible for protecting or deleting these files.
 - **Leak check fails open**: if both Have I Been Pwned and XposedOrNot are
   unreachable (timeout, HTTP error, offline host), the check reports "not leaked"

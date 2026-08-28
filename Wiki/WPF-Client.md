@@ -76,7 +76,7 @@ Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (`Enum
 
 ## User settings — import and export
 
-While logged in, **User settings** offers **Import** (`.json` or `.csv`) and **Export → JSON / CSV**. Unsaved edits are saved first after confirmation (`Msg_SaveBeforeContinue`). Success and failure dialogs are generic (`Msg_ImportSuccess` / `Msg_ImportFailed`, etc.); the localized reason appears in the Activities grid (`ImportingDataFailed` / `ExportingDataFailed`). JSON export/import includes settings; CSV is services/accounts only (see [[Import Export]]).
+While logged in, **User settings** offers **Import** (`.json` or `.csv`) and **Export → JSON / CSV**. Unsaved edits are saved first after confirmation (`Msg_SaveBeforeContinue`). Success and failure dialogs are generic (`Msg_ImportSuccess` / `Msg_ImportFailed`, etc.); the localized reason appears in the Activities grid (`ImportingDataFailed` / `ExportingDataFailed`). JSON export/import includes settings; CSV is services/accounts only (import accepts comma- or tab-delimited rows; export is tab-separated — see [[Import Export]]).
 
 ## Dialogs
 

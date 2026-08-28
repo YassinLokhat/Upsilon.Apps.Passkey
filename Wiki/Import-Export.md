@@ -11,7 +11,10 @@ Import requires a logged-in user. Export and import files are **unencrypted plai
 | `.json` | Yes | Yes | Yes (`Passwords` dictionary) |
 | `.csv` | No | Yes | No in the file (current password only); import seeds one dated history entry from that password so password-update reminders and expiry checks work immediately |
 
-The `.csv` path is **tab-separated (TSV)** with **JSON-encoded cells**, so commas, quotes, and notes survive. Identifiers inside a cell are joined with `|`.
+The `.csv` path uses **JSON-encoded cells**, so commas, quotes, and notes survive. Identifiers inside a cell are joined with `|`.
+
+* **Import** accepts **comma-separated** or **tab-separated** rows (delimiters inside quoted or backslash-escaped cells are kept).
+* **Export** always writes **tab-separated (TSV)** rows.
 
 ## JSON shape
 
@@ -57,13 +60,13 @@ Enums use `JsonStringEnumConverter`. Flags (`Options`, `WarningsToNotify`) are c
 
 `AccountOption` values: `None`, `WarnIfPasswordLeaked`, `WarnIfDuplicatedPassword` (flags).
 
-## CSV / TSV shape
+## CSV shape
 
 Required headers, in any column order as long as **all names are present**:
 
 `ServiceName`, `ServiceUrl`, `ServiceNotes`, `AccountLabel`, `Identifiers`, `Password`, `AccountNotes`, `AccountOptions`, `PasswordUpdateReminderDelay`
 
-Example (tabs between columns; each cell is a JSON string):
+Example (tabs between columns — commas work the same on import; each cell is a JSON string):
 
 ```
 ServiceName	ServiceUrl	ServiceNotes	AccountLabel	Identifiers	Password	AccountNotes	AccountOptions	PasswordUpdateReminderDelay
@@ -91,7 +94,7 @@ Both return `false` on failure (missing file, destination already exists on expo
 ## Concrete migration from another password manager
 
 1. Export the other tool to CSV or JSON.
-2. Reshape columns to the header list above. JSON-encode **each** TSV cell (a raw unquoted field will fail parse).
+2. Reshape columns to the header list above. JSON-encode **each** cell (a raw unquoted field will fail parse). Use commas or tabs between cells.
 3. Unlock Passkey. If a service named `GitHub` already exists, rename or delete it first — import is all-or-nothing on that check.
 4. `ImportFromFile("migration.csv")` — on success the vault is already saved.
 5. **Securely delete** the plaintext file (and any copies in Recycle Bin / cloud sync folders).
@@ -107,9 +110,9 @@ Core records failures as `ImportingDataFailed` / `ExportingDataFailed` activitie
 | Headers only / no rows | `NoDataToImport` | no data to import |
 | Service name already in the vault | `ServiceAlreadyExists` | a service already exists |
 | Blank service name | `BlankService` | a service is blank |
-| Missing TSV header | `CSVHeadersDontMatch` | the CSV header does not match |
+| Missing CSV header | `CSVHeadersDontMatch` | the CSV header does not match |
 | Broken JSON | `ImportFileDeserializationFailed` | import file deserialization failed |
-| Broken TSV cells | `IncorrectCSVFormat` | the CSV format is incorrect |
+| Broken CSV cells | `IncorrectCSVFormat` | the CSV format is incorrect |
 | Export destination already exists | `ExportFileAlreadyExists` | export file already exists |
 
 URL handling on import: a service URL is kept only if `Uri.IsWellFormedUriString` accepts it; otherwise `Url` is `null`.

@@ -19,7 +19,7 @@ independently; see [SECURITY.md](SECURITY.md)).
 *   **Autosave**: unsaved edits are kept in the `.pku` ZIP and merged on the next login
 *   **Password generation**: CSPRNG over a configurable alphabet
 *   **Leak detection**: opt-in Have I Been Pwned checks, with a free XposedOrNot failover (k-anonymity; see [SECURITY.md](SECURITY.md))
-*   **Import / Export**: plaintext JSON (settings + services) or TSV/CSV (services only)
+*   **Import / Export**: plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited)
 *   **WPF client** (Windows): System / Light / Dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
 
 **Architecture**
@@ -446,7 +446,8 @@ database.Close();
 extension. Only `.json` and `.csv` are supported; any other extension fails.
 
 *   **JSON** carries `Settings` and `Services` (with accounts).
-*   **CSV** is tab-separated (TSV) with JSON-encoded cells. Headers are
+*   **CSV** uses JSON-encoded cells. Import accepts **comma- or tab-delimited**
+    rows; export writes **tab-separated** rows. Headers are
     `ServiceName`, `ServiceUrl`, `ServiceNotes`, `AccountLabel`, `Identifiers`,
     `Password`, `AccountNotes`, `AccountOptions`, `PasswordUpdateReminderDelay`.
     Settings are not included in CSV.
@@ -503,7 +504,7 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 (`AppServices`) instead of a DI container, so ViewModels stay unit-testable.
 
 *   **Localization**: English + French; app default in `config.json` is `System` (follow OS UI language when a satellite ships), per-user override in User settings. Activity and enum labels are localized at display time (`ActivityViewModel`, `EnumDisplayHelper`).
-*   **Import / export UI**: User settings menu — Import (`.json` / `.csv`) and Export → JSON / CSV. Success and failure dialogs are generic; the localized reason appears in the Activities grid.
+*   **Import / export UI**: User settings menu — Import (`.json` / `.csv`, comma- or tab-delimited) and Export → JSON / CSV (tab-separated). Success and failure dialogs are generic; the localized reason appears in the Activities grid.
 *   **Vault files**: new users are stored next to the executable as
     `raw/{GetHash(username)}.pku`. `Ctrl+O` opens an existing `.pku`; a path can
     also be passed as the first command-line argument.

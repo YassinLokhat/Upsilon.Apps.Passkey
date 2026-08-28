@@ -27,7 +27,7 @@ Each assembly is versioned independently. At the time of writing they share **1.
 | Login | Progressive passkeys **without rollback** (online brute-force friction) |
 | Generation | CSPRNG over a configurable alphabet |
 | Leak checks | Opt-in Have I Been Pwned, with a free XposedOrNot failover (k-anonymity) |
-| Import / export | Plaintext JSON (settings + services) or TSV/CSV (services only) |
+| Import / export | Plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited) |
 | Windows client | System / Light / Dark theme, QR codes, global paste hotkeys, autosave merge on next login |
 
 ## Start here
