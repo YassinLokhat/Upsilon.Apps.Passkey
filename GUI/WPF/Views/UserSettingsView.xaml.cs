@@ -392,7 +392,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          SaveFileDialog dialog = new()
          {
             Title = Strings.Title_ExportCsv,
-            Filter = Strings.Filter_Csv,
+            Filter = Strings.Filter_CsvExport,
             FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
          };
 

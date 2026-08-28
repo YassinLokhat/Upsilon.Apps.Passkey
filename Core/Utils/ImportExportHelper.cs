@@ -11,8 +11,9 @@ using Upsilon.Apps.Passkey.Utils;
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
    /// <summary>
-   /// JSON and tab-separated (TSV) import/export. Files are plaintext by design;
+   /// JSON and CSV import/export. Files are plaintext by design;
    /// CSV cells are JSON-encoded so commas and quotes in notes survive.
+   /// Import accepts comma- or tab-delimited rows; export writes tabs.
    /// </summary>
    internal static class ImportExportHelper
    {
@@ -45,7 +46,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          {
             string[] csvLines = [.. importContent.Split('\n').Select(x => x.Replace("\r", "", StringComparison.Ordinal)).Where(x => !string.IsNullOrWhiteSpace(x))];
 
-            string[] headers = csvLines[0].Split("\t");
+            string[] headers = CSVHelper.SplitTabOrCommaDelimited(csvLines[0]);
 
             Dictionary<Headers, int> headersIndexes = [];
 
@@ -68,8 +69,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             for (int i = 1; i < csvLines.Length; i++)
             {
-               string csvLine = csvLines[i];
-               string[] csvColumns = csvLine.Split('\t');
+               string[] csvColumns = CSVHelper.SplitTabOrCommaDelimited(csvLines[i]);
                string serviceName = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.ServiceName]]);
                string serviceUrl = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.ServiceUrl]]);
                string serviceNotes = _jsonDeserializeAs<string>(csvColumns[headersIndexes[Headers.ServiceNotes]]);

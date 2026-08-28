@@ -145,7 +145,7 @@
     <value>Export as _JSON (Settings and Services)</value>
   </data>
   <data name="Menu_ExportCsv" xml:space="preserve">
-    <value>Export as _CSV (Services only)</value>
+    <value>Export as _CSV (tab-delimited, Services only)</value>
   </data>
   <data name="Menu_ViewActivities" xml:space="preserve">
     <value>View Activities</value>
@@ -405,7 +405,7 @@
     <value>Export settings and services to a JSON file</value>
   </data>
   <data name="Title_ExportCsv" xml:space="preserve">
-    <value>Export services to a CSV file</value>
+    <value>Export services to a tab-delimited CSV file</value>
   </data>
   <data name="Title_ConfirmationRequired" xml:space="preserve">
     <value>Confirmation required</value>
@@ -459,6 +459,9 @@
     <value>json file|*.json</value>
   </data>
   <data name="Filter_Csv" xml:space="preserve">
+    <value>CSV file (comma or tab delimited)|*.csv</value>
+  </data>
+  <data name="Filter_CsvExport" xml:space="preserve">
     <value>Tab delimited CSV file|*.csv</value>
   </data>
   <data name="Button_Cancel" xml:space="preserve">
