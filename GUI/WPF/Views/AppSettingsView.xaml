@@ -12,7 +12,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="360" Width="620">
+        Height="275" Width="620">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -24,16 +24,18 @@
          <MenuItem Header="{loc:Loc Menu_ResetToDefault}"
                       Click="_resetMenuItem_Click"/>
       </Menu>
-      <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+      <ScrollViewer Grid.Row="1"
+                    VerticalScrollBarVisibility="Auto">
       <StackPanel>
-         <Grid Margin="0,4">
+         <Grid>
             <Grid.ColumnDefinitions>
                <ColumnDefinition Width="Auto"/>
                <ColumnDefinition Width="*"/>
                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Label Grid.Column="0" Margin="0" Content="{loc:Loc Label_DefaultDatabaseDirectory}"/>
+            <Label Grid.Column="0"
+                   Content="{loc:Loc Label_DefaultDatabaseDirectory}"/>
             <TextBox Grid.Column="1"
                      IsReadOnly="True"
                      Text="{Binding DefaultDatabaseDirectory}"/>
@@ -41,49 +43,44 @@
                     Content="{loc:Loc Label_Browse}"
                     Click="_browseButton_Click"/>
          </Grid>
-         <Grid Margin="0,4">
+         <Grid>
             <Grid.ColumnDefinitions>
                <ColumnDefinition Width="Auto"/>
                <ColumnDefinition Width="*"/>
+               <ColumnDefinition Width="Auto"/>
+               <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Margin="0" Content="{loc:Loc Label_Language}"/>
+            <Label Grid.Column="0"
+                   Content="{loc:Loc Label_Language}"/>
             <ComboBox Grid.Column="1"
                       ItemsSource="{Binding Languages}"
                       SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
                       DisplayMemberPath="NativeName"/>
-         </Grid>
-         <Grid Margin="0,4">
-            <Grid.ColumnDefinitions>
-               <ColumnDefinition Width="Auto"/>
-               <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Margin="0" Content="{loc:Loc Label_Theme}"/>
-            <ComboBox Grid.Column="1"
+            <Label Grid.Column="2"
+                   Content="{loc:Loc Label_Theme}"/>
+            <ComboBox Grid.Column="3"
                       ItemsSource="{Binding Themes}"
                       SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
                       DisplayMemberPath="DisplayName"/>
          </Grid>
          <GroupBox Header="Offline leak database"
-                   Margin="0,8,0,4"
                    ToolTip="Application-wide setting shared by all vault users. Not stored in the .pku vault. Disable keeps the file; only Delete removes it.">
-            <StackPanel Margin="4">
-               <TextBlock TextWrapping="Wrap" Margin="0,0,0,6"
+            <StackPanel>
+               <TextBlock TextWrapping="Wrap"
                           Text="{Binding OfflineLeakFilterStatus}"/>
                <CheckBox Content="Use offline Bloom filter when HIBP and XposedOrNot are unreachable"
                          IsChecked="{Binding OfflineLeakFilterEnabled}"
                          IsEnabled="{Binding OfflineLeakFilterIdle}"
                          Checked="_offlineLeakFilterEnabled_Changed"
                          Unchecked="_offlineLeakFilterEnabled_Changed"/>
-               <TextBlock TextWrapping="Wrap" Margin="0,4,0,4" Foreground="Gray"
+               <TextBlock TextWrapping="Wrap"
+                          Foreground="Gray"
                           Text="{Binding OfflineLeakFilterProgress}"/>
-               <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+               <StackPanel Orientation="Horizontal">
                   <Button Content="Build / Update"
-                          Margin="0,0,8,0"
-                          Padding="8,2"
                           IsEnabled="{Binding OfflineLeakFilterIdle}"
                           Click="_offlineLeakFilterBuild_Click"/>
                   <Button Content="Delete offline database"
-                          Padding="8,2"
                           IsEnabled="{Binding OfflineLeakFilterIdle}"
                           Click="_offlineLeakFilterDelete_Click"/>
                </StackPanel>
