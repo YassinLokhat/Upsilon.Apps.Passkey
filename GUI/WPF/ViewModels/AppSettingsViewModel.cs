@@ -14,7 +14,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
       public string Title => Strings.Format(nameof(Strings.Title_AppSettings), AppInfo.Title);
 
-      public IReadOnlyList<AppLanguage> Languages { get; } = LocalizationService.Supported;
+      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh the System language label on language change.")]
+      public IReadOnlyList<AppLanguage> Languages => LocalizationService.Supported;
 
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh theme labels on language change.")]
       public IReadOnlyList<AppThemeOption> Themes => ThemeService.Supported;
@@ -68,9 +69,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnLanguageChanged()
       {
+         string languageCode = SelectedLanguage.Code;
          string themeCode = SelectedTheme.Code;
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Languages)));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Themes)));
+         SelectedLanguage = LocalizationService.GetLanguageOrDefault(languageCode);
          SelectedTheme = ThemeService.GetOptionOrDefault(themeCode);
       }
 

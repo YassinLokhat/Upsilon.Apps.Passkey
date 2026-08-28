@@ -11,7 +11,8 @@
         MinWidth="320"
         MaxWidth="560">
     <Grid Margin="16"
-          Background="{DynamicResource BackgroundBrush}">        <Grid.RowDefinitions>
+          Background="{DynamicResource BackgroundBrush}">
+       <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -24,7 +25,7 @@
             <TextBlock x:Name="_iconText"
                        Grid.Column="0"
                        Margin="0,0,12,0"
-                       VerticalAlignment="Top"
+                       VerticalAlignment="Center"
                        FontSize="32"
                        FontWeight="Bold"
                        Visibility="Collapsed"/>
@@ -32,7 +33,8 @@
                        Grid.Column="1"
                        Foreground="{DynamicResource ForegroundBrush}"
                        TextWrapping="Wrap"
-                       VerticalAlignment="Center"/>        </Grid>
+                       VerticalAlignment="Center"/>
+        </Grid>
         <StackPanel x:Name="_buttonsPanel"
                     Grid.Row="1"
                     HorizontalAlignment="Right"

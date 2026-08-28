@@ -10,11 +10,11 @@ UI strings live in `GUI/WPF/Localization/`:
 
 * `Strings.resx` — English (neutral / fallback)
 * `Strings.fr.resx` — French
-* `LocalizationService.Supported` — combo-box registry
+* `LocalizationService.Supported` — combo-box registry (`System` + shipped cultures)
 * `{loc:Loc KeyName}` in XAML (live binding via `TranslationSource`); `Strings.KeyName` / `Strings.Format(...)` in C#
 * `LocalizationService.Apply` refreshes open windows implementing `ILanguageAware` (titles, combos, computed labels) — **no restart required**
 
-Language is an **app** setting (`config.json`, property `Language`) under **App Settings** (`Ctrl+,`). Each vault user can **override** it under **User settings** (`ISettings.Language`). Empty user language = follow the app. On login the client applies the effective language; on logout it reverts to the app language. Open windows update immediately via `ILanguageAware`.
+Language is an **app** setting (`config.json`, property `Language`: `System`, `en`, `fr`, …) under **App Settings** (`Ctrl+,`). Default is `System`. Each vault user can **override** it under **User settings** (`ISettings.Language`). Empty user language = follow the app. `System` follows the OS UI language when a satellite ships, otherwise English. On login the client applies the effective language; on logout it reverts to the app language. Open windows update immediately via `ILanguageAware`.
 
 ## Theme
 
@@ -71,8 +71,8 @@ Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (`Enum
 ### Adding a language
 
 1. Copy `Strings.resx` → `Strings.xx.resx` and translate values (keep key names). Pay special attention to **both** `EnumValue_ActivityEventType_*` and `Activity_*` for every event.
-2. Append `new("xx", "Native name")` to `LocalizationService.Supported`.
-3. Run `LocalizationTests` — they loop every non-English entry in `Supported` (`SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
+2. Append `new("xx", "Native name")` to `LocalizationService.Shipped`.
+3. Run `LocalizationTests` — they loop every non-English entry in `Shipped` (`SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
 
 ## User settings — import and export
 

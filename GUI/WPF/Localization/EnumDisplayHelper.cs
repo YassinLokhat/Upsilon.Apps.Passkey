@@ -22,6 +22,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
                nameof(AccountOption) or "Options" => _formatAccountOption(fieldValue),
                nameof(WarningType) or "WarningsToNotify" => _formatWarningType(fieldValue),
                "Theme" => _formatTheme(fieldValue),
+               "Language" => _formatLanguage(fieldValue),
                nameof(ImportExportError) or "errorLog" => _formatImportExportError(fieldValue),
                _ => fieldValue,
             };
@@ -45,6 +46,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             ThemeService.DarkCode => Strings.EnumValue_Theme_Dark,
             _ => stored,
          };
+
+      private static string _formatLanguage(string stored)
+         => stored is LocalizationService.SystemCode
+            ? Strings.EnumValue_Theme_System
+            : stored;
 
       private static string _formatImportExportError(string stored)
          => stored is nameof(ImportExportError.None) or "0"

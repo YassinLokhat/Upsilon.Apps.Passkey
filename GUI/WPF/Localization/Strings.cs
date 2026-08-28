@@ -6,7 +6,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
    /// <summary>
    /// Strongly-named accessors over <c>Strings.resx</c> / satellite cultures.
    /// Add a language by copying <c>Strings.resx</c> to <c>Strings.xx.resx</c>
-   /// and registering it in <see cref="LocalizationService.Supported"/>.
+   /// and registering it in <see cref="LocalizationService.Shipped"/>.
    /// </summary>
    internal static class Strings
    {

@@ -502,7 +502,7 @@ XposedOrNot if HIBP is unreachable) instead of blocking a thread on the network.
 The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 (`AppServices`) instead of a DI container, so ViewModels stay unit-testable.
 
-*   **Localization**: English + French; app default in `config.json`, per-user override in User settings. Activity and enum labels are localized at display time (`ActivityViewModel`, `EnumDisplayHelper`).
+*   **Localization**: English + French; app default in `config.json` is `System` (follow OS UI language when a satellite ships), per-user override in User settings. Activity and enum labels are localized at display time (`ActivityViewModel`, `EnumDisplayHelper`).
 *   **Import / export UI**: User settings menu — Import (`.json` / `.csv`) and Export → JSON / CSV. Success and failure dialogs are generic; the localized reason appears in the Activities grid.
 *   **Vault files**: new users are stored next to the executable as
     `raw/{GetHash(username)}.pku`. `Ctrl+O` opens an existing `.pku`; a path can

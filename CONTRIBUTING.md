@@ -66,7 +66,8 @@ a Windows-only capability cannot be done with the BCL.
 
 1. Copy `GUI/WPF/Localization/Strings.resx` → `Strings.xx.resx` and translate
    values (do not rename keys).
-2. Register `new("xx", "Native name")` in `LocalizationService.Supported`.
+2. Register `new("xx", "Native name")` in `LocalizationService.Shipped`
+   (keep `System` as the follow-OS preference at the top of `Supported`).
 3. Run `dotnet test … --filter "FullyQualifiedName~LocalizationTests"` (or the full
    GUI filter). Tests verify satellite key parity and localized enum/activity strings.
 4. Prefer `{loc:Loc Key}` in XAML and `Strings.Key` / `Strings.Format` in C#.

@@ -26,8 +26,8 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       WarningType WarningsToNotify { get; set; }
 
       /// <summary>
-      /// UI language override (<c>en</c>, <c>fr</c>, …). Empty means follow the
-      /// application language from <c>config.json</c>.
+      /// UI language override (<c>System</c>, <c>en</c>, <c>fr</c>, …). Empty means
+      /// follow the application language from <c>config.json</c>.
       /// </summary>
       string Language { get; set; }
 
