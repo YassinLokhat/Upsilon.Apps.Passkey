@@ -613,6 +613,9 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="Msg_NewServicePrefix" xml:space="preserve">
     <value>New Service #</value>
   </data>
+  <data name="Msg_NewAccountPrefix" xml:space="preserve">
+    <value>👤New Account #</value>
+  </data>
   <data name="IdentifierType_Username" xml:space="preserve">
     <value>Username</value>
   </data>
@@ -858,6 +861,9 @@ Click Cancel to ignore and keep the save file.</value>
   </data>
   <data name="EnumValue_Theme_Dark" xml:space="preserve">
     <value>Dark</value>
+  </data>
+  <data name="EnumValue_FollowApp" xml:space="preserve">
+    <value>Same as application</value>
   </data>
   <data name="Activity_DateTimeFormat" xml:space="preserve">
     <value>yyyy-MM-dd HH:mm</value>

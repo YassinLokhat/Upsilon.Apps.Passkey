@@ -117,12 +117,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public AccountViewModel AddAccount()
       {
-         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier.StartsWith("👤New Account #", StringComparison.Ordinal)))
-            ?? _accountViewModelsById.Values.FirstOrDefault(x => x.Identifiers.Any(y => y.Identifier.StartsWith("👤New Account #", StringComparison.Ordinal)));
+         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(_isNewAccountPlaceholder)
+            ?? _accountViewModelsById.Values.FirstOrDefault(_isNewAccountPlaceholder);
 
          if (accountViewModel is null)
          {
-            IAccount account = Service.AddAccount(["👤New Account #" + DateTime.Now.Ticks]);
+            IAccount account = Service.AddAccount([Strings.Msg_NewAccountPrefix + DateTime.Now.Ticks]);
             _syncAccountViewModels();
             accountViewModel = _accountViewModelsById[account.ItemId];
 
@@ -136,6 +136,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
          return accountViewModel;
       }
+
+      private static bool _isNewAccountPlaceholder(AccountViewModel account)
+         => account.Identifiers.Any(id =>
+            Strings.IsPlaceholderName(id.Identifier, nameof(Strings.Msg_NewAccountPrefix)));
 
       public int DeleteAccount(AccountViewModel accountViewModel)
       {

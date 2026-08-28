@@ -17,8 +17,34 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Get(string name)
          => _manager.GetString(name, CultureInfo.CurrentUICulture) ?? name;
 
+      public static string GetNeutral(string name)
+         => _manager.GetString(name, CultureInfo.InvariantCulture) ?? name;
+
       public static string Format(string name, params object?[] args)
          => string.Format(CultureInfo.CurrentCulture, Get(name), args);
+
+      /// <summary>
+      /// True when <paramref name="value"/> starts with the current-culture
+      /// prefix or the English fallback, so a language switch still finds an
+      /// unsaved "new service/account" placeholder.
+      /// </summary>
+      public static bool IsPlaceholderName(string value, string prefixKey)
+      {
+         if (string.IsNullOrEmpty(value))
+         {
+            return false;
+         }
+
+         string current = Get(prefixKey);
+         if (value.StartsWith(current, StringComparison.Ordinal))
+         {
+            return true;
+         }
+
+         string neutral = GetNeutral(prefixKey);
+         return !string.Equals(current, neutral, StringComparison.Ordinal)
+            && value.StartsWith(neutral, StringComparison.Ordinal);
+      }
 
       public static string Activity_MergeAndSaveThenRemoveAutoSaveFile => Get(nameof(Activity_MergeAndSaveThenRemoveAutoSaveFile));
       public static string Activity_MergeWithoutSavingAndKeepAutoSaveFile => Get(nameof(Activity_MergeWithoutSavingAndKeepAutoSaveFile));
@@ -168,6 +194,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_ImportSuccess => Get(nameof(Msg_ImportSuccess));
       public static string Msg_InsufficientKdf => Get(nameof(Msg_InsufficientKdf));
       public static string Msg_ItemNotFound => Get(nameof(Msg_ItemNotFound));
+      public static string Msg_NewAccountPrefix => Get(nameof(Msg_NewAccountPrefix));
       public static string Msg_NewServicePrefix => Get(nameof(Msg_NewServicePrefix));
       public static string Msg_NoDatabaseLoaded => Get(nameof(Msg_NoDatabaseLoaded));
       public static string Msg_NoPasswordEmpty => Get(nameof(Msg_NoPasswordEmpty));
@@ -236,6 +263,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string FieldName_Language => Get(nameof(FieldName_Language));
       public static string FieldName_Theme => Get(nameof(FieldName_Theme));
       public static string EnumValue_None => Get(nameof(EnumValue_None));
+      public static string EnumValue_FollowApp => Get(nameof(EnumValue_FollowApp));
       public static string EnumValue_Theme_System => Get(nameof(EnumValue_Theme_System));
       public static string EnumValue_Theme_Light => Get(nameof(EnumValue_Theme_Light));
       public static string EnumValue_Theme_Dark => Get(nameof(EnumValue_Theme_Dark));

@@ -1,5 +1,6 @@
 ﻿using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
 {
@@ -44,13 +45,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             ThemeService.SystemCode => Strings.EnumValue_Theme_System,
             ThemeService.LightCode => Strings.EnumValue_Theme_Light,
             ThemeService.DarkCode => Strings.EnumValue_Theme_Dark,
-            _ => stored,
+            _ => _isFollowApp(stored) ? Strings.EnumValue_FollowApp : stored,
          };
 
       private static string _formatLanguage(string stored)
          => stored is LocalizationService.SystemCode
             ? Strings.EnumValue_Theme_System
-            : stored;
+            : _isFollowApp(stored) ? Strings.EnumValue_FollowApp : stored;
+
+      // Core now persists ISettings.FollowAppCode; older logs used "(app)".
+      private static bool _isFollowApp(string stored)
+         => stored is ISettings.FollowAppCode or "(app)";
 
       private static string _formatImportExportError(string stored)
          => stored is nameof(ImportExportError.None) or "0"

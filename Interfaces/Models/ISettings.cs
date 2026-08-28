@@ -26,6 +26,13 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       WarningType WarningsToNotify { get; set; }
 
       /// <summary>
+      /// Activity-log FieldValue when <see cref="Language"/> or <see cref="Theme"/>
+      /// is cleared. The stored setting remains empty; clients localize this
+      /// sentinel at display time. Legacy logs may still contain <c>(app)</c>.
+      /// </summary>
+      const string FollowAppCode = "app";
+
+      /// <summary>
       /// UI language override (<c>System</c>, <c>en</c>, <c>fr</c>, …). Empty means
       /// follow the application language from <c>config.json</c>.
       /// </summary>

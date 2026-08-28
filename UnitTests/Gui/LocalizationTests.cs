@@ -6,6 +6,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Gui
@@ -268,6 +269,37 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
          _ = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Should().Be(satellite.Code);
 
          _ = LocalizationService.Apply(LocalizationService.SystemCode).Should().BeFalse();
+      }
+
+      [TestMethod]
+      public void NewItemPrefixes_DifferFromEnglish_InEachSatellite()
+      {
+         LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
+         string englishService = Strings.Msg_NewServicePrefix;
+         string englishAccount = Strings.Msg_NewAccountPrefix;
+
+         foreach (AppLanguage language in _satelliteLanguages())
+         {
+            LocalizationService.Apply(language.Code);
+
+            _ = Strings.Msg_NewServicePrefix.Should().NotBe(englishService, because: language.Code);
+            _ = Strings.Msg_NewAccountPrefix.Should().NotBe(englishAccount, because: language.Code);
+            _ = Strings.EnumValue_FollowApp.Should().NotBe(
+               Strings.GetNeutral(nameof(Strings.EnumValue_FollowApp)), because: language.Code);
+         }
+      }
+
+      [TestMethod]
+      public void EnumDisplayHelper_FormatsFollowAppPreference()
+      {
+         _ = EnumDisplayHelper.FormatFieldValue("Language", ISettings.FollowAppCode)
+            .Should().Be(Strings.EnumValue_FollowApp);
+         _ = EnumDisplayHelper.FormatFieldValue("Language", "(app)")
+            .Should().Be(Strings.EnumValue_FollowApp);
+         _ = EnumDisplayHelper.FormatFieldValue("Theme", ISettings.FollowAppCode)
+            .Should().Be(Strings.EnumValue_FollowApp);
+         _ = EnumDisplayHelper.FormatFieldValue("Theme", "(app)")
+            .Should().Be(Strings.EnumValue_FollowApp);
       }
 
       [TestMethod]

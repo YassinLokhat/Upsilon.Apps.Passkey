@@ -113,7 +113,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: false,
             oldValue: Language,
             newValue: value ?? string.Empty,
-            readableValue: string.IsNullOrEmpty(value) ? "(app)" : value);
+            readableValue: string.IsNullOrEmpty(value) ? ISettings.FollowAppCode : value);
       }
 
       string ISettings.Theme
@@ -124,7 +124,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: false,
             oldValue: Theme,
             newValue: value ?? string.Empty,
-            readableValue: string.IsNullOrEmpty(value) ? "(app)" : value);
+            readableValue: string.IsNullOrEmpty(value) ? ISettings.FollowAppCode : value);
       }
 
       #endregion
