@@ -163,21 +163,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void RefreshOfflineLeakFilterStatus()
       {
-         LeakFilterConfig config = LeakFilterPaths.LoadConfig();
-         OfflineLeakFilterEnabled = config.Enabled;
+         OfflineLeakFilterEnabled = AppInfo.AppSettings.LeakFilterConfig.Enabled;
 
-         string path = LeakFilterPaths.ResolveFilterFilePath(config);
+         string path = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
 
          if (!File.Exists(path))
          {
-            OfflineLeakFilterStatus = $"Absent under {LeakFilterPaths.RootDirectory}";
+            OfflineLeakFilterStatus = $"Absent file {path}";
             return;
          }
 
          FileInfo info = new(path);
          string size = $"{info.Length / (1024d * 1024d * 1024d):0.00} GiB";
          string updated = info.LastWriteTimeUtc.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + " UTC";
-         OfflineLeakFilterStatus = config.Enabled
+         OfflineLeakFilterStatus = AppInfo.AppSettings.LeakFilterConfig.Enabled
             ? $"Present · {size} · updated {updated} · {path}"
             : $"Present on disk · {size} · updated {updated} · disabled · {path}";
       }

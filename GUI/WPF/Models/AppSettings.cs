@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text.Json;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
+using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Models
 {
@@ -19,12 +20,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Models
       /// UI theme preference (<c>System</c>, <c>Light</c>, <c>Dark</c>). Machine-wide;
       /// not stored in the vault. Users may override it in their vault settings.
       /// </summary>
-      public string Theme { get; set; } = "System";
+      public string Theme { get; set; } = LocalizationService.SystemCode;
+
+      public LeakFilterConfig LeakFilterConfig { get; set; } = new();
 
       private static readonly JsonSerializerOptions _options = new() { WriteIndented = true, };
       public void Save(string configFile)
       {
          string configDirectory = Path.GetDirectoryName(configFile) ?? "./";
+
          if (!Directory.Exists(configDirectory))
          {
             _ = Directory.CreateDirectory(configDirectory);

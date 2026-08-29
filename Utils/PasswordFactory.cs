@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -57,8 +57,14 @@ namespace Upsilon.Apps.Passkey.Utils
          : this(
             static (request, cancellationToken) => _sharedHttpClient.Send(request, cancellationToken),
             static (request, cancellationToken) => _sharedHttpClient.SendAsync(request, cancellationToken))
+      { }
+
+      public PasswordFactory(LeakFilterConfig config)
+         : this(
+            static (request, cancellationToken) => _sharedHttpClient.Send(request, cancellationToken),
+            static (request, cancellationToken) => _sharedHttpClient.SendAsync(request, cancellationToken))
       {
-         ReloadLocalFilter();
+         ReloadLocalFilter(config);
       }
 
       /// <summary>
@@ -98,12 +104,18 @@ namespace Upsilon.Apps.Passkey.Utils
       /// <summary>
       /// Loads the machine-level filter when enabled and present under LocalAppData.
       /// </summary>
-      public void ReloadLocalFilter()
+      public void ReloadLocalFilter(LeakFilterConfig config)
       {
+         if (config is null)
+         {
+            return;
+         }
+
          ILocalLeakFilter? filter = null;
          try
          {
-            filter = LeakFilterPaths.TryOpenConfiguredFilter();
+            filter = config.TryOpenConfiguredFilter();
+
             if (!ReferenceEquals(_localFilter, filter))
             {
                _localFilter?.Dispose();

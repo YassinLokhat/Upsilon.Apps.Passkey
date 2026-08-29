@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Utils.LeakFilter;
+﻿using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.Tools.LeakFilterBuilder
 {
@@ -19,7 +19,7 @@ namespace Upsilon.Apps.Passkey.Tools.LeakFilterBuilder
             return 1;
          }
 
-         string output = LeakFilterPaths.FilterFilePath;
+         string output = Path.GetFullPath(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "pwned-sha1.pkbf"));
          bool force = false;
          int parallelism = 32;
          ulong capacity = BloomSizing.DefaultCapacity;

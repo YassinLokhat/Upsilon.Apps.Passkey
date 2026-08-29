@@ -54,13 +54,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         LeakFilterConfig config = LeakFilterPaths.LoadConfig();
-         config.Enabled = _viewModel.OfflineLeakFilterEnabled;
-         LeakFilterPaths.SaveConfig(config);
+         AppInfo.AppSettings.LeakFilterConfig.Enabled = _viewModel.OfflineLeakFilterEnabled;
 
          if (AppServices.PasswordFactory is PasswordFactory factory)
          {
-            factory.ReloadLocalFilter();
+            factory.ReloadLocalFilter(AppInfo.AppSettings.LeakFilterConfig);
          }
 
          _viewModel.RefreshOfflineLeakFilterStatus();
@@ -73,7 +71,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         bool force = File.Exists(LeakFilterPaths.ResolveFilterFilePath());
+         bool force = File.Exists(AppInfo.AppSettings.LeakFilterConfig.FilterPath);
          if (force
             && AppServices.Dialogs.Confirm(
                "An offline leak database already exists. Rebuild it from HIBP?\nThis can take several hours and uses a large download.",
@@ -108,20 +106,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   $"{pct:0.00}% · prefixes {p.CompletedPrefixes}/{p.TotalPrefixes} · hashes ≈ {p.InsertedHashes}";
             });
 
-            string filterPath = LeakFilterPaths.ResolveFilterFilePath();
+            string filterPath = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
             HibpBloomBuildResult result = await HibpBloomBuilder.BuildAsync(
                filterPath,
                force: force,
                progress: progress).ConfigureAwait(true);
 
-            LeakFilterConfig config = LeakFilterPaths.LoadConfig();
-            config.Enabled = true;
-            LeakFilterPaths.SaveConfig(config);
+            AppInfo.AppSettings.LeakFilterConfig.Enabled = true;
             _viewModel.OfflineLeakFilterEnabled = true;
 
             if (AppServices.PasswordFactory is PasswordFactory factory)
             {
-               factory.ReloadLocalFilter();
+               factory.ReloadLocalFilter(AppInfo.AppSettings.LeakFilterConfig);
             }
 
             _viewModel.OfflineLeakFilterProgress = result.Skipped
@@ -149,7 +145,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (!File.Exists(LeakFilterPaths.ResolveFilterFilePath()))
+         if (!File.Exists(AppInfo.AppSettings.LeakFilterConfig.FilterPath))
          {
             AppServices.Dialogs.Info("No offline leak database file is present.", "Offline leak database");
             return;
@@ -169,7 +165,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             factory.AttachLocalFilter(null);
          }
 
-         _ = LeakFilterPaths.TryDeleteFilterFile();
+         _ = AppInfo.AppSettings.LeakFilterConfig.TryDeleteFilterFile();
          _viewModel.OfflineLeakFilterProgress = string.Empty;
          _viewModel.RefreshOfflineLeakFilterStatus();
       }
