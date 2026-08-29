@@ -1,7 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-
-namespace Upsilon.Apps.Passkey.Utils.LeakFilter
+﻿namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 {
    /// <summary>
    /// Application-level leak-filter preferences (not stored in the vault).

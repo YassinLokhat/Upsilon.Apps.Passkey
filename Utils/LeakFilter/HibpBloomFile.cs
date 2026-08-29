@@ -1,4 +1,4 @@
-using System.IO.MemoryMappedFiles;
+﻿using System.IO.MemoryMappedFiles;
 using System.Text;
 
 namespace Upsilon.Apps.Passkey.Utils.LeakFilter
@@ -17,10 +17,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 
       private readonly MemoryMappedFile _mmf;
       private readonly MemoryMappedViewAccessor _accessor;
-      private readonly ulong _bitCount;
-      private readonly int _hashFunctions;
       private readonly bool _writable;
-      private ulong _insertedCount;
       private bool _disposed;
 
       private HibpBloomFile(
@@ -39,9 +36,9 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          _accessor = accessor;
          Path = path;
          Capacity = capacity;
-         _bitCount = bitCount;
-         _hashFunctions = hashFunctions;
-         _insertedCount = insertedCount;
+         BitCount = bitCount;
+         HashFunctions = hashFunctions;
+         InsertedCount = insertedCount;
          BuiltUtc = builtUtc;
          SourceTag = sourceTag;
          _writable = writable;
@@ -51,13 +48,13 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 
       public DateTime BuiltUtc { get; private set; }
 
-      public ulong InsertedCount => _insertedCount;
+      public ulong InsertedCount { get; private set; }
 
       internal ulong Capacity { get; }
 
-      internal ulong BitCount => _bitCount;
+      internal ulong BitCount { get; }
 
-      internal int HashFunctions => _hashFunctions;
+      internal int HashFunctions { get; }
 
       internal string SourceTag { get; }
 
@@ -198,9 +195,9 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          _ensureSha1(sha1);
 
          _positions(sha1, out ulong h1, out ulong h2);
-         for (int i = 0; i < _hashFunctions; i++)
+         for (int i = 0; i < HashFunctions; i++)
          {
-            ulong bit = (h1 + ((ulong)i * h2)) % _bitCount;
+            ulong bit = (h1 + ((ulong)i * h2)) % BitCount;
             if (!_getBit(bit))
             {
                return false;
@@ -224,13 +221,13 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          _ensureSha1(sha1);
 
          _positions(sha1, out ulong h1, out ulong h2);
-         for (int i = 0; i < _hashFunctions; i++)
+         for (int i = 0; i < HashFunctions; i++)
          {
-            ulong bit = (h1 + ((ulong)i * h2)) % _bitCount;
+            ulong bit = (h1 + ((ulong)i * h2)) % BitCount;
             _setBit(bit);
          }
 
-         _insertedCount++;
+         InsertedCount++;
       }
 
       /// <summary>
@@ -249,9 +246,9 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          _encodeHeader(
             header,
             Capacity,
-            _bitCount,
-            _hashFunctions,
-            _insertedCount,
+            BitCount,
+            HashFunctions,
+            InsertedCount,
             BuiltUtc,
             SourceTag);
          _accessor.WriteArray(0, header, 0, HeaderSize);
@@ -344,12 +341,9 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          long ticks = BitConverter.ToInt64(buffer[40..]);
          string sourceTag = Encoding.ASCII.GetString(buffer.Slice(48, SourceTagBytes)).TrimEnd('\0');
 
-         if (bitCount == 0 || hashFunctions <= 0)
-         {
-            throw new InvalidDataException("Bloom filter header has invalid sizing.");
-         }
-
-         return new Header(
+         return bitCount == 0 || hashFunctions <= 0
+            ? throw new InvalidDataException("Bloom filter header has invalid sizing.")
+            : new Header(
             capacity,
             bitCount,
             hashFunctions,
