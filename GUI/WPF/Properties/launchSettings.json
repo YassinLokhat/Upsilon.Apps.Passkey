@@ -2,8 +2,8 @@
   "profiles": {
     "Upsilon.Apps.Passkey.GUI.WPF": {
       "commandName": "Project",
-      "commandLineArgs": "\"u75-JVnHlT0oH7p-JSWAY9vIpVxbn9-NM07NZKjX2JgMb27gRXv0lrz-dHmR90FEbxgUIiZ436dFfxrTpvhIsw==.pku\"",
-      "workingDirectory": "bin\\Debug\\net10.0-windows10.0.18362.0\\raw"
+      "commandLineArgs": "./raw/u75-JVnHlT0oH7p-JSWAY9vIpVxbn9-NM07NZKjX2JgMb27gRXv0lrz-dHmR90FEbxgUIiZ436dFfxrTpvhIsw==.pku _",
+      "workingDirectory": "bin\\Debug\\net10.0-windows10.0.18362.0"
     }
   }
 }
