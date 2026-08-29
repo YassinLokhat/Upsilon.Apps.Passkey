@@ -169,7 +169,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          if (!File.Exists(path))
          {
-            OfflineLeakFilterStatus = $"Absent file {path}";
+            OfflineLeakFilterStatus = $"Absent file";
             return;
          }
 
@@ -177,8 +177,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          string size = $"{info.Length / (1024d * 1024d * 1024d):0.00} GiB";
          string updated = info.LastWriteTimeUtc.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + " UTC";
          OfflineLeakFilterStatus = AppInfo.AppSettings.LeakFilterConfig.Enabled
-            ? $"Present · {size} · updated {updated} · {path}"
-            : $"Present on disk · {size} · updated {updated} · disabled · {path}";
+            ? $"Present · {size} · updated {updated}"
+            : $"Present on disk · {size} · updated {updated} · disabled";
       }
    }
 }

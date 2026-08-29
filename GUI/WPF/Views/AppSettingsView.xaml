@@ -12,7 +12,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="275" Width="620">
+        Height="245" Width="700">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -66,24 +66,40 @@
          <GroupBox Header="Offline leak database"
                    ToolTip="Application-wide setting shared by all vault users. Not stored in the .pku vault. Disable keeps the file; only Delete removes it.">
             <StackPanel>
-               <TextBlock TextWrapping="Wrap"
-                          Text="{Binding OfflineLeakFilterStatus}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                   <TextBlock Grid.Column="0"
+                              TextWrapping="Wrap"
+                              Text="{Binding OfflineLeakFilterStatus}"/>
+                   <TextBlock Grid.Column="1"
+                              TextWrapping="Wrap"
+                              Foreground="Gray"
+                              Text="{Binding OfflineLeakFilterProgress}"/>
+                </Grid>
                <CheckBox Content="Use offline Bloom filter when HIBP and XposedOrNot are unreachable"
                          IsChecked="{Binding OfflineLeakFilterEnabled}"
                          IsEnabled="{Binding OfflineLeakFilterIdle}"
                          Checked="_offlineLeakFilterEnabled_Changed"
                          Unchecked="_offlineLeakFilterEnabled_Changed"/>
-               <TextBlock TextWrapping="Wrap"
-                          Foreground="Gray"
-                          Text="{Binding OfflineLeakFilterProgress}"/>
-               <StackPanel Orientation="Horizontal">
-                  <Button Content="Build / Update"
-                          IsEnabled="{Binding OfflineLeakFilterIdle}"
-                          Click="_offlineLeakFilterBuild_Click"/>
-                  <Button Content="Delete offline database"
-                          IsEnabled="{Binding OfflineLeakFilterIdle}"
-                          Click="_offlineLeakFilterDelete_Click"/>
-               </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Button Grid.Column="0"
+                            Content="Build / Update"
+                            IsEnabled="{Binding OfflineLeakFilterIdle}"
+                            Click="_offlineLeakFilterBuild_Click"/>
+                    <Button Grid.Column="1"
+                            Content="Delete offline database"
+                            IsEnabled="{Binding OfflineLeakFilterIdle}"
+                            Click="_offlineLeakFilterDelete_Click"/>
+                </Grid>
             </StackPanel>
          </GroupBox>
       </StackPanel>
