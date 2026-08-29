@@ -282,7 +282,8 @@ namespace Upsilon.Apps.Passkey.Utils
          }
          catch (Exception ex)
             when (ex is OutOfMemoryException
-            or IOException)
+            or IOException
+            or HttpRequestException)
          {
             System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
             return null;
@@ -319,6 +320,14 @@ namespace Upsilon.Apps.Passkey.Utils
          {
             throw;
          }
+         catch (Exception ex)
+            when (ex is HttpRequestException
+            or IOException
+            or OperationCanceledException)
+         {
+            System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
+            return null;
+         }
       }
 
       /// <summary>
@@ -342,7 +351,11 @@ namespace Upsilon.Apps.Passkey.Utils
             using HttpResponseMessage response = _send(request, CancellationToken.None);
             return _interpretXonResponse(prefix, response);
          }
-         catch (OperationCanceledException ex)
+         catch (Exception ex)
+            when (ex is OutOfMemoryException
+            or IOException
+            or OperationCanceledException
+            or HttpRequestException)
          {
             System.Diagnostics.Trace.TraceWarning($"XposedOrNot leak check failed: {ex}");
             return null;
@@ -368,6 +381,14 @@ namespace Upsilon.Apps.Passkey.Utils
          catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
          {
             throw;
+         }
+         catch (Exception ex)
+            when (ex is HttpRequestException
+            or IOException
+            or OperationCanceledException)
+         {
+            System.Diagnostics.Trace.TraceWarning($"XposedOrNot leak check failed ({ex.GetType().Name}); trying local bloom.");
+            return null;
          }
       }
 
