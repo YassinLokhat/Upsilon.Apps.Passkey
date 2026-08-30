@@ -125,9 +125,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                : $"Build complete ({result.InsertedCount} hashes).";
             _viewModel.RefreshOfflineLeakFilterStatus();
          }
-#pragma warning disable CA1031 // UI boundary: surface build failures as a dialog
-         catch (Exception ex)
-#pragma warning restore CA1031
+         catch (ArgumentNullException ex)
          {
             AppServices.Dialogs.Warn($"Offline leak database build failed:\n{ex.Message}", "Build failed");
             _viewModel.OfflineLeakFilterProgress = "Build failed.";

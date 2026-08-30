@@ -269,11 +269,15 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             {
                CommitHeader();
             }
-#pragma warning disable CA1031 // Dispose must not throw when flushing a best-effort header update
-            catch
-#pragma warning restore CA1031
+            catch (Exception ex)
+               when (ex is ObjectDisposedException
+               or ArgumentException
+               or ArgumentNullException
+               or ArgumentOutOfRangeException
+               or NotSupportedException
+               or ObjectDisposedException)
             {
-               // Best effort: the bit array is already on disk.
+               System.Diagnostics.Trace.TraceWarning($"Best effort: the bit array is already on disk: {ex}");
             }
          }
 

@@ -1,4 +1,6 @@
-﻿namespace Upsilon.Apps.Passkey.Utils.LeakFilter
+﻿using System.Security;
+
+namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 {
    /// <summary>
    /// Application-level leak-filter preferences (not stored in the vault).
@@ -38,9 +40,17 @@
          {
             return HibpBloomFile.Open(FilterPath);
          }
-#pragma warning disable CA1031 // A corrupt filter must not block password generation
          catch (Exception ex)
-#pragma warning restore CA1031
+            when (ex is ArgumentException
+            or ArgumentNullException
+            or InvalidDataException
+            or NotSupportedException
+            or IOException
+            or SecurityException
+            or DirectoryNotFoundException
+            or UnauthorizedAccessException
+            or PathTooLongException
+            or ArgumentOutOfRangeException)
          {
             System.Diagnostics.Trace.TraceWarning($"Offline leak filter could not be opened: {ex}");
             return null;
