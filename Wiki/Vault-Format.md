@@ -80,4 +80,8 @@ While a user is logged in, autosave and activity-log ZIP rewrites are coalesced 
 
 `Undefined` is the default before the handler chooses. The GUI should always set an explicit behaviour.
 
+## Related offline format (not part of `.pku`)
+
+Leak checks may use a separate application-level HIBP Bloom filter (`.pkbf` + `.pkbf.ranges` sidecar), typically next to the executable. That file is **not** inside the vault ZIP. See [[Security]] and [[WPF Client]].
+
 Related API: [[Core API]], [[Usage Cookbook]].

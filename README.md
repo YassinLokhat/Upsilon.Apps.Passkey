@@ -29,7 +29,7 @@ Four layers, two solution files:
 
 ```
 Interfaces/     Public contracts (IDatabase, IUser, crypto, clipboard, …)
-Utils/          Default crypto, JSON, password factory, ProtectedSecret. Zero NuGet (BCL only).
+Utils/          Default crypto, JSON, password factory, ProtectedSecret, LeakFilter (.pkbf). Zero NuGet (BCL only).
 Core/           Vault implementation. Zero NuGet packages (BCL only).
 GUI/WPF/        Windows desktop client (MVVM + a small AppServices locator).
 UnitTests/      Core/Utils tests + ViewModel tests (Windows TFM; references the WPF project).
@@ -42,7 +42,8 @@ UnitTests/      Core/Utils tests + ViewModel tests (Windows TFM; references the 
 
 Core talks to the OS for clipboard only through an injected port
 (`IClipboardManager` must be OS-specific). File I/O uses the BCL in Core.
-Opt-in HTTP leak checks live in Utils (`PasswordFactory`). The WPF app supplies
+Opt-in HTTP leak checks and the optional offline HIBP Bloom filter live in Utils
+(`PasswordFactory`, `Utils/LeakFilter/`). The WPF app supplies
 the clipboard implementation and hosts dialogs, session, and navigation behind
 `AppServices` so ViewModels stay testable without a window.
 
@@ -545,15 +546,20 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 
 *   **Localization**: English + French; app default in `config.json` is `System` (follow OS UI language when a satellite ships), per-user override in User settings. Activity and enum labels are localized at display time (`ActivityViewModel`, `EnumDisplayHelper`).
 *   **Import / export UI**: User settings menu — Import (`.json` / `.csv`, comma- or tab-delimited) and Export → JSON / CSV (tab-separated). Success and failure dialogs are generic; the localized reason appears in the Activities grid.
-*   **Vault files**: new users are stored next to the executable as
-    `raw/{GetHash(username)}.pku`. `Ctrl+O` opens an existing `.pku`; a path can
-    also be passed as the first command-line argument.
+*   **Vault files**: new users go under **App Settings → Default database directory**
+    (`DefaultDatabaseDirectory`, default `<exe>/raw`) as `{GetHash(username)}.pku`,
+    or another path chosen in the save dialog. Opening by username alone still
+    resolves `<exe>/raw/{hash}.pku` (it does not read that setting) — prefer
+    `Ctrl+O` or a command-line path when the vault is elsewhere.
 *   **Login**: username, then each passkey in order. Escape cancels and closes
     the half-open session (required: there is no passkey rollback).
-*   **Shortcuts**: `Ctrl+O` open, `Ctrl+N` new user, `Ctrl+P` password generator.
-    While the services window is open, **Ctrl+Shift+L** pastes the selected
-    identifier and **Ctrl+Shift+P** pastes the selected password into the
-    focused field (copy + synthetic Ctrl+V; clipboard still auto-clears).
+*   **Shortcuts**: `Ctrl+O` open, `Ctrl+N` new user, `Ctrl+,` App Settings,
+    `Ctrl+P` password generator. While the services window is open,
+    **Ctrl+Shift+L** pastes the selected identifier and **Ctrl+Shift+P** pastes
+    the selected password into the focused field (copy + synthetic Ctrl+V;
+    clipboard still auto-clears).
+*   **Offline leak database**: App Settings can build / update / enable / delete
+    the local `.pkbf` Bloom filter (see Offline leak database above).
 *   **QR codes**: identifiers and passwords can be shown as a QR matrix generated
     in-process (`Core/Utils/QrCode.cs`, no network). The window closes after
     `ISettings.ShowPasswordDelay` milliseconds when that setting is non-zero.

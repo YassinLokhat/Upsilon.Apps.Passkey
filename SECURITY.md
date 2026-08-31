@@ -284,24 +284,29 @@ login:
   (`passwords.xposedornot.com`) — only the first 10 characters of a Keccak-512
   hash are sent (raw Keccak, not NIST SHA-3). The password itself never leaves
   the device. If **both** remote providers are unreachable and an offline HIBP
-  Bloom filter (`.pkbf`) is enabled (default root `%LocalAppData%\Passkey`, or
-  the GUI’s `<exe>/leak-filter` folder), that filter
-  is consulted last: a **miss** means not leaked (no false negatives); a **hit**
-  is treated as leaked (conservative — ~1 % false positives possible). If no
-  offline filter is attached, the check **fails open** (reports "not leaked") so
-  a network problem never blocks the user. These remote calls are the **only**
-  outbound network traffic; the feature is opt-in per account. Failed remote
-  checks are **not** cached: only successful answers are kept in process (HIBP
-  ranges by 5-character prefix, XON yes/no by 10-character prefix; both bounded,
-  never persisted). Requests time out after a few seconds. The GUI and the
-  warning scan use the asynchronous API so the UI thread is not blocked while
-  waiting on the network. The UI does **not** surface a separate "could not
-  verify" state: a transient failure is expected to succeed on a later attempt,
-  and a lasting failure without a local filter means the machine is offline or
-  both providers are down — cases where nagging the user that a check did not
-  run is not actionable for a local-only tool. The offline filter is
+  Bloom filter (`.pkbf`) is enabled and present, that filter is consulted last:
+  a **miss** means not leaked (no false negatives); a **hit** is treated as
+  leaked (conservative — ~1 % false positives possible). The default file is
+  `<exe>/pwned-sha1.pkbf` (configurable via `LeakFilterConfig.FilterPath` in the
+  WPF host's `config.json`); a sidecar `<filter>.pkbf.ranges` holds per-range
+  ETags for incremental updates. If no offline filter is attached, the check
+  **fails open** (reports "not leaked") so a network problem never blocks the
+  user. These remote calls are the **only** outbound network traffic; the
+  feature is opt-in per account. Failed remote checks are **not** cached: only
+  successful answers are kept in process (HIBP ranges by 5-character prefix,
+  XON yes/no by 10-character prefix; both bounded, never persisted). Requests
+  time out after a few seconds. The GUI and the warning scan use the
+  asynchronous API so the UI thread is not blocked while waiting on the
+  network. The UI does **not** surface a separate "could not verify" state: a
+  transient failure is expected to succeed on a later attempt, and a lasting
+  failure without a local filter means the machine is offline or both providers
+  are down — cases where nagging the user that a check did not run is not
+  actionable for a local-only tool. The offline filter is
   **application-scoped** (shared by all vaults on the machine): enabling or
-  disabling it never deletes the `.pkbf`; only an explicit delete removes it.
+  disabling it never deletes the `.pkbf`; only an explicit delete (App Settings
+  or `LeakFilterConfig.TryDeleteFilterFile`) removes it, along with its
+  sidecar. Application logs still live under `%LocalAppData%\Passkey\logs`
+  — that path is unrelated to the Bloom filter.
 - **Duplicate-password** and **password-expiry** warnings are computed locally.
 
 ## Known Limitations

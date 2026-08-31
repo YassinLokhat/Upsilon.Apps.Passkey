@@ -18,11 +18,11 @@ The extension is `.csv`. **Export** writes **tab-separated** rows with each cell
 
 ## Does leak checking send my password to the internet?
 
-No. Only a hash prefix (k-anonymity): first 5 characters of SHA-1 to Have I Been Pwned, or first 10 characters of Keccak-512 to XposedOrNot if HIBP is unreachable. The password never leaves the device. The feature is opt-in per account (`WarnIfPasswordLeaked`). These are the only outbound network calls in the product.
+No. Only a hash prefix (k-anonymity): first 5 characters of SHA-1 to Have I Been Pwned, or first 10 characters of Keccak-512 to XposedOrNot if HIBP is unreachable. The password never leaves the device. When both remotes fail, an optional local HIBP Bloom filter (`.pkbf`) may answer entirely offline. The feature is opt-in per account (`WarnIfPasswordLeaked`). Remote leak checks are the only outbound network calls in the product.
 
 ## The leak check said nothing. Is my password safe?
 
-If both providers are down (or you are offline), the check **fails open** and reports "not leaked". Failures are not cached, so a later successful check can still raise a warning. There is no separate "unverified" UI state. See [[Security]].
+If both providers are down (or you are offline) **and** no offline Bloom filter is attached, the check **fails open** and reports "not leaked". When a filter *is* attached, a Bloom miss is definitive "not leaked"; a hit is treated as leaked (may include ~1 % false positives). Failures are not cached, so a later successful remote check can still raise a warning. There is no separate "unverified" UI state. Build or enable the filter under **App Settings** (`Ctrl+,`). See [[Security]].
 
 ## Why PBKDF2 instead of Argon2?
 
@@ -34,7 +34,9 @@ Yes. Build `Upsilon.Apps.Passkey.Linux.slnx` (Interfaces + Utils + Core). You mu
 
 ## Where is my vault file in the WPF app?
 
-New users: `raw/{GetHash(username)}.pku` next to the executable. `GetHash` is fast SHA-512, Base64 with `/` replaced by `-`. You can also open any `.pku` with `Ctrl+O` or a command-line path. Logs: `%LocalAppData%\Passkey\logs`.
+New users are created under **App Settings → Default database directory** (default `<exe>/raw`), as `{GetHash(username)}.pku`. You can decline that folder and pick another path in the save dialog. `GetHash` is fast SHA-512, Base64 with `/` replaced by `-`.
+
+Opening by username alone (empty path, type username then Enter) still resolves `<exe>/raw/{GetHash(username)}.pku` — it does not read `DefaultDatabaseDirectory`. Prefer `Ctrl+O` or a command-line `.pku` path when the vault is not under that default `raw` folder. Logs: `%LocalAppData%\Passkey\logs`.
 
 ## What happens if I change my username?
 
