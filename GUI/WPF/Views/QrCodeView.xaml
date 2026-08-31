@@ -9,7 +9,7 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
         Height="500" Width="500">
-    <Grid>
-        <Image Name="_qrCode_I" Stretch="Fill" />
-    </Grid>
+   <Grid>
+      <Image Name="_qrCode_I" Stretch="Fill"/>
+   </Grid>
 </Window>
