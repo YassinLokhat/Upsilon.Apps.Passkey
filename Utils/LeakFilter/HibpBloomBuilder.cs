@@ -340,8 +340,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          //
          // Ownership leaves via return / out, so a real `using` would dispose too
          // early. try/finally + nulling is the form dispose-not-guaranteed and
-         // CA2000 accept; CodeQL may still Note a missed-using here — dismiss
-         // that alert as a false positive, do not mute the query repo-wide.
+         // CA2000 accept; cs/missed-using-statement is excluded in codeql-config.
 #pragma warning disable CA2000
          HibpBloomFile? existing = null;
          try

@@ -34,3 +34,5 @@ _ReSharper*/
 #Nuget packages folder
 packages/
 build
+# Local tooling (e.g. portable gh downloaded for API tasks)
+.tools/
