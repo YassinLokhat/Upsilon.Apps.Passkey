@@ -159,7 +159,6 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             long expectedLength = HeaderSize + ((long)prefixCount * EntryStride);
             if (file.Length < expectedLength || !_headerMatches(file, prefixCount, filter))
             {
-               file.Dispose();
                return null;
             }
 
@@ -176,7 +175,9 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
                }
             }
 
-            return new HibpRangeStateStore(file, entries, prefixCount, ingested);
+            HibpRangeStateStore store = new(file, entries, prefixCount, ingested);
+            file = null;
+            return store;
          }
          catch (Exception ex)
             when (ex is IOException
@@ -185,9 +186,15 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             or ArgumentException
             or System.Security.SecurityException)
          {
-            file?.Dispose();
             System.Diagnostics.Trace.TraceWarning($"HIBP range sidecar could not be opened, every range will be re-fetched: {ex}");
             return null;
+         }
+         finally
+         {
+            // Only still set when ownership was not handed to the returned store,
+            // so a rejected sidecar — or any failure, caught here or not — closes
+            // the handle instead of leaking it.
+            file?.Dispose();
          }
       }
 

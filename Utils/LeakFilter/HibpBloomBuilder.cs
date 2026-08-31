@@ -288,20 +288,18 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          try
          {
             // Resume the previous attempt when its filter and sidecar still agree
-            // on the same committed state; start the corpus over otherwise.
-            HibpBloomFile? resumed = _tryOpenForResume(tempPath, capacity, bitCount, hashFunctions);
-            HibpRangeStateStore? resumedStore = resumed is null
+            // on the same committed state; start the corpus over otherwise. The
+            // resumed handle is published to filter straight away, so the finally
+            // block still closes it if opening the sidecar throws.
+            filter = _tryOpenForResume(tempPath, capacity, bitCount, hashFunctions);
+            store = filter is null
                ? null
-               : HibpRangeStateStore.TryOpen(tempStatePath, TotalPrefixes, resumed);
+               : HibpRangeStateStore.TryOpen(tempStatePath, TotalPrefixes, filter);
 
-            if (resumed is not null && resumedStore is not null)
+            if (filter is null || store is null)
             {
-               filter = resumed;
-               store = resumedStore;
-            }
-            else
-            {
-               resumed?.Dispose();
+               filter?.Dispose();
+               filter = null;
                _deleteQuietly(tempPath);
                _deleteQuietly(tempStatePath);
                filter = HibpBloomFile.Create(tempPath, capacity, falsePositiveRate);
