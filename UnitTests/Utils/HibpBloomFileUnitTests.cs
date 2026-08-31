@@ -250,5 +250,53 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             BloomTestHelper.DeleteQuietly(path);
          }
       }
+
+      [TestMethod]
+      /*
+       * The .pkbf header layout is frozen: filters in the field cost hours to
+       * build, so moving a field would silently make every one of them unreadable
+       * (or worse, misread). Offsets are spelled out as literals here on purpose —
+       * this test is the format specification, so it must not share the constants
+       * it is meant to pin down.
+      */
+      public void Case10_HeaderByteLayout_IsFrozen()
+      {
+         string path = BloomTestHelper.TempPkbfPath();
+         try
+         {
+            const ulong capacity = 1_234;
+            const ulong bitCount = 9_600;
+            const int hashFunctions = 5;
+
+            DateTime builtUtc;
+            using (HibpBloomFile writable = HibpBloomFile.Create(path, capacity, bitCount, hashFunctions))
+            {
+               writable.Add(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword));
+               writable.CommitHeader();
+               builtUtc = writable.BuiltUtc;
+            }
+
+            byte[] header = new byte[80];
+            using (FileStream file = new(path, FileMode.Open, FileAccess.Read))
+            {
+               file.ReadExactly(header);
+            }
+
+            _ = HibpBloomFile.HeaderSize.Should().Be(80);
+            _ = Encoding.ASCII.GetString(header, 0, 4).Should().Be("PKBF");
+            _ = BitConverter.ToUInt32(header, 4).Should().Be(1);
+            _ = BitConverter.ToUInt64(header, 8).Should().Be(capacity);
+            _ = BitConverter.ToUInt64(header, 16).Should().Be(bitCount);
+            _ = BitConverter.ToInt32(header, 24).Should().Be(hashFunctions);
+            _ = header[28..32].Should().OnlyContain(b => b == 0, "bytes 28..31 are reserved");
+            _ = BitConverter.ToUInt64(header, 32).Should().Be(1);
+            _ = BitConverter.ToInt64(header, 40).Should().Be(builtUtc.Ticks);
+            _ = Encoding.ASCII.GetString(header, 48, 32).TrimEnd('\0').Should().Be("hibp-sha1");
+         }
+         finally
+         {
+            BloomTestHelper.DeleteQuietly(path);
+         }
+      }
    }
 }

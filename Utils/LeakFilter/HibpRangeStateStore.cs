@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 
 namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 {
@@ -33,7 +33,8 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       /// </summary>
       internal const int MaxEtagLength = EntryStride - ETAG_OFFSET;
 
-      private const int MAGIC_OFFSET = 0;
+      // Little-endian field offsets inside the HeaderSize-byte header. Bytes 0..3
+      // carry Magic, which a format has to expose first to be identifiable at all.
       private const int VERSION_OFFSET = 4;
       private const int ENTRY_STRIDE_OFFSET = 8;
       private const int PREFIX_COUNT_OFFSET = 12;
@@ -43,6 +44,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       private const int INSERTED_COUNT_OFFSET = 40;
       private const int BUILT_UTC_TICKS_OFFSET = 48;
 
+      // Field offsets inside an EntryStride-byte range record.
       private const int STATE_OFFSET = 0;
       private const int ETAG_LENGTH_OFFSET = 1;
       private const int ETAG_OFFSET = 2;
@@ -314,7 +316,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          HibpBloomStamp stamp = filter.LastStamp;
          Span<byte> buffer = stackalloc byte[HeaderSize];
          buffer.Clear();
-         _ = Encoding.ASCII.GetBytes(Magic.AsSpan(), buffer[MAGIC_OFFSET..]);
+         _ = Encoding.ASCII.GetBytes(Magic.AsSpan(), buffer);
          _ = BitConverter.TryWriteBytes(buffer[VERSION_OFFSET..], FormatVersion);
          _ = BitConverter.TryWriteBytes(buffer[ENTRY_STRIDE_OFFSET..], EntryStride);
          _ = BitConverter.TryWriteBytes(buffer[PREFIX_COUNT_OFFSET..], _prefixCount);
@@ -334,7 +336,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          file.Position = 0;
          file.ReadExactly(buffer);
 
-         if (Encoding.ASCII.GetString(buffer.Slice(MAGIC_OFFSET, Magic.Length)) != Magic
+         if (Encoding.ASCII.GetString(buffer[..Magic.Length]) != Magic
             || BitConverter.ToUInt32(buffer[VERSION_OFFSET..]) != FormatVersion
             || BitConverter.ToInt32(buffer[ENTRY_STRIDE_OFFSET..]) != EntryStride
             || BitConverter.ToInt32(buffer[PREFIX_COUNT_OFFSET..]) != prefixCount)

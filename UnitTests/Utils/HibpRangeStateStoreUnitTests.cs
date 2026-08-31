@@ -1,4 +1,5 @@
 using FluentAssertions;
+using System.Text;
 using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Utils
@@ -371,6 +372,71 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             BloomTestHelper.DeleteQuietly(HibpRangeStateStore.PathFor(path + ".building"));
             BloomTestHelper.DeleteQuietly(path + ".building");
             BloomTestHelper.DeleteQuietly(HibpRangeStateStore.PathFor(path));
+            BloomTestHelper.DeleteQuietly(path);
+         }
+      }
+
+      [TestMethod]
+      /*
+       * The sidecar layout is frozen for the same reason as the .pkbf: a moved
+       * field would make a valid sidecar read as ranges it never recorded. Offsets
+       * are literals here on purpose — this test is the format specification, so it
+       * must not share the constants it is meant to pin down.
+      */
+      public void Case11_SidecarByteLayout_IsFrozen()
+      {
+         string path = BloomTestHelper.TempPkbfPath();
+         string statePath = HibpRangeStateStore.PathFor(path);
+         try
+         {
+            BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
+
+            const int markedPrefix = 5;
+            ulong capacity;
+            ulong bitCount;
+            int hashFunctions;
+            HibpBloomStamp stamp;
+
+            using (HibpBloomFile filter = HibpBloomFile.OpenForUpdate(path))
+            using (HibpRangeStateStore store = HibpRangeStateStore.CreateNew(statePath, PREFIX_COUNT, filter))
+            {
+               store.MarkIngested(markedPrefix, HIBP_ETAG);
+               store.Commit(filter);
+
+               capacity = filter.Capacity;
+               bitCount = filter.BitCount;
+               hashFunctions = filter.HashFunctions;
+               stamp = filter.LastStamp;
+            }
+
+            byte[] raw = File.ReadAllBytes(statePath);
+
+            _ = HibpRangeStateStore.HeaderSize.Should().Be(64);
+            _ = HibpRangeStateStore.EntryStride.Should().Be(32);
+            _ = HibpRangeStateStore.MaxEtagLength.Should().Be(30);
+            _ = raw.Length.Should().Be(64 + (PREFIX_COUNT * 32));
+
+            _ = Encoding.ASCII.GetString(raw, 0, 4).Should().Be("PKRS");
+            _ = BitConverter.ToUInt32(raw, 4).Should().Be(1);
+            _ = BitConverter.ToInt32(raw, 8).Should().Be(32);
+            _ = BitConverter.ToInt32(raw, 12).Should().Be(PREFIX_COUNT);
+            _ = BitConverter.ToUInt64(raw, 16).Should().Be(capacity);
+            _ = BitConverter.ToUInt64(raw, 24).Should().Be(bitCount);
+            _ = BitConverter.ToInt32(raw, 32).Should().Be(hashFunctions);
+            _ = BitConverter.ToUInt64(raw, 40).Should().Be(stamp.InsertedCount);
+            _ = BitConverter.ToInt64(raw, 48).Should().Be(stamp.BuiltUtcTicks);
+
+            int entry = 64 + (markedPrefix * 32);
+            _ = raw[entry].Should().Be(1, "the record is marked ingested");
+            _ = raw[entry + 1].Should().Be((byte)HIBP_ETAG.Length);
+            _ = Encoding.ASCII.GetString(raw, entry + 2, HIBP_ETAG.Length).Should().Be(HIBP_ETAG);
+
+            int untouched = 64 + ((markedPrefix + 1) * 32);
+            _ = raw[untouched..(untouched + 32)].Should().OnlyContain(b => b == 0);
+         }
+         finally
+         {
+            BloomTestHelper.DeleteQuietly(statePath);
             BloomTestHelper.DeleteQuietly(path);
          }
       }

@@ -15,8 +15,10 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       internal const int Sha1ByteLength = 20;
       internal const string DefaultSourceTag = "hibp-sha1";
 
-      // Little-endian field offsets inside the HeaderSize-byte header.
-      private const int MAGIC_OFFSET = 0;
+      // Little-endian field offsets inside the HeaderSize-byte header. Bytes 0..3
+      // carry Magic, which a format has to expose first to be identifiable at all,
+      // and bytes 28..31 are reserved. Frozen: filters already on disk took hours
+      // to build, so a field may only ever be appended behind a FormatVersion bump.
       private const int VERSION_OFFSET = 4;
       private const int CAPACITY_OFFSET = 8;
       private const int BIT_COUNT_OFFSET = 16;
@@ -377,7 +379,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          stream.Position = 0;
          stream.ReadExactly(buffer);
 
-         string magic = Encoding.ASCII.GetString(buffer.Slice(MAGIC_OFFSET, Magic.Length));
+         string magic = Encoding.ASCII.GetString(buffer[..Magic.Length]);
          if (magic != Magic)
          {
             throw new InvalidDataException($"Invalid Bloom filter magic '{magic}'.");
@@ -433,7 +435,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          string sourceTag)
       {
          buffer.Clear();
-         _ = Encoding.ASCII.GetBytes(Magic.AsSpan(), buffer[MAGIC_OFFSET..]);
+         _ = Encoding.ASCII.GetBytes(Magic.AsSpan(), buffer);
          _ = BitConverter.TryWriteBytes(buffer[VERSION_OFFSET..], FormatVersion);
          _ = BitConverter.TryWriteBytes(buffer[CAPACITY_OFFSET..], capacity);
          _ = BitConverter.TryWriteBytes(buffer[BIT_COUNT_OFFSET..], bitCount);
