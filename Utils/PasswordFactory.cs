@@ -112,27 +112,22 @@ namespace Upsilon.Apps.Passkey.Utils
             return;
          }
 
-         ILocalLeakFilter? opened = null;
-         try
-         {
-            opened = config.TryOpenConfiguredFilter();
+         // The newly opened filter goes straight into the field, so no local ever
+         // owns it: the only filter disposed here is the one being replaced, and
+         // that happens after the re-open outcome is known.
+         ILocalLeakFilter? replaced = _localFilter;
+         _localFilter = config.TryOpenConfiguredFilter();
 
-            // A failed re-open (file still mapped by the current instance) must
-            // not tear down a working filter — that would make every later
-            // _tryLocalBloom return null and fail open.
-            if (opened is null && _localFilter is not null && config.Enabled && File.Exists(config.FilterPath))
-            {
-               return;
-            }
-
-            _localFilter?.Dispose();
-            _localFilter = opened;
-            opened = null;
-         }
-         finally
+         // A failed re-open (file still mapped by the current instance) must
+         // not tear down a working filter — that would make every later
+         // _tryLocalBloom return null and fail open.
+         if (_localFilter is null && replaced is not null && config.Enabled && File.Exists(config.FilterPath))
          {
-            opened?.Dispose();
+            _localFilter = replaced;
+            return;
          }
+
+         replaced?.Dispose();
       }
 
       public string Alphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
