@@ -87,7 +87,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = "Unknown";
+      } = Strings.Msg_OfflineLeakStatusUnknown;
 
       public bool OfflineLeakFilterBusy
       {
@@ -129,6 +129,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Themes)));
          SelectedLanguage = LocalizationService.GetLanguageOrDefault(languageCode);
          SelectedTheme = ThemeService.GetOptionOrDefault(themeCode);
+         RefreshOfflineLeakFilterStatus();
       }
 
       /// <summary>
@@ -156,6 +157,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          DefaultDatabaseDirectory = AppInfo.AppSettings.DefaultDatabaseDirectory;
          SelectedLanguage = LocalizationService.GetLanguageOrDefault(AppInfo.AppSettings.Language);
          SelectedTheme = ThemeService.GetOptionOrDefault(AppInfo.AppSettings.Theme);
+         RefreshOfflineLeakFilterStatus();
 
          _ = Save();
       }
@@ -168,16 +170,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          if (!File.Exists(path))
          {
-            OfflineLeakFilterStatus = $"Absent file";
+            OfflineLeakFilterStatus = Strings.Msg_OfflineLeakFileAbsent;
             return;
          }
 
          FileInfo info = new(path);
-         string size = $"{info.Length / (1024d * 1024d * 1024d):0.00} GiB";
+         double sizeGiB = info.Length / (1024d * 1024d * 1024d);
          string updated = info.LastWriteTimeUtc.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + " UTC";
          OfflineLeakFilterStatus = AppInfo.AppSettings.LeakFilterConfig.Enabled
-            ? $"Present · {size} · updated {updated}"
-            : $"Present on disk · {size} · updated {updated} · disabled";
+            ? Strings.Format(nameof(Strings.Msg_OfflineLeakFilePresent), sizeGiB, updated)
+            : Strings.Format(nameof(Strings.Msg_OfflineLeakFilePresentDisabled), sizeGiB, updated);
       }
    }
 }

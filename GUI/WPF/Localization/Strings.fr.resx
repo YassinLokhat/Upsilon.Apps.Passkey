@@ -901,4 +901,83 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="EnumValue_ImportExportError_ExportFileAlreadyExists" xml:space="preserve">
     <value>le fichier d'export existe déjà</value>
   </data>
+  <data name="Label_OfflineLeakDatabase" xml:space="preserve">
+    <value>Base de fuites hors ligne</value>
+  </data>
+  <data name="Tooltip_OfflineLeakDatabase" xml:space="preserve">
+    <value>Paramètre partagé par tous les utilisateurs du coffre. Non stocké dans le coffre .pku. Désactiver conserve le fichier ; seul Supprimer l'enlève.</value>
+  </data>
+  <data name="Label_UseOfflineBloomFilter" xml:space="preserve">
+    <value>Utiliser le filtre de Bloom hors ligne lorsque HIBP et XposedOrNot sont inaccessibles</value>
+  </data>
+  <data name="Label_BuildUpdate" xml:space="preserve">
+    <value>Construire / Mettre à jour</value>
+  </data>
+  <data name="Label_DeleteOfflineDatabase" xml:space="preserve">
+    <value>Supprimer la base hors ligne</value>
+  </data>
+  <data name="Title_RebuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Reconstruire la base de fuites hors ligne</value>
+  </data>
+  <data name="Msg_RebuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Une base de fuites hors ligne existe déjà. La reconstruire depuis HIBP ?
+Cela peut prendre plusieurs heures et nécessite un téléchargement important.</value>
+  </data>
+  <data name="Title_BuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Construire la base de fuites hors ligne</value>
+  </data>
+  <data name="Msg_BuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Télécharger le corpus de mots de passe HIBP et construire un filtre de Bloom local (~2,4 Gio) ?
+Il est partagé par tous les utilisateurs du coffre sur cette machine et peut prendre plusieurs heures.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildStarting" xml:space="preserve">
+    <value>Démarrage…</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildSkipped" xml:space="preserve">
+    <value>Ignoré (fichier déjà présent).</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildProgress" xml:space="preserve">
+    <value>{0:0.00} % · préfixes {1}/{2} · hachages ≈ {3}</value>
+  </data>
+  <data name="Msg_OfflineLeakAlreadyUpToDate" xml:space="preserve">
+    <value>Déjà à jour.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildComplete" xml:space="preserve">
+    <value>Construction terminée ({0} hachages).</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildFailed" xml:space="preserve">
+    <value>Échec de la construction de la base de fuites hors ligne :
+{0}</value>
+  </data>
+  <data name="Title_BuildFailed" xml:space="preserve">
+    <value>Échec de la construction</value>
+  </data>
+  <data name="Msg_BuildFailed" xml:space="preserve">
+    <value>Échec de la construction.</value>
+  </data>
+  <data name="Msg_NoOfflineLeakDatabase" xml:space="preserve">
+    <value>Aucun fichier de base de fuites hors ligne n'est présent.</value>
+  </data>
+  <data name="Title_OfflineLeakDatabase" xml:space="preserve">
+    <value>Base de fuites hors ligne</value>
+  </data>
+  <data name="Msg_DeleteOfflineLeakDatabase" xml:space="preserve">
+    <value>Supprimer définitivement la base de fuites hors ligne partagée de cette machine ?
+Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime pas le fichier.</value>
+  </data>
+  <data name="Title_DeleteOfflineLeakDatabase" xml:space="preserve">
+    <value>Supprimer la base de fuites hors ligne</value>
+  </data>
+  <data name="Msg_OfflineLeakFileAbsent" xml:space="preserve">
+    <value>Fichier absent</value>
+  </data>
+  <data name="Msg_OfflineLeakFilePresent" xml:space="preserve">
+    <value>Présent · {0:0.00} Gio · mis à jour {1}</value>
+  </data>
+  <data name="Msg_OfflineLeakFilePresentDisabled" xml:space="preserve">
+    <value>Présent sur le disque · {0:0.00} Gio · mis à jour {1} · désactivé</value>
+  </data>
+  <data name="Msg_OfflineLeakStatusUnknown" xml:space="preserve">
+    <value>Inconnu</value>
+  </data>
 </root>

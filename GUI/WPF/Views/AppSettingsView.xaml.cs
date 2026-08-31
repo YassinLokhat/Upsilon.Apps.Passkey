@@ -74,22 +74,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          bool force = File.Exists(AppInfo.AppSettings.LeakFilterConfig.FilterPath);
          if (force
             && AppServices.Dialogs.Confirm(
-               "An offline leak database already exists. Rebuild it from HIBP?\nThis can take several hours and uses a large download.",
-               "Rebuild offline leak database") != MessageBoxResult.Yes)
+               Strings.Msg_RebuildOfflineLeakDatabase,
+               Strings.Title_RebuildOfflineLeakDatabase) != MessageBoxResult.Yes)
          {
             return;
          }
 
          if (!force
             && AppServices.Dialogs.Confirm(
-               "Download the HIBP password corpus and build a local Bloom filter (~2.4 GiB)?\nThis is shared by all vault users on this machine and can take several hours.",
-               "Build offline leak database") != MessageBoxResult.Yes)
+               Strings.Msg_BuildOfflineLeakDatabase,
+               Strings.Title_BuildOfflineLeakDatabase) != MessageBoxResult.Yes)
          {
             return;
          }
 
          _viewModel.OfflineLeakFilterBusy = true;
-         _viewModel.OfflineLeakFilterProgress = "Starting…";
+         _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildStarting;
 
          try
          {
@@ -97,13 +97,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             {
                if (p.Skipped)
                {
-                  _viewModel.OfflineLeakFilterProgress = "Skipped (file already present).";
+                  _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildSkipped;
                   return;
                }
 
                double pct = 100.0 * p.CompletedPrefixes / p.TotalPrefixes;
-               _viewModel.OfflineLeakFilterProgress =
-                  $"{pct:0.00}% · prefixes {p.CompletedPrefixes}/{p.TotalPrefixes} · hashes ≈ {p.InsertedHashes}";
+               _viewModel.OfflineLeakFilterProgress = Strings.Format(
+                  nameof(Strings.Msg_OfflineLeakBuildProgress),
+                  pct,
+                  p.CompletedPrefixes,
+                  p.TotalPrefixes,
+                  p.InsertedHashes);
             });
 
             string filterPath = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
@@ -121,14 +125,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             }
 
             _viewModel.OfflineLeakFilterProgress = result.Skipped
-               ? "Already up to date."
-               : $"Build complete ({result.InsertedCount} hashes).";
+               ? Strings.Msg_OfflineLeakAlreadyUpToDate
+               : Strings.Format(nameof(Strings.Msg_OfflineLeakBuildComplete), result.InsertedCount);
             _viewModel.RefreshOfflineLeakFilterStatus();
          }
          catch (ArgumentNullException ex)
          {
-            AppServices.Dialogs.Warn($"Offline leak database build failed:\n{ex.Message}", "Build failed");
-            _viewModel.OfflineLeakFilterProgress = "Build failed.";
+            AppServices.Dialogs.Warn(
+               Strings.Format(nameof(Strings.Msg_OfflineLeakBuildFailed), ex.Message),
+               Strings.Title_BuildFailed);
+            _viewModel.OfflineLeakFilterProgress = Strings.Msg_BuildFailed;
          }
          finally
          {
@@ -145,13 +151,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (!File.Exists(AppInfo.AppSettings.LeakFilterConfig.FilterPath))
          {
-            AppServices.Dialogs.Info("No offline leak database file is present.", "Offline leak database");
+            AppServices.Dialogs.Info(Strings.Msg_NoOfflineLeakDatabase, Strings.Title_OfflineLeakDatabase);
             return;
          }
 
          if (AppServices.Dialogs.Confirm(
-               "Permanently delete the shared offline leak database from this machine?\nThis affects all vault users. Disabling the option alone does not delete the file.",
-               "Delete offline leak database",
+               Strings.Msg_DeleteOfflineLeakDatabase,
+               Strings.Title_DeleteOfflineLeakDatabase,
                MessageBoxButton.YesNo,
                MessageBoxImage.Warning) != MessageBoxResult.Yes)
          {

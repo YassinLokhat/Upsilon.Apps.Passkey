@@ -63,8 +63,8 @@
                          SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
                          DisplayMemberPath="DisplayName"/>
             </Grid>
-            <GroupBox Header="Offline leak database"
-                      ToolTip="Application-wide setting shared by all vault users. Not stored in the .pku vault. Disable keeps the file; only Delete removes it.">
+            <GroupBox Header="{loc:Loc Label_OfflineLeakDatabase}"
+                      ToolTip="{loc:Loc Tooltip_OfflineLeakDatabase}">
                <StackPanel>
                   <Grid>
                      <Grid.ColumnDefinitions>
@@ -80,7 +80,7 @@
                                 Foreground="Gray"
                                 Text="{Binding OfflineLeakFilterProgress}"/>
                   </Grid>
-                  <CheckBox Content="Use offline Bloom filter when HIBP and XposedOrNot are unreachable"
+                  <CheckBox Content="{loc:Loc Label_UseOfflineBloomFilter}"
                             IsChecked="{Binding OfflineLeakFilterEnabled}"
                             IsEnabled="{Binding OfflineLeakFilterIdle}"
                             Checked="_offlineLeakFilterEnabled_Changed"
@@ -92,11 +92,11 @@
                      </Grid.ColumnDefinitions>
 
                      <Button Grid.Column="0"
-                             Content="Build / Update"
+                             Content="{loc:Loc Label_BuildUpdate}"
                              IsEnabled="{Binding OfflineLeakFilterIdle}"
                              Click="_offlineLeakFilterBuild_Click"/>
                      <Button Grid.Column="1"
-                             Content="Delete offline database"
+                             Content="{loc:Loc Label_DeleteOfflineDatabase}"
                              IsEnabled="{Binding OfflineLeakFilterIdle}"
                              Click="_offlineLeakFilterDelete_Click"/>
                   </Grid>

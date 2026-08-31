@@ -901,4 +901,83 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="EnumValue_ImportExportError_ExportFileAlreadyExists" xml:space="preserve">
     <value>export file already exists</value>
   </data>
+  <data name="Label_OfflineLeakDatabase" xml:space="preserve">
+    <value>Offline leak database</value>
+  </data>
+  <data name="Tooltip_OfflineLeakDatabase" xml:space="preserve">
+    <value>Application-wide setting shared by all vault users. Not stored in the .pku vault. Disable keeps the file; only Delete removes it.</value>
+  </data>
+  <data name="Label_UseOfflineBloomFilter" xml:space="preserve">
+    <value>Use offline Bloom filter when HIBP and XposedOrNot are unreachable</value>
+  </data>
+  <data name="Label_BuildUpdate" xml:space="preserve">
+    <value>Build / Update</value>
+  </data>
+  <data name="Label_DeleteOfflineDatabase" xml:space="preserve">
+    <value>Delete offline database</value>
+  </data>
+  <data name="Title_RebuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Rebuild offline leak database</value>
+  </data>
+  <data name="Msg_RebuildOfflineLeakDatabase" xml:space="preserve">
+    <value>An offline leak database already exists. Rebuild it from HIBP?
+This can take several hours and uses a large download.</value>
+  </data>
+  <data name="Title_BuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Build offline leak database</value>
+  </data>
+  <data name="Msg_BuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Download the HIBP password corpus and build a local Bloom filter (~2.4 GiB)?
+This is shared by all vault users on this machine and can take several hours.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildStarting" xml:space="preserve">
+    <value>Starting…</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildSkipped" xml:space="preserve">
+    <value>Skipped (file already present).</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildProgress" xml:space="preserve">
+    <value>{0:0.00}% · prefixes {1}/{2} · hashes ≈ {3}</value>
+  </data>
+  <data name="Msg_OfflineLeakAlreadyUpToDate" xml:space="preserve">
+    <value>Already up to date.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildComplete" xml:space="preserve">
+    <value>Build complete ({0} hashes).</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildFailed" xml:space="preserve">
+    <value>Offline leak database build failed:
+{0}</value>
+  </data>
+  <data name="Title_BuildFailed" xml:space="preserve">
+    <value>Build failed</value>
+  </data>
+  <data name="Msg_BuildFailed" xml:space="preserve">
+    <value>Build failed.</value>
+  </data>
+  <data name="Msg_NoOfflineLeakDatabase" xml:space="preserve">
+    <value>No offline leak database file is present.</value>
+  </data>
+  <data name="Title_OfflineLeakDatabase" xml:space="preserve">
+    <value>Offline leak database</value>
+  </data>
+  <data name="Msg_DeleteOfflineLeakDatabase" xml:space="preserve">
+    <value>Permanently delete the shared offline leak database from this machine?
+This affects all vault users. Disabling the option alone does not delete the file.</value>
+  </data>
+  <data name="Title_DeleteOfflineLeakDatabase" xml:space="preserve">
+    <value>Delete offline leak database</value>
+  </data>
+  <data name="Msg_OfflineLeakFileAbsent" xml:space="preserve">
+    <value>Absent file</value>
+  </data>
+  <data name="Msg_OfflineLeakFilePresent" xml:space="preserve">
+    <value>Present · {0:0.00} GiB · updated {1}</value>
+  </data>
+  <data name="Msg_OfflineLeakFilePresentDisabled" xml:space="preserve">
+    <value>Present on disk · {0:0.00} GiB · updated {1} · disabled</value>
+  </data>
+  <data name="Msg_OfflineLeakStatusUnknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
 </root>
