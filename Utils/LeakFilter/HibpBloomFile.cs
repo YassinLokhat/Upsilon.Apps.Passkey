@@ -15,33 +15,69 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       internal const int Sha1ByteLength = 20;
       internal const string DefaultSourceTag = "hibp-sha1";
 
+      private readonly FileStream _file;
       private readonly MemoryMappedFile _mmf;
       private readonly MemoryMappedViewAccessor _accessor;
       private readonly bool _writable;
       private bool _disposed;
 
-      private HibpBloomFile(
-         MemoryMappedFile mmf,
-         MemoryMappedViewAccessor accessor,
-         string path,
-         ulong capacity,
-         ulong bitCount,
-         int hashFunctions,
-         ulong insertedCount,
-         DateTime builtUtc,
-         string sourceTag,
-         bool writable)
+      /// <summary>
+      /// Maps an existing <c>.pkbf</c>. The <see cref="FileStream"/> is kept
+      /// open for the life of this instance: closing it (a <c>using</c> in
+      /// <see cref="Open"/> / <see cref="Create"/>) invalidates the view and
+      /// every <see cref="MightContain"/> call misses.
+      /// </summary>
+      private HibpBloomFile(string path, bool writable)
       {
-         _mmf = mmf;
-         _accessor = accessor;
-         Path = path;
-         Capacity = capacity;
-         BitCount = bitCount;
-         HashFunctions = hashFunctions;
-         InsertedCount = insertedCount;
-         BuiltUtc = builtUtc;
-         SourceTag = sourceTag;
-         _writable = writable;
+         FileAccess fileAccess = writable ? FileAccess.ReadWrite : FileAccess.Read;
+         MemoryMappedFileAccess mmfAccess = writable
+            ? MemoryMappedFileAccess.ReadWrite
+            : MemoryMappedFileAccess.Read;
+
+         _file = new FileStream(path, FileMode.Open, fileAccess, FileShare.Read);
+         MemoryMappedFile? mmf = null;
+         MemoryMappedViewAccessor? accessor = null;
+         try
+         {
+            if (_file.Length < HeaderSize)
+            {
+               throw new InvalidDataException("Bloom filter file is too small to contain a header.");
+            }
+
+            Header header = _readHeader(_file);
+            long expectedBytes = HeaderSize + _byteLength(header.BitCount);
+            if (_file.Length < expectedBytes)
+            {
+               throw new InvalidDataException("Bloom filter file is truncated.");
+            }
+
+            mmf = MemoryMappedFile.CreateFromFile(
+               _file,
+               mapName: null,
+               capacity: 0,
+               mmfAccess,
+               HandleInheritability.None,
+               leaveOpen: true);
+            accessor = mmf.CreateViewAccessor(0, expectedBytes, mmfAccess);
+
+            _mmf = mmf;
+            _accessor = accessor;
+            Path = path;
+            Capacity = header.Capacity;
+            BitCount = header.BitCount;
+            HashFunctions = header.HashFunctions;
+            InsertedCount = header.InsertedCount;
+            BuiltUtc = header.BuiltUtc;
+            SourceTag = header.SourceTag;
+            _writable = writable;
+         }
+         catch
+         {
+            accessor?.Dispose();
+            mmf?.Dispose();
+            _file.Dispose();
+            throw;
+         }
       }
 
       public string? Path { get; }
@@ -64,48 +100,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       internal static HibpBloomFile Open(string path)
       {
          ArgumentException.ThrowIfNullOrWhiteSpace(path);
-
-         FileStream stream = new(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-         try
-         {
-            if (stream.Length < HeaderSize)
-            {
-               throw new InvalidDataException("Bloom filter file is too small to contain a header.");
-            }
-
-            Header header = _readHeader(stream);
-            long expectedBytes = HeaderSize + _byteLength(header.BitCount);
-            if (stream.Length < expectedBytes)
-            {
-               throw new InvalidDataException("Bloom filter file is truncated.");
-            }
-
-            MemoryMappedFile mmf = MemoryMappedFile.CreateFromFile(
-               stream,
-               mapName: null,
-               capacity: 0,
-               MemoryMappedFileAccess.Read,
-               HandleInheritability.None,
-               leaveOpen: false);
-            stream = null!;
-
-            MemoryMappedViewAccessor accessor = mmf.CreateViewAccessor(0, expectedBytes, MemoryMappedFileAccess.Read);
-            return new HibpBloomFile(
-               mmf,
-               accessor,
-               path,
-               header.Capacity,
-               header.BitCount,
-               header.HashFunctions,
-               header.InsertedCount,
-               header.BuiltUtc,
-               header.SourceTag,
-               writable: false);
-         }
-         finally
-         {
-            stream?.Dispose();
-         }
+         return new HibpBloomFile(path, writable: false);
       }
 
       /// <summary>
@@ -158,35 +153,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
                sourceTag);
          }
 
-         FileStream? stream = new(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
-         try
-         {
-            MemoryMappedFile mmf = MemoryMappedFile.CreateFromFile(
-               stream,
-               mapName: null,
-               capacity: 0,
-               MemoryMappedFileAccess.ReadWrite,
-               HandleInheritability.None,
-               leaveOpen: false);
-            stream = null;
-
-            MemoryMappedViewAccessor accessor = mmf.CreateViewAccessor(0, fileLength, MemoryMappedFileAccess.ReadWrite);
-            return new HibpBloomFile(
-               mmf,
-               accessor,
-               path,
-               capacity,
-               bitCount,
-               hashFunctions,
-               insertedCount: 0,
-               builtUtc,
-               sourceTag,
-               writable: true);
-         }
-         finally
-         {
-            stream?.Dispose();
-         }
+         return new HibpBloomFile(path, writable: true);
       }
 
       public bool MightContain(ReadOnlySpan<byte> sha1)
@@ -236,6 +203,11 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       internal void CommitHeader()
       {
          ObjectDisposedException.ThrowIf(_disposed, this);
+         _commitHeader();
+      }
+
+      private void _commitHeader()
+      {
          if (!_writable)
          {
             throw new InvalidOperationException("Bloom filter was opened read-only.");
@@ -265,9 +237,11 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          _disposed = true;
          if (_writable)
          {
+            // Bypasses the public disposed guard: _disposed is already set, but
+            // the accessor is still live, so the count/timestamp can land.
             try
             {
-               CommitHeader();
+               _commitHeader();
             }
             catch (Exception ex)
                when (ex is ObjectDisposedException
@@ -283,6 +257,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 
          _accessor.Dispose();
          _mmf.Dispose();
+         _file.Dispose();
       }
 
       private bool _getBit(ulong bitIndex)

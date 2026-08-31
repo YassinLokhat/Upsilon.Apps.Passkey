@@ -406,6 +406,152 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          _ = bloom.QueryCount.Should().Be(1);
       }
 
+      [TestMethod]
+      /*
+       * A real .pkbf that contains SHA-1("test") must surface as leaked once
+       * HIBP and XON are unreachable.
+      */
+      public void Case20_PasswordLeaked_RealBloomDetectsTestWhenNetworkDown()
+      {
+         string path = BloomTestHelper.TempPkbfPath();
+         try
+         {
+            BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
+            using HibpBloomFile bloom = HibpBloomFile.Open(path);
+            PasswordFactory factory = _factoryFor(_networkDown(), bloom);
+
+            _ = factory.HasLocalFilter.Should().BeTrue();
+            _ = factory.PasswordLeaked(BloomTestHelper.LeakedPassword).Should().BeTrue();
+            _ = factory.PasswordLeaked("a-unique-password-not-inserted-in-this-filter").Should().BeFalse();
+         }
+         finally
+         {
+            BloomTestHelper.DeleteQuietly(path);
+         }
+      }
+
+      [TestMethod]
+      /*
+       * ReloadLocalFilter must attach the configured .pkbf so later leak checks
+       * can fail over to it. Reloading while a mapping is already open must
+       * not leave a dead filter.
+      */
+      public void Case21_ReloadLocalFilter_AttachesAndCanReload()
+      {
+         string path = BloomTestHelper.TempPkbfPath();
+         PasswordFactory factory = _factoryFor(_networkDown());
+         try
+         {
+            BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
+            LeakFilterConfig config = new() { Enabled = true, FilterPath = path };
+
+            factory.ReloadLocalFilter(config);
+            _ = factory.HasLocalFilter.Should().BeTrue();
+            _ = factory.PasswordLeaked(BloomTestHelper.LeakedPassword).Should().BeTrue();
+            _ = factory.PasswordLeakedAsync(BloomTestHelper.LeakedPassword).GetAwaiter().GetResult().Should().BeTrue();
+
+            factory.ReloadLocalFilter(config);
+            _ = factory.HasLocalFilter.Should().BeTrue();
+            _ = factory.PasswordLeaked(BloomTestHelper.LeakedPassword).Should().BeTrue();
+
+            factory.ReloadLocalFilter(new LeakFilterConfig { Enabled = false, FilterPath = path });
+            _ = factory.HasLocalFilter.Should().BeFalse();
+            _ = factory.PasswordLeaked(BloomTestHelper.LeakedPassword).Should().BeFalse();
+         }
+         finally
+         {
+            factory.AttachLocalFilter(null);
+            BloomTestHelper.DeleteQuietly(path);
+         }
+      }
+
+      [TestMethod]
+      /*
+       * The LeakFilterConfig constructor path used by the WPF host must load
+       * the on-disk filter when it is present and enabled.
+      */
+      public void Case22_Constructor_LoadsConfiguredBloom()
+      {
+         string path = BloomTestHelper.TempPkbfPath();
+         PasswordFactory? factory = null;
+         try
+         {
+            BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
+            factory = new PasswordFactory(new LeakFilterConfig { Enabled = true, FilterPath = path });
+            _ = factory.HasLocalFilter.Should().BeTrue();
+         }
+         finally
+         {
+            factory?.AttachLocalFilter(null);
+            BloomTestHelper.DeleteQuietly(path);
+         }
+      }
+
+      [TestMethod]
+      public async Task Case23_PasswordLeakedAsync_RealBloomDetectsTestWhenNetworkDown()
+      {
+         string path = BloomTestHelper.TempPkbfPath();
+         try
+         {
+            BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
+            using HibpBloomFile bloom = HibpBloomFile.Open(path);
+            PasswordFactory factory = _factoryFor(_networkDown(), bloom);
+
+            _ = (await factory.PasswordLeakedAsync(BloomTestHelper.LeakedPassword).ConfigureAwait(true)).Should().BeTrue();
+         }
+         finally
+         {
+            BloomTestHelper.DeleteQuietly(path);
+         }
+      }
+
+      [TestMethod]
+      /*
+       * A production .pkbf is often trimmed to the logical header+bits size.
+       * ReloadLocalFilter + PasswordLeakedAsync must still hit after that trim.
+      */
+      public async Task Case24_PasswordLeakedAsync_CompactBloomAfterReload()
+      {
+         string path = BloomTestHelper.TempPkbfPath();
+         PasswordFactory factory = _factoryFor(_networkDown());
+         try
+         {
+            const ulong capacity = 100;
+            const ulong bitCount = 8_000;
+            const int hashFunctions = 3;
+            long logicalBytes = HibpBloomFile.HeaderSize + (long)((bitCount + 7UL) / 8UL);
+
+            using (HibpBloomFile writable = HibpBloomFile.Create(path, capacity, bitCount, hashFunctions))
+            {
+               writable.Add(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword));
+               writable.CommitHeader();
+            }
+
+            using (FileStream trim = new(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            {
+               trim.SetLength(logicalBytes);
+            }
+
+            factory.ReloadLocalFilter(new LeakFilterConfig { Enabled = true, FilterPath = path });
+            _ = factory.HasLocalFilter.Should().BeTrue();
+            _ = (await factory.PasswordLeakedAsync(BloomTestHelper.LeakedPassword).ConfigureAwait(true)).Should().BeTrue();
+
+            factory.ReloadLocalFilter(new LeakFilterConfig { Enabled = true, FilterPath = path });
+            _ = factory.HasLocalFilter.Should().BeTrue();
+            _ = (await factory.PasswordLeakedAsync(BloomTestHelper.LeakedPassword).ConfigureAwait(true)).Should().BeTrue();
+         }
+         finally
+         {
+            factory.AttachLocalFilter(null);
+            BloomTestHelper.DeleteQuietly(path);
+         }
+      }
+
+      private static RoutingHandler _networkDown()
+         => new(
+            hibp: _ => (HttpStatusCode.ServiceUnavailable, null),
+            xon: _ => (HttpStatusCode.ServiceUnavailable, null));
+
       private static PasswordFactory _factoryFor(RoutingHandler handler, ILocalLeakFilter? localFilter = null)
          => new(
             (request, cancellationToken) => handler.Invoke(request, cancellationToken),

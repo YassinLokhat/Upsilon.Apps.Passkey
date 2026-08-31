@@ -48,12 +48,11 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             File.Delete(tempPath);
          }
 
-         HibpBloomFile filter = HibpBloomFile.Create(tempPath, capacity, falsePositiveRate);
          object addGate = new();
          long completedPrefixes = 0;
          long inserted = 0;
 
-         try
+         using (HibpBloomFile filter = HibpBloomFile.Create(tempPath, capacity, falsePositiveRate))
          {
             await Parallel.ForEachAsync(
                Enumerable.Range(0, TotalPrefixes),
@@ -76,10 +75,6 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
                }).ConfigureAwait(false);
 
             filter.CommitHeader();
-         }
-         finally
-         {
-            filter.Dispose();
          }
 
          if (File.Exists(outputPath))

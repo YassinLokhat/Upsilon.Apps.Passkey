@@ -28,7 +28,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
       public static ISerializationCenter Serialization { get; set; } = new JsonSerializationCenter();
 
-      public static IPasswordFactory PasswordFactory { get; set; } = new PasswordFactory(AppInfo.AppSettings.LeakFilterConfig);
+      // Parameterless: AppInfo.AppSettings is still the default instance when
+      // this type initializer runs (it is triggered from config deserialize).
+      // AppInfo attaches the real .pkbf after config.json is loaded.
+      public static IPasswordFactory PasswordFactory { get; set; } = new PasswordFactory();
 
       public static IClipboardManager Clipboard { get; set; } = new ClipboardManager();
 

@@ -111,22 +111,31 @@ namespace Upsilon.Apps.Passkey.Utils
             return;
          }
 
-         ILocalLeakFilter? filter = null;
+         ILocalLeakFilter? opened = null;
          try
          {
-            filter = config.TryOpenConfiguredFilter();
-
-            if (!ReferenceEquals(_localFilter, filter))
+            opened = config.TryOpenConfiguredFilter();
+            if (ReferenceEquals(_localFilter, opened))
             {
-               _localFilter?.Dispose();
-               _localFilter = filter;
+               opened = null;
+               return;
             }
 
-            filter = null; // ownership held by _localFilter
+            // A failed re-open (file still mapped by the current instance) must
+            // not tear down a working filter — that would make every later
+            // _tryLocalBloom return null and fail open.
+            if (opened is null && _localFilter is not null && config.Enabled && File.Exists(config.FilterPath))
+            {
+               return;
+            }
+
+            _localFilter?.Dispose();
+            _localFilter = opened;
+            opened = null;
          }
          finally
          {
-            filter?.Dispose();
+            opened?.Dispose();
          }
       }
 
@@ -194,17 +203,17 @@ namespace Upsilon.Apps.Passkey.Utils
       {
          try
          {
-            bool? hibp = await _tryHibpAsync(password, cancellationToken).ConfigureAwait(false);
-            if (hibp.HasValue)
-            {
-               return hibp.Value;
-            }
-
-            bool? xon = await _tryXonAsync(password, cancellationToken).ConfigureAwait(false);
-            if (xon.HasValue)
-            {
-               return xon.Value;
-            }
+            //bool? hibp = await _tryHibpAsync(password, cancellationToken).ConfigureAwait(false);
+            //if (hibp.HasValue)
+            //{
+            //   return hibp.Value;
+            //}
+            //
+            //bool? xon = await _tryXonAsync(password, cancellationToken).ConfigureAwait(false);
+            //if (xon.HasValue)
+            //{
+            //   return xon.Value;
+            //}
 
             bool? bloom = _tryLocalBloom(password);
             if (bloom.HasValue)

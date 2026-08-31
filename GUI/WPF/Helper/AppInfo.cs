@@ -4,6 +4,7 @@ using System.Security;
 using System.Text.Json;
 using Upsilon.Apps.Passkey.GUI.WPF.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -73,6 +74,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          {
             AppSettings.Save(configFile);
             ConfigLoadHadError = true;
+         }
+
+         if (AppServices.PasswordFactory is PasswordFactory factory)
+         {
+            factory.ReloadLocalFilter(AppSettings.LeakFilterConfig);
          }
 
          return configFile;
