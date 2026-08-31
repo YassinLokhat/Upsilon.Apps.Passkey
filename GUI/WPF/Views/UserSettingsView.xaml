@@ -13,7 +13,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="425" Width="1000">
+        Height="430" Width="1000">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>

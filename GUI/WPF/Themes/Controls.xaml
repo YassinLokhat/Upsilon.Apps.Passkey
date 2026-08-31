@@ -29,6 +29,40 @@
         <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="5"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <!-- Classic chrome: full border with header overlapping the top edge.
+                     Transparent Grid overrides the implicit Grid style so the header
+                     can mask that edge with BackgroundBrush. -->
+                <ControlTemplate TargetType="GroupBox">
+                    <Grid Background="Transparent">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="0"
+                                Grid.RowSpan="2"
+                                Margin="0,8,0,0"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"/>
+                        <Border Margin="8,0,0,0"
+                                Padding="4,0,4,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Background="{DynamicResource BackgroundBrush}">
+                            <ContentPresenter ContentSource="Header"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ContentPresenter Grid.Row="1"
+                                          Margin="{TemplateBinding Padding}"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <Style TargetType="ToolTip">
