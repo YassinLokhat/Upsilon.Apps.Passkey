@@ -210,23 +210,20 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          (ulong bitCount, int hashFunctions) = BloomSizing.For(capacity, falsePositiveRate);
          string statePath = GetRangeStatePath(outputPath);
 
-         HibpBloomFile? filter = null;
-         HibpRangeStateStore? store = null;
+         using HibpBloomFile? filter = _openForRefresh(outputPath, capacity, bitCount, hashFunctions);
+         if (filter is null)
+         {
+            return null;
+         }
+
+         // A rejected sidecar costs a full re-download, not a rebuild: folding
+         // the corpus into an existing filter is a union, so the bits already
+         // there stay valid and no false negative can appear.
+         using HibpRangeStateStore store = HibpRangeStateStore.TryOpen(statePath, TotalPrefixes, filter)
+            ?? HibpRangeStateStore.CreateNew(statePath, TotalPrefixes, filter);
          bool committed = false;
          try
          {
-            filter = _openForRefresh(outputPath, capacity, bitCount, hashFunctions);
-            if (filter is null)
-            {
-               return null;
-            }
-
-            // A rejected sidecar costs a full re-download, not a rebuild: folding
-            // the corpus into an existing filter is a union, so the bits already
-            // there stay valid and no false negative can appear.
-            store = HibpRangeStateStore.TryOpen(statePath, TotalPrefixes, filter)
-               ?? HibpRangeStateStore.CreateNew(statePath, TotalPrefixes, filter);
-
             HibpBloomIngestTotals totals = await _ingestAllAsync(
                filter,
                store,
@@ -252,13 +249,10 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          {
             // An interrupted refresh still checkpoints, so the next run picks up
             // where this one stopped instead of revalidating everything again.
-            if (!committed && filter is not null && store is not null)
+            if (!committed)
             {
                _commitQuietly(filter, store);
             }
-
-            store?.Dispose();
-            filter?.Dispose();
          }
       }
 
@@ -280,55 +274,35 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          string tempStatePath = GetRangeStatePath(tempPath);
          (ulong bitCount, int hashFunctions) = BloomSizing.For(capacity, falsePositiveRate);
 
-         HibpBloomFile? filter = null;
-         HibpRangeStateStore? store = null;
          HibpBloomIngestTotals totals;
          ulong insertedCount;
-         bool committed = false;
-         try
+         using (HibpBloomFile filter = _openScratchFilter(tempPath, tempStatePath, capacity, falsePositiveRate, bitCount, hashFunctions, out HibpRangeStateStore store))
+         using (store)
          {
-            // Resume the previous attempt when its filter and sidecar still agree
-            // on the same committed state; start the corpus over otherwise. The
-            // resumed handle is published to filter straight away, so the finally
-            // block still closes it if opening the sidecar throws.
-            filter = _tryOpenForResume(tempPath, capacity, bitCount, hashFunctions);
-            store = filter is null
-               ? null
-               : HibpRangeStateStore.TryOpen(tempStatePath, TotalPrefixes, filter);
-
-            if (filter is null || store is null)
+            bool committed = false;
+            try
             {
-               filter?.Dispose();
-               filter = null;
-               _deleteQuietly(tempPath);
-               _deleteQuietly(tempStatePath);
-               filter = HibpBloomFile.Create(tempPath, capacity, falsePositiveRate);
-               store = HibpRangeStateStore.CreateNew(tempStatePath, TotalPrefixes, filter);
+               totals = await _ingestAllAsync(
+                  filter,
+                  store,
+                  revalidate: false,
+                  maxDegreeOfParallelism,
+                  progress,
+                  cancellationToken).ConfigureAwait(false);
+
+               store.Commit(filter);
+               committed = true;
+               insertedCount = filter.InsertedCount;
             }
-
-            totals = await _ingestAllAsync(
-               filter,
-               store,
-               revalidate: false,
-               maxDegreeOfParallelism,
-               progress,
-               cancellationToken).ConfigureAwait(false);
-
-            store.Commit(filter);
-            committed = true;
-            insertedCount = filter.InsertedCount;
-         }
-         finally
-         {
-            // The partial pair is deliberately left on disk: it is what lets the
-            // next run resume rather than re-download the whole corpus.
-            if (!committed && filter is not null && store is not null)
+            finally
             {
-               _commitQuietly(filter, store);
+               // The partial pair is deliberately left on disk: it is what lets the
+               // next run resume rather than re-download the whole corpus.
+               if (!committed)
+               {
+                  _commitQuietly(filter, store);
+               }
             }
-
-            store?.Dispose();
-            filter?.Dispose();
          }
 
          _deleteQuietly(outputPath);
@@ -348,6 +322,68 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       }
 
       /// <summary>
+      /// Opens a resumable in-progress filter, or creates a fresh pair when resume
+      /// is impossible. The returned filter is owned by the caller; <paramref name="store"/>
+      /// is opened against it and must be disposed by the caller as well.
+      /// </summary>
+      private static HibpBloomFile _openScratchFilter(
+         string tempPath,
+         string tempStatePath,
+         ulong capacity,
+         double falsePositiveRate,
+         ulong bitCount,
+         int hashFunctions,
+         out HibpRangeStateStore store)
+      {
+         // Resume the previous attempt when its filter and sidecar still agree
+         // on the same committed state; start the corpus over otherwise.
+         //
+         // Ownership leaves via return / out, so a real `using` would dispose too
+         // early. try/finally + nulling is the form dispose-not-guaranteed and
+         // CA2000 accept; CodeQL may still Note a missed-using here — dismiss
+         // that alert as a false positive, do not mute the query repo-wide.
+#pragma warning disable CA2000
+         HibpBloomFile? existing = null;
+         try
+         {
+            existing = _tryOpenForResume(tempPath, capacity, bitCount, hashFunctions);
+            if (existing is not null)
+            {
+               HibpRangeStateStore? existingStore = HibpRangeStateStore.TryOpen(tempStatePath, TotalPrefixes, existing);
+               if (existingStore is not null)
+               {
+                  store = existingStore;
+                  HibpBloomFile resumed = existing;
+                  existing = null;
+                  return resumed;
+               }
+            }
+         }
+         finally
+         {
+            existing?.Dispose();
+         }
+
+         _deleteQuietly(tempPath);
+         _deleteQuietly(tempStatePath);
+
+         HibpBloomFile? created = null;
+         try
+         {
+            created = HibpBloomFile.Create(tempPath, capacity, falsePositiveRate);
+            store = HibpRangeStateStore.CreateNew(tempStatePath, TotalPrefixes, created);
+            HibpBloomFile opened = created;
+            created = null;
+            return opened;
+         }
+         finally
+         {
+            created?.Dispose();
+         }
+#pragma warning restore CA2000
+      }
+
+      /// <summary>
       /// Opens the filter a refresh will write into. Returns <see langword="null"/>
       /// only when the file itself is unusable — corrupt, or sized for other
       /// parameters — which is exactly what a full build fixes.
@@ -359,6 +395,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       /// </summary>
       private static HibpBloomFile? _openForRefresh(string path, ulong capacity, ulong bitCount, int hashFunctions)
       {
+#pragma warning disable CA2000 // Returned to caller, or disposed in finally; using would dispose before return.
          HibpBloomFile? filter = null;
          try
          {
@@ -384,6 +421,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          {
             filter?.Dispose();
          }
+#pragma warning restore CA2000
       }
 
       /// <summary>

@@ -120,20 +120,22 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             _ = Directory.CreateDirectory(directory);
          }
 
-         FileStream file = new(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+         FileStream? file = new(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+#pragma warning disable CA2000 // Handed to HibpRangeStateStore on success; disposed in finally otherwise.
          try
          {
             file.SetLength(HeaderSize + ((long)prefixCount * EntryStride));
             HibpRangeStateStore store = new(file, new byte[(long)prefixCount * EntryStride], prefixCount, ingestedPrefixes: 0);
             store._writeHeader(filter);
             file.Flush(flushToDisk: true);
+            file = null;
             return store;
          }
-         catch
+         finally
          {
-            file.Dispose();
-            throw;
+            file?.Dispose();
          }
+#pragma warning restore CA2000
       }
 
       /// <summary>
@@ -152,6 +154,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             return null;
          }
 
+#pragma warning disable CA2000 // Handed to HibpRangeStateStore on success; disposed in finally otherwise.
          FileStream? file = null;
          try
          {
@@ -191,11 +194,9 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          }
          finally
          {
-            // Only still set when ownership was not handed to the returned store,
-            // so a rejected sidecar — or any failure, caught here or not — closes
-            // the handle instead of leaking it.
             file?.Dispose();
          }
+#pragma warning restore CA2000
       }
 
       /// <summary>

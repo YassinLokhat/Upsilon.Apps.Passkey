@@ -129,7 +129,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                _handleAutoSave(eventArg.MergeBehavior);
             }
 
-            _ = Task.Run(_lookAtWarningsAsync);
+            _queueWarningScan();
 
             User.ResetTimer();
          }

@@ -293,10 +293,17 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          void Handler(object? sender, WarningsUpdatedEventArgs e)
          {
+            // Prefer the event payload: database.Warnings can already have been
+            // replaced by a concurrent scan by the time this handler runs.
             IWarning[] reported = [.. e.Warnings];
-            IWarning[] current = database.Warnings is null ? reported : [.. database.Warnings];
+            if (reported.Any(w => w.WarningType == type))
+            {
+               _ = tcs.TrySetResult(reported);
+               return;
+            }
 
-            if (current.Any(w => w.WarningType == type) || reported.Any(w => w.WarningType == type))
+            IWarning[] current = database.Warnings is null ? [] : [.. database.Warnings];
+            if (current.Any(w => w.WarningType == type))
             {
                _ = tcs.TrySetResult(current);
             }

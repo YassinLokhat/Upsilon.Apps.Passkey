@@ -8,7 +8,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
 {
    public sealed partial class Database
    {
-      private async Task _lookAtWarningsAsync()
+      // Open and Save each queue a scan; a slow leak check from an earlier queue
+      // must not overwrite results from a newer one once it finally finishes.
+      private int _warningScanGeneration;
+      private readonly object _warningScanGate = new();
+
+      private void _queueWarningScan()
+      {
+         int generation = Interlocked.Increment(ref _warningScanGeneration);
+         _ = Task.Run(() => _lookAtWarningsAsync(generation));
+      }
+
+      private async Task _lookAtWarningsAsync(int generation)
       {
          if (User is null)
          {
@@ -19,18 +30,40 @@ namespace Upsilon.Apps.Passkey.Core.Models
          {
             Warning[] activityWarnings = _lookAtActivityWarnings();
             Warning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
-            Warning[] passwordLeakedWarnings = await _lookAtPasswordLeakedWarningsAsync().ConfigureAwait(false);
+            (Warning[] passwordLeakedWarnings, Account[] leakedAccounts) =
+               await _lookAtPasswordLeakedWarningsAsync().ConfigureAwait(false);
             Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
 
-            Warnings = [..activityWarnings,
-               ..passwordUpdateReminderWarnings,
-               ..passwordLeakedWarnings,
-               ..duplicatedPasswordsWarnings];
+            Warning[] notified;
+            lock (_warningScanGate)
+            {
+               if (generation != _warningScanGeneration)
+               {
+                  return;
+               }
 
-            // The leak check awaits a remote service, so the session may have
-            // been closed in the meantime: notify against the user observed now,
-            // not the one observed when the scan started.
-            WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs([.. Warnings.Where(x => User.Settings.WarningsToNotify.HasFlag(x.WarningType))]));
+               foreach (Account account in User.Services.SelectMany(static x => x.Accounts))
+               {
+                  account.PasswordLeaked = false;
+               }
+
+               foreach (Account account in leakedAccounts)
+               {
+                  account.PasswordLeaked = true;
+               }
+
+               Warnings = [..activityWarnings,
+                  ..passwordUpdateReminderWarnings,
+                  ..passwordLeakedWarnings,
+                  ..duplicatedPasswordsWarnings];
+
+               // The leak check awaits a remote service, so the session may have
+               // been closed in the meantime: notify against the user observed now,
+               // not the one observed when the scan started.
+               notified = [.. Warnings.Where(x => User.Settings.WarningsToNotify.HasFlag(x.WarningType))];
+            }
+
+            WarningsUpdated?.Invoke(this, new WarningsUpdatedEventArgs(notified));
          }
          catch (NullValueException ex)
          {
@@ -74,11 +107,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
       // a courtesy service.
       private const int MAX_CONCURRENT_LEAK_CHECKS = 8;
 
-      private async Task<Warning[]> _lookAtPasswordLeakedWarningsAsync()
+      private async Task<(Warning[] Warnings, Account[] LeakedAccounts)> _lookAtPasswordLeakedWarningsAsync()
       {
          if (User is null)
          {
-            return [];
+            return ([], []);
          }
 
          string[] passwordsToCheck = [.. User.Services
@@ -107,12 +140,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
             .Where(x => x.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
                && leakedPasswords.Contains(x.Password))];
 
-         foreach (Account account in accounts)
-         {
-            account.PasswordLeaked = true;
-         }
-
-         return accounts.Length != 0 ? [new Warning(WarningType.PasswordLeakedWarning, accounts)] : [];
+         Warning[] warnings = accounts.Length != 0 ? [new Warning(WarningType.PasswordLeakedWarning, accounts)] : [];
+         return (warnings, accounts);
       }
 
       private Warning[] _lookAtDuplicatedPasswordsWarnings()
