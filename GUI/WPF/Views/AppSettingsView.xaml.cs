@@ -167,12 +167,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private static string _completionMessage(HibpBloomBuildResult result)
       {
-         if (result.Skipped)
-         {
-            return Strings.Msg_OfflineLeakAlreadyUpToDate;
-         }
-
-         return result.IsRefresh
+         return result.Skipped
+            ? Strings.Msg_OfflineLeakAlreadyUpToDate
+            : result.IsRefresh
             ? Strings.Format(
                nameof(Strings.Msg_OfflineLeakUpdateComplete),
                result.ChangedPrefixes,
