@@ -36,6 +36,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       /// </summary>
       public static void PostLoadSetup(this Window window)
       {
+         // TargetType=Window styles do not apply to subclasses.
+         window.SetResourceReference(Control.BackgroundProperty, "BackgroundBrush");
+         window.SetResourceReference(Control.ForegroundProperty, "ForegroundBrush");
          DarkMode.SetImmersiveDarkMode(window, ThemeService.IsDarkAppearance);
          ComputeTabIndex(window);
       }
