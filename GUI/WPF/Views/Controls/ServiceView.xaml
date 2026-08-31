@@ -38,6 +38,7 @@
             <Button Grid.Row="0"
                     Grid.Column="2"
                     Content="👓"
+                    ToolTip="{loc:Loc Tooltip_ViewActivities}"
                     Click="_viewActivities_Button_Click"/>
             <Label Grid.Row="1"
                    Grid.Column="0"
@@ -49,6 +50,7 @@
             <Button Grid.Row="1"
                     Grid.Column="2"
                     Content="🌐"
+                    ToolTip="{loc:Loc Tooltip_OpenUrl}"
                     Click="_openUrl_Button_Click"/>
             <Label Grid.Row="2"
                    Grid.Column="0"
@@ -97,9 +99,11 @@
                </Grid.ColumnDefinitions>
                <Button Grid.Column="0"
                        Click="_addAccount_Button_Click"
+                       ToolTip="{loc:Loc Tooltip_AddAccount}"
                        Content="+"/>
                <Button Grid.Column="1"
                        Click="_deleteAccount_Button_Click"
+                       ToolTip="{loc:Loc Tooltip_DeleteAccount}"
                        Content="✕"/>
             </Grid>
             <local:AccountView x:Name="_account_AV"

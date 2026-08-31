@@ -980,4 +980,67 @@ This affects all vault users. Disabling the option alone does not delete the fil
   <data name="Msg_OfflineLeakStatusUnknown" xml:space="preserve">
     <value>Unknown</value>
   </data>
+  <data name="Tooltip_AddAccount" xml:space="preserve">
+    <value>Add account</value>
+  </data>
+  <data name="Tooltip_AddIdentifier" xml:space="preserve">
+    <value>Add identifier</value>
+  </data>
+  <data name="Tooltip_AddPassword" xml:space="preserve">
+    <value>Add password</value>
+  </data>
+  <data name="Tooltip_AddService" xml:space="preserve">
+    <value>Add service</value>
+  </data>
+  <data name="Tooltip_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Tooltip_ClearFilters" xml:space="preserve">
+    <value>Clear filters</value>
+  </data>
+  <data name="Tooltip_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Tooltip_CopyIdentifier" xml:space="preserve">
+    <value>Copy identifier</value>
+  </data>
+  <data name="Tooltip_CopyPassword" xml:space="preserve">
+    <value>Copy password</value>
+  </data>
+  <data name="Tooltip_DeleteAccount" xml:space="preserve">
+    <value>Delete account</value>
+  </data>
+  <data name="Tooltip_DeleteIdentifier" xml:space="preserve">
+    <value>Delete identifier</value>
+  </data>
+  <data name="Tooltip_DeletePassword" xml:space="preserve">
+    <value>Delete password</value>
+  </data>
+  <data name="Tooltip_DeleteService" xml:space="preserve">
+    <value>Delete service</value>
+  </data>
+  <data name="Tooltip_GoToItem" xml:space="preserve">
+    <value>Go to item</value>
+  </data>
+  <data name="Tooltip_MoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="Tooltip_MoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="Tooltip_OpenUrl" xml:space="preserve">
+    <value>Open URL</value>
+  </data>
+  <data name="Tooltip_RevealPassword" xml:space="preserve">
+    <value>Show password</value>
+  </data>
+  <data name="Tooltip_ShowQrCodeIdentifier" xml:space="preserve">
+    <value>Show identifier QR code</value>
+  </data>
+  <data name="Tooltip_ShowQrCodePassword" xml:space="preserve">
+    <value>Show password QR code</value>
+  </data>
+  <data name="Tooltip_ViewActivities" xml:space="preserve">
+    <value>View activities</value>
+  </data>
 </root>

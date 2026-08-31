@@ -303,6 +303,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string EnumValue_ImportExportError_BlankService => Get(nameof(EnumValue_ImportExportError_BlankService));
       public static string EnumValue_ImportExportError_ExportFileAlreadyExists => Get(nameof(EnumValue_ImportExportError_ExportFileAlreadyExists));
       public static string Tooltip_OfflineLeakDatabase => Get(nameof(Tooltip_OfflineLeakDatabase));
+      public static string Tooltip_AddAccount => Get(nameof(Tooltip_AddAccount));
+      public static string Tooltip_AddIdentifier => Get(nameof(Tooltip_AddIdentifier));
+      public static string Tooltip_AddPassword => Get(nameof(Tooltip_AddPassword));
+      public static string Tooltip_AddService => Get(nameof(Tooltip_AddService));
+      public static string Tooltip_Clear => Get(nameof(Tooltip_Clear));
+      public static string Tooltip_ClearFilters => Get(nameof(Tooltip_ClearFilters));
+      public static string Tooltip_Copy => Get(nameof(Tooltip_Copy));
+      public static string Tooltip_CopyIdentifier => Get(nameof(Tooltip_CopyIdentifier));
+      public static string Tooltip_CopyPassword => Get(nameof(Tooltip_CopyPassword));
+      public static string Tooltip_DeleteAccount => Get(nameof(Tooltip_DeleteAccount));
+      public static string Tooltip_DeleteIdentifier => Get(nameof(Tooltip_DeleteIdentifier));
+      public static string Tooltip_DeletePassword => Get(nameof(Tooltip_DeletePassword));
+      public static string Tooltip_DeleteService => Get(nameof(Tooltip_DeleteService));
+      public static string Tooltip_GoToItem => Get(nameof(Tooltip_GoToItem));
+      public static string Tooltip_MoveDown => Get(nameof(Tooltip_MoveDown));
+      public static string Tooltip_MoveUp => Get(nameof(Tooltip_MoveUp));
+      public static string Tooltip_OpenUrl => Get(nameof(Tooltip_OpenUrl));
+      public static string Tooltip_RevealPassword => Get(nameof(Tooltip_RevealPassword));
+      public static string Tooltip_ShowQrCodeIdentifier => Get(nameof(Tooltip_ShowQrCodeIdentifier));
+      public static string Tooltip_ShowQrCodePassword => Get(nameof(Tooltip_ShowQrCodePassword));
+      public static string Tooltip_ViewActivities => Get(nameof(Tooltip_ViewActivities));
 
    }
 }

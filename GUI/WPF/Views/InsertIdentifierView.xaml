@@ -26,6 +26,7 @@
                   Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   KeyUp="_identifier_TextBox_KeyUp"/>
          <Button Content="✕"
+                 ToolTip="{loc:Loc Tooltip_Clear}"
                  Click="_clearFilter_Button_Click"/>
       </StackPanel>
       <Grid Grid.Row="1">

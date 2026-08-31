@@ -114,6 +114,7 @@
                       IsChecked="{Binding ChangedItemsOnly, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             <Button Grid.Column="7"
                     Content="✕"
+                    ToolTip="{loc:Loc Tooltip_ClearFilters}"
                     Command="{Binding ClearFiltersCommand}"/>
          </Grid>
       </GroupBox>
@@ -155,9 +156,11 @@
                </Grid.ColumnDefinitions>
                <Button Grid.Column="0"
                        Click="_addService_Button_Click"
+                       ToolTip="{loc:Loc Tooltip_AddService}"
                        Content="+"/>
                <Button Grid.Column="1"
                        Click="_deleteService_Button_Click"
+                       ToolTip="{loc:Loc Tooltip_DeleteService}"
                        Content="✕"/>
             </Grid>
             <Controls:ServiceView x:Name="_service_SV"

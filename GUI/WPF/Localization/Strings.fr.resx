@@ -980,4 +980,67 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
   <data name="Msg_OfflineLeakStatusUnknown" xml:space="preserve">
     <value>Inconnu</value>
   </data>
+  <data name="Tooltip_AddAccount" xml:space="preserve">
+    <value>Ajouter un compte</value>
+  </data>
+  <data name="Tooltip_AddIdentifier" xml:space="preserve">
+    <value>Ajouter un identifiant</value>
+  </data>
+  <data name="Tooltip_AddPassword" xml:space="preserve">
+    <value>Ajouter un mot de passe</value>
+  </data>
+  <data name="Tooltip_AddService" xml:space="preserve">
+    <value>Ajouter un service</value>
+  </data>
+  <data name="Tooltip_Clear" xml:space="preserve">
+    <value>Effacer</value>
+  </data>
+  <data name="Tooltip_ClearFilters" xml:space="preserve">
+    <value>Effacer les filtres</value>
+  </data>
+  <data name="Tooltip_Copy" xml:space="preserve">
+    <value>Copier</value>
+  </data>
+  <data name="Tooltip_CopyIdentifier" xml:space="preserve">
+    <value>Copier l'identifiant</value>
+  </data>
+  <data name="Tooltip_CopyPassword" xml:space="preserve">
+    <value>Copier le mot de passe</value>
+  </data>
+  <data name="Tooltip_DeleteAccount" xml:space="preserve">
+    <value>Supprimer le compte</value>
+  </data>
+  <data name="Tooltip_DeleteIdentifier" xml:space="preserve">
+    <value>Supprimer l'identifiant</value>
+  </data>
+  <data name="Tooltip_DeletePassword" xml:space="preserve">
+    <value>Supprimer le mot de passe</value>
+  </data>
+  <data name="Tooltip_DeleteService" xml:space="preserve">
+    <value>Supprimer le service</value>
+  </data>
+  <data name="Tooltip_GoToItem" xml:space="preserve">
+    <value>Aller à l'élément</value>
+  </data>
+  <data name="Tooltip_MoveDown" xml:space="preserve">
+    <value>Descendre</value>
+  </data>
+  <data name="Tooltip_MoveUp" xml:space="preserve">
+    <value>Monter</value>
+  </data>
+  <data name="Tooltip_OpenUrl" xml:space="preserve">
+    <value>Ouvrir l'URL</value>
+  </data>
+  <data name="Tooltip_RevealPassword" xml:space="preserve">
+    <value>Afficher le mot de passe</value>
+  </data>
+  <data name="Tooltip_ShowQrCodeIdentifier" xml:space="preserve">
+    <value>Afficher le QR code de l'identifiant</value>
+  </data>
+  <data name="Tooltip_ShowQrCodePassword" xml:space="preserve">
+    <value>Afficher le QR code du mot de passe</value>
+  </data>
+  <data name="Tooltip_ViewActivities" xml:space="preserve">
+    <value>Voir les activités</value>
+  </data>
 </root>

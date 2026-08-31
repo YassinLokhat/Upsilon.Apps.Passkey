@@ -57,6 +57,7 @@
                       IsChecked="{Binding NeedsReview}"/>
             <Button Grid.Column="9"
                     Content="✕"
+                    ToolTip="{loc:Loc Tooltip_ClearFilters}"
                     Command="{Binding ClearFiltersCommand}"/>
          </Grid>
       </GroupBox>
@@ -114,14 +115,20 @@
             <DataGridTemplateColumn Header="{loc:Loc Label_GoToItem}">
                <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate>
-                     <Button Content="🔍" Click="_viewItemButton_Click" Margin="4"/>
+                     <Button Content="🔍"
+                             ToolTip="{loc:Loc Tooltip_GoToItem}"
+                             Click="_viewItemButton_Click"
+                             Margin="4"/>
                   </DataTemplate>
                </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
             <DataGridTemplateColumn Header="{loc:Loc Label_Copy}">
                <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate>
-                     <Button Content="📋" Click="_copyButton_Click" Margin="4"/>
+                     <Button Content="📋"
+                             ToolTip="{loc:Loc Tooltip_Copy}"
+                             Click="_copyButton_Click"
+                             Margin="4"/>
                   </DataTemplate>
                </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
