@@ -12,42 +12,68 @@
         Title="{loc:Loc Title_InsertIdentifier}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="200" Width="483">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0"
+        Height="300" Width="400">
+   <Grid>
+      <Grid.RowDefinitions>
+         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <StackPanel Grid.Row="0"
                     Orientation="Horizontal">
-            <TextBox Name="_identifier_TB"
-                     Width="415"
+         <TextBox Name="_identifier_TB"
+                     Width="330"
                      Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      KeyUp="_identifier_TextBox_KeyUp"/>
-            <Button Content="✕"
+         <Button Content="✕"
                     Click="_clearFilter_Button_Click"/>
-        </StackPanel>
-        <StackPanel Grid.Row="1"
-                    Orientation="Horizontal">
-            <Button Content="{loc:Loc IdentifierType_Username}"
+      </StackPanel>
+      <Grid Grid.Row="1">
+         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+         </Grid.ColumnDefinitions>
+         <Grid.RowDefinitions>
+            <RowDefinition Height = "Auto"/>
+            <RowDefinition Height = "Auto"/>
+         </Grid.RowDefinitions>
+         <Button Grid.Row="0"
+                 Grid.Column="0"
+                 Grid.ColumnSpan="2"
+                 Content="{loc:Loc IdentifierType_Username}"
                     Tag="Username"
                     Click="_insertIdentifierType_Button_Click"/>
-            <Button Content="{loc:Loc IdentifierType_Email}"
+         <Button Grid.Row="0"
+                 Grid.Column="2"
+                 Grid.ColumnSpan="2"
+                 Content="{loc:Loc IdentifierType_Email}"
                     Tag="Email"
                     Click="_insertIdentifierType_Button_Click"/>
-            <Button Content="{loc:Loc IdentifierType_PhoneNumber}"
-                    Tag="Phone Number"
-                    Click="_insertIdentifierType_Button_Click"/>
-            <Button Content="{loc:Loc IdentifierType_Passkey}"
+         <Button Grid.Row="0"
+                 Grid.Column="4"
+                 Grid.ColumnSpan="2"
+                 Content="{loc:Loc IdentifierType_Passkey}"
                     Tag="Passkey"
                     Click="_insertIdentifierType_Button_Click"/>
-            <Button Content="{loc:Loc IdentifierType_AuthenticatorApp}"
+         <Button Grid.Row="1"
+                 Grid.Column="0"
+                 Grid.ColumnSpan="3"
+                 Content="{loc:Loc IdentifierType_PhoneNumber}"
+                    Tag="Phone Number"
+                    Click="_insertIdentifierType_Button_Click"/>
+         <Button Grid.Row="1"
+                 Grid.Column="3"
+                 Grid.ColumnSpan="3"
+                 Content="{loc:Loc IdentifierType_AuthenticatorApp}"
                     Tag="Authentificator App"
                     Click="_insertIdentifierType_Button_Click"/>
-        </StackPanel>
-        <ListBox Name="_identifiers_LB"
+      </Grid>
+      <ListBox Name="_identifiers_LB"
                  Grid.Row="2"
                  SelectionChanged="_identifiers_LB_SelectionChanged"/>
-    </Grid>
+   </Grid>
 </Window>
