@@ -505,12 +505,37 @@ When HIBP and XposedOrNot are both unreachable, Passkey can fall back to a
 local Bloom filter built from the HIBP SHA-1 corpus:
 
 *   File: `<exe>/pwned-sha1.pkbf` (~2.4 GiB for the default sizing), or any location set through `FilterPath`
+*   Sidecar: `<filter>.pkbf.ranges` (~32 MiB), one fixed-width record per hash-range prefix holding the `ETag` already folded into the filter
 *   Config: `LeakFilterConfig` (`Enabled` / `FilterPath`) in the WPF host's `config.json` — **application-level**, shared by all vault users (not stored in the `.pku`)
 *   Order: HIBP → XposedOrNot → Bloom (if enabled and present) → fail-open
-*   Disable never deletes the file; only **Delete offline database** in **App Settings** (or deleting the `.pkbf` manually) removes it
-*   Build / enable / delete from **App Settings** (`Ctrl+,`, section **Offline leak database**), or from your own host through `HibpBloomBuilder.BuildAsync`
+*   Disable never deletes the file; only **Delete offline database** in **App Settings** (or deleting the `.pkbf` manually) removes it — the sidecar goes with it
+*   Build / update / enable / delete from **App Settings** (`Ctrl+,`, section **Offline leak database**), or from your own host through `HibpBloomBuilder.RunAsync`
 
-A full build downloads every HIBP range (~1 048 576 prefixes) and can take several hours.
+A full build downloads every HIBP range (~1 048 576 prefixes) and can take several
+hours. That is tens of GiB over the wire — brotli/gzip roughly halves the ~78 GB
+of raw hex — so the build checkpoints every 4 096 prefixes into the `.building`
+pair: an interrupted run resumes from the last checkpoint instead of restarting
+the corpus.
+
+An update never rebuilds. `HibpBloomBuildMode.Update` replays every range with
+`If-None-Match` against the sidecar's ETags — unchanged ranges answer `304` with
+no body — and folds only the changed ones into the existing bit array. This works
+because Bloom filters are closed under union and the HIBP corpus only ever grows,
+so inserting into the filter already on disk is equivalent to rebuilding it from
+the whole corpus. A refresh is therefore dominated by round trips rather than
+bytes: every prefix is revalidated, but only a few tens of MiB come down.
+
+Two invariants keep that shortcut safe:
+
+*   A checkpoint snapshots the pending entries, *then* flushes the filter, *then*
+    persists the entries. An interruption can only leave the sidecar behind the
+    filter, never ahead of it.
+*   The sidecar records the `(InsertedCount, BuiltUtc)` stamp of the filter header
+    it was written against. A filter that was rebuilt, restored or replaced no
+    longer matches, and the sidecar is then rejected: skipping ranges whose bits
+    are absent would mean reporting a leaked password as clean.
+
+A rejected sidecar costs a full re-download, never a rebuild.
 
 **WPF client (Windows)**
 ------------------------

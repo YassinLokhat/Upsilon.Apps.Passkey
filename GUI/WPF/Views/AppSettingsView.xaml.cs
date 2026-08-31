@@ -72,11 +72,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         bool force = File.Exists(AppInfo.AppSettings.LeakFilterConfig.FilterPath);
+         // An existing database is refreshed range by range against the ETags of
+         // the last run, never rebuilt: only what changed comes back down.
+         bool update = File.Exists(AppInfo.AppSettings.LeakFilterConfig.FilterPath);
 
          if (AppServices.Dialogs.Confirm(
-               force ? Strings.Msg_RebuildOfflineLeakDatabase : Strings.Msg_BuildOfflineLeakDatabase,
-               force ? Strings.Title_RebuildOfflineLeakDatabase : Strings.Title_BuildOfflineLeakDatabase)
+               update ? Strings.Msg_UpdateOfflineLeakDatabase : Strings.Msg_BuildOfflineLeakDatabase,
+               update ? Strings.Title_UpdateOfflineLeakDatabase : Strings.Title_BuildOfflineLeakDatabase)
             != MessageBoxResult.Yes)
          {
             return;
@@ -84,6 +86,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _viewModel.OfflineLeakFilterBusy = true;
          _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildStarting;
+
+         // An attached filter maps the .pkbf read-only but shares it read-only too,
+         // which denies the read-write handle an in-place refresh needs. Detaching
+         // for the duration only costs the offline fallback, and only while the
+         // database is being written.
+         if (AppServices.PasswordFactory is PasswordFactory detaching)
+         {
+            detaching.AttachLocalFilter(null);
+         }
 
          try
          {
@@ -96,32 +107,33 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                }
 
                double pct = 100.0 * p.CompletedPrefixes / p.TotalPrefixes;
-               _viewModel.OfflineLeakFilterProgress = Strings.Format(
-                  nameof(Strings.Msg_OfflineLeakBuildProgress),
-                  pct,
-                  p.CompletedPrefixes,
-                  p.TotalPrefixes,
-                  p.InsertedHashes);
+               _viewModel.OfflineLeakFilterProgress = p.IsRefresh
+                  ? Strings.Format(
+                     nameof(Strings.Msg_OfflineLeakUpdateProgress),
+                     pct,
+                     p.CompletedPrefixes,
+                     p.TotalPrefixes,
+                     p.UnchangedPrefixes,
+                     p.ChangedPrefixes,
+                     _mebibytes(p.DownloadedBytes))
+                  : Strings.Format(
+                     nameof(Strings.Msg_OfflineLeakBuildProgress),
+                     pct,
+                     p.CompletedPrefixes,
+                     p.TotalPrefixes,
+                     p.InsertedHashes);
             });
 
             string filterPath = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
-            HibpBloomBuildResult result = await HibpBloomBuilder.BuildAsync(
+            HibpBloomBuildResult result = await HibpBloomBuilder.RunAsync(
                filterPath,
-               force: force,
+               update ? HibpBloomBuildMode.Update : HibpBloomBuildMode.BuildIfMissing,
                progress: progress).ConfigureAwait(true);
 
             AppInfo.AppSettings.LeakFilterConfig.Enabled = true;
             _viewModel.OfflineLeakFilterEnabled = true;
 
-            if (AppServices.PasswordFactory is PasswordFactory factory)
-            {
-               factory.ReloadLocalFilter(AppInfo.AppSettings.LeakFilterConfig);
-            }
-
-            _viewModel.OfflineLeakFilterProgress = result.Skipped
-               ? Strings.Msg_OfflineLeakAlreadyUpToDate
-               : Strings.Format(nameof(Strings.Msg_OfflineLeakBuildComplete), result.InsertedCount);
-            _viewModel.RefreshOfflineLeakFilterStatus();
+            _viewModel.OfflineLeakFilterProgress = _completionMessage(result);
          }
          // Hours of downloading and writing: a transport, disk or path failure must
          // surface as a warning instead of tearing down the app.
@@ -139,8 +151,34 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
          finally
          {
+            // Reattached whatever the outcome: a failed or cancelled run must not
+            // leave the offline fallback silently detached.
+            if (AppServices.PasswordFactory is PasswordFactory factory)
+            {
+               factory.ReloadLocalFilter(AppInfo.AppSettings.LeakFilterConfig);
+            }
+
+            _viewModel.RefreshOfflineLeakFilterStatus();
             _viewModel.OfflineLeakFilterBusy = false;
          }
+      }
+
+      private static double _mebibytes(long bytes) => bytes / (1024.0 * 1024.0);
+
+      private static string _completionMessage(HibpBloomBuildResult result)
+      {
+         if (result.Skipped)
+         {
+            return Strings.Msg_OfflineLeakAlreadyUpToDate;
+         }
+
+         return result.IsRefresh
+            ? Strings.Format(
+               nameof(Strings.Msg_OfflineLeakUpdateComplete),
+               result.ChangedPrefixes,
+               result.UnchangedPrefixes,
+               _mebibytes(result.DownloadedBytes))
+            : Strings.Format(nameof(Strings.Msg_OfflineLeakBuildComplete), result.InsertedCount);
       }
 
       private void _offlineLeakFilterDelete_Click(object sender, RoutedEventArgs e)

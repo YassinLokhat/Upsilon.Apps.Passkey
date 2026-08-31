@@ -25,10 +25,18 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       private const int BUILT_UTC_TICKS_OFFSET = 40;
       private const int SOURCE_TAG_OFFSET = 48;
 
+      // Ingestion runs one task per hash range, and two ranges routinely target
+      // two bits of the same byte. Striping the guard by byte index keeps those
+      // read-modify-writes safe without serializing the whole bit array.
+      private const int LOCK_STRIPES = 4096;
+
       private readonly FileStream _file;
       private readonly MemoryMappedFile _mmf;
       private readonly MemoryMappedViewAccessor _accessor;
       private readonly bool _writable;
+      private readonly System.Threading.Lock[]? _stripes;
+      private long _insertedCount;
+      private bool _uncommittedInserts;
       private bool _disposed;
 
       /// <summary>
@@ -75,10 +83,12 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             Capacity = header.Capacity;
             BitCount = header.BitCount;
             HashFunctions = header.HashFunctions;
-            InsertedCount = header.InsertedCount;
+            _insertedCount = (long)header.InsertedCount;
             BuiltUtc = header.BuiltUtc;
+            LastStamp = new HibpBloomStamp(header.InsertedCount, header.BuiltUtc.Ticks);
             SourceTag = header.SourceTag;
             _writable = writable;
+            _stripes = writable ? _createStripes() : null;
          }
          catch
          {
@@ -93,7 +103,15 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 
       public DateTime BuiltUtc { get; private set; }
 
-      public ulong InsertedCount { get; private set; }
+      public ulong InsertedCount => (ulong)Interlocked.Read(ref _insertedCount);
+
+      /// <summary>
+      /// Header values as last persisted — on open, then after every
+      /// <see cref="CommitHeader"/>. A sidecar that records ranges already folded
+      /// in stores this stamp to prove, on the next run, that it still describes
+      /// this very filter.
+      /// </summary>
+      internal HibpBloomStamp LastStamp { get; private set; }
 
       internal ulong Capacity { get; }
 
@@ -110,6 +128,18 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       {
          ArgumentException.ThrowIfNullOrWhiteSpace(path);
          return new HibpBloomFile(path, writable: false);
+      }
+
+      /// <summary>
+      /// Opens an existing <c>.pkbf</c> for further insertions. Bloom filters are
+      /// closed under union and the HIBP corpus only ever grows, so folding new
+      /// ranges into an existing bit array is equivalent to rebuilding it from the
+      /// whole corpus — which is what makes an incremental refresh possible.
+      /// </summary>
+      internal static HibpBloomFile OpenForUpdate(string path)
+      {
+         ArgumentException.ThrowIfNullOrWhiteSpace(path);
+         return new HibpBloomFile(path, writable: true);
       }
 
       /// <summary>
@@ -184,7 +214,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       }
 
       /// <summary>
-      /// Inserts a SHA-1 hash into a writable filter.
+      /// Inserts a SHA-1 hash into a writable filter. Safe to call concurrently.
       /// </summary>
       internal void Add(ReadOnlySpan<byte> sha1)
       {
@@ -203,11 +233,24 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             _setBit(bit);
          }
 
-         InsertedCount++;
+         _ = Interlocked.Increment(ref _insertedCount);
+         _uncommittedInserts = true;
       }
 
       /// <summary>
-      /// Persists the current inserted count and build timestamp into the header.
+      /// Pushes dirty mapped pages to disk. A caller about to persist an external
+      /// checkpoint has to flush first, so a crash can only lose ingestion work
+      /// and never leave a sidecar claiming bits that never landed.
+      /// </summary>
+      internal void Flush()
+      {
+         ObjectDisposedException.ThrowIf(_disposed, this);
+         _accessor.Flush();
+      }
+
+      /// <summary>
+      /// Persists the current inserted count and build timestamp into the header,
+      /// and publishes the written values as <see cref="LastStamp"/>.
       /// </summary>
       internal void CommitHeader()
       {
@@ -219,17 +262,21 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          }
 
          BuiltUtc = DateTime.UtcNow;
+         ulong insertedCount = InsertedCount;
          byte[] header = new byte[HeaderSize];
          _encodeHeader(
             header,
             Capacity,
             BitCount,
             HashFunctions,
-            InsertedCount,
+            insertedCount,
             BuiltUtc,
             SourceTag);
          _accessor.WriteArray(0, header, 0, HeaderSize);
          _accessor.Flush();
+
+         LastStamp = new HibpBloomStamp(insertedCount, BuiltUtc.Ticks);
+         _uncommittedInserts = false;
       }
 
       public void Dispose()
@@ -240,8 +287,10 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          }
 
          // Commit before the disposed guard closes: the bit array is already on
-         // disk, only the inserted count and timestamp are at stake here.
-         if (_writable)
+         // disk, only the inserted count and timestamp are at stake here. Skipping
+         // the write when nothing changed since the last checkpoint keeps the
+         // header stamp — and therefore any sidecar built against it — valid.
+         if (_writable && _uncommittedInserts)
          {
             try
             {
@@ -273,9 +322,34 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       private void _setBit(ulong bitIndex)
       {
          long byteIndex = HeaderSize + (long)(bitIndex >> 3);
-         int mask = 1 << (int)(bitIndex & 7);
-         byte value = _accessor.ReadByte(byteIndex);
-         _accessor.Write(byteIndex, (byte)(value | mask));
+         byte mask = (byte)(1 << (int)(bitIndex & 7));
+
+         // Bit positions are hash-spread, so the low bits of the byte index make
+         // an evenly distributed stripe selector.
+         lock (_stripes![(int)(byteIndex & (LOCK_STRIPES - 1))])
+         {
+            byte value = _accessor.ReadByte(byteIndex);
+            if ((value & mask) != 0)
+            {
+               // Re-ingesting an unchanged range is the norm on refresh: leaving
+               // the byte untouched keeps the mapped page clean, which spares the
+               // write-back of most of a multi-gigabyte file.
+               return;
+            }
+
+            _accessor.Write(byteIndex, (byte)(value | mask));
+         }
+      }
+
+      private static System.Threading.Lock[] _createStripes()
+      {
+         System.Threading.Lock[] stripes = new System.Threading.Lock[LOCK_STRIPES];
+         for (int i = 0; i < stripes.Length; i++)
+         {
+            stripes[i] = new System.Threading.Lock();
+         }
+
+         return stripes;
       }
 
       private static void _ensureSha1(ReadOnlySpan<byte> sha1)
@@ -380,4 +454,10 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          DateTime BuiltUtc,
          string SourceTag);
    }
+
+   /// <summary>
+   /// Identifies one committed state of a <c>.pkbf</c> header. Both values change
+   /// on every commit, so a stale copy is detectable.
+   /// </summary>
+   internal readonly record struct HibpBloomStamp(ulong InsertedCount, long BuiltUtcTicks);
 }

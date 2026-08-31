@@ -351,7 +351,13 @@ These are conscious trade-offs, documented for transparency:
 - **Offline Bloom filter size / freshness**: building the full HIBP-derived
   `.pkbf` downloads every range (~1M prefixes), takes hours, and yields a file
   on the order of ~2.4 GiB. It is a snapshot: new breaches appear in the live
-  APIs first; rebuild when you want the local file to catch up.
+  APIs first; update when you want the local file to catch up. An update is
+  incremental — every range is revalidated with `If-None-Match` against the ETags
+  in the `.pkbf.ranges` sidecar and only changed ranges are downloaded and folded
+  in — so freshness costs minutes rather than another full build. The sidecar is
+  a cache, never a source of truth: it is bound to one committed state of one
+  filter file and is rejected whenever that no longer matches, because skipping a
+  range whose bits are absent would mean reporting a leaked password as clean.
 - **Unsealed activity-log tail**: the activity log is tamper-evident only for the
   portion sealed at the last login (see "Activity-log integrity"). Entries added
   since then — including events written while no one is logged in, such as failed

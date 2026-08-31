@@ -217,8 +217,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_OfflineLeakFilePresent => Get(nameof(Msg_OfflineLeakFilePresent));
       public static string Msg_OfflineLeakFilePresentDisabled => Get(nameof(Msg_OfflineLeakFilePresentDisabled));
       public static string Msg_OfflineLeakStatusUnknown => Get(nameof(Msg_OfflineLeakStatusUnknown));
+      public static string Msg_OfflineLeakUpdateComplete => Get(nameof(Msg_OfflineLeakUpdateComplete));
+      public static string Msg_OfflineLeakUpdateProgress => Get(nameof(Msg_OfflineLeakUpdateProgress));
       public static string Msg_OpeningDatabase => Get(nameof(Msg_OpeningDatabase));
-      public static string Msg_RebuildOfflineLeakDatabase => Get(nameof(Msg_RebuildOfflineLeakDatabase));
+      public static string Msg_UpdateOfflineLeakDatabase => Get(nameof(Msg_UpdateOfflineLeakDatabase));
       public static string Msg_SaveBeforeContinue => Get(nameof(Msg_SaveBeforeContinue));
       public static string Msg_ServiceId => Get(nameof(Msg_ServiceId));
       public static string Msg_SessionLeftTime => Get(nameof(Msg_SessionLeftTime));
@@ -264,8 +266,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Title_OpenDatabase => Get(nameof(Title_OpenDatabase));
       public static string Title_PasswordGenerator => Get(nameof(Title_PasswordGenerator));
       public static string Title_QrCode => Get(nameof(Title_QrCode));
-      public static string Title_RebuildOfflineLeakDatabase => Get(nameof(Title_RebuildOfflineLeakDatabase));
       public static string Title_Success => Get(nameof(Title_Success));
+      public static string Title_UpdateOfflineLeakDatabase => Get(nameof(Title_UpdateOfflineLeakDatabase));
       public static string Title_UseDefaultLocation => Get(nameof(Title_UseDefaultLocation));
       public static string Title_UserSettings => Get(nameof(Title_UserSettings));
       public static string Title_UserServices => Get(nameof(Title_UserServices));

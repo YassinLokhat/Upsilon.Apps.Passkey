@@ -52,10 +52,15 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       }
 
       /// <summary>
-      /// Deletes the resolved <c>.pkbf</c> when present. Does not change <see cref="LeakFilterConfig.Enabled"/>.
+      /// Deletes the resolved <c>.pkbf</c> when present, along with its range
+      /// sidecar. Does not change <see cref="LeakFilterConfig.Enabled"/>.
       /// </summary>
       public bool TryDeleteFilterFile()
       {
+         // The sidecar goes first: an orphaned one would be rejected on the next
+         // build anyway, but leaving it behind wastes tens of megabytes.
+         HibpRangeStateStore.DeleteFor(FilterPath);
+
          if (!File.Exists(FilterPath))
          {
             return false;
