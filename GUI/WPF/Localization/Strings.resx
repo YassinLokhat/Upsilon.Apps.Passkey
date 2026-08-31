@@ -362,6 +362,9 @@
   <data name="Label_SpecialCharacters" xml:space="preserve">
     <value>Special Characters</value>
   </data>
+  <data name="Label_Alphabet" xml:space="preserve">
+    <value>Alphabet</value>
+  </data>
   <data name="Label_Reviewed" xml:space="preserve">
     <value>Reviewed</value>
   </data>

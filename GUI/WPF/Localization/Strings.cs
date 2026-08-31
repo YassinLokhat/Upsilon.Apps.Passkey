@@ -89,6 +89,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string IdentifierType_PhoneNumber => Get(nameof(IdentifierType_PhoneNumber));
       public static string IdentifierType_Username => Get(nameof(IdentifierType_Username));
       public static string Label_AccountColumn => Get(nameof(Label_AccountColumn));
+      public static string Label_Alphabet => Get(nameof(Label_Alphabet));
       public static string Label_Browse => Get(nameof(Label_Browse));
       public static string Label_BuildUpdate => Get(nameof(Label_BuildUpdate));
       public static string Label_CheckIfLeaked => Get(nameof(Label_CheckIfLeaked));
