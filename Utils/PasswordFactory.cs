@@ -8,7 +8,8 @@ using Upsilon.Apps.Passkey.Utils.LeakFilter;
 namespace Upsilon.Apps.Passkey.Utils
 {
    /// <summary>
-   /// CSPRNG password generation and opt-in leak checks (HIBP, then XposedOrNot).
+   /// CSPRNG password generation and opt-in leak checks (HIBP, then XposedOrNot,
+   /// then an optional offline Bloom filter).
    /// Network failures fail open: "not leaked", never cached.
    /// </summary>
    public class PasswordFactory : IPasswordFactory
@@ -102,7 +103,7 @@ namespace Upsilon.Apps.Passkey.Utils
       }
 
       /// <summary>
-      /// Loads the machine-level filter when enabled and present under LocalAppData.
+      /// Loads the filter configured in <paramref name="config"/> when enabled and present.
       /// </summary>
       public void ReloadLocalFilter(LeakFilterConfig config)
       {
@@ -115,11 +116,6 @@ namespace Upsilon.Apps.Passkey.Utils
          try
          {
             opened = config.TryOpenConfiguredFilter();
-            if (ReferenceEquals(_localFilter, opened))
-            {
-               opened = null;
-               return;
-            }
 
             // A failed re-open (file still mapped by the current instance) must
             // not tear down a working filter — that would make every later
@@ -203,17 +199,17 @@ namespace Upsilon.Apps.Passkey.Utils
       {
          try
          {
-            //bool? hibp = await _tryHibpAsync(password, cancellationToken).ConfigureAwait(false);
-            //if (hibp.HasValue)
-            //{
-            //   return hibp.Value;
-            //}
-            //
-            //bool? xon = await _tryXonAsync(password, cancellationToken).ConfigureAwait(false);
-            //if (xon.HasValue)
-            //{
-            //   return xon.Value;
-            //}
+            bool? hibp = await _tryHibpAsync(password, cancellationToken).ConfigureAwait(false);
+            if (hibp.HasValue)
+            {
+               return hibp.Value;
+            }
+
+            bool? xon = await _tryXonAsync(password, cancellationToken).ConfigureAwait(false);
+            if (xon.HasValue)
+            {
+               return xon.Value;
+            }
 
             bool? bloom = _tryLocalBloom(password);
             if (bloom.HasValue)
@@ -246,11 +242,7 @@ namespace Upsilon.Apps.Passkey.Utils
             return null;
          }
 
-#pragma warning disable CA5350 // HIBP / local filter index SHA-1 digests
-         byte[] sha1 = SHA1.HashData(Encoding.UTF8.GetBytes(password));
-#pragma warning restore CA5350
-
-         bool hit = filter.MightContain(sha1);
+         bool hit = filter.MightContain(_sha1(password));
          System.Diagnostics.Trace.TraceWarning(
             hit
                ? "Password leak check: HIBP and XposedOrNot unreachable; offline Bloom reported a possible hit (treated as leaked)."
@@ -446,12 +438,15 @@ namespace Upsilon.Apps.Passkey.Utils
          }
       }
 
-      private static string _sha1Hex(string password)
+      private static byte[] _sha1(string password)
       {
-#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms : pwnedpasswords.com's API needs the use of SHA1 algorithm
-         return Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(password)));
+#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms : pwnedpasswords.com's API and the offline filter both index SHA-1 digests
+         return SHA1.HashData(Encoding.UTF8.GetBytes(password));
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
       }
+
+      private static string _sha1Hex(string password)
+         => Convert.ToHexString(_sha1(password));
 
       // k-anonymity: only the first five characters of the hash ever leave the
       // machine, so the service never learns which password is being checked.

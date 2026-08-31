@@ -335,8 +335,8 @@ These are conscious trade-offs, documented for transparency:
   Users are responsible for protecting or deleting these files.
 - **Leak check fails open**: if both Have I Been Pwned and XposedOrNot are
   unreachable (timeout, HTTP error, offline host) **and** no offline Bloom
-  filter is attached (absent or disabled in `leak-filter.json` under the
-  configured root — `<exe>/leak-filter` for the WPF app),
+  filter is attached (the `.pkbf` is absent, or disabled through
+  `LeakFilterConfig` in the WPF host's `config.json`),
   the check reports "not leaked" and the UI stays quiet. Failures are not
   cached, so a later successful reach of either API can still raise a leak
   warning. When an offline filter *is* attached, a Bloom **miss** is definitive

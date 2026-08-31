@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Net.Http;
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -72,18 +73,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          bool force = File.Exists(AppInfo.AppSettings.LeakFilterConfig.FilterPath);
-         if (force
-            && AppServices.Dialogs.Confirm(
-               Strings.Msg_RebuildOfflineLeakDatabase,
-               Strings.Title_RebuildOfflineLeakDatabase) != MessageBoxResult.Yes)
-         {
-            return;
-         }
 
-         if (!force
-            && AppServices.Dialogs.Confirm(
-               Strings.Msg_BuildOfflineLeakDatabase,
-               Strings.Title_BuildOfflineLeakDatabase) != MessageBoxResult.Yes)
+         if (AppServices.Dialogs.Confirm(
+               force ? Strings.Msg_RebuildOfflineLeakDatabase : Strings.Msg_BuildOfflineLeakDatabase,
+               force ? Strings.Title_RebuildOfflineLeakDatabase : Strings.Title_BuildOfflineLeakDatabase)
+            != MessageBoxResult.Yes)
          {
             return;
          }
@@ -129,7 +123,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                : Strings.Format(nameof(Strings.Msg_OfflineLeakBuildComplete), result.InsertedCount);
             _viewModel.RefreshOfflineLeakFilterStatus();
          }
-         catch (ArgumentNullException ex)
+         // Hours of downloading and writing: a transport, disk or path failure must
+         // surface as a warning instead of tearing down the app.
+         catch (Exception ex)
+            when (ex is ArgumentException
+            or HttpRequestException
+            or IOException
+            or UnauthorizedAccessException
+            or OperationCanceledException)
          {
             AppServices.Dialogs.Warn(
                Strings.Format(nameof(Strings.Msg_OfflineLeakBuildFailed), ex.Message),

@@ -4,7 +4,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 {
    /// <summary>
    /// Downloads HIBP SHA-1 ranges and builds a local <c>.pkbf</c> Bloom filter.
-   /// Long-running (hours for a full corpus); intended for the LeakFilterBuilder tool / UI.
+   /// Long-running (hours for a full corpus); driven from the App Settings UI.
    /// </summary>
    public static class HibpBloomBuilder
    {
@@ -48,7 +48,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             File.Delete(tempPath);
          }
 
-         object addGate = new();
+         Lock addGate = new();
          long completedPrefixes = 0;
          long inserted = 0;
 
@@ -93,7 +93,8 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       {
          Uri uri = new($"https://api.pwnedpasswords.com/range/{prefix}");
          const int maxAttempts = 5;
-         for (int attempt = 1; attempt <= maxAttempts; attempt++)
+
+         for (int attempt = 1; ; attempt++)
          {
             try
             {
@@ -103,20 +104,15 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
                _ = response.EnsureSuccessStatusCode();
                return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             }
+            // Back off and retry; the last attempt lets its failure abort the build.
             catch (Exception ex) when (ex is not OperationCanceledException && attempt < maxAttempts)
             {
                await Task.Delay(TimeSpan.FromSeconds(attempt), cancellationToken).ConfigureAwait(false);
             }
          }
-
-         using HttpResponseMessage last = await _http
-            .GetAsync(uri, cancellationToken)
-            .ConfigureAwait(false);
-         _ = last.EnsureSuccessStatusCode();
-         return await last.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
       }
 
-      private static int _ingestRange(HibpBloomFile filter, object addGate, string prefix, string body)
+      private static int _ingestRange(HibpBloomFile filter, Lock addGate, string prefix, string body)
       {
          int added = 0;
          foreach (string line in body.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
@@ -129,7 +125,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             }
 
             string hex = prefix + suffix;
-            if (hex.Length != 40)
+            if (hex.Length != HibpBloomFile.Sha1ByteLength * 2)
             {
                continue;
             }

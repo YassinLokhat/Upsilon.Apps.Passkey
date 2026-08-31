@@ -504,16 +504,11 @@ remote providers fail) instead of blocking a thread on the network.
 When HIBP and XposedOrNot are both unreachable, Passkey can fall back to a
 local Bloom filter built from the HIBP SHA-1 corpus:
 
-*   File: `<exe>/leak-filter/pwned-sha1.pkbf` for the WPF app (~2.4 GiB for the default sizing); Core defaults to `%LocalAppData%\Passkey\` until `LeakFilterPaths.SetRootDirectory` is called
-*   Config: `<exe>/leak-filter/leak-filter.json` (`Enabled` / optional `FilterPath`) — **application-level**, shared by all vault users (not stored in the `.pku`)
+*   File: `<exe>/pwned-sha1.pkbf` (~2.4 GiB for the default sizing), or any location set through `FilterPath`
+*   Config: `LeakFilterConfig` (`Enabled` / `FilterPath`) in the WPF host's `config.json` — **application-level**, shared by all vault users (not stored in the `.pku`)
 *   Order: HIBP → XposedOrNot → Bloom (if enabled and present) → fail-open
 *   Disable never deletes the file; only **Delete offline database** in **App Settings** (or deleting the `.pkbf` manually) removes it
-*   Build / enable / delete from **App Settings** (`Ctrl+,`, section **Offline leak database**) or:
-
-```bash
-dotnet run --project Tools/LeakFilterBuilder -- build
-# rebuild: add --force
-```
+*   Build / enable / delete from **App Settings** (`Ctrl+,`, section **Offline leak database**), or from your own host through `HibpBloomBuilder.BuildAsync`
 
 A full build downloads every HIBP range (~1 048 576 prefixes) and can take several hours.
 

@@ -66,7 +66,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = ThemeService.GetOptionOrDefault(AppInfo.AppSettings.Theme);
 
-      // --- Application-level offline leak filter (leak-filter.json next to exe) ---
+      // --- Application-level offline leak filter (LeakFilterConfig in config.json) ---
 
       public bool OfflineLeakFilterEnabled
       {

@@ -15,6 +15,16 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       internal const int Sha1ByteLength = 20;
       internal const string DefaultSourceTag = "hibp-sha1";
 
+      // Little-endian field offsets inside the HeaderSize-byte header.
+      private const int MAGIC_OFFSET = 0;
+      private const int VERSION_OFFSET = 4;
+      private const int CAPACITY_OFFSET = 8;
+      private const int BIT_COUNT_OFFSET = 16;
+      private const int HASH_FUNCTIONS_OFFSET = 24;
+      private const int INSERTED_COUNT_OFFSET = 32;
+      private const int BUILT_UTC_TICKS_OFFSET = 40;
+      private const int SOURCE_TAG_OFFSET = 48;
+
       private readonly FileStream _file;
       private readonly MemoryMappedFile _mmf;
       private readonly MemoryMappedViewAccessor _accessor;
@@ -22,10 +32,9 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       private bool _disposed;
 
       /// <summary>
-      /// Maps an existing <c>.pkbf</c>. The <see cref="FileStream"/> is kept
-      /// open for the life of this instance: closing it (a <c>using</c> in
-      /// <see cref="Open"/> / <see cref="Create"/>) invalidates the view and
-      /// every <see cref="MightContain"/> call misses.
+      /// Maps an existing <c>.pkbf</c>. The <see cref="FileStream"/> is owned by this
+      /// instance (<c>leaveOpen: true</c>) and released by <see cref="Dispose"/>: the
+      /// mapping outlives this constructor, so it must not be scoped to a <c>using</c>.
       /// </summary>
       private HibpBloomFile(string path, bool writable)
       {
@@ -203,11 +212,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       internal void CommitHeader()
       {
          ObjectDisposedException.ThrowIf(_disposed, this);
-         _commitHeader();
-      }
 
-      private void _commitHeader()
-      {
          if (!_writable)
          {
             throw new InvalidOperationException("Bloom filter was opened read-only.");
@@ -234,27 +239,24 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             return;
          }
 
-         _disposed = true;
+         // Commit before the disposed guard closes: the bit array is already on
+         // disk, only the inserted count and timestamp are at stake here.
          if (_writable)
          {
-            // Bypasses the public disposed guard: _disposed is already set, but
-            // the accessor is still live, so the count/timestamp can land.
             try
             {
-               _commitHeader();
+               CommitHeader();
             }
             catch (Exception ex)
                when (ex is ObjectDisposedException
                or ArgumentException
-               or ArgumentNullException
-               or ArgumentOutOfRangeException
-               or NotSupportedException
-               or ObjectDisposedException)
+               or NotSupportedException)
             {
                System.Diagnostics.Trace.TraceWarning($"Best effort: the bit array is already on disk: {ex}");
             }
          }
 
+         _disposed = true;
          _accessor.Dispose();
          _mmf.Dispose();
          _file.Dispose();
@@ -301,24 +303,24 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          stream.Position = 0;
          stream.ReadExactly(buffer);
 
-         string magic = Encoding.ASCII.GetString(buffer[..4]);
+         string magic = Encoding.ASCII.GetString(buffer.Slice(MAGIC_OFFSET, Magic.Length));
          if (magic != Magic)
          {
             throw new InvalidDataException($"Invalid Bloom filter magic '{magic}'.");
          }
 
-         uint version = BitConverter.ToUInt32(buffer[4..]);
+         uint version = BitConverter.ToUInt32(buffer[VERSION_OFFSET..]);
          if (version != FormatVersion)
          {
             throw new InvalidDataException($"Unsupported Bloom filter version {version}.");
          }
 
-         ulong capacity = BitConverter.ToUInt64(buffer[8..]);
-         ulong bitCount = BitConverter.ToUInt64(buffer[16..]);
-         int hashFunctions = BitConverter.ToInt32(buffer[24..]);
-         ulong insertedCount = BitConverter.ToUInt64(buffer[32..]);
-         long ticks = BitConverter.ToInt64(buffer[40..]);
-         string sourceTag = Encoding.ASCII.GetString(buffer.Slice(48, SourceTagBytes)).TrimEnd('\0');
+         ulong capacity = BitConverter.ToUInt64(buffer[CAPACITY_OFFSET..]);
+         ulong bitCount = BitConverter.ToUInt64(buffer[BIT_COUNT_OFFSET..]);
+         int hashFunctions = BitConverter.ToInt32(buffer[HASH_FUNCTIONS_OFFSET..]);
+         ulong insertedCount = BitConverter.ToUInt64(buffer[INSERTED_COUNT_OFFSET..]);
+         long ticks = BitConverter.ToInt64(buffer[BUILT_UTC_TICKS_OFFSET..]);
+         string sourceTag = Encoding.ASCII.GetString(buffer.Slice(SOURCE_TAG_OFFSET, SourceTagBytes)).TrimEnd('\0');
 
          return bitCount == 0 || hashFunctions <= 0
             ? throw new InvalidDataException("Bloom filter header has invalid sizing.")
@@ -357,17 +359,17 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          string sourceTag)
       {
          buffer.Clear();
-         _ = Encoding.ASCII.GetBytes(Magic.AsSpan(), buffer);
-         _ = BitConverter.TryWriteBytes(buffer[4..], FormatVersion);
-         _ = BitConverter.TryWriteBytes(buffer[8..], capacity);
-         _ = BitConverter.TryWriteBytes(buffer[16..], bitCount);
-         _ = BitConverter.TryWriteBytes(buffer[24..], hashFunctions);
-         _ = BitConverter.TryWriteBytes(buffer[32..], insertedCount);
-         _ = BitConverter.TryWriteBytes(buffer[40..], builtUtc.ToUniversalTime().Ticks);
+         _ = Encoding.ASCII.GetBytes(Magic.AsSpan(), buffer[MAGIC_OFFSET..]);
+         _ = BitConverter.TryWriteBytes(buffer[VERSION_OFFSET..], FormatVersion);
+         _ = BitConverter.TryWriteBytes(buffer[CAPACITY_OFFSET..], capacity);
+         _ = BitConverter.TryWriteBytes(buffer[BIT_COUNT_OFFSET..], bitCount);
+         _ = BitConverter.TryWriteBytes(buffer[HASH_FUNCTIONS_OFFSET..], hashFunctions);
+         _ = BitConverter.TryWriteBytes(buffer[INSERTED_COUNT_OFFSET..], insertedCount);
+         _ = BitConverter.TryWriteBytes(buffer[BUILT_UTC_TICKS_OFFSET..], builtUtc.ToUniversalTime().Ticks);
 
          byte[] tagBytes = Encoding.ASCII.GetBytes(sourceTag ?? DefaultSourceTag);
          int copy = Math.Min(tagBytes.Length, SourceTagBytes);
-         tagBytes.AsSpan(0, copy).CopyTo(buffer.Slice(48, SourceTagBytes));
+         tagBytes.AsSpan(0, copy).CopyTo(buffer.Slice(SOURCE_TAG_OFFSET, SourceTagBytes));
       }
 
       private readonly record struct Header(
