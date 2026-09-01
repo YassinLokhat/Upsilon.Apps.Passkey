@@ -172,7 +172,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          if (!File.Exists(_mainViewModel.DatabaseFile))
          {
             string filename = AppServices.Cryptography.GetHash(_username_TB.Text);
-            _mainViewModel.DatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{filename}.pku");
+            _mainViewModel.DatabaseFile = Path.GetFullPath($"{Path.Join(AppInfo.AppSettings.DefaultDatabaseDirectory, filename + ".pku")}");
          }
 
          _setBusy(Strings.Msg_OpeningDatabase);

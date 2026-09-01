@@ -167,7 +167,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          else
          {
             string oldFileName = AppServices.Cryptography.GetHash(_database.User.Username);
-            oldDatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{oldFileName}.pku");
+            oldDatabaseFile = Path.GetFullPath($"{Path.Join(AppInfo.AppSettings.DefaultDatabaseDirectory, oldFileName + ".pku")}");
 
             credentialsChanged = _credentialsChanged(oldFileName,
                oldPasskeys: _database.User.Passkeys,
