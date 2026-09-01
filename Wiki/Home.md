@@ -2,7 +2,7 @@
 
 A **local-only** password manager written in C# on **.NET 10**. There is no server, no account, and no synchronization: every secret lives in a single encrypted `.pku` file on the user's device.
 
-Each assembly is versioned independently. At the time of writing they share **1.0.x**, but that is not guaranteed to remain the case. Always upgrade to the latest release of a component before reporting an issue.
+Each assembly is versioned independently. Core, Utils, and the WPF client are at **1.1.x**; `Interfaces` remains on **1.0.x** at the time of writing. This is not guaranteed to remain the case. Always upgrade to the latest release of a component before reporting an issue.
 
 ## What it stores
 
