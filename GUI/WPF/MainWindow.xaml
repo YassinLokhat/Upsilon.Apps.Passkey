@@ -14,77 +14,82 @@
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         Height="140" Width="750">
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="_booleanToVisibility"/>
-    </Window.Resources>
-    <Window.InputBindings>
-        <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenDatabaseCommand}"/>
-        <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewUserCommand}"/>
-        <KeyBinding Key="OemComma" Modifiers="Control" Command="{Binding AppSettingsCommand}"/>
-        <KeyBinding Key="P" Modifiers="Control" Command="{Binding GeneratePasswordCommand}"/>
-    </Window.InputBindings>
-    <StackPanel>
-        <Menu IsEnabled="{Binding MenusEnabled}">
-            <Menu.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <DockPanel HorizontalAlignment="Stretch"/>
-                </ItemsPanelTemplate>
-            </Menu.ItemsPanel>
-            <MenuItem Header="{loc:Loc Menu_OpenDatabase}"
-                      Command="{Binding OpenDatabaseCommand}"
-                      InputGestureText="Ctrl+O"/>
-            <MenuItem Header="{loc:Loc Menu_NewUser}"
-                      Command="{Binding NewUserCommand}"
-                      InputGestureText="Ctrl+N"/>
-            <MenuItem Header="{loc:Loc Menu_AppSettings}"
-                      Command="{Binding AppSettingsCommand}"
-                      InputGestureText="Ctrl+,"/>
-            <MenuItem Header="{loc:Loc Menu_GenerateRandomPassword}"
-                      Command="{Binding GeneratePasswordCommand}"
-                      InputGestureText="Ctrl+P"
-                      HorizontalAlignment="Right"/>
-        </Menu>
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Grid.Row="1"
-                   Grid.Column="0"
-                   Grid.ColumnSpan="2">
-                <TextBlock Text="{Binding DatabaseLabel}"
-                    TextWrapping="Wrap" />
-            </Label>
-            <Label Grid.Row="0"
-                   Grid.Column="0"
-                   MinWidth="70"
-                   Content="{Binding CredentialsLabel}"/>
-            <TextBox Name="_username_TB"
-                     Grid.Row="0"
-                     Grid.Column="1"
-                     Visibility="Visible"
-                     IsEnabled="{Binding MenusEnabled}"/>
-            <PasswordBox Name="_password_PB"
-                         Grid.Row="0"
-                         Grid.Column="1"
-                         Visibility="Collapsed"
-                         IsEnabled="{Binding CanTypePasskey}"/>
-            <StackPanel Grid.Row="2"
-                        Grid.Column="0"
-                        Grid.ColumnSpan="2"
-                        Margin="5,0,5,0"
-                        Visibility="{Binding IsBusy, Converter={StaticResource _booleanToVisibility}}">
-                <TextBlock Text="{Binding BusyMessage}"
-                           TextWrapping="Wrap"/>
-                <ProgressBar IsIndeterminate="True"
-                             Height="6"
-                             Margin="0,3,0,0"/>
-            </StackPanel>
-        </Grid>
-    </StackPanel>
+   <Window.Resources>
+      <BooleanToVisibilityConverter x:Key="_booleanToVisibility"/>
+   </Window.Resources>
+   <Window.InputBindings>
+      <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenDatabaseCommand}"/>
+      <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewUserCommand}"/>
+      <KeyBinding Key="OemComma" Modifiers="Control" Command="{Binding AppSettingsCommand}"/>
+      <KeyBinding Key="P" Modifiers="Control" Command="{Binding GeneratePasswordCommand}"/>
+   </Window.InputBindings>
+   <Grid>
+      <Grid.RowDefinitions>
+         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <Menu Grid.Row="0"
+            IsEnabled="{Binding MenusEnabled}">
+         <Menu.ItemsPanel>
+            <ItemsPanelTemplate>
+               <DockPanel HorizontalAlignment="Stretch"/>
+            </ItemsPanelTemplate>
+         </Menu.ItemsPanel>
+         <MenuItem Header="{loc:Loc Menu_OpenDatabase}"
+                   Command="{Binding OpenDatabaseCommand}"
+                   InputGestureText="Ctrl+O"/>
+         <MenuItem Header="{loc:Loc Menu_NewUser}"
+                   Command="{Binding NewUserCommand}"
+                   InputGestureText="Ctrl+N"/>
+         <MenuItem Header="{loc:Loc Menu_AppSettings}"
+                   Command="{Binding AppSettingsCommand}"
+                   InputGestureText="Ctrl+,"/>
+         <MenuItem Header="{loc:Loc Menu_GenerateRandomPassword}"
+                   Command="{Binding GeneratePasswordCommand}"
+                   InputGestureText="Ctrl+P"
+                   HorizontalAlignment="Right"/>
+      </Menu>
+      <Grid Grid.Row="1">
+         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+         </Grid.RowDefinitions>
+         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+         </Grid.ColumnDefinitions>
+         <Label Grid.Row="1"
+                Grid.Column="0"
+                Grid.ColumnSpan="2">
+            <TextBlock Text="{Binding DatabaseLabel}"
+                       TextWrapping="Wrap"/>
+         </Label>
+         <Label Grid.Row="0"
+                Grid.Column="0"
+                MinWidth="70"
+                Content="{Binding CredentialsLabel}"/>
+         <TextBox Name="_username_TB"
+                  Grid.Row="0"
+                  Grid.Column="1"
+                  Visibility="Visible"
+                  IsEnabled="{Binding MenusEnabled}"/>
+         <PasswordBox Name="_password_PB"
+                      Grid.Row="0"
+                      Grid.Column="1"
+                      Visibility="Collapsed"
+                      IsEnabled="{Binding CanTypePasskey}"/>
+         <StackPanel Grid.Row="2"
+                     Grid.Column="0"
+                     Grid.ColumnSpan="2"
+                     Margin="5,0,5,0"
+                     Visibility="{Binding IsBusy, Converter={StaticResource _booleanToVisibility}}">
+            <TextBlock Text="{Binding BusyMessage}"
+                       TextWrapping="Wrap"/>
+            <ProgressBar IsIndeterminate="True"
+                         Height="6"
+                         Margin="0,3,0,0"/>
+         </StackPanel>
+      </Grid>
+   </Grid>
 </Window>

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -65,7 +66,63 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = ThemeService.GetOptionOrDefault(AppInfo.AppSettings.Theme);
 
+      // --- Application-level offline leak filter (LeakFilterConfig in config.json) ---
+
+      public bool OfflineLeakFilterEnabled
+      {
+         get;
+         set
+         {
+            if (field == value)
+            {
+               return;
+            }
+
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterEnabled)));
+         }
+      }
+
+      public string OfflineLeakFilterStatus
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = Strings.Msg_OfflineLeakStatusUnknown;
+
+      public bool OfflineLeakFilterBusy
+      {
+         get;
+         set
+         {
+            if (field == value)
+            {
+               return;
+            }
+
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBusy)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterIdle)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBuildButtonText)));
+         }
+      }
+
+      public bool OfflineLeakFilterIdle => !OfflineLeakFilterBusy;
+
+      public string OfflineLeakFilterBuildButtonText
+         => OfflineLeakFilterBusy ? Strings.Button_Cancel : Strings.Label_BuildUpdate;
+
+      public string OfflineLeakFilterProgress
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = string.Empty;
+
       public event PropertyChangedEventHandler? PropertyChanged;
+
+      public AppSettingsViewModel()
+      {
+         RefreshOfflineLeakFilterStatus();
+      }
 
       public void OnLanguageChanged()
       {
@@ -74,8 +131,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Languages)));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Themes)));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBuildButtonText)));
          SelectedLanguage = LocalizationService.GetLanguageOrDefault(languageCode);
          SelectedTheme = ThemeService.GetOptionOrDefault(themeCode);
+         RefreshOfflineLeakFilterStatus();
       }
 
       /// <summary>
@@ -103,8 +162,29 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          DefaultDatabaseDirectory = AppInfo.AppSettings.DefaultDatabaseDirectory;
          SelectedLanguage = LocalizationService.GetLanguageOrDefault(AppInfo.AppSettings.Language);
          SelectedTheme = ThemeService.GetOptionOrDefault(AppInfo.AppSettings.Theme);
+         RefreshOfflineLeakFilterStatus();
 
          _ = Save();
+      }
+
+      public void RefreshOfflineLeakFilterStatus()
+      {
+         OfflineLeakFilterEnabled = AppInfo.AppSettings.LeakFilterConfig.Enabled;
+
+         string path = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
+
+         if (!File.Exists(path))
+         {
+            OfflineLeakFilterStatus = Strings.Msg_OfflineLeakFileAbsent;
+            return;
+         }
+
+         FileInfo info = new(path);
+         double sizeGiB = info.Length / (1024d * 1024d * 1024d);
+         string updated = info.LastWriteTimeUtc.ToString(Strings.Activity_DateTimeFormat, CultureInfo.InvariantCulture);
+         OfflineLeakFilterStatus = AppInfo.AppSettings.LeakFilterConfig.Enabled
+            ? Strings.Format(nameof(Strings.Msg_OfflineLeakFilePresent), sizeGiB, updated)
+            : Strings.Format(nameof(Strings.Msg_OfflineLeakFilePresentDisabled), sizeGiB, updated);
       }
    }
 }

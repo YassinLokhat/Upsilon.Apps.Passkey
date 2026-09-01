@@ -1,8 +1,12 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Net.Http;
+using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using Upsilon.Apps.Passkey.Utils;
+using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -12,6 +16,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    internal sealed partial class AppSettingsView : Window
    {
       private readonly AppSettingsViewModel _viewModel;
+      private Action? _cancelOfflineLeakFilterBuild;
 
       public AppSettingsView()
       {
@@ -22,26 +27,221 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
+      protected override void OnClosed(EventArgs e)
+      {
+         _cancelOfflineLeakFilterBuild?.Invoke();
+         _cancelOfflineLeakFilterBuild = null;
+
+         base.OnClosed(e);
+      }
+
       private void _saveMenuItem_Click(object sender, RoutedEventArgs e)
       {
+         if (_viewModel.OfflineLeakFilterBusy)
+         {
+            return;
+         }
+
          _ = _viewModel.Save();
          DialogResult = true;
       }
 
       private void _resetMenuItem_Click(object sender, RoutedEventArgs e)
       {
+         if (_viewModel.OfflineLeakFilterBusy)
+         {
+            return;
+         }
+
          _viewModel.Reset();
          DialogResult = true;
       }
 
       private void _browseButton_Click(object sender, RoutedEventArgs e)
       {
+         if (_viewModel.OfflineLeakFilterBusy)
+         {
+            return;
+         }
+
          string? defaultDatabaseDirectory = AppServices.Dialogs.PickBrowseFolder(Strings.Title_BrowseDatabaseDirectory, _viewModel.DefaultDatabaseDirectory);
 
          if (defaultDatabaseDirectory is not null)
          {
             _viewModel.DefaultDatabaseDirectory = defaultDatabaseDirectory;
          }
+      }
+
+      private void _offlineLeakFilterEnabled_Changed(object sender, RoutedEventArgs e)
+      {
+         if (_viewModel.OfflineLeakFilterBusy)
+         {
+            return;
+         }
+
+         AppInfo.AppSettings.LeakFilterConfig.Enabled = _viewModel.OfflineLeakFilterEnabled;
+
+         if (AppServices.PasswordFactory is PasswordFactory factory)
+         {
+            factory.ReloadLocalFilter(AppInfo.AppSettings.LeakFilterConfig);
+         }
+
+         _viewModel.RefreshOfflineLeakFilterStatus();
+      }
+
+      private async void _offlineLeakFilterBuild_Click(object sender, RoutedEventArgs e)
+      {
+         if (_viewModel.OfflineLeakFilterBusy)
+         {
+            _cancelOfflineLeakFilterBuild?.Invoke();
+            return;
+         }
+
+         // An existing database is refreshed range by range against the ETags of
+         // the last run, never rebuilt: only what changed comes back down.
+         bool update = File.Exists(AppInfo.AppSettings.LeakFilterConfig.FilterPath);
+
+         if (AppServices.Dialogs.Confirm(
+               update ? Strings.Msg_UpdateOfflineLeakDatabase : Strings.Msg_BuildOfflineLeakDatabase,
+               update ? Strings.Title_UpdateOfflineLeakDatabase : Strings.Title_BuildOfflineLeakDatabase)
+            != MessageBoxResult.Yes)
+         {
+            return;
+         }
+
+         using CancellationTokenSource buildCts = new();
+         CancellationToken cancellationToken = buildCts.Token;
+         _cancelOfflineLeakFilterBuild = buildCts.Cancel;
+
+         _viewModel.OfflineLeakFilterBusy = true;
+         _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildStarting;
+
+         // An attached filter maps the .pkbf read-only but shares it read-only too,
+         // which denies the read-write handle an in-place refresh needs. Detaching
+         // for the duration only costs the offline fallback, and only while the
+         // database is being written.
+         if (AppServices.PasswordFactory is PasswordFactory detaching)
+         {
+            detaching.AttachLocalFilter(null);
+         }
+
+         try
+         {
+            Progress<HibpBloomBuildProgress> progress = new(p =>
+            {
+               if (p.Skipped)
+               {
+                  _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildSkipped;
+                  return;
+               }
+
+               double pct = 100.0 * p.CompletedPrefixes / p.TotalPrefixes;
+               _viewModel.OfflineLeakFilterProgress = p.IsRefresh
+                  ? Strings.Format(
+                     nameof(Strings.Msg_OfflineLeakUpdateProgress),
+                     pct,
+                     p.CompletedPrefixes,
+                     p.TotalPrefixes,
+                     p.UnchangedPrefixes,
+                     p.ChangedPrefixes,
+                     _mebibytes(p.DownloadedBytes))
+                  : Strings.Format(
+                     nameof(Strings.Msg_OfflineLeakBuildProgress),
+                     pct,
+                     p.CompletedPrefixes,
+                     p.TotalPrefixes,
+                     p.InsertedHashes);
+            });
+
+            string filterPath = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
+            HibpBloomBuildResult result = await HibpBloomBuilder.RunAsync(
+               filterPath,
+               update ? HibpBloomBuildMode.Update : HibpBloomBuildMode.BuildIfMissing,
+               progress: progress,
+               cancellationToken: cancellationToken).ConfigureAwait(true);
+
+            AppInfo.AppSettings.LeakFilterConfig.Enabled = true;
+            _viewModel.OfflineLeakFilterEnabled = true;
+
+            _viewModel.OfflineLeakFilterProgress = _completionMessage(result);
+         }
+         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+         {
+            _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildCancelled;
+         }
+         // Hours of downloading and writing: a transport, disk or path failure must
+         // surface as a warning instead of tearing down the app.
+         catch (Exception ex)
+            when (ex is ArgumentException
+            or HttpRequestException
+            or IOException
+            or UnauthorizedAccessException)
+         {
+            AppServices.Dialogs.Warn(
+               Strings.Format(nameof(Strings.Msg_OfflineLeakBuildFailed), ex.Message),
+               Strings.Title_BuildFailed);
+            _viewModel.OfflineLeakFilterProgress = Strings.Msg_BuildFailed;
+         }
+         finally
+         {
+            // Reattached whatever the outcome: a failed or cancelled run must not
+            // leave the offline fallback silently detached.
+            if (AppServices.PasswordFactory is PasswordFactory factory)
+            {
+               factory.ReloadLocalFilter(AppInfo.AppSettings.LeakFilterConfig);
+            }
+
+            _viewModel.RefreshOfflineLeakFilterStatus();
+            _cancelOfflineLeakFilterBuild = null;
+            _viewModel.OfflineLeakFilterBusy = false;
+         }
+      }
+
+      private static double _mebibytes(long bytes) => bytes / (1024.0 * 1024.0);
+
+      private static string _completionMessage(HibpBloomBuildResult result)
+      {
+         return result.Skipped
+            ? Strings.Msg_OfflineLeakAlreadyUpToDate
+            : result.IsRefresh
+            ? Strings.Format(
+               nameof(Strings.Msg_OfflineLeakUpdateComplete),
+               result.ChangedPrefixes,
+               result.UnchangedPrefixes,
+               _mebibytes(result.DownloadedBytes))
+            : Strings.Format(nameof(Strings.Msg_OfflineLeakBuildComplete), result.InsertedCount);
+      }
+
+      private void _offlineLeakFilterDelete_Click(object sender, RoutedEventArgs e)
+      {
+         if (_viewModel.OfflineLeakFilterBusy)
+         {
+            return;
+         }
+
+         if (!File.Exists(AppInfo.AppSettings.LeakFilterConfig.FilterPath))
+         {
+            AppServices.Dialogs.Info(Strings.Msg_NoOfflineLeakDatabase, Strings.Title_OfflineLeakDatabase);
+            return;
+         }
+
+         if (AppServices.Dialogs.Confirm(
+               Strings.Msg_DeleteOfflineLeakDatabase,
+               Strings.Title_DeleteOfflineLeakDatabase,
+               MessageBoxButton.YesNo,
+               MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         {
+            return;
+         }
+
+         if (AppServices.PasswordFactory is PasswordFactory factory)
+         {
+            factory.AttachLocalFilter(null);
+         }
+
+         _ = AppInfo.AppSettings.LeakFilterConfig.TryDeleteFilterFile();
+         _viewModel.OfflineLeakFilterProgress = string.Empty;
+         _viewModel.RefreshOfflineLeakFilterStatus();
       }
    }
 }

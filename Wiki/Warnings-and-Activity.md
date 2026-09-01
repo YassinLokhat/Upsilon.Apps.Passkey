@@ -1,6 +1,6 @@
 # Warnings and Activity
 
-The vault computes **warnings** locally (except opt-in leak checks, which call k-anonymity APIs). The **activity log** is an audit trail stored in the `.pku` `activity` entry.
+The vault computes **warnings** locally (except opt-in leak checks, which call k-anonymity APIs and may fall back to a local `.pkbf` Bloom filter). The **activity log** is an audit trail stored in the `.pku` `activity` entry.
 
 ## Warning types (`WarningType` flags)
 
@@ -13,7 +13,7 @@ The vault computes **warnings** locally (except opt-in leak checks, which call k
 
 `ISettings.WarningsToNotify` filters what is surfaced to the user. Subscribe to `IDatabase.WarningsUpdated` (`WarningsUpdatedEventArgs.Warnings`). Each `IWarning` may point at related `IActivity` rows and/or `IAccount`s.
 
-Duplicate and expiry warnings are computed locally. Leak warnings use `IPasswordFactory.PasswordLeakedAsync` (HIBP then XposedOrNot). The UI does **not** surface a separate "could not verify" state: a transient failure is expected to succeed later; a lasting failure means the machine is offline or both providers are down — not actionable for a local-only tool. See [[Security]].
+Duplicate and expiry warnings are computed locally. Leak warnings use `IPasswordFactory.PasswordLeakedAsync` (HIBP → XposedOrNot → optional local `.pkbf` Bloom filter). The UI does **not** surface a separate "could not verify" state: a transient failure is expected to succeed later; a lasting failure without a local filter means the machine is offline or both providers are down — not actionable for a local-only tool. See [[Security]].
 
 ## Activity log (`IActivity`)
 

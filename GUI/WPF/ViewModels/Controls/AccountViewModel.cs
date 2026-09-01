@@ -61,7 +61,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          {
             PasswordViewModel[] passwords = [.. Account.Passwords
                .OrderByDescending(x => x.Key)
-               .Select(x => new PasswordViewModel(x.Key.ToShortDateString(), x.Value))];
+               .Select(x => new PasswordViewModel(x.Key.ToString(Strings.Activity_DateTimeFormat, System.Globalization.CultureInfo.InvariantCulture), x.Value))];
 
             if (passwords.Length != 0
                && string.IsNullOrEmpty(passwords.Last().Password))

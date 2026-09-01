@@ -10,34 +10,34 @@
         SizeToContent="WidthAndHeight"
         MinWidth="320"
         MaxWidth="560">
-    <Grid Margin="16"
-          Background="{DynamicResource BackgroundBrush}">
-       <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid Grid.Row="0"
-              Margin="0,0,0,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock x:Name="_iconText"
-                       Grid.Column="0"
-                       Margin="0,0,12,0"
-                       VerticalAlignment="Center"
-                       FontSize="32"
-                       FontWeight="Bold"
-                       Visibility="Collapsed"/>
-            <TextBlock x:Name="_messageText"
-                       Grid.Column="1"
-                       Foreground="{DynamicResource ForegroundBrush}"
-                       TextWrapping="Wrap"
-                       VerticalAlignment="Center"/>
-        </Grid>
-        <StackPanel x:Name="_buttonsPanel"
-                    Grid.Row="1"
-                    HorizontalAlignment="Right"
-                    Orientation="Horizontal"/>
-    </Grid>
+   <!-- Window Background must be set here: TargetType=Window styles skip subclasses. -->
+   <Grid Margin="16">
+      <Grid.RowDefinitions>
+         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <Grid Grid.Row="0"
+            Margin="0,0,0,16">
+         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+         </Grid.ColumnDefinitions>
+         <TextBlock x:Name="_iconText"
+                    Grid.Column="0"
+                    Margin="0,0,12,0"
+                    VerticalAlignment="Center"
+                    FontSize="32"
+                    FontWeight="Bold"
+                    Visibility="Collapsed"/>
+         <TextBlock x:Name="_messageText"
+                    Grid.Column="1"
+                    Foreground="{DynamicResource ForegroundBrush}"
+                    TextWrapping="Wrap"
+                    VerticalAlignment="Center"/>
+      </Grid>
+      <StackPanel x:Name="_buttonsPanel"
+                  Grid.Row="1"
+                  HorizontalAlignment="Right"
+                  Orientation="Horizontal"/>
+   </Grid>
 </Window>

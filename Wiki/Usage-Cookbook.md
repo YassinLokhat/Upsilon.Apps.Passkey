@@ -136,7 +136,7 @@ database.ClipboardManager.SetText(
 bool leaked = await database.PasswordFactory.PasswordLeakedAsync(candidate);
 ```
 
-This is the only outbound network the application makes. It is k-anonymity (hash prefix only). If both HIBP and XposedOrNot are down, the result is `false` (fail open). See [[Security]].
+This is the only outbound network the application makes (unless both remotes fail and a local Bloom filter answers offline). It is k-anonymity (hash prefix only). Order: HIBP → XposedOrNot → optional `.pkbf` → fail-open. See [[Security]].
 
 ## Dispose / `using`
 

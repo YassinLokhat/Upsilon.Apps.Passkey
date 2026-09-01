@@ -12,56 +12,100 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="190" Width="550">
+        Height="250" Width="700">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
          <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
-      <Menu Grid.Row="0">
+      <Menu Grid.Row="0"
+            IsEnabled="{Binding OfflineLeakFilterIdle}">
          <MenuItem Header="{loc:Loc Menu_Save}"
-                      Click="_saveMenuItem_Click"/>
+                   Click="_saveMenuItem_Click"/>
          <MenuItem Header="{loc:Loc Menu_ResetToDefault}"
-                      Click="_resetMenuItem_Click"/>
+                   Click="_resetMenuItem_Click"/>
       </Menu>
-      <StackPanel Grid.Row="1">
-         <Grid Margin="0,4">
-            <Grid.ColumnDefinitions>
-               <ColumnDefinition Width="Auto"/>
-               <ColumnDefinition Width="*"/>
-               <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+      <ScrollViewer Grid.Row="1"
+                    VerticalScrollBarVisibility="Auto">
+         <StackPanel>
+            <Grid>
+               <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+               </Grid.ColumnDefinitions>
 
-            <Label Grid.Column="0" Margin="0" Content="{loc:Loc Label_DefaultDatabaseDirectory}"/>
-            <TextBox Grid.Column="1"
-                     IsReadOnly="True"
-                     Text="{Binding DefaultDatabaseDirectory}"/>
-            <Button Grid.Column="2"
-                    Content="{loc:Loc Label_Browse}"
-                    Click="_browseButton_Click"/>
-         </Grid>
-         <Grid Margin="0,4">
-            <Grid.ColumnDefinitions>
-               <ColumnDefinition Width="Auto"/>
-               <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Margin="0" Content="{loc:Loc Label_Language}"/>
-            <ComboBox Grid.Column="1"
-                      ItemsSource="{Binding Languages}"
-                      SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
-                      DisplayMemberPath="NativeName"/>
-         </Grid>
-         <Grid Margin="0,4">
-            <Grid.ColumnDefinitions>
-               <ColumnDefinition Width="Auto"/>
-               <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Margin="0" Content="{loc:Loc Label_Theme}"/>
-            <ComboBox Grid.Column="1"
-                      ItemsSource="{Binding Themes}"
-                      SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
-                      DisplayMemberPath="DisplayName"/>
-         </Grid>
-      </StackPanel>
+               <Label Grid.Column="0"
+                      Content="{loc:Loc Label_DefaultDatabaseDirectory}"/>
+               <TextBox Grid.Column="1"
+                        IsReadOnly="True"
+                        Text="{Binding DefaultDatabaseDirectory}"/>
+               <Button Grid.Column="2"
+                       Content="{loc:Loc Label_Browse}"
+                       IsEnabled="{Binding OfflineLeakFilterIdle}"
+                       Click="_browseButton_Click"/>
+            </Grid>
+            <Grid>
+               <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+               </Grid.ColumnDefinitions>
+               <Label Grid.Column="0"
+                      Content="{loc:Loc Label_Language}"/>
+               <ComboBox Grid.Column="1"
+                         ItemsSource="{Binding Languages}"
+                         SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                         DisplayMemberPath="NativeName"
+                         IsEnabled="{Binding OfflineLeakFilterIdle}"/>
+               <Label Grid.Column="2"
+                      Content="{loc:Loc Label_Theme}"/>
+               <ComboBox Grid.Column="3"
+                         ItemsSource="{Binding Themes}"
+                         SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
+                         DisplayMemberPath="DisplayName"
+                         IsEnabled="{Binding OfflineLeakFilterIdle}"/>
+            </Grid>
+            <GroupBox Header="{loc:Loc Label_OfflineLeakDatabase}"
+                      ToolTip="{loc:Loc Tooltip_OfflineLeakDatabase}">
+               <StackPanel>
+                  <Grid>
+                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                     </Grid.ColumnDefinitions>
+
+                     <TextBlock Grid.Column="0"
+                                TextWrapping="Wrap"
+                                Text="{Binding OfflineLeakFilterStatus}"/>
+                     <TextBlock Grid.Column="1"
+                                TextWrapping="Wrap"
+                                Foreground="Gray"
+                                Text="{Binding OfflineLeakFilterProgress}"/>
+                  </Grid>
+                  <CheckBox Content="{loc:Loc Label_UseOfflineBloomFilter}"
+                            IsChecked="{Binding OfflineLeakFilterEnabled}"
+                            IsEnabled="{Binding OfflineLeakFilterIdle}"
+                            Checked="_offlineLeakFilterEnabled_Changed"
+                            Unchecked="_offlineLeakFilterEnabled_Changed"/>
+                  <Grid>
+                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                     </Grid.ColumnDefinitions>
+
+                     <Button Grid.Column="0"
+                             Content="{Binding OfflineLeakFilterBuildButtonText}"
+                             Click="_offlineLeakFilterBuild_Click"/>
+                     <Button Grid.Column="1"
+                             Content="{loc:Loc Label_DeleteOfflineDatabase}"
+                             IsEnabled="{Binding OfflineLeakFilterIdle}"
+                             Click="_offlineLeakFilterDelete_Click"/>
+                  </Grid>
+               </StackPanel>
+            </GroupBox>
+         </StackPanel>
+      </ScrollViewer>
    </Grid>
 </Window>

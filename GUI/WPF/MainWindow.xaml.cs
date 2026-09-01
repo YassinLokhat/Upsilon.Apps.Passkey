@@ -48,22 +48,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          _resetCredentials();
 
-         string[] args = Environment.GetCommandLineArgs();
-         if (args.Length > 1)
-         {
-            try
-            {
-               string databaseFile = Path.GetFullPath(args[1]);
-               if (File.Exists(databaseFile))
-               {
-                  _mainViewModel.DatabaseFile = databaseFile;
-               }
-            }
-            catch (Exception ex) when (ex is ArgumentException or PathTooLongException or NotSupportedException)
-            {
-               Log.Warn($"Ignored invalid database path from command line: {ex.Message}");
-            }
-         }
+         _handleCommandLineArgs();
 
          _username_TB.KeyUp += _credential_TB_KeyUp;
          _password_PB.KeyUp += _credential_TB_KeyUp;
@@ -87,6 +72,34 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _isClosing = true;
          _timer.Stop();
          _endSession();
+      }
+
+      private void _handleCommandLineArgs()
+      {
+         string[] args = Environment.GetCommandLineArgs();
+
+         if (args.Length > 1)
+         {
+            try
+            {
+               string databaseFile = Path.GetFullPath(args[1]);
+               if (File.Exists(databaseFile))
+               {
+                  _mainViewModel.DatabaseFile = databaseFile;
+               }
+            }
+            catch (Exception ex) when (ex is ArgumentException or PathTooLongException or NotSupportedException)
+            {
+               Log.Warn($"Ignored invalid database path from command line: {ex.Message}");
+            }
+         }
+
+         if (args.Length > 2)
+         {
+            _username_TB.Text = args[2];
+            _username_TB.SelectionStart = _username_TB.Text.Length;
+            _username_TB.SelectionLength = 0;
+         }
       }
 
       private void _timer_Elapsed(object? sender, EventArgs e)

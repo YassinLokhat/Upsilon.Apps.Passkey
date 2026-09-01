@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.GUI.WPF.Utils;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 using Upsilon.Apps.Passkey.Utils;
 
@@ -27,6 +28,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
       public static ISerializationCenter Serialization { get; set; } = new JsonSerializationCenter();
 
+      // Parameterless: AppInfo.AppSettings is still the default instance when
+      // this type initializer runs (it is triggered from config deserialize).
+      // AppInfo attaches the real .pkbf after config.json is loaded.
       public static IPasswordFactory PasswordFactory { get; set; } = new PasswordFactory();
 
       public static IClipboardManager Clipboard { get; set; } = new ClipboardManager();
@@ -41,7 +45,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          Navigation = new NavigationService();
          Cryptography = new CryptographyCenter();
          Serialization = new JsonSerializationCenter();
-         PasswordFactory = new PasswordFactory();
+         PasswordFactory = new PasswordFactory(AppInfo.AppSettings.LeakFilterConfig);
          Clipboard = new ClipboardManager();
       }
    }

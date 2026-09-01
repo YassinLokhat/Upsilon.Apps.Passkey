@@ -362,6 +362,9 @@
   <data name="Label_SpecialCharacters" xml:space="preserve">
     <value>Special Characters</value>
   </data>
+  <data name="Label_Alphabet" xml:space="preserve">
+    <value>Alphabet</value>
+  </data>
   <data name="Label_Reviewed" xml:space="preserve">
     <value>Reviewed</value>
   </data>
@@ -900,5 +903,156 @@ Click Cancel to ignore and keep the save file.</value>
   </data>
   <data name="EnumValue_ImportExportError_ExportFileAlreadyExists" xml:space="preserve">
     <value>export file already exists</value>
+  </data>
+  <data name="Label_OfflineLeakDatabase" xml:space="preserve">
+    <value>Offline leak database</value>
+  </data>
+  <data name="Tooltip_OfflineLeakDatabase" xml:space="preserve">
+    <value>Application-wide setting shared by all vault users. Not stored in the .pku vault. Disable keeps the file; only Delete removes it.</value>
+  </data>
+  <data name="Label_UseOfflineBloomFilter" xml:space="preserve">
+    <value>Use offline Bloom filter when HIBP and XposedOrNot are unreachable</value>
+  </data>
+  <data name="Label_BuildUpdate" xml:space="preserve">
+    <value>Build / Update</value>
+  </data>
+  <data name="Label_DeleteOfflineDatabase" xml:space="preserve">
+    <value>Delete offline database</value>
+  </data>
+  <data name="Title_UpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>Update offline leak database</value>
+  </data>
+  <data name="Msg_UpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>An offline leak database already exists. Refresh it from HIBP?
+Every hash range is revalidated and only the ones that changed are downloaded, so this normally takes minutes and a few megabytes.</value>
+  </data>
+  <data name="Title_BuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Build offline leak database</value>
+  </data>
+  <data name="Msg_BuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Download the HIBP password corpus and build a local Bloom filter (~2.4 GiB on disk)?
+The first build downloads the whole corpus (tens of GiB) and can take several hours. It can be interrupted and resumed, and later updates only fetch what changed. The file is shared by all vault users on this machine.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildStarting" xml:space="preserve">
+    <value>Starting…</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildCancelled" xml:space="preserve">
+    <value>Cancelled.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildSkipped" xml:space="preserve">
+    <value>Skipped (file already present).</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildProgress" xml:space="preserve">
+    <value>{0:0.00}% · prefixes {1}/{2} · hashes ≈ {3}</value>
+  </data>
+  <data name="Msg_OfflineLeakUpdateProgress" xml:space="preserve">
+    <value>{0:0.00}% · ranges {1}/{2} · unchanged {3} · refreshed {4} · {5:0.0} MiB</value>
+  </data>
+  <data name="Msg_OfflineLeakAlreadyUpToDate" xml:space="preserve">
+    <value>Already up to date.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildComplete" xml:space="preserve">
+    <value>Build complete ({0} hashes).</value>
+  </data>
+  <data name="Msg_OfflineLeakUpdateComplete" xml:space="preserve">
+    <value>Completed · {0} ranges refreshed · {1} unchanged · {2:0.0} MiB downloaded.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildFailed" xml:space="preserve">
+    <value>Offline leak database build failed:
+{0}</value>
+  </data>
+  <data name="Title_BuildFailed" xml:space="preserve">
+    <value>Build failed</value>
+  </data>
+  <data name="Msg_BuildFailed" xml:space="preserve">
+    <value>Build failed.</value>
+  </data>
+  <data name="Msg_NoOfflineLeakDatabase" xml:space="preserve">
+    <value>No offline leak database file is present.</value>
+  </data>
+  <data name="Title_OfflineLeakDatabase" xml:space="preserve">
+    <value>Offline leak database</value>
+  </data>
+  <data name="Msg_DeleteOfflineLeakDatabase" xml:space="preserve">
+    <value>Permanently delete the shared offline leak database from this machine?
+This affects all vault users. Disabling the option alone does not delete the file.</value>
+  </data>
+  <data name="Title_DeleteOfflineLeakDatabase" xml:space="preserve">
+    <value>Delete offline leak database</value>
+  </data>
+  <data name="Msg_OfflineLeakFileAbsent" xml:space="preserve">
+    <value>Absent file</value>
+  </data>
+  <data name="Msg_OfflineLeakFilePresent" xml:space="preserve">
+    <value>Present · {0:0.00} GiB · Updated {1}</value>
+  </data>
+  <data name="Msg_OfflineLeakFilePresentDisabled" xml:space="preserve">
+    <value>Present on disk · {0:0.00} GiB · Updated {1} · Disabled</value>
+  </data>
+  <data name="Msg_OfflineLeakStatusUnknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Tooltip_AddAccount" xml:space="preserve">
+    <value>Add account</value>
+  </data>
+  <data name="Tooltip_AddIdentifier" xml:space="preserve">
+    <value>Add identifier</value>
+  </data>
+  <data name="Tooltip_AddPassword" xml:space="preserve">
+    <value>Add password</value>
+  </data>
+  <data name="Tooltip_AddService" xml:space="preserve">
+    <value>Add service</value>
+  </data>
+  <data name="Tooltip_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Tooltip_ClearFilters" xml:space="preserve">
+    <value>Clear filters</value>
+  </data>
+  <data name="Tooltip_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Tooltip_CopyIdentifier" xml:space="preserve">
+    <value>Copy identifier</value>
+  </data>
+  <data name="Tooltip_CopyPassword" xml:space="preserve">
+    <value>Copy password</value>
+  </data>
+  <data name="Tooltip_DeleteAccount" xml:space="preserve">
+    <value>Delete account</value>
+  </data>
+  <data name="Tooltip_DeleteIdentifier" xml:space="preserve">
+    <value>Delete identifier</value>
+  </data>
+  <data name="Tooltip_DeletePassword" xml:space="preserve">
+    <value>Delete password</value>
+  </data>
+  <data name="Tooltip_DeleteService" xml:space="preserve">
+    <value>Delete service</value>
+  </data>
+  <data name="Tooltip_GoToItem" xml:space="preserve">
+    <value>Go to item</value>
+  </data>
+  <data name="Tooltip_MoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="Tooltip_MoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="Tooltip_OpenUrl" xml:space="preserve">
+    <value>Open URL</value>
+  </data>
+  <data name="Tooltip_RevealPassword" xml:space="preserve">
+    <value>Show password</value>
+  </data>
+  <data name="Tooltip_ShowQrCodeIdentifier" xml:space="preserve">
+    <value>Show identifier QR code</value>
+  </data>
+  <data name="Tooltip_ShowQrCodePassword" xml:space="preserve">
+    <value>Show password QR code</value>
+  </data>
+  <data name="Tooltip_ViewActivities" xml:space="preserve">
+    <value>View activities</value>
   </data>
 </root>

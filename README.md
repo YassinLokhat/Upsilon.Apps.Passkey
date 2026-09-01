@@ -6,7 +6,7 @@
 
 A local-only password manager written in C# on **.NET 10**. There is no server,
 no account, and no synchronization: every secret lives in a single encrypted
-`.pku` file on the user's device. Version **1.0.0** (each assembly is versioned
+`.pku` file on the user's device. Version **1.1.0** (each assembly is versioned
 independently; see [SECURITY.md](SECURITY.md)).
 
 **Features**
@@ -18,7 +18,7 @@ independently; see [SECURITY.md](SECURITY.md)).
 *   **Warnings**: password-update reminders, duplicates, leaks, and activity review
 *   **Autosave**: unsaved edits are kept in the `.pku` ZIP and merged on the next login
 *   **Password generation**: CSPRNG over a configurable alphabet
-*   **Leak detection**: opt-in Have I Been Pwned checks, with a free XposedOrNot failover (k-anonymity; see [SECURITY.md](SECURITY.md))
+*   **Leak detection**: opt-in Have I Been Pwned checks, then XposedOrNot failover, then an optional local HIBP Bloom filter (k-anonymity / offline; see [SECURITY.md](SECURITY.md))
 *   **Import / Export**: plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited)
 *   **WPF client** (Windows): System / Light / Dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
 
@@ -29,7 +29,7 @@ Four layers, two solution files:
 
 ```
 Interfaces/     Public contracts (IDatabase, IUser, crypto, clipboard, …)
-Utils/          Default crypto, JSON, password factory, ProtectedSecret. Zero NuGet (BCL only).
+Utils/          Default crypto, JSON, password factory, ProtectedSecret, LeakFilter (.pkbf). Zero NuGet (BCL only).
 Core/           Vault implementation. Zero NuGet packages (BCL only).
 GUI/WPF/        Windows desktop client (MVVM + a small AppServices locator).
 UnitTests/      Core/Utils tests + ViewModel tests (Windows TFM; references the WPF project).
@@ -42,7 +42,8 @@ UnitTests/      Core/Utils tests + ViewModel tests (Windows TFM; references the 
 
 Core talks to the OS for clipboard only through an injected port
 (`IClipboardManager` must be OS-specific). File I/O uses the BCL in Core.
-Opt-in HTTP leak checks live in Utils (`PasswordFactory`). The WPF app supplies
+Opt-in HTTP leak checks and the optional offline HIBP Bloom filter live in Utils
+(`PasswordFactory`, `Utils/LeakFilter/`). The WPF app supplies
 the clipboard implementation and hosts dialogs, session, and navigation behind
 `AppServices` so ViewModels stay testable without a window.
 
@@ -495,7 +496,47 @@ Two things to keep in mind:
 `IPasswordFactory` follows the same pattern with `GeneratePasswordAsync` and
 `PasswordLeakedAsync`. Those two are genuinely asynchronous rather than merely
 offloaded: they await the leak-check providers (Have I Been Pwned first, then
-XposedOrNot if HIBP is unreachable) instead of blocking a thread on the network.
+XposedOrNot if HIBP is unreachable, then an optional local Bloom filter if both
+remote providers fail) instead of blocking a thread on the network.
+
+**Offline leak database (optional)**
+------------------------------------
+
+When HIBP and XposedOrNot are both unreachable, Passkey can fall back to a
+local Bloom filter built from the HIBP SHA-1 corpus:
+
+*   File: `<exe>/pwned-sha1.pkbf` (~2.4 GiB for the default sizing), or any location set through `FilterPath`
+*   Sidecar: `<filter>.pkbf.ranges` (~32 MiB), one fixed-width record per hash-range prefix holding the `ETag` already folded into the filter
+*   Config: `LeakFilterConfig` (`Enabled` / `FilterPath`) in the WPF host's `config.json` — **application-level**, shared by all vault users (not stored in the `.pku`)
+*   Order: HIBP → XposedOrNot → Bloom (if enabled and present) → fail-open
+*   Disable never deletes the file; only **Delete offline database** in **App Settings** (or deleting the `.pkbf` manually) removes it — the sidecar goes with it
+*   Build / update / enable / delete from **App Settings** (`Ctrl+,`, section **Offline leak database**), or from your own host through `HibpBloomBuilder.RunAsync`
+
+A full build downloads every HIBP range (~1 048 576 prefixes) and can take several
+hours. That is tens of GiB over the wire — brotli/gzip roughly halves the ~78 GB
+of raw hex — so the build checkpoints every 4 096 prefixes into the `.building`
+pair: an interrupted run resumes from the last checkpoint instead of restarting
+the corpus.
+
+An update never rebuilds. `HibpBloomBuildMode.Update` replays every range with
+`If-None-Match` against the sidecar's ETags — unchanged ranges answer `304` with
+no body — and folds only the changed ones into the existing bit array. This works
+because Bloom filters are closed under union and the HIBP corpus only ever grows,
+so inserting into the filter already on disk is equivalent to rebuilding it from
+the whole corpus. A refresh is therefore dominated by round trips rather than
+bytes: every prefix is revalidated, but only a few tens of MiB come down.
+
+Two invariants keep that shortcut safe:
+
+*   A checkpoint snapshots the pending entries, *then* flushes the filter, *then*
+    persists the entries. An interruption can only leave the sidecar behind the
+    filter, never ahead of it.
+*   The sidecar records the `(InsertedCount, BuiltUtc)` stamp of the filter header
+    it was written against. A filter that was rebuilt, restored or replaced no
+    longer matches, and the sidecar is then rejected: skipping ranges whose bits
+    are absent would mean reporting a leaked password as clean.
+
+A rejected sidecar costs a full re-download, never a rebuild.
 
 **WPF client (Windows)**
 ------------------------
@@ -505,15 +546,20 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 
 *   **Localization**: English + French; app default in `config.json` is `System` (follow OS UI language when a satellite ships), per-user override in User settings. Activity and enum labels are localized at display time (`ActivityViewModel`, `EnumDisplayHelper`).
 *   **Import / export UI**: User settings menu — Import (`.json` / `.csv`, comma- or tab-delimited) and Export → JSON / CSV (tab-separated). Success and failure dialogs are generic; the localized reason appears in the Activities grid.
-*   **Vault files**: new users are stored next to the executable as
-    `raw/{GetHash(username)}.pku`. `Ctrl+O` opens an existing `.pku`; a path can
-    also be passed as the first command-line argument.
+*   **Vault files**: new users go under **App Settings → Default database directory**
+    (`DefaultDatabaseDirectory`, default `<exe>/raw`) as `{GetHash(username)}.pku`,
+    or another path chosen in the save dialog. Opening by username alone still
+    resolves `<exe>/raw/{hash}.pku` (it does not read that setting) — prefer
+    `Ctrl+O` or a command-line path when the vault is elsewhere.
 *   **Login**: username, then each passkey in order. Escape cancels and closes
     the half-open session (required: there is no passkey rollback).
-*   **Shortcuts**: `Ctrl+O` open, `Ctrl+N` new user, `Ctrl+P` password generator.
-    While the services window is open, **Ctrl+Shift+L** pastes the selected
-    identifier and **Ctrl+Shift+P** pastes the selected password into the
-    focused field (copy + synthetic Ctrl+V; clipboard still auto-clears).
+*   **Shortcuts**: `Ctrl+O` open, `Ctrl+N` new user, `Ctrl+,` App Settings,
+    `Ctrl+P` password generator. While the services window is open,
+    **Ctrl+Shift+L** pastes the selected identifier and **Ctrl+Shift+P** pastes
+    the selected password into the focused field (copy + synthetic Ctrl+V;
+    clipboard still auto-clears).
+*   **Offline leak database**: App Settings can build / update / enable / delete
+    the local `.pkbf` Bloom filter (see Offline leak database above).
 *   **QR codes**: identifiers and passwords can be shown as a QR matrix generated
     in-process (`Core/Utils/QrCode.cs`, no network). The window closes after
     `ISettings.ShowPasswordDelay` milliseconds when that setting is non-zero.

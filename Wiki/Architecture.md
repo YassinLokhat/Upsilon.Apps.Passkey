@@ -1,13 +1,13 @@
 # Architecture
 
-Upsilon.Apps.Passkey is four layers and two solution files. The only **OS-specific** dependency the host must supply is `IClipboardManager`. File I/O lives in Core (BCL). Opt-in HTTP leak checks live in Utils (`PasswordFactory`). Those are not injected ports.
+Upsilon.Apps.Passkey is four layers and two solution files. The only **OS-specific** dependency the host must supply is `IClipboardManager`. File I/O lives in Core (BCL). Opt-in HTTP leak checks and the optional offline HIBP Bloom filter live in Utils (`PasswordFactory`, `Utils/LeakFilter/`). Those are not injected ports.
 
 ## Repository layout
 
 | Path | Role |
 | ---- | ---- |
 | `Interfaces/` | Public contracts (`IDatabase`, `IUser`, crypto, serialization, clipboard). |
-| `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `ProtectedSecret`. **Zero NuGet packages** (BCL only). |
+| `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `ProtectedSecret`, and `LeakFilter/` (`.pkbf` Bloom file, builder, config). **Zero NuGet packages** (BCL only). |
 | `Core/` | Vault implementation: onion encryption, `.pku` I/O, warnings, import/export. **Zero NuGet packages** (BCL only). Vault-internal helpers stay under `Core/Utils/` (`QrCode`, file lock, activity, import/export). |
 | `GUI/WPF/` | Windows desktop client (MVVM + a small `AppServices` locator). |
 | `UnitTests/` | Core/Utils tests plus ViewModel tests through the `AppServices` seam. |
@@ -121,6 +121,9 @@ classDiagram
             +string Notes
             +IEnumerable~IAccount~ Accounts
             +AddAccount(in label string, in identifiers IEnumerable~string~, in password string) IAccount
+            +AddAccount(in label string, in identifiers IEnumerable~string~) IAccount
+            +AddAccount(in identifiers IEnumerable~string~, in password string) IAccount
+            +AddAccount(in identifiers IEnumerable~string~) IAccount
             +DeleteAccount(in account IAccount) void
         }
 

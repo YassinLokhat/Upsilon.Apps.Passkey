@@ -11,14 +11,15 @@ protects data and how to report a problem.
 Each component is versioned **independently** and may evolve at its own pace.
 Security fixes are applied to the latest released version of each component only,
 so please always upgrade to the most recent release before reporting an issue.
-The components happen to share version 1.0.x at the time of writing, but this is
-not guaranteed to remain the case.
+The main shippable components (Core, Utils, WPF) share version 1.1.x at the time
+of writing; other assemblies are versioned independently and may differ (e.g.
+`Interfaces` at 1.0.x). This is not guaranteed to remain the case.
 
 | Component (assembly)                  | Supported version | Supported          |
 | ------------------------------------- | ----------------- | ------------------ |
-| `Upsilon.Apps.Passkey.GUI.WPF` (app)  | 1.0.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Core`           | 1.0.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Utils`          | 1.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.GUI.WPF` (app)  | 1.1.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Core`           | 1.1.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Utils`          | 1.1.x             | :white_check_mark: |
 | `Upsilon.Apps.Passkey.Interfaces`     | 1.0.x             | :white_check_mark: |
 
 Any version older than the latest release of a given component is not supported.
@@ -278,24 +279,35 @@ login:
   against the HIBP corpus and then gives up (returns empty) rather than hammering
   the remote service.
 - **Leak detection** uses two free, no-account **k-anonymity** providers in
-  order. Primary: the Have I Been Pwned range API (`api.pwnedpasswords.com`) —
-  only the first 5 characters of the SHA-1 hash are sent. Failover: XposedOrNot's
-  anonymous password API (`passwords.xposedornot.com`) — only the first 10
-  characters of a Keccak-512 hash are sent (raw Keccak, not NIST SHA-3). The
-  password itself never leaves the device. These are the **only** outbound
-  network calls the application makes; the feature is opt-in per account. If
-  HIBP answers definitively, XON is not contacted. If **both** are unreachable,
-  the check **fails open** (reports "not leaked") so a network problem never
-  blocks the user. Failed checks are **not** cached: only successful answers are
-  kept in process (HIBP ranges by 5-character prefix, XON yes/no by 10-character
-  prefix; both bounded, never persisted), so the next generation retry, warning
-  scan, or session can ask again. Requests time out after a few seconds. The GUI
-  and the warning scan use the asynchronous API so the UI thread is not blocked
-  while waiting on the network. The UI does **not** surface a separate "could not
-  verify" state: a transient failure is expected to succeed on a later attempt,
-  and a lasting failure means the machine is offline or both providers are down —
-  cases where nagging the user that a check did not run is not actionable for a
-  local-only tool.
+  order, then an optional machine-local Bloom filter. Primary: the Have I Been
+  Pwned range API (`api.pwnedpasswords.com`) — only the first 5 characters of the
+  SHA-1 hash are sent. Failover: XposedOrNot's anonymous password API
+  (`passwords.xposedornot.com`) — only the first 10 characters of a Keccak-512
+  hash are sent (raw Keccak, not NIST SHA-3). The password itself never leaves
+  the device. If **both** remote providers are unreachable and an offline HIBP
+  Bloom filter (`.pkbf`) is enabled and present, that filter is consulted last:
+  a **miss** means not leaked (no false negatives); a **hit** is treated as
+  leaked (conservative — ~1 % false positives possible). The default file is
+  `<exe>/pwned-sha1.pkbf` (configurable via `LeakFilterConfig.FilterPath` in the
+  WPF host's `config.json`); a sidecar `<filter>.pkbf.ranges` holds per-range
+  ETags for incremental updates. If no offline filter is attached, the check
+  **fails open** (reports "not leaked") so a network problem never blocks the
+  user. These remote calls are the **only** outbound network traffic; the
+  feature is opt-in per account. Failed remote checks are **not** cached: only
+  successful answers are kept in process (HIBP ranges by 5-character prefix,
+  XON yes/no by 10-character prefix; both bounded, never persisted). Requests
+  time out after a few seconds. The GUI and the warning scan use the
+  asynchronous API so the UI thread is not blocked while waiting on the
+  network. The UI does **not** surface a separate "could not verify" state: a
+  transient failure is expected to succeed on a later attempt, and a lasting
+  failure without a local filter means the machine is offline or both providers
+  are down — cases where nagging the user that a check did not run is not
+  actionable for a local-only tool. The offline filter is
+  **application-scoped** (shared by all vaults on the machine): enabling or
+  disabling it never deletes the `.pkbf`; only an explicit delete (App Settings
+  or `LeakFilterConfig.TryDeleteFilterFile`) removes it, along with its
+  sidecar. Application logs still live under `%LocalAppData%\Passkey\logs`
+  — that path is unrelated to the Bloom filter.
 - **Duplicate-password** and **password-expiry** warnings are computed locally.
 
 ## Known Limitations
@@ -328,14 +340,30 @@ These are conscious trade-offs, documented for transparency:
   export writes tab-separated rows. `.json` also carries user settings.
   Users are responsible for protecting or deleting these files.
 - **Leak check fails open**: if both Have I Been Pwned and XposedOrNot are
-  unreachable (timeout, HTTP error, offline host), the check reports "not leaked"
-  and the UI stays quiet. Failures are not cached, so a later successful reach of
-  either API can still raise a leak warning. The residual risk is a **prolonged**
-  outage of *both* providers during which a password that *is* in a breach corpus
-  remains unmarked until a check finally completes; that is accepted rather than
-  adding an "unknown / unverified" UI state that the user cannot usefully act on
-  while offline. The two corpora are not identical, so a password known only to
-  one provider may be missed when that provider is the one that is down.
+  unreachable (timeout, HTTP error, offline host) **and** no offline Bloom
+  filter is attached (the `.pkbf` is absent, or disabled through
+  `LeakFilterConfig` in the WPF host's `config.json`),
+  the check reports "not leaked" and the UI stays quiet. Failures are not
+  cached, so a later successful reach of either API can still raise a leak
+  warning. When an offline filter *is* attached, a Bloom **miss** is definitive
+  "not leaked"; a Bloom **hit** is treated as leaked and may include ~1 % false
+  positives (no false negatives). The residual risk without a local filter is a
+  **prolonged** outage of *both* providers during which a password that *is* in
+  a breach corpus remains unmarked until a check finally completes; that is
+  accepted rather than adding an "unknown / unverified" UI state that the user
+  cannot usefully act on while offline. The two remote corpora are not
+  identical, so a password known only to one provider may be missed when that
+  provider is the one that is down.
+- **Offline Bloom filter size / freshness**: building the full HIBP-derived
+  `.pkbf` downloads every range (~1M prefixes), takes hours, and yields a file
+  on the order of ~2.4 GiB. It is a snapshot: new breaches appear in the live
+  APIs first; update when you want the local file to catch up. An update is
+  incremental — every range is revalidated with `If-None-Match` against the ETags
+  in the `.pkbf.ranges` sidecar and only changed ranges are downloaded and folded
+  in — so freshness costs minutes rather than another full build. The sidecar is
+  a cache, never a source of truth: it is bound to one committed state of one
+  filter file and is rejected whenever that no longer matches, because skipping a
+  range whose bits are absent would mean reporting a leaked password as clean.
 - **Unsealed activity-log tail**: the activity log is tamper-evident only for the
   portion sealed at the last login (see "Activity-log integrity"). Entries added
   since then — including events written while no one is logged in, such as failed

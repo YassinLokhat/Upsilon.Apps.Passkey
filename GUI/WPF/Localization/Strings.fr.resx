@@ -362,6 +362,9 @@
   <data name="Label_SpecialCharacters" xml:space="preserve">
     <value>Caractères spéciaux</value>
   </data>
+  <data name="Label_Alphabet" xml:space="preserve">
+    <value>Alphabet</value>
+  </data>
   <data name="Label_Reviewed" xml:space="preserve">
     <value>Revu</value>
   </data>
@@ -900,5 +903,156 @@ Annuler : ignorer et conserver le fichier.</value>
   </data>
   <data name="EnumValue_ImportExportError_ExportFileAlreadyExists" xml:space="preserve">
     <value>le fichier d'export existe déjà</value>
+  </data>
+  <data name="Label_OfflineLeakDatabase" xml:space="preserve">
+    <value>Base de fuites hors ligne</value>
+  </data>
+  <data name="Tooltip_OfflineLeakDatabase" xml:space="preserve">
+    <value>Paramètre partagé par tous les utilisateurs du coffre. Non stocké dans le coffre .pku. Désactiver conserve le fichier ; seul Supprimer l'enlève.</value>
+  </data>
+  <data name="Label_UseOfflineBloomFilter" xml:space="preserve">
+    <value>Utiliser le filtre de Bloom hors ligne lorsque HIBP et XposedOrNot sont inaccessibles</value>
+  </data>
+  <data name="Label_BuildUpdate" xml:space="preserve">
+    <value>Construire / Mettre à jour</value>
+  </data>
+  <data name="Label_DeleteOfflineDatabase" xml:space="preserve">
+    <value>Supprimer la base hors ligne</value>
+  </data>
+  <data name="Title_UpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>Mettre à jour la base de fuites hors ligne</value>
+  </data>
+  <data name="Msg_UpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>Une base de fuites hors ligne existe déjà. La rafraîchir depuis HIBP ?
+Chaque plage de hachages est revalidée et seules celles qui ont changé sont téléchargées : cela prend normalement quelques minutes et quelques mégaoctets.</value>
+  </data>
+  <data name="Title_BuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Construire la base de fuites hors ligne</value>
+  </data>
+  <data name="Msg_BuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Télécharger le corpus de mots de passe HIBP et construire un filtre de Bloom local (~2,4 Gio sur le disque) ?
+La construction initiale télécharge tout le corpus (plusieurs dizaines de Gio) et peut prendre plusieurs heures. Elle peut être interrompue puis reprise, et les mises à jour suivantes ne récupèrent que ce qui a changé. Le fichier est partagé par tous les utilisateurs du coffre sur cette machine.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildStarting" xml:space="preserve">
+    <value>Démarrage…</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildCancelled" xml:space="preserve">
+    <value>Annulé.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildSkipped" xml:space="preserve">
+    <value>Ignoré (fichier déjà présent).</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildProgress" xml:space="preserve">
+    <value>{0:0.00} % · préfixes {1}/{2} · hachages ≈ {3}</value>
+  </data>
+  <data name="Msg_OfflineLeakUpdateProgress" xml:space="preserve">
+    <value>{0:0.00} % · plages {1}/{2} · inchangées {3} · rafraîchies {4} · {5:0.0} Mio</value>
+  </data>
+  <data name="Msg_OfflineLeakAlreadyUpToDate" xml:space="preserve">
+    <value>Déjà à jour.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildComplete" xml:space="preserve">
+    <value>Construction terminée ({0} hachages).</value>
+  </data>
+  <data name="Msg_OfflineLeakUpdateComplete" xml:space="preserve">
+    <value>Terminé · {0} plages rafraîchies · {1} inchangées · {2:0.0} Mio téléchargés.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildFailed" xml:space="preserve">
+    <value>Échec de la construction de la base de fuites hors ligne :
+{0}</value>
+  </data>
+  <data name="Title_BuildFailed" xml:space="preserve">
+    <value>Échec de la construction</value>
+  </data>
+  <data name="Msg_BuildFailed" xml:space="preserve">
+    <value>Échec de la construction.</value>
+  </data>
+  <data name="Msg_NoOfflineLeakDatabase" xml:space="preserve">
+    <value>Aucun fichier de base de fuites hors ligne n'est présent.</value>
+  </data>
+  <data name="Title_OfflineLeakDatabase" xml:space="preserve">
+    <value>Base de fuites hors ligne</value>
+  </data>
+  <data name="Msg_DeleteOfflineLeakDatabase" xml:space="preserve">
+    <value>Supprimer définitivement la base de fuites hors ligne partagée de cette machine ?
+Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime pas le fichier.</value>
+  </data>
+  <data name="Title_DeleteOfflineLeakDatabase" xml:space="preserve">
+    <value>Supprimer la base de fuites hors ligne</value>
+  </data>
+  <data name="Msg_OfflineLeakFileAbsent" xml:space="preserve">
+    <value>Fichier absent</value>
+  </data>
+  <data name="Msg_OfflineLeakFilePresent" xml:space="preserve">
+    <value>Présent · {0:0.00} Gio · Mis à jour {1}</value>
+  </data>
+  <data name="Msg_OfflineLeakFilePresentDisabled" xml:space="preserve">
+    <value>Présent sur le disque · {0:0.00} Gio · Mis à jour {1} · Désactivé</value>
+  </data>
+  <data name="Msg_OfflineLeakStatusUnknown" xml:space="preserve">
+    <value>Inconnu</value>
+  </data>
+  <data name="Tooltip_AddAccount" xml:space="preserve">
+    <value>Ajouter un compte</value>
+  </data>
+  <data name="Tooltip_AddIdentifier" xml:space="preserve">
+    <value>Ajouter un identifiant</value>
+  </data>
+  <data name="Tooltip_AddPassword" xml:space="preserve">
+    <value>Ajouter un mot de passe</value>
+  </data>
+  <data name="Tooltip_AddService" xml:space="preserve">
+    <value>Ajouter un service</value>
+  </data>
+  <data name="Tooltip_Clear" xml:space="preserve">
+    <value>Effacer</value>
+  </data>
+  <data name="Tooltip_ClearFilters" xml:space="preserve">
+    <value>Effacer les filtres</value>
+  </data>
+  <data name="Tooltip_Copy" xml:space="preserve">
+    <value>Copier</value>
+  </data>
+  <data name="Tooltip_CopyIdentifier" xml:space="preserve">
+    <value>Copier l'identifiant</value>
+  </data>
+  <data name="Tooltip_CopyPassword" xml:space="preserve">
+    <value>Copier le mot de passe</value>
+  </data>
+  <data name="Tooltip_DeleteAccount" xml:space="preserve">
+    <value>Supprimer le compte</value>
+  </data>
+  <data name="Tooltip_DeleteIdentifier" xml:space="preserve">
+    <value>Supprimer l'identifiant</value>
+  </data>
+  <data name="Tooltip_DeletePassword" xml:space="preserve">
+    <value>Supprimer le mot de passe</value>
+  </data>
+  <data name="Tooltip_DeleteService" xml:space="preserve">
+    <value>Supprimer le service</value>
+  </data>
+  <data name="Tooltip_GoToItem" xml:space="preserve">
+    <value>Aller à l'élément</value>
+  </data>
+  <data name="Tooltip_MoveDown" xml:space="preserve">
+    <value>Descendre</value>
+  </data>
+  <data name="Tooltip_MoveUp" xml:space="preserve">
+    <value>Monter</value>
+  </data>
+  <data name="Tooltip_OpenUrl" xml:space="preserve">
+    <value>Ouvrir l'URL</value>
+  </data>
+  <data name="Tooltip_RevealPassword" xml:space="preserve">
+    <value>Afficher le mot de passe</value>
+  </data>
+  <data name="Tooltip_ShowQrCodeIdentifier" xml:space="preserve">
+    <value>Afficher le QR code de l'identifiant</value>
+  </data>
+  <data name="Tooltip_ShowQrCodePassword" xml:space="preserve">
+    <value>Afficher le QR code du mot de passe</value>
+  </data>
+  <data name="Tooltip_ViewActivities" xml:space="preserve">
+    <value>Voir les activités</value>
   </data>
 </root>

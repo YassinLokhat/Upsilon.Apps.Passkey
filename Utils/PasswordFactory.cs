@@ -3,11 +3,13 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.Utils
 {
    /// <summary>
-   /// CSPRNG password generation and opt-in leak checks (HIBP, then XposedOrNot).
+   /// CSPRNG password generation and opt-in leak checks (HIBP, then XposedOrNot,
+   /// then an optional offline Bloom filter).
    /// Network failures fail open: "not leaked", never cached.
    /// </summary>
    public class PasswordFactory : IPasswordFactory
@@ -38,6 +40,7 @@ namespace Upsilon.Apps.Passkey.Utils
 
       private readonly Func<HttpRequestMessage, CancellationToken, HttpResponseMessage> _send;
       private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> _sendAsync;
+      private ILocalLeakFilter? _localFilter;
 
       // HIBP k-anonymity ranges are keyed by the first five hex chars of the
       // SHA-1 hash. Caching the parsed suffix set means a second check for the
@@ -55,18 +58,76 @@ namespace Upsilon.Apps.Passkey.Utils
          : this(
             static (request, cancellationToken) => _sharedHttpClient.Send(request, cancellationToken),
             static (request, cancellationToken) => _sharedHttpClient.SendAsync(request, cancellationToken))
+      { }
+
+      public PasswordFactory(LeakFilterConfig config)
+         : this(
+            static (request, cancellationToken) => _sharedHttpClient.Send(request, cancellationToken),
+            static (request, cancellationToken) => _sharedHttpClient.SendAsync(request, cancellationToken))
       {
+         ReloadLocalFilter(config);
       }
 
       /// <summary>
       /// Test seam: drives leak checks through custom send delegates (no real network).
+      /// Does not auto-load the machine-level filter.
       /// </summary>
       internal PasswordFactory(
          Func<HttpRequestMessage, CancellationToken, HttpResponseMessage> send,
-         Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync)
+         Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync,
+         ILocalLeakFilter? localFilter = null)
       {
          _send = send ?? throw new ArgumentNullException(nameof(send));
          _sendAsync = sendAsync ?? throw new ArgumentNullException(nameof(sendAsync));
+         _localFilter = localFilter;
+      }
+
+      /// <summary>
+      /// Whether an offline Bloom filter is currently attached for post-network fallback.
+      /// </summary>
+      public bool HasLocalFilter => _localFilter is not null;
+
+      /// <summary>
+      /// Replaces the offline filter. Pass <see langword="null"/> to detach without
+      /// deleting the on-disk <c>.pkbf</c>.
+      /// </summary>
+      public void AttachLocalFilter(ILocalLeakFilter? filter)
+      {
+         if (ReferenceEquals(_localFilter, filter))
+         {
+            return;
+         }
+
+         _localFilter?.Dispose();
+         _localFilter = filter;
+      }
+
+      /// <summary>
+      /// Loads the filter configured in <paramref name="config"/> when enabled and present.
+      /// </summary>
+      public void ReloadLocalFilter(LeakFilterConfig config)
+      {
+         if (config is null)
+         {
+            return;
+         }
+
+         // The newly opened filter goes straight into the field, so no local ever
+         // owns it: the only filter disposed here is the one being replaced, and
+         // that happens after the re-open outcome is known.
+         ILocalLeakFilter? replaced = _localFilter;
+         _localFilter = config.TryOpenConfiguredFilter();
+
+         // A failed re-open (file still mapped by the current instance) must
+         // not tear down a working filter — that would make every later
+         // _tryLocalBloom return null and fail open.
+         if (_localFilter is null && replaced is not null && config.Enabled && File.Exists(config.FilterPath))
+         {
+            _localFilter = replaced;
+            return;
+         }
+
+         replaced?.Dispose();
       }
 
       public string Alphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -114,6 +175,12 @@ namespace Upsilon.Apps.Passkey.Utils
             {
                return xon.Value;
             }
+
+            bool? bloom = _tryLocalBloom(password);
+            if (bloom.HasValue)
+            {
+               return bloom.Value;
+            }
          }
          catch (OperationCanceledException ex)
          {
@@ -138,6 +205,12 @@ namespace Upsilon.Apps.Passkey.Utils
             {
                return xon.Value;
             }
+
+            bool? bloom = _tryLocalBloom(password);
+            if (bloom.HasValue)
+            {
+               return bloom.Value;
+            }
          }
          // An explicit cancellation is the caller's decision and must surface as
          // such; the client's own timeout also lands here as an
@@ -149,6 +222,27 @@ namespace Upsilon.Apps.Passkey.Utils
          }
 
          return _failOpen(null);
+      }
+
+      /// <summary>
+      /// Offline Bloom fallback after HIBP and XON failed. Miss = not leaked;
+      /// hit = leaked (conservative; false positives possible). Returns
+      /// <see langword="null"/> when no filter is attached.
+      /// </summary>
+      private bool? _tryLocalBloom(string password)
+      {
+         ILocalLeakFilter? filter = _localFilter;
+         if (filter is null)
+         {
+            return null;
+         }
+
+         bool hit = filter.MightContain(_sha1(password));
+         System.Diagnostics.Trace.TraceWarning(
+            hit
+               ? "Password leak check: HIBP and XposedOrNot unreachable; offline Bloom reported a possible hit (treated as leaked)."
+               : "Password leak check: HIBP and XposedOrNot unreachable; offline Bloom miss (not leaked).");
+         return hit;
       }
 
       /// <summary>
@@ -184,7 +278,8 @@ namespace Upsilon.Apps.Passkey.Utils
          }
          catch (Exception ex)
             when (ex is OutOfMemoryException
-            or IOException)
+            or IOException
+            or HttpRequestException)
          {
             System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
             return null;
@@ -221,6 +316,14 @@ namespace Upsilon.Apps.Passkey.Utils
          {
             throw;
          }
+         catch (Exception ex)
+            when (ex is HttpRequestException
+            or IOException
+            or OperationCanceledException)
+         {
+            System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
+            return null;
+         }
       }
 
       /// <summary>
@@ -244,7 +347,11 @@ namespace Upsilon.Apps.Passkey.Utils
             using HttpResponseMessage response = _send(request, CancellationToken.None);
             return _interpretXonResponse(prefix, response);
          }
-         catch (OperationCanceledException ex)
+         catch (Exception ex)
+            when (ex is OutOfMemoryException
+            or IOException
+            or OperationCanceledException
+            or HttpRequestException)
          {
             System.Diagnostics.Trace.TraceWarning($"XposedOrNot leak check failed: {ex}");
             return null;
@@ -270,6 +377,14 @@ namespace Upsilon.Apps.Passkey.Utils
          catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
          {
             throw;
+         }
+         catch (Exception ex)
+            when (ex is HttpRequestException
+            or IOException
+            or OperationCanceledException)
+         {
+            System.Diagnostics.Trace.TraceWarning($"XposedOrNot leak check failed ({ex.GetType().Name}); trying local bloom.");
+            return null;
          }
       }
 
@@ -318,12 +433,15 @@ namespace Upsilon.Apps.Passkey.Utils
          }
       }
 
-      private static string _sha1Hex(string password)
+      private static byte[] _sha1(string password)
       {
-#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms : pwnedpasswords.com's API needs the use of SHA1 algorithm
-         return Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(password)));
+#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms : pwnedpasswords.com's API and the offline filter both index SHA-1 digests
+         return SHA1.HashData(Encoding.UTF8.GetBytes(password));
 #pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
       }
+
+      private static string _sha1Hex(string password)
+         => Convert.ToHexString(_sha1(password));
 
       // k-anonymity: only the first five characters of the hash ever leave the
       // machine, so the service never learns which password is being checked.
@@ -380,12 +498,12 @@ namespace Upsilon.Apps.Passkey.Utils
       private static bool _failOpen(Exception? exception)
       {
          // A leak check must never crash password generation or the warning
-         // scan. When every provider is unreachable we cannot confirm a leak,
-         // so we report "not leaked" and trace the failure for diagnostics.
+         // scan. When every provider is unreachable and no offline filter is
+         // attached, we report "not leaked" and trace the failure.
          if (exception is null)
          {
             System.Diagnostics.Trace.TraceWarning(
-               "Password leak check failed open: HIBP and XposedOrNot were both unreachable.");
+               "Password leak check failed open: HIBP and XposedOrNot were unreachable and no offline Bloom filter is attached.");
          }
          else
          {

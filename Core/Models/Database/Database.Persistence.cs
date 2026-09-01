@@ -65,7 +65,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          if (refreshWarnings)
          {
-            _ = Task.Run(_lookAtWarningsAsync);
+            _queueWarningScan();
          }
 
          User.ResetTimer();

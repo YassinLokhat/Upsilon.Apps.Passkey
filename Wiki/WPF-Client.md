@@ -84,9 +84,20 @@ Confirmations and alerts use `ThemedMessageBoxView` (via `DialogService.Confirm`
 
 ## Vault files and logs
 
-* New users are stored next to the executable as `raw/{GetHash(username)}.pku`.
+* **Default database directory** is an app setting (`config.json`, `DefaultDatabaseDirectory`, default `<exe>/raw`) under **App Settings** (`Ctrl+,`). New users are created as `{GetHash(username)}.pku` in that folder (or another path chosen in the save dialog if the user declines the default).
+* Opening by username alone (no path set yet) still resolves `<exe>/raw/{GetHash(username)}.pku` — it does not read `DefaultDatabaseDirectory`. Use `Ctrl+O` or a command-line path for vaults stored elsewhere.
 * `Ctrl+O` opens an existing `.pku`. A path can also be passed as the **first command-line argument**.
 * Rolling daily logs under `%LocalAppData%\Passkey\logs`.
+
+## App Settings — offline leak database
+
+Under **App Settings** (`Ctrl+,`), section **Offline leak database**:
+
+* Enable / disable the local HIBP Bloom filter (`LeakFilterConfig.Enabled`). Disabling never deletes the file.
+* Build or update `<exe>/pwned-sha1.pkbf` (or `FilterPath`) via `HibpBloomBuilder` — a full build can take hours (~2.4 GiB); updates are incremental using the `.pkbf.ranges` sidecar.
+* Delete the `.pkbf` and its sidecar explicitly.
+
+Preferences are application-level (`config.json`), shared by all vault users — not stored in the `.pku`. Details: [[Security]].
 
 ## Login
 
@@ -105,6 +116,7 @@ The GUI keeps the typed secret in `PasswordBox.SecurePassword` and bridges it th
 | -------- | ------ |
 | `Ctrl+O` | Open vault |
 | `Ctrl+N` | New user |
+| `Ctrl+,` | App Settings (language, theme, default vault folder, offline leak database) |
 | `Ctrl+P` | Password generator |
 | `Ctrl+Shift+L` | While the services window is open: paste the selected **identifier** into the focused field |
 | `Ctrl+Shift+P` | Paste the selected **password** into the focused field |

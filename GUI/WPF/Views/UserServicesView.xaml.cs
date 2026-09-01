@@ -57,11 +57,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _database.DatabaseClosed += _database_DatabaseClosed;
          _database.WarningsUpdated += _database_WarningUpdated;
          Loaded += _userServicesView_Loaded;
+
+         if (_database.Warnings is not null
+            && _database.Warnings.Any())
+         {
+            _database_WarningUpdated(_database.Warnings);
+         }
       }
 
       private void _database_WarningUpdated(object? sender, Interfaces.Events.WarningsUpdatedEventArgs e)
       {
-         _ = Dispatcher.BeginInvoke(() => { _updateWarningsMenu([.. e.Warnings]); });
+         _database_WarningUpdated(e.Warnings);
+      }
+
+      private void _database_WarningUpdated(IEnumerable<IWarning> warnings)
+      {
+         _ = Dispatcher.BeginInvoke(() => { _updateWarningsMenu([.. warnings]); });
       }
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
