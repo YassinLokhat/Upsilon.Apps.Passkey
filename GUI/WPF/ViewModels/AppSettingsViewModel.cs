@@ -102,10 +102,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             field = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBusy)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterIdle)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBuildButtonText)));
          }
       }
 
       public bool OfflineLeakFilterIdle => !OfflineLeakFilterBusy;
+
+      public string OfflineLeakFilterBuildButtonText
+         => OfflineLeakFilterBusy ? Strings.Button_Cancel : Strings.Label_BuildUpdate;
 
       public string OfflineLeakFilterProgress
       {
@@ -127,6 +131,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Languages)));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Themes)));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBuildButtonText)));
          SelectedLanguage = LocalizationService.GetLanguageOrDefault(languageCode);
          SelectedTheme = ThemeService.GetOptionOrDefault(themeCode);
          RefreshOfflineLeakFilterStatus();

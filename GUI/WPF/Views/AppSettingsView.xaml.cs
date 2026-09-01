@@ -16,6 +16,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    internal sealed partial class AppSettingsView : Window
    {
       private readonly AppSettingsViewModel _viewModel;
+      private Action? _cancelOfflineLeakFilterBuild;
 
       public AppSettingsView()
       {
@@ -26,20 +27,43 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
+      protected override void OnClosed(EventArgs e)
+      {
+         _cancelOfflineLeakFilterBuild?.Invoke();
+         _cancelOfflineLeakFilterBuild = null;
+
+         base.OnClosed(e);
+      }
+
       private void _saveMenuItem_Click(object sender, RoutedEventArgs e)
       {
+         if (_viewModel.OfflineLeakFilterBusy)
+         {
+            return;
+         }
+
          _ = _viewModel.Save();
          DialogResult = true;
       }
 
       private void _resetMenuItem_Click(object sender, RoutedEventArgs e)
       {
+         if (_viewModel.OfflineLeakFilterBusy)
+         {
+            return;
+         }
+
          _viewModel.Reset();
          DialogResult = true;
       }
 
       private void _browseButton_Click(object sender, RoutedEventArgs e)
       {
+         if (_viewModel.OfflineLeakFilterBusy)
+         {
+            return;
+         }
+
          string? defaultDatabaseDirectory = AppServices.Dialogs.PickBrowseFolder(Strings.Title_BrowseDatabaseDirectory, _viewModel.DefaultDatabaseDirectory);
 
          if (defaultDatabaseDirectory is not null)
@@ -69,6 +93,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          if (_viewModel.OfflineLeakFilterBusy)
          {
+            _cancelOfflineLeakFilterBuild?.Invoke();
             return;
          }
 
@@ -83,6 +108,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             return;
          }
+
+         using CancellationTokenSource buildCts = new();
+         CancellationToken cancellationToken = buildCts.Token;
+         _cancelOfflineLeakFilterBuild = buildCts.Cancel;
 
          _viewModel.OfflineLeakFilterBusy = true;
          _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildStarting;
@@ -128,12 +157,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             HibpBloomBuildResult result = await HibpBloomBuilder.RunAsync(
                filterPath,
                update ? HibpBloomBuildMode.Update : HibpBloomBuildMode.BuildIfMissing,
-               progress: progress).ConfigureAwait(true);
+               progress: progress,
+               cancellationToken: cancellationToken).ConfigureAwait(true);
 
             AppInfo.AppSettings.LeakFilterConfig.Enabled = true;
             _viewModel.OfflineLeakFilterEnabled = true;
 
             _viewModel.OfflineLeakFilterProgress = _completionMessage(result);
+         }
+         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+         {
+            _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildCancelled;
          }
          // Hours of downloading and writing: a transport, disk or path failure must
          // surface as a warning instead of tearing down the app.
@@ -141,8 +175,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             when (ex is ArgumentException
             or HttpRequestException
             or IOException
-            or UnauthorizedAccessException
-            or OperationCanceledException)
+            or UnauthorizedAccessException)
          {
             AppServices.Dialogs.Warn(
                Strings.Format(nameof(Strings.Msg_OfflineLeakBuildFailed), ex.Message),
@@ -159,6 +192,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             }
 
             _viewModel.RefreshOfflineLeakFilterStatus();
+            _cancelOfflineLeakFilterBuild = null;
             _viewModel.OfflineLeakFilterBusy = false;
          }
       }

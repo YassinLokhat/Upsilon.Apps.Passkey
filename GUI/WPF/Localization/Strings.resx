@@ -936,6 +936,9 @@ The first build downloads the whole corpus (tens of GiB) and can take several ho
   <data name="Msg_OfflineLeakBuildStarting" xml:space="preserve">
     <value>Starting…</value>
   </data>
+  <data name="Msg_OfflineLeakBuildCancelled" xml:space="preserve">
+    <value>Cancelled.</value>
+  </data>
   <data name="Msg_OfflineLeakBuildSkipped" xml:space="preserve">
     <value>Skipped (file already present).</value>
   </data>

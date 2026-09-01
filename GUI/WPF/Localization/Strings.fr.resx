@@ -936,6 +936,9 @@ La construction initiale télécharge tout le corpus (plusieurs dizaines de Gio)
   <data name="Msg_OfflineLeakBuildStarting" xml:space="preserve">
     <value>Démarrage…</value>
   </data>
+  <data name="Msg_OfflineLeakBuildCancelled" xml:space="preserve">
+    <value>Annulé.</value>
+  </data>
   <data name="Msg_OfflineLeakBuildSkipped" xml:space="preserve">
     <value>Ignoré (fichier déjà présent).</value>
   </data>

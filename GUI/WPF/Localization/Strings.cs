@@ -209,6 +209,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_NoOfflineLeakDatabase => Get(nameof(Msg_NoOfflineLeakDatabase));
       public static string Msg_NoPasswordEmpty => Get(nameof(Msg_NoPasswordEmpty));
       public static string Msg_OfflineLeakAlreadyUpToDate => Get(nameof(Msg_OfflineLeakAlreadyUpToDate));
+      public static string Msg_OfflineLeakBuildCancelled => Get(nameof(Msg_OfflineLeakBuildCancelled));
       public static string Msg_OfflineLeakBuildComplete => Get(nameof(Msg_OfflineLeakBuildComplete));
       public static string Msg_OfflineLeakBuildFailed => Get(nameof(Msg_OfflineLeakBuildFailed));
       public static string Msg_OfflineLeakBuildProgress => Get(nameof(Msg_OfflineLeakBuildProgress));
