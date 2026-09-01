@@ -267,6 +267,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          int expiredPasswordWarnings = 0;
          int duplicatedPasswordWarnings = 0;
          int leakedPasswordWarnings = 0;
+         int loginWarnings = 0;
 
          if (_session.Database?.Warnings is not null)
          {
@@ -285,10 +286,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                .Where(x => x.WarningType.HasFlag(WarningType.PasswordLeakedWarning))
                .SelectMany(x => x.Accounts ?? [])
                .Count();
+            loginWarnings = warnings
+               .Where(x => x.WarningType.HasFlag(WarningType.ActivityReviewWarning)
+                  && x.Activities is not null
+                  && x.Activities.Any(y => y.EventType == ActivityEventType.LoginFailed
+                     || y.EventType == ActivityEventType.LoginSessionTimeoutReached))
+               .SelectMany(x => x.Activities ?? [])
+               .Count();
 
             totalWarningCount = activityWarnings + expiredPasswordWarnings + duplicatedPasswordWarnings + leakedPasswordWarnings;
             _viewModel.ShowWarnings = Strings.Format(nameof(Strings.Msg_ShowWarnings), totalWarningCount);
-            _viewModel.ShowWarningsColor = (expiredPasswordWarnings + leakedPasswordWarnings) == 0 ? SemanticBrushes.Warning : SemanticBrushes.Danger;
+            _viewModel.ShowWarningsColor = (expiredPasswordWarnings + leakedPasswordWarnings + loginWarnings) == 0 ? SemanticBrushes.Warning : SemanticBrushes.Danger;
+            _viewModel.ShowActivityWarningsColor = loginWarnings == 0 ? SemanticBrushes.Warning : SemanticBrushes.Danger;
             _viewModel.ShowActivityWarnings = Strings.Format(nameof(Strings.Msg_ShowActivityWarnings), activityWarnings);
             _viewModel.ShowExpiredPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowExpiredPasswordWarnings), expiredPasswordWarnings);
             _viewModel.ShowDuplicatedPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowDuplicatedPasswordWarnings), duplicatedPasswordWarnings);

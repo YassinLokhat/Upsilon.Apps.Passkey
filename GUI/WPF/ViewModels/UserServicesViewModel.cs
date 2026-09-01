@@ -43,6 +43,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
+      public Brush ShowActivityWarningsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
       public string ShowActivityWarnings
       {
          get;

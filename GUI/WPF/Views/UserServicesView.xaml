@@ -62,7 +62,7 @@
                    Foreground="{Binding ShowWarningsColor}">
             <MenuItem Name="_activityWarnings_MI"
                       Header="{Binding ShowActivityWarnings}"
-                      Foreground="{DynamicResource WarningBrush}"
+                      Foreground="{Binding ShowActivityWarningsColor}"
                       Click="_activityWarnings_MI_Click"/>
             <MenuItem Name="_duplicatedPasswordWarnings_MI"
                       Header="{Binding ShowDuplicatedPasswordWarnings}"
