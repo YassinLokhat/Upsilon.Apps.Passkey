@@ -18,12 +18,13 @@ focused change and enough context for review.
 | `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `ProtectedSecret`, `LeakFilter/` (`.pkbf` Bloom). Same zero-NuGet policy as Core. |
 | `Core/` | Vault implementation: onion encryption, `.pku` I/O, warnings, import/export. `Database` is a partial class; internal hosts (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) keep ActivityCenter / AutoSave / User from digging into Database members. |
 | `GUI/WPF/` | Windows desktop client (WPF, .NET 10 Windows TFM). |
-| `UnitTests/` | Core/Utils tests plus ViewModel tests through the `AppServices` seam. |
+| `GUI/MAUI/` | Cross-platform client (Windows + Android). |
+| `UnitTests/` | Core/Utils tests + WPF ViewModel tests (Windows TFM; `AppServices` seam). |
 
 Two solution files exist on purpose:
 
-- `Upsilon.Apps.Passkey.Windows.slnx` — Interfaces, Utils, Core, WPF GUI, and tests.
-- `Upsilon.Apps.Passkey.Linux.slnx` — Interfaces, Utils, and Core only (no WPF, no tests:
+- `Upsilon.Apps.Passkey.Windows.slnx` — Interfaces, Utils, Core, WPF GUI, MAUI GUI, and tests.
+- `Upsilon.Apps.Passkey.Linux.slnx` — Interfaces, Utils, and Core only (no GUI, no tests:
   the test project targets `net10.0-windows`).
 
 ## Build and test
@@ -60,7 +61,9 @@ Allowed:
 - GitHub Actions / CodeQL on the CI runners (not referenced by the libraries).
 
 The WPF project currently has no NuGet packages either; keep it that way unless
-a Windows-only capability cannot be done with the BCL.
+a Windows-only capability cannot be done with the BCL. The MAUI project may
+reference `Microsoft.Maui.*` packages (required by the workload). See
+`Wiki/MAUI-Client.md`.
 
 ## Adding a UI language
 

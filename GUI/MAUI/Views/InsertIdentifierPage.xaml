@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.ViewModels"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Views.InsertIdentifierPage"
+             x:DataType="vm:InsertIdentifierViewModel"
+             Title="{Binding Title}">
+    <Grid Padding="12" RowDefinitions="Auto,*,Auto" RowSpacing="8">
+        <Entry Grid.Row="0"
+               Text="{Binding Identifier}"
+               Placeholder="Identifier" />
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Suggestions}"
+                        SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                    <Border Padding="10" Margin="0,0,0,4" StrokeThickness="1">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectCommand}"
+                                CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+                        <Label Text="{Binding .}" />
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <HorizontalStackLayout Grid.Row="2" Spacing="8">
+            <Button Text="OK" Command="{Binding ConfirmCommand}" />
+            <Button Text="Cancel" Command="{Binding CancelCommand}" />
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage>

@@ -8,6 +8,7 @@
 * [[Usage Cookbook]]
 * [[Import Export]]
 * [[WPF Client]]
+* [[MAUI Client]]
 * [[Warnings and Activity]]
 * [[Security]]
 * [[Threat Model]]

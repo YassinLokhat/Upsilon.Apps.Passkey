@@ -10,14 +10,15 @@ Upsilon.Apps.Passkey is four layers and two solution files. The only **OS-specif
 | `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `ProtectedSecret`, and `LeakFilter/` (`.pkbf` Bloom file, builder, config). **Zero NuGet packages** (BCL only). |
 | `Core/` | Vault implementation: onion encryption, `.pku` I/O, warnings, import/export. **Zero NuGet packages** (BCL only). Vault-internal helpers stay under `Core/Utils/` (`QrCode`, file lock, activity, import/export). |
 | `GUI/WPF/` | Windows desktop client (MVVM + a small `AppServices` locator). |
+| `GUI/MAUI/` | Cross-platform client (Windows + Android; same Core, AppServices-style locator). See [[MAUI Client]]. |
 | `UnitTests/` | Core/Utils tests plus ViewModel tests through the `AppServices` seam. |
 
 | Solution | Projects |
 | -------- | -------- |
-| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, WPF GUI, UnitTests |
-| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, and Core only (no WPF, no tests: the test project targets `net10.0-windows`) |
+| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, WPF GUI, MAUI GUI, UnitTests |
+| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, and Core only (no GUI, no tests: the test project targets `net10.0-windows`) |
 
-The WPF app supplies `IClipboardManager` and hosts dialogs, session, and navigation behind `AppServices` so ViewModels stay unit-testable without a window.
+The WPF and MAUI apps each supply `IClipboardManager` and host dialogs, session, and navigation behind `AppServices`.
 
 ## Domain graph
 

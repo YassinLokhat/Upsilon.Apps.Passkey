@@ -21,6 +21,7 @@ independently; see [SECURITY.md](SECURITY.md)).
 *   **Leak detection**: opt-in Have I Been Pwned checks, then XposedOrNot failover, then an optional local HIBP Bloom filter (k-anonymity / offline; see [SECURITY.md](SECURITY.md))
 *   **Import / Export**: plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited)
 *   **WPF client** (Windows): System / Light / Dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
+*   **MAUI client** (Windows + Android): near-parity vault UI (services/accounts, warnings, activities, generator, import/export, QR); WPF remains the legacy Windows desktop client (see [Wiki/MAUI-Client.md](Wiki/MAUI-Client.md))
 
 **Architecture**
 ----------------
@@ -32,13 +33,14 @@ Interfaces/     Public contracts (IDatabase, IUser, crypto, clipboard, …)
 Utils/          Default crypto, JSON, password factory, ProtectedSecret, LeakFilter (.pkbf). Zero NuGet (BCL only).
 Core/           Vault implementation. Zero NuGet packages (BCL only).
 GUI/WPF/        Windows desktop client (MVVM + a small AppServices locator).
+GUI/MAUI/       Cross-platform client (Windows + Android; same Core, AppServices-style locator).
 UnitTests/      Core/Utils tests + ViewModel tests (Windows TFM; references the WPF project).
 ```
 
 | Solution | Projects |
 | -------- | -------- |
-| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, WPF GUI, UnitTests |
-| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, and Core only (no WPF, no tests) |
+| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, WPF GUI, MAUI GUI, UnitTests |
+| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, and Core only (no GUI, no tests) |
 
 Core talks to the OS for clipboard only through an injected port
 (`IClipboardManager` must be OS-specific). File I/O uses the BCL in Core.
@@ -629,10 +631,10 @@ End users: download the Windows x64 zip from
 To build from source:
 
 1.  Clone the repository: `git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git`
-2.  Windows (GUI + tests): `dotnet build Upsilon.Apps.Passkey.Windows.slnx` then `dotnet run --project GUI/WPF`
+2.  Windows (GUI + tests): `dotnet build Upsilon.Apps.Passkey.Windows.slnx` then `dotnet run --project GUI/WPF` (or `dotnet run --project GUI/MAUI -f net10.0-windows10.0.19041.0`)
 3.  Linux (Interfaces + Utils + Core): `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
 
-Requires the .NET 10 SDK. The WPF app targets `net10.0-windows10.0.18362.0`.
+Requires the .NET 10 SDK. WPF targets `net10.0-windows10.0.18362.0`. MAUI targets `net10.0-windows10.0.19041.0` and `net10.0-android` (see [Wiki/MAUI-Client.md](Wiki/MAUI-Client.md) for workloads and publish).
 
 **Contributing**
 ------------

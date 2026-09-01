@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.ViewModels"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Views.CreateUserPage"
+             x:Name="CreateUser"
+             x:DataType="vm:CreateUserViewModel"
+             Title="New user">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="16">
+            <Label Text="Username" FontAttributes="Bold" />
+            <Entry Text="{Binding Username}" Placeholder="Username" />
+
+            <Label Text="Passkeys (ordered)" FontAttributes="Bold" />
+
+            <CollectionView ItemsSource="{Binding Passkeys}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:PasskeyEntry">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Padding="0,4">
+                            <Entry Text="{Binding Value}"
+                                   IsPassword="True"
+                                   Placeholder="Passkey" />
+                            <Button Grid.Column="1"
+                                    Text="✕"
+                                    Command="{Binding Source={x:Reference CreateUser}, Path=BindingContext.RemovePasskeyCommand}"
+                                    CommandParameter="{Binding .}"
+                                    WidthRequest="44" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Button Text="Add passkey" Command="{Binding AddPasskeyCommand}" />
+            <Button Text="Create vault" Command="{Binding CreateCommand}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Text="{Binding BusyMessage}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -2,8 +2,9 @@
 
 ## Requirements
 
-* **Windows 10** (1809 / build 18362) or later for the WPF client
+* **Windows 10** (1809 / build 18362) or later for the WPF client; Windows 10 19041+ for the MAUI Windows target
 * **.NET 10 SDK** only if you build from source (release zips are self-contained)
+* **MAUI workloads** (`maui-windows`, `android`) to build `GUI/MAUI` — see [[MAUI Client]]
 * **Linux** can build Interfaces + Utils + Core (`Upsilon.Apps.Passkey.Linux.slnx`) — there is no official Linux GUI
 
 ## Install a release
@@ -20,13 +21,16 @@ Cutting a new release is documented in [[Testing and CI]].
 git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git
 cd Upsilon.Apps.Passkey
 
-# Windows: GUI + tests
+# Windows: WPF + MAUI + tests
 dotnet build Upsilon.Apps.Passkey.Windows.slnx
 dotnet run --project GUI/WPF
+dotnet run --project GUI/MAUI -f net10.0-windows10.0.19041.0
 
 # Linux: Interfaces + Utils + Core
 dotnet build Upsilon.Apps.Passkey.Linux.slnx
 ```
+
+MAUI also targets Android (`net10.0-android`). Workloads and publish commands: [[MAUI Client]].
 
 Run tests on Windows:
 

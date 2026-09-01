@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.ViewModels"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Views.ServicesPage"
+             x:Name="RootPage"
+             x:DataType="vm:ServicesViewModel"
+             Title="{Binding Title}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Save" Command="{Binding SaveCommand}" />
+        <ToolbarItem Text="User" Command="{Binding OpenUserSettingsCommand}" />
+        <ToolbarItem Text="App" Command="{Binding OpenAppSettingsCommand}" />
+        <ToolbarItem Text="Gen" Command="{Binding OpenGeneratorCommand}" />
+        <ToolbarItem Text="Log" Command="{Binding OpenActivitiesCommand}" />
+        <ToolbarItem Text="Warn" Command="{Binding OpenWarningsCommand}" />
+        <ToolbarItem Text="Out" Command="{Binding LogoutCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="12" Spacing="10">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <VerticalStackLayout>
+                    <Label Text="{Binding Username}" FontAttributes="Bold" FontSize="18" />
+                    <Label Text="{Binding SessionLeftLabel}" Opacity="0.7" FontSize="12" />
+                    <Label Text="{Binding StatusMessage}" FontSize="12" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <Border IsVisible="{Binding HasWarningsBanner}"
+                    Padding="8"
+                    StrokeThickness="1">
+                <Label Text="{Binding WarningsBanner}"
+                       TextColor="DarkOrange"
+                       LineBreakMode="WordWrap">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding OpenWarningsCommand}" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </Border>
+
+            <Entry Text="{Binding FilterText}" Placeholder="Filter services / accounts…" />
+            <HorizontalStackLayout Spacing="8">
+                <CheckBox IsChecked="{Binding FilterChangedOnly}" VerticalOptions="Center" />
+                <Label Text="Changed only" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Add service" Command="{Binding AddServiceCommand}" />
+                <Button Text="Add account" Command="{Binding AddAccountCommand}" />
+            </HorizontalStackLayout>
+
+            <Label Text="Services" FontAttributes="Bold" />
+            <CollectionView ItemsSource="{Binding Services}"
+                            SelectionMode="Single"
+                            SelectedItem="{Binding SelectedService}"
+                            HeightRequest="140">
+                <CollectionView.EmptyView>
+                    <Label Text="{Binding EmptyMessage}" Margin="8" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ServiceItemViewModel">
+                        <Label Text="{Binding DisplayName}" Padding="8,6" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <VerticalStackLayout IsVisible="{Binding HasSelectedService}" Spacing="6">
+                <Entry Text="{Binding SelectedService.ServiceName}" Placeholder="Service name" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Entry Grid.Column="0" Text="{Binding SelectedService.Url}" Placeholder="URL" />
+                    <Button Grid.Column="1" Text="Open" Command="{Binding OpenUrlCommand}" />
+                </Grid>
+                <Editor Text="{Binding SelectedService.Notes}" Placeholder="Notes" HeightRequest="60" AutoSize="TextChanges" />
+                <Button Text="Delete service" Command="{Binding DeleteServiceCommand}" />
+            </VerticalStackLayout>
+
+            <Label Text="Accounts" FontAttributes="Bold" />
+            <CollectionView ItemsSource="{Binding Accounts}"
+                            SelectionMode="Single"
+                            SelectedItem="{Binding SelectedAccount}"
+                            HeightRequest="120">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:AccountItemViewModel">
+                        <Label Text="{Binding DisplayName}" Padding="8,6" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <VerticalStackLayout IsVisible="{Binding HasSelectedAccount}" Spacing="6">
+                <Entry Text="{Binding SelectedAccount.Label}" Placeholder="Label" />
+                <Editor Text="{Binding SelectedAccount.IdentifiersText}"
+                        Placeholder="Identifiers (one per line)"
+                        HeightRequest="72"
+                        AutoSize="TextChanges" />
+                <Entry Text="{Binding SelectedAccount.Password}"
+                       Placeholder="Password"
+                       IsPassword="True" />
+                <Editor Text="{Binding SelectedAccount.Notes}" Placeholder="Notes" HeightRequest="60" AutoSize="TextChanges" />
+
+                <Label Text="Account options" FontAttributes="Bold" />
+                <HorizontalStackLayout Spacing="8">
+                    <CheckBox IsChecked="{Binding SelectedAccount.WarnPasswordLeak}" VerticalOptions="Center" />
+                    <Label Text="Warn if leaked" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="8">
+                    <CheckBox IsChecked="{Binding SelectedAccount.WarnIfDuplicatedPassword}" VerticalOptions="Center" />
+                    <Label Text="Warn if duplicated" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="8">
+                    <CheckBox IsChecked="{Binding SelectedAccount.RemindPasswordUpdate}" VerticalOptions="Center" />
+                    <Label Text="Remind password update" VerticalOptions="Center" />
+                    <Entry Text="{Binding SelectedAccount.RemindPasswordUpdateDelayText}"
+                           Keyboard="Numeric"
+                           WidthRequest="60"
+                           IsEnabled="{Binding SelectedAccount.RemindPasswordUpdate}" />
+                </HorizontalStackLayout>
+
+                <Label Text="Password history" FontAttributes="Bold"
+                       IsVisible="{Binding SelectedAccount.HasPasswordHistory}" />
+                <CollectionView ItemsSource="{Binding SelectedAccount.PasswordHistory}"
+                                IsVisible="{Binding SelectedAccount.HasPasswordHistory}"
+                                HeightRequest="100">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PasswordHistoryItemViewModel">
+                            <Grid ColumnDefinitions="*,Auto" Padding="4,2">
+                                <Label Text="{Binding Display}" VerticalOptions="Center" />
+                                <Button Grid.Column="1"
+                                        Text="Copy"
+                                        Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.CopyHistoryPasswordCommand}"
+                                        CommandParameter="{Binding .}" />
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <FlexLayout Wrap="Wrap" JustifyContent="Start">
+                    <Button Text="Insert ID" Command="{Binding InsertIdentifierCommand}" Margin="0,0,8,8" />
+                    <Button Text="Copy ID" Command="{Binding CopyIdentifierCommand}" Margin="0,0,8,8" />
+                    <Button Text="Copy PW" Command="{Binding CopyPasswordCommand}" Margin="0,0,8,8" />
+                    <Button Text="QR ID" Command="{Binding ShowQrIdentifierCommand}" Margin="0,0,8,8" />
+                    <Button Text="QR PW" Command="{Binding ShowQrPasswordCommand}" Margin="0,0,8,8" />
+                    <Button Text="Delete account" Command="{Binding DeleteAccountCommand}" Margin="0,0,8,8" />
+                </FlexLayout>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

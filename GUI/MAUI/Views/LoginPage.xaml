@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.ViewModels"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Views.LoginPage"
+             x:DataType="vm:LoginViewModel"
+             Title="{Binding AppTitle}">
+
+    <Grid Padding="24" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="16">
+        <VerticalStackLayout Grid.Row="0" Spacing="4">
+            <Label Text="{Binding AppTitle}"
+                   Style="{StaticResource Headline}"
+                   SemanticProperties.HeadingLevel="Level1" />
+            <Label Text="{Binding DatabaseLabel}"
+                   Style="{StaticResource SubHeadline}" />
+        </VerticalStackLayout>
+
+        <HorizontalStackLayout Grid.Row="1" Spacing="8">
+            <Button Text="Open vault"
+                    Command="{Binding OpenVaultCommand}" />
+            <Button Text="New user"
+                    Command="{Binding CreateUserCommand}" />
+            <Button Text="Cancel"
+                    Command="{Binding CancelCommand}" />
+            <Button Text="EN/FR"
+                    Command="{Binding ToggleLanguageCommand}" />
+            <Button Text="Theme"
+                    Command="{Binding ToggleThemeCommand}" />
+        </HorizontalStackLayout>
+
+        <VerticalStackLayout Grid.Row="2" Spacing="12" VerticalOptions="Center">
+            <Label Text="{Binding CredentialsLabel}" FontAttributes="Bold" />
+            <Label Text="{Binding CredentialsHint}" Opacity="0.7" />
+
+            <Entry Text="{Binding Username}"
+                   IsVisible="{Binding ShowUsername}"
+                   Placeholder="{Binding CredentialsHint}"
+                   ReturnType="Next"
+                   ReturnCommand="{Binding SubmitCommand}" />
+
+            <Entry Text="{Binding Passkey}"
+                   IsVisible="{Binding ShowPasskey}"
+                   IsPassword="True"
+                   Placeholder="{Binding CredentialsHint}"
+                   ReturnType="Go"
+                   ReturnCommand="{Binding SubmitCommand}" />
+
+            <Button Text="Continue"
+                    Command="{Binding SubmitCommand}"
+                    HorizontalOptions="Fill" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Text="{Binding BusyMessage}"
+                   IsVisible="{Binding IsBusy}"
+                   HorizontalOptions="Center" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

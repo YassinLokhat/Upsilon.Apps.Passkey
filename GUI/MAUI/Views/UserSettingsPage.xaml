@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.ViewModels"
+             xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Views.UserSettingsPage"
+             x:Name="RootPage"
+             x:DataType="vm:UserSettingsViewModel"
+             Title="{Binding Title}">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="10">
+            <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="18" />
+
+            <Label Text="{x:Static loc:Strings.Label_Username}" />
+            <Entry Text="{Binding Username}" />
+
+            <Label Text="Passkeys (ordered)" FontAttributes="Bold" />
+            <CollectionView ItemsSource="{Binding Passkeys}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:PasskeyEntry">
+                        <Grid ColumnDefinitions="*,Auto" Padding="0,4">
+                            <Entry Grid.Column="0"
+                                   Text="{Binding Value}"
+                                   IsPassword="True"
+                                   Placeholder="Passkey" />
+                            <Button Grid.Column="1"
+                                    Text="−"
+                                    Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.RemovePasskeyCommand}"
+                                    CommandParameter="{Binding .}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <Button Text="+ Passkey" Command="{Binding AddPasskeyCommand}" />
+
+            <Label Text="Logout timeout (min)" />
+            <Entry Text="{Binding LogoutTimeout}" Keyboard="Numeric" />
+
+            <Label Text="Clipboard clear (sec)" />
+            <Entry Text="{Binding CleaningClipboardTimeout}" Keyboard="Numeric" />
+
+            <Label Text="Show password delay (ms)" />
+            <Entry Text="{Binding ShowPasswordDelay}" Keyboard="Numeric" />
+
+            <Label Text="Old passwords to keep" />
+            <Entry Text="{Binding NumberOfOldPasswordToKeep}" Keyboard="Numeric" />
+
+            <Label Text="Activity months to keep" />
+            <Entry Text="{Binding NumberOfMonthActivitiesToKeep}" Keyboard="Numeric" />
+
+            <Label Text="Language (empty = app)" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding LanguageCodes}" SelectedItem="{Binding SelectedLanguage}" />
+
+            <Label Text="Theme (empty = app)" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding ThemeCodes}" SelectedItem="{Binding SelectedTheme}" />
+
+            <Label Text="Notifications" FontAttributes="Bold" />
+            <HorizontalStackLayout>
+                <Switch IsToggled="{Binding NotifyActivityReview}" />
+                <Label Text="Activity review" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout>
+                <Switch IsToggled="{Binding NotifyPasswordUpdateReminder}" />
+                <Label Text="Password update reminder" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout>
+                <Switch IsToggled="{Binding NotifyDuplicatedPasswords}" />
+                <Label Text="Duplicated passwords" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout>
+                <Switch IsToggled="{Binding NotifyPasswordLeaked}" />
+                <Label Text="Leaked passwords" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <Button Text="Import JSON/CSV" Command="{Binding ImportCommand}" />
+            <Button Text="Export JSON" Command="{Binding ExportJsonCommand}" />
+            <Button Text="Export CSV" Command="{Binding ExportCsvCommand}" />
+            <Button Text="{x:Static loc:Strings.Menu_DeleteUser}"
+                    Command="{Binding DeleteUserCommand}"
+                    TextColor="DarkRed" />
+
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Save" Command="{Binding SaveCommand}" />
+                <Button Text="Back" Command="{Binding BackCommand}" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.ViewModels"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Views.WarningsPage"
+             x:Name="RootPage"
+             x:DataType="vm:WarningsViewModel"
+             Title="{Binding Title}">
+    <Grid Padding="12" RowDefinitions="*,Auto" RowSpacing="8">
+        <CollectionView Grid.Row="0"
+                        ItemsSource="{Binding Warnings}"
+                        SelectionMode="Single"
+                        SelectedItem="{Binding SelectedWarning}">
+            <CollectionView.EmptyView>
+                <Label Text="No warnings" Margin="24" HorizontalOptions="Center" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:WarningRowViewModel">
+                    <Border Padding="10" Margin="0,0,0,8" StrokeThickness="1">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="{Binding Summary}" LineBreakMode="WordWrap" />
+                            <Button Text="Go to account"
+                                    IsVisible="{Binding CanGoToAccount}"
+                                    Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.GoToAccountCommand}"
+                                    CommandParameter="{Binding .}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <HorizontalStackLayout Grid.Row="1" Spacing="8">
+            <Button Text="Refresh" Command="{Binding RefreshCommand}" />
+            <Button Text="Back" Command="{Binding BackCommand}" />
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage>

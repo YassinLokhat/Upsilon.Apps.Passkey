@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.ViewModels"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Views.AppSettingsPage"
+             x:DataType="vm:AppSettingsViewModel"
+             Title="{Binding Title}">
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+            <Label Text="Language" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding LanguageCodes}" SelectedItem="{Binding SelectedLanguage}" />
+
+            <Label Text="Theme" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding ThemeCodes}" SelectedItem="{Binding SelectedTheme}" />
+
+            <Label Text="Default vault directory" FontAttributes="Bold" />
+            <Entry Text="{Binding DefaultDatabaseDirectory}" />
+            <Button Text="Browse" Command="{Binding BrowseCommand}" />
+
+            <Label Text="Offline leak filter" FontAttributes="Bold" />
+            <Switch IsToggled="{Binding OfflineLeakFilterEnabled}" IsEnabled="{Binding OfflineLeakFilterIdle}" />
+            <Label Text="{Binding OfflineLeakFilterStatus}" />
+            <Label Text="{Binding OfflineLeakFilterProgress}" />
+            <Button Text="Build / Update" Command="{Binding BuildLeakFilterCommand}" />
+            <Button Text="Delete filter" Command="{Binding DeleteLeakFilterCommand}" />
+
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Save" Command="{Binding SaveCommand}" />
+                <Button Text="Reset" Command="{Binding ResetCommand}" />
+                <Button Text="Back" Command="{Binding BackCommand}" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

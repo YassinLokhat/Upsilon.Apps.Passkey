@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.ViewModels"
+             xmlns:views="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Views"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Views.QrCodePage"
+             x:DataType="vm:QrCodeViewModel"
+             Title="{Binding Title}">
+    <Grid Padding="16" RowDefinitions="*,Auto" RowSpacing="12">
+        <views:QrCodeDrawableView Grid.Row="0"
+                                  Matrix="{Binding Matrix}"
+                                  HorizontalOptions="Center"
+                                  VerticalOptions="Center"
+                                  WidthRequest="280"
+                                  HeightRequest="280" />
+        <Button Grid.Row="1" Text="Back" Command="{Binding BackCommand}" />
+    </Grid>
+</ContentPage>

@@ -40,6 +40,7 @@ Each assembly is versioned independently. At the time of writing they share **1.
 | Move data in or out | [[Import Export]] |
 | How `.pku` and cryptography work | [[Vault Format]] and [[Security]] |
 | GUI shortcuts, QR, clipboard | [[WPF Client]] |
+| MAUI client (Windows + Android) | [[MAUI Client]] |
 | Warnings and the audit trail | [[Warnings and Activity]] |
 | Tests, coverage, GitHub Actions | [[Testing and CI]] |
 
