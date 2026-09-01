@@ -176,7 +176,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          FileInfo info = new(path);
          double sizeGiB = info.Length / (1024d * 1024d * 1024d);
-         string updated = info.LastWriteTimeUtc.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + " UTC";
+         string updated = info.LastWriteTimeUtc.ToString(Strings.Activity_DateTimeFormat, CultureInfo.InvariantCulture);
          OfflineLeakFilterStatus = AppInfo.AppSettings.LeakFilterConfig.Enabled
             ? Strings.Format(nameof(Strings.Msg_OfflineLeakFilePresent), sizeGiB, updated)
             : Strings.Format(nameof(Strings.Msg_OfflineLeakFilePresentDisabled), sizeGiB, updated);

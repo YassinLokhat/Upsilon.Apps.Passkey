@@ -952,7 +952,7 @@ La construction initiale télécharge tout le corpus (plusieurs dizaines de Gio)
     <value>Construction terminée ({0} hachages).</value>
   </data>
   <data name="Msg_OfflineLeakUpdateComplete" xml:space="preserve">
-    <value>Mise à jour terminée · {0} plages rafraîchies · {1} inchangées · {2:0.0} Mio téléchargés.</value>
+    <value>Terminé · {0} plages rafraîchies · {1} inchangées · {2:0.0} Mio téléchargés.</value>
   </data>
   <data name="Msg_OfflineLeakBuildFailed" xml:space="preserve">
     <value>Échec de la construction de la base de fuites hors ligne :
@@ -981,10 +981,10 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
     <value>Fichier absent</value>
   </data>
   <data name="Msg_OfflineLeakFilePresent" xml:space="preserve">
-    <value>Présent · {0:0.00} Gio · mis à jour {1}</value>
+    <value>Présent · {0:0.00} Gio · Mis à jour {1}</value>
   </data>
   <data name="Msg_OfflineLeakFilePresentDisabled" xml:space="preserve">
-    <value>Présent sur le disque · {0:0.00} Gio · mis à jour {1} · désactivé</value>
+    <value>Présent sur le disque · {0:0.00} Gio · Mis à jour {1} · Désactivé</value>
   </data>
   <data name="Msg_OfflineLeakStatusUnknown" xml:space="preserve">
     <value>Inconnu</value>

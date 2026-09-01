@@ -952,7 +952,7 @@ The first build downloads the whole corpus (tens of GiB) and can take several ho
     <value>Build complete ({0} hashes).</value>
   </data>
   <data name="Msg_OfflineLeakUpdateComplete" xml:space="preserve">
-    <value>Update complete · {0} ranges refreshed · {1} unchanged · {2:0.0} MiB downloaded.</value>
+    <value>Completed · {0} ranges refreshed · {1} unchanged · {2:0.0} MiB downloaded.</value>
   </data>
   <data name="Msg_OfflineLeakBuildFailed" xml:space="preserve">
     <value>Offline leak database build failed:
@@ -981,10 +981,10 @@ This affects all vault users. Disabling the option alone does not delete the fil
     <value>Absent file</value>
   </data>
   <data name="Msg_OfflineLeakFilePresent" xml:space="preserve">
-    <value>Present · {0:0.00} GiB · updated {1}</value>
+    <value>Present · {0:0.00} GiB · Updated {1}</value>
   </data>
   <data name="Msg_OfflineLeakFilePresentDisabled" xml:space="preserve">
-    <value>Present on disk · {0:0.00} GiB · updated {1} · disabled</value>
+    <value>Present on disk · {0:0.00} GiB · Updated {1} · Disabled</value>
   </data>
   <data name="Msg_OfflineLeakStatusUnknown" xml:space="preserve">
     <value>Unknown</value>
