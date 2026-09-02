@@ -509,10 +509,11 @@ local Bloom filter built from the HIBP SHA-1 corpus:
 
 *   File: `<exe>/pwned-sha1.pkbf` (~2.4 GiB for the default sizing), or any location set through `FilterPath`
 *   Sidecar: `<filter>.pkbf.ranges` (~32 MiB), one fixed-width record per hash-range prefix holding the `ETag` already folded into the filter
-*   Config: `LeakFilterConfig` (`Enabled` / `FilterPath`) in the WPF host's `config.json` — **application-level**, shared by all vault users (not stored in the `.pku`)
+*   Config: `LeakFilterConfig` (`Enabled` / `AutoUpdateEnabled` / `FilterPath`) in the WPF host's `config.json` — **application-level**, shared by all vault users (not stored in the `.pku`)
 *   Order: HIBP → XposedOrNot → Bloom (if enabled and present) → fail-open
 *   Disable never deletes the file; only **Delete offline database** in **App Settings** (or deleting the `.pkbf` manually) removes it — the sidecar goes with it
 *   Build / update / enable / delete from **App Settings** (`Ctrl+,`, section **Offline leak database**), or from your own host through `HibpBloomBuilder.RunAsync`
+*   **Auto-update** (`AutoUpdateEnabled`, default off): at WPF startup, if offline use is enabled **and** a `.pkbf` already exists, an incremental refresh runs in the background. A missing file never triggers an automatic first build (too heavy for the client).
 
 A full build downloads every HIBP range (~1 048 576 prefixes) and can take several
 hours. That is tens of GiB over the wire — brotli/gzip roughly halves the ~78 GB
@@ -563,7 +564,8 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     the selected password into the focused field (copy + synthetic Ctrl+V;
     clipboard still auto-clears).
 *   **Offline leak database**: App Settings can build / update / enable / delete
-    the local `.pkbf` Bloom filter (see Offline leak database above).
+    the local `.pkbf` Bloom filter, and optionally auto-refresh an existing file
+    at startup (`AutoUpdateEnabled`; see Offline leak database above).
 *   **QR codes**: identifiers and passwords can be shown as a QR matrix generated
     in-process (`Core/Utils/QrCode.cs`, no network). The window closes after
     `ISettings.ShowPasswordDelay` milliseconds when that setting is non-zero.

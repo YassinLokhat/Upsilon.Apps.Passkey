@@ -155,6 +155,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Label_UpperCaseAlphabet => Get(nameof(Label_UpperCaseAlphabet));
       public static string Label_Url => Get(nameof(Label_Url));
       public static string Label_UseOfflineBloomFilter => Get(nameof(Label_UseOfflineBloomFilter));
+      public static string Label_AutoUpdateOfflineLeakDatabase => Get(nameof(Label_AutoUpdateOfflineLeakDatabase));
       public static string Label_Username => Get(nameof(Label_Username));
       public static string Label_WarnDuplicatedPassword => Get(nameof(Label_WarnDuplicatedPassword));
       public static string Label_Warnings => Get(nameof(Label_Warnings));
@@ -339,6 +340,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string EnumValue_ImportExportError_BlankService => Get(nameof(EnumValue_ImportExportError_BlankService));
       public static string EnumValue_ImportExportError_ExportFileAlreadyExists => Get(nameof(EnumValue_ImportExportError_ExportFileAlreadyExists));
       public static string Tooltip_OfflineLeakDatabase => Get(nameof(Tooltip_OfflineLeakDatabase));
+      public static string Tooltip_AutoUpdateOfflineLeakDatabase => Get(nameof(Tooltip_AutoUpdateOfflineLeakDatabase));
       public static string Tooltip_AddAccount => Get(nameof(Tooltip_AddAccount));
       public static string Tooltip_AddIdentifier => Get(nameof(Tooltip_AddIdentifier));
       public static string Tooltip_AddPassword => Get(nameof(Tooltip_AddPassword));

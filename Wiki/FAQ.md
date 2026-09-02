@@ -28,6 +28,10 @@ No. Only a hash prefix (k-anonymity): first 5 characters of SHA-1 to Have I Been
 
 If both providers are down (or you are offline) **and** no offline Bloom filter is attached, the check **fails open** and reports "not leaked". When a filter *is* attached, a Bloom miss is definitive "not leaked"; a hit is treated as leaked (may include ~1 % false positives). Failures are not cached, so a later successful remote check can still raise a warning. There is no separate "unverified" UI state. Build or enable the filter under **App Settings** (`Ctrl+,`). See [[Security]].
 
+## Does the offline leak database update itself?
+
+Only if you opt in. Under **App Settings → Offline leak database**, enable **Automatically update…** (`LeakFilterConfig.AutoUpdateEnabled`, default off). At the next startup, if offline use is also enabled **and** a `.pkbf` already exists, Passkey refreshes it in the background (incremental HIBP range revalidation). A missing file never triggers an automatic first build — that download is too large. See [[WPF Client]].
+
 ## Why PBKDF2 instead of Argon2?
 
 Argon2 is not part of the .NET base class library. Core, Utils, and Interfaces have a **zero NuGet** policy. Compensation: PBKDF2-HMAC-SHA-512 with 1,000,000 iterations, plus a sticky KDF header so a future release could adopt a memory-hard KDF without breaking old files. See [[Vault Format]].

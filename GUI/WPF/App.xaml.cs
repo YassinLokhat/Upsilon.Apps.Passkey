@@ -24,12 +24,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _ = LocalizationService.Apply(AppInfo.AppSettings.Language);
          _ = ThemeService.Apply(AppInfo.AppSettings.Theme);
 
+         // Refresh an existing .pkbf only — never a first full build (too heavy).
+         AppServices.OfflineLeakFilterUpdate.TryStartAutoUpdate();
+
          base.OnStartup(e);
       }
 
       protected override void OnExit(ExitEventArgs e)
       {
          ArgumentNullException.ThrowIfNull(e);
+
+         AppServices.OfflineLeakFilterUpdate.Cancel();
 
          // Close any open vault and clear owned clipboard content before the
          // process tears down, in case MainWindow.Closed did not run first.

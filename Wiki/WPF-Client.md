@@ -94,7 +94,8 @@ Confirmations and alerts use `ThemedMessageBoxView` (via `DialogService.Confirm`
 Under **App Settings** (`Ctrl+,`), section **Offline leak database**:
 
 * Enable / disable the local HIBP Bloom filter (`LeakFilterConfig.Enabled`). Disabling never deletes the file.
-* Build or update `<exe>/pwned-sha1.pkbf` (or `FilterPath`) via `HibpBloomBuilder` — a full build can take hours (~2.4 GiB); updates are incremental using the `.pkbf.ranges` sidecar.
+* Optionally enable **automatic background updates** (`LeakFilterConfig.AutoUpdateEnabled`, default **off**). When this is on, offline use is enabled, **and** a `.pkbf` already exists, the WPF host refreshes the filter at startup via `HibpBloomBuildMode.Update` (incremental). A first full build is **never** started automatically — it is too heavy (~tens of GiB / hours).
+* Build or update `<exe>/pwned-sha1.pkbf` (or `FilterPath`) via `HibpBloomBuilder` — a full build can take hours (~2.4 GiB); updates are incremental using the `.pkbf.ranges` sidecar. Manual and automatic runs share one in-process slot (`OfflineLeakFilterUpdateService`).
 * Delete the `.pkbf` and its sidecar explicitly.
 
 Preferences are application-level (`config.json`), shared by all vault users — not stored in the `.pku`. Details: [[Security]].

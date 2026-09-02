@@ -12,7 +12,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="290" Width="700">
+        Height="320" Width="700">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -96,10 +96,14 @@
                                 Text="{Binding OfflineLeakFilterProgress}"/>
                   </Grid>
                   <CheckBox Content="{loc:Loc Label_UseOfflineBloomFilter}"
-                            IsChecked="{Binding OfflineLeakFilterEnabled}"
+                            IsChecked="{Binding OfflineLeakFilterEnabled, Mode=TwoWay}"
                             IsEnabled="{Binding OfflineLeakFilterIdle}"
-                            Checked="_offlineLeakFilterEnabled_Changed"
-                            Unchecked="_offlineLeakFilterEnabled_Changed"/>
+                            Click="_offlineLeakFilterEnabled_Click"/>
+                  <CheckBox Content="{loc:Loc Label_AutoUpdateOfflineLeakDatabase}"
+                            ToolTip="{loc:Loc Tooltip_AutoUpdateOfflineLeakDatabase}"
+                            IsChecked="{Binding OfflineLeakFilterAutoUpdateEnabled, Mode=TwoWay}"
+                            IsEnabled="{Binding OfflineLeakFilterAutoUpdateEditable}"
+                            Click="_offlineLeakFilterAutoUpdate_Click"/>
                   <Grid>
                      <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>

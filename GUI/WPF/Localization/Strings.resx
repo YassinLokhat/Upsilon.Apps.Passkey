@@ -1014,6 +1014,12 @@ You will not be alerted about:
   <data name="Label_UseOfflineBloomFilter" xml:space="preserve">
     <value>Use offline Bloom filter when HIBP and XposedOrNot are unreachable</value>
   </data>
+  <data name="Label_AutoUpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>Automatically update the offline database in the background</value>
+  </data>
+  <data name="Tooltip_AutoUpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>When enabled, an existing offline database is refreshed from HIBP at startup. A first build is never started automatically (too large).</value>
+  </data>
   <data name="Label_BuildUpdate" xml:space="preserve">
     <value>Build / Update</value>
   </data>

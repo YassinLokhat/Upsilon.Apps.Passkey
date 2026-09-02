@@ -49,7 +49,7 @@ Concrete flow:
 
 A mistyped passkey cannot be undone. Press Escape (or otherwise close the half-open session) and start login again. That is intentional — see [[Security]]. Inactivity on the login window also clears credentials after `LoginIdleTimeoutSeconds` (App Settings; default 5, `0` = off); the title bar shows the countdown.
 
-Optional: under **App Settings** (`Ctrl+,`), build an offline HIBP Bloom filter (`.pkbf`) so leak checks still work without the network. More GUI behaviour: [[WPF Client]].
+Optional: under **App Settings** (`Ctrl+,`), build an offline HIBP Bloom filter (`.pkbf`) so leak checks still work without the network. After the file exists, you can enable automatic background updates at startup (never a first full build). More GUI behaviour: [[WPF Client]].
 
 ## Embed Core without WPF
 

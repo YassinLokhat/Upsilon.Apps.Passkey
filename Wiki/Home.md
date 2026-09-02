@@ -28,7 +28,7 @@ A **local-only** password manager written in C# on **.NET 10**. There is no serv
 | Generation | CSPRNG over a configurable alphabet |
 | Leak checks | Opt-in Have I Been Pwned, then XposedOrNot failover, then an optional local HIBP Bloom filter (`.pkbf`; k-anonymity / offline) |
 | Import / export | Plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited) |
-| Windows client | System / Light / Dark theme, QR codes, global paste hotkeys, autosave merge on next login, App Settings for vault folder, login idle timeout, and offline leak DB |
+| Windows client | System / Light / Dark theme, QR codes, global paste hotkeys, autosave merge on next login, App Settings for vault folder, login idle timeout, and offline leak DB (optional auto-update of an existing `.pkbf`) |
 
 ## Start here
 

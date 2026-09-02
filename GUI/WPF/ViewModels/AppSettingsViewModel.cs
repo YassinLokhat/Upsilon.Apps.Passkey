@@ -99,8 +99,30 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
             field = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterEnabled)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterAutoUpdateEditable)));
          }
       }
+
+      public bool OfflineLeakFilterAutoUpdateEnabled
+      {
+         get;
+         set
+         {
+            if (field == value)
+            {
+               return;
+            }
+
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterAutoUpdateEnabled)));
+         }
+      }
+
+      /// <summary>
+      /// Auto-update is only meaningful while the offline filter is enabled and idle.
+      /// </summary>
+      public bool OfflineLeakFilterAutoUpdateEditable
+         => OfflineLeakFilterEnabled && OfflineLeakFilterIdle;
 
       public string OfflineLeakFilterStatus
       {
@@ -122,6 +144,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBusy)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterIdle)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBuildButtonText)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterAutoUpdateEditable)));
          }
       }
 
@@ -191,6 +214,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public void RefreshOfflineLeakFilterStatus()
       {
          OfflineLeakFilterEnabled = AppInfo.AppSettings.LeakFilterConfig.Enabled;
+         OfflineLeakFilterAutoUpdateEnabled = OfflineLeakFilterEnabled
+            && AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled;
+
+         if (!OfflineLeakFilterEnabled && AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled)
+         {
+            AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = false;
+         }
 
          string path = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
 

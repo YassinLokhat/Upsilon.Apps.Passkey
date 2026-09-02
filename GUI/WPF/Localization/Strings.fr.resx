@@ -1014,6 +1014,12 @@ Vous ne serez pas prévenu pour :
   <data name="Label_UseOfflineBloomFilter" xml:space="preserve">
     <value>Utiliser le filtre de Bloom hors ligne lorsque HIBP et XposedOrNot sont inaccessibles</value>
   </data>
+  <data name="Label_AutoUpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>Mettre à jour automatiquement la base hors ligne en arrière-plan</value>
+  </data>
+  <data name="Tooltip_AutoUpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>Lorsque cette option est activée, une base hors ligne déjà présente est rafraîchie depuis HIBP au démarrage. Une première construction n'est jamais lancée automatiquement (trop lourde).</value>
+  </data>
   <data name="Label_BuildUpdate" xml:space="preserve">
     <value>Construire / Mettre à jour</value>
   </data>
