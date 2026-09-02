@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Net.Http;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.Utils;
@@ -16,9 +16,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       private readonly object _gate = new();
       private CancellationTokenSource? _cts;
       private int _busy;
-      private HibpBloomBuildProgress? _latestProgress;
-      private HibpBloomBuildResult? _latestResult;
-      private bool _wasCancelled;
 
       public bool IsBusy => Volatile.Read(ref _busy) != 0;
 
@@ -31,9 +28,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          {
             lock (_gate)
             {
-               return _latestProgress;
+               return field;
             }
          }
+
+         private set;
       }
 
       /// <summary>
@@ -45,9 +44,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          {
             lock (_gate)
             {
-               return _latestResult;
+               return field;
             }
          }
+
+         private set;
       }
 
       /// <summary>
@@ -59,9 +60,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          {
             lock (_gate)
             {
-               return _wasCancelled;
+               return field;
             }
          }
+
+         private set;
       }
 
       public event EventHandler? BusyChanged;
@@ -162,9 +165,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
          lock (_gate)
          {
-            _latestProgress = null;
-            _latestResult = null;
-            _wasCancelled = false;
+            LatestProgress = null;
+            LatestResult = null;
+            WasCancelled = false;
          }
 
          BusyChanged?.Invoke(this, EventArgs.Empty);
@@ -181,7 +184,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          {
             lock (_gate)
             {
-               _latestProgress = p;
+               LatestProgress = p;
             }
 
             ProgressChanged?.Invoke(this, EventArgs.Empty);
@@ -208,7 +211,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
             lock (_gate)
             {
-               _latestResult = result;
+               LatestResult = result;
             }
 
             return result;
@@ -232,7 +235,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
                   _cts = null;
                }
 
-               _wasCancelled = cancelled || linkedCts.IsCancellationRequested;
+               WasCancelled = cancelled || linkedCts.IsCancellationRequested;
             }
 
             linkedCts.Dispose();

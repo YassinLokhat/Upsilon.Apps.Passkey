@@ -273,12 +273,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private IWarning[] _notifiedWarnings()
       {
          WarningType mask = _database.User?.Settings.WarningsToNotify ?? 0;
-         if (mask == 0)
-         {
-            return [];
-         }
-
-         return [.. (_database.Warnings ?? []).Where(w => mask.HasFlag(w.WarningType))];
+         return mask == 0 ? [] : [.. (_database.Warnings ?? []).Where(w => mask.HasFlag(w.WarningType))];
       }
 
       private void _updateWarningsMenu(IWarning[] warnings)
@@ -314,8 +309,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             loginWarnings = warnings
                .Where(x => x.WarningType.HasFlag(WarningType.ActivityReviewWarning)
                   && x.Activities is not null
-                  && x.Activities.Any(y => y.EventType == ActivityEventType.LoginFailed
-                     || y.EventType == ActivityEventType.LoginSessionTimeoutReached))
+                  && x.Activities.Any(y => y.EventType is ActivityEventType.LoginFailed
+                     or ActivityEventType.LoginSessionTimeoutReached))
                .SelectMany(x => x.Activities ?? [])
                .Count();
 

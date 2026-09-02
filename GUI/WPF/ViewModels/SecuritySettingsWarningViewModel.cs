@@ -52,12 +52,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       private static SecuritySettingsIssueItemViewModel[] _loadIssues()
       {
          SecuritySettingsIssue issues = SecuritySettingsIssue.None;
-         foreach (IWarning warning in AppServices.Session.Database?.Warnings ?? [])
+         foreach (IWarning warning in AppServices.Session.Database?.Warnings?.Where(x => x.WarningType.HasFlag(WarningType.SecuritySettingsWarning)) ?? [])
          {
-            if (warning.WarningType.HasFlag(WarningType.SecuritySettingsWarning))
-            {
-               issues |= warning.SecuritySettingsIssues;
-            }
+            issues |= warning.SecuritySettingsIssues;
          }
 
          return
