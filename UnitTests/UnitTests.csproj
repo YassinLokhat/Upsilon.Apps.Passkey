@@ -10,6 +10,11 @@
     <!-- Test project stays lenient: analyzer/warning noise must not fail the build. -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningLevel>0</WarningLevel>
+
+    <!-- Picked up by Visual Studio Test Explorer and by `dotnet test` when no
+         settings file is passed on the command line. Points at the repo-root
+         runsettings (ResultsDirectory, Core-only Cobertura). -->
+    <RunSettingsFilePath>$(MSBuildThisFileDirectory)..\coverage.runsettings</RunSettingsFilePath>
   </PropertyGroup>
 
   <ItemGroup>

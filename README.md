@@ -590,7 +590,8 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     dialogs (`ThemedMessageBoxView` via `DialogService`) stay out of the automated suite.
 *   **Coverage**: `coverage.runsettings` measures **Core only** (Utils is a
     separate assembly and is not in that gate). Windows CI fails the build if
-    line coverage drops below **90%**.
+    line coverage drops below **90%**. `run_code_coverage.bat` and Windows CI
+    write reports under `_testResult/` (gitignored).
 
 ```bash
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings

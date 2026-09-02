@@ -36,7 +36,8 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
 Windows CI also enforces **90% line coverage of `Upsilon.Apps.Passkey.Core`**.
 Coverage is scoped in `coverage.runsettings` to the Core assembly; Utils and the
 WPF assembly are excluded. Do not lower that gate without an explicit discussion
-in the PR.
+in the PR. Coverage reports from `run_code_coverage.bat` / Windows CI land in
+`_testResult/` (gitignored).
 
 GUI ViewModel tests can be filtered with:
 

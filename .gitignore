@@ -27,6 +27,7 @@ obj/
 [Rr]elease*/
 _ReSharper*/
 [Tt]est[Rr]esult*
+_testResult/
 [Cc]overage[Rr]eport*/
 .vs/
 # WPF temporary design-time projects

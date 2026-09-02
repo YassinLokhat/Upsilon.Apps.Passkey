@@ -40,14 +40,14 @@ jobs:
       run: dotnet build Upsilon.Apps.Passkey.Windows.slnx --no-restore --configuration Release
 
     - name: Test
-      run: dotnet test --no-build --verbosity normal Upsilon.Apps.Passkey.Windows.slnx --logger "trx;LogFileName=test-results.trx" --results-directory TestResults --collect:"Code Coverage" --settings coverage.runsettings
+      run: dotnet test --no-build --verbosity normal Upsilon.Apps.Passkey.Windows.slnx --logger "trx;LogFileName=test-results.trx" --results-directory _testResult --collect:"Code Coverage" --settings coverage.runsettings
 
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v6
       with:
         name: test-results-windows
-        path: TestResults/**/*.trx
+        path: _testResult/**/*.trx
         if-no-files-found: ignore
 
     - name: Upload coverage report
@@ -55,14 +55,14 @@ jobs:
       uses: actions/upload-artifact@v6
       with:
         name: coverage-windows
-        path: TestResults/**/*.cobertura.xml
+        path: _testResult/**/*.cobertura.xml
         if-no-files-found: ignore
 
     - name: Publish coverage summary and enforce threshold
       if: always()
       shell: pwsh
       run: |
-        $report = Get-ChildItem -Path TestResults -Recurse -Filter *.cobertura.xml | Select-Object -First 1
+        $report = Get-ChildItem -Path _testResult -Recurse -Filter *.cobertura.xml | Select-Object -First 1
         if ($null -eq $report) {
           "No coverage report was produced." | Add-Content -Path $env:GITHUB_STEP_SUMMARY
           Write-Error "No coverage report was produced; cannot enforce the coverage threshold."

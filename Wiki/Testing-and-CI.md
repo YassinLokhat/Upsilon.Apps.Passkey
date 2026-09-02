@@ -19,6 +19,8 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitT
 
 `coverage.runsettings` measures **Core only** (the vault assembly). Utils (crypto, password factory) is a separate assembly and is not in that gate. The WPF assembly is excluded. Windows CI fails the build if line coverage of `Upsilon.Apps.Passkey.Core` drops below **90%**. Do not lower that gate without an explicit discussion in the pull request.
 
+Locally, `run_code_coverage.bat` (and Windows CI) write TRX / Cobertura output under `_testResult/` (gitignored). The same path is set in `coverage.runsettings` (`<ResultsDirectory>`). `UnitTests.csproj` sets `RunSettingsFilePath` to that file so Visual Studio Test Explorer and a plain `dotnet test` on the test project pick it up without a manual menu selection.
+
 Linux CI builds Interfaces + Utils + Core. The workflow still runs `dotnet test` on `Upsilon.Apps.Passkey.Linux.slnx`, but that solution has no test projects, so the step is effectively a no-op.
 
 ## GitHub Actions
