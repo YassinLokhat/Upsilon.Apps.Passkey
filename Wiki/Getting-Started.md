@@ -85,11 +85,14 @@ Full API notes: [[Core API]]. More scenarios: [[Usage Cookbook]].
 
 ## Publish this folder as a GitHub Wiki
 
-GitHub Wikis are a **separate git remote**, not the `Wiki/` directory itself. After enabling Wikis on the repository:
+GitHub Wikis are a **separate git remote**, not the `Wiki/` directory itself. Keep `Wiki/` in the source repo so documentation changes can go through the same pull requests as code.
+
+On every push to `master` that touches `Wiki/`, the **Publish Wiki** workflow copies `Wiki/*.md` (including `_Sidebar.md` and `_Footer.md`) to `Upsilon.Apps.Passkey.wiki.git`. It needs a repository secret `WIKI_TOKEN`: a fine-grained PAT with **Contents: Read and write** on this repository (`GITHUB_TOKEN` cannot push to the wiki remote).
+
+Manual publish (if needed):
 
 ```bash
 git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.wiki.git
 # Copy Wiki/*.md (including _Sidebar.md and _Footer.md) to the clone root, then commit and push.
 ```
 
-Keep `Wiki/` in the source repo so documentation changes can go through the same pull requests as code.

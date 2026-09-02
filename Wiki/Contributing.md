@@ -84,4 +84,4 @@ Write a short subject that states **why** the change exists (fix, add, update), 
 
 ## Wiki edits
 
-Keep pages in the source tree under `Wiki/` so they review with the code. To publish to GitHub's Wiki hosting, copy the Markdown files to `Upsilon.Apps.Passkey.wiki.git` (see [[Getting Started]]). Use `[[Page Title]]` links so both the folder and the GitHub Wiki resolve them.
+Keep pages in the source tree under `Wiki/` so they review with the code. Merges to `master` that change `Wiki/` are published automatically to the GitHub Wiki (see [[Getting Started]]). Use `[[Page Title]]` links so both the folder and the GitHub Wiki resolve them.

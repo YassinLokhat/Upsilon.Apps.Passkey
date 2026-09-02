@@ -50,4 +50,4 @@ A **local-only** password manager written in C# on **.NET 10**. There is no serv
 
 **License:** GNU General Public License v2.0. See [`LICENSE`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/LICENSE).
 
-This wiki lives in the `Wiki/` folder of the source repository so it can be reviewed with the code. To publish it as the GitHub Wiki, copy the Markdown files to the `Upsilon.Apps.Passkey.wiki.git` remote (see [[Getting Started]]).
+This wiki lives in the `Wiki/` folder of the source repository so it can be reviewed with the code. Changes merged to `master` are published automatically to the GitHub Wiki (see [[Getting Started]]).
