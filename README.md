@@ -6,7 +6,7 @@
 
 A local-only password manager written in C# on **.NET 10**. There is no server,
 no account, and no synchronization: every secret lives in a single encrypted
-`.pku` file on the user's device. Version <!-- BEGIN:versions-overview -->**1.1.0**<!-- END:versions-overview --> (each assembly is versioned
+`.pku` file on the user's device. Version <!-- BEGIN:versions-overview -->**1.2.0**<!-- END:versions-overview --> (each assembly is versioned
 independently; see [SECURITY.md](SECURITY.md) and [`versions.json`](versions.json)).
 
 **Features**

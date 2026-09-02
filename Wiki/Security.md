@@ -8,15 +8,15 @@ Related: [[Vault Format]], [[Threat Model]], [[Warnings and Activity]].
 
 Each component is versioned **independently**. Security fixes apply to the latest released version of each component only.
 
-<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.Interfaces` is on **1.0.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Utils` are on **1.1.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
+<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.Interfaces` is on **1.1.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Utils` are on **1.2.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
 
 <!-- BEGIN:versions-supported-table -->
 | Component (assembly) | Supported version | Supported |
 | -------------------- | ----------------- | --------- |
-| `Upsilon.Apps.Passkey.GUI.WPF` | 1.1.x | Yes |
-| `Upsilon.Apps.Passkey.Core` | 1.1.x | Yes |
-| `Upsilon.Apps.Passkey.Utils` | 1.1.x | Yes |
-| `Upsilon.Apps.Passkey.Interfaces` | 1.0.x | Yes |
+| `Upsilon.Apps.Passkey.GUI.WPF` | 1.2.x | Yes |
+| `Upsilon.Apps.Passkey.Core` | 1.2.x | Yes |
+| `Upsilon.Apps.Passkey.Utils` | 1.2.x | Yes |
+| `Upsilon.Apps.Passkey.Interfaces` | 1.1.x | Yes |
 <!-- END:versions-supported-table -->
 
 Any version older than the latest release of a given component is not supported. Source of truth: [`versions.json`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/versions.json).

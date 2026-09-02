@@ -2,7 +2,7 @@
 
 A **local-only** password manager written in C# on **.NET 10**. There is no server, no account, and no synchronization: every secret lives in a single encrypted `.pku` file on the user's device.
 
-<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.Interfaces` is on **1.0.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Utils` are on **1.1.x**. Each assembly is versioned independently and may diverge. Always upgrade to the latest release of a component before reporting an issue.<!-- END:versions-summary -->
+<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.Interfaces` is on **1.1.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Utils` are on **1.2.x**. Each assembly is versioned independently and may diverge. Always upgrade to the latest release of a component before reporting an issue.<!-- END:versions-summary -->
 
 ## What it stores
 

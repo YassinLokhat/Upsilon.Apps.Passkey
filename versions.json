@@ -4,7 +4,7 @@
     "interfaces": {
       "id": "Upsilon.Apps.Passkey.Interfaces",
       "project": "Interfaces/Upsilon.Apps.Passkey.Interfaces.csproj",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "kind": "library",
       "ship": true,
       "tagPrefix": "interfaces",
@@ -13,7 +13,7 @@
     "utils": {
       "id": "Upsilon.Apps.Passkey.Utils",
       "project": "Utils/Upsilon.Apps.Passkey.Utils.csproj",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "kind": "library",
       "ship": true,
       "tagPrefix": "utils",
@@ -24,32 +24,32 @@
     "core": {
       "id": "Upsilon.Apps.Passkey.Core",
       "project": "Core/Upsilon.Apps.Passkey.Core.csproj",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "kind": "library",
       "ship": true,
       "tagPrefix": "core",
       "dependencies": {
-        "interfaces": "[1.0.0,2.0.0)",
-        "utils": "[1.1.0,2.0.0)"
+        "interfaces": "[1.1.0,2.0.0)",
+        "utils": "[1.2.0,2.0.0)"
       }
     },
     "wpf": {
       "id": "Upsilon.Apps.Passkey.GUI.WPF",
       "project": "GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj",
-      "version": "1.1.1",
+      "version": "1.2.0",
       "kind": "app",
       "ship": true,
       "tagPrefix": "wpf",
       "assetStem": "Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64",
       "publishDir": "GUI/WPF/bin/Release/net10.0-windows10.0.18362.0/publish/win-x64",
       "dependencies": {
-        "core": "[1.1.0,2.0.0)"
+        "core": "[1.2.0,2.0.0)"
       }
     },
     "unitTests": {
       "id": "UnitTests",
       "project": "UnitTests/UnitTests.csproj",
-      "version": "1.1.0",
+      "version": "1.0.0",
       "kind": "test",
       "ship": false,
       "dependencies": {}
