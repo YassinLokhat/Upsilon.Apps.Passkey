@@ -1,6 +1,8 @@
 ﻿using System.IO;
 using System.Net.Http;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -16,7 +18,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    internal sealed partial class AppSettingsView : Window
    {
       private readonly AppSettingsViewModel _viewModel;
-      private Action? _cancelOfflineLeakFilterBuild;
 
       public AppSettingsView()
       {
@@ -24,15 +25,80 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          DataContext = _viewModel = new AppSettingsViewModel();
 
-         Loaded += (s, e) => this.PostLoadSetup();
+         Loaded += (s, e) =>
+         {
+            this.PostLoadSetup();
+            OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;
+            update.BusyChanged += _offlineLeakFilterUpdate_BusyChanged;
+            update.ProgressChanged += _offlineLeakFilterUpdate_ProgressChanged;
+            _syncBusyFromService();
+            _applyProgressFromService();
+         };
+
+         Unloaded += (s, e) => _unsubscribeUpdateService();
       }
 
       protected override void OnClosed(EventArgs e)
       {
-         _cancelOfflineLeakFilterBuild?.Invoke();
-         _cancelOfflineLeakFilterBuild = null;
-
+         _unsubscribeUpdateService();
+         // Do not cancel a background auto-update when closing settings; only the
+         // Cancel button (or app exit) stops an in-flight run.
          base.OnClosed(e);
+      }
+
+      private void _unsubscribeUpdateService()
+      {
+         OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;
+         update.BusyChanged -= _offlineLeakFilterUpdate_BusyChanged;
+         update.ProgressChanged -= _offlineLeakFilterUpdate_ProgressChanged;
+      }
+
+      private void _offlineLeakFilterUpdate_BusyChanged(object? sender, EventArgs e)
+         => Dispatcher.Invoke(() =>
+         {
+            _syncBusyFromService();
+            _applyProgressFromService();
+         });
+
+      private void _offlineLeakFilterUpdate_ProgressChanged(object? sender, EventArgs e)
+         => Dispatcher.Invoke(_applyProgressFromService);
+
+      private void _syncBusyFromService()
+      {
+         OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;
+         bool busy = update.IsBusy;
+         _viewModel.OfflineLeakFilterBusy = busy;
+
+         if (!busy)
+         {
+            _viewModel.RefreshOfflineLeakFilterStatus();
+
+            if (update.WasCancelled)
+            {
+               _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildCancelled;
+            }
+            else if (update.LatestResult is { } result)
+            {
+               _viewModel.OfflineLeakFilterProgress = _completionMessage(result);
+            }
+         }
+      }
+
+      private void _applyProgressFromService()
+      {
+         if (!AppServices.OfflineLeakFilterUpdate.IsBusy)
+         {
+            return;
+         }
+
+         if (AppServices.OfflineLeakFilterUpdate.LatestProgress is { } progress)
+         {
+            _viewModel.OfflineLeakFilterProgress = _formatProgress(progress);
+         }
+         else if (string.IsNullOrEmpty(_viewModel.OfflineLeakFilterProgress))
+         {
+            _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildStarting;
+         }
       }
 
       private void _saveMenuItem_Click(object sender, RoutedEventArgs e)
@@ -72,14 +138,37 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
-      private void _offlineLeakFilterEnabled_Changed(object sender, RoutedEventArgs e)
+      private void _value_TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+         => NumericTextBoxHelper.PreviewTextInput(sender, e);
+
+      private void _value_TextBox_Pasting(object sender, DataObjectPastingEventArgs e)
+         => NumericTextBoxHelper.Pasting(sender, e);
+
+      private void _value_TextBox_TextChanged(object sender, TextChangedEventArgs e)
+         => NumericTextBoxHelper.TextChanged(sender, e);
+
+      private void _offlineLeakFilterEnabled_Click(object sender, RoutedEventArgs e)
       {
          if (_viewModel.OfflineLeakFilterBusy)
          {
             return;
          }
 
+         // Click is user-only (binding updates do not raise it). Turning the
+         // offline filter on also opts the user into background refreshes;
+         // turning it off clears auto-update so a later enable is an explicit choice again.
          AppInfo.AppSettings.LeakFilterConfig.Enabled = _viewModel.OfflineLeakFilterEnabled;
+
+         if (_viewModel.OfflineLeakFilterEnabled)
+         {
+            _viewModel.OfflineLeakFilterAutoUpdateEnabled = true;
+            AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = true;
+         }
+         else
+         {
+            _viewModel.OfflineLeakFilterAutoUpdateEnabled = false;
+            AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = false;
+         }
 
          if (AppServices.PasswordFactory is PasswordFactory factory)
          {
@@ -87,13 +176,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          _viewModel.RefreshOfflineLeakFilterStatus();
+         AppServices.Session.Database?.RefreshWarnings();
+      }
+
+      private void _offlineLeakFilterAutoUpdate_Click(object sender, RoutedEventArgs e)
+      {
+         if (_viewModel.OfflineLeakFilterBusy)
+         {
+            return;
+         }
+
+         AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = _viewModel.OfflineLeakFilterAutoUpdateEnabled;
       }
 
       private async void _offlineLeakFilterBuild_Click(object sender, RoutedEventArgs e)
       {
          if (_viewModel.OfflineLeakFilterBusy)
          {
-            _cancelOfflineLeakFilterBuild?.Invoke();
+            AppServices.OfflineLeakFilterUpdate.Cancel();
             return;
          }
 
@@ -109,63 +209,39 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         using CancellationTokenSource buildCts = new();
-         CancellationToken cancellationToken = buildCts.Token;
-         _cancelOfflineLeakFilterBuild = buildCts.Cancel;
-
          _viewModel.OfflineLeakFilterBusy = true;
          _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildStarting;
 
-         // An attached filter maps the .pkbf read-only but shares it read-only too,
-         // which denies the read-write handle an in-place refresh needs. Detaching
-         // for the duration only costs the offline fallback, and only while the
-         // database is being written.
-         if (AppServices.PasswordFactory is PasswordFactory detaching)
-         {
-            detaching.AttachLocalFilter(null);
-         }
-
          try
          {
-            Progress<HibpBloomBuildProgress> progress = new(p =>
-            {
-               if (p.Skipped)
-               {
-                  _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildSkipped;
-                  return;
-               }
-
-               double pct = 100.0 * p.CompletedPrefixes / p.TotalPrefixes;
-               _viewModel.OfflineLeakFilterProgress = p.IsRefresh
-                  ? Strings.Format(
-                     nameof(Strings.Msg_OfflineLeakUpdateProgress),
-                     pct,
-                     p.CompletedPrefixes,
-                     p.TotalPrefixes,
-                     p.UnchangedPrefixes,
-                     p.ChangedPrefixes,
-                     _mebibytes(p.DownloadedBytes))
-                  : Strings.Format(
-                     nameof(Strings.Msg_OfflineLeakBuildProgress),
-                     pct,
-                     p.CompletedPrefixes,
-                     p.TotalPrefixes,
-                     p.InsertedHashes);
-            });
-
-            string filterPath = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
-            HibpBloomBuildResult result = await HibpBloomBuilder.RunAsync(
-               filterPath,
+            HibpBloomBuildResult? result = await AppServices.OfflineLeakFilterUpdate.RunAsync(
                update ? HibpBloomBuildMode.Update : HibpBloomBuildMode.BuildIfMissing,
-               progress: progress,
-               cancellationToken: cancellationToken).ConfigureAwait(true);
+               progress: null,
+               cancellationToken: CancellationToken.None).ConfigureAwait(true);
+
+            if (result is null)
+            {
+               // Another run claimed the slot (e.g. auto-update). Reflect that.
+               _syncBusyFromService();
+               _applyProgressFromService();
+               return;
+            }
 
             AppInfo.AppSettings.LeakFilterConfig.Enabled = true;
             _viewModel.OfflineLeakFilterEnabled = true;
 
-            _viewModel.OfflineLeakFilterProgress = _completionMessage(result);
+            // After a successful first full build, turn auto-update on by default
+            // so later startups refresh the corpus without another multi-GiB download.
+            if (!result.Value.Skipped && !result.Value.IsRefresh)
+            {
+               AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = true;
+               _viewModel.OfflineLeakFilterAutoUpdateEnabled = true;
+               AppInfo.AppSettings.Save(AppInfo.ConfigFile);
+            }
+
+            _viewModel.OfflineLeakFilterProgress = _completionMessage(result.Value);
          }
-         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+         catch (OperationCanceledException)
          {
             _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildCancelled;
          }
@@ -184,20 +260,37 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
          finally
          {
-            // Reattached whatever the outcome: a failed or cancelled run must not
-            // leave the offline fallback silently detached.
-            if (AppServices.PasswordFactory is PasswordFactory factory)
-            {
-               factory.ReloadLocalFilter(AppInfo.AppSettings.LeakFilterConfig);
-            }
-
-            _viewModel.RefreshOfflineLeakFilterStatus();
-            _cancelOfflineLeakFilterBuild = null;
-            _viewModel.OfflineLeakFilterBusy = false;
+            _syncBusyFromService();
+            AppServices.Session.Database?.RefreshWarnings();
          }
       }
 
       private static double _mebibytes(long bytes) => bytes / (1024.0 * 1024.0);
+
+      private static string _formatProgress(HibpBloomBuildProgress progress)
+      {
+         if (progress.Skipped)
+         {
+            return Strings.Msg_OfflineLeakBuildSkipped;
+         }
+
+         double pct = 100.0 * progress.CompletedPrefixes / progress.TotalPrefixes;
+         return progress.IsRefresh
+            ? Strings.Format(
+               nameof(Strings.Msg_OfflineLeakUpdateProgress),
+               pct,
+               progress.CompletedPrefixes,
+               progress.TotalPrefixes,
+               progress.UnchangedPrefixes,
+               progress.ChangedPrefixes,
+               _mebibytes(progress.DownloadedBytes))
+            : Strings.Format(
+               nameof(Strings.Msg_OfflineLeakBuildProgress),
+               pct,
+               progress.CompletedPrefixes,
+               progress.TotalPrefixes,
+               progress.InsertedHashes);
+      }
 
       private static string _completionMessage(HibpBloomBuildResult result)
       {
@@ -242,6 +335,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = AppInfo.AppSettings.LeakFilterConfig.TryDeleteFilterFile();
          _viewModel.OfflineLeakFilterProgress = string.Empty;
          _viewModel.RefreshOfflineLeakFilterStatus();
+         AppServices.Session.Database?.RefreshWarnings();
       }
    }
 }

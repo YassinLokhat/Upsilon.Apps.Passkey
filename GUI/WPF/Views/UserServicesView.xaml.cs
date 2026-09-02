@@ -61,7 +61,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (_database.Warnings is not null
             && _database.Warnings.Any())
          {
-            _database_WarningUpdated(_database.Warnings);
+            _database_WarningUpdated(_notifiedWarnings());
          }
       }
 
@@ -104,6 +104,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          HotkeyHelper.HotkeyPressed += _hotkeyHelper_HotkeyPressed;
 
          this.PostLoadSetup();
+
+         if (_database.User?.Settings.WarningsToNotify == 0)
+         {
+            _dialogs.Warn(Strings.Msg_NoWarningsToNotify, Strings.Title_NoWarningsToNotify);
+         }
       }
 
       private void _hotkeyHelper_HotkeyPressed(object? sender, HotkeyEventArgs e)
@@ -190,6 +195,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _dialogs.Close<AccountPasswordsWarningView>();
          _dialogs.Close<DuplicatedPasswordsWarningView>();
+         _dialogs.Close<SecuritySettingsWarningView>();
          _dialogs.Close<UserActivitiesView>();
 
          // Drop any PasswordBox / history plaintext before tearing down the session.
@@ -258,7 +264,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       }
 
       private void _refreshWarningsMenuFromSession()
-         => _updateWarningsMenu([.. _session.Database?.Warnings ?? []]);
+         => _updateWarningsMenu(_notifiedWarnings());
+
+      /// <summary>
+      /// <see cref="IDatabase.Warnings"/> holds every computed warning;
+      /// <see cref="ISettings.WarningsToNotify"/> decides which ones the menu shows.
+      /// </summary>
+      private IWarning[] _notifiedWarnings()
+      {
+         WarningType mask = _database.User?.Settings.WarningsToNotify ?? 0;
+         return mask == 0 ? [] : [.. (_database.Warnings ?? []).Where(w => mask.HasFlag(w.WarningType))];
+      }
 
       private void _updateWarningsMenu(IWarning[] warnings)
       {
@@ -267,6 +283,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          int expiredPasswordWarnings = 0;
          int duplicatedPasswordWarnings = 0;
          int leakedPasswordWarnings = 0;
+         int securitySettingsWarnings = 0;
+         int loginWarnings = 0;
 
          if (_session.Database?.Warnings is not null)
          {
@@ -285,14 +303,30 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                .Where(x => x.WarningType.HasFlag(WarningType.PasswordLeakedWarning))
                .SelectMany(x => x.Accounts ?? [])
                .Count();
+            securitySettingsWarnings = warnings
+               .Where(x => x.WarningType.HasFlag(WarningType.SecuritySettingsWarning))
+               .Sum(x => System.Numerics.BitOperations.PopCount((uint)x.SecuritySettingsIssues));
+            loginWarnings = warnings
+               .Where(x => x.WarningType.HasFlag(WarningType.ActivityReviewWarning)
+                  && x.Activities is not null
+                  && x.Activities.Any(y => y.EventType is ActivityEventType.LoginFailed
+                     or ActivityEventType.LoginSessionTimeoutReached))
+               .SelectMany(x => x.Activities ?? [])
+               .Count();
 
-            totalWarningCount = activityWarnings + expiredPasswordWarnings + duplicatedPasswordWarnings + leakedPasswordWarnings;
+            totalWarningCount = activityWarnings
+               + expiredPasswordWarnings
+               + duplicatedPasswordWarnings
+               + leakedPasswordWarnings
+               + securitySettingsWarnings;
             _viewModel.ShowWarnings = Strings.Format(nameof(Strings.Msg_ShowWarnings), totalWarningCount);
-            _viewModel.ShowWarningsColor = (expiredPasswordWarnings + leakedPasswordWarnings) == 0 ? SemanticBrushes.Warning : SemanticBrushes.Danger;
+            _viewModel.ShowWarningsColor = (expiredPasswordWarnings + leakedPasswordWarnings + loginWarnings) == 0 ? SemanticBrushes.Warning : SemanticBrushes.Danger;
+            _viewModel.ShowActivityWarningsColor = loginWarnings == 0 ? SemanticBrushes.Warning : SemanticBrushes.Danger;
             _viewModel.ShowActivityWarnings = Strings.Format(nameof(Strings.Msg_ShowActivityWarnings), activityWarnings);
             _viewModel.ShowExpiredPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowExpiredPasswordWarnings), expiredPasswordWarnings);
             _viewModel.ShowDuplicatedPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowDuplicatedPasswordWarnings), duplicatedPasswordWarnings);
             _viewModel.ShowLeakedPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowLeakedPasswordWarnings), leakedPasswordWarnings);
+            _viewModel.ShowSecuritySettingsWarnings = Strings.Format(nameof(Strings.Msg_ShowSecuritySettingsWarnings), securitySettingsWarnings);
          }
 
          _warnings_MI.Visibility = totalWarningCount != 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -300,6 +334,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _expiredPasswordWarnings_MI.Visibility = expiredPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
          _duplicatedPasswordWarnings_MI.Visibility = duplicatedPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
          _leakedPasswordWarnings_MI.Visibility = leakedPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _securitySettingsWarnings_MI.Visibility = securitySettingsWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
       }
 
       private void _addService_Button_Click(object sender, RoutedEventArgs e)
@@ -453,6 +488,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   vm.WarningType = requested;
                }
             });
+      }
+
+      private void _securitySettingsWarnings_MI_Click(object sender, RoutedEventArgs e)
+      {
+         if (this.GetIsBusy())
+         {
+            return;
+         }
+
+         _ = _dialogs.ShowSingleton(() => new SecuritySettingsWarningView());
       }
 
       private void _filterCommand_CommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)

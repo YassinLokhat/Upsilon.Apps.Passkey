@@ -11,16 +11,18 @@ protects data and how to report a problem.
 Each component is versioned **independently** and may evolve at its own pace.
 Security fixes are applied to the latest released version of each component only,
 so please always upgrade to the most recent release before reporting an issue.
-The main shippable components (Core, Utils, WPF) share version 1.1.x at the time
-of writing; other assemblies are versioned independently and may differ (e.g.
-`Interfaces` at 1.0.x). This is not guaranteed to remain the case.
+<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.Interfaces` is on **1.1.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Utils` are on **1.2.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
 
+Versions and dependency ranges are maintained in [`versions.json`](versions.json).
+
+<!-- BEGIN:versions-supported-table -->
 | Component (assembly)                  | Supported version | Supported          |
 | ------------------------------------- | ----------------- | ------------------ |
-| `Upsilon.Apps.Passkey.GUI.WPF` (app)  | 1.1.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Core`           | 1.1.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Utils`          | 1.1.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Interfaces`     | 1.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.GUI.WPF` (app)  | 1.2.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Core`           | 1.2.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Utils`          | 1.2.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Interfaces`     | 1.1.x             | :white_check_mark: |
+<!-- END:versions-supported-table -->
 
 Any version older than the latest release of a given component is not supported.
 
@@ -306,7 +308,10 @@ login:
   **application-scoped** (shared by all vaults on the machine): enabling or
   disabling it never deletes the `.pkbf`; only an explicit delete (App Settings
   or `LeakFilterConfig.TryDeleteFilterFile`) removes it, along with its
-  sidecar. Application logs still live under `%LocalAppData%\Passkey\logs`
+  sidecar. Optional `LeakFilterConfig.AutoUpdateEnabled` (default off) tells
+  the WPF host to refresh an **existing** `.pkbf` in the background at startup
+  when offline use is also enabled; a missing file never triggers an automatic
+  first build. Application logs still live under `%LocalAppData%\Passkey\logs`
   — that path is unrelated to the Bloom filter.
 - **Duplicate-password** and **password-expiry** warnings are computed locally.
 
@@ -360,10 +365,13 @@ These are conscious trade-offs, documented for transparency:
   APIs first; update when you want the local file to catch up. An update is
   incremental — every range is revalidated with `If-None-Match` against the ETags
   in the `.pkbf.ranges` sidecar and only changed ranges are downloaded and folded
-  in — so freshness costs minutes rather than another full build. The sidecar is
-  a cache, never a source of truth: it is bound to one committed state of one
-  filter file and is rejected whenever that no longer matches, because skipping a
-  range whose bits are absent would mean reporting a leaked password as clean.
+  in — so freshness costs minutes rather than another full build. Optional
+  `AutoUpdateEnabled` can run that incremental refresh at WPF startup when a
+  `.pkbf` already exists; it never starts a first full build automatically. The
+  sidecar is a cache, never a source of truth: it is bound to one committed state
+  of one filter file and is rejected whenever that no longer matches, because
+  skipping a range whose bits are absent would mean reporting a leaked password
+  as clean.
 - **Unsealed activity-log tail**: the activity log is tamper-evident only for the
   portion sealed at the last login (see "Activity-log integrity"). Entries added
   since then — including events written while no one is logged in, such as failed

@@ -4,6 +4,10 @@
 
 Each `Login` call appends a stretched passkey to the in-memory onion. A wrong value is never undone, so later correct keys still fail until you `Close` and `Open` again. That is deliberate online brute-force friction on top of PBKDF2, not a bug. The WPF client uses Escape to drop the half-open session. See [[Security]] and [[Usage Cookbook]].
 
+## Why does the login window clear my username after a few seconds?
+
+That is the **login idle timeout** (`LoginIdleTimeoutSeconds` in `config.json`, default 5). While you type on the login screen, a countdown appears in the title bar; when it reaches zero, credentials and any half-open session are cleared. Set it to **0** under **App Settings** (`Ctrl+,`) to disable. This is separate from the vault session auto-logout (`LogoutTimeout` minutes once logged in). See [[WPF Client]].
+
 ## Why is `Create` already logged in? Why can't I call `Login` after it?
 
 `Create` builds a complete onion, writes the `.pku`, and returns a session whose `User` is already set. Extra `Login` calls would wrap **another** layer on a finished stack and fail. Use `Login` only after `Open`.
@@ -23,6 +27,10 @@ No. Only a hash prefix (k-anonymity): first 5 characters of SHA-1 to Have I Been
 ## The leak check said nothing. Is my password safe?
 
 If both providers are down (or you are offline) **and** no offline Bloom filter is attached, the check **fails open** and reports "not leaked". When a filter *is* attached, a Bloom miss is definitive "not leaked"; a hit is treated as leaked (may include ~1 % false positives). Failures are not cached, so a later successful remote check can still raise a warning. There is no separate "unverified" UI state. Build or enable the filter under **App Settings** (`Ctrl+,`). See [[Security]].
+
+## Does the offline leak database update itself?
+
+Only if you opt in. Under **App Settings → Offline leak database**, enable **Automatically update…** (`LeakFilterConfig.AutoUpdateEnabled`, default off). At the next startup, if offline use is also enabled **and** a `.pkbf` already exists, Passkey refreshes it in the background (incremental HIBP range revalidation). A missing file never triggers an automatic first build — that download is too large. See [[WPF Client]].
 
 ## Why PBKDF2 instead of Argon2?
 

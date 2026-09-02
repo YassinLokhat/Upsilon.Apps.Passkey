@@ -8,14 +8,18 @@ Related: [[Vault Format]], [[Threat Model]], [[Warnings and Activity]].
 
 Each component is versioned **independently**. Security fixes apply to the latest released version of each component only.
 
+<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.Interfaces` is on **1.1.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Utils` are on **1.2.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
+
+<!-- BEGIN:versions-supported-table -->
 | Component (assembly) | Supported version | Supported |
 | -------------------- | ----------------- | --------- |
-| `Upsilon.Apps.Passkey.GUI.WPF` | 1.1.x | Yes |
-| `Upsilon.Apps.Passkey.Core` | 1.1.x | Yes |
-| `Upsilon.Apps.Passkey.Utils` | 1.1.x | Yes |
-| `Upsilon.Apps.Passkey.Interfaces` | 1.0.x | Yes |
+| `Upsilon.Apps.Passkey.GUI.WPF` | 1.2.x | Yes |
+| `Upsilon.Apps.Passkey.Core` | 1.2.x | Yes |
+| `Upsilon.Apps.Passkey.Utils` | 1.2.x | Yes |
+| `Upsilon.Apps.Passkey.Interfaces` | 1.1.x | Yes |
+<!-- END:versions-supported-table -->
 
-Any version older than the latest release of a given component is not supported. Core, Utils, and the WPF client share the 1.1.x line at the time of writing; other assemblies may differ and are not guaranteed to stay aligned.
+Any version older than the latest release of a given component is not supported. Source of truth: [`versions.json`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/versions.json).
 
 ## Reporting a vulnerability
 
@@ -70,7 +74,7 @@ Combined with the expensive PBKDF2 stretch on every attempt, an interactive gues
 ## Password hygiene
 
 * Strong generation: CSPRNG over a configurable alphabet. Leak-checked generation retries at most **five** candidates, then returns empty.
-* Leak detection: two free, no-account **k-anonymity** providers (HIBP then XposedOrNot), then an optional machine-local HIBP Bloom filter (`.pkbf`). Only hash prefixes leave the device for the remote calls. Timeouts of a few seconds. Process-local cache of successful answers only. Order: HIBP → XposedOrNot → Bloom (if enabled and present) → fail-open. Default filter path: `<exe>/pwned-sha1.pkbf` (`LeakFilterConfig.FilterPath`); sidecar `<filter>.pkbf.ranges` for incremental updates. A Bloom **miss** is definitive "not leaked"; a **hit** is treated as leaked (~1 % false positives possible, no false negatives). Enabling/disabling never deletes the file; only an explicit delete removes it (and the sidecar). Build / update / enable / delete from WPF **App Settings** (`Ctrl+,`) or `HibpBloomBuilder.RunAsync`. Implementation: `Utils/LeakFilter/`.
+* Leak detection: two free, no-account **k-anonymity** providers (HIBP then XposedOrNot), then an optional machine-local HIBP Bloom filter (`.pkbf`). Only hash prefixes leave the device for the remote calls. Timeouts of a few seconds. Process-local cache of successful answers only. Order: HIBP → XposedOrNot → Bloom (if enabled and present) → fail-open. Default filter path: `<exe>/pwned-sha1.pkbf` (`LeakFilterConfig.FilterPath`); sidecar `<filter>.pkbf.ranges` for incremental updates. A Bloom **miss** is definitive "not leaked"; a **hit** is treated as leaked (~1 % false positives possible, no false negatives). Enabling/disabling never deletes the file; only an explicit delete removes it (and the sidecar). Build / update / enable / delete from WPF **App Settings** (`Ctrl+,`) or `HibpBloomBuilder.RunAsync`. Optional `LeakFilterConfig.AutoUpdateEnabled` (default off) refreshes an **existing** `.pkbf` in the background at WPF startup; it never starts a first full build. Implementation: `Utils/LeakFilter/`.
 * Duplicate-password and password-expiry warnings are local.
 
 These leak-check HTTP calls are the **only** outbound network the application makes. The feature is opt-in per account. The offline filter is **application-scoped** (shared by all vaults; not stored in the `.pku`).
@@ -84,7 +88,7 @@ These are conscious trade-offs:
 * **PBKDF2 rather than Argon2id.** Argon2 is not in the BCL; Core, Utils, and Interfaces stay zero-dependency. Compensation: PBKDF2-HMAC-SHA-512 with 1,000,000 iterations. The sticky KDF header keeps the door open to a memory-hard KDF later if the policy is ever relaxed.
 * **Import/export files** are plaintext by design for interoperability.
 * **Leak check fails open** when both remotes are unreachable **and** no offline Bloom filter is attached (absent or disabled via `LeakFilterConfig`). Residual risk without a local filter: a prolonged outage of *both* providers while a breached password stays unmarked. The two remote corpora are not identical, so a password known only to the provider that is down may be missed. When a filter *is* attached, Bloom hits may include ~1 % false positives.
-* **Offline Bloom filter size / freshness.** A full HIBP-derived `.pkbf` is on the order of ~2.4 GiB and takes hours to build. Updates are incremental (`If-None-Match` against the `.pkbf.ranges` sidecar). The sidecar is a cache bound to one committed filter state and is rejected when that no longer matches.
+* **Offline Bloom filter size / freshness.** A full HIBP-derived `.pkbf` is on the order of ~2.4 GiB and takes hours to build. Updates are incremental (`If-None-Match` against the `.pkbf.ranges` sidecar). The sidecar is a cache bound to one committed filter state and is rejected when that no longer matches. With `AutoUpdateEnabled`, the WPF host can refresh an existing file at startup; absence of the file never triggers an automatic first build.
 * **Unsealed activity-log tail.** An attacker with write access to the file can erase unsealed events (including their own failed logins) before the legitimate user logs in again. Sealed prefix + watermark still detect rollback of what was sealed.
 * **No login-attempt rollback.** Raises the cost of interactive guessing at the expense of UX.
 * **Compressed size leakage.** GZip-before-encrypt means ciphertext length tracks compressed plaintext size. Absolute lengths are already visible for any AEAD ciphertext; this is accepted for storage savings on structured data.

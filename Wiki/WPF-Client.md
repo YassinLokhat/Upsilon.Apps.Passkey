@@ -94,17 +94,29 @@ Confirmations and alerts use `ThemedMessageBoxView` (via `DialogService.Confirm`
 Under **App Settings** (`Ctrl+,`), section **Offline leak database**:
 
 * Enable / disable the local HIBP Bloom filter (`LeakFilterConfig.Enabled`). Disabling never deletes the file.
-* Build or update `<exe>/pwned-sha1.pkbf` (or `FilterPath`) via `HibpBloomBuilder` — a full build can take hours (~2.4 GiB); updates are incremental using the `.pkbf.ranges` sidecar.
+* Optionally enable **automatic background updates** (`LeakFilterConfig.AutoUpdateEnabled`, default **off**). When this is on, offline use is enabled, **and** a `.pkbf` already exists, the WPF host refreshes the filter at startup via `HibpBloomBuildMode.Update` (incremental). A first full build is **never** started automatically — it is too heavy (~tens of GiB / hours).
+* Build or update `<exe>/pwned-sha1.pkbf` (or `FilterPath`) via `HibpBloomBuilder` — a full build can take hours (~2.4 GiB); updates are incremental using the `.pkbf.ranges` sidecar. Manual and automatic runs share one in-process slot (`OfflineLeakFilterUpdateService`).
 * Delete the `.pkbf` and its sidecar explicitly.
 
 Preferences are application-level (`config.json`), shared by all vault users — not stored in the `.pku`. Details: [[Security]].
+
+## App Settings — login idle timeout
+
+`LoginIdleTimeoutSeconds` (`config.json`, default **5**) is the inactivity budget on the **login** window before typed credentials and any half-open session are cleared.
+
+* **0** disables the idle reset (no countdown, no automatic clear).
+* While the timer is armed, the window title appends a live countdown (`Msg_LoginIdleLeftTime`, e.g. ` - 5s`).
+* Typing on the username or passkey field restarts the budget; Escape still clears immediately.
+* Open / Login awaits pause the timer; it is re-armed only when something remains to protect (typed username or half-open session).
+
+This is separate from the vault **session** auto-logout (`ISettings.LogoutTimeout` minutes) described under Session protection.
 
 ## Login
 
 1. Username
 2. Each passkey **in order**
 
-Escape cancels and closes the half-open session. That is required: there is no passkey rollback (see [[Security]]).
+Escape cancels and closes the half-open session. That is required: there is no passkey rollback (see [[Security]]). Inactivity on this screen also clears credentials after `LoginIdleTimeoutSeconds` when that setting is non-zero.
 
 The GUI keeps the typed secret in `PasswordBox.SecurePassword` and bridges it through `SecureStringExtensions.UseAsString`: the unmanaged BSTR is zeroed in a `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of the `Login` call. The short-lived managed `string` passed to Core remains subject to the usual .NET GC limitations.
 
@@ -116,7 +128,7 @@ The GUI keeps the typed secret in `PasswordBox.SecurePassword` and bridges it th
 | -------- | ------ |
 | `Ctrl+O` | Open vault |
 | `Ctrl+N` | New user |
-| `Ctrl+,` | App Settings (language, theme, default vault folder, offline leak database) |
+| `Ctrl+,` | App Settings (language, theme, default vault folder, login idle timeout, offline leak database) |
 | `Ctrl+P` | Password generator |
 | `Ctrl+Shift+L` | While the services window is open: paste the selected **identifier** into the focused field |
 | `Ctrl+Shift+P` | Paste the selected **password** into the focused field |
@@ -129,7 +141,8 @@ Identifiers and passwords can be shown as a QR matrix generated **in-process** (
 
 ## Session protection
 
-* **Auto-logout** after `LogoutTimeout` minutes of inactivity. The database file handle is released.
+* **Login idle reset** after `LoginIdleTimeoutSeconds` of inactivity on the login window (app setting; `0` = off). Credentials and any half-open session are cleared; the title bar shows the countdown.
+* **Auto-logout** after `LogoutTimeout` minutes of inactivity once logged in. The database file handle is released.
 * On process exit, `AppServices.Session.EndSession()` closes any open vault and clears owned clipboard content, in case `MainWindow.Closed` did not run first.
 * Unhandled UI exceptions are logged and marked handled so a single dialog failure does not tear down the process. AppDomain / unobserved-task exceptions are logged and flushed.
 
@@ -153,9 +166,10 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 
 1. Create a new vault (multi-passkey) and reopen it with the same ordered passkeys.
 2. Mistype a passkey, then close/reopen and log in correctly (progressive login, no rollback).
-3. Copy an account password; confirm the clipboard clears after the configured timeout.
-4. Idle until auto-logout; confirm the session closes and the vault file is released.
-5. Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
-6. Show a password as a QR code and confirm the window closes after the configured delay.
+3. On the login window, confirm the title countdown and that idle reset clears credentials after `LoginIdleTimeoutSeconds`; set **0** in App Settings and confirm the timer stays off.
+4. Copy an account password; confirm the clipboard clears after the configured timeout.
+5. Idle until auto-logout; confirm the session closes and the vault file is released.
+6. Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
+7. Show a password as a QR code and confirm the window closes after the configured delay.
 
 There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay out of the automated suite — [[Testing and CI]].

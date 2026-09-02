@@ -12,7 +12,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="250" Width="700">
+        Height="320" Width="700">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -67,6 +67,17 @@
                          DisplayMemberPath="DisplayName"
                          IsEnabled="{Binding OfflineLeakFilterIdle}"/>
             </Grid>
+            <StackPanel Orientation="Horizontal">
+               <Label Content="{loc:Loc Label_LoginIdleTimeout}"/>
+               <TextBox Width="40"
+                        HorizontalContentAlignment="Center"
+                        IsEnabled="{Binding OfflineLeakFilterIdle}"
+                        TextChanged="_value_TextBox_TextChanged"
+                        PreviewTextInput="_value_TextBox_PreviewTextInput"
+                        DataObject.Pasting="_value_TextBox_Pasting"
+                        Text="{Binding LoginIdleTimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+               <Label Margin="0" Content="{loc:Loc Label_Seconds}"/>
+            </StackPanel>
             <GroupBox Header="{loc:Loc Label_OfflineLeakDatabase}"
                       ToolTip="{loc:Loc Tooltip_OfflineLeakDatabase}">
                <StackPanel>
@@ -85,10 +96,14 @@
                                 Text="{Binding OfflineLeakFilterProgress}"/>
                   </Grid>
                   <CheckBox Content="{loc:Loc Label_UseOfflineBloomFilter}"
-                            IsChecked="{Binding OfflineLeakFilterEnabled}"
+                            IsChecked="{Binding OfflineLeakFilterEnabled, Mode=TwoWay}"
                             IsEnabled="{Binding OfflineLeakFilterIdle}"
-                            Checked="_offlineLeakFilterEnabled_Changed"
-                            Unchecked="_offlineLeakFilterEnabled_Changed"/>
+                            Click="_offlineLeakFilterEnabled_Click"/>
+                  <CheckBox Content="{loc:Loc Label_AutoUpdateOfflineLeakDatabase}"
+                            ToolTip="{loc:Loc Tooltip_AutoUpdateOfflineLeakDatabase}"
+                            IsChecked="{Binding OfflineLeakFilterAutoUpdateEnabled, Mode=TwoWay}"
+                            IsEnabled="{Binding OfflineLeakFilterAutoUpdateEditable}"
+                            Click="_offlineLeakFilterAutoUpdate_Click"/>
                   <Grid>
                      <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>

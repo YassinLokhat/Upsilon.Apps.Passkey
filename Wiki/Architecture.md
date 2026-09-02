@@ -197,6 +197,7 @@ classDiagram
             +WarningType WarningType
             +IEnumerable~IActivity~? Activities
             +IEnumerable~IAccount~? Accounts
+            +SecuritySettingsIssue SecuritySettingsIssues
         }
     }
 

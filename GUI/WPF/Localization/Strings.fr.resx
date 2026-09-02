@@ -296,6 +296,9 @@
   <data name="Label_LogoutAfter" xml:space="preserve">
     <value>Déconnexion après</value>
   </data>
+  <data name="Label_LoginIdleTimeout" xml:space="preserve">
+    <value>Réinitialiser la connexion après</value>
+  </data>
   <data name="Label_Minutes" xml:space="preserve">
     <value>minutes.</value>
   </data>
@@ -334,6 +337,9 @@
   </data>
   <data name="Label_NotifyPasswordLeaked" xml:space="preserve">
     <value>Notifier les fuites de mot de passe</value>
+  </data>
+  <data name="Label_NotifySecuritySettings" xml:space="preserve">
+    <value>Notifier les paramètres de sécurité</value>
   </data>
   <data name="Label_RemindPasswordUpdate" xml:space="preserve">
     <value>Rappeler de mettre à jour le mot de passe tous les</value>
@@ -598,6 +604,95 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="Msg_ShowLeakedPasswordWarnings" xml:space="preserve">
     <value>Afficher {0} mots de passe divulgués</value>
   </data>
+  <data name="Msg_ShowSecuritySettingsWarnings" xml:space="preserve">
+    <value>Afficher {0} alertes de paramètres de sécurité</value>
+  </data>
+  <data name="Msg_NoWarningsToNotify" xml:space="preserve">
+    <value>Aucune notification d'alerte n'est activée.
+
+Vous ne serez pas prévenu pour :
+• Les activités à revoir
+• Les mots de passe expirés, dupliqués ou divulgués
+• Les paramètres de sécurité trop permissifs</value>
+  </data>
+  <data name="Title_NoWarningsToNotify" xml:space="preserve">
+    <value>Notifications d'alertes désactivées</value>
+  </data>
+  <data name="Title_SecuritySettingsWarnings" xml:space="preserve">
+    <value>Alertes de paramètres de sécurité</value>
+  </data>
+  <data name="Title_SecuritySettingsWarningsWindow" xml:space="preserve">
+    <value>{0} - Alertes de paramètres de sécurité</value>
+  </data>
+  <data name="Label_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
+    <value>Déconnexion automatique désactivée</value>
+  </data>
+  <data name="Msg_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
+    <value>Une session déverrouillée reste ouverte jusqu'à déconnexion manuelle.</value>
+  </data>
+  <data name="Label_SecuritySettings_ClipboardCleaningDisabled" xml:space="preserve">
+    <value>Nettoyage du presse-papiers désactivé</value>
+  </data>
+  <data name="Msg_SecuritySettings_ClipboardCleaningDisabled" xml:space="preserve">
+    <value>Les secrets copiés peuvent rester dans le presse-papiers.</value>
+  </data>
+  <data name="Label_SecuritySettings_QrAutoCloseDisabled" xml:space="preserve">
+    <value>Fermeture auto du QR désactivée</value>
+  </data>
+  <data name="Msg_SecuritySettings_QrAutoCloseDisabled" xml:space="preserve">
+    <value>La fenêtre QR reste ouverte jusqu'à fermeture manuelle.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountLeakCheck" xml:space="preserve">
+    <value>Aucun contrôle de fuite</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountLeakCheck" xml:space="preserve">
+    <value>Aucun compte n'a activé le contrôle de fuite de mot de passe.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountDuplicateCheck" xml:space="preserve">
+    <value>Aucun contrôle des doublons</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountDuplicateCheck" xml:space="preserve">
+    <value>Aucun compte n'a activé le contrôle des mots de passe dupliqués.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountUpdateReminder" xml:space="preserve">
+    <value>Aucun rappel de mise à jour</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountUpdateReminder" xml:space="preserve">
+    <value>Aucun compte n'a activé un délai de rappel de mise à jour du mot de passe.</value>
+  </data>
+  <data name="Label_SecuritySettings_IdleLoginDisabled" xml:space="preserve">
+    <value>Effacement idle à la connexion désactivé</value>
+  </data>
+  <data name="Msg_SecuritySettings_IdleLoginDisabled" xml:space="preserve">
+    <value>Les identifiants saisis à l'écran de connexion ne sont pas effacés après inactivité.</value>
+  </data>
+  <data name="Label_SecuritySettings_OfflineLeakFilterUnavailable" xml:space="preserve">
+    <value>Filtre de fuites hors ligne indisponible</value>
+  </data>
+  <data name="Msg_SecuritySettings_OfflineLeakFilterUnavailable" xml:space="preserve">
+    <value>Aucun filtre Bloom hors ligne n'est chargé. Les contrôles de fuite échouent en ouvert si HIBP et XposedOrNot sont injoignables.</value>
+  </data>
+  <data name="Label_SecuritySettings_DuplicatePasswordNotificationsDisabled" xml:space="preserve">
+    <value>Notifications de mots de passe dupliqués désactivées</value>
+  </data>
+  <data name="Msg_SecuritySettings_DuplicatePasswordNotificationsDisabled" xml:space="preserve">
+    <value>Vous ne serez pas notifié lorsque des comptes partagent le même mot de passe.</value>
+  </data>
+  <data name="Label_SecuritySettings_PasswordUpdateReminderNotificationsDisabled" xml:space="preserve">
+    <value>Notifications de rappel de mise à jour désactivées</value>
+  </data>
+  <data name="Msg_SecuritySettings_PasswordUpdateReminderNotificationsDisabled" xml:space="preserve">
+    <value>Vous ne serez pas notifié lorsque des mots de passe arrivent à échéance de rappel.</value>
+  </data>
+  <data name="Label_SecuritySettings_PasswordLeakedNotificationsDisabled" xml:space="preserve">
+    <value>Notifications de mots de passe divulgués désactivées</value>
+  </data>
+  <data name="Msg_SecuritySettings_PasswordLeakedNotificationsDisabled" xml:space="preserve">
+    <value>Vous ne serez pas notifié lorsqu'un mot de passe de compte est trouvé dans un corpus de fuites.</value>
+  </data>
+  <data name="Msg_OpenUserSettingsPrompt" xml:space="preserve">
+    <value>Ouvrir les paramètres utilisateur pour revoir ces options ?</value>
+  </data>
   <data name="Msg_UserId" xml:space="preserve">
     <value>Id utilisateur : {0}</value>
   </data>
@@ -609,6 +704,9 @@ Annuler : ignorer et conserver le fichier.</value>
   </data>
   <data name="Msg_SessionLeftTime" xml:space="preserve">
     <value> - Temps de session restant : {0:D2}:{1:D2}</value>
+  </data>
+  <data name="Msg_SessionUnlimitedTime" xml:space="preserve">
+    <value> - Temps de session illimité</value>
   </data>
   <data name="Msg_FiltersHeader" xml:space="preserve">
     <value>Filtres : '{0}' activités trouvées sur {1}</value>
@@ -714,6 +812,9 @@ Annuler : ignorer et conserver le fichier.</value>
   </data>
   <data name="EnumValue_WarningType_PasswordLeakedWarning" xml:space="preserve">
     <value>Mots de passe divulgués</value>
+  </data>
+  <data name="EnumValue_WarningType_SecuritySettingsWarning" xml:space="preserve">
+    <value>Paramètres de sécurité</value>
   </data>
   <data name="EnumValue_None" xml:space="preserve">
     <value>Aucune</value>
@@ -913,6 +1014,12 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="Label_UseOfflineBloomFilter" xml:space="preserve">
     <value>Utiliser le filtre de Bloom hors ligne lorsque HIBP et XposedOrNot sont inaccessibles</value>
   </data>
+  <data name="Label_AutoUpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>Mettre à jour automatiquement la base hors ligne en arrière-plan</value>
+  </data>
+  <data name="Tooltip_AutoUpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>Lorsque cette option est activée, une base hors ligne déjà présente est rafraîchie depuis HIBP au démarrage. Une première construction n'est jamais lancée automatiquement (trop lourde).</value>
+  </data>
   <data name="Label_BuildUpdate" xml:space="preserve">
     <value>Construire / Mettre à jour</value>
   </data>
@@ -979,6 +1086,9 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
   </data>
   <data name="Title_DeleteOfflineLeakDatabase" xml:space="preserve">
     <value>Supprimer la base de fuites hors ligne</value>
+  </data>
+  <data name="Title_IdleResetCredentialTimeout" xml:space="preserve">
+    <value> - Identifiants de connection réinitialisés dans {0}</value>
   </data>
   <data name="Msg_OfflineLeakFileAbsent" xml:space="preserve">
     <value>Fichier absent</value>

@@ -13,7 +13,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="430" Width="1000">
+        Height="465" Width="1000">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -148,6 +148,8 @@
                                   Content="{loc:Loc Label_NotifyPasswordUpdateReminder}"/>
                         <CheckBox IsChecked="{Binding NotifyPasswordLeaked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Content="{loc:Loc Label_NotifyPasswordLeaked}"/>
+                        <CheckBox IsChecked="{Binding NotifySecuritySettings, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_NotifySecuritySettings}"/>
                      </StackPanel>
                   </GroupBox>
                </StackPanel>

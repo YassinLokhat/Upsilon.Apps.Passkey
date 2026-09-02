@@ -2,6 +2,7 @@
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Services
@@ -20,7 +21,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
          EndSession();
 
+         database.HostSecuritySettingsIssues = _evaluateHostSecuritySettings;
          Database = database;
+
+         // Login may have queued a warning scan before this callback was wired;
+         // refresh so app-level idle/filter issues are included.
+         if (database.User is not null)
+         {
+            database.RefreshWarnings();
+         }
+
          Log.Info("Session started.");
          _applySessionLanguage();
          _applySessionTheme();
@@ -38,6 +48,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
          try
          {
+            Database.HostSecuritySettingsIssues = null;
+
             if (closeDatabase)
             {
                Database.Close();
@@ -82,6 +94,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          _ = ThemeService.ApplyEffective(
             AppInfo.AppSettings.Theme,
             User?.Settings.Theme);
+      }
+
+      private static SecuritySettingsIssue _evaluateHostSecuritySettings()
+      {
+         SecuritySettingsIssue issues = SecuritySettingsIssue.None;
+
+         if (AppInfo.AppSettings.LoginIdleTimeoutSeconds <= 0)
+         {
+            issues |= SecuritySettingsIssue.IdleLoginDisabled;
+         }
+
+         if (!AppServices.PasswordFactory.HasLocalFilter)
+         {
+            issues |= SecuritySettingsIssue.OfflineLeakFilterUnavailable;
+         }
+
+         return issues;
       }
    }
 }

@@ -1,15 +1,20 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0-windows10.0.18362.0</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0</AssemblyVersion>
-    <FileVersion>1.1.0</FileVersion>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
 
     <!-- Test project stays lenient: analyzer/warning noise must not fail the build. -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningLevel>0</WarningLevel>
+
+    <!-- Picked up by Visual Studio Test Explorer and by `dotnet test` when no
+         settings file is passed on the command line. Points at the repo-root
+         runsettings (ResultsDirectory, Core-only Cobertura). -->
+    <RunSettingsFilePath>$(MSBuildThisFileDirectory)..\coverage.runsettings</RunSettingsFilePath>
   </PropertyGroup>
 
   <ItemGroup>

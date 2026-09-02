@@ -5,6 +5,11 @@
    /// </summary>
    public interface IPasswordFactory
    {
+      /// <summary>
+      /// Whether an offline Bloom filter is currently attached for post-network fallback.
+      /// </summary>
+      bool HasLocalFilter { get; }
+
       string Alphabetic { get; }
 
       string Numeric { get; }

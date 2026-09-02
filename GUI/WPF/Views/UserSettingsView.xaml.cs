@@ -167,7 +167,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          else
          {
             string oldFileName = AppServices.Cryptography.GetHash(_database.User.Username);
-            oldDatabaseFile = Path.GetFullPath($"{Path.GetDirectoryName(Environment.ProcessPath)}/raw/{oldFileName}.pku");
+            oldDatabaseFile = Path.GetFullPath($"{Path.Join(AppInfo.AppSettings.DefaultDatabaseDirectory, oldFileName + ".pku")}");
 
             credentialsChanged = _credentialsChanged(oldFileName,
                oldPasskeys: _database.User.Passkeys,
@@ -205,6 +205,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             if (_viewModel.NotifyPasswordLeaked)
             {
                warningsToNotify |= WarningType.PasswordLeakedWarning;
+            }
+
+            if (_viewModel.NotifySecuritySettings)
+            {
+               warningsToNotify |= WarningType.SecuritySettingsWarning;
+            }
+
+            if (warningsToNotify == 0)
+            {
+               AppServices.Dialogs.Warn(Strings.Msg_NoWarningsToNotify, Strings.Title_NoWarningsToNotify);
             }
 
             _database.User.Settings.WarningsToNotify = warningsToNotify;

@@ -3,8 +3,17 @@
   Uses the "Code Coverage" data collector that ships with Microsoft.NET.Test.Sdk,
   so no third-party coverage package is required. Output is Cobertura XML, which
   is consumable by any coverage viewer.
+
+  Wired via UnitTests.csproj RunSettingsFilePath (VS Test Explorer and
+  `dotnet test` when no settings file is passed on the command line).
+  CI / run_code_coverage.bat also pass settings / results-directory
+  explicitly.
 -->
 <RunSettings>
+  <RunConfiguration>
+    <!-- Relative to the solution directory when run from VS / VSTest. -->
+    <ResultsDirectory>_testResult</ResultsDirectory>
+  </RunConfiguration>
   <DataCollectionRunSettings>
     <DataCollectors>
       <DataCollector friendlyName="Code Coverage">

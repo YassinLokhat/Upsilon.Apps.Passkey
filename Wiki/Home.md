@@ -2,7 +2,7 @@
 
 A **local-only** password manager written in C# on **.NET 10**. There is no server, no account, and no synchronization: every secret lives in a single encrypted `.pku` file on the user's device.
 
-Each assembly is versioned independently. Core, Utils, and the WPF client are at **1.1.x**; `Interfaces` remains on **1.0.x** at the time of writing. This is not guaranteed to remain the case. Always upgrade to the latest release of a component before reporting an issue.
+<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.Interfaces` is on **1.1.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Utils` are on **1.2.x**. Each assembly is versioned independently and may diverge. Always upgrade to the latest release of a component before reporting an issue.<!-- END:versions-summary -->
 
 ## What it stores
 
@@ -28,7 +28,7 @@ Each assembly is versioned independently. Core, Utils, and the WPF client are at
 | Generation | CSPRNG over a configurable alphabet |
 | Leak checks | Opt-in Have I Been Pwned, then XposedOrNot failover, then an optional local HIBP Bloom filter (`.pkbf`; k-anonymity / offline) |
 | Import / export | Plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited) |
-| Windows client | System / Light / Dark theme, QR codes, global paste hotkeys, autosave merge on next login, App Settings for vault folder and offline leak DB |
+| Windows client | System / Light / Dark theme, QR codes, global paste hotkeys, autosave merge on next login, App Settings for vault folder, login idle timeout, and offline leak DB (optional auto-update of an existing `.pkbf`) |
 
 ## Start here
 
@@ -50,4 +50,4 @@ Each assembly is versioned independently. Core, Utils, and the WPF client are at
 
 **License:** GNU General Public License v2.0. See [`LICENSE`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/LICENSE).
 
-This wiki lives in the `Wiki/` folder of the source repository so it can be reviewed with the code. To publish it as the GitHub Wiki, copy the Markdown files to the `Upsilon.Apps.Passkey.wiki.git` remote (see [[Getting Started]]).
+This wiki lives in the `Wiki/` folder of the source repository so it can be reviewed with the code. Changes merged to `master` are published automatically to the GitHub Wiki (see [[Getting Started]]).

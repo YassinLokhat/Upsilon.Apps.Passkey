@@ -4,8 +4,8 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 namespace Upsilon.Apps.Passkey.Core.Models
 {
    /// <summary>
-   /// One warning bucket: either activities that need review, or accounts that
-   /// share a leaked / duplicated / expired password.
+   /// One warning bucket: activities that need review, accounts that share a
+   /// leaked / duplicated / expired password, or security-settings posture issues.
    /// </summary>
    internal sealed class Warning : IWarning
    {
@@ -16,6 +16,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public IEnumerable<IActivity>? Activities { get; set; }
 
       public IEnumerable<IAccount>? Accounts { get; set; }
+
+      public SecuritySettingsIssue SecuritySettingsIssues { get; set; }
 
       #endregion
 
@@ -29,6 +31,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
       {
          WarningType = warningType;
          Accounts = accounts;
+      }
+
+      public Warning(SecuritySettingsIssue issues)
+      {
+         WarningType = WarningType.SecuritySettingsWarning;
+         SecuritySettingsIssues = issues;
       }
    }
 }

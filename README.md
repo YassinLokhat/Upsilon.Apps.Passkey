@@ -6,8 +6,8 @@
 
 A local-only password manager written in C# on **.NET 10**. There is no server,
 no account, and no synchronization: every secret lives in a single encrypted
-`.pku` file on the user's device. Version **1.1.0** (each assembly is versioned
-independently; see [SECURITY.md](SECURITY.md)).
+`.pku` file on the user's device. Version <!-- BEGIN:versions-overview -->**1.2.0**<!-- END:versions-overview --> (each assembly is versioned
+independently; see [SECURITY.md](SECURITY.md) and [`versions.json`](versions.json)).
 
 **Features**
 ------------
@@ -220,6 +220,7 @@ classDiagram
             +WarningType WarningType
             +IEnumerable~IActivity~? Activities
             +IEnumerable~IAccount~? Accounts
+            +SecuritySettingsIssue SecuritySettingsIssues
         }
     }
     
@@ -240,6 +241,7 @@ classDiagram
             PasswordUpdateReminderWarning
             DuplicatedPasswordsWarning
             PasswordLeakedWarning
+            SecuritySettingsWarning
         }
         
         class AutoSaveMergeBehavior {
@@ -507,10 +509,11 @@ local Bloom filter built from the HIBP SHA-1 corpus:
 
 *   File: `<exe>/pwned-sha1.pkbf` (~2.4 GiB for the default sizing), or any location set through `FilterPath`
 *   Sidecar: `<filter>.pkbf.ranges` (~32 MiB), one fixed-width record per hash-range prefix holding the `ETag` already folded into the filter
-*   Config: `LeakFilterConfig` (`Enabled` / `FilterPath`) in the WPF host's `config.json` — **application-level**, shared by all vault users (not stored in the `.pku`)
+*   Config: `LeakFilterConfig` (`Enabled` / `AutoUpdateEnabled` / `FilterPath`) in the WPF host's `config.json` — **application-level**, shared by all vault users (not stored in the `.pku`)
 *   Order: HIBP → XposedOrNot → Bloom (if enabled and present) → fail-open
 *   Disable never deletes the file; only **Delete offline database** in **App Settings** (or deleting the `.pkbf` manually) removes it — the sidecar goes with it
 *   Build / update / enable / delete from **App Settings** (`Ctrl+,`, section **Offline leak database**), or from your own host through `HibpBloomBuilder.RunAsync`
+*   **Auto-update** (`AutoUpdateEnabled`, default off): at WPF startup, if offline use is enabled **and** a `.pkbf` already exists, an incremental refresh runs in the background. A missing file never triggers an automatic first build (too heavy for the client).
 
 A full build downloads every HIBP range (~1 048 576 prefixes) and can take several
 hours. That is tens of GiB over the wire — brotli/gzip roughly halves the ~78 GB
@@ -552,14 +555,17 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     resolves `<exe>/raw/{hash}.pku` (it does not read that setting) — prefer
     `Ctrl+O` or a command-line path when the vault is elsewhere.
 *   **Login**: username, then each passkey in order. Escape cancels and closes
-    the half-open session (required: there is no passkey rollback).
+    the half-open session (required: there is no passkey rollback). App Settings
+    `LoginIdleTimeoutSeconds` (default 5; `0` = off) clears credentials on login-window
+    inactivity; the title bar shows the countdown while armed.
 *   **Shortcuts**: `Ctrl+O` open, `Ctrl+N` new user, `Ctrl+,` App Settings,
     `Ctrl+P` password generator. While the services window is open,
     **Ctrl+Shift+L** pastes the selected identifier and **Ctrl+Shift+P** pastes
     the selected password into the focused field (copy + synthetic Ctrl+V;
     clipboard still auto-clears).
 *   **Offline leak database**: App Settings can build / update / enable / delete
-    the local `.pkbf` Bloom filter (see Offline leak database above).
+    the local `.pkbf` Bloom filter, and optionally auto-refresh an existing file
+    at startup (`AutoUpdateEnabled`; see Offline leak database above).
 *   **QR codes**: identifiers and passwords can be shown as a QR matrix generated
     in-process (`Core/Utils/QrCode.cs`, no network). The window closes after
     `ISettings.ShowPasswordDelay` milliseconds when that setting is non-zero.
@@ -584,7 +590,8 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     dialogs (`ThemedMessageBoxView` via `DialogService`) stay out of the automated suite.
 *   **Coverage**: `coverage.runsettings` measures **Core only** (Utils is a
     separate assembly and is not in that gate). Windows CI fails the build if
-    line coverage drops below **90%**.
+    line coverage drops below **90%**. `run_code_coverage.bat` and Windows CI
+    write reports under `_testResult/` (gitignored).
 
 ```bash
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
@@ -609,12 +616,12 @@ GitHub Actions on `master` and pull requests:
 
 | Workflow | What it does |
 | -------- | ------------ |
-| `.github/workflows/csharp-dotnet-windows.yml` | Restore, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
+| `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
 | `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on every push/PR (any branch) and weekly; Release build of production projects (tests excluded) |
-| `.github/workflows/release.yml` | On `v*.*.*` tags: Release build, tests, `dotnet publish` (self-contained win-x64), GitHub Release with zip + SHA-256 |
+| `.github/workflows/release.yml` | On per-component tags (`wpf-v*.*.*`, …; legacy `v*` = WPF): sync check, build/test, `scripts/Sync-Versions.ps1`, GitHub Release (nupkg or WPF zip + SHA-256 + dependency notes) |
 
-Pushing a tag such as `v1.1.0` (or `v1.1.0-rc.1` for a prerelease) creates the GitHub Release. See [CONTRIBUTING.md](CONTRIBUTING.md#cutting-a-release).
+Edit [`versions.json`](versions.json), run `.\scripts\Sync-Versions.ps1 -SyncOnly`, then push tags such as `wpf-v1.1.0`. See [CONTRIBUTING.md](CONTRIBUTING.md#cutting-a-release).
 
 Dependabot is configured for the **.NET SDK** only (`dotnet-sdk` ecosystem). Test
 NuGet packages (MSTest, FluentAssertions) are not auto-bumped.
@@ -622,7 +629,8 @@ NuGet packages (MSTest, FluentAssertions) are not auto-bumped.
 **Getting Started**
 -------------------
 
-End users: download the Windows x64 zip from
+End users: download the Windows x64 zip
+(`Upsilon.Apps.Passkey.GUI.WPF-*-win-x64.zip`) from
 [Releases](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/releases)
 (.NET 10 is bundled; Windows 10 1809 / build 18362 or later).
 

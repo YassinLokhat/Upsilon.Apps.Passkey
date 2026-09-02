@@ -27,6 +27,7 @@ obj/
 [Rr]elease*/
 _ReSharper*/
 [Tt]est[Rr]esult*
+_testResult/
 [Cc]overage[Rr]eport*/
 .vs/
 # WPF temporary design-time projects
@@ -36,3 +37,5 @@ packages/
 build
 # Local tooling (e.g. portable gh downloaded for API tasks)
 .tools/
+# Local package / client publish output (scripts/Sync-Versions.ps1)
+_artifacts/

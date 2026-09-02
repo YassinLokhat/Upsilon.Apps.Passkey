@@ -65,16 +65,18 @@ Match the surrounding file. Do not reformat unrelated code.
 
 ## Cutting a release
 
-GitHub Releases are produced by `.github/workflows/release.yml` when a version tag is pushed. Bump `<Version>` in the assemblies you intend to ship, merge to `master`, wait for CI, then:
+Package versions and dependency ranges live in [`versions.json`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/versions.json). Edit that file, run `.\scripts\Sync-Versions.ps1 -SyncOnly`, commit, merge to `master`, wait for CI, then push **per-component** tags:
 
 ```bash
 git checkout master
 git pull
-git tag v1.1.0
-git push origin v1.1.0
+git tag utils-v1.1.0
+git tag core-v1.1.0
+git tag wpf-v1.1.0
+git push origin utils-v1.1.0 core-v1.1.0 wpf-v1.1.0
 ```
 
-Use a prerelease suffix (`v1.1.0-rc.1`) to mark the GitHub Release as a prerelease. Details: [[Testing and CI]].
+Do not tag a package that did not change. Local publish of every shippable package: `.\scripts\Sync-Versions.ps1` (writes `_artifacts/`). Details: [[Testing and CI]].
 
 ## Commit messages
 
@@ -82,4 +84,4 @@ Write a short subject that states **why** the change exists (fix, add, update), 
 
 ## Wiki edits
 
-Keep pages in the source tree under `Wiki/` so they review with the code. To publish to GitHub's Wiki hosting, copy the Markdown files to `Upsilon.Apps.Passkey.wiki.git` (see [[Getting Started]]). Use `[[Page Title]]` links so both the folder and the GitHub Wiki resolve them.
+Keep pages in the source tree under `Wiki/` so they review with the code. Merges to `master` that change `Wiki/` are published automatically to the GitHub Wiki (see [[Getting Started]]). Use `[[Page Title]]` links so both the folder and the GitHub Wiki resolve them.

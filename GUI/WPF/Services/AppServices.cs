@@ -36,6 +36,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       public static IClipboardManager Clipboard { get; set; } = new ClipboardManager();
 
       /// <summary>
+      /// Shared offline leak-filter build/update runner (manual settings + startup auto-update).
+      /// </summary>
+      public static OfflineLeakFilterUpdateService OfflineLeakFilterUpdate { get; set; } = new();
+
+      /// <summary>
       /// Restores production defaults. Intended for unit-test cleanup only.
       /// </summary>
       internal static void Reset()
@@ -47,6 +52,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          Serialization = new JsonSerializationCenter();
          PasswordFactory = new PasswordFactory(AppInfo.AppSettings.LeakFilterConfig);
          Clipboard = new ClipboardManager();
+         OfflineLeakFilterUpdate = new OfflineLeakFilterUpdateService();
       }
    }
 }

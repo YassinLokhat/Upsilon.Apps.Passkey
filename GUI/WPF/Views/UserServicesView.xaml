@@ -62,7 +62,7 @@
                    Foreground="{Binding ShowWarningsColor}">
             <MenuItem Name="_activityWarnings_MI"
                       Header="{Binding ShowActivityWarnings}"
-                      Foreground="{DynamicResource WarningBrush}"
+                      Foreground="{Binding ShowActivityWarningsColor}"
                       Click="_activityWarnings_MI_Click"/>
             <MenuItem Name="_duplicatedPasswordWarnings_MI"
                       Header="{Binding ShowDuplicatedPasswordWarnings}"
@@ -76,6 +76,10 @@
                       Header="{Binding ShowLeakedPasswordWarnings}"
                       Foreground="{DynamicResource DangerBrush}"
                       Click="_expiredOrLeakedPasswordWarnings_MI_Click"/>
+            <MenuItem Name="_securitySettingsWarnings_MI"
+                      Header="{Binding ShowSecuritySettingsWarnings}"
+                      Foreground="{DynamicResource WarningBrush}"
+                      Click="_securitySettingsWarnings_MI_Click"/>
          </MenuItem>
          <MenuItem Header="{loc:Loc Menu_Logout}"
                    HorizontalAlignment="Right"

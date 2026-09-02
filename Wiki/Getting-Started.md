@@ -8,7 +8,7 @@
 
 ## Install a release
 
-Download the latest `Upsilon.Apps.Passkey-*-win-x64.zip` from [GitHub Releases](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/releases). Unzip and run the exe. The .NET 10 runtime is bundled; you do not need to install an SDK.
+Download the latest `Upsilon.Apps.Passkey.GUI.WPF-*-win-x64.zip` from [GitHub Releases](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/releases). Unzip and run the exe. The .NET 10 runtime is bundled; you do not need to install an SDK.
 
 A `.sha256` sidecar is attached to each release if you want to verify the zip.
 
@@ -47,9 +47,9 @@ Concrete flow:
 5. Reopen with `Ctrl+O`, or pass the `.pku` path as the **first command-line argument**. Opening by username alone still looks under `<exe>/raw/` — use `Ctrl+O` if you stored the vault elsewhere.
 6. Type the username, then **each passkey in the same order**.
 
-A mistyped passkey cannot be undone. Press Escape (or otherwise close the half-open session) and start login again. That is intentional — see [[Security]].
+A mistyped passkey cannot be undone. Press Escape (or otherwise close the half-open session) and start login again. That is intentional — see [[Security]]. Inactivity on the login window also clears credentials after `LoginIdleTimeoutSeconds` (App Settings; default 5, `0` = off); the title bar shows the countdown.
 
-Optional: under **App Settings** (`Ctrl+,`), build an offline HIBP Bloom filter (`.pkbf`) so leak checks still work without the network. More GUI behaviour: [[WPF Client]].
+Optional: under **App Settings** (`Ctrl+,`), build an offline HIBP Bloom filter (`.pkbf`) so leak checks still work without the network. After the file exists, you can enable automatic background updates at startup (never a first full build). More GUI behaviour: [[WPF Client]].
 
 ## Embed Core without WPF
 
@@ -85,11 +85,14 @@ Full API notes: [[Core API]]. More scenarios: [[Usage Cookbook]].
 
 ## Publish this folder as a GitHub Wiki
 
-GitHub Wikis are a **separate git remote**, not the `Wiki/` directory itself. After enabling Wikis on the repository:
+GitHub Wikis are a **separate git remote**, not the `Wiki/` directory itself. Keep `Wiki/` in the source repo so documentation changes can go through the same pull requests as code.
+
+On every push to `master` that touches `Wiki/`, the **Publish Wiki** workflow copies `Wiki/*.md` (including `_Sidebar.md` and `_Footer.md`) to `Upsilon.Apps.Passkey.wiki.git`. It needs a repository secret `WIKI_TOKEN`: a fine-grained PAT with **Contents: Read and write** on this repository (`GITHUB_TOKEN` cannot push to the wiki remote).
+
+Manual publish (if needed):
 
 ```bash
 git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.wiki.git
 # Copy Wiki/*.md (including _Sidebar.md and _Footer.md) to the clone root, then commit and push.
 ```
 
-Keep `Wiki/` in the source repo so documentation changes can go through the same pull requests as code.

@@ -165,6 +165,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = true;
+      public bool NotifySecuritySettings
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = true;
 
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh the follow-app label on language change.")]
       public IReadOnlyList<AppLanguage> Languages =>
@@ -239,6 +244,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          NotifyPasswordUpdateReminder = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
          NotifyDuplicatedPasswords = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
          NotifyPasswordLeaked = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
+         NotifySecuritySettings = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.SecuritySettingsWarning) != 0;
       }
 
       public void OnLanguageChanged()
