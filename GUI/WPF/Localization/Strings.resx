@@ -613,6 +613,9 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="Msg_SessionLeftTime" xml:space="preserve">
     <value> - Left session time : {0:D2}:{1:D2}</value>
   </data>
+  <data name="Msg_SessionUnlimitedTime" xml:space="preserve">
+    <value> - Unlimited session time</value>
+  </data>
   <data name="Msg_FiltersHeader" xml:space="preserve">
     <value>Filters : {0} activities found over {1}</value>
   </data>

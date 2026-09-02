@@ -226,6 +226,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_SaveBeforeContinue => Get(nameof(Msg_SaveBeforeContinue));
       public static string Msg_ServiceId => Get(nameof(Msg_ServiceId));
       public static string Msg_SessionLeftTime => Get(nameof(Msg_SessionLeftTime));
+      public static string Msg_SessionUnlimitedTime => Get(nameof(Msg_SessionUnlimitedTime));
       public static string Msg_LoginIdleLeftTime => Get(nameof(Msg_LoginIdleLeftTime));
       public static string Msg_ShowActivityWarnings => Get(nameof(Msg_ShowActivityWarnings));
       public static string Msg_ShowDuplicatedPasswordWarnings => Get(nameof(Msg_ShowDuplicatedPasswordWarnings));

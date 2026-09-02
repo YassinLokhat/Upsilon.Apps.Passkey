@@ -306,7 +306,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             }
 
             int sessionLeftTime = AppServices.Session.Database.SessionLeftTime ?? 0;
-            title += Strings.Format(nameof(Strings.Msg_SessionLeftTime), sessionLeftTime / 60, sessionLeftTime % 60);
+
+            // LogoutTimeout 0 keeps SessionLeftTime at 0 forever. Reading
+            // Settings.LogoutTimeout here would go through Touch and reset the
+            // idle countdown every title tick, so we key off the left-time value.
+            title += sessionLeftTime == 0
+               ? Strings.Msg_SessionUnlimitedTime
+               : Strings.Format(nameof(Strings.Msg_SessionLeftTime), sessionLeftTime / 60, sessionLeftTime % 60);
          }
 
          Title = title;

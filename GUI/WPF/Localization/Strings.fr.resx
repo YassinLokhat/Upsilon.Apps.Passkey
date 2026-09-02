@@ -613,6 +613,9 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="Msg_SessionLeftTime" xml:space="preserve">
     <value> - Temps de session restant : {0:D2}:{1:D2}</value>
   </data>
+  <data name="Msg_SessionUnlimitedTime" xml:space="preserve">
+    <value> - Temps de session illimité</value>
+  </data>
   <data name="Msg_FiltersHeader" xml:space="preserve">
     <value>Filtres : '{0}' activités trouvées sur {1}</value>
   </data>
