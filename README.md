@@ -220,6 +220,7 @@ classDiagram
             +WarningType WarningType
             +IEnumerable~IActivity~? Activities
             +IEnumerable~IAccount~? Accounts
+            +SecuritySettingsIssue SecuritySettingsIssues
         }
     }
     
@@ -240,6 +241,7 @@ classDiagram
             PasswordUpdateReminderWarning
             DuplicatedPasswordsWarning
             PasswordLeakedWarning
+            SecuritySettingsWarning
         }
         
         class AutoSaveMergeBehavior {

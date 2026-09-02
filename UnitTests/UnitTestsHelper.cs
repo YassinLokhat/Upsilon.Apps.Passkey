@@ -328,6 +328,41 @@ namespace Upsilon.Apps.Passkey.UnitTests
          }
       }
 
+      /// <summary>
+      /// Subscribes to <see cref="IDatabase.WarningsUpdated"/> then runs
+      /// <paramref name="trigger"/> and waits for the next scan to finish,
+      /// returning the current <see cref="IDatabase.Warnings"/> snapshot.
+      /// </summary>
+      public static IWarning[] WaitForWarnings(IDatabase database, Action trigger, TimeSpan? timeout = null)
+      {
+         timeout ??= TimeSpan.FromSeconds(15);
+         TaskCompletionSource<IWarning[]> tcs = new();
+
+         void Handler(object? sender, WarningsUpdatedEventArgs e)
+         {
+            IWarning[] current = database.Warnings is null ? [] : [.. database.Warnings];
+            _ = tcs.TrySetResult(current);
+         }
+
+         database.WarningsUpdated += Handler;
+
+         try
+         {
+            trigger();
+
+            if (!tcs.Task.Wait(timeout.Value))
+            {
+               throw new TimeoutException("Timed out waiting for a warning scan.");
+            }
+
+            return tcs.Task.Result;
+         }
+         finally
+         {
+            database.WarningsUpdated -= Handler;
+         }
+      }
+
       public static void LastActivitiesShouldMatch(IDatabase database, string[] expectedActivities)
       {
          string[] actualActivities = database.Activities

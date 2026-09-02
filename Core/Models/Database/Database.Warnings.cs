@@ -33,6 +33,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             (Warning[] passwordLeakedWarnings, Account[] leakedAccounts) =
                await _lookAtPasswordLeakedWarningsAsync().ConfigureAwait(false);
             Warning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
+            Warning[] securitySettingsWarnings = _lookAtSecuritySettingsWarnings();
 
             Warning[] notified;
             lock (_warningScanGate)
@@ -55,7 +56,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
                Warnings = [..activityWarnings,
                   ..passwordUpdateReminderWarnings,
                   ..passwordLeakedWarnings,
-                  ..duplicatedPasswordsWarnings];
+                  ..duplicatedPasswordsWarnings,
+                  ..securitySettingsWarnings];
 
                // The leak check awaits a remote service, so the session may have
                // been closed in the meantime: notify against the user observed now,
@@ -165,6 +167,74 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          return [.. warnings];
+      }
+
+      private Warning[] _lookAtSecuritySettingsWarnings()
+      {
+         if (User is null)
+         {
+            return [];
+         }
+
+         SecuritySettingsIssue issues = SecuritySettingsIssue.None;
+
+         if (User.Settings.LogoutTimeout == 0)
+         {
+            issues |= SecuritySettingsIssue.AutoLogoutDisabled;
+         }
+
+         if (User.Settings.CleaningClipboardTimeout == 0)
+         {
+            issues |= SecuritySettingsIssue.ClipboardCleaningDisabled;
+         }
+
+         if (User.Settings.ShowPasswordDelay == 0)
+         {
+            issues |= SecuritySettingsIssue.QrAutoCloseDisabled;
+         }
+
+         WarningType notify = User.Settings.WarningsToNotify;
+         if (!notify.HasFlag(WarningType.DuplicatedPasswordsWarning))
+         {
+            issues |= SecuritySettingsIssue.DuplicatePasswordNotificationsDisabled;
+         }
+
+         if (!notify.HasFlag(WarningType.PasswordUpdateReminderWarning))
+         {
+            issues |= SecuritySettingsIssue.PasswordUpdateReminderNotificationsDisabled;
+         }
+
+         if (!notify.HasFlag(WarningType.PasswordLeakedWarning))
+         {
+            issues |= SecuritySettingsIssue.PasswordLeakedNotificationsDisabled;
+         }
+
+         Account[] accounts = [.. User.Services.SelectMany(static x => x.Accounts)];
+         if (accounts.Length != 0)
+         {
+            // Per monitoring kind: warn only when zero accounts opted in.
+            // One account with leak checks is enough to clear NoAccountLeakCheck
+            // even if other accounts leave it off.
+            if (!accounts.Any(static a => a.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)))
+            {
+               issues |= SecuritySettingsIssue.NoAccountLeakCheck;
+            }
+
+            if (!accounts.Any(static a => a.Options.HasFlag(AccountOption.WarnIfDuplicatedPassword)))
+            {
+               issues |= SecuritySettingsIssue.NoAccountDuplicateCheck;
+            }
+
+            if (!accounts.Any(static a => a.PasswordUpdateReminderDelay > 0))
+            {
+               issues |= SecuritySettingsIssue.NoAccountUpdateReminder;
+            }
+         }
+
+         SecuritySettingsIssue hostIssues = HostSecuritySettingsIssues?.Invoke() ?? SecuritySettingsIssue.None;
+         issues |= hostIssues;
+
+         return issues == SecuritySettingsIssue.None ? [] : [new Warning(issues)];
       }
    }
 }

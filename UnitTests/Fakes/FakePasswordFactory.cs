@@ -13,6 +13,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Fakes
       public string Numeric => "0123456789";
       public string SpecialChars => "!@#";
 
+      public bool HasLocalFilter { get; set; }
+
       public void MarkLeaked(string password) => _ = _leaked.Add(password);
 
       public string GeneratePassword(int length, string alphabet, bool checkIfLeaked = true)

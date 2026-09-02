@@ -98,6 +98,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
                _onPropertyChanged(nameof(RemindPasswordUpdateDelay));
                _onPropertyChanged(nameof(RemindPasswordUpdate));
+               AppServices.Session.Database?.RefreshWarnings();
             }
          }
       }
@@ -132,6 +133,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                }
 
                _onPropertyChanged(nameof(WarnPasswordLeak));
+               AppServices.Session.Database?.RefreshWarnings();
             }
          }
       }
@@ -153,6 +155,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                }
 
                _onPropertyChanged(nameof(WarnIfDuplicatedPassword));
+               AppServices.Session.Database?.RefreshWarnings();
             }
          }
       }

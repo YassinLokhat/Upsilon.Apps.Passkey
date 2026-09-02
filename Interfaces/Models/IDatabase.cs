@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Events;
+﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Interfaces.Models
@@ -26,6 +27,14 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       IPasswordFactory PasswordFactory { get; }
 
       IClipboardManager ClipboardManager { get; }
+
+      /// <summary>
+      /// Optional host callback that contributes app-level
+      /// <see cref="SecuritySettingsIssue"/> flags (idle login, offline
+      /// leak filter, …). Evaluated on each warning scan. Leave
+      /// <see langword="null"/> when the host has nothing to report.
+      /// </summary>
+      Func<SecuritySettingsIssue>? HostSecuritySettingsIssues { get; set; }
 
       event EventHandler<WarningsUpdatedEventArgs>? WarningsUpdated;
 
@@ -70,6 +79,12 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// <see cref="DatabaseSaved"/> and <see cref="WarningsUpdated"/> are raised from that thread.
       /// </remarks>
       Task SaveAsync(CancellationToken cancellationToken = default);
+
+      /// <summary>
+      /// Re-runs the warning scan without persisting the vault (e.g. after
+      /// app-level security settings change while a session is open).
+      /// </summary>
+      void RefreshWarnings();
 
       /// <summary>
       /// Delete the vault file. Throws <see cref="NullValueException"/> if not logged in.

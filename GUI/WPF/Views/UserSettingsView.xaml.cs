@@ -207,6 +207,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                warningsToNotify |= WarningType.PasswordLeakedWarning;
             }
 
+            if (_viewModel.NotifySecuritySettings)
+            {
+               warningsToNotify |= WarningType.SecuritySettingsWarning;
+            }
+
+            if (warningsToNotify == 0)
+            {
+               AppServices.Dialogs.Warn(Strings.Msg_NoWarningsToNotify, Strings.Title_NoWarningsToNotify);
+            }
+
             _database.User.Settings.WarningsToNotify = warningsToNotify;
 
             await _database.SaveAsync().ConfigureAwait(true);

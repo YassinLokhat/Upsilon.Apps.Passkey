@@ -98,6 +98,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          _viewModel.RefreshOfflineLeakFilterStatus();
+         AppServices.Session.Database?.RefreshWarnings();
       }
 
       private async void _offlineLeakFilterBuild_Click(object sender, RoutedEventArgs e)
@@ -205,6 +206,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _viewModel.RefreshOfflineLeakFilterStatus();
             _cancelOfflineLeakFilterBuild = null;
             _viewModel.OfflineLeakFilterBusy = false;
+            AppServices.Session.Database?.RefreshWarnings();
          }
       }
 
@@ -253,6 +255,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = AppInfo.AppSettings.LeakFilterConfig.TryDeleteFilterFile();
          _viewModel.OfflineLeakFilterProgress = string.Empty;
          _viewModel.RefreshOfflineLeakFilterStatus();
+         AppServices.Session.Database?.RefreshWarnings();
       }
    }
 }

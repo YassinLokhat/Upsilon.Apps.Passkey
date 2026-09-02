@@ -87,6 +87,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             nameof(WarningType.PasswordUpdateReminderWarning) => Strings.Label_NotifyPasswordUpdateReminder,
             nameof(WarningType.DuplicatedPasswordsWarning) => Strings.Label_NotifyDuplicatedPasswords,
             nameof(WarningType.PasswordLeakedWarning) => Strings.Label_NotifyPasswordLeaked,
+            nameof(WarningType.SecuritySettingsWarning) => Strings.Label_NotifySecuritySettings,
             _ => Strings.Get($"{WARNING_TYPE_PREFIX}{memberName}"),
          };
    }

@@ -171,6 +171,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          _ = ThemeService.ApplyEffective(
             AppInfo.AppSettings.Theme,
             AppServices.Session.User?.Settings.Theme);
+         AppServices.Session.Database?.RefreshWarnings();
          return languageChanged;
       }
 

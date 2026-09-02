@@ -338,6 +338,9 @@
   <data name="Label_NotifyPasswordLeaked" xml:space="preserve">
     <value>Notify Password Leaked</value>
   </data>
+  <data name="Label_NotifySecuritySettings" xml:space="preserve">
+    <value>Notify Security Settings</value>
+  </data>
   <data name="Label_RemindPasswordUpdate" xml:space="preserve">
     <value>Remind to update password every</value>
   </data>
@@ -601,6 +604,95 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="Msg_ShowLeakedPasswordWarnings" xml:space="preserve">
     <value>Show {0} leaked passwords</value>
   </data>
+  <data name="Msg_ShowSecuritySettingsWarnings" xml:space="preserve">
+    <value>Show {0} security settings warnings</value>
+  </data>
+  <data name="Msg_NoWarningsToNotify" xml:space="preserve">
+    <value>No warning notifications are enabled.
+
+You will not be alerted about:
+• Activities to review
+• Expired, duplicated, or leaked passwords
+• Insecure security settings</value>
+  </data>
+  <data name="Title_NoWarningsToNotify" xml:space="preserve">
+    <value>Warning notifications disabled</value>
+  </data>
+  <data name="Title_SecuritySettingsWarnings" xml:space="preserve">
+    <value>Security settings warnings</value>
+  </data>
+  <data name="Title_SecuritySettingsWarningsWindow" xml:space="preserve">
+    <value>{0} - Security settings warnings</value>
+  </data>
+  <data name="Label_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
+    <value>Auto-logout disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
+    <value>An unlocked session stays open until you log out manually.</value>
+  </data>
+  <data name="Label_SecuritySettings_ClipboardCleaningDisabled" xml:space="preserve">
+    <value>Clipboard auto-clear disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_ClipboardCleaningDisabled" xml:space="preserve">
+    <value>Copied secrets may remain on the clipboard.</value>
+  </data>
+  <data name="Label_SecuritySettings_QrAutoCloseDisabled" xml:space="preserve">
+    <value>QR auto-close disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_QrAutoCloseDisabled" xml:space="preserve">
+    <value>The QR window stays open until you dismiss it.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountLeakCheck" xml:space="preserve">
+    <value>No leak check on any account</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountLeakCheck" xml:space="preserve">
+    <value>No account has password leak checks enabled.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountDuplicateCheck" xml:space="preserve">
+    <value>No duplicate check on any account</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountDuplicateCheck" xml:space="preserve">
+    <value>No account has duplicated-password checks enabled.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountUpdateReminder" xml:space="preserve">
+    <value>No update reminder on any account</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountUpdateReminder" xml:space="preserve">
+    <value>No account has a password-update reminder delay enabled.</value>
+  </data>
+  <data name="Label_SecuritySettings_IdleLoginDisabled" xml:space="preserve">
+    <value>Login idle clear disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_IdleLoginDisabled" xml:space="preserve">
+    <value>Typed credentials on the login window are not cleared after inactivity.</value>
+  </data>
+  <data name="Label_SecuritySettings_OfflineLeakFilterUnavailable" xml:space="preserve">
+    <value>Offline leak filter unavailable</value>
+  </data>
+  <data name="Msg_SecuritySettings_OfflineLeakFilterUnavailable" xml:space="preserve">
+    <value>No offline Bloom filter is loaded. Leak checks fail open when HIBP and XposedOrNot are unreachable.</value>
+  </data>
+  <data name="Label_SecuritySettings_DuplicatePasswordNotificationsDisabled" xml:space="preserve">
+    <value>Duplicated-password notifications disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_DuplicatePasswordNotificationsDisabled" xml:space="preserve">
+    <value>You will not be notified when accounts share the same password.</value>
+  </data>
+  <data name="Label_SecuritySettings_PasswordUpdateReminderNotificationsDisabled" xml:space="preserve">
+    <value>Password-update reminder notifications disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_PasswordUpdateReminderNotificationsDisabled" xml:space="preserve">
+    <value>You will not be notified when passwords are due for an update reminder.</value>
+  </data>
+  <data name="Label_SecuritySettings_PasswordLeakedNotificationsDisabled" xml:space="preserve">
+    <value>Leaked-password notifications disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_PasswordLeakedNotificationsDisabled" xml:space="preserve">
+    <value>You will not be notified when an account password is found in a breach corpus.</value>
+  </data>
+  <data name="Msg_OpenUserSettingsPrompt" xml:space="preserve">
+    <value>Open User Settings to review these options?</value>
+  </data>
   <data name="Msg_UserId" xml:space="preserve">
     <value>User Id : {0}</value>
   </data>
@@ -720,6 +812,9 @@ Click Cancel to ignore and keep the save file.</value>
   </data>
   <data name="EnumValue_WarningType_PasswordLeakedWarning" xml:space="preserve">
     <value>Leaked passwords</value>
+  </data>
+  <data name="EnumValue_WarningType_SecuritySettingsWarning" xml:space="preserve">
+    <value>Security settings</value>
   </data>
   <data name="EnumValue_None" xml:space="preserve">
     <value>None</value>

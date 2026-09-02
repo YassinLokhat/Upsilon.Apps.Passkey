@@ -144,7 +144,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
          = WarningType.ActivityReviewWarning
          | WarningType.PasswordUpdateReminderWarning
          | WarningType.DuplicatedPasswordsWarning
-         | WarningType.PasswordLeakedWarning;
+         | WarningType.PasswordLeakedWarning
+         | WarningType.SecuritySettingsWarning;
 
       /// <summary>Empty = use application <c>config.json</c> language.</summary>
       public string Language { get; set; } = string.Empty;

@@ -30,6 +30,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public IPasswordFactory PasswordFactory { get; private set; }
       public IClipboardManager ClipboardManager { get; private set; }
 
+      public Func<SecuritySettingsIssue>? HostSecuritySettingsIssues { get; set; }
+
       public event EventHandler<WarningsUpdatedEventArgs>? WarningsUpdated;
       public event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
       public event EventHandler? DatabaseSaved;
@@ -55,6 +57,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public void Dispose() => Close(logCloseEvent: true, loginTimeoutReached: false);
 
       public void Save() => _save(logSaveEvent: true);
+
+      public void RefreshWarnings() => _queueWarningScan();
 
       // Progressive onion login: each call appends a stretched passkey and never
       // rolls back on failure. A wrong attempt poisons the stack until Close/Open,
