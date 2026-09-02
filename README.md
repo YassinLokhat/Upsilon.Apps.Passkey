@@ -552,7 +552,9 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     resolves `<exe>/raw/{hash}.pku` (it does not read that setting) — prefer
     `Ctrl+O` or a command-line path when the vault is elsewhere.
 *   **Login**: username, then each passkey in order. Escape cancels and closes
-    the half-open session (required: there is no passkey rollback).
+    the half-open session (required: there is no passkey rollback). App Settings
+    `LoginIdleTimeoutSeconds` (default 5; `0` = off) clears credentials on login-window
+    inactivity; the title bar shows the countdown while armed.
 *   **Shortcuts**: `Ctrl+O` open, `Ctrl+N` new user, `Ctrl+,` App Settings,
     `Ctrl+P` password generator. While the services window is open,
     **Ctrl+Shift+L** pastes the selected identifier and **Ctrl+Shift+P** pastes

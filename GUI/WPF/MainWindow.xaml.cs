@@ -22,7 +22,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
    internal sealed partial class MainWindow : Window
    {
       private readonly MainViewModel _mainViewModel;
-      private readonly DispatcherTimer _timer;
+      private readonly DispatcherTimer _idleTimer;
 
       private static ISessionService _session => AppServices.Session;
 
@@ -34,6 +34,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       // stack, and what ignores Escape until the in-flight Open/Login finishes.
       private bool _isBusy;
 
+      // Seconds remaining before the idle reset fires. Only meaningful while the
+      // one-second idle timer is running (LoginIdleTimeoutSeconds > 0).
+      private int _idleSecondsRemaining;
+
       public MainWindow()
       {
          InitializeComponent();
@@ -41,9 +45,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          DataContext = _mainViewModel = new MainViewModel();
          _mainViewModel.ResetRequested += (_, _) => _resetCredentials();
 
-         _timer = new()
+         _idleTimer = new()
          {
-            Interval = TimeSpan.FromSeconds(5),
+            Interval = TimeSpan.FromSeconds(1),
          };
 
          _resetCredentials();
@@ -52,7 +56,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          _username_TB.KeyUp += _credential_TB_KeyUp;
          _password_PB.KeyUp += _credential_TB_KeyUp;
-         _timer.Tick += _timer_Elapsed;
+         _idleTimer.Tick += _idleTimer_Tick;
          Loaded += _mainWindow_Loaded;
          Closed += _window_Closed;
       }
@@ -70,7 +74,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       private void _window_Closed(object? sender, EventArgs e)
       {
          _isClosing = true;
-         _timer.Stop();
+         _stopIdleTimer();
          _endSession();
       }
 
@@ -99,10 +103,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             _username_TB.Text = args[2];
             _username_TB.SelectionStart = _username_TB.Text.Length;
             _username_TB.SelectionLength = 0;
+
+            // Same as typing into the username box: keep the idle auto-reset
+            // armed so a CLI-prefilled username does not linger forever.
+            _armIdleTimer();
          }
       }
 
-      private void _timer_Elapsed(object? sender, EventArgs e)
+      private void _idleTimer_Tick(object? sender, EventArgs e)
       {
          // While Open/Login is running the timer is stopped; this guard is a
          // safety net if a tick was already queued.
@@ -111,6 +119,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
+         if (_idleSecondsRemaining > 1)
+         {
+            _idleSecondsRemaining--;
+            _refreshIdleTitle();
+            return;
+         }
+
+         _idleSecondsRemaining = 0;
+         _stopIdleTimer();
          _resetCredentials();
          _endSession();
       }
@@ -130,7 +147,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          {
             // Stop for the duration of Open/Login; restarted below if the attempt
             // leaves the user still on the credential screen.
-            _timer.Stop();
+            _stopIdleTimer();
 
             if (sender.Equals(_username_TB))
             {
@@ -147,7 +164,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             }
 
             _password_PB.Clear();
-            _timer.Start();
+
+            // Only re-arm when there is still something to protect (half-open
+            // session or typed username). A successful login already cleared the
+            // form before returning here.
+            if (_mainViewModel.IsAwaitingPasskeys
+               || _session.Database is not null
+               || !string.IsNullOrEmpty(_username_TB.Text))
+            {
+               _armIdleTimer();
+            }
          }
          else if (e.Key == Key.Escape)
          {
@@ -157,8 +183,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          else
          {
             // Idle timeout stays armed while the user types (username or passkeys).
-            _timer.Stop();
-            _timer.Start();
+            _armIdleTimer();
          }
       }
 
@@ -324,7 +349,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       {
          // Open/Login must not race with the idle reset: pause the timer for the
          // whole await, then let the caller restart it if the attempt failed.
-         _timer.Stop();
+         _stopIdleTimer();
          _isBusy = true;
          _mainViewModel.BusyMessage = message;
          _mainViewModel.IsBusy = true;
@@ -400,7 +425,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
       private void _resetCredentials()
       {
-         _timer.Stop();
+         _stopIdleTimer();
 
          _mainViewModel.IsAwaitingPasskeys = false;
          _mainViewModel.DatabaseFile = string.Empty;
@@ -410,6 +435,38 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          _password_PB.Clear();
          _password_PB.Visibility = Visibility.Collapsed;
+      }
+
+      /// <summary>
+      /// Starts or restarts the login idle countdown from
+      /// <see cref="Models.AppSettings.LoginIdleTimeoutSeconds"/>. A value of
+      /// <c>0</c> leaves the timer off (no reset, no title countdown).
+      /// </summary>
+      private void _armIdleTimer()
+      {
+         int timeout = Math.Max(0, AppInfo.AppSettings.LoginIdleTimeoutSeconds);
+         if (timeout == 0)
+         {
+            _stopIdleTimer();
+            return;
+         }
+
+         _idleSecondsRemaining = timeout;
+         _refreshIdleTitle();
+         _idleTimer.Stop();
+         _idleTimer.Start();
+      }
+
+      private void _stopIdleTimer()
+      {
+         _idleTimer.Stop();
+         _idleSecondsRemaining = 0;
+         _mainViewModel.WindowTitle = MainViewModel.AppTitle;
+      }
+
+      private void _refreshIdleTitle()
+      {
+         _mainViewModel.WindowTitle = MainViewModel.AppTitle + Strings.Format(nameof(Strings.Title_IdleResetCredentialTimeout), _idleSecondsRemaining);
       }
    }
 }

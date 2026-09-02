@@ -226,6 +226,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_SaveBeforeContinue => Get(nameof(Msg_SaveBeforeContinue));
       public static string Msg_ServiceId => Get(nameof(Msg_ServiceId));
       public static string Msg_SessionLeftTime => Get(nameof(Msg_SessionLeftTime));
+      public static string Msg_LoginIdleLeftTime => Get(nameof(Msg_LoginIdleLeftTime));
       public static string Msg_ShowActivityWarnings => Get(nameof(Msg_ShowActivityWarnings));
       public static string Msg_ShowDuplicatedPasswordWarnings => Get(nameof(Msg_ShowDuplicatedPasswordWarnings));
       public static string Msg_ShowExpiredPasswordWarnings => Get(nameof(Msg_ShowExpiredPasswordWarnings));
@@ -249,6 +250,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Title_CorruptedDatabase => Get(nameof(Title_CorruptedDatabase));
       public static string Title_DeleteAccount => Get(nameof(Title_DeleteAccount));
       public static string Title_DeleteOfflineLeakDatabase => Get(nameof(Title_DeleteOfflineLeakDatabase));
+      public static string Title_IdleResetCredentialTimeout => Get(nameof(Title_IdleResetCredentialTimeout));
       public static string Title_DeleteService => Get(nameof(Title_DeleteService));
       public static string Title_DuplicatedPasswordsWarnings => Get(nameof(Title_DuplicatedPasswordsWarnings));
       public static string Title_Error => Get(nameof(Title_Error));

@@ -1,6 +1,8 @@
 ﻿using System.IO;
 using System.Net.Http;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -71,6 +73,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _viewModel.DefaultDatabaseDirectory = defaultDatabaseDirectory;
          }
       }
+
+      private void _value_TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+         => NumericTextBoxHelper.PreviewTextInput(sender, e);
+
+      private void _value_TextBox_Pasting(object sender, DataObjectPastingEventArgs e)
+         => NumericTextBoxHelper.Pasting(sender, e);
+
+      private void _value_TextBox_TextChanged(object sender, TextChangedEventArgs e)
+         => NumericTextBoxHelper.TextChanged(sender, e);
 
       private void _offlineLeakFilterEnabled_Changed(object sender, RoutedEventArgs e)
       {

@@ -4,6 +4,10 @@
 
 Each `Login` call appends a stretched passkey to the in-memory onion. A wrong value is never undone, so later correct keys still fail until you `Close` and `Open` again. That is deliberate online brute-force friction on top of PBKDF2, not a bug. The WPF client uses Escape to drop the half-open session. See [[Security]] and [[Usage Cookbook]].
 
+## Why does the login window clear my username after a few seconds?
+
+That is the **login idle timeout** (`LoginIdleTimeoutSeconds` in `config.json`, default 5). While you type on the login screen, a countdown appears in the title bar; when it reaches zero, credentials and any half-open session are cleared. Set it to **0** under **App Settings** (`Ctrl+,`) to disable. This is separate from the vault session auto-logout (`LogoutTimeout` minutes once logged in). See [[WPF Client]].
+
 ## Why is `Create` already logged in? Why can't I call `Login` after it?
 
 `Create` builds a complete onion, writes the `.pku`, and returns a session whose `User` is already set. Extra `Login` calls would wrap **another** layer on a finished stack and fail. Use `Login` only after `Open`.

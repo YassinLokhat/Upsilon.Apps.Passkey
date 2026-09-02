@@ -296,6 +296,9 @@
   <data name="Label_LogoutAfter" xml:space="preserve">
     <value>Logout after</value>
   </data>
+  <data name="Label_LoginIdleTimeout" xml:space="preserve">
+    <value>Reset login after</value>
+  </data>
   <data name="Label_Minutes" xml:space="preserve">
     <value>minutes.</value>
   </data>
@@ -979,6 +982,9 @@ This affects all vault users. Disabling the option alone does not delete the fil
   </data>
   <data name="Title_DeleteOfflineLeakDatabase" xml:space="preserve">
     <value>Delete offline leak database</value>
+  </data>
+  <data name="Title_IdleResetCredentialTimeout" xml:space="preserve">
+    <value> - Credentials reset in {0}</value>
   </data>
   <data name="Msg_OfflineLeakFileAbsent" xml:space="preserve">
     <value>Absent file</value>

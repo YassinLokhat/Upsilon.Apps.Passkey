@@ -11,6 +11,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
    {
       public static string AppTitle => AppInfo.Title;
 
+      /// <summary>
+      /// Window title, optionally including the login idle countdown suffix.
+      /// </summary>
+      public string WindowTitle
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = AppInfo.Title;
+
       public string DatabaseFile
       {
          get;

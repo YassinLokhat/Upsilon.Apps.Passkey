@@ -22,6 +22,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Models
       /// </summary>
       public string Theme { get; set; } = LocalizationService.SystemCode;
 
+      /// <summary>
+      /// Seconds of inactivity on the login window before credentials and any
+      /// half-open session are cleared. <c>0</c> disables the idle reset.
+      /// </summary>
+      public int LoginIdleTimeoutSeconds { get; set; } = 5;
+
       public LeakFilterConfig LeakFilterConfig { get; set; } = new();
 
       private static readonly JsonSerializerOptions _options = new() { WriteIndented = true, };

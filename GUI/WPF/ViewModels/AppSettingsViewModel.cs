@@ -66,6 +66,25 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = ThemeService.GetOptionOrDefault(AppInfo.AppSettings.Theme);
 
+      /// <summary>
+      /// Seconds of login-window inactivity before credentials/session reset.
+      /// <c>0</c> disables the idle timer.
+      /// </summary>
+      public int LoginIdleTimeoutSeconds
+      {
+         get;
+         set
+         {
+            if (value < 0)
+            {
+               value = 0;
+            }
+
+            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+            AppInfo.AppSettings.LoginIdleTimeoutSeconds = field;
+         }
+      } = Math.Max(0, AppInfo.AppSettings.LoginIdleTimeoutSeconds);
+
       // --- Application-level offline leak filter (LeakFilterConfig in config.json) ---
 
       public bool OfflineLeakFilterEnabled
@@ -162,6 +181,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          DefaultDatabaseDirectory = AppInfo.AppSettings.DefaultDatabaseDirectory;
          SelectedLanguage = LocalizationService.GetLanguageOrDefault(AppInfo.AppSettings.Language);
          SelectedTheme = ThemeService.GetOptionOrDefault(AppInfo.AppSettings.Theme);
+         LoginIdleTimeoutSeconds = AppInfo.AppSettings.LoginIdleTimeoutSeconds;
          RefreshOfflineLeakFilterStatus();
 
          _ = Save();

@@ -47,7 +47,7 @@ Concrete flow:
 5. Reopen with `Ctrl+O`, or pass the `.pku` path as the **first command-line argument**. Opening by username alone still looks under `<exe>/raw/` — use `Ctrl+O` if you stored the vault elsewhere.
 6. Type the username, then **each passkey in the same order**.
 
-A mistyped passkey cannot be undone. Press Escape (or otherwise close the half-open session) and start login again. That is intentional — see [[Security]].
+A mistyped passkey cannot be undone. Press Escape (or otherwise close the half-open session) and start login again. That is intentional — see [[Security]]. Inactivity on the login window also clears credentials after `LoginIdleTimeoutSeconds` (App Settings; default 5, `0` = off); the title bar shows the countdown.
 
 Optional: under **App Settings** (`Ctrl+,`), build an offline HIBP Bloom filter (`.pkbf`) so leak checks still work without the network. More GUI behaviour: [[WPF Client]].
 
