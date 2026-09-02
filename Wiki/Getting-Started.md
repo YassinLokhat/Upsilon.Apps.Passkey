@@ -8,7 +8,7 @@
 
 ## Install a release
 
-Download the latest `Upsilon.Apps.Passkey-*-win-x64.zip` from [GitHub Releases](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/releases). Unzip and run the exe. The .NET 10 runtime is bundled; you do not need to install an SDK.
+Download the latest `Upsilon.Apps.Passkey.GUI.WPF-*-win-x64.zip` from [GitHub Releases](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/releases). Unzip and run the exe. The .NET 10 runtime is bundled; you do not need to install an SDK.
 
 A `.sha256` sidecar is attached to each release if you want to verify the zip.
 

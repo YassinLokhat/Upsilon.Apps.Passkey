@@ -102,20 +102,43 @@ Match the surrounding file. Do not reformat unrelated code.
 
 ## Cutting a release
 
-GitHub Releases are produced by `.github/workflows/release.yml` when a version
-tag is pushed. Bump `<Version>` in the assemblies you intend to ship (they are
-versioned independently), merge to `master`, wait for CI, then:
+Package versions and dependency ranges live in [`versions.json`](versions.json).
+Edit that file, then sync the tree and (optionally) publish locally:
+
+```powershell
+# After editing versions.json
+.\scripts\Sync-Versions.ps1 -SyncOnly
+
+# Sync + publish every shippable package into .\_artifacts (replaces publish.bat)
+.\scripts\Sync-Versions.ps1
+```
+
+Commit the synced `.csproj` / docs, merge to `master`, wait for CI, then push a
+**per-component** tag for each package you intend to ship:
 
 ```bash
 git checkout master
 git pull
-git tag v1.1.0
-git push origin v1.1.0
+git tag utils-v1.1.0
+git tag core-v1.1.0
+git tag wpf-v1.1.0
+git push origin utils-v1.1.0 core-v1.1.0 wpf-v1.1.0
 ```
 
-Use a prerelease suffix (`v1.1.0-rc.1`) to mark the GitHub Release as a
-prerelease. The tag stamps the published WPF exe. Do not retag an existing
-version.
+Do **not** bump or tag a package whose public surface did not change (for example
+leave `interfaces` at `1.0.0` if Interfaces is unchanged).
+
+GitHub Releases are produced by `.github/workflows/release.yml`. Each tag creates
+one Release with dependency notes from `versions.json`. Libraries upload a
+`.nupkg` (+ `.sha256`); the WPF client uploads
+`Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64.zip` (+ `.sha256`).
+
+Use a prerelease suffix (`wpf-v1.1.0-rc.1`) to mark the GitHub Release as a
+prerelease. Legacy tags `v*.*.*` still map to the WPF client. Do not retag an
+existing version.
+
+CI runs `.\scripts\Sync-Versions.ps1 -Check` so `versions.json`, `.csproj`, and
+docs stay aligned.
 
 ## Commit messages
 

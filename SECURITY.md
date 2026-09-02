@@ -11,16 +11,18 @@ protects data and how to report a problem.
 Each component is versioned **independently** and may evolve at its own pace.
 Security fixes are applied to the latest released version of each component only,
 so please always upgrade to the most recent release before reporting an issue.
-The main shippable components (Core, Utils, WPF) share version 1.1.x at the time
-of writing; other assemblies are versioned independently and may differ (e.g.
-`Interfaces` at 1.0.x). This is not guaranteed to remain the case.
+<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.Interfaces` is on **1.0.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Utils` are on **1.1.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
 
+Versions and dependency ranges are maintained in [`versions.json`](versions.json).
+
+<!-- BEGIN:versions-supported-table -->
 | Component (assembly)                  | Supported version | Supported          |
 | ------------------------------------- | ----------------- | ------------------ |
 | `Upsilon.Apps.Passkey.GUI.WPF` (app)  | 1.1.x             | :white_check_mark: |
 | `Upsilon.Apps.Passkey.Core`           | 1.1.x             | :white_check_mark: |
 | `Upsilon.Apps.Passkey.Utils`          | 1.1.x             | :white_check_mark: |
 | `Upsilon.Apps.Passkey.Interfaces`     | 1.0.x             | :white_check_mark: |
+<!-- END:versions-supported-table -->
 
 Any version older than the latest release of a given component is not supported.
 

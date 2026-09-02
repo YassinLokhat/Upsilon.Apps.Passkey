@@ -8,7 +8,8 @@
 
   <!--
     Version numbers are intentionally NOT set here: each component is versioned
-    independently (see SECURITY.md) and declares its own Version in its .csproj.
+    independently in versions.json (see SECURITY.md). Run
+    scripts/Sync-Versions.ps1 -SyncOnly after editing that file.
   -->
   <PropertyGroup Label="Product metadata">
     <Authors>Yassin Lokhat</Authors>

@@ -28,7 +28,11 @@ jobs:
         
     - name: Restore dependencies
       run: dotnet restore Upsilon.Apps.Passkey.Windows.slnx
-      
+
+    - name: Verify versions.json sync
+      shell: pwsh
+      run: ./scripts/Sync-Versions.ps1 -Check
+
     - name: Build Debug
       run: dotnet build Upsilon.Apps.Passkey.Windows.slnx --no-restore --configuration Debug
       

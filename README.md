@@ -6,8 +6,8 @@
 
 A local-only password manager written in C# on **.NET 10**. There is no server,
 no account, and no synchronization: every secret lives in a single encrypted
-`.pku` file on the user's device. Version **1.1.0** (each assembly is versioned
-independently; see [SECURITY.md](SECURITY.md)).
+`.pku` file on the user's device. Version <!-- BEGIN:versions-overview -->**1.1.0**<!-- END:versions-overview --> (each assembly is versioned
+independently; see [SECURITY.md](SECURITY.md) and [`versions.json`](versions.json)).
 
 **Features**
 ------------
@@ -609,12 +609,12 @@ GitHub Actions on `master` and pull requests:
 
 | Workflow | What it does |
 | -------- | ------------ |
-| `.github/workflows/csharp-dotnet-windows.yml` | Restore, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
+| `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
 | `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on every push/PR (any branch) and weekly; Release build of production projects (tests excluded) |
-| `.github/workflows/release.yml` | On `v*.*.*` tags: Release build, tests, `dotnet publish` (self-contained win-x64), GitHub Release with zip + SHA-256 |
+| `.github/workflows/release.yml` | On per-component tags (`wpf-v*.*.*`, …; legacy `v*` = WPF): sync check, build/test, `scripts/Sync-Versions.ps1`, GitHub Release (nupkg or WPF zip + SHA-256 + dependency notes) |
 
-Pushing a tag such as `v1.1.0` (or `v1.1.0-rc.1` for a prerelease) creates the GitHub Release. See [CONTRIBUTING.md](CONTRIBUTING.md#cutting-a-release).
+Edit [`versions.json`](versions.json), run `.\scripts\Sync-Versions.ps1 -SyncOnly`, then push tags such as `wpf-v1.1.0`. See [CONTRIBUTING.md](CONTRIBUTING.md#cutting-a-release).
 
 Dependabot is configured for the **.NET SDK** only (`dotnet-sdk` ecosystem). Test
 NuGet packages (MSTest, FluentAssertions) are not auto-bumped.
@@ -622,7 +622,8 @@ NuGet packages (MSTest, FluentAssertions) are not auto-bumped.
 **Getting Started**
 -------------------
 
-End users: download the Windows x64 zip from
+End users: download the Windows x64 zip
+(`Upsilon.Apps.Passkey.GUI.WPF-*-win-x64.zip`) from
 [Releases](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/releases)
 (.NET 10 is bundled; Windows 10 1809 / build 18362 or later).
 

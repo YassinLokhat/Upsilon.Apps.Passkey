@@ -27,26 +27,30 @@ Windows and Linux build workflows run on push to `master` and on pull requests. 
 
 | Workflow | What it does |
 | -------- | ------------ |
-| `.github/workflows/csharp-dotnet-windows.yml` | Restore, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-linux.yml` | Restore and Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
+| `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
 | `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on a Release build of production projects (tests excluded); weekly scan as well |
-| `.github/workflows/release.yml` | On `v*.*.*` tags: Release build, tests, publish the WPF client (`FolderProfile`: self-contained win-x64 single-file), zip + SHA-256, GitHub Release |
+| `.github/workflows/release.yml` | On `interfaces\|utils\|core\|wpf-v*.*.*` tags (legacy `v*` = WPF): sync check, Release build, tests, pack/publish via `scripts/Sync-Versions.ps1`, GitHub Release with dependency notes |
 
 ### Cutting a GitHub Release
 
-1. Merge to `master` and wait for Windows / Linux / CodeQL to pass.
-2. Tag the commit and push it (`v1.1.0`, or `v1.1.0-rc.1` for a prerelease):
+1. Edit [`versions.json`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/versions.json) (version and dependency ranges for the packages you ship).
+2. Run `.\scripts\Sync-Versions.ps1 -SyncOnly` and commit the updated `.csproj` / docs.
+3. Merge to `master` and wait for Windows / Linux / CodeQL to pass.
+4. Tag **each** package you ship and push the tags:
 
 ```bash
 git checkout master
 git pull
-git tag v1.1.0
-git push origin v1.1.0
+git tag wpf-v1.1.0
+git push origin wpf-v1.1.0
 ```
 
-The tag is the source of truth for the shipped exe version (`Version` / `InformationalVersion`). A `-` suffix in the tag marks the GitHub Release as a prerelease. Do not reuse a tag: `gh release create` will fail if that release already exists.
+The tag must match `versions.json` for that component. A `-` suffix marks the GitHub Release as a prerelease. Do not reuse a tag: `gh release create` will fail if that release already exists.
 
-The zip does **not** include debug symbols or the sample `raw/*.pku` vault used for local runs.
+WPF assets are named `Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64.zip` (not a generic Passkey zip). Library releases attach a `.nupkg`. Each Release notes file lists dependency ranges from `versions.json`.
+
+Local dry-run (all shippable packages into `_artifacts/`): `.\scripts\Sync-Versions.ps1`.
 
 See [`CONTRIBUTING.md`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/CONTRIBUTING.md#cutting-a-release).
 
