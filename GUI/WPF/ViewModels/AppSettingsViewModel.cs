@@ -28,7 +28,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          {
             if (!Directory.Exists(value))
             {
-               return;
+               value = new AppSettings().DefaultDatabaseDirectory;
             }
 
             _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
