@@ -131,7 +131,43 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       private readonly Dictionary<string, ServiceViewModel> _serviceViewModelsById = new(StringComparer.Ordinal);
 
+      public ICommand SaveCommand { get; }
+      public ICommand UserSettingsCommand { get; }
+      public ICommand GeneratePasswordCommand { get; }
+      public ICommand ShowActivitiesCommand { get; }
+      public ICommand AppSettingsCommand { get; }
+      public ICommand FocusFilterCommand { get; }
       public ICommand ClearFiltersCommand { get; }
+
+      /// <summary>
+      /// Raised when <see cref="SaveCommand"/> runs; the view performs the async save.
+      /// </summary>
+      public event EventHandler? SaveRequested;
+
+      /// <summary>
+      /// Raised when <see cref="UserSettingsCommand"/> runs; the view opens the user settings dialog.
+      /// </summary>
+      public event EventHandler? UserSettingsRequested;
+
+      /// <summary>
+      /// Raised when <see cref="GeneratePasswordCommand"/> runs; the view owns the dialog and password insert.
+      /// </summary>
+      public event EventHandler? GeneratePasswordRequested;
+
+      /// <summary>
+      /// Raised when <see cref="ShowActivitiesCommand"/> runs; the view opens the activities window.
+      /// </summary>
+      public event EventHandler? ShowActivitiesRequested;
+
+      /// <summary>
+      /// Raised when <see cref="AppSettingsCommand"/> runs; the view opens the app settings dialog.
+      /// </summary>
+      public event EventHandler? AppSettingsRequested;
+
+      /// <summary>
+      /// Raised when <see cref="FocusFilterCommand"/> runs; the view focuses the service filter box.
+      /// </summary>
+      public event EventHandler? FocusFilterRequested;
 
       public event EventHandler? FiltersRefreshed;
 
@@ -140,6 +176,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          _userDisplayName = userDisplayName;
          Title = _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
 
+         SaveCommand = new RelayCommand(() => SaveRequested?.Invoke(this, EventArgs.Empty));
+         UserSettingsCommand = new RelayCommand(() => UserSettingsRequested?.Invoke(this, EventArgs.Empty));
+         GeneratePasswordCommand = new RelayCommand(() => GeneratePasswordRequested?.Invoke(this, EventArgs.Empty));
+         ShowActivitiesCommand = new RelayCommand(() => ShowActivitiesRequested?.Invoke(this, EventArgs.Empty));
+         AppSettingsCommand = new RelayCommand(() => AppSettingsRequested?.Invoke(this, EventArgs.Empty));
+         FocusFilterCommand = new RelayCommand(() => FocusFilterRequested?.Invoke(this, EventArgs.Empty));
          ClearFiltersCommand = new RelayCommand(ClearFilters);
 
          RefreshFilters();

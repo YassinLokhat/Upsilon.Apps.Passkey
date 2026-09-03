@@ -244,6 +244,9 @@
         </ControlTemplate.Triggers>
     </ControlTemplate>
 
+    <!-- Top-level menu items (flat bar) never paint InputGestureText; bind ToolTip
+         to it so hovering a command still reveals its shortcut. Empty / null
+         gestures clear the tooltip so items without one do not show a blank popup. -->
     <Style TargetType="MenuItem">
         <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
@@ -252,6 +255,7 @@
         <Setter Property="Padding" Value="8,4"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Template" Value="{StaticResource MenuTopLevelItemTemplate}"/>
+        <Setter Property="ToolTip" Value="{Binding InputGestureText, RelativeSource={RelativeSource Self}}"/>
         <Style.Triggers>
             <Trigger Property="Role" Value="TopLevelHeader">
                 <Setter Property="Template" Value="{StaticResource MenuTopLevelHeaderTemplate}"/>
@@ -262,6 +266,12 @@
             <Trigger Property="Role" Value="SubmenuHeader">
                 <Setter Property="Template" Value="{StaticResource MenuSubmenuHeaderTemplate}"/>
             </Trigger>
+            <DataTrigger Binding="{Binding InputGestureText, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
+                <Setter Property="ToolTip" Value="{x:Null}"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding InputGestureText, RelativeSource={RelativeSource Self}}" Value="">
+                <Setter Property="ToolTip" Value="{x:Null}"/>
+            </DataTrigger>
         </Style.Triggers>
     </Style>
 

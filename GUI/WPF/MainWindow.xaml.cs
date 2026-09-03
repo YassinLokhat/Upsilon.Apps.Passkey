@@ -419,7 +419,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             // The database already closed itself; only clear the session reference.
             _endSession(closeDatabase: false);
             _restoreAppPreferences();
-            Show();
+            // Do not Show() here. While the vault modal is open this window is
+            // hidden; EndSession from UserServicesView always raises DatabaseClosed
+            // and a Show() would resurrect the login UI even when the user closed
+            // the vault with X. Returning to MainWindow is decided only from
+            // ShowUser's DialogResult (logout / session timeout).
          });
       }
 
