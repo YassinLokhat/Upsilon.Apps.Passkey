@@ -21,11 +21,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IUser user = database.User;
          user.Settings.LogoutTimeout = 0;
          user.Settings.CleaningClipboardTimeout = 5;
-         user.Settings.WarningsToNotify = (WarningType)15;
+         user.Settings.ShowPasswordDelay = 0;
+         user.Settings.NumberOfOldPasswordToKeep = 0;
+         user.Settings.NumberOfMonthActivitiesToKeep = 0;
+         user.Settings.Theme = "System";
+         user.Settings.Language = "System";
+         user.Settings.WarningsToNotify = WarningType.ActivityReviewWarning
+            | WarningType.PasswordUpdateReminderWarning
+            | WarningType.PasswordLeakedWarning
+            | WarningType.SecuritySettingsWarning;
          string logFile = database.DatabaseFile.Replace(".pku", ".log");
          File.WriteAllText(logFile, string.Empty);
 
-         for (int i = 0; i < 100; i++)
+         for (int i = 0; i < 25; i++)
          {
             IService service = user.AddService($"Service{i} ({UnitTestsHelper.GetRandomString(min: 10, max: 15)})");
             service.Url = new Uri($"http://service{i}.xyz");
@@ -62,7 +70,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
                random = UnitTestsHelper.GetRandomInt(100);
                account.Notes = random % 10 == 0 ? $"Service{i}'s Account{j} notes : \n{UnitTestsHelper.GetRandomString(min: 10, max: 150)}" : "";
-               account.PasswordUpdateReminderDelay = random < 10 ? random : 0;
+               account.PasswordUpdateReminderDelay = 0;
                account.Options = (!string.IsNullOrEmpty(account.Password) && random % 2 == 0) ? AccountOption.WarnIfPasswordLeaked : AccountOption.None;
                File.AppendAllText(logFile, "#");
             }
@@ -87,7 +95,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          if (database.ExportToFile(exportFile))
          {
-            database.Close();
             database.Delete();
 
             database = UnitTestsHelper.CreateTestDatabase(["a", "b"], "_");

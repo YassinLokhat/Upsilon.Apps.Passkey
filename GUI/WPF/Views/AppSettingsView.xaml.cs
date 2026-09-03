@@ -46,6 +46,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          base.OnClosed(e);
       }
 
+      public static void ShowAppSettings(Window owner)
+      {
+         _ = new AppSettingsView
+         {
+            Owner = owner,
+         }
+         .ShowDialog();
+      }
+
       private void _unsubscribeUpdateService()
       {
          OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;

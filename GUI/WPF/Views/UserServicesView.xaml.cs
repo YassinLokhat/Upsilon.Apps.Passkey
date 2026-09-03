@@ -41,7 +41,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _viewModel.FiltersRefreshed += _viewModel_FiltersRefreshed;
          _viewModel.LanguageRefreshed += (_, _) => _refreshWarningsMenuFromSession();
          _viewModel.ThemeRefreshed += (_, _) => _refreshWarningsMenuFromSession();
-
+         _viewModel.SaveRequested += (_, _) => _save();
+         _viewModel.UserSettingsRequested += (_, _) => _openUserSettings();
+         _viewModel.GeneratePasswordRequested += (_, _) => _generateRandomPassword();
+         _viewModel.ShowActivitiesRequested += (_, _) => _showActivities();
+         _viewModel.AppSettingsRequested += (_, _) => _openAppSettings();
+         _viewModel.FocusFilterRequested += (_, _) => _focusServiceFilter();
 
          _services_LB.ItemsSource = _viewModel.Services;
 
@@ -137,12 +142,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
-      private void _userSettings_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         _openSettings();
-      }
-
-      private void _openSettings()
+      private void _openUserSettings()
       {
          if (this.GetIsBusy())
          {
@@ -153,7 +153,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _viewModel.RefreshFilters();
       }
 
-      private void _generateRandomPassword_MenuItem_Click(object sender, RoutedEventArgs e)
+      private void _openAppSettings()
+      {
+         if (this.GetIsBusy())
+         {
+            return;
+         }
+
+         AppSettingsView.ShowAppSettings(this);
+         _viewModel.RefreshFilters();
+      }
+
+      private void _generateRandomPassword()
       {
          if (this.GetIsBusy())
          {
@@ -217,7 +228,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _service_SV.SetDataContext(_services_LB.SelectedItem as ServiceViewModel);
       }
 
-      private async void _save_MenuItem_Click(object sender, RoutedEventArgs e)
+      private async void _save()
       {
          // The busy cursor is set synchronously before the first await, so it
          // doubles as the re-entrancy guard against a second save being started
@@ -363,11 +374,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _services_LB.SelectedIndex = _viewModel.DeleteService(serviceViewModel);
       }
 
-      private void _filterClear_Button_Click(object sender, RoutedEventArgs e)
-      {
-         _clearFilter();
-      }
-
       private void _clearFilter()
       {
          if (this.GetIsBusy())
@@ -378,7 +384,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _viewModel.ClearFilters();
       }
 
-      private void _showActivities_MenuItem_Click(object sender, RoutedEventArgs e)
+      private void _focusServiceFilter()
+      {
+         _serviceFilter_TB.SelectAll();
+         _ = _serviceFilter_TB.Focus();
+      }
+
+      private void _showActivities()
       {
          if (this.GetIsBusy())
          {
@@ -406,7 +418,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (string.IsNullOrEmpty(itemId)
             || _session.Database.User.ItemId == itemId)
          {
-            _openSettings();
+            _openUserSettings();
             return;
          }
 
@@ -498,12 +510,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          _ = _dialogs.ShowSingleton(() => new SecuritySettingsWarningView());
-      }
-
-      private void _filterCommand_CommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
-      {
-         _serviceFilter_TB.SelectAll();
-         _ = _serviceFilter_TB.Focus();
       }
 
       public void Dispose()

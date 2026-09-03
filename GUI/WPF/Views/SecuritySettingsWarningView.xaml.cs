@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
@@ -25,10 +25,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _openAppSettings_Click(object sender, RoutedEventArgs e)
       {
-         _ = new AppSettingsView
-         {
-            Owner = Owner ?? this,
-         }.ShowDialog();
+         AppSettingsView.ShowAppSettings(Owner ?? this);
          Close();
       }
 
