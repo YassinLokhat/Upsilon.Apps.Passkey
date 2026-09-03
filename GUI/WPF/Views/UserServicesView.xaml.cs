@@ -98,7 +98,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             Owner = owner,
          };
 
-         return view.ShowDialog() ?? true;
+         // Only an explicit DialogResult (Logout menu or session-timeout via
+         // WindowHelper) should keep the login window open. Closing with X /
+         // Alt+F4 leaves DialogResult null — that must exit the app, not
+         // return to MainWindow.
+         return view.ShowDialog() == true;
       }
 
       private void _userServicesView_Loaded(object sender, RoutedEventArgs e)
