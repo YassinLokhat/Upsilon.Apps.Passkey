@@ -477,7 +477,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          try
          {
             BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
-            factory = new PasswordFactory(new LeakFilterConfig(path) { Enabled = false, });
+            factory = new PasswordFactory(new LeakFilterConfig(path) { Enabled = true, });
             _ = factory.HasLocalFilter.Should().BeTrue();
          }
          finally
@@ -532,11 +532,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
                trim.SetLength(logicalBytes);
             }
 
-            factory.ReloadLocalFilter(new LeakFilterConfig(path) { Enabled = false, });
+            factory.ReloadLocalFilter(new LeakFilterConfig(path) { Enabled = true, });
             _ = factory.HasLocalFilter.Should().BeTrue();
             _ = (await factory.PasswordLeakedAsync(BloomTestHelper.LeakedPassword).ConfigureAwait(true)).Should().BeTrue();
 
-            factory.ReloadLocalFilter(new LeakFilterConfig(path) { Enabled = false, });
+            factory.ReloadLocalFilter(new LeakFilterConfig(path) { Enabled = true, });
             _ = factory.HasLocalFilter.Should().BeTrue();
             _ = (await factory.PasswordLeakedAsync(BloomTestHelper.LeakedPassword).ConfigureAwait(true)).Should().BeTrue();
          }
