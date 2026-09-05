@@ -337,15 +337,9 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       {
          // Resume the previous attempt when its filter and sidecar still agree
          // on the same committed state; start the corpus over otherwise.
-         //
-         // Ownership leaves via return / out, so a real `using` would dispose too
-         // early. try/finally + nulling is the form dispose-not-guaranteed and
-         // CA2000 accept; cs/missed-using-statement is excluded in codeql-config.
-#pragma warning disable CA2000
-         HibpBloomFile? existing = null;
-         try
+
+         using (HibpBloomFile? existing = _tryOpenForResume(tempPath, capacity, bitCount, hashFunctions))
          {
-            existing = _tryOpenForResume(tempPath, capacity, bitCount, hashFunctions);
             if (existing is not null)
             {
                HibpRangeStateStore? existingStore = HibpRangeStateStore.TryOpen(tempStatePath, TotalPrefixes, existing);
@@ -353,33 +347,19 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
                {
                   store = existingStore;
                   HibpBloomFile resumed = existing;
-                  existing = null;
                   return resumed;
                }
             }
-         }
-         finally
-         {
-            existing?.Dispose();
          }
 
          _deleteQuietly(tempPath);
          _deleteQuietly(tempStatePath);
 
-         HibpBloomFile? created = null;
-         try
-         {
-            created = HibpBloomFile.Create(tempPath, capacity, falsePositiveRate);
-            store = HibpRangeStateStore.CreateNew(tempStatePath, TotalPrefixes, created);
-            HibpBloomFile opened = created;
-            created = null;
-            return opened;
-         }
-         finally
-         {
-            created?.Dispose();
-         }
-#pragma warning restore CA2000
+         using HibpBloomFile? created = HibpBloomFile.Create(tempPath, capacity, falsePositiveRate);
+
+         store = HibpRangeStateStore.CreateNew(tempStatePath, TotalPrefixes, created);
+         HibpBloomFile opened = created;
+         return opened;
       }
 
       /// <summary>
@@ -394,11 +374,9 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       /// </summary>
       private static HibpBloomFile? _openForRefresh(string path, ulong capacity, ulong bitCount, int hashFunctions)
       {
-#pragma warning disable CA2000 // Returned to caller, or disposed in finally; using would dispose before return.
-         HibpBloomFile? filter = null;
          try
          {
-            filter = HibpBloomFile.OpenForUpdate(path);
+            using HibpBloomFile? filter = HibpBloomFile.OpenForUpdate(path);
 
             if (filter.Capacity != capacity || filter.BitCount != bitCount || filter.HashFunctions != hashFunctions)
             {
@@ -408,7 +386,6 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             }
 
             HibpBloomFile opened = filter;
-            filter = null;
             return opened;
          }
          catch (InvalidDataException ex)
@@ -416,11 +393,6 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             System.Diagnostics.Trace.TraceWarning($"Bloom filter at '{path}' is unusable and will be rebuilt: {ex}");
             return null;
          }
-         finally
-         {
-            filter?.Dispose();
-         }
-#pragma warning restore CA2000
       }
 
       /// <summary>

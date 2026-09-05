@@ -13,7 +13,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
    /// </summary>
    internal sealed class OfflineLeakFilterUpdateService
    {
-      private readonly object _gate = new();
+      private readonly Lock _gate = new();
       private CancellationTokenSource? _cts;
       private int _busy;
 
@@ -172,7 +172,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
          BusyChanged?.Invoke(this, EventArgs.Empty);
 
-         CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+         using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
          lock (_gate)
          {
             _cts = linkedCts;
@@ -238,7 +238,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
                WasCancelled = cancelled || linkedCts.IsCancellationRequested;
             }
 
-            linkedCts.Dispose();
             _ = Interlocked.Exchange(ref _busy, 0);
             BusyChanged?.Invoke(this, EventArgs.Empty);
          }
