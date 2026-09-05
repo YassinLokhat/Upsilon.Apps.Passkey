@@ -6,6 +6,6 @@ queries:
 # Factories that transfer IDisposable ownership via return/out must use try/finally
 # + nulling (CA2000 / cs/dispose-not-guaranteed). That form is exactly what
 # missed-using wants replaced by a using that would dispose before the transfer.
-query-filters:
-  - exclude:
-      id: cs/missed-using-statement
+#query-filters:
+#  - exclude:
+#      id: cs/missed-using-statement
