@@ -48,7 +48,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Models
          set => LeakFilterConfig.AutoUpdateEnabled = value;
       }
 
-      internal LeakFilterConfig LeakFilterConfig = new(Path.GetFullPath(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "pwned-sha1.pkbf")));
+      internal readonly LeakFilterConfig LeakFilterConfig = new(Path.GetFullPath(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "pwned-sha1.pkbf")));
 
       private static readonly JsonSerializerOptions _options = new() { WriteIndented = true, };
       public void Save(string configFile)
