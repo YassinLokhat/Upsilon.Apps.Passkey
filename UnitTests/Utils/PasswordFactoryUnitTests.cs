@@ -443,7 +443,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          try
          {
             BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
-            LeakFilterConfig config = new() { Enabled = true, FilterPath = path };
+            LeakFilterConfig config = new(path) { Enabled = true, };
 
             factory.ReloadLocalFilter(config);
             _ = factory.HasLocalFilter.Should().BeTrue();
@@ -454,7 +454,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             _ = factory.HasLocalFilter.Should().BeTrue();
             _ = factory.PasswordLeaked(BloomTestHelper.LeakedPassword).Should().BeTrue();
 
-            factory.ReloadLocalFilter(new LeakFilterConfig { Enabled = false, FilterPath = path });
+            factory.ReloadLocalFilter(new LeakFilterConfig(path) { Enabled = false, });
             _ = factory.HasLocalFilter.Should().BeFalse();
             _ = factory.PasswordLeaked(BloomTestHelper.LeakedPassword).Should().BeFalse();
          }
@@ -477,7 +477,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          try
          {
             BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
-            factory = new PasswordFactory(new LeakFilterConfig { Enabled = true, FilterPath = path });
+            factory = new PasswordFactory(new LeakFilterConfig(path) { Enabled = false, });
             _ = factory.HasLocalFilter.Should().BeTrue();
          }
          finally
@@ -532,11 +532,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
                trim.SetLength(logicalBytes);
             }
 
-            factory.ReloadLocalFilter(new LeakFilterConfig { Enabled = true, FilterPath = path });
+            factory.ReloadLocalFilter(new LeakFilterConfig(path) { Enabled = false, });
             _ = factory.HasLocalFilter.Should().BeTrue();
             _ = (await factory.PasswordLeakedAsync(BloomTestHelper.LeakedPassword).ConfigureAwait(true)).Should().BeTrue();
 
-            factory.ReloadLocalFilter(new LeakFilterConfig { Enabled = true, FilterPath = path });
+            factory.ReloadLocalFilter(new LeakFilterConfig(path) { Enabled = false, });
             _ = factory.HasLocalFilter.Should().BeTrue();
             _ = (await factory.PasswordLeakedAsync(BloomTestHelper.LeakedPassword).ConfigureAwait(true)).Should().BeTrue();
          }

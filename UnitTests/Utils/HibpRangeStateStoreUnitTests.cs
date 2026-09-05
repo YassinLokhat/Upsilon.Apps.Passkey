@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.Text;
 using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
@@ -297,7 +297,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
             _ = File.Exists(statePath).Should().BeTrue();
 
-            LeakFilterConfig config = new() { Enabled = true, FilterPath = path };
+            LeakFilterConfig config = new(path) { Enabled = true, };
             _ = config.TryDeleteFilterFile().Should().BeTrue();
 
             _ = File.Exists(path).Should().BeFalse();
@@ -352,7 +352,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          {
             BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
 
-            LeakFilterConfig config = new() { Enabled = true, FilterPath = path };
+            LeakFilterConfig config = new(path) { Enabled = true, };
             using ILocalLeakFilter? attached = config.TryOpenConfiguredFilter();
             _ = attached.Should().NotBeNull();
 

@@ -28,7 +28,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Models
       /// </summary>
       public int LoginIdleTimeoutSeconds { get; set; } = 5;
 
-      public LeakFilterConfig LeakFilterConfig { get; set; } = new();
+      /// <summary>
+      /// When <see langword="true"/> and the <c>.pkbf</c> exists, use it after HIBP/XON fail.
+      /// Disabling never deletes the on-disk filter.
+      /// </summary>
+      public bool LocalLeakDatabaseEnabled
+      {
+         get => LeakFilterConfig.Enabled;
+         set => LeakFilterConfig.Enabled = value;
+      }
+
+      /// <summary>
+      /// When <see langword="true"/>, refresh an existing <c>.pkbf</c> in the background
+      /// at startup. Never triggers a first full build (too heavy for automatic use).
+      /// </summary>
+      public bool LocalLeakDatabaseAutoUpdateEnabled
+      {
+         get => LeakFilterConfig.AutoUpdateEnabled;
+         set => LeakFilterConfig.AutoUpdateEnabled = value;
+      }
+
+      internal LeakFilterConfig LeakFilterConfig = new(Path.GetFullPath(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "pwned-sha1.pkbf")));
 
       private static readonly JsonSerializerOptions _options = new() { WriteIndented = true, };
       public void Save(string configFile)
