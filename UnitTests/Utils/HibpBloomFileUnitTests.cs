@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.Security.Cryptography;
 using System.Text;
 using Upsilon.Apps.Passkey.Utils.LeakFilter;
@@ -234,13 +234,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          {
             BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
 
-            LeakFilterConfig disabled = new() { Enabled = false, FilterPath = path };
+            LeakFilterConfig disabled = new(path) { Enabled = false, };
             _ = disabled.TryOpenConfiguredFilter().Should().BeNull();
 
-            LeakFilterConfig missing = new() { Enabled = true, FilterPath = path + ".missing" };
+            LeakFilterConfig missing = new(path + ".missing") { Enabled = true, };
             _ = missing.TryOpenConfiguredFilter().Should().BeNull();
 
-            LeakFilterConfig enabled = new() { Enabled = true, FilterPath = path };
+            LeakFilterConfig enabled = new(path) { Enabled = true, };
             using ILocalLeakFilter? filter = enabled.TryOpenConfiguredFilter();
             _ = filter.Should().NotBeNull();
             _ = filter!.MightContain(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword)).Should().BeTrue();

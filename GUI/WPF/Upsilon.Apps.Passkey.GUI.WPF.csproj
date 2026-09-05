@@ -6,9 +6,9 @@
     <UseWPF>true</UseWPF>
     <Description>A local stored Password Manager GUI.</Description>
     <ApplicationIcon>icon.ico</ApplicationIcon>
-    <Version>1.2.0</Version>
-    <AssemblyVersion>1.2.0</AssemblyVersion>
-    <FileVersion>1.2.0</FileVersion>
+    <Version>1.2.1</Version>
+    <AssemblyVersion>1.2.1</AssemblyVersion>
+    <FileVersion>1.2.1</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

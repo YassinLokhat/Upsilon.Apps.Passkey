@@ -5,7 +5,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
    /// <summary>
    /// Application-level leak-filter preferences (not stored in the vault).
    /// </summary>
-   public sealed class LeakFilterConfig
+   public sealed class LeakFilterConfig(string filterPath)
    {
       /// <summary>
       /// When <see langword="true"/> and the <c>.pkbf</c> exists, use it after HIBP/XON fail.
@@ -23,7 +23,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       /// Absolute path of the <c>.pkbf</c>; defaults to <c>pwned-sha1.pkbf</c> next to the
       /// executable.
       /// </summary>
-      public string FilterPath { get; set; } = Path.GetFullPath(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "pwned-sha1.pkbf"));
+      public string FilterPath { get; set; } = filterPath;
 
       /// <summary>
       /// Opens the configured filter when enabled and present; otherwise returns <see langword="null"/>.
