@@ -36,7 +36,7 @@
     "wpf": {
       "id": "Upsilon.Apps.Passkey.GUI.WPF",
       "project": "GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "kind": "app",
       "ship": true,
       "tagPrefix": "wpf",
