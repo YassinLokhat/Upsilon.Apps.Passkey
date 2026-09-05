@@ -20,8 +20,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    {
       private readonly UserServicesViewModel _viewModel;
       private readonly IDatabase _database;
-      private int _autoLoginHotkeyId;
-      private int _autoPasswordHotkeyId;
       private bool _isClosing;
 
       private static ISessionService _session => AppServices.Session;
@@ -107,11 +105,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _userServicesView_Loaded(object sender, RoutedEventArgs e)
       {
-         _autoLoginHotkeyId = HotkeyHelper.Register(this, ModifierKeys.Control | ModifierKeys.Shift, Key.L);
-         _autoPasswordHotkeyId = HotkeyHelper.Register(this, ModifierKeys.Control | ModifierKeys.Shift, Key.P);
-
-         HotkeyHelper.HotkeyPressed += _hotkeyHelper_HotkeyPressed;
-
          this.PostLoadSetup();
 
          if (_database.User?.Settings.WarningsToNotify == 0)
@@ -120,7 +113,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
-      private void _hotkeyHelper_HotkeyPressed(object? sender, HotkeyEventArgs e)
+      // TODO : Map the followin code to new commands in the view and view model
+      /*private void _hotkeyHelper_HotkeyPressed(object? sender, HotkeyEventArgs e)
       {
          if (this.GetIsBusy())
          {
@@ -144,7 +138,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             AppServices.Clipboard.SetText(toInsert, ClipboardManager.AutoClearAfter);
             HotkeyHelper.Send(ModifierKeys.Control, Key.V);
          }
-      }
+      }*/
 
       private void _openUserSettings()
       {
@@ -201,10 +195,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _database.DatabaseClosed -= _database_DatabaseClosed;
          _database.WarningsUpdated -= _database_WarningUpdated;
-
-         _ = HotkeyHelper.Unregister(this, _autoLoginHotkeyId);
-         _ = HotkeyHelper.Unregister(this, _autoPasswordHotkeyId);
-         HotkeyHelper.HotkeyPressed -= _hotkeyHelper_HotkeyPressed;
 
          _navigation.ItemRequested -= _navigation_ItemRequested;
 

@@ -28,20 +28,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
          ChangedBrush = _resourceOr(nameof(ChangedBrush), ChangedBrush);
       }
 
-      public static void SetImmersiveDarkMode(Window window, bool useDark)
-      {
-         nint hwnd = new WindowInteropHelper(window).Handle;
-
-         if (hwnd == IntPtr.Zero)
-         {
-            return;
-         }
-
-         int attribute = 20; // DWMWA_USE_IMMERSIVE_DARK_MODE
-         int useImmersiveDarkMode = useDark ? 1 : 0;
-         _ = DwmSetWindowAttribute(hwnd, attribute, ref useImmersiveDarkMode, sizeof(int));
-      }
-
       private static Brush _resourceOr(string key, Brush fallback)
          => Application.Current?.TryFindResource(key) is Brush brush ? brush : fallback;
 
@@ -51,9 +37,5 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
          brush.Freeze();
          return brush;
       }
-
-      [DllImport("dwmapi.dll", PreserveSig = true)]
-      [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-      private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
    }
 }

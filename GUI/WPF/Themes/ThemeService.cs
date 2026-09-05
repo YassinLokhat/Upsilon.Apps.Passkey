@@ -144,7 +144,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
          _swapColorDictionary(appearance);
          DarkMode.SyncFromApplicationResources();
          SemanticBrushes.SyncFromApplicationResources();
-         _applyTitleBars();
          _notifyOpenWindows();
          ThemeChanged?.Invoke(null, EventArgs.Empty);
          return appearanceChanged;
@@ -221,25 +220,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
          }
 
          _dispatch(swap);
-      }
-
-      private static void _applyTitleBars()
-      {
-         Application? app = Application.Current;
-         if (app is null)
-         {
-            return;
-         }
-
-         void apply()
-         {
-            foreach (Window window in app.Windows.Cast<Window>().ToArray())
-            {
-               DarkMode.SetImmersiveDarkMode(window, IsDarkAppearance);
-            }
-         }
-
-         _dispatch(apply);
       }
 
       private static void _notifyOpenWindows()
