@@ -3,14 +3,9 @@ name: "Passkey CodeQL config"
 queries:
   - uses: security-and-quality
 
-# WPF relies on intentional Win32 interop for global hotkeys and DWM title bar theming.
 # Factories that transfer IDisposable ownership via return/out must use try/finally
 # + nulling (CA2000 / cs/dispose-not-guaranteed). That form is exactly what
 # missed-using wants replaced by a using that would dispose before the transfer.
 query-filters:
-  - exclude:
-      id: cs/unmanaged-code
-  - exclude:
-      id: cs/call-to-unmanaged-code
   - exclude:
       id: cs/missed-using-statement
