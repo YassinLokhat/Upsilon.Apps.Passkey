@@ -40,7 +40,6 @@ jobs:
       with:
         languages: csharp
         build-mode: manual
-        config-file: ./.github/codeql/codeql-config.yml
 
     - name: Restore dependencies
       run: dotnet restore Upsilon.Apps.Passkey.Windows.slnx

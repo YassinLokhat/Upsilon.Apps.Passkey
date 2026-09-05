@@ -1,8 +1,0 @@
-name: "Passkey CodeQL config"
-
-queries:
-  - uses: security-and-quality
-
-#query-filters:
-#  - exclude:
-#      id: cs/RULE_NAME_TO_EXCLUDE_HERE
