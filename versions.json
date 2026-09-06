@@ -13,7 +13,7 @@
     "utils": {
       "id": "Upsilon.Apps.Passkey.Utils",
       "project": "Utils/Upsilon.Apps.Passkey.Utils.csproj",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "kind": "library",
       "ship": true,
       "tagPrefix": "utils",
