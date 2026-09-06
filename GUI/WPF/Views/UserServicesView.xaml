@@ -24,6 +24,8 @@
       <KeyBinding Key="P" Modifiers="Control" Command="{Binding GeneratePasswordCommand}"/>
       <KeyBinding Key="A" Modifiers="Control+Shift" Command="{Binding ShowActivitiesCommand}"/>
       <KeyBinding Key="OemComma" Modifiers="Control" Command="{Binding AppSettingsCommand}"/>
+      <KeyBinding Key="L" Modifiers="Control+Shift" Command="{Binding CopyIdentifierCommand}"/>
+      <KeyBinding Key="P" Modifiers="Control+Shift" Command="{Binding CopyPasswordCommand}"/>
       <KeyBinding Key="F" Modifiers="Control" Command="{Binding FocusFilterCommand}"/>
       <KeyBinding Key="F3" Command="{Binding FocusFilterCommand}"/>
       <KeyBinding Key="F" Modifiers="Control+Shift" Command="{Binding ClearFiltersCommand}"/>

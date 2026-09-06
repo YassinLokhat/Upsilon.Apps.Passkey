@@ -6,7 +6,6 @@ name: CodeQL
 
 on:
   push:
-  pull_request:
   schedule:
     # Weekly scan so newly published queries catch issues even without a push.
     - cron: '17 3 * * 1'
@@ -41,7 +40,6 @@ jobs:
       with:
         languages: csharp
         build-mode: manual
-        config-file: ./.github/codeql/codeql-config.yml
 
     - name: Restore dependencies
       run: dotnet restore Upsilon.Apps.Passkey.Windows.slnx

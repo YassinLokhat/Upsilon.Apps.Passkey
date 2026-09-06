@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 
 namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 {
@@ -59,12 +59,49 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       private int _ingestedPrefixes;
       private bool _disposed;
 
-      private HibpRangeStateStore(FileStream file, byte[] entries, int prefixCount, int ingestedPrefixes)
+      private HibpRangeStateStore(string path, FileMode mode, int prefixCount, HibpBloomFile filter)
       {
-         _file = file;
-         _entries = entries;
-         _prefixCount = prefixCount;
-         _ingestedPrefixes = ingestedPrefixes;
+         _file = new FileStream(path, mode, FileAccess.ReadWrite, FileShare.None);
+         try
+         {
+            _prefixCount = prefixCount;
+            _entries = new byte[(long)prefixCount * EntryStride];
+
+            if (mode == FileMode.Create)
+            {
+               _file.SetLength(HeaderSize + ((long)prefixCount * EntryStride));
+               _writeHeader(filter);
+               _file.Flush(flushToDisk: true);
+               _ingestedPrefixes = 0;
+            }
+            else
+            {
+               long expectedLength = HeaderSize + ((long)prefixCount * EntryStride);
+               if (_file.Length < expectedLength || !_headerMatches(_file, prefixCount, filter))
+               {
+                  throw new InvalidDataException("Sidecar header does not match filter or prefix count.");
+               }
+
+               _file.Position = HeaderSize;
+               _file.ReadExactly(_entries);
+
+               int ingested = 0;
+               for (int prefix = 0; prefix < prefixCount; prefix++)
+               {
+                  if (_entries[(prefix * EntryStride) + STATE_OFFSET] == STATE_INGESTED)
+                  {
+                     ingested++;
+                  }
+               }
+
+               _ingestedPrefixes = ingested;
+            }
+         }
+         catch
+         {
+            _file.Dispose();
+            throw;
+         }
       }
 
       /// <summary>
@@ -120,22 +157,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             _ = Directory.CreateDirectory(directory);
          }
 
-         FileStream? file = new(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-#pragma warning disable CA2000 // Handed to HibpRangeStateStore on success; disposed in finally otherwise.
-         try
-         {
-            file.SetLength(HeaderSize + ((long)prefixCount * EntryStride));
-            HibpRangeStateStore store = new(file, new byte[(long)prefixCount * EntryStride], prefixCount, ingestedPrefixes: 0);
-            store._writeHeader(filter);
-            file.Flush(flushToDisk: true);
-            file = null;
-            return store;
-         }
-         finally
-         {
-            file?.Dispose();
-         }
-#pragma warning restore CA2000
+         return new HibpRangeStateStore(path, FileMode.Create, prefixCount, filter);
       }
 
       /// <summary>
@@ -154,33 +176,13 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             return null;
          }
 
-#pragma warning disable CA2000 // Handed to HibpRangeStateStore on success; disposed in finally otherwise.
-         FileStream? file = null;
          try
          {
-            file = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-            long expectedLength = HeaderSize + ((long)prefixCount * EntryStride);
-            if (file.Length < expectedLength || !_headerMatches(file, prefixCount, filter))
-            {
-               return null;
-            }
-
-            byte[] entries = new byte[(long)prefixCount * EntryStride];
-            file.Position = HeaderSize;
-            file.ReadExactly(entries);
-
-            int ingested = 0;
-            for (int prefix = 0; prefix < prefixCount; prefix++)
-            {
-               if (entries[(prefix * EntryStride) + STATE_OFFSET] == STATE_INGESTED)
-               {
-                  ingested++;
-               }
-            }
-
-            HibpRangeStateStore store = new(file, entries, prefixCount, ingested);
-            file = null;
-            return store;
+            return new HibpRangeStateStore(path, FileMode.Open, prefixCount, filter);
+         }
+         catch (InvalidDataException)
+         {
+            return null;
          }
          catch (Exception ex)
             when (ex is IOException
@@ -192,11 +194,6 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             System.Diagnostics.Trace.TraceWarning($"HIBP range sidecar could not be opened, every range will be re-fetched: {ex}");
             return null;
          }
-         finally
-         {
-            file?.Dispose();
-         }
-#pragma warning restore CA2000
       }
 
       /// <summary>

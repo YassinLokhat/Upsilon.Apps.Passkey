@@ -2,7 +2,6 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -39,7 +38,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          // TargetType=Window styles do not apply to subclasses.
          window.SetResourceReference(Control.BackgroundProperty, "BackgroundBrush");
          window.SetResourceReference(Control.ForegroundProperty, "ForegroundBrush");
-         DarkMode.SetImmersiveDarkMode(window, ThemeService.IsDarkAppearance);
          ComputeTabIndex(window);
       }
 
