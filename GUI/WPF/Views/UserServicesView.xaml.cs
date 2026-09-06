@@ -5,6 +5,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -44,6 +45,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _viewModel.ShowActivitiesRequested += (_, _) => _showActivities();
          _viewModel.AppSettingsRequested += (_, _) => _openAppSettings();
          _viewModel.FocusFilterRequested += (_, _) => _focusServiceFilter();
+         _viewModel.CopyIdentifierRequested += (_, _) => _copyIdentifierOrPassword(Key.L);
+         _viewModel.CopyPasswordRequested += (_, _) => _copyIdentifierOrPassword(Key.P);
 
          _services_LB.ItemsSource = _viewModel.Services;
 
@@ -112,17 +115,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
-      // TODO : Map the followin code to new commands in the view and view model
-      /*private void _hotkeyHelper_HotkeyPressed(object? sender, HotkeyEventArgs e)
+      private void _copyIdentifierOrPassword(Key key)
       {
-         if (this.GetIsBusy())
-         {
-            return;
-         }
-
          string? toInsert = null;
 
-         switch (e.Key)
+         switch (key)
          {
             case Key.L:
                toInsert = _service_SV.GetSelectedIdentifier();
@@ -135,9 +132,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (!string.IsNullOrEmpty(toInsert))
          {
             AppServices.Clipboard.SetText(toInsert, ClipboardManager.AutoClearAfter);
-            HotkeyHelper.Send(ModifierKeys.Control, Key.V);
          }
-      }*/
+      }
 
       private void _openUserSettings()
       {

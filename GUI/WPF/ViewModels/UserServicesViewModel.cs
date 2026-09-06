@@ -138,6 +138,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public ICommand AppSettingsCommand { get; }
       public ICommand FocusFilterCommand { get; }
       public ICommand ClearFiltersCommand { get; }
+      public ICommand CopyIdentifierCommand { get; }
+      public ICommand CopyPasswordCommand { get; }
 
       /// <summary>
       /// Raised when <see cref="SaveCommand"/> runs; the view performs the async save.
@@ -169,6 +171,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       /// </summary>
       public event EventHandler? FocusFilterRequested;
 
+      /// <summary>
+      /// Raised when <see cref="CopyIdentifierCommand"/> runs; the view focuses the service filter box.
+      /// </summary>
+      public event EventHandler? CopyIdentifierRequested;
+
+      /// <summary>
+      /// Raised when <see cref="CopyPasswordCommand"/> runs; the view focuses the service filter box.
+      /// </summary>
+      public event EventHandler? CopyPasswordRequested;
+
       public event EventHandler? FiltersRefreshed;
 
       public UserServicesViewModel(string userDisplayName)
@@ -182,6 +194,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          ShowActivitiesCommand = new RelayCommand(() => ShowActivitiesRequested?.Invoke(this, EventArgs.Empty));
          AppSettingsCommand = new RelayCommand(() => AppSettingsRequested?.Invoke(this, EventArgs.Empty));
          FocusFilterCommand = new RelayCommand(() => FocusFilterRequested?.Invoke(this, EventArgs.Empty));
+         CopyIdentifierCommand = new RelayCommand(() => CopyIdentifierRequested?.Invoke(this, EventArgs.Empty));
+         CopyPasswordCommand = new RelayCommand(() => CopyPasswordRequested?.Invoke(this, EventArgs.Empty));
          ClearFiltersCommand = new RelayCommand(ClearFilters);
 
          RefreshFilters();
