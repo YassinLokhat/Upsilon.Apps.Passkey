@@ -298,5 +298,39 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             BloomTestHelper.DeleteQuietly(path);
          }
       }
+
+      [TestMethod]
+      /*
+       * UI status must report the header stamp, not File.LastWriteTimeUtc: copies
+       * and AV scans change the latter without a rebuild. The peek must also avoid
+       * mapping the whole bit array just to read 8 ticks.
+      */
+      public void Case11_TryReadBuiltUtc_UsesHeaderNotFileWriteTime()
+      {
+         string path = BloomTestHelper.TempPkbfPath();
+         try
+         {
+            DateTime committed;
+            using (HibpBloomFile writable = HibpBloomFile.Create(path, capacity: 1_000, bitCount: 9_600, hashFunctions: 5))
+            {
+               writable.Add(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword));
+               writable.CommitHeader();
+               committed = writable.BuiltUtc;
+            }
+
+            DateTime forgedWriteTime = committed.AddDays(-30);
+            File.SetLastWriteTimeUtc(path, forgedWriteTime);
+
+            _ = HibpBloomFile.TryReadBuiltUtc(path, out DateTime peeked).Should().BeTrue();
+            _ = peeked.Should().Be(committed);
+            _ = peeked.Should().NotBe(File.GetLastWriteTimeUtc(path));
+
+            _ = HibpBloomFile.TryReadBuiltUtc(path + ".missing", out _).Should().BeFalse();
+         }
+         finally
+         {
+            BloomTestHelper.DeleteQuietly(path);
+         }
+      }
    }
 }

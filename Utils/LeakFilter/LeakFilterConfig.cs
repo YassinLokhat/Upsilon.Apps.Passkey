@@ -58,6 +58,13 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       }
 
       /// <summary>
+      /// Reads the last committed build time from the <c>.pkbf</c> header when the
+      /// file is present and valid. Does not require <see cref="Enabled"/>.
+      /// </summary>
+      public bool TryGetBuiltUtc(out DateTime builtUtc)
+         => HibpBloomFile.TryReadBuiltUtc(FilterPath, out builtUtc);
+
+      /// <summary>
       /// Deletes the resolved <c>.pkbf</c> when present, along with its range
       /// sidecar. Does not change <see cref="LeakFilterConfig.Enabled"/>.
       /// </summary>
