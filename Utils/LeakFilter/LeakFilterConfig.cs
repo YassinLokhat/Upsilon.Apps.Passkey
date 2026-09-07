@@ -14,16 +14,16 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       public bool Enabled { get; set; } = true;
 
       /// <summary>
-      /// When <see langword="true"/>, refresh an existing <c>.pkbf</c> in the background
-      /// at startup. Never triggers a first full build (too heavy for automatic use).
-      /// </summary>
-      public bool AutoUpdateEnabled { get; set; }
-
-      /// <summary>
       /// Absolute path of the <c>.pkbf</c>; defaults to <c>pwned-sha1.pkbf</c> next to the
       /// executable.
       /// </summary>
       public string FilterPath { get; set; } = filterPath;
+
+      /// <summary>
+      /// The number of days between refreshing an existing <c>.pkbf</c> in the background
+      /// at startup. Never triggers a first full build (too heavy for automatic use).
+      /// </summary>
+      public int AutoUpdateFrequency { get; set; } = 7;
 
       /// <summary>
       /// Opens the configured filter when enabled and present; otherwise returns <see langword="null"/>.

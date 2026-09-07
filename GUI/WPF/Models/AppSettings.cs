@@ -42,10 +42,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Models
       /// When <see langword="true"/>, refresh an existing <c>.pkbf</c> in the background
       /// at startup. Never triggers a first full build (too heavy for automatic use).
       /// </summary>
-      public bool LocalLeakDatabaseAutoUpdateEnabled
+      public int LocalLeakDatabaseAutoUpdateFrequency
       {
-         get => LeakFilterConfig.AutoUpdateEnabled;
-         set => LeakFilterConfig.AutoUpdateEnabled = value;
+         get => LeakFilterConfig.AutoUpdateFrequency;
+         set => LeakFilterConfig.AutoUpdateFrequency = value;
       }
 
       internal readonly LeakFilterConfig LeakFilterConfig = new(Path.GetFullPath(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "pwned-sha1.pkbf")));

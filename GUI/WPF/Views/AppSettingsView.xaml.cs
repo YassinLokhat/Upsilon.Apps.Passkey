@@ -175,17 +175,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          // turning it off clears auto-update so a later enable is an explicit choice again.
          AppInfo.AppSettings.LeakFilterConfig.Enabled = _viewModel.OfflineLeakFilterEnabled;
 
-         if (_viewModel.OfflineLeakFilterEnabled)
-         {
-            _viewModel.OfflineLeakFilterAutoUpdateEnabled = true;
-            AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = true;
-         }
-         else
-         {
-            _viewModel.OfflineLeakFilterAutoUpdateEnabled = false;
-            AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = false;
-         }
-
          if (AppServices.PasswordFactory is PasswordFactory factory)
          {
             factory.ReloadLocalFilter(AppInfo.AppSettings.LeakFilterConfig);
@@ -193,16 +182,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _viewModel.RefreshOfflineLeakFilterStatus();
          AppServices.Session.Database?.RefreshWarnings();
-      }
-
-      private void _offlineLeakFilterAutoUpdate_Click(object sender, RoutedEventArgs e)
-      {
-         if (_viewModel.OfflineLeakFilterBusy)
-         {
-            return;
-         }
-
-         AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = _viewModel.OfflineLeakFilterAutoUpdateEnabled;
       }
 
       private async void _offlineLeakFilterBuild_Click(object sender, RoutedEventArgs e)
@@ -264,8 +243,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             // so later startups refresh the corpus without another multi-GiB download.
             if (!result.Value.Skipped && !result.Value.IsRefresh)
             {
-               AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = true;
-               _viewModel.OfflineLeakFilterAutoUpdateEnabled = true;
+               AppInfo.AppSettings.LeakFilterConfig.AutoUpdateFrequency
+                  = _viewModel.OfflineLeakFilterAutoUpdateFrequency
+                  = 7;
                AppInfo.AppSettings.Save(AppInfo.ConfigFile);
             }
 

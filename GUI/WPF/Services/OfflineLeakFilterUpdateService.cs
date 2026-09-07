@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Net.Http;
+using System.Windows.Shapes;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.Utils;
 using Upsilon.Apps.Passkey.Utils.LeakFilter;
@@ -149,8 +150,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          LeakFilterConfig config = AppInfo.AppSettings.LeakFilterConfig;
 
          if (!config.Enabled
-            || !config.AutoUpdateEnabled
+            || config.AutoUpdateFrequency == 0
             || !File.Exists(config.FilterPath))
+         {
+            return;
+         }
+
+         FileInfo info = new(config.FilterPath);
+         DateTime lastUpdateTime = AppInfo.AppSettings.LeakFilterConfig.TryGetBuiltUtc(out DateTime builtUtc)
+            ? builtUtc
+            : info.LastWriteTimeUtc;
+
+         if (DateTime.Now.Date <= lastUpdateTime.AddDays(config.AutoUpdateFrequency).Date)
          {
             return;
          }

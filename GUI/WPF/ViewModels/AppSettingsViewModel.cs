@@ -103,7 +103,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       }
 
-      public bool OfflineLeakFilterAutoUpdateEnabled
+      public int OfflineLeakFilterAutoUpdateFrequency
       {
          get;
          set
@@ -114,7 +114,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             }
 
             field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterAutoUpdateEnabled)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterAutoUpdateFrequency)));
          }
       }
 
@@ -214,13 +214,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public void RefreshOfflineLeakFilterStatus()
       {
          OfflineLeakFilterEnabled = AppInfo.AppSettings.LeakFilterConfig.Enabled;
-         OfflineLeakFilterAutoUpdateEnabled = OfflineLeakFilterEnabled
-            && AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled;
-
-         if (!OfflineLeakFilterEnabled && AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled)
-         {
-            AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = false;
-         }
+         OfflineLeakFilterAutoUpdateFrequency = AppInfo.AppSettings.LeakFilterConfig.AutoUpdateFrequency;
 
          string path = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
 
