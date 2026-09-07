@@ -341,6 +341,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          // before return and break every resume/build path (see 67cccc2).
 #pragma warning disable CA2000 // Returned to caller, or disposed on every failure path below.
          HibpBloomFile? existing = _tryOpenForResume(tempPath, capacity, bitCount, hashFunctions);
+#pragma warning restore CA2000
          if (existing is not null)
          {
             HibpRangeStateStore? existingStore;
@@ -362,7 +363,6 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 
             existing.Dispose();
          }
-#pragma warning restore CA2000
 
          _deleteQuietly(tempPath);
          _deleteQuietly(tempStatePath);

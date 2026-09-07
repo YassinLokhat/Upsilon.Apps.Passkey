@@ -20,6 +20,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       public bool IsBusy => Volatile.Read(ref _busy) != 0;
 
       /// <summary>
+      /// True once <see cref="Cancel"/> has been observed for the in-flight run
+      /// (or the linked token was cancelled), until the run finishes.
+      /// </summary>
+      public bool IsCancellationRequested
+      {
+         get
+         {
+            lock (_gate)
+            {
+               return _cts?.IsCancellationRequested == true;
+            }
+         }
+      }
+
+      /// <summary>
       /// Most recent progress snapshot from the in-flight (or last) run.
       /// </summary>
       public HibpBloomBuildProgress? LatestProgress
@@ -79,9 +94,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       /// </summary>
       public void Cancel()
       {
+         // Snapshot under the gate, then Cancel outside it: CTS.Cancel can run
+         // callbacks synchronously, and those (or a Dispatcher marshal they
+         // trigger) may need _gate. System.Threading.Lock is non-recursive, so
+         // holding it across Cancel deadlocks after the object→Lock switch.
+         CancellationTokenSource? cts;
          lock (_gate)
          {
-            _cts?.Cancel();
+            cts = _cts;
+         }
+
+         try
+         {
+            cts?.Cancel();
+         }
+         catch (ObjectDisposedException)
+         {
+            // Race with RunAsync's using-dispose after _cts was cleared.
          }
       }
 

@@ -95,12 +95,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _applyProgressFromService()
       {
-         if (!AppServices.OfflineLeakFilterUpdate.IsBusy)
+         OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;
+         if (!update.IsBusy)
          {
             return;
          }
 
-         if (AppServices.OfflineLeakFilterUpdate.LatestProgress is { } progress)
+         if (update.IsCancellationRequested)
+         {
+            _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildCancelled;
+            return;
+         }
+
+         if (update.LatestProgress is { } progress)
          {
             _viewModel.OfflineLeakFilterProgress = _formatProgress(progress);
          }
@@ -203,6 +210,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (_viewModel.OfflineLeakFilterBusy)
          {
             AppServices.OfflineLeakFilterUpdate.Cancel();
+            _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildCancelled;
             return;
          }
 
