@@ -337,29 +337,48 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       {
          // Resume the previous attempt when its filter and sidecar still agree
          // on the same committed state; start the corpus over otherwise.
-
-         using (HibpBloomFile? existing = _tryOpenForResume(tempPath, capacity, bitCount, hashFunctions))
+         // Ownership transfers to the caller on return — a using would dispose
+         // before return and break every resume/build path (see 67cccc2).
+#pragma warning disable CA2000 // Returned to caller, or disposed on every failure path below.
+         HibpBloomFile? existing = _tryOpenForResume(tempPath, capacity, bitCount, hashFunctions);
+         if (existing is not null)
          {
-            if (existing is not null)
+            HibpRangeStateStore? existingStore;
+            try
             {
-               HibpRangeStateStore? existingStore = HibpRangeStateStore.TryOpen(tempStatePath, TotalPrefixes, existing);
-               if (existingStore is not null)
-               {
-                  store = existingStore;
-                  HibpBloomFile resumed = existing;
-                  return resumed;
-               }
+               existingStore = HibpRangeStateStore.TryOpen(tempStatePath, TotalPrefixes, existing);
             }
+            catch
+            {
+               existing.Dispose();
+               throw;
+            }
+
+            if (existingStore is not null)
+            {
+               store = existingStore;
+               return existing;
+            }
+
+            existing.Dispose();
          }
+#pragma warning restore CA2000
 
          _deleteQuietly(tempPath);
          _deleteQuietly(tempStatePath);
 
-         using HibpBloomFile? created = HibpBloomFile.Create(tempPath, capacity, falsePositiveRate);
+         HibpBloomFile created = HibpBloomFile.Create(tempPath, capacity, falsePositiveRate);
+         try
+         {
+            store = HibpRangeStateStore.CreateNew(tempStatePath, TotalPrefixes, created);
+         }
+         catch
+         {
+            created.Dispose();
+            throw;
+         }
 
-         store = HibpRangeStateStore.CreateNew(tempStatePath, TotalPrefixes, created);
-         HibpBloomFile opened = created;
-         return opened;
+         return created;
       }
 
       /// <summary>
@@ -371,22 +390,26 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       /// a filter still mapped by a running leak check looks like: silently turning
       /// that into a full corpus download would be a terrible trade.
       /// </para>
+      /// <para>
+      /// The returned instance is owned by the caller. A <c>using</c> around the
+      /// local would dispose it before return and break every refresh/build path.
+      /// </para>
       /// </summary>
       private static HibpBloomFile? _openForRefresh(string path, ulong capacity, ulong bitCount, int hashFunctions)
       {
          try
          {
-            using HibpBloomFile? filter = HibpBloomFile.OpenForUpdate(path);
+            HibpBloomFile filter = HibpBloomFile.OpenForUpdate(path);
 
             if (filter.Capacity != capacity || filter.BitCount != bitCount || filter.HashFunctions != hashFunctions)
             {
                // A bit array sized for other parameters cannot absorb these hashes:
                // the positions would not match what a later query computes.
+               filter.Dispose();
                return null;
             }
 
-            HibpBloomFile opened = filter;
-            return opened;
+            return filter;
          }
          catch (InvalidDataException ex)
          {
