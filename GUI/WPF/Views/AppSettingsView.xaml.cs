@@ -216,11 +216,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          // An existing database is refreshed range by range against the ETags of
          // the last run, never rebuilt: only what changed comes back down.
-         bool update = File.Exists(AppInfo.AppSettings.LeakFilterConfig.FilterPath);
+         // Without the .ranges sidecar there are no ETags — Update would skip —
+         // so fall back to Rebuild to restore incremental updates.
+         string filterPath = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
+         bool hasFilter = File.Exists(filterPath);
+         bool hasSidecar = hasFilter && File.Exists(HibpBloomBuilder.GetRangeStatePath(filterPath));
+         HibpBloomBuildMode mode = !hasFilter
+            ? HibpBloomBuildMode.BuildIfMissing
+            : hasSidecar
+               ? HibpBloomBuildMode.Update
+               : HibpBloomBuildMode.Rebuild;
 
          if (AppServices.Dialogs.Confirm(
-               update ? Strings.Msg_UpdateOfflineLeakDatabase : Strings.Msg_BuildOfflineLeakDatabase,
-               update ? Strings.Title_UpdateOfflineLeakDatabase : Strings.Title_BuildOfflineLeakDatabase)
+               mode == HibpBloomBuildMode.Update
+                  ? Strings.Msg_UpdateOfflineLeakDatabase
+                  : Strings.Msg_BuildOfflineLeakDatabase,
+               mode == HibpBloomBuildMode.Update
+                  ? Strings.Title_UpdateOfflineLeakDatabase
+                  : Strings.Title_BuildOfflineLeakDatabase)
             != MessageBoxResult.Yes)
          {
             return;
@@ -232,7 +245,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          try
          {
             HibpBloomBuildResult? result = await AppServices.OfflineLeakFilterUpdate.RunAsync(
-               update ? HibpBloomBuildMode.Update : HibpBloomBuildMode.BuildIfMissing,
+               mode,
                progress: null,
                cancellationToken: CancellationToken.None).ConfigureAwait(true);
 

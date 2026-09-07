@@ -115,8 +115,34 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       }
 
       /// <summary>
-      /// Starts a background refresh when offline use, auto-update, and an
-      /// existing <c>.pkbf</c> are all set. Never builds from scratch.
+      /// Cancels any in-flight run and blocks until it finishes or
+      /// <paramref name="timeout"/> elapses. Used on process exit so a refresh
+      /// cannot outlive the UI.
+      /// </summary>
+      public bool WaitForIdle(TimeSpan timeout)
+      {
+         Cancel();
+
+         if (!IsBusy)
+         {
+            return true;
+         }
+
+         TimeSpan remaining = timeout < TimeSpan.Zero ? TimeSpan.Zero : timeout;
+         try
+         {
+            return SpinWait.SpinUntil(() => !IsBusy, remaining);
+         }
+         catch (Exception ex) when (ex is ObjectDisposedException or InvalidOperationException)
+         {
+            return !IsBusy;
+         }
+      }
+
+      /// <summary>
+      /// Starts a background refresh when offline use, auto-update, an existing
+      /// <c>.pkbf</c>, and its <c>.ranges</c> sidecar are all set. Never builds
+      /// from scratch, and never re-downloads the corpus when the sidecar is gone.
       /// </summary>
       public void TryStartAutoUpdate()
       {
@@ -126,6 +152,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
             || !config.AutoUpdateEnabled
             || !File.Exists(config.FilterPath))
          {
+            return;
+         }
+
+         // No ETags ⇒ no cheap refresh. Starting Update here used to recreate an
+         // empty sidecar and pull every range, which kept the process alive after
+         // the UI closed.
+         if (!File.Exists(HibpBloomBuilder.GetRangeStatePath(config.FilterPath)))
+         {
+            Log.Info(
+               "Offline leak filter: auto-update skipped (range sidecar missing); "
+               + "keeping the existing .pkbf. Use Rebuild from settings to restore incremental updates.");
             return;
          }
 

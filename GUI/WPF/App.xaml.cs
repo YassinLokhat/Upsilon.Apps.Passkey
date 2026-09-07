@@ -34,7 +34,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       {
          ArgumentNullException.ThrowIfNull(e);
 
-         AppServices.OfflineLeakFilterUpdate.Cancel();
+         // Cancel and give an in-flight refresh a short window to unwind so the
+         // process does not linger (e.g. after the window is already gone).
+         if (!AppServices.OfflineLeakFilterUpdate.WaitForIdle(TimeSpan.FromSeconds(15)))
+         {
+            Log.Warn("Offline leak filter: still busy after exit cancel timeout.");
+         }
 
          // Close any open vault and clear owned clipboard content before the
          // process tears down, in case MainWindow.Closed did not run first.

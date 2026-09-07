@@ -18,7 +18,10 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 
       /// <summary>
       /// Revalidate every range of an existing filter and fold in what changed.
-      /// Falls back to a full build when there is nothing usable to refresh.
+      /// Requires a usable <c>.ranges</c> sidecar with recorded ETags; otherwise
+      /// the existing filter is kept and the run is reported as skipped (use
+      /// <see cref="Rebuild"/> to restore incremental updates). Falls back to a
+      /// full build only when the <c>.pkbf</c> itself cannot be refreshed in place.
       /// </summary>
       Update,
 
@@ -216,11 +219,40 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             return null;
          }
 
-         // A rejected sidecar costs a full re-download, not a rebuild: folding
-         // the corpus into an existing filter is a union, so the bits already
-         // there stay valid and no false negative can appear.
-         using HibpRangeStateStore store = HibpRangeStateStore.TryOpen(statePath, TotalPrefixes, filter)
-            ?? HibpRangeStateStore.CreateNew(statePath, TotalPrefixes, filter);
+         // Without a usable sidecar there are no ETags to revalidate against.
+         // Creating an empty one and ingesting would re-download every range
+         // (~1M requests) while the .pkbf itself is still valid for lookups —
+         // that must never happen on Update (especially auto-update at startup).
+         // Callers that need a fresh corpus should use Rebuild.
+         HibpRangeStateStore? opened = HibpRangeStateStore.TryOpen(statePath, TotalPrefixes, filter);
+         if (opened is null || opened.IngestedPrefixes == 0)
+         {
+            opened?.Dispose();
+            System.Diagnostics.Trace.TraceWarning(
+               $"HIBP range sidecar missing or empty at '{statePath}'; refresh skipped, existing filter kept.");
+
+            progress?.Report(new HibpBloomBuildProgress(
+               TotalPrefixes,
+               TotalPrefixes,
+               InsertedHashes: 0,
+               Skipped: true,
+               IsRefresh: true,
+               UnchangedPrefixes: 0,
+               ChangedPrefixes: 0,
+               DownloadedBytes: 0));
+
+            return new HibpBloomBuildResult(
+               outputPath,
+               Skipped: true,
+               filter.InsertedCount,
+               filter.BuiltUtc,
+               IsRefresh: true,
+               UnchangedPrefixes: 0,
+               ChangedPrefixes: 0,
+               DownloadedBytes: 0);
+         }
+
+         using HibpRangeStateStore store = opened;
          bool committed = false;
          try
          {
