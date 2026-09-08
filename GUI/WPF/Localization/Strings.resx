@@ -308,6 +308,9 @@
   <data name="Label_Seconds" xml:space="preserve">
     <value>seconds.</value>
   </data>
+  <data name="Label_Days" xml:space="preserve">
+    <value>days.</value>
+  </data>
   <data name="Label_ShowQrCodeDuring" xml:space="preserve">
     <value>Show QR Code during</value>
   </data>
@@ -1015,10 +1018,10 @@ You will not be alerted about:
     <value>Use offline Bloom filter when HIBP and XposedOrNot are unreachable</value>
   </data>
   <data name="Label_AutoUpdateOfflineLeakDatabase" xml:space="preserve">
-    <value>Automatically update the offline database in the background</value>
+    <value>Automatically update the offline database in the background every</value>
   </data>
   <data name="Tooltip_AutoUpdateOfflineLeakDatabase" xml:space="preserve">
-    <value>When enabled, an existing offline database is refreshed from HIBP at startup. A first build is never started automatically (too large).</value>
+    <value>Sets the existing offline database refreshing frequency from HIBP at startup every. A first build is never started automatically (too large).</value>
   </data>
   <data name="Label_BuildUpdate" xml:space="preserve">
     <value>Build / Update</value>

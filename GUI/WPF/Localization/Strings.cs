@@ -143,6 +143,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Label_RemindPasswordUpdate => Get(nameof(Label_RemindPasswordUpdate));
       public static string Label_Reviewed => Get(nameof(Label_Reviewed));
       public static string Label_Seconds => Get(nameof(Label_Seconds));
+      public static string Label_Days => Get(nameof(Label_Days));
       public static string Label_Service => Get(nameof(Label_Service));
       public static string Label_ServiceColumn => Get(nameof(Label_ServiceColumn));
       public static string Label_ServiceName => Get(nameof(Label_ServiceName));

@@ -95,12 +95,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _applyProgressFromService()
       {
-         if (!AppServices.OfflineLeakFilterUpdate.IsBusy)
+         OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;
+         if (!update.IsBusy)
          {
             return;
          }
 
-         if (AppServices.OfflineLeakFilterUpdate.LatestProgress is { } progress)
+         if (update.IsCancellationRequested)
+         {
+            _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildCancelled;
+            return;
+         }
+
+         if (update.LatestProgress is { } progress)
          {
             _viewModel.OfflineLeakFilterProgress = _formatProgress(progress);
          }
@@ -168,17 +175,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          // turning it off clears auto-update so a later enable is an explicit choice again.
          AppInfo.AppSettings.LeakFilterConfig.Enabled = _viewModel.OfflineLeakFilterEnabled;
 
-         if (_viewModel.OfflineLeakFilterEnabled)
-         {
-            _viewModel.OfflineLeakFilterAutoUpdateEnabled = true;
-            AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = true;
-         }
-         else
-         {
-            _viewModel.OfflineLeakFilterAutoUpdateEnabled = false;
-            AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = false;
-         }
-
          if (AppServices.PasswordFactory is PasswordFactory factory)
          {
             factory.ReloadLocalFilter(AppInfo.AppSettings.LeakFilterConfig);
@@ -188,31 +184,35 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          AppServices.Session.Database?.RefreshWarnings();
       }
 
-      private void _offlineLeakFilterAutoUpdate_Click(object sender, RoutedEventArgs e)
-      {
-         if (_viewModel.OfflineLeakFilterBusy)
-         {
-            return;
-         }
-
-         AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = _viewModel.OfflineLeakFilterAutoUpdateEnabled;
-      }
-
       private async void _offlineLeakFilterBuild_Click(object sender, RoutedEventArgs e)
       {
          if (_viewModel.OfflineLeakFilterBusy)
          {
             AppServices.OfflineLeakFilterUpdate.Cancel();
+            _viewModel.OfflineLeakFilterProgress = Strings.Msg_OfflineLeakBuildCancelled;
             return;
          }
 
          // An existing database is refreshed range by range against the ETags of
          // the last run, never rebuilt: only what changed comes back down.
-         bool update = File.Exists(AppInfo.AppSettings.LeakFilterConfig.FilterPath);
+         // Without the .ranges sidecar there are no ETags — Update would skip —
+         // so fall back to Rebuild to restore incremental updates.
+         string filterPath = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
+         bool hasFilter = File.Exists(filterPath);
+         bool hasSidecar = hasFilter && File.Exists(HibpBloomBuilder.GetRangeStatePath(filterPath));
+         HibpBloomBuildMode mode = !hasFilter
+            ? HibpBloomBuildMode.BuildIfMissing
+            : hasSidecar
+               ? HibpBloomBuildMode.Update
+               : HibpBloomBuildMode.Rebuild;
 
          if (AppServices.Dialogs.Confirm(
-               update ? Strings.Msg_UpdateOfflineLeakDatabase : Strings.Msg_BuildOfflineLeakDatabase,
-               update ? Strings.Title_UpdateOfflineLeakDatabase : Strings.Title_BuildOfflineLeakDatabase)
+               mode == HibpBloomBuildMode.Update
+                  ? Strings.Msg_UpdateOfflineLeakDatabase
+                  : Strings.Msg_BuildOfflineLeakDatabase,
+               mode == HibpBloomBuildMode.Update
+                  ? Strings.Title_UpdateOfflineLeakDatabase
+                  : Strings.Title_BuildOfflineLeakDatabase)
             != MessageBoxResult.Yes)
          {
             return;
@@ -224,7 +224,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          try
          {
             HibpBloomBuildResult? result = await AppServices.OfflineLeakFilterUpdate.RunAsync(
-               update ? HibpBloomBuildMode.Update : HibpBloomBuildMode.BuildIfMissing,
+               mode,
                progress: null,
                cancellationToken: CancellationToken.None).ConfigureAwait(true);
 
@@ -243,8 +243,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             // so later startups refresh the corpus without another multi-GiB download.
             if (!result.Value.Skipped && !result.Value.IsRefresh)
             {
-               AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = true;
-               _viewModel.OfflineLeakFilterAutoUpdateEnabled = true;
+               AppInfo.AppSettings.LeakFilterConfig.AutoUpdateFrequency
+                  = _viewModel.OfflineLeakFilterAutoUpdateFrequency
+                  = 7;
                AppInfo.AppSettings.Save(AppInfo.ConfigFile);
             }
 

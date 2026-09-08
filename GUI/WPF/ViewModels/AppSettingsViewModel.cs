@@ -103,7 +103,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       }
 
-      public bool OfflineLeakFilterAutoUpdateEnabled
+      public int OfflineLeakFilterAutoUpdateFrequency
       {
          get;
          set
@@ -114,7 +114,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             }
 
             field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterAutoUpdateEnabled)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterAutoUpdateFrequency)));
          }
       }
 
@@ -214,13 +214,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public void RefreshOfflineLeakFilterStatus()
       {
          OfflineLeakFilterEnabled = AppInfo.AppSettings.LeakFilterConfig.Enabled;
-         OfflineLeakFilterAutoUpdateEnabled = OfflineLeakFilterEnabled
-            && AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled;
-
-         if (!OfflineLeakFilterEnabled && AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled)
-         {
-            AppInfo.AppSettings.LeakFilterConfig.AutoUpdateEnabled = false;
-         }
+         OfflineLeakFilterAutoUpdateFrequency = AppInfo.AppSettings.LeakFilterConfig.AutoUpdateFrequency;
 
          string path = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
 
@@ -232,7 +226,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          FileInfo info = new(path);
          double sizeGiB = info.Length / (1024d * 1024d * 1024d);
-         string updated = info.LastWriteTimeUtc.ToString(Strings.Activity_DateTimeFormat, CultureInfo.InvariantCulture);
+
+         // Prefer the .pkbf header stamp (last CommitHeader) over LastWriteTimeUtc,
+         // which can drift after copies, AV scans, or restores without a real rebuild.
+         // Both sources are UTC; display in the host local timezone.
+         DateTime updatedUtc = AppInfo.AppSettings.LeakFilterConfig.TryGetBuiltUtc(out DateTime builtUtc)
+            ? builtUtc
+            : info.LastWriteTimeUtc;
+         string updated = updatedUtc.ToLocalTime().ToString(Strings.Activity_DateTimeFormat, CultureInfo.InvariantCulture);
+
          OfflineLeakFilterStatus = AppInfo.AppSettings.LeakFilterConfig.Enabled
             ? Strings.Format(nameof(Strings.Msg_OfflineLeakFilePresent), sizeGiB, updated)
             : Strings.Format(nameof(Strings.Msg_OfflineLeakFilePresentDisabled), sizeGiB, updated);

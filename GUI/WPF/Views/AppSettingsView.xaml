@@ -12,7 +12,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="280" Width="740">
+        Height="290" Width="740">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -103,11 +103,18 @@
                             IsChecked="{Binding OfflineLeakFilterEnabled, Mode=TwoWay}"
                             IsEnabled="{Binding OfflineLeakFilterIdle}"
                             Click="_offlineLeakFilterEnabled_Click"/>
-                  <CheckBox Content="{loc:Loc Label_AutoUpdateOfflineLeakDatabase}"
+                  <StackPanel Orientation="Horizontal">
+                    <Label Content="{loc:Loc Label_AutoUpdateOfflineLeakDatabase}"/>
+                    <TextBox Width="40"
+                            HorizontalContentAlignment="Center"
                             ToolTip="{loc:Loc Tooltip_AutoUpdateOfflineLeakDatabase}"
-                            IsChecked="{Binding OfflineLeakFilterAutoUpdateEnabled, Mode=TwoWay}"
                             IsEnabled="{Binding OfflineLeakFilterAutoUpdateEditable}"
-                            Click="_offlineLeakFilterAutoUpdate_Click"/>
+                            TextChanged="_value_TextBox_TextChanged"
+                            PreviewTextInput="_value_TextBox_PreviewTextInput"
+                            DataObject.Pasting="_value_TextBox_Pasting"
+                            Text="{Binding OfflineLeakFilterAutoUpdateFrequency, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Label Margin="0" Content="{loc:Loc Label_Days}"/>
+                  </StackPanel>
                   <Grid>
                      <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>

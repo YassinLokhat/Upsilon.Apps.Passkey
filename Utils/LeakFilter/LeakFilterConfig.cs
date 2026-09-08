@@ -14,16 +14,16 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       public bool Enabled { get; set; } = true;
 
       /// <summary>
-      /// When <see langword="true"/>, refresh an existing <c>.pkbf</c> in the background
-      /// at startup. Never triggers a first full build (too heavy for automatic use).
-      /// </summary>
-      public bool AutoUpdateEnabled { get; set; }
-
-      /// <summary>
       /// Absolute path of the <c>.pkbf</c>; defaults to <c>pwned-sha1.pkbf</c> next to the
       /// executable.
       /// </summary>
       public string FilterPath { get; set; } = filterPath;
+
+      /// <summary>
+      /// The number of days between refreshing an existing <c>.pkbf</c> in the background
+      /// at startup. Never triggers a first full build (too heavy for automatic use).
+      /// </summary>
+      public int AutoUpdateFrequency { get; set; } = 7;
 
       /// <summary>
       /// Opens the configured filter when enabled and present; otherwise returns <see langword="null"/>.
@@ -56,6 +56,13 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             return null;
          }
       }
+
+      /// <summary>
+      /// Reads the last committed build time from the <c>.pkbf</c> header when the
+      /// file is present and valid. Does not require <see cref="Enabled"/>.
+      /// </summary>
+      public bool TryGetBuiltUtc(out DateTime builtUtc)
+         => HibpBloomFile.TryReadBuiltUtc(FilterPath, out builtUtc);
 
       /// <summary>
       /// Deletes the resolved <c>.pkbf</c> when present, along with its range

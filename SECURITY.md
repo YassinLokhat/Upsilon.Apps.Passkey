@@ -208,10 +208,11 @@ login:
 
 ### Static analysis
 
-- GitHub **CodeQL** (`security-and-quality`) runs on every push/PR (any branch)
-  and weekly. The query pack is not a NuGet dependency of Core, Utils, or
-  Interfaces; it runs on GitHub's infrastructure against a Release build of the
-  production projects (unit tests are omitted from that compilation).
+- GitHub **CodeQL** runs on every push (any branch) and weekly. It is not a
+  NuGet dependency of Core, Utils, or Interfaces; it runs on GitHub's
+  infrastructure against a Release build of the production projects (unit tests
+  are omitted from that compilation). Generated `bin`/`obj`/`*.g.cs` findings
+  are filtered from the uploaded SARIF.
 
 ### Randomness
 
@@ -289,9 +290,9 @@ login:
   the device. If **both** remote providers are unreachable and an offline HIBP
   Bloom filter (`.pkbf`) is enabled and present, that filter is consulted last:
   a **miss** means not leaked (no false negatives); a **hit** is treated as
-  leaked (conservative — ~1 % false positives possible). The default file is
-  `<exe>/pwned-sha1.pkbf` (configurable via `LeakFilterConfig.FilterPath` in the
-  WPF host's `config.json`); a sidecar `<filter>.pkbf.ranges` holds per-range
+  leaked (conservative — ~1 % false positives possible). The filter file is
+  `<exe>/pwned-sha1.pkbf` (fixed path in the WPF host — not stored in
+  `config.json`); a sidecar `<filter>.pkbf.ranges` holds per-range
   ETags for incremental updates. If no offline filter is attached, the check
   **fails open** (reports "not leaked") so a network problem never blocks the
   user. These remote calls are the **only** outbound network traffic; the
@@ -308,11 +309,14 @@ login:
   **application-scoped** (shared by all vaults on the machine): enabling or
   disabling it never deletes the `.pkbf`; only an explicit delete (App Settings
   or `LeakFilterConfig.TryDeleteFilterFile`) removes it, along with its
-  sidecar. Optional `LeakFilterConfig.AutoUpdateEnabled` (default off) tells
-  the WPF host to refresh an **existing** `.pkbf` in the background at startup
-  when offline use is also enabled; a missing file never triggers an automatic
-  first build. Application logs still live under `%LocalAppData%\Passkey\logs`
-  — that path is unrelated to the Bloom filter.
+  sidecar. `LeakFilterConfig.AutoUpdateFrequency` (WPF:
+  `LocalLeakDatabaseAutoUpdateFrequency`, default **7** days; **0** = off)
+  tells the WPF host to refresh an **existing** `.pkbf` in the background at
+  startup when offline use is also enabled, the `.ranges` sidecar is present,
+  and the filter header `BuiltUtc` is older than that interval; a missing file
+  never triggers an automatic first build, and a missing sidecar skips the
+  refresh while keeping the filter. Application logs still live under
+  `%LocalAppData%\Passkey\logs` — that path is unrelated to the Bloom filter.
 - **Duplicate-password** and **password-expiry** warnings are computed locally.
 
 ## Known Limitations
@@ -363,15 +367,17 @@ These are conscious trade-offs, documented for transparency:
   `.pkbf` downloads every range (~1M prefixes), takes hours, and yields a file
   on the order of ~2.4 GiB. It is a snapshot: new breaches appear in the live
   APIs first; update when you want the local file to catch up. An update is
-  incremental — every range is revalidated with `If-None-Match` against the ETags
-  in the `.pkbf.ranges` sidecar and only changed ranges are downloaded and folded
-  in — so freshness costs minutes rather than another full build. Optional
-  `AutoUpdateEnabled` can run that incremental refresh at WPF startup when a
-  `.pkbf` already exists; it never starts a first full build automatically. The
-  sidecar is a cache, never a source of truth: it is bound to one committed state
-  of one filter file and is rejected whenever that no longer matches, because
-  skipping a range whose bits are absent would mean reporting a leaked password
-  as clean.
+  incremental — ranges are revalidated concurrently with `If-None-Match`
+  against the ETags in the `.pkbf.ranges` sidecar (default parallelism 64) and
+  only changed ranges are downloaded and folded in — so freshness costs minutes
+  rather than another full build. A non-zero `AutoUpdateFrequency` can run that
+  incremental refresh at WPF startup when a `.pkbf` and sidecar already exist
+  and `BuiltUtc` is older than the configured number of days; it never starts a
+  first full build automatically, and a missing sidecar skips the refresh while
+  keeping the filter. The sidecar is a cache, never a source of truth: it is
+  bound to one committed state of one filter file and is rejected whenever that
+  no longer matches, because skipping a range whose bits are absent would mean
+  reporting a leaked password as clean.
 - **Unsealed activity-log tail**: the activity log is tamper-evident only for the
   portion sealed at the last login (see "Activity-log integrity"). Entries added
   since then — including events written while no one is logged in, such as failed

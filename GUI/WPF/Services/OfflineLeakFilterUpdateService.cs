@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Net.Http;
+using System.Windows.Shapes;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.Utils;
 using Upsilon.Apps.Passkey.Utils.LeakFilter;
@@ -18,6 +19,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       private int _busy;
 
       public bool IsBusy => Volatile.Read(ref _busy) != 0;
+
+      /// <summary>
+      /// True once <see cref="Cancel"/> has been observed for the in-flight run
+      /// (or the linked token was cancelled), until the run finishes.
+      /// </summary>
+      public bool IsCancellationRequested
+      {
+         get
+         {
+            lock (_gate)
+            {
+               return _cts?.IsCancellationRequested == true;
+            }
+         }
+      }
 
       /// <summary>
       /// Most recent progress snapshot from the in-flight (or last) run.
@@ -79,24 +95,85 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       /// </summary>
       public void Cancel()
       {
+         // Snapshot under the gate, then Cancel outside it: CTS.Cancel can run
+         // callbacks synchronously, and those (or a Dispatcher marshal they
+         // trigger) may need _gate. System.Threading.Lock is non-recursive, so
+         // holding it across Cancel deadlocks after the object→Lock switch.
+         CancellationTokenSource? cts;
          lock (_gate)
          {
-            _cts?.Cancel();
+            cts = _cts;
+         }
+
+         try
+         {
+            cts?.Cancel();
+         }
+         catch (ObjectDisposedException)
+         {
+            // Race with RunAsync's using-dispose after _cts was cleared.
          }
       }
 
       /// <summary>
-      /// Starts a background refresh when offline use, auto-update, and an
-      /// existing <c>.pkbf</c> are all set. Never builds from scratch.
+      /// Cancels any in-flight run and blocks until it finishes or
+      /// <paramref name="timeout"/> elapses. Used on process exit so a refresh
+      /// cannot outlive the UI.
+      /// </summary>
+      public bool WaitForIdle(TimeSpan timeout)
+      {
+         Cancel();
+
+         if (!IsBusy)
+         {
+            return true;
+         }
+
+         TimeSpan remaining = timeout < TimeSpan.Zero ? TimeSpan.Zero : timeout;
+         try
+         {
+            return SpinWait.SpinUntil(() => !IsBusy, remaining);
+         }
+         catch (Exception ex) when (ex is ObjectDisposedException or InvalidOperationException)
+         {
+            return !IsBusy;
+         }
+      }
+
+      /// <summary>
+      /// Starts a background refresh when offline use, auto-update, an existing
+      /// <c>.pkbf</c>, and its <c>.ranges</c> sidecar are all set. Never builds
+      /// from scratch, and never re-downloads the corpus when the sidecar is gone.
       /// </summary>
       public void TryStartAutoUpdate()
       {
          LeakFilterConfig config = AppInfo.AppSettings.LeakFilterConfig;
 
          if (!config.Enabled
-            || !config.AutoUpdateEnabled
+            || config.AutoUpdateFrequency == 0
             || !File.Exists(config.FilterPath))
          {
+            return;
+         }
+
+         FileInfo info = new(config.FilterPath);
+         DateTime lastUpdateTime = AppInfo.AppSettings.LeakFilterConfig.TryGetBuiltUtc(out DateTime builtUtc)
+            ? builtUtc
+            : info.LastWriteTimeUtc;
+
+         if (DateTime.Now.Date <= lastUpdateTime.AddDays(config.AutoUpdateFrequency).Date)
+         {
+            return;
+         }
+
+         // No ETags ⇒ no cheap refresh. Starting Update here used to recreate an
+         // empty sidecar and pull every range, which kept the process alive after
+         // the UI closed.
+         if (!File.Exists(HibpBloomBuilder.GetRangeStatePath(config.FilterPath)))
+         {
+            Log.Info(
+               "Offline leak filter: auto-update skipped (range sidecar missing); "
+               + "keeping the existing .pkbf. Use Rebuild from settings to restore incremental updates.");
             return;
          }
 

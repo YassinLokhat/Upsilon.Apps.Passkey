@@ -340,6 +340,44 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
       [TestMethod]
       /*
+       * A .pkbf without its .ranges sidecar is still usable for leak checks, but
+       * Update must not invent an empty sidecar and re-download the corpus —
+       * that hung the GUI process after window close in manual repros.
+      */
+      public async Task Case09b_Update_SkipsWhenRangeSidecarIsMissing()
+      {
+         string path = BloomTestHelper.TempPkbfPath();
+         string statePath = HibpRangeStateStore.PathFor(path);
+         try
+         {
+            BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
+            BloomTestHelper.DeleteQuietly(statePath);
+            _ = File.Exists(statePath).Should().BeFalse();
+
+            HibpBloomBuildResult result = await HibpBloomBuilder
+               .RunAsync(
+                  path,
+                  HibpBloomBuildMode.Update,
+                  capacity: 1_000,
+                  falsePositiveRate: 0.01,
+                  maxDegreeOfParallelism: 1)
+               .ConfigureAwait(false);
+
+            _ = result.Skipped.Should().BeTrue();
+            _ = result.IsRefresh.Should().BeTrue();
+            _ = result.DownloadedBytes.Should().Be(0);
+            _ = File.Exists(statePath).Should().BeFalse();
+            _ = File.Exists(path).Should().BeTrue();
+         }
+         finally
+         {
+            BloomTestHelper.DeleteQuietly(statePath);
+            BloomTestHelper.DeleteQuietly(path);
+         }
+      }
+
+      [TestMethod]
+      /*
        * A filter still mapped by a running leak check shares it read-only, which
        * denies the read-write handle a refresh needs. That has to surface: silently
        * treating it as "unusable" would turn a locked file into a full corpus

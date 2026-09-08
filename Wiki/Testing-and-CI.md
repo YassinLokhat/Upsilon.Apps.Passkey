@@ -25,13 +25,13 @@ Linux CI builds Interfaces + Utils + Core. The workflow still runs `dotnet test`
 
 ## GitHub Actions
 
-Windows and Linux build workflows run on push to `master` and on pull requests. CodeQL runs on **every** push and pull request (any branch) plus a weekly schedule. A **Release** workflow runs when a version tag is pushed:
+Windows and Linux build workflows run on push to `master` and on pull requests. CodeQL runs on **every** push (any branch) plus a weekly schedule (not on pull requests). A **Release** workflow runs when a version tag is pushed:
 
 | Workflow | What it does |
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
 | `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
-| `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on a Release build of production projects (tests excluded); weekly scan as well |
+| `.github/workflows/codeql.yml` | CodeQL on a Release build of production projects (tests excluded); weekly scan as well; SARIF filtered for `bin`/`obj`/`*.g.cs` |
 | `.github/workflows/release.yml` | On `interfaces\|utils\|core\|wpf-v*.*.*` tags (legacy `v*` = WPF): sync check, Release build, tests, pack/publish via `scripts/Sync-Versions.ps1`, GitHub Release with dependency notes |
 
 ### Cutting a GitHub Release

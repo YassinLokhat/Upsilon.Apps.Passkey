@@ -124,6 +124,44 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       internal string SourceTag { get; }
 
       /// <summary>
+      /// Reads <see cref="BuiltUtc"/> from the <c>.pkbf</c> header without mapping
+      /// the bit array. Prefer this for UI status over <c>File.GetLastWriteTimeUtc</c>,
+      /// which tracks filesystem metadata rather than the last committed build.
+      /// </summary>
+      internal static bool TryReadBuiltUtc(string path, out DateTime builtUtc)
+      {
+         builtUtc = default;
+
+         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+         {
+            return false;
+         }
+
+         try
+         {
+            using FileStream file = new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            if (file.Length < HeaderSize)
+            {
+               return false;
+            }
+
+            builtUtc = _readHeader(file).BuiltUtc;
+            return true;
+         }
+         catch (Exception ex)
+            when (ex is ArgumentException
+            or InvalidDataException
+            or NotSupportedException
+            or IOException
+            or UnauthorizedAccessException
+            or System.Security.SecurityException)
+         {
+            System.Diagnostics.Trace.TraceWarning($"Offline leak filter header could not be read: {ex}");
+            return false;
+         }
+      }
+
+      /// <summary>
       /// Opens an existing <c>.pkbf</c> for read-only membership queries.
       /// </summary>
       internal static HibpBloomFile Open(string path)
