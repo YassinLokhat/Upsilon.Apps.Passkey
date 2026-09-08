@@ -85,7 +85,7 @@ Confirmations and alerts use `ThemedMessageBoxView` (via `DialogService.Confirm`
 ## Vault files and logs
 
 * **Default database directory** is an app setting (`config.json`, `DefaultDatabaseDirectory`, default `<exe>/raw`) under **App Settings** (`Ctrl+,`). New users are created as `{GetHash(username)}.pku` in that folder (or another path chosen in the save dialog if the user declines the default).
-* Opening by username alone (no path set yet) still resolves `<exe>/raw/{GetHash(username)}.pku` — it does not read `DefaultDatabaseDirectory`. Use `Ctrl+O` or a command-line path for vaults stored elsewhere.
+* Opening by username alone (no path set yet) resolves `{DefaultDatabaseDirectory}/{GetHash(username)}.pku` — the same configured folder. Use `Ctrl+O` or a command-line path for vaults stored elsewhere.
 * `Ctrl+O` opens an existing `.pku`. A path can also be passed as the **first command-line argument**.
 * Rolling daily logs under `%LocalAppData%\Passkey\logs`.
 
@@ -93,12 +93,12 @@ Confirmations and alerts use `ThemedMessageBoxView` (via `DialogService.Confirm`
 
 Under **App Settings** (`Ctrl+,`), section **Offline leak database**:
 
-* Enable / disable the local HIBP Bloom filter (`LeakFilterConfig.Enabled`). Disabling never deletes the file.
-* Optionally enable **automatic background updates** (`LeakFilterConfig.AutoUpdateEnabled`, default **off**). When this is on, offline use is enabled, **and** a `.pkbf` already exists, the WPF host refreshes the filter at startup via `HibpBloomBuildMode.Update` (incremental). A first full build is **never** started automatically — it is too heavy (~tens of GiB / hours).
-* Build or update `<exe>/pwned-sha1.pkbf` (or `FilterPath`) via `HibpBloomBuilder` — a full build can take hours (~2.4 GiB); updates are incremental using the `.pkbf.ranges` sidecar. Manual and automatic runs share one in-process slot (`OfflineLeakFilterUpdateService`).
+* Enable / disable the local HIBP Bloom filter (`LocalLeakDatabaseEnabled` / `LeakFilterConfig.Enabled`). Disabling never deletes the file.
+* **Auto-update frequency** in days (`LocalLeakDatabaseAutoUpdateFrequency` / `LeakFilterConfig.AutoUpdateFrequency`, default **7**; **0** = off). When offline use is enabled, a `.pkbf` already exists with its `.ranges` sidecar, and the filter header `BuiltUtc` is older than that many days, the WPF host refreshes the filter at startup via `HibpBloomBuildMode.Update` (incremental). A first full build is **never** started automatically — it is too heavy (~tens of GiB / hours). If the sidecar is missing, auto-update is skipped and the existing `.pkbf` is kept; use **Rebuild** to restore incremental updates.
+* The filter path is **fixed in code** to `<exe>/pwned-sha1.pkbf` (not stored in `config.json`). Build or update via `HibpBloomBuilder` — a full build can take hours (~2.4 GiB); updates revalidate ranges concurrently (`If-None-Match`, default parallelism 64) using the `.pkbf.ranges` sidecar. Manual and automatic runs share one in-process slot (`OfflineLeakFilterUpdateService`).
 * Delete the `.pkbf` and its sidecar explicitly.
 
-Preferences are application-level (`config.json`), shared by all vault users — not stored in the `.pku`. Details: [[Security]].
+Preferences that *are* persisted (`Enabled`, auto-update frequency, vault folder, login idle timeout, language, theme) live in application-level `config.json`, shared by all vault users — not stored in the `.pku`. Details: [[Security]].
 
 ## App Settings — login idle timeout
 

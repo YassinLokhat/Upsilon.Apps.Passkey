@@ -39,8 +39,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Models
       }
 
       /// <summary>
-      /// When <see langword="true"/>, refresh an existing <c>.pkbf</c> in the background
-      /// at startup. Never triggers a first full build (too heavy for automatic use).
+      /// Days between background refreshes of an existing <c>.pkbf</c> at startup.
+      /// <c>0</c> disables auto-update. Never triggers a first full build (too heavy
+      /// for automatic use).
       /// </summary>
       public int LocalLeakDatabaseAutoUpdateFrequency
       {

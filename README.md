@@ -507,13 +507,23 @@ remote providers fail) instead of blocking a thread on the network.
 When HIBP and XposedOrNot are both unreachable, Passkey can fall back to a
 local Bloom filter built from the HIBP SHA-1 corpus:
 
-*   File: `<exe>/pwned-sha1.pkbf` (~2.4 GiB for the default sizing), or any location set through `FilterPath`
+*   File: `<exe>/pwned-sha1.pkbf` (~2.4 GiB for the default sizing) — path fixed
+    in the WPF host (not stored in `config.json`)
 *   Sidecar: `<filter>.pkbf.ranges` (~32 MiB), one fixed-width record per hash-range prefix holding the `ETag` already folded into the filter
-*   Config: `LeakFilterConfig` (`Enabled` / `AutoUpdateEnabled` / `FilterPath`) in the WPF host's `config.json` — **application-level**, shared by all vault users (not stored in the `.pku`)
+*   Config in `config.json`: `LocalLeakDatabaseEnabled` and
+    `LocalLeakDatabaseAutoUpdateFrequency` (days; default **7**; **0** = off) —
+    backed by `LeakFilterConfig` — **application-level**, shared by all vault
+    users (not stored in the `.pku`)
 *   Order: HIBP → XposedOrNot → Bloom (if enabled and present) → fail-open
 *   Disable never deletes the file; only **Delete offline database** in **App Settings** (or deleting the `.pkbf` manually) removes it — the sidecar goes with it
 *   Build / update / enable / delete from **App Settings** (`Ctrl+,`, section **Offline leak database**), or from your own host through `HibpBloomBuilder.RunAsync`
-*   **Auto-update** (`AutoUpdateEnabled`, default off): at WPF startup, if offline use is enabled **and** a `.pkbf` already exists, an incremental refresh runs in the background. A missing file never triggers an automatic first build (too heavy for the client).
+*   **Auto-update** (`LocalLeakDatabaseAutoUpdateFrequency`): at WPF startup, if
+    offline use is enabled, a `.pkbf` and its `.ranges` sidecar already exist,
+    and the filter header `BuiltUtc` is older than the configured number of days,
+    an incremental refresh runs in the background. A missing file never triggers
+    an automatic first build. A missing sidecar skips the refresh and keeps the
+    existing `.pkbf` (use **Rebuild** in App Settings to restore incremental
+    updates).
 
 A full build downloads every HIBP range (~1 048 576 prefixes) and can take several
 hours. That is tens of GiB over the wire — brotli/gzip roughly halves the ~78 GB
@@ -523,11 +533,13 @@ the corpus.
 
 An update never rebuilds. `HibpBloomBuildMode.Update` replays every range with
 `If-None-Match` against the sidecar's ETags — unchanged ranges answer `304` with
-no body — and folds only the changed ones into the existing bit array. This works
-because Bloom filters are closed under union and the HIBP corpus only ever grows,
-so inserting into the filter already on disk is equivalent to rebuilding it from
-the whole corpus. A refresh is therefore dominated by round trips rather than
-bytes: every prefix is revalidated, but only a few tens of MiB come down.
+no body — and folds only the changed ones into the existing bit array. Requests
+run concurrently (default parallelism **64**, pooled HTTP/2 connections) so a
+refresh is dominated by round trips rather than bytes: every prefix is
+revalidated, but only a few tens of MiB come down. This works because Bloom
+filters are closed under union and the HIBP corpus only ever grows, so inserting
+into the filter already on disk is equivalent to rebuilding it from the whole
+corpus.
 
 Two invariants keep that shortcut safe:
 
@@ -539,7 +551,10 @@ Two invariants keep that shortcut safe:
     longer matches, and the sidecar is then rejected: skipping ranges whose bits
     are absent would mean reporting a leaked password as clean.
 
-A rejected sidecar costs a full re-download, never a rebuild.
+A rejected or missing sidecar on **Update** / auto-update skips the download and
+keeps the existing `.pkbf` (use **Rebuild** when you need a fresh corpus and a
+new sidecar). A rejected sidecar on a deliberate rebuild costs a full
+re-download.
 
 **WPF client (Windows)**
 ------------------------
@@ -551,9 +566,9 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 *   **Import / export UI**: User settings menu — Import (`.json` / `.csv`, comma- or tab-delimited) and Export → JSON / CSV (tab-separated). Success and failure dialogs are generic; the localized reason appears in the Activities grid.
 *   **Vault files**: new users go under **App Settings → Default database directory**
     (`DefaultDatabaseDirectory`, default `<exe>/raw`) as `{GetHash(username)}.pku`,
-    or another path chosen in the save dialog. Opening by username alone still
-    resolves `<exe>/raw/{hash}.pku` (it does not read that setting) — prefer
-    `Ctrl+O` or a command-line path when the vault is elsewhere.
+    or another path chosen in the save dialog. Opening by username alone resolves
+    the same `{DefaultDatabaseDirectory}/{hash}.pku` — prefer `Ctrl+O` or a
+    command-line path when the vault is elsewhere.
 *   **Login**: username, then each passkey in order. Escape cancels and closes
     the half-open session (required: there is no passkey rollback). App Settings
     `LoginIdleTimeoutSeconds` (default 5; `0` = off) clears credentials on login-window
@@ -564,8 +579,9 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     the selected password into the focused field (copy + synthetic Ctrl+V;
     clipboard still auto-clears).
 *   **Offline leak database**: App Settings can build / update / enable / delete
-    the local `.pkbf` Bloom filter, and optionally auto-refresh an existing file
-    at startup (`AutoUpdateEnabled`; see Offline leak database above).
+    the local `.pkbf` Bloom filter next to the executable, and schedule
+    auto-refresh of an existing file at startup
+    (`LocalLeakDatabaseAutoUpdateFrequency` days; see Offline leak database above).
 *   **QR codes**: identifiers and passwords can be shown as a QR matrix generated
     in-process (`Core/Utils/QrCode.cs`, no network). The window closes after
     `ISettings.ShowPasswordDelay` milliseconds when that setting is non-zero.
@@ -618,7 +634,7 @@ GitHub Actions on `master` and pull requests:
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
 | `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
-| `.github/workflows/codeql.yml` | CodeQL `security-and-quality` on every push/PR (any branch) and weekly; Release build of production projects (tests excluded) |
+| `.github/workflows/codeql.yml` | CodeQL on every push (any branch) and weekly; Release build of production projects (tests excluded); SARIF filtered for `bin`/`obj`/`*.g.cs` |
 | `.github/workflows/release.yml` | On per-component tags (`wpf-v*.*.*`, …; legacy `v*` = WPF): sync check, build/test, `scripts/Sync-Versions.ps1`, GitHub Release (nupkg or WPF zip + SHA-256 + dependency notes) |
 
 Edit [`versions.json`](versions.json), run `.\scripts\Sync-Versions.ps1 -SyncOnly`, then push tags such as `wpf-v1.1.0`. See [CONTRIBUTING.md](CONTRIBUTING.md#cutting-a-release).
