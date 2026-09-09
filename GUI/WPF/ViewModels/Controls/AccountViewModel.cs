@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
@@ -10,9 +11,16 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class AccountViewModel(IAccount account) : INotifyPropertyChanged, IThemeAware
+   internal sealed class AccountViewModel : INotifyPropertyChanged, IThemeAware, IDisposable
    {
-      public readonly IAccount Account = account;
+      public readonly IAccount Account;
+      private bool _disposed;
+
+      public AccountViewModel(IAccount account)
+      {
+         Account = account;
+         AppServices.Session.Warnings.NotifiedWarningsChanged += _onWarningsChanged;
+      }
 
       public string AccountDisplay
       {
@@ -41,7 +49,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public ObservableCollection<IdentifierViewModel> Identifiers = [];
 
-      public Brush PasswordBackground => Account.HasChanged(nameof(Password)) ? DarkMode.ChangedBrush : !PasswordLeaked ? DarkMode.UnchangedBrush2 : SemanticBrushes.Danger;
+      public Brush PasswordBackground
+         => SecretFieldBrushes.Background(
+            isDirty: Account.HasChanged(nameof(Password)),
+            isNotifiedLeak: PasswordLeaked);
+
       public string Password
       {
          get => Account.Password;
@@ -163,7 +175,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public bool PasswordLeaked
          => Account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
                && AppServices.Session.Warnings
-                  .GetAllWarnings(WarningKinds.PasswordLeaked)
+                  .GetNotifiedWarnings(WarningKinds.PasswordLeaked)
                   .OfType<IAccountsWarning>()
                   .Any(x => x.Accounts.Contains(Account));
 
@@ -176,6 +188,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          .ToArray() ?? [];
 
       public event PropertyChangedEventHandler? PropertyChanged;
+
+      public void Dispose()
+      {
+         if (_disposed)
+         {
+            return;
+         }
+
+         _disposed = true;
+         AppServices.Session.Warnings.NotifiedWarningsChanged -= _onWarningsChanged;
+      }
 
       public void OnLanguageChanged()
          => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountId)));
@@ -191,6 +214,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             identifier.OnThemeChanged();
          }
       }
+
+      private void _onWarningsChanged(object? sender, EventArgs e)
+         => UiThread.Post(() =>
+         {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PasswordLeaked)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PasswordBackground)));
+         });
 
       private void _onPropertyChanged(string propertyName)
       {

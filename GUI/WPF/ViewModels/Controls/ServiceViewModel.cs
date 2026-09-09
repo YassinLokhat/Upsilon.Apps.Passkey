@@ -182,6 +182,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       private void _removeAccountViewModel(AccountViewModel accountViewModel)
       {
          accountViewModel.PropertyChanged -= _accountViewModel_PropertyChanged;
+         accountViewModel.Dispose();
          _ = _accountViewModelsById.Remove(accountViewModel.Account.ItemId);
       }
 

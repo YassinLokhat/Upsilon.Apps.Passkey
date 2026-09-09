@@ -8,6 +8,7 @@ using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -16,7 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserSettingsView.xaml
    /// </summary>
-   internal sealed partial class UserSettingsView : Window
+   internal sealed partial class UserSettingsView : Window, IThemeAware
    {
       private readonly UserSettingsViewModel _viewModel;
       private bool _isClosing;
@@ -52,11 +53,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Closed += _window_Closed;
       }
 
+      public void OnThemeChanged()
+         => _passwordsContainer.OnThemeChanged();
+
       private void _window_Closed(object? sender, EventArgs e)
       {
          _isClosing = true;
 
          _passwordsContainer.ClearSecrets();
+         _passwordsContainer.DisposeItems();
          _database?.DatabaseClosed -= _database_DatabaseClosed;
       }
 

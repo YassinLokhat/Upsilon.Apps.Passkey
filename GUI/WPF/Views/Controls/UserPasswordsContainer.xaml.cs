@@ -46,6 +46,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
       }
 
+      public void DisposeItems()
+      {
+         foreach (UserPasswordItem item in _passwords)
+         {
+            item.ViewModel.Dispose();
+         }
+      }
+
+      public void OnThemeChanged()
+      {
+         foreach (UserPasswordItem item in _passwords)
+         {
+            item.ViewModel.OnThemeChanged();
+         }
+      }
+
       private void _passwordItem_DeleteClicked(object? sender, EventArgs e)
       {
          if (this.GetIsBusy()
@@ -57,6 +73,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          passwordItem.Clear();
          int index = passwordItem.ViewModel.Index;
+         passwordItem.ViewModel.Dispose();
          _stackPanel.Children.Remove(passwordItem);
          _ = _passwords.Remove(passwordItem);
 
