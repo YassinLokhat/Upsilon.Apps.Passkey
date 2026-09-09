@@ -49,6 +49,36 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
+      public Brush ShowExpiredPasswordWarningsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
+      public Brush ShowDuplicatedPasswordWarningsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
+      public Brush ShowLeakedPasswordWarningsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
+      public Brush ShowSecuritySettingsWarningsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
+      public Brush ShowPasskeyQualityWarningsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
       public string ShowActivityWarnings
       {
          get;

@@ -64,13 +64,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Warnings
       }
 
       public static Brush BrushFor(WarningSeverity severity)
-         => severity >= WarningSeverity.Critical
-            ? SemanticBrushes.Danger
-            : severity >= WarningSeverity.Warning
-               ? SemanticBrushes.Warning
-               : SemanticBrushes.Info;
+         => severity switch
+         {
+            WarningSeverity.Critical => SemanticBrushes.Danger,
+            WarningSeverity.Warning => SemanticBrushes.Warning,
+            _ => SemanticBrushes.Info,
+         };
 
-      public static Brush BrushFor(IEnumerable<IWarning> warnings)
+      public static WarningSeverity MaxSeverity(IEnumerable<IWarning> warnings)
       {
          WarningSeverity max = WarningSeverity.Info;
          foreach (IWarning warning in warnings)
@@ -81,8 +82,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Warnings
             }
          }
 
-         return BrushFor(max);
+         return max;
       }
+
+      public static Brush BrushFor(IEnumerable<IWarning> warnings)
+         => BrushFor(MaxSeverity(warnings));
 
       public void Attach(IDatabase database)
       {

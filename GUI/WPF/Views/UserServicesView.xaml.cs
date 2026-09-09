@@ -269,34 +269,43 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _updateWarningsMenu(IWarning[] warnings)
       {
-         int activityWarnings = warnings
+         IWarning[] activityKind = [.. warnings.Where(x => x.Kind == WarningKinds.ActivityReview)];
+         IWarning[] expiredKind = [.. warnings.Where(x => x.Kind == WarningKinds.PasswordUpdateReminder)];
+         IWarning[] duplicatedKind = [.. warnings.Where(x => x.Kind == WarningKinds.DuplicatedPasswords)];
+         IWarning[] leakedKind = [.. warnings.Where(x => x.Kind == WarningKinds.PasswordLeaked)];
+         IWarning[] securityKind =
+         [
+            .. warnings.Where(x => x.Kind is WarningKinds.VaultSecuritySettings
+               or WarningKinds.HostSecuritySettings),
+         ];
+         IWarning[] passkeyKind =
+         [
+            .. warnings.Where(x => x.Kind is WarningKinds.InsufficientPasskeys
+               or WarningKinds.WeakPasskey
+               or WarningKinds.PasskeyLeaked
+               or WarningKinds.PasskeyReusedAsAccountPassword),
+         ];
+
+         int activityWarnings = activityKind
             .OfType<IActivityReviewWarning>()
             .SelectMany(x => x.Activities)
             .Count();
-         int expiredPasswordWarnings = warnings
+         int expiredPasswordWarnings = expiredKind
             .OfType<IAccountsWarning>()
-            .Where(x => x.Kind == WarningKinds.PasswordUpdateReminder)
             .SelectMany(x => x.Accounts)
             .Count();
-         int duplicatedPasswordWarnings = warnings
-            .Count(x => x.Kind == WarningKinds.DuplicatedPasswords);
-         int leakedPasswordWarnings = warnings
+         int duplicatedPasswordWarnings = duplicatedKind.Length;
+         int leakedPasswordWarnings = leakedKind
             .OfType<IAccountsWarning>()
-            .Where(x => x.Kind == WarningKinds.PasswordLeaked)
             .SelectMany(x => x.Accounts)
             .Count();
-         int securitySettingsWarnings = warnings
+         int securitySettingsWarnings = securityKind
             .OfType<IVaultSecuritySettingsWarning>()
             .Sum(x => BitOperations.PopCount((uint)x.Issues))
-            + warnings
+            + securityKind
             .OfType<IHostSecuritySettingsWarning>()
             .Sum(x => BitOperations.PopCount((uint)x.Issues));
-         int passkeyQualityWarnings = _passkeyQualityCount(warnings);
-         int loginWarnings = warnings
-            .OfType<IActivityReviewWarning>()
-            .SelectMany(x => x.Activities)
-            .Count(y => y.EventType is ActivityEventType.LoginFailed
-               or ActivityEventType.LoginSessionTimeoutReached);
+         int passkeyQualityWarnings = _passkeyQualityCount(passkeyKind);
 
          int totalWarningCount = activityWarnings
             + expiredPasswordWarnings
@@ -305,11 +314,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             + securitySettingsWarnings
             + passkeyQualityWarnings;
 
+         WarningSeverity activitySeverity = WarningBroker.MaxSeverity(activityKind);
+         WarningSeverity expiredSeverity = WarningBroker.MaxSeverity(expiredKind);
+         WarningSeverity duplicatedSeverity = WarningBroker.MaxSeverity(duplicatedKind);
+         WarningSeverity leakedSeverity = WarningBroker.MaxSeverity(leakedKind);
+         WarningSeverity securitySeverity = WarningBroker.MaxSeverity(securityKind);
+         WarningSeverity passkeySeverity = WarningBroker.MaxSeverity(passkeyKind);
+
          _viewModel.ShowWarnings = Strings.Format(nameof(Strings.Msg_ShowWarnings), totalWarningCount);
          _viewModel.ShowWarningsColor = WarningBroker.BrushFor(warnings);
-         _viewModel.ShowActivityWarningsColor = loginWarnings == 0
-            ? WarningBroker.BrushFor(warnings.Where(x => x.Kind == WarningKinds.ActivityReview))
-            : SemanticBrushes.Danger;
+         _viewModel.ShowActivityWarningsColor = WarningBroker.BrushFor(activitySeverity);
+         _viewModel.ShowExpiredPasswordWarningsColor = WarningBroker.BrushFor(expiredSeverity);
+         _viewModel.ShowDuplicatedPasswordWarningsColor = WarningBroker.BrushFor(duplicatedSeverity);
+         _viewModel.ShowLeakedPasswordWarningsColor = WarningBroker.BrushFor(leakedSeverity);
+         _viewModel.ShowSecuritySettingsWarningsColor = WarningBroker.BrushFor(securitySeverity);
+         _viewModel.ShowPasskeyQualityWarningsColor = WarningBroker.BrushFor(passkeySeverity);
          _viewModel.ShowActivityWarnings = Strings.Format(nameof(Strings.Msg_ShowActivityWarnings), activityWarnings);
          _viewModel.ShowExpiredPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowExpiredPasswordWarnings), expiredPasswordWarnings);
          _viewModel.ShowDuplicatedPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowDuplicatedPasswordWarnings), duplicatedPasswordWarnings);
@@ -324,6 +343,41 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _leakedPasswordWarnings_MI.Visibility = leakedPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
          _securitySettingsWarnings_MI.Visibility = securitySettingsWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
          _passkeyQualityWarnings_MI.Visibility = passkeyQualityWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
+
+         _reorderWarningsMenu(
+         [
+            (_leakedPasswordWarnings_MI, leakedSeverity, leakedPasswordWarnings),
+            (_passkeyQualityWarnings_MI, passkeySeverity, passkeyQualityWarnings),
+            (_expiredPasswordWarnings_MI, expiredSeverity, expiredPasswordWarnings),
+            (_activityWarnings_MI, activitySeverity, activityWarnings),
+            (_duplicatedPasswordWarnings_MI, duplicatedSeverity, duplicatedPasswordWarnings),
+            (_securitySettingsWarnings_MI, securitySeverity, securitySettingsWarnings),
+         ]);
+      }
+
+      /// <summary>
+      /// Critical first, then Warning, then Info. Hidden items stay at the end;
+      /// equal severity keeps the stable secondary order of <paramref name="entries"/>.
+      /// </summary>
+      private void _reorderWarningsMenu(
+         (MenuItem Item, WarningSeverity Severity, int Count)[] entries)
+      {
+         MenuItem[] ordered =
+         [
+            .. entries
+               .Where(static e => e.Count > 0)
+               .OrderByDescending(static e => e.Severity)
+               .Select(static e => e.Item),
+            .. entries
+               .Where(static e => e.Count == 0)
+               .Select(static e => e.Item),
+         ];
+
+         _warnings_MI.Items.Clear();
+         foreach (MenuItem item in ordered)
+         {
+            _ = _warnings_MI.Items.Add(item);
+         }
       }
 
       private static int _passkeyQualityCount(IEnumerable<IWarning> warnings)
@@ -342,6 +396,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   break;
                case IPasskeyLeakedWarning leaked:
                   count += Math.Max(1, leaked.PasskeyIndexes.Count);
+                  break;
+               case IPasskeyReuseWarning reuse:
+                  count += Math.Max(1, reuse.Accounts.Count());
                   break;
             }
          }
