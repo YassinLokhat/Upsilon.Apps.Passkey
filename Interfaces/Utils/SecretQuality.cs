@@ -4,7 +4,7 @@ namespace Upsilon.Apps.Passkey.Interfaces.Utils
 {
    /// <summary>
    /// Local structural quality checks for secrets (passkeys and account passwords).
-   /// Does not create warnings — callers map the result onto their own types.
+   /// Does not create alerts — callers map the result onto their own types.
    /// </summary>
    public static class SecretQuality
    {

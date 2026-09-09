@@ -7,18 +7,18 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class PasskeyQualityWarningViewModel : INotifyPropertyChanged, ILanguageAware, IDisposable
+   internal sealed class PasskeyQualityAlertViewModel : INotifyPropertyChanged, ILanguageAware, IDisposable
    {
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
-      public string Title => Strings.Format(nameof(Strings.Title_PasskeyQualityWarningsWindow), AppInfo.Title);
+      public string Title => Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppInfo.Title);
 
       public PasskeyQualityIssueItemViewModel[] Issues { get; private set; }
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      public PasskeyQualityWarningViewModel()
+      public PasskeyQualityAlertViewModel()
       {
-         AppServices.Session.Warnings.NotifiedWarningsChanged += _warnings_NotifiedWarningsChanged;
+         AppServices.Session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
          Issues = _loadIssues();
       }
 
@@ -27,10 +27,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void Dispose()
       {
-         AppServices.Session.Warnings.NotifiedWarningsChanged -= _warnings_NotifiedWarningsChanged;
+         AppServices.Session.Alerts.NotifiedAlertsChanged -= _alerts_NotifiedAlertsChanged;
       }
 
-      private void _warnings_NotifiedWarningsChanged(object? sender, EventArgs e)
+      private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
          => _reloadIssues(alsoTitle: false);
 
       private void _reloadIssues(bool alsoTitle)
@@ -47,18 +47,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          List<PasskeyQualityIssueItemViewModel> items = [];
 
-         foreach (IInsufficientPasskeysWarning warning in AppServices.Session.Warnings
-            .GetNotifiedWarnings(WarningKinds.InsufficientPasskeys)
-            .OfType<IInsufficientPasskeysWarning>())
+         foreach (IInsufficientPasskeysAlert warning in AppServices.Session.Alerts
+            .GetNotifiedAlerts(AlertKinds.InsufficientPasskeys)
+            .OfType<IInsufficientPasskeysAlert>())
          {
             items.Add(new(
                Strings.Label_NotifyInsufficientPasskeys,
                Strings.Format(nameof(Strings.Msg_PasskeyQuality_InsufficientPasskeys), warning.Count, warning.RecommendedMinimum)));
          }
 
-         foreach (IWeakPasskeyWarning warning in AppServices.Session.Warnings
-            .GetNotifiedWarnings(WarningKinds.WeakPasskey)
-            .OfType<IWeakPasskeyWarning>())
+         foreach (IWeakPasskeyAlert warning in AppServices.Session.Alerts
+            .GetNotifiedAlerts(AlertKinds.WeakPasskey)
+            .OfType<IWeakPasskeyAlert>())
          {
             string indexes = string.Join(", ", warning.PasskeyIndexes.Select(i => i + 1));
             items.Add(new(
@@ -66,9 +66,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                Strings.Format(nameof(Strings.Msg_PasskeyQuality_WeakPasskey), indexes)));
          }
 
-         foreach (IPasskeyLeakedWarning warning in AppServices.Session.Warnings
-            .GetNotifiedWarnings(WarningKinds.PasskeyLeaked)
-            .OfType<IPasskeyLeakedWarning>())
+         foreach (IPasskeyLeakedAlert warning in AppServices.Session.Alerts
+            .GetNotifiedAlerts(AlertKinds.PasskeyLeaked)
+            .OfType<IPasskeyLeakedAlert>())
          {
             string indexes = string.Join(", ", warning.PasskeyIndexes.Select(i => i + 1));
             items.Add(new(

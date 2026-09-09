@@ -93,15 +93,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      WarningKindList ISettings.WarningsToNotify
+      AlertKindList ISettings.AlertsToNotify
       {
-         get => User.Host.Touch(WarningsToNotify);
-         set => WarningsToNotify = User.Host.AutoSave.UpdateValue(User.ItemId,
-            fieldName: nameof(WarningsToNotify),
+         get => User.Host.Touch(AlertsToNotify);
+         set => AlertsToNotify = User.Host.AutoSave.UpdateValue(User.ItemId,
+            fieldName: nameof(AlertsToNotify),
             needsReview: true,
-            oldValue: WarningsToNotify,
-            newValue: value ?? WarningKindList.Default,
-            readableValue: (value ?? WarningKindList.Default).ToString());
+            oldValue: AlertsToNotify,
+            newValue: value ?? AlertKindList.Default,
+            readableValue: (value ?? AlertKindList.Default).ToString());
       }
 
       string ISettings.Language
@@ -139,7 +139,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public int ShowPasswordDelay { get; set; }
       public int NumberOfOldPasswordToKeep { get; set; }
       public int NumberOfMonthActivitiesToKeep { get; set; }
-      public WarningKindList WarningsToNotify { get; set; } = WarningKindList.Default;
+      public AlertKindList AlertsToNotify { get; set; } = AlertKindList.Default;
 
       /// <summary>Empty = use application <c>config.json</c> language.</summary>
       public string Language { get; set; } = string.Empty;

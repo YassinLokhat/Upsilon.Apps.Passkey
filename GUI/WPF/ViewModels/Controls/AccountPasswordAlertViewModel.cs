@@ -1,11 +1,11 @@
-﻿using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class AccountPasswordWarningViewModel(IAccount account, string kind)
+   internal sealed class AccountPasswordAlertViewModel(IAccount account, string kind)
    {
-      public string ReadableWarningKind => EnumHelper.ToReadableWarningKind(Kind);
+      public string ReadableAlertKind => EnumHelper.ToReadableAlertKind(Kind);
       public string ServiceString => Account.Service.ToString() ?? string.Empty;
       public string AccountString => Account.ToString() ?? string.Empty;
 

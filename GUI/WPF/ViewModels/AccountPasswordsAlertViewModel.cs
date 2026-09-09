@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
@@ -10,14 +10,14 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class AccountPasswordsWarningViewModel : INotifyPropertyChanged, ILanguageAware
+   internal sealed class AccountPasswordsAlertViewModel : INotifyPropertyChanged, ILanguageAware
    {
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
-      public string Title => Strings.Format(nameof(Strings.Title_AccountPasswordsWarnings), AppInfo.Title);
+      public string Title => Strings.Format(nameof(Strings.Title_AccountPasswordsAlerts), AppInfo.Title);
 
-      public string ReadableWarningKind
+      public string ReadableAlertKind
       {
-         get => EnumHelper.ToReadableWarningKind(Kind);
+         get => EnumHelper.ToReadableAlertKind(Kind);
          set => Kind = EnumHelper.AccountPasswordKindFromReadableString(value);
       }
 
@@ -29,7 +29,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               _onPropertyChanged(nameof(ReadableWarningKind));
+               _onPropertyChanged(nameof(ReadableAlertKind));
                RefreshFilters();
             }
          }
@@ -49,7 +49,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = "";
 
-      public ObservableCollection<AccountPasswordWarningViewModel> Warnings { get; set; } = [];
+      public ObservableCollection<AccountPasswordAlertViewModel> Alerts { get; set; } = [];
 
       public ICommand ClearFiltersCommand { get; }
 
@@ -60,7 +60,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
-      public AccountPasswordsWarningViewModel()
+      public AccountPasswordsAlertViewModel()
       {
          ClearFiltersCommand = new RelayCommand(ClearFilters);
          RefreshFilters();
@@ -69,7 +69,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public void OnLanguageChanged()
       {
          _onPropertyChanged(nameof(Title));
-         _onPropertyChanged(nameof(ReadableWarningKind));
+         _onPropertyChanged(nameof(ReadableAlertKind));
          RefreshFilters();
       }
 
@@ -81,18 +81,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void RefreshFilters()
       {
-         Warnings.Clear();
+         Alerts.Clear();
 
-         AccountPasswordWarningViewModel[] warnings = [.. AppServices.Session.Warnings
-            .GetNotifiedWarnings()
-            .OfType<IAccountsWarning>()
+         AccountPasswordAlertViewModel[] warnings = [.. AppServices.Session.Alerts
+            .GetNotifiedAlerts()
+            .OfType<IAccountsAlert>()
             .Where(x => _matchesKindFilter(x.Kind, Kind))
-            .SelectMany(x => x.Accounts.Select(y => new AccountPasswordWarningViewModel(y, x.Kind)))
+            .SelectMany(x => x.Accounts.Select(y => new AccountPasswordAlertViewModel(y, x.Kind)))
             .Where(x => x.MeetsConditions(Kind, Text))];
 
-         foreach (AccountPasswordWarningViewModel warning in warnings)
+         foreach (AccountPasswordAlertViewModel warning in warnings)
          {
-            Warnings.Add(warning);
+            Alerts.Add(warning);
          }
       }
 

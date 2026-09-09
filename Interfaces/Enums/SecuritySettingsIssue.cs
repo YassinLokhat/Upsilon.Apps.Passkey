@@ -1,7 +1,7 @@
 namespace Upsilon.Apps.Passkey.Interfaces.Enums
 {
    /// <summary>
-   /// Vault-level reasons behind a <see cref="Models.WarningKinds.VaultSecuritySettings"/> warning.
+   /// Vault-level reasons behind a <see cref="Models.AlertKinds.VaultSecuritySettings"/> alert.
    /// Host issues live in <see cref="HostSecurityIssue"/>.
    /// </summary>
    [Flags]

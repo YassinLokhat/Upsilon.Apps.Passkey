@@ -1,4 +1,4 @@
-﻿using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -10,41 +10,41 @@ namespace Upsilon.Apps.Passkey.Core.Models
    {
       // Open and Save each queue a scan; a slow leak check from an earlier queue
       // must not overwrite results from a newer one once it finally finishes.
-      private int _warningScanGeneration;
-      private readonly object _warningScanGate = new();
+      private int _alertScanGeneration;
+      private readonly object _alertScanGate = new();
 
-      private readonly Dictionary<string, IReadOnlyList<IWarning>> _coreWarnings = new(StringComparer.Ordinal);
+      private readonly Dictionary<string, IReadOnlyList<IAlert>> _coreAlerts = new(StringComparer.Ordinal);
 
-      public IReadOnlyDictionary<string, IReadOnlyList<IWarning>> CoreWarnings
+      public IReadOnlyDictionary<string, IReadOnlyList<IAlert>> CoreAlerts
       {
          get
          {
-            lock (_warningScanGate)
+            lock (_alertScanGate)
             {
-               return new Dictionary<string, IReadOnlyList<IWarning>>(_coreWarnings, StringComparer.Ordinal);
+               return new Dictionary<string, IReadOnlyList<IAlert>>(_coreAlerts, StringComparer.Ordinal);
             }
          }
       }
 
-      public event EventHandler<WarningsChangedEventArgs>? ActivityReviewWarningsChanged;
-      public event EventHandler<WarningsChangedEventArgs>? PasswordUpdateReminderWarningsChanged;
-      public event EventHandler<WarningsChangedEventArgs>? DuplicatedPasswordsWarningsChanged;
-      public event EventHandler<WarningsChangedEventArgs>? PasswordLeakedWarningsChanged;
-      public event EventHandler<WarningsChangedEventArgs>? VaultSecuritySettingsWarningsChanged;
-      public event EventHandler<WarningsChangedEventArgs>? InsufficientPasskeysWarningsChanged;
-      public event EventHandler<WarningsChangedEventArgs>? WeakPasskeyWarningsChanged;
-      public event EventHandler<WarningsChangedEventArgs>? PasskeyLeakedWarningsChanged;
-      public event EventHandler<WarningsChangedEventArgs>? WeakAccountPasswordWarningsChanged;
-      public event EventHandler<WarningsChangedEventArgs>? PasskeyReuseWarningsChanged;
-      public event EventHandler? CoreWarningsScanCompleted;
+      public event EventHandler<AlertsChangedEventArgs>? ActivityReviewAlertsChanged;
+      public event EventHandler<AlertsChangedEventArgs>? PasswordUpdateReminderAlertsChanged;
+      public event EventHandler<AlertsChangedEventArgs>? DuplicatedPasswordsAlertsChanged;
+      public event EventHandler<AlertsChangedEventArgs>? PasswordLeakedAlertsChanged;
+      public event EventHandler<AlertsChangedEventArgs>? VaultSecuritySettingsAlertsChanged;
+      public event EventHandler<AlertsChangedEventArgs>? InsufficientPasskeysAlertsChanged;
+      public event EventHandler<AlertsChangedEventArgs>? WeakPasskeyAlertsChanged;
+      public event EventHandler<AlertsChangedEventArgs>? PasskeyLeakedAlertsChanged;
+      public event EventHandler<AlertsChangedEventArgs>? WeakAccountPasswordAlertsChanged;
+      public event EventHandler<AlertsChangedEventArgs>? PasskeyReuseAlertsChanged;
+      public event EventHandler? CoreAlertsScanCompleted;
 
-      private void _queueWarningScan()
+      private void _queueAlertScan()
       {
-         int generation = Interlocked.Increment(ref _warningScanGeneration);
-         _ = Task.Run(() => _lookAtWarningsAsync(generation));
+         int generation = Interlocked.Increment(ref _alertScanGeneration);
+         _ = Task.Run(() => _lookAtAlertsAsync(generation));
       }
 
-      private async Task _lookAtWarningsAsync(int generation)
+      private async Task _lookAtAlertsAsync(int generation)
       {
          if (User is null)
          {
@@ -53,23 +53,23 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          try
          {
-            IWarning[] activityWarnings = _lookAtActivityWarnings();
-            IWarning[] passwordUpdateReminderWarnings = _lookAtPasswordUpdateReminderWarnings();
-            (IWarning[] passwordLeakedWarnings, Account[] leakedAccounts) =
-               await _lookAtPasswordLeakedWarningsAsync().ConfigureAwait(false);
-            IWarning[] duplicatedPasswordsWarnings = _lookAtDuplicatedPasswordsWarnings();
-            IWarning[] securitySettingsWarnings = _lookAtSecuritySettingsWarnings();
-            IWarning[] insufficientPasskeysWarnings = _lookAtInsufficientPasskeysWarnings();
-            IWarning[] weakPasskeyWarnings = _lookAtWeakPasskeyWarnings();
-            IWarning[] passkeyLeakedWarnings =
-               await _lookAtPasskeyLeakedWarningsAsync().ConfigureAwait(false);
-            IWarning[] weakAccountPasswordWarnings = _lookAtWeakAccountPasswordWarnings();
-            IWarning[] passkeyReuseWarnings = _lookAtPasskeyReuseWarnings();
+            IAlert[] activityAlerts = _lookAtActivityAlerts();
+            IAlert[] passwordUpdateReminderAlerts = _lookAtPasswordUpdateReminderAlerts();
+            (IAlert[] passwordLeakedAlerts, Account[] leakedAccounts) =
+               await _lookAtPasswordLeakedAlertsAsync().ConfigureAwait(false);
+            IAlert[] duplicatedPasswordsAlerts = _lookAtDuplicatedPasswordsAlerts();
+            IAlert[] securitySettingsAlerts = _lookAtSecuritySettingsAlerts();
+            IAlert[] insufficientPasskeysAlerts = _lookAtInsufficientPasskeysAlerts();
+            IAlert[] weakPasskeyAlerts = _lookAtWeakPasskeyAlerts();
+            IAlert[] passkeyLeakedAlerts =
+               await _lookAtPasskeyLeakedAlertsAsync().ConfigureAwait(false);
+            IAlert[] weakAccountPasswordAlerts = _lookAtWeakAccountPasswordAlerts();
+            IAlert[] passkeyReuseAlerts = _lookAtPasskeyReuseAlerts();
 
-            Dictionary<string, IReadOnlyList<IWarning>> snapshot;
-            lock (_warningScanGate)
+            Dictionary<string, IReadOnlyList<IAlert>> snapshot;
+            lock (_alertScanGate)
             {
-               if (generation != _warningScanGeneration)
+               if (generation != _alertScanGeneration)
                {
                   return;
                }
@@ -84,66 +84,66 @@ namespace Upsilon.Apps.Passkey.Core.Models
                   account.PasswordLeaked = true;
                }
 
-               snapshot = new Dictionary<string, IReadOnlyList<IWarning>>(StringComparer.Ordinal)
+               snapshot = new Dictionary<string, IReadOnlyList<IAlert>>(StringComparer.Ordinal)
                {
-                  [WarningKinds.ActivityReview] = activityWarnings,
-                  [WarningKinds.PasswordUpdateReminder] = passwordUpdateReminderWarnings,
-                  [WarningKinds.PasswordLeaked] = passwordLeakedWarnings,
-                  [WarningKinds.DuplicatedPasswords] = duplicatedPasswordsWarnings,
-                  [WarningKinds.VaultSecuritySettings] = securitySettingsWarnings,
-                  [WarningKinds.InsufficientPasskeys] = insufficientPasskeysWarnings,
-                  [WarningKinds.WeakPasskey] = weakPasskeyWarnings,
-                  [WarningKinds.PasskeyLeaked] = passkeyLeakedWarnings,
-                  [WarningKinds.WeakAccountPassword] = weakAccountPasswordWarnings,
-                  [WarningKinds.PasskeyReusedAsAccountPassword] = passkeyReuseWarnings,
+                  [AlertKinds.ActivityReview] = activityAlerts,
+                  [AlertKinds.PasswordUpdateReminder] = passwordUpdateReminderAlerts,
+                  [AlertKinds.PasswordLeaked] = passwordLeakedAlerts,
+                  [AlertKinds.DuplicatedPasswords] = duplicatedPasswordsAlerts,
+                  [AlertKinds.VaultSecuritySettings] = securitySettingsAlerts,
+                  [AlertKinds.InsufficientPasskeys] = insufficientPasskeysAlerts,
+                  [AlertKinds.WeakPasskey] = weakPasskeyAlerts,
+                  [AlertKinds.PasskeyLeaked] = passkeyLeakedAlerts,
+                  [AlertKinds.WeakAccountPassword] = weakAccountPasswordAlerts,
+                  [AlertKinds.PasskeyReusedAsAccountPassword] = passkeyReuseAlerts,
                };
 
-               _coreWarnings.Clear();
-               foreach (KeyValuePair<string, IReadOnlyList<IWarning>> pair in snapshot)
+               _coreAlerts.Clear();
+               foreach (KeyValuePair<string, IReadOnlyList<IAlert>> pair in snapshot)
                {
-                  _coreWarnings[pair.Key] = pair.Value;
+                  _coreAlerts[pair.Key] = pair.Value;
                }
             }
 
-            _raiseKind(ActivityReviewWarningsChanged, WarningKinds.ActivityReview, snapshot);
-            _raiseKind(PasswordUpdateReminderWarningsChanged, WarningKinds.PasswordUpdateReminder, snapshot);
-            _raiseKind(PasswordLeakedWarningsChanged, WarningKinds.PasswordLeaked, snapshot);
-            _raiseKind(DuplicatedPasswordsWarningsChanged, WarningKinds.DuplicatedPasswords, snapshot);
-            _raiseKind(VaultSecuritySettingsWarningsChanged, WarningKinds.VaultSecuritySettings, snapshot);
-            _raiseKind(InsufficientPasskeysWarningsChanged, WarningKinds.InsufficientPasskeys, snapshot);
-            _raiseKind(WeakPasskeyWarningsChanged, WarningKinds.WeakPasskey, snapshot);
-            _raiseKind(PasskeyLeakedWarningsChanged, WarningKinds.PasskeyLeaked, snapshot);
-            _raiseKind(WeakAccountPasswordWarningsChanged, WarningKinds.WeakAccountPassword, snapshot);
-            _raiseKind(PasskeyReuseWarningsChanged, WarningKinds.PasskeyReusedAsAccountPassword, snapshot);
+            _raiseKind(ActivityReviewAlertsChanged, AlertKinds.ActivityReview, snapshot);
+            _raiseKind(PasswordUpdateReminderAlertsChanged, AlertKinds.PasswordUpdateReminder, snapshot);
+            _raiseKind(PasswordLeakedAlertsChanged, AlertKinds.PasswordLeaked, snapshot);
+            _raiseKind(DuplicatedPasswordsAlertsChanged, AlertKinds.DuplicatedPasswords, snapshot);
+            _raiseKind(VaultSecuritySettingsAlertsChanged, AlertKinds.VaultSecuritySettings, snapshot);
+            _raiseKind(InsufficientPasskeysAlertsChanged, AlertKinds.InsufficientPasskeys, snapshot);
+            _raiseKind(WeakPasskeyAlertsChanged, AlertKinds.WeakPasskey, snapshot);
+            _raiseKind(PasskeyLeakedAlertsChanged, AlertKinds.PasskeyLeaked, snapshot);
+            _raiseKind(WeakAccountPasswordAlertsChanged, AlertKinds.WeakAccountPassword, snapshot);
+            _raiseKind(PasskeyReuseAlertsChanged, AlertKinds.PasskeyReusedAsAccountPassword, snapshot);
 
-            CoreWarningsScanCompleted?.Invoke(this, EventArgs.Empty);
+            CoreAlertsScanCompleted?.Invoke(this, EventArgs.Empty);
          }
          catch (NullValueException ex)
          {
-            // The warning scan runs on a background task and must never crash the
-            // session; a failure only means warnings are not refreshed this round,
+            // The alert scan runs on a background task and must never crash the
+            // session; a failure only means alerts are not refreshed this round,
             // so we trace it for diagnostics rather than swallowing it silently.
-            System.Diagnostics.Trace.TraceWarning($"Warning scan failed: {ex}");
+            System.Diagnostics.Trace.TraceWarning($"Alert scan failed: {ex}");
          }
       }
 
       private void _raiseKind(
-         EventHandler<WarningsChangedEventArgs>? handler,
+         EventHandler<AlertsChangedEventArgs>? handler,
          string kind,
-         Dictionary<string, IReadOnlyList<IWarning>> snapshot)
+         Dictionary<string, IReadOnlyList<IAlert>> snapshot)
       {
          if (handler is null)
          {
             return;
          }
 
-         IReadOnlyList<IWarning> warnings = snapshot.TryGetValue(kind, out IReadOnlyList<IWarning>? list)
+         IReadOnlyList<IAlert> alerts = snapshot.TryGetValue(kind, out IReadOnlyList<IAlert>? list)
             ? list
             : [];
-         handler.Invoke(this, new WarningsChangedEventArgs(kind, warnings));
+         handler.Invoke(this, new AlertsChangedEventArgs(kind, alerts));
       }
 
-      private IWarning[] _lookAtActivityWarnings()
+      private IAlert[] _lookAtActivityAlerts()
       {
          if (User is null)
          {
@@ -151,10 +151,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          IActivity[] activities = ActivityCenter.GetActivitiesNeedingReview();
-         return activities.Length != 0 ? [new ActivityReviewWarning(activities)] : [];
+         return activities.Length != 0 ? [new ActivityReviewAlert(activities)] : [];
       }
 
-      private IWarning[] _lookAtPasswordUpdateReminderWarnings()
+      private IAlert[] _lookAtPasswordUpdateReminderAlerts()
       {
          if (User is null)
          {
@@ -166,13 +166,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
             .Where(x => x.PasswordExpired)];
 
          return accounts.Length != 0
-            ? [new AccountsWarning(WarningKinds.PasswordUpdateReminder, WarningSeverity.Critical, accounts)]
+            ? [new AccountsAlert(AlertKinds.PasswordUpdateReminder, AlertSeverity.Critical, accounts)]
             : [];
       }
 
       private const int MAX_CONCURRENT_LEAK_CHECKS = 8;
 
-      private async Task<(IWarning[] Warnings, Account[] LeakedAccounts)> _lookAtPasswordLeakedWarningsAsync()
+      private async Task<(IAlert[] Alerts, Account[] LeakedAccounts)> _lookAtPasswordLeakedAlertsAsync()
       {
          if (User is null)
          {
@@ -205,13 +205,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
             .Where(x => x.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
                && leakedPasswords.Contains(x.Password))];
 
-         IWarning[] warnings = accounts.Length != 0
-            ? [new AccountsWarning(WarningKinds.PasswordLeaked, WarningSeverity.Critical, accounts)]
+         IAlert[] alerts = accounts.Length != 0
+            ? [new AccountsAlert(AlertKinds.PasswordLeaked, AlertSeverity.Critical, accounts)]
             : [];
-         return (warnings, accounts);
+         return (alerts, accounts);
       }
 
-      private IWarning[] _lookAtDuplicatedPasswordsWarnings()
+      private IAlert[] _lookAtDuplicatedPasswordsAlerts()
       {
          if (User is null)
          {
@@ -224,20 +224,20 @@ namespace Upsilon.Apps.Passkey.Core.Models
             .Where(x => x.Count() > 1
                && x.Any(y => y.Options.HasFlag(AccountOption.WarnIfDuplicatedPassword)))];
 
-         List<IWarning> warnings = [];
+         List<IAlert> alerts = [];
 
          foreach (IGrouping<string, Account> accounts in duplicatedPasswords)
          {
-            warnings.Add(new AccountsWarning(
-               WarningKinds.DuplicatedPasswords,
-               WarningSeverity.Warning,
+            alerts.Add(new AccountsAlert(
+               AlertKinds.DuplicatedPasswords,
+               AlertSeverity.Warning,
                [.. accounts]));
          }
 
-         return [.. warnings];
+         return [.. alerts];
       }
 
-      private IWarning[] _lookAtSecuritySettingsWarnings()
+      private IAlert[] _lookAtSecuritySettingsAlerts()
       {
          if (User is null)
          {
@@ -282,10 +282,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          return issues == SecuritySettingsIssue.None
             ? []
-            : [new VaultSecuritySettingsWarning(issues)];
+            : [new VaultSecuritySettingsAlert(issues)];
       }
 
-      private IWarning[] _lookAtInsufficientPasskeysWarnings()
+      private IAlert[] _lookAtInsufficientPasskeysAlerts()
       {
          if (User is null)
          {
@@ -293,18 +293,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          int count = ((IUser)User).Passkeys.Count();
-         if (count >= WarningKinds.RecommendedPasskeyCount)
+         if (count >= AlertKinds.RecommendedPasskeyCount)
          {
             return [];
          }
 
          return
          [
-            new InsufficientPasskeysWarning(count, WarningKinds.RecommendedPasskeyCount),
+            new InsufficientPasskeysAlert(count, AlertKinds.RecommendedPasskeyCount),
          ];
       }
 
-      private IWarning[] _lookAtWeakPasskeyWarnings()
+      private IAlert[] _lookAtWeakPasskeyAlerts()
       {
          if (User is null)
          {
@@ -330,10 +330,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          return weakIndexes.Count == 0
             ? []
-            : [new WeakPasskeyWarning(weakIndexes, combined)];
+            : [new WeakPasskeyAlert(weakIndexes, combined)];
       }
 
-      private async Task<IWarning[]> _lookAtPasskeyLeakedWarningsAsync()
+      private async Task<IAlert[]> _lookAtPasskeyLeakedAlertsAsync()
       {
          if (User is null)
          {
@@ -364,10 +364,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          return leakedIndexes.Count == 0
             ? []
-            : [new PasskeyLeakedWarning(leakedIndexes)];
+            : [new PasskeyLeakedAlert(leakedIndexes)];
       }
 
-      private IWarning[] _lookAtWeakAccountPasswordWarnings()
+      private IAlert[] _lookAtWeakAccountPasswordAlerts()
       {
          if (User is null)
          {
@@ -380,10 +380,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          return weak.Length == 0
             ? []
-            : [new AccountsWarning(WarningKinds.WeakAccountPassword, WarningSeverity.Warning, weak)];
+            : [new AccountsAlert(AlertKinds.WeakAccountPassword, AlertSeverity.Warning, weak)];
       }
 
-      private IWarning[] _lookAtPasskeyReuseWarnings()
+      private IAlert[] _lookAtPasskeyReuseAlerts()
       {
          if (User is null)
          {
@@ -397,9 +397,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          return reused.Length == 0
             ? []
-            : [new AccountsWarning(
-               WarningKinds.PasskeyReusedAsAccountPassword,
-               WarningSeverity.Critical,
+            : [new AccountsAlert(
+               AlertKinds.PasskeyReusedAsAccountPassword,
+               AlertSeverity.Critical,
                reused)];
       }
    }

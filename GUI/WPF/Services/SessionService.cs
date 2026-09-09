@@ -1,8 +1,8 @@
-﻿using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
-using Upsilon.Apps.Passkey.GUI.WPF.Warnings;
+using Upsilon.Apps.Passkey.GUI.WPF.Alerts;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Services
@@ -13,7 +13,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
       public IUser? User => Database?.User;
 
-      public WarningBroker Warnings { get; } = new();
+      public AlertBroker Alerts { get; } = new();
 
       public event EventHandler? SessionChanged;
 
@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          EndSession();
 
          Database = database;
-         Warnings.Attach(database);
+         Alerts.Attach(database);
 
          Log.Info("Session started.");
          _applySessionLanguage();
@@ -43,7 +43,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
          try
          {
-            Warnings.Detach();
+            Alerts.Detach();
 
             if (closeDatabase)
             {

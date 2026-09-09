@@ -3,10 +3,10 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
    /// <summary>
-   /// Stable warning kind / source identifiers. Components publish these on
-   /// <see cref="IWarning.Kind"/>; the GUI filters notify preferences by them.
+   /// Stable alert kind / source identifiers. Components publish these on
+   /// <see cref="IAlert.Kind"/>; the GUI filters notify preferences by them.
    /// </summary>
-   public static class WarningKinds
+   public static class AlertKinds
    {
       public const string SourceCore = "Core";
       public const string SourceHost = "Host";

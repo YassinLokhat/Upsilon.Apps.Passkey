@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -37,12 +37,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       /// <summary>
       /// True when this onion layer is reported leaked and
-      /// <see cref="WarningKinds.PasskeyLeaked"/> is in the user's notify mask.
+      /// <see cref="AlertKinds.PasskeyLeaked"/> is in the user's notify mask.
       /// </summary>
       public bool PasskeyLeaked
-         => AppServices.Session.Warnings
-            .GetNotifiedWarnings(WarningKinds.PasskeyLeaked)
-            .OfType<IPasskeyLeakedWarning>()
+         => AppServices.Session.Alerts
+            .GetNotifiedAlerts(AlertKinds.PasskeyLeaked)
+            .OfType<IPasskeyLeakedAlert>()
             .Any(w => w.PasskeyIndexes.Contains(Index));
 
       public Brush PasswordBackground
@@ -52,7 +52,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public UserPasswordItemViewModel()
       {
-         AppServices.Session.Warnings.NotifiedWarningsChanged += _onWarningsChanged;
+         AppServices.Session.Alerts.NotifiedAlertsChanged += _onAlertsChanged;
       }
 
       public void OnThemeChanged()
@@ -66,10 +66,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
 
          _disposed = true;
-         AppServices.Session.Warnings.NotifiedWarningsChanged -= _onWarningsChanged;
+         AppServices.Session.Alerts.NotifiedAlertsChanged -= _onAlertsChanged;
       }
 
-      private void _onWarningsChanged(object? sender, EventArgs e)
+      private void _onAlertsChanged(object? sender, EventArgs e)
          => UiThread.Post(() =>
          {
             _onPropertyChanged(nameof(PasskeyLeaked));

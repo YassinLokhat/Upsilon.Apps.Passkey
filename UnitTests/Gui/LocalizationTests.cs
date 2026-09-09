@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using System.Globalization;
 using System.Resources;
 using Upsilon.Apps.Passkey.Core.Models;
@@ -101,24 +101,24 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       }
 
       [TestMethod]
-      public void EnumDisplayHelper_FormatsWarningKinds_InEachSatelliteLanguage()
+      public void EnumDisplayHelper_FormatsAlertKinds_InEachSatelliteLanguage()
       {
          foreach (AppLanguage language in _satelliteLanguages())
          {
             LocalizationService.Apply(language.Code);
 
-            _ = EnumDisplayHelper.FormatFieldValue("WarningsToNotify", "None")
+            _ = EnumDisplayHelper.FormatFieldValue("AlertsToNotify", "None")
                .Should().Be(Strings.EnumValue_None, because: language.Code);
 
-            string combined = EnumDisplayHelper.FormatFieldValue("WarningsToNotify",
-               $"{WarningKinds.ActivityReview}, {WarningKinds.PasswordLeaked}");
+            string combined = EnumDisplayHelper.FormatFieldValue("AlertsToNotify",
+               $"{AlertKinds.ActivityReview}, {AlertKinds.PasswordLeaked}");
 
             _ = combined.Should().Be(
                $"{Strings.Label_NotifyActivityReview}, {Strings.Label_NotifyPasswordLeaked}",
                because: language.Code);
 
 #pragma warning disable CS0618 // Legacy WarningType names still appear in old activity logs.
-            string legacy = EnumDisplayHelper.FormatFieldValue("WarningsToNotify",
+            string legacy = EnumDisplayHelper.FormatFieldValue("AlertsToNotify",
                $"{nameof(WarningType.ActivityReviewWarning)}, {nameof(WarningType.PasswordLeakedWarning)}");
 #pragma warning restore CS0618
 
@@ -146,16 +146,16 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       }
 
       [TestMethod]
-      public void WarningKinds_ToReadableWarningKind_HasTranslationForEveryKnownKind()
+      public void AlertKinds_ToReadableAlertKind_HasTranslationForEveryKnownKind()
       {
-         foreach (string kind in WarningKinds.DefaultNotify)
+         foreach (string kind in AlertKinds.DefaultNotify)
          {
-            string label = EnumHelper.ToReadableWarningKind(kind);
+            string label = EnumHelper.ToReadableAlertKind(kind);
             _ = label.Should().NotBeNullOrWhiteSpace();
             _ = label.Should().NotBe(kind);
          }
 
-         _ = EnumHelper.ToReadableWarningKind(EnumHelper.AccountPasswordFilterAll)
+         _ = EnumHelper.ToReadableAlertKind(EnumHelper.AccountPasswordFilterAll)
             .Should().Be(Strings.Filter_All);
       }
 

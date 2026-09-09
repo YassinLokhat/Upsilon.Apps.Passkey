@@ -199,11 +199,11 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return database;
       }
 
-      public static IDatabase OpenTestDatabase(string[] passkeys, out IWarning[] detectedWarnings, AutoSaveMergeBehavior mergeAutoSave = AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile, [CallerMemberName] string username = "")
+      public static IDatabase OpenTestDatabase(string[] passkeys, out IAlert[] detectedAlerts, AutoSaveMergeBehavior mergeAutoSave = AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile, [CallerMemberName] string username = "")
       {
          string databaseFile = ComputeDatabaseFilePath(username);
 
-         TaskCompletionSource<IWarning[]> scanDone = new();
+         TaskCompletionSource<IAlert[]> scanDone = new();
 
          IDatabase database = Database.Open(CryptographicCenter,
             SerializationCenter,
@@ -215,8 +215,8 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          database.AutoSaveDetected += (s, e) => { e.MergeBehavior = mergeAutoSave; };
          void OnScanCompleted(object? sender, EventArgs e)
-            => _ = scanDone.TrySetResult(FlattenCoreWarnings(database));
-         database.CoreWarningsScanCompleted += OnScanCompleted;
+            => _ = scanDone.TrySetResult(FlattenCoreAlerts(database));
+         database.CoreAlertsScanCompleted += OnScanCompleted;
 
          foreach (string passkey in passkeys)
          {
@@ -225,25 +225,25 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          if (database.User is null)
          {
-            database.CoreWarningsScanCompleted -= OnScanCompleted;
-            detectedWarnings = [];
+            database.CoreAlertsScanCompleted -= OnScanCompleted;
+            detectedAlerts = [];
             return database;
          }
 
          if (!scanDone.Task.Wait(TimeSpan.FromSeconds(30)))
          {
-            database.CoreWarningsScanCompleted -= OnScanCompleted;
-            throw new TimeoutException("Timed out waiting for CoreWarningsScanCompleted after login.");
+            database.CoreAlertsScanCompleted -= OnScanCompleted;
+            throw new TimeoutException("Timed out waiting for CoreAlertsScanCompleted after login.");
          }
 
-         database.CoreWarningsScanCompleted -= OnScanCompleted;
-         detectedWarnings = scanDone.Task.Result;
+         database.CoreAlertsScanCompleted -= OnScanCompleted;
+         detectedAlerts = scanDone.Task.Result;
 
          return database;
       }
 
-      public static IWarning[] FlattenCoreWarnings(IDatabase database)
-         => [.. database.CoreWarnings.Values.SelectMany(static list => list)];
+      public static IAlert[] FlattenCoreAlerts(IDatabase database)
+         => [.. database.CoreAlerts.Values.SelectMany(static list => list)];
 
       public static void ClearTestEnvironment([CallerMemberName] string username = "")
       {
@@ -317,17 +317,17 @@ namespace Upsilon.Apps.Passkey.UnitTests
       }
 
       /// <summary>
-      /// Subscribes to the kind-specific Core warning event and
-      /// <see cref="IDatabase.CoreWarningsScanCompleted"/>, then runs
+      /// Subscribes to the kind-specific Core alert event and
+      /// <see cref="IDatabase.CoreAlertsScanCompleted"/>, then runs
       /// <paramref name="trigger"/> (typically <see cref="IDatabase.Save"/>) and
-      /// waits until a warning of <paramref name="kind"/> is reported.
+      /// waits until an alert of <paramref name="kind"/> is reported.
       /// </summary>
-      public static IWarning[] WaitForWarningKind(IDatabase database, string kind, Action trigger, TimeSpan? timeout = null)
+      public static IAlert[] WaitForAlertKind(IDatabase database, string kind, Action trigger, TimeSpan? timeout = null)
       {
          timeout ??= TimeSpan.FromSeconds(15);
-         TaskCompletionSource<IWarning[]> tcs = new();
+         TaskCompletionSource<IAlert[]> tcs = new();
 
-         void TryCompleteFromKind(IReadOnlyList<IWarning> reported)
+         void TryCompleteFromKind(IReadOnlyList<IAlert> reported)
          {
             if (reported.Count > 0)
             {
@@ -335,40 +335,37 @@ namespace Upsilon.Apps.Passkey.UnitTests
             }
          }
 
-         void KindHandler(object? sender, WarningsChangedEventArgs e)
+         void KindHandler(object? sender, AlertsChangedEventArgs e)
          {
             if (string.Equals(e.Kind, kind, StringComparison.Ordinal))
             {
-               TryCompleteFromKind(e.Warnings);
+               TryCompleteFromKind(e.Alerts);
             }
          }
 
          void ScanCompleted(object? sender, EventArgs e)
          {
-            if (database.CoreWarnings.TryGetValue(kind, out IReadOnlyList<IWarning>? current)
+            if (database.CoreAlerts.TryGetValue(kind, out IReadOnlyList<IAlert>? current)
                && current.Count > 0)
             {
                TryCompleteFromKind(current);
             }
          }
 
-         EventHandler<WarningsChangedEventArgs>? kindSubscription = KindHandler;
+         EventHandler<AlertsChangedEventArgs>? kindSubscription = KindHandler;
          _subscribeKindChanged(database, kind, kindSubscription);
-         database.CoreWarningsScanCompleted += ScanCompleted;
+         database.CoreAlertsScanCompleted += ScanCompleted;
 
          try
          {
-            if (database.CoreWarnings.TryGetValue(kind, out IReadOnlyList<IWarning>? already)
-               && already.Count > 0)
-            {
-               TryCompleteFromKind(already);
-            }
-
+            // Do not complete from a pre-trigger CoreAlerts snapshot: Create/login
+            // may already have published a stale VaultSecuritySettings (default
+            // timeouts are 0) before the test mutates settings/accounts.
             trigger();
 
             if (!tcs.Task.Wait(timeout.Value))
             {
-               throw new TimeoutException($"Timed out waiting for warning kind '{kind}'.");
+               throw new TimeoutException($"Timed out waiting for alert kind '{kind}'.");
             }
 
             return tcs.Task.Result;
@@ -376,24 +373,24 @@ namespace Upsilon.Apps.Passkey.UnitTests
          finally
          {
             _unsubscribeKindChanged(database, kind, kindSubscription);
-            database.CoreWarningsScanCompleted -= ScanCompleted;
+            database.CoreAlertsScanCompleted -= ScanCompleted;
          }
       }
 
       /// <summary>
-      /// Subscribes to <see cref="IDatabase.CoreWarningsScanCompleted"/> then runs
+      /// Subscribes to <see cref="IDatabase.CoreAlertsScanCompleted"/> then runs
       /// <paramref name="trigger"/> and waits for the next scan to finish,
-      /// returning a flattened <see cref="IDatabase.CoreWarnings"/> snapshot.
+      /// returning a flattened <see cref="IDatabase.CoreAlerts"/> snapshot.
       /// </summary>
-      public static IWarning[] WaitForWarnings(IDatabase database, Action trigger, TimeSpan? timeout = null)
+      public static IAlert[] WaitForAlerts(IDatabase database, Action trigger, TimeSpan? timeout = null)
       {
          timeout ??= TimeSpan.FromSeconds(15);
-         TaskCompletionSource<IWarning[]> tcs = new();
+         TaskCompletionSource<IAlert[]> tcs = new();
 
          void Handler(object? sender, EventArgs e)
-            => _ = tcs.TrySetResult(FlattenCoreWarnings(database));
+            => _ = tcs.TrySetResult(FlattenCoreAlerts(database));
 
-         database.CoreWarningsScanCompleted += Handler;
+         database.CoreAlertsScanCompleted += Handler;
 
          try
          {
@@ -401,87 +398,87 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
             if (!tcs.Task.Wait(timeout.Value))
             {
-               throw new TimeoutException("Timed out waiting for a Core warning scan.");
+               throw new TimeoutException("Timed out waiting for a Core alert scan.");
             }
 
             return tcs.Task.Result;
          }
          finally
          {
-            database.CoreWarningsScanCompleted -= Handler;
+            database.CoreAlertsScanCompleted -= Handler;
          }
       }
 
-      private static void _subscribeKindChanged(IDatabase database, string kind, EventHandler<WarningsChangedEventArgs> handler)
+      private static void _subscribeKindChanged(IDatabase database, string kind, EventHandler<AlertsChangedEventArgs> handler)
       {
          switch (kind)
          {
-            case WarningKinds.ActivityReview:
-               database.ActivityReviewWarningsChanged += handler;
+            case AlertKinds.ActivityReview:
+               database.ActivityReviewAlertsChanged += handler;
                break;
-            case WarningKinds.PasswordUpdateReminder:
-               database.PasswordUpdateReminderWarningsChanged += handler;
+            case AlertKinds.PasswordUpdateReminder:
+               database.PasswordUpdateReminderAlertsChanged += handler;
                break;
-            case WarningKinds.DuplicatedPasswords:
-               database.DuplicatedPasswordsWarningsChanged += handler;
+            case AlertKinds.DuplicatedPasswords:
+               database.DuplicatedPasswordsAlertsChanged += handler;
                break;
-            case WarningKinds.PasswordLeaked:
-               database.PasswordLeakedWarningsChanged += handler;
+            case AlertKinds.PasswordLeaked:
+               database.PasswordLeakedAlertsChanged += handler;
                break;
-            case WarningKinds.VaultSecuritySettings:
-               database.VaultSecuritySettingsWarningsChanged += handler;
+            case AlertKinds.VaultSecuritySettings:
+               database.VaultSecuritySettingsAlertsChanged += handler;
                break;
-            case WarningKinds.InsufficientPasskeys:
-               database.InsufficientPasskeysWarningsChanged += handler;
+            case AlertKinds.InsufficientPasskeys:
+               database.InsufficientPasskeysAlertsChanged += handler;
                break;
-            case WarningKinds.WeakPasskey:
-               database.WeakPasskeyWarningsChanged += handler;
+            case AlertKinds.WeakPasskey:
+               database.WeakPasskeyAlertsChanged += handler;
                break;
-            case WarningKinds.PasskeyLeaked:
-               database.PasskeyLeakedWarningsChanged += handler;
+            case AlertKinds.PasskeyLeaked:
+               database.PasskeyLeakedAlertsChanged += handler;
                break;
-            case WarningKinds.WeakAccountPassword:
-               database.WeakAccountPasswordWarningsChanged += handler;
+            case AlertKinds.WeakAccountPassword:
+               database.WeakAccountPasswordAlertsChanged += handler;
                break;
-            case WarningKinds.PasskeyReusedAsAccountPassword:
-               database.PasskeyReuseWarningsChanged += handler;
+            case AlertKinds.PasskeyReusedAsAccountPassword:
+               database.PasskeyReuseAlertsChanged += handler;
                break;
          }
       }
 
-      private static void _unsubscribeKindChanged(IDatabase database, string kind, EventHandler<WarningsChangedEventArgs> handler)
+      private static void _unsubscribeKindChanged(IDatabase database, string kind, EventHandler<AlertsChangedEventArgs> handler)
       {
          switch (kind)
          {
-            case WarningKinds.ActivityReview:
-               database.ActivityReviewWarningsChanged -= handler;
+            case AlertKinds.ActivityReview:
+               database.ActivityReviewAlertsChanged -= handler;
                break;
-            case WarningKinds.PasswordUpdateReminder:
-               database.PasswordUpdateReminderWarningsChanged -= handler;
+            case AlertKinds.PasswordUpdateReminder:
+               database.PasswordUpdateReminderAlertsChanged -= handler;
                break;
-            case WarningKinds.DuplicatedPasswords:
-               database.DuplicatedPasswordsWarningsChanged -= handler;
+            case AlertKinds.DuplicatedPasswords:
+               database.DuplicatedPasswordsAlertsChanged -= handler;
                break;
-            case WarningKinds.PasswordLeaked:
-               database.PasswordLeakedWarningsChanged -= handler;
+            case AlertKinds.PasswordLeaked:
+               database.PasswordLeakedAlertsChanged -= handler;
                break;
-            case WarningKinds.VaultSecuritySettings:
-               database.VaultSecuritySettingsWarningsChanged -= handler;
+            case AlertKinds.VaultSecuritySettings:
+               database.VaultSecuritySettingsAlertsChanged -= handler;
                break;
-            case WarningKinds.InsufficientPasskeys:
-               database.InsufficientPasskeysWarningsChanged -= handler;
+            case AlertKinds.InsufficientPasskeys:
+               database.InsufficientPasskeysAlertsChanged -= handler;
                break;
-            case WarningKinds.WeakPasskey:
-               database.WeakPasskeyWarningsChanged -= handler;
+            case AlertKinds.WeakPasskey:
+               database.WeakPasskeyAlertsChanged -= handler;
                break;
-            case WarningKinds.PasskeyLeaked:
-               database.PasskeyLeakedWarningsChanged -= handler;
+            case AlertKinds.PasskeyLeaked:
+               database.PasskeyLeakedAlertsChanged -= handler;
                break;
-            case WarningKinds.WeakAccountPassword:
-               database.WeakAccountPasswordWarningsChanged -= handler;
+            case AlertKinds.WeakAccountPassword:
+               database.WeakAccountPasswordAlertsChanged -= handler;
                break;
-            case WarningKinds.PasskeyReusedAsAccountPassword:
-               database.PasskeyReuseWarningsChanged -= handler;
+            case AlertKinds.PasskeyReusedAsAccountPassword:
+               database.PasskeyReuseAlertsChanged -= handler;
                break;
          }
       }
@@ -529,26 +526,26 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return FormatActivityLine(true, Strings.Format(nameof(Strings.Activity_ExportingDataFailed), reason));
       }
 
-      public static void LastActivityWarningsShouldMatch(IDatabase database, string[] expectedActivities)
+      public static void LastActivityAlertsShouldMatch(IDatabase database, string[] expectedActivities)
       {
          DateTime deadline = DateTime.UtcNow + TimeSpan.FromSeconds(15);
-         IActivityReviewWarning? activityWarning = null;
+         IActivityReviewAlert? activityAlert = null;
 
          while (DateTime.UtcNow < deadline)
          {
-            if (database.CoreWarnings.TryGetValue(WarningKinds.ActivityReview, out IReadOnlyList<IWarning>? list)
-               && list.OfType<IActivityReviewWarning>().FirstOrDefault() is { } found)
+            if (database.CoreAlerts.TryGetValue(AlertKinds.ActivityReview, out IReadOnlyList<IAlert>? list)
+               && list.OfType<IActivityReviewAlert>().FirstOrDefault() is { } found)
             {
-               activityWarning = found;
+               activityAlert = found;
                break;
             }
 
             Thread.Sleep(200);
          }
 
-         _ = activityWarning.Should().NotBeNull("ActivityReview warnings should be available");
+         _ = activityAlert.Should().NotBeNull("ActivityReview alerts should be available");
 
-         string[] actualActivities = activityWarning!.Activities
+         string[] actualActivities = activityAlert!.Activities
             .Select(x => new ActivityViewModel(x))
             .Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
 

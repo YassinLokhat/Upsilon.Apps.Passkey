@@ -2,10 +2,10 @@
 {
    /// <summary>
    /// Legacy warning-type flags used only to migrate older vault
-   /// <c>WarningsToNotify</c> values. Prefer <see cref="Models.WarningKinds"/>.
+   /// <c>AlertsToNotify</c> / <c>WarningsToNotify</c> values. Prefer <see cref="Models.AlertKinds"/>.
    /// </summary>
    [Flags]
-   [Obsolete("Use WarningKinds string identifiers instead.")]
+   [Obsolete("Use AlertKinds string identifiers instead.")]
    public enum WarningType
    {
       ActivityReviewWarning = 0b00001,

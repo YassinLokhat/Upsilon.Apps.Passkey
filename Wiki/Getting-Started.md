@@ -41,7 +41,7 @@ See [[Testing and CI]] for coverage, GUI ViewModel filters, and workflows.
 Concrete flow:
 
 1. Run `dotnet run --project GUI/WPF`.
-2. Create a user (`Ctrl+N`). Choose a username and **ordered passkeys**. One passkey is allowed; two or more make a real multi-factor onion.
+2. Create a user (`Ctrl+N`). Choose a username and **ordered passkeys**. One passkey is allowed (Core raises `InsufficientPasskeys` until you have at least two); two or more make a real multi-factor onion.
 3. The file is created under **Default database directory** (App Settings; default `<exe>/raw`) as `{GetHash(username)}.pku`. You can decline that folder and pick another path. `GetHash` is fast SHA-512, Base64 with `/` replaced by `-`.
 4. Close the app, or wait for auto-logout.
 5. Reopen with `Ctrl+O`, or pass the `.pku` path as the **first command-line argument**. Opening by username alone looks under **Default database directory** (same setting as create) — use `Ctrl+O` if you stored the vault elsewhere.

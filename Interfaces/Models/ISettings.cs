@@ -23,9 +23,9 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       int NumberOfMonthActivitiesToKeep { get; set; }
 
       /// <summary>
-      /// Which warning kind ids (<see cref="WarningKinds"/>) to surface to the user.
+      /// Which alert kind ids (<see cref="AlertKinds"/>) to surface to the user.
       /// </summary>
-      WarningKindList WarningsToNotify { get; set; }
+      AlertKindList AlertsToNotify { get; set; }
 
       /// <summary>
       /// Activity-log FieldValue when <see cref="Language"/> or <see cref="Theme"/>

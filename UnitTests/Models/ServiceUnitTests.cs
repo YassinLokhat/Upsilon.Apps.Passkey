@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -80,7 +80,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = serviceLoaded.Notes.Should().Be(notes);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
-         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
@@ -149,7 +149,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = serviceLoaded.Notes.Should().Be(notes);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
-         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
@@ -201,7 +201,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
-         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
@@ -253,7 +253,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = databaseLoaded.User.Services.Count().Should().Be(0);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
-         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();

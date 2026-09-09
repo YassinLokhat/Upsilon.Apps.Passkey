@@ -1,6 +1,6 @@
 namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
-   public interface IActivityReviewWarning : IWarning
+   public interface IActivityReviewAlert : IAlert
    {
       IEnumerable<IActivity> Activities { get; }
    }

@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -19,7 +19,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public AccountViewModel(IAccount account)
       {
          Account = account;
-         AppServices.Session.Warnings.NotifiedWarningsChanged += _onWarningsChanged;
+         AppServices.Session.Alerts.NotifiedAlertsChanged += _onAlertsChanged;
       }
 
       public string AccountDisplay
@@ -110,7 +110,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
                _onPropertyChanged(nameof(RemindPasswordUpdateDelay));
                _onPropertyChanged(nameof(RemindPasswordUpdate));
-               AppServices.Session.Database?.RefreshWarnings();
+               AppServices.Session.Database?.RefreshAlerts();
             }
          }
       }
@@ -145,7 +145,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                }
 
                _onPropertyChanged(nameof(WarnPasswordLeak));
-               AppServices.Session.Database?.RefreshWarnings();
+               AppServices.Session.Database?.RefreshAlerts();
             }
          }
       }
@@ -167,16 +167,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                }
 
                _onPropertyChanged(nameof(WarnIfDuplicatedPassword));
-               AppServices.Session.Database?.RefreshWarnings();
+               AppServices.Session.Database?.RefreshAlerts();
             }
          }
       }
 
       public bool PasswordLeaked
          => Account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
-               && AppServices.Session.Warnings
-                  .GetNotifiedWarnings(WarningKinds.PasswordLeaked)
-                  .OfType<IAccountsWarning>()
+               && AppServices.Session.Alerts
+                  .GetNotifiedAlerts(AlertKinds.PasswordLeaked)
+                  .OfType<IAccountsAlert>()
                   .Any(x => x.Accounts.Contains(Account));
 
       public static string[] IdentifierAutoCompleteList => AppServices.Session.User?.Services
@@ -197,7 +197,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
 
          _disposed = true;
-         AppServices.Session.Warnings.NotifiedWarningsChanged -= _onWarningsChanged;
+         AppServices.Session.Alerts.NotifiedAlertsChanged -= _onAlertsChanged;
       }
 
       public void OnLanguageChanged()
@@ -215,7 +215,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      private void _onWarningsChanged(object? sender, EventArgs e)
+      private void _onAlertsChanged(object? sender, EventArgs e)
          => UiThread.Post(() =>
          {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PasswordLeaked)));

@@ -40,7 +40,7 @@ A **local-only** password manager written in C# on **.NET 10**. There is no serv
 | Move data in or out | [[Import Export]] |
 | How `.pku` and cryptography work | [[Vault Format]] and [[Security]] |
 | GUI shortcuts, QR, clipboard | [[WPF Client]] |
-| Warnings and the audit trail | [[Warnings and Activity]] |
+| Alerts and the audit trail | [[Alerts and Activity]] |
 | Tests, coverage, GitHub Actions | [[Testing and CI]] |
 
 ## Reporting problems

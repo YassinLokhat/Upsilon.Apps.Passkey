@@ -1,4 +1,4 @@
-﻿using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -22,7 +22,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             {
                nameof(AccountOption) or "Options" => _formatAccountOption(fieldValue),
 #pragma warning disable CS0618 // Legacy activity logs may still store WarningType names.
-               nameof(WarningType) or "WarningsToNotify" => _formatWarningsToNotify(fieldValue),
+               nameof(WarningType) or "AlertsToNotify" or "WarningsToNotify" => _formatAlertsToNotify(fieldValue),
 #pragma warning restore CS0618
                "Theme" => _formatTheme(fieldValue),
                "Language" => _formatLanguage(fieldValue),
@@ -36,7 +36,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
          return stored is "None" or "0" ? Strings.EnumValue_None : _formatFlags(stored, _accountOptionLabel);
       }
 
-      private static string _formatWarningsToNotify(string stored)
+      private static string _formatAlertsToNotify(string stored)
       {
          if (stored is "None" or "[]" or "0")
          {
@@ -59,9 +59,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
          }
 
          if (stored.Contains(',', StringComparison.Ordinal)
-            || WarningKinds.DefaultNotify.Contains(stored)
-            || WarningKinds.AllCore.Contains(stored)
-            || WarningKinds.AllHost.Contains(stored))
+            || AlertKinds.DefaultNotify.Contains(stored)
+            || AlertKinds.AllCore.Contains(stored)
+            || AlertKinds.AllHost.Contains(stored))
          {
             return _formatFlags(stored, _warningKindLabel);
          }
@@ -69,12 +69,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
 #pragma warning disable CS0618 // Legacy WarningType flag / name migration for activity logs.
          if (Enum.TryParse(stored, ignoreCase: true, out WarningType legacyFromName))
          {
-            return string.Join(", ", WarningKinds.FromLegacyWarningType(legacyFromName).Select(_warningKindLabel));
+            return string.Join(", ", AlertKinds.FromLegacyWarningType(legacyFromName).Select(_warningKindLabel));
          }
 
          if (int.TryParse(stored, out int legacyNumber))
          {
-            return string.Join(", ", WarningKinds.FromLegacyWarningType((WarningType)legacyNumber).Select(_warningKindLabel));
+            return string.Join(", ", AlertKinds.FromLegacyWarningType((WarningType)legacyNumber).Select(_warningKindLabel));
          }
 #pragma warning restore CS0618
 
@@ -126,17 +126,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
 #pragma warning disable CS0618 // Legacy activity-log WarningType member names.
          => kindOrLegacyMember switch
          {
-            WarningKinds.ActivityReview or "ActivityReviewWarning" => Strings.Label_NotifyActivityReview,
-            WarningKinds.PasswordUpdateReminder or "PasswordUpdateReminderWarning" => Strings.Label_NotifyPasswordUpdateReminder,
-            WarningKinds.DuplicatedPasswords or "DuplicatedPasswordsWarning" => Strings.Label_NotifyDuplicatedPasswords,
-            WarningKinds.PasswordLeaked or "PasswordLeakedWarning" => Strings.Label_NotifyPasswordLeaked,
-            WarningKinds.VaultSecuritySettings or WarningKinds.HostSecuritySettings
+            AlertKinds.ActivityReview or "ActivityReviewWarning" => Strings.Label_NotifyActivityReview,
+            AlertKinds.PasswordUpdateReminder or "PasswordUpdateReminderWarning" => Strings.Label_NotifyPasswordUpdateReminder,
+            AlertKinds.DuplicatedPasswords or "DuplicatedPasswordsWarning" => Strings.Label_NotifyDuplicatedPasswords,
+            AlertKinds.PasswordLeaked or "PasswordLeakedWarning" => Strings.Label_NotifyPasswordLeaked,
+            AlertKinds.VaultSecuritySettings or AlertKinds.HostSecuritySettings
                or "SecuritySettingsWarning" => Strings.Label_NotifySecuritySettings,
-            WarningKinds.InsufficientPasskeys => Strings.Label_NotifyInsufficientPasskeys,
-            WarningKinds.WeakPasskey => Strings.Label_NotifyWeakPasskey,
-            WarningKinds.PasskeyLeaked => Strings.Label_NotifyPasskeyLeaked,
-            WarningKinds.WeakAccountPassword => Strings.Label_NotifyWeakAccountPassword,
-            WarningKinds.PasskeyReusedAsAccountPassword => Strings.Label_NotifyPasskeyReusedAsAccountPassword,
+            AlertKinds.InsufficientPasskeys => Strings.Label_NotifyInsufficientPasskeys,
+            AlertKinds.WeakPasskey => Strings.Label_NotifyWeakPasskey,
+            AlertKinds.PasskeyLeaked => Strings.Label_NotifyPasskeyLeaked,
+            AlertKinds.WeakAccountPassword => Strings.Label_NotifyWeakAccountPassword,
+            AlertKinds.PasskeyReusedAsAccountPassword => Strings.Label_NotifyPasskeyReusedAsAccountPassword,
             _ => Strings.Get($"{WARNING_TYPE_PREFIX}{kindOrLegacyMember}"),
          };
 #pragma warning restore CS0618

@@ -8,7 +8,7 @@
 * [[Usage Cookbook]]
 * [[Import Export]]
 * [[WPF Client]]
-* [[Warnings and Activity]]
+* [[Alerts and Activity]]
 * [[Security]]
 * [[Threat Model]]
 * [[Testing and CI]]

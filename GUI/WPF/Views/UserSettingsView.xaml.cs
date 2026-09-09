@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -191,14 +191,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _database.User.Settings.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
             _database.User.Settings.Language = _viewModel.SelectedLanguage.Code;
             _database.User.Settings.Theme = _viewModel.SelectedTheme.Code;
-            WarningKindList warningsToNotify = _viewModel.BuildWarningsToNotify();
+            AlertKindList warningsToNotify = _viewModel.BuildAlertsToNotify();
 
             if (warningsToNotify.Count == 0)
             {
-               AppServices.Dialogs.Warn(Strings.Msg_NoWarningsToNotify, Strings.Title_NoWarningsToNotify);
+               AppServices.Dialogs.Warn(Strings.Msg_NoAlertsToNotify, Strings.Title_NoAlertsToNotify);
             }
 
-            _database.User.Settings.WarningsToNotify = warningsToNotify;
+            _database.User.Settings.AlertsToNotify = warningsToNotify;
 
             await _database.SaveAsync().ConfigureAwait(true);
             _session.ApplySessionLanguage();

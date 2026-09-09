@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -8,18 +8,18 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class SecuritySettingsWarningViewModel : INotifyPropertyChanged, ILanguageAware, IDisposable
+   internal sealed class SecuritySettingsAlertViewModel : INotifyPropertyChanged, ILanguageAware, IDisposable
    {
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
-      public string Title => Strings.Format(nameof(Strings.Title_SecuritySettingsWarningsWindow), AppInfo.Title);
+      public string Title => Strings.Format(nameof(Strings.Title_SecuritySettingsAlertsWindow), AppInfo.Title);
 
       public SecuritySettingsIssueItemViewModel[] Issues { get; private set; }
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      public SecuritySettingsWarningViewModel()
+      public SecuritySettingsAlertViewModel()
       {
-         AppServices.Session.Warnings.NotifiedWarningsChanged += _warnings_NotifiedWarningsChanged;
+         AppServices.Session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
 
          Issues = _loadIssues();
       }
@@ -29,10 +29,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void Dispose()
       {
-         AppServices.Session.Warnings.NotifiedWarningsChanged -= _warnings_NotifiedWarningsChanged;
+         AppServices.Session.Alerts.NotifiedAlertsChanged -= _alerts_NotifiedAlertsChanged;
       }
 
-      private void _warnings_NotifiedWarningsChanged(object? sender, EventArgs e)
+      private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
          => _reloadIssues(alsoTitle: false);
 
       private void _reloadIssues(bool alsoTitle)
@@ -50,16 +50,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          SecuritySettingsIssue vaultIssues = SecuritySettingsIssue.None;
          HostSecurityIssue hostIssues = HostSecurityIssue.None;
 
-         foreach (IVaultSecuritySettingsWarning warning in AppServices.Session.Warnings
-            .GetAllWarnings(WarningKinds.VaultSecuritySettings)
-            .OfType<IVaultSecuritySettingsWarning>())
+         foreach (IVaultSecuritySettingsAlert warning in AppServices.Session.Alerts
+            .GetAllAlerts(AlertKinds.VaultSecuritySettings)
+            .OfType<IVaultSecuritySettingsAlert>())
          {
             vaultIssues |= warning.Issues;
          }
 
-         foreach (IHostSecuritySettingsWarning warning in AppServices.Session.Warnings
-            .GetAllWarnings(WarningKinds.HostSecuritySettings)
-            .OfType<IHostSecuritySettingsWarning>())
+         foreach (IHostSecuritySettingsAlert warning in AppServices.Session.Alerts
+            .GetAllAlerts(AlertKinds.HostSecuritySettings)
+            .OfType<IHostSecuritySettingsAlert>())
          {
             hostIssues |= warning.Issues;
          }

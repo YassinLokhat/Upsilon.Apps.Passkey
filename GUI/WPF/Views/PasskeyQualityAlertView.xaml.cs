@@ -4,15 +4,15 @@ using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
-   internal sealed partial class PasskeyQualityWarningView : Window, IDisposable
+   internal sealed partial class PasskeyQualityAlertView : Window, IDisposable
    {
-      private readonly PasskeyQualityWarningViewModel _viewModel;
+      private readonly PasskeyQualityAlertViewModel _viewModel;
       private bool _disposed;
 
-      internal PasskeyQualityWarningView()
+      internal PasskeyQualityAlertView()
       {
          InitializeComponent();
-         DataContext = _viewModel = new PasskeyQualityWarningViewModel();
+         DataContext = _viewModel = new PasskeyQualityAlertViewModel();
          Loaded += (_, _) => this.PostLoadSetup();
          Closed += (_, _) => Dispose();
       }

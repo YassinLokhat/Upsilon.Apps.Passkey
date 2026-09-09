@@ -26,12 +26,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          user.Settings.NumberOfMonthActivitiesToKeep = 0;
          user.Settings.Theme = "System";
          user.Settings.Language = "System";
-         user.Settings.WarningsToNotify = new WarningKindList(
+         user.Settings.AlertsToNotify = new AlertKindList(
          [
-            WarningKinds.ActivityReview,
-            WarningKinds.PasswordUpdateReminder,
-            WarningKinds.PasswordLeaked,
-            WarningKinds.VaultSecuritySettings,
+            AlertKinds.ActivityReview,
+            AlertKinds.PasswordUpdateReminder,
+            AlertKinds.PasswordLeaked,
+            AlertKinds.VaultSecuritySettings,
          ]);
          string logFile = database.DatabaseFile.Replace(".pku", ".log");
          File.WriteAllText(logFile, string.Empty);
@@ -315,7 +315,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // Then
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
-         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
@@ -554,7 +554,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             username,
             passkeys);
 
-         databaseCreated.User.Settings.WarningsToNotify = new WarningKindList([]);
+         databaseCreated.User.Settings.AlertsToNotify = new AlertKindList([]);
          databaseCreated.User.Settings.NumberOfOldPasswordToKeep = 7;
 
          await databaseCreated.SaveAsync();
@@ -639,7 +639,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Database databaseCore = (Database)database;
          IUser user = database.User!;
-         user.Settings.WarningsToNotify = new WarningKindList([]);
+         user.Settings.AlertsToNotify = new AlertKindList([]);
 
          IService service = user.AddService("ConcurrentService");
          IAccount account = service.AddAccount(["id@test.te"], "initial-password");
@@ -703,7 +703,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          flusher.Join();
 
-         // Then — no torn-enumeration / collection-modified exceptions
+         // Then ï¿½ no torn-enumeration / collection-modified exceptions
          _ = failure.Should().BeNull(failure?.ToString());
          _ = database.HasChanged(string.Empty).Should().BeTrue();
 
@@ -791,7 +791,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             databaseFile,
             UnitTestsHelper.GetUsername());
 
-         // When / Then — wrong passkey stays soft (null); corruption must throw.
+         // When / Then ï¿½ wrong passkey stays soft (null); corruption must throw.
          Action loginCorrupt = () =>
          {
             foreach (string passkey in passkeys)

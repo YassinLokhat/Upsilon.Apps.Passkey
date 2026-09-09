@@ -53,7 +53,7 @@ Lowering iterations in an *existing* file's header does not weaken already encry
 
 ## Activity log encryption
 
-Key pairs are **RSA-4096**, exported as PEM. The audit log uses a **hybrid** scheme: a random one-time AES key encrypts each record symmetrically, and that key is wrapped with **RSA-OAEP-SHA256**. Entries can be written even when the full symmetric passkey set is not available (for example a failed login). Integrity of that log is a separate story — see [[Warnings and Activity]] and [[Security]].
+Key pairs are **RSA-4096**, exported as PEM. The audit log uses a **hybrid** scheme: a random one-time AES key encrypts each record symmetrically, and that key is wrapped with **RSA-OAEP-SHA256**. Entries can be written even when the full symmetric passkey set is not available (for example a failed login). Integrity of that log is a separate story — see [[Alerts and Activity]] and [[Security]].
 
 ## Atomic writes and locking
 

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -197,7 +197,7 @@
   <data name="Label_Settings" xml:space="preserve">
     <value>Settings</value>
   </data>
-  <data name="Label_Warnings" xml:space="preserve">
+  <data name="Label_Alerts" xml:space="preserve">
     <value>Warnings</value>
   </data>
   <data name="Label_Filters" xml:space="preserve">
@@ -407,10 +407,10 @@
   <data name="Title_Activities" xml:space="preserve">
     <value>{0} - Activities</value>
   </data>
-  <data name="Title_AccountPasswordsWarnings" xml:space="preserve">
+  <data name="Title_AccountPasswordsAlerts" xml:space="preserve">
     <value>{0} - Account Passwords Warnings</value>
   </data>
-  <data name="Title_DuplicatedPasswordsWarnings" xml:space="preserve">
+  <data name="Title_DuplicatedPasswordsAlerts" xml:space="preserve">
     <value>{0} - Duplicated Passwords Warnings</value>
   </data>
   <data name="Title_InsertIdentifier" xml:space="preserve">
@@ -607,28 +607,28 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="Title_UserServices" xml:space="preserve">
     <value>{0} - '{1}'</value>
   </data>
-  <data name="Msg_ShowWarnings" xml:space="preserve">
+  <data name="Msg_ShowAlerts" xml:space="preserve">
     <value>Show {0} warnings</value>
   </data>
-  <data name="Msg_ShowActivityWarnings" xml:space="preserve">
+  <data name="Msg_ShowActivityAlerts" xml:space="preserve">
     <value>Show {0} activities to review</value>
   </data>
-  <data name="Msg_ShowExpiredPasswordWarnings" xml:space="preserve">
+  <data name="Msg_ShowExpiredPasswordAlerts" xml:space="preserve">
     <value>Show {0} expired passwords</value>
   </data>
-  <data name="Msg_ShowDuplicatedPasswordWarnings" xml:space="preserve">
+  <data name="Msg_ShowDuplicatedPasswordAlerts" xml:space="preserve">
     <value>Show {0} duplicated passwords</value>
   </data>
-  <data name="Msg_ShowLeakedPasswordWarnings" xml:space="preserve">
+  <data name="Msg_ShowLeakedPasswordAlerts" xml:space="preserve">
     <value>Show {0} leaked passwords</value>
   </data>
-  <data name="Msg_ShowSecuritySettingsWarnings" xml:space="preserve">
+  <data name="Msg_ShowSecuritySettingsAlerts" xml:space="preserve">
     <value>Show {0} security settings warnings</value>
   </data>
-  <data name="Msg_ShowPasskeyQualityWarnings" xml:space="preserve">
+  <data name="Msg_ShowPasskeyQualityAlerts" xml:space="preserve">
     <value>Show {0} passkey quality warnings</value>
   </data>
-  <data name="Msg_NoWarningsToNotify" xml:space="preserve">
+  <data name="Msg_NoAlertsToNotify" xml:space="preserve">
     <value>No warning notifications are enabled.
 
 You will not be alerted about:
@@ -636,16 +636,16 @@ You will not be alerted about:
 • Expired, duplicated, or leaked passwords
 • Insecure security settings</value>
   </data>
-  <data name="Title_NoWarningsToNotify" xml:space="preserve">
+  <data name="Title_NoAlertsToNotify" xml:space="preserve">
     <value>Warning notifications disabled</value>
   </data>
-  <data name="Title_SecuritySettingsWarnings" xml:space="preserve">
+  <data name="Title_SecuritySettingsAlerts" xml:space="preserve">
     <value>Security settings warnings</value>
   </data>
-  <data name="Title_SecuritySettingsWarningsWindow" xml:space="preserve">
+  <data name="Title_SecuritySettingsAlertsWindow" xml:space="preserve">
     <value>{0} - Security settings warnings</value>
   </data>
-  <data name="Title_PasskeyQualityWarningsWindow" xml:space="preserve">
+  <data name="Title_PasskeyQualityAlertsWindow" xml:space="preserve">
     <value>{0} - Passkey quality warnings</value>
   </data>
   <data name="Msg_PasskeyQuality_InsufficientPasskeys" xml:space="preserve">
@@ -977,6 +977,9 @@ You will not be alerted about:
   </data>
   <data name="FieldName_NumberOfMonthActivitiesToKeep" xml:space="preserve">
     <value>number of month activities to keep</value>
+  </data>
+    <data name="FieldName_AlertsToNotify" xml:space="preserve">
+    <value>warnings to notify</value>
   </data>
   <data name="FieldName_WarningsToNotify" xml:space="preserve">
     <value>warnings to notify</value>

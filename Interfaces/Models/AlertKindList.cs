@@ -6,18 +6,18 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
    /// <summary>
-   /// Notify-preference payload stored on <see cref="ISettings.WarningsToNotify"/>.
+   /// Notify-preference payload stored on <see cref="ISettings.AlertsToNotify"/>.
    /// Distinct from <c>string[]</c> so JSON can migrate legacy <see cref="WarningType"/> flags.
    /// </summary>
-   [JsonConverter(typeof(WarningKindListJsonConverter))]
-   public sealed class WarningKindList : IReadOnlyList<string>
+   [JsonConverter(typeof(AlertKindListJsonConverter))]
+   public sealed class AlertKindList : IReadOnlyList<string>
    {
       private readonly string[] _kinds;
 
-      public WarningKindList(IEnumerable<string>? kinds)
+      public AlertKindList(IEnumerable<string>? kinds)
          => _kinds = kinds is null ? [] : [.. kinds.Where(static k => !string.IsNullOrWhiteSpace(k)).Distinct(StringComparer.Ordinal)];
 
-      public static WarningKindList Default { get; } = new(WarningKinds.DefaultNotify);
+      public static AlertKindList Default { get; } = new(AlertKinds.DefaultNotify);
 
       public string this[int index] => _kinds[index];
 
@@ -36,9 +36,9 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
          => string.Join(", ", _kinds);
    }
 
-   public sealed class WarningKindListJsonConverter : JsonConverter<WarningKindList>
+   public sealed class AlertKindListJsonConverter : JsonConverter<AlertKindList>
    {
-      public override WarningKindList Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+      public override AlertKindList Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
       {
          switch (reader.TokenType)
          {
@@ -57,7 +57,7 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
                   }
                }
 
-               return new WarningKindList(kinds);
+               return new AlertKindList(kinds);
             }
 
             case JsonTokenType.String:
@@ -65,42 +65,42 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
                string? raw = reader.GetString();
                if (string.IsNullOrWhiteSpace(raw))
                {
-                  return new WarningKindList([]);
+                  return new AlertKindList([]);
                }
 
 #pragma warning disable CS0618 // Legacy WarningType migration
                if (Enum.TryParse(raw, ignoreCase: true, out WarningType legacyFromName))
                {
-                  return new WarningKindList(WarningKinds.FromLegacyWarningType(legacyFromName));
+                  return new AlertKindList(AlertKinds.FromLegacyWarningType(legacyFromName));
                }
 #pragma warning restore CS0618
 
-               return new WarningKindList(
+               return new AlertKindList(
                   raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
             }
 
             case JsonTokenType.Number:
             {
 #pragma warning disable CS0618 // Legacy WarningType migration
-               return new WarningKindList(
-                  WarningKinds.FromLegacyWarningType((WarningType)reader.GetInt32()));
+               return new AlertKindList(
+                  AlertKinds.FromLegacyWarningType((WarningType)reader.GetInt32()));
 #pragma warning restore CS0618
             }
 
             case JsonTokenType.Null:
-               return new WarningKindList([]);
+               return new AlertKindList([]);
 
             default:
-               throw new JsonException($"Unexpected token for WarningsToNotify: {reader.TokenType}.");
+               throw new JsonException($"Unexpected token for AlertsToNotify: {reader.TokenType}.");
          }
       }
 
-      public override void Write(Utf8JsonWriter writer, WarningKindList value, JsonSerializerOptions options)
+      public override void Write(Utf8JsonWriter writer, AlertKindList value, JsonSerializerOptions options)
       {
          ArgumentNullException.ThrowIfNull(writer);
 
          writer.WriteStartArray();
-         foreach (string kind in value ?? new WarningKindList([]))
+         foreach (string kind in value ?? new AlertKindList([]))
          {
             writer.WriteStringValue(kind);
          }

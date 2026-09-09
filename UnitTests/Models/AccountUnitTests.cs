@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -114,7 +114,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = account.Options.Should().Be(options);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
-         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
@@ -209,7 +209,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = account.Options.Should().Be(options);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
-         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
@@ -267,7 +267,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = serviceLoaded.Accounts.Count().Should().Be(0);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
-         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();
@@ -326,7 +326,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = serviceLoaded.Accounts.Count().Should().Be(0);
 
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
-         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
 
          // Finaly
          databaseLoaded.Close();

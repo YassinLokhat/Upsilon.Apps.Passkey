@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -9,7 +9,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
-using Upsilon.Apps.Passkey.GUI.WPF.Warnings;
+using Upsilon.Apps.Passkey.GUI.WPF.Alerts;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -39,8 +39,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          DataContext = _viewModel = new($"{_session.User}");
          _viewModel.FiltersRefreshed += _viewModel_FiltersRefreshed;
-         _viewModel.LanguageRefreshed += (_, _) => _refreshWarningsMenuFromSession();
-         _viewModel.ThemeRefreshed += (_, _) => _refreshWarningsMenuFromSession();
+         _viewModel.LanguageRefreshed += (_, _) => _refreshAlertsMenuFromSession();
+         _viewModel.ThemeRefreshed += (_, _) => _refreshAlertsMenuFromSession();
          _viewModel.SaveRequested += (_, _) => _save();
          _viewModel.UserSettingsRequested += (_, _) => _openUserSettings();
          _viewModel.GeneratePasswordRequested += (_, _) => _generateRandomPassword();
@@ -57,24 +57,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _services_LB.SelectedIndex = 0;
          }
 
-         _warnings_MI.Visibility = Visibility.Collapsed;
+         _alerts_MI.Visibility = Visibility.Collapsed;
 
          _ = _serviceFilter_TB.Focus();
 
          _database.DatabaseClosed += _database_DatabaseClosed;
-         _session.Warnings.NotifiedWarningsChanged += _warnings_NotifiedWarningsChanged;
+         _session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
          Loaded += _userServicesView_Loaded;
 
-         IWarning[] notified = _notifiedWarnings();
+         IAlert[] notified = _notifiedAlerts();
          if (notified.Length != 0)
          {
-            _updateWarningsMenu(notified);
+            _updateAlertsMenu(notified);
          }
       }
 
-      private void _warnings_NotifiedWarningsChanged(object? sender, EventArgs e)
+      private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
       {
-         _ = Dispatcher.BeginInvoke(() => { _updateWarningsMenu(_notifiedWarnings()); });
+         _ = Dispatcher.BeginInvoke(() => { _updateAlertsMenu(_notifiedAlerts()); });
       }
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
@@ -106,9 +106,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          this.PostLoadSetup();
 
-         if ((_database.User?.Settings.WarningsToNotify.Count ?? 0) == 0)
+         if ((_database.User?.Settings.AlertsToNotify.Count ?? 0) == 0)
          {
-            _dialogs.Warn(Strings.Msg_NoWarningsToNotify, Strings.Title_NoWarningsToNotify);
+            _dialogs.Warn(Strings.Msg_NoAlertsToNotify, Strings.Title_NoAlertsToNotify);
          }
       }
 
@@ -186,14 +186,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _isClosing = true;
 
          _database.DatabaseClosed -= _database_DatabaseClosed;
-         _session.Warnings.NotifiedWarningsChanged -= _warnings_NotifiedWarningsChanged;
+         _session.Alerts.NotifiedAlertsChanged -= _alerts_NotifiedAlertsChanged;
 
          _navigation.ItemRequested -= _navigation_ItemRequested;
 
-         _dialogs.Close<AccountPasswordsWarningView>();
-         _dialogs.Close<DuplicatedPasswordsWarningView>();
-         _dialogs.Close<SecuritySettingsWarningView>();
-         _dialogs.Close<PasskeyQualityWarningView>();
+         _dialogs.Close<AccountPasswordsAlertView>();
+         _dialogs.Close<DuplicatedPasswordsAlertView>();
+         _dialogs.Close<SecuritySettingsAlertView>();
+         _dialogs.Close<PasskeyQualityAlertView>();
          _dialogs.Close<UserActivitiesView>();
 
          // Drop any PasswordBox / history plaintext before tearing down the session.
@@ -261,49 +261,49 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
-      private void _refreshWarningsMenuFromSession()
-         => _updateWarningsMenu(_notifiedWarnings());
+      private void _refreshAlertsMenuFromSession()
+         => _updateAlertsMenu(_notifiedAlerts());
 
-      private static IWarning[] _notifiedWarnings()
-         => [.. _session.Warnings.GetNotifiedWarnings()];
+      private static IAlert[] _notifiedAlerts()
+         => [.. _session.Alerts.GetNotifiedAlerts()];
 
-      private void _updateWarningsMenu(IWarning[] warnings)
+      private void _updateAlertsMenu(IAlert[] warnings)
       {
-         IWarning[] activityKind = [.. warnings.Where(x => x.Kind == WarningKinds.ActivityReview)];
-         IWarning[] expiredKind = [.. warnings.Where(x => x.Kind == WarningKinds.PasswordUpdateReminder)];
-         IWarning[] duplicatedKind = [.. warnings.Where(x => x.Kind == WarningKinds.DuplicatedPasswords)];
-         IWarning[] leakedKind = [.. warnings.Where(x => x.Kind == WarningKinds.PasswordLeaked)];
-         IWarning[] securityKind =
+         IAlert[] activityKind = [.. warnings.Where(x => x.Kind == AlertKinds.ActivityReview)];
+         IAlert[] expiredKind = [.. warnings.Where(x => x.Kind == AlertKinds.PasswordUpdateReminder)];
+         IAlert[] duplicatedKind = [.. warnings.Where(x => x.Kind == AlertKinds.DuplicatedPasswords)];
+         IAlert[] leakedKind = [.. warnings.Where(x => x.Kind == AlertKinds.PasswordLeaked)];
+         IAlert[] securityKind =
          [
-            .. warnings.Where(x => x.Kind is WarningKinds.VaultSecuritySettings
-               or WarningKinds.HostSecuritySettings),
+            .. warnings.Where(x => x.Kind is AlertKinds.VaultSecuritySettings
+               or AlertKinds.HostSecuritySettings),
          ];
-         IWarning[] passkeyKind =
+         IAlert[] passkeyKind =
          [
-            .. warnings.Where(x => x.Kind is WarningKinds.InsufficientPasskeys
-               or WarningKinds.WeakPasskey
-               or WarningKinds.PasskeyLeaked
-               or WarningKinds.PasskeyReusedAsAccountPassword),
+            .. warnings.Where(x => x.Kind is AlertKinds.InsufficientPasskeys
+               or AlertKinds.WeakPasskey
+               or AlertKinds.PasskeyLeaked
+               or AlertKinds.PasskeyReusedAsAccountPassword),
          ];
 
          int activityWarnings = activityKind
-            .OfType<IActivityReviewWarning>()
+            .OfType<IActivityReviewAlert>()
             .SelectMany(x => x.Activities)
             .Count();
          int expiredPasswordWarnings = expiredKind
-            .OfType<IAccountsWarning>()
+            .OfType<IAccountsAlert>()
             .SelectMany(x => x.Accounts)
             .Count();
          int duplicatedPasswordWarnings = duplicatedKind.Length;
          int leakedPasswordWarnings = leakedKind
-            .OfType<IAccountsWarning>()
+            .OfType<IAccountsAlert>()
             .SelectMany(x => x.Accounts)
             .Count();
          int securitySettingsWarnings = securityKind
-            .OfType<IVaultSecuritySettingsWarning>()
+            .OfType<IVaultSecuritySettingsAlert>()
             .Sum(x => BitOperations.PopCount((uint)x.Issues))
             + securityKind
-            .OfType<IHostSecuritySettingsWarning>()
+            .OfType<IHostSecuritySettingsAlert>()
             .Sum(x => BitOperations.PopCount((uint)x.Issues));
          int passkeyQualityWarnings = _passkeyQualityCount(passkeyKind);
 
@@ -314,44 +314,44 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             + securitySettingsWarnings
             + passkeyQualityWarnings;
 
-         WarningSeverity activitySeverity = WarningBroker.MaxSeverity(activityKind);
-         WarningSeverity expiredSeverity = WarningBroker.MaxSeverity(expiredKind);
-         WarningSeverity duplicatedSeverity = WarningBroker.MaxSeverity(duplicatedKind);
-         WarningSeverity leakedSeverity = WarningBroker.MaxSeverity(leakedKind);
-         WarningSeverity securitySeverity = WarningBroker.MaxSeverity(securityKind);
-         WarningSeverity passkeySeverity = WarningBroker.MaxSeverity(passkeyKind);
+         AlertSeverity activitySeverity = AlertBroker.MaxSeverity(activityKind);
+         AlertSeverity expiredSeverity = AlertBroker.MaxSeverity(expiredKind);
+         AlertSeverity duplicatedSeverity = AlertBroker.MaxSeverity(duplicatedKind);
+         AlertSeverity leakedSeverity = AlertBroker.MaxSeverity(leakedKind);
+         AlertSeverity securitySeverity = AlertBroker.MaxSeverity(securityKind);
+         AlertSeverity passkeySeverity = AlertBroker.MaxSeverity(passkeyKind);
 
-         _viewModel.ShowWarnings = Strings.Format(nameof(Strings.Msg_ShowWarnings), totalWarningCount);
-         _viewModel.ShowWarningsColor = WarningBroker.BrushFor(warnings);
-         _viewModel.ShowActivityWarningsColor = WarningBroker.BrushFor(activitySeverity);
-         _viewModel.ShowExpiredPasswordWarningsColor = WarningBroker.BrushFor(expiredSeverity);
-         _viewModel.ShowDuplicatedPasswordWarningsColor = WarningBroker.BrushFor(duplicatedSeverity);
-         _viewModel.ShowLeakedPasswordWarningsColor = WarningBroker.BrushFor(leakedSeverity);
-         _viewModel.ShowSecuritySettingsWarningsColor = WarningBroker.BrushFor(securitySeverity);
-         _viewModel.ShowPasskeyQualityWarningsColor = WarningBroker.BrushFor(passkeySeverity);
-         _viewModel.ShowActivityWarnings = Strings.Format(nameof(Strings.Msg_ShowActivityWarnings), activityWarnings);
-         _viewModel.ShowExpiredPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowExpiredPasswordWarnings), expiredPasswordWarnings);
-         _viewModel.ShowDuplicatedPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowDuplicatedPasswordWarnings), duplicatedPasswordWarnings);
-         _viewModel.ShowLeakedPasswordWarnings = Strings.Format(nameof(Strings.Msg_ShowLeakedPasswordWarnings), leakedPasswordWarnings);
-         _viewModel.ShowSecuritySettingsWarnings = Strings.Format(nameof(Strings.Msg_ShowSecuritySettingsWarnings), securitySettingsWarnings);
-         _viewModel.ShowPasskeyQualityWarnings = Strings.Format(nameof(Strings.Msg_ShowPasskeyQualityWarnings), passkeyQualityWarnings);
+         _viewModel.ShowAlerts = Strings.Format(nameof(Strings.Msg_ShowAlerts), totalWarningCount);
+         _viewModel.ShowAlertsColor = AlertBroker.BrushFor(warnings);
+         _viewModel.ShowActivityAlertsColor = AlertBroker.BrushFor(activitySeverity);
+         _viewModel.ShowExpiredPasswordAlertsColor = AlertBroker.BrushFor(expiredSeverity);
+         _viewModel.ShowDuplicatedPasswordAlertsColor = AlertBroker.BrushFor(duplicatedSeverity);
+         _viewModel.ShowLeakedPasswordAlertsColor = AlertBroker.BrushFor(leakedSeverity);
+         _viewModel.ShowSecuritySettingsAlertsColor = AlertBroker.BrushFor(securitySeverity);
+         _viewModel.ShowPasskeyQualityAlertsColor = AlertBroker.BrushFor(passkeySeverity);
+         _viewModel.ShowActivityAlerts = Strings.Format(nameof(Strings.Msg_ShowActivityAlerts), activityWarnings);
+         _viewModel.ShowExpiredPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowExpiredPasswordAlerts), expiredPasswordWarnings);
+         _viewModel.ShowDuplicatedPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowDuplicatedPasswordAlerts), duplicatedPasswordWarnings);
+         _viewModel.ShowLeakedPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowLeakedPasswordAlerts), leakedPasswordWarnings);
+         _viewModel.ShowSecuritySettingsAlerts = Strings.Format(nameof(Strings.Msg_ShowSecuritySettingsAlerts), securitySettingsWarnings);
+         _viewModel.ShowPasskeyQualityAlerts = Strings.Format(nameof(Strings.Msg_ShowPasskeyQualityAlerts), passkeyQualityWarnings);
 
-         _warnings_MI.Visibility = totalWarningCount != 0 ? Visibility.Visible : Visibility.Collapsed;
-         _activityWarnings_MI.Visibility = activityWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
-         _expiredPasswordWarnings_MI.Visibility = expiredPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
-         _duplicatedPasswordWarnings_MI.Visibility = duplicatedPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
-         _leakedPasswordWarnings_MI.Visibility = leakedPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
-         _securitySettingsWarnings_MI.Visibility = securitySettingsWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
-         _passkeyQualityWarnings_MI.Visibility = passkeyQualityWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _alerts_MI.Visibility = totalWarningCount != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _activityAlerts_MI.Visibility = activityWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _expiredPasswordAlerts_MI.Visibility = expiredPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _duplicatedPasswordAlerts_MI.Visibility = duplicatedPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _leakedPasswordAlerts_MI.Visibility = leakedPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _securitySettingsAlerts_MI.Visibility = securitySettingsWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _passkeyQualityAlerts_MI.Visibility = passkeyQualityWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
 
-         _reorderWarningsMenu(
+         _reorderAlertsMenu(
          [
-            (_leakedPasswordWarnings_MI, leakedSeverity, leakedPasswordWarnings),
-            (_passkeyQualityWarnings_MI, passkeySeverity, passkeyQualityWarnings),
-            (_expiredPasswordWarnings_MI, expiredSeverity, expiredPasswordWarnings),
-            (_activityWarnings_MI, activitySeverity, activityWarnings),
-            (_duplicatedPasswordWarnings_MI, duplicatedSeverity, duplicatedPasswordWarnings),
-            (_securitySettingsWarnings_MI, securitySeverity, securitySettingsWarnings),
+            (_leakedPasswordAlerts_MI, leakedSeverity, leakedPasswordWarnings),
+            (_passkeyQualityAlerts_MI, passkeySeverity, passkeyQualityWarnings),
+            (_expiredPasswordAlerts_MI, expiredSeverity, expiredPasswordWarnings),
+            (_activityAlerts_MI, activitySeverity, activityWarnings),
+            (_duplicatedPasswordAlerts_MI, duplicatedSeverity, duplicatedPasswordWarnings),
+            (_securitySettingsAlerts_MI, securitySeverity, securitySettingsWarnings),
          ]);
       }
 
@@ -359,8 +359,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       /// Critical first, then Warning, then Info. Hidden items stay at the end;
       /// equal severity keeps the stable secondary order of <paramref name="entries"/>.
       /// </summary>
-      private void _reorderWarningsMenu(
-         (MenuItem Item, WarningSeverity Severity, int Count)[] entries)
+      private void _reorderAlertsMenu(
+         (MenuItem Item, AlertSeverity Severity, int Count)[] entries)
       {
          MenuItem[] ordered =
          [
@@ -373,31 +373,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                .Select(static e => e.Item),
          ];
 
-         _warnings_MI.Items.Clear();
+         _alerts_MI.Items.Clear();
          foreach (MenuItem item in ordered)
          {
-            _ = _warnings_MI.Items.Add(item);
+            _ = _alerts_MI.Items.Add(item);
          }
       }
 
-      private static int _passkeyQualityCount(IEnumerable<IWarning> warnings)
+      private static int _passkeyQualityCount(IEnumerable<IAlert> warnings)
       {
          int count = 0;
 
-         foreach (IWarning warning in warnings)
+         foreach (IAlert warning in warnings)
          {
             switch (warning)
             {
-               case IInsufficientPasskeysWarning:
+               case IInsufficientPasskeysAlert:
                   count++;
                   break;
-               case IWeakPasskeyWarning weak:
+               case IWeakPasskeyAlert weak:
                   count += Math.Max(1, weak.PasskeyIndexes.Count);
                   break;
-               case IPasskeyLeakedWarning leaked:
+               case IPasskeyLeakedAlert leaked:
                   count += Math.Max(1, leaked.PasskeyIndexes.Count);
                   break;
-               case IPasskeyReuseWarning reuse:
+               case IPasskeyReuseAlert reuse:
                   count += Math.Max(1, reuse.Accounts.Count());
                   break;
             }
@@ -510,7 +510,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
-      private void _activityWarnings_MI_Click(object sender, RoutedEventArgs e)
+      private void _activityAlerts_MI_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy())
          {
@@ -528,56 +528,56 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             });
       }
 
-      private void _duplicatedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
+      private void _duplicatedPasswordAlerts_MI_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy())
          {
             return;
          }
 
-         _ = _dialogs.ShowSingleton(() => new DuplicatedPasswordsWarningView());
+         _ = _dialogs.ShowSingleton(() => new DuplicatedPasswordsAlertView());
       }
 
-      private void _expiredOrLeakedPasswordWarnings_MI_Click(object sender, RoutedEventArgs e)
+      private void _expiredOrLeakedPasswordAlerts_MI_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy())
          {
             return;
          }
 
-         string requested = sender.Equals(_expiredPasswordWarnings_MI)
-            ? WarningKinds.PasswordUpdateReminder
-            : WarningKinds.PasswordLeaked;
+         string requested = sender.Equals(_expiredPasswordAlerts_MI)
+            ? AlertKinds.PasswordUpdateReminder
+            : AlertKinds.PasswordLeaked;
 
          _ = _dialogs.ShowSingleton(
-            factory: () => new AccountPasswordsWarningView(requested),
+            factory: () => new AccountPasswordsAlertView(requested),
             configure: view =>
             {
-               if (view.DataContext is AccountPasswordsWarningViewModel vm)
+               if (view.DataContext is AccountPasswordsAlertViewModel vm)
                {
                   vm.Kind = requested;
                }
             });
       }
 
-      private void _securitySettingsWarnings_MI_Click(object sender, RoutedEventArgs e)
+      private void _securitySettingsAlerts_MI_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy())
          {
             return;
          }
 
-         _ = _dialogs.ShowSingleton(() => new SecuritySettingsWarningView());
+         _ = _dialogs.ShowSingleton(() => new SecuritySettingsAlertView());
       }
 
-      private void _passkeyQualityWarnings_MI_Click(object sender, RoutedEventArgs e)
+      private void _passkeyQualityAlerts_MI_Click(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy())
          {
             return;
          }
 
-         _ = _dialogs.ShowSingleton(() => new PasskeyQualityWarningView());
+         _ = _dialogs.ShowSingleton(() => new PasskeyQualityAlertView());
       }
 
       public void Dispose()

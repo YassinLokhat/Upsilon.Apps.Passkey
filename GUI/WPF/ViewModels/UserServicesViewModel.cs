@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -31,85 +31,85 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh UserId on language change.")]
       public string UserId => Strings.Format(nameof(Strings.Msg_UserId), AppServices.Session.User?.ItemId);
 
-      public string ShowWarnings
+      public string ShowAlerts
       {
          get;
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public Brush ShowWarningsColor
+      public Brush ShowAlertsColor
       {
          get;
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
-      public Brush ShowActivityWarningsColor
+      public Brush ShowActivityAlertsColor
       {
          get;
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
-      public Brush ShowExpiredPasswordWarningsColor
+      public Brush ShowExpiredPasswordAlertsColor
       {
          get;
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
-      public Brush ShowDuplicatedPasswordWarningsColor
+      public Brush ShowDuplicatedPasswordAlertsColor
       {
          get;
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
-      public Brush ShowLeakedPasswordWarningsColor
+      public Brush ShowLeakedPasswordAlertsColor
       {
          get;
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
-      public Brush ShowSecuritySettingsWarningsColor
+      public Brush ShowSecuritySettingsAlertsColor
       {
          get;
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
-      public Brush ShowPasskeyQualityWarningsColor
+      public Brush ShowPasskeyQualityAlertsColor
       {
          get;
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
-      public string ShowActivityWarnings
+      public string ShowActivityAlerts
       {
          get;
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public string ShowExpiredPasswordWarnings
+      public string ShowExpiredPasswordAlerts
       {
          get;
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public string ShowDuplicatedPasswordWarnings
+      public string ShowDuplicatedPasswordAlerts
       {
          get;
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public string ShowLeakedPasswordWarnings
+      public string ShowLeakedPasswordAlerts
       {
          get;
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public string ShowSecuritySettingsWarnings
+      public string ShowSecuritySettingsAlerts
       {
          get;
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public string ShowPasskeyQualityWarnings
+      public string ShowPasskeyQualityAlerts
       {
          get;
          set => SetProperty(ref field, value);

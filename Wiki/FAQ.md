@@ -56,7 +56,7 @@ No. Import refuses the whole file if any service name collides or is blank. Rena
 
 ## Is the activity log a secure audit that cannot be tampered with?
 
-It is **tamper-evident** for the portion sealed at the last logged-in save (signature + watermark inside the encrypted database). The unsealed tail — including failed logins recorded while nobody is logged in — can be deleted by someone with write access to the file. Login is not blocked on a failed integrity check; you get `ActivityLogTampered` to review. See [[Warnings and Activity]] and [[Threat Model]].
+It is **tamper-evident** for the portion sealed at the last logged-in save (signature + watermark inside the encrypted database). The unsealed tail — including failed logins recorded while nobody is logged in — can be deleted by someone with write access to the file. Login is not blocked on a failed integrity check; you get `ActivityLogTampered` to review. See [[Alerts and Activity]] and [[Threat Model]].
 
 ## How do I report a security issue?
 

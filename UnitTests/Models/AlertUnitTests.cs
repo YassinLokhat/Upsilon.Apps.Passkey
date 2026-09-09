@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -9,17 +9,17 @@ using Upsilon.Apps.Passkey.Utils;
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
    [TestClass]
-   public sealed class WarningUnitTests
+   public sealed class AlertUnitTests
    {
       // VaultSecuritySettings also reports when no accounts enable duplicate /
       // reminder / leaked monitoring; tests that assert a clean posture must
       // keep those kinds enabled alongside VaultSecuritySettings.
-      private static readonly WarningKindList SecurityPostureNotify = new(
+      private static readonly AlertKindList SecurityPostureNotify = new(
       [
-         WarningKinds.VaultSecuritySettings,
-         WarningKinds.DuplicatedPasswords,
-         WarningKinds.PasswordUpdateReminder,
-         WarningKinds.PasswordLeaked,
+         AlertKinds.VaultSecuritySettings,
+         AlertKinds.DuplicatedPasswords,
+         AlertKinds.PasswordUpdateReminder,
+         AlertKinds.PasswordLeaked,
       ]);
 
       [TestMethod]
@@ -27,12 +27,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
        * Accounts that share a password raise DuplicatedPasswords when at
        * least one of them opted in; accounts with unique passwords do not.
       */
-      public void Case01_DuplicatedPasswordsWarning()
+      public void Case01_DuplicatedPasswordsAlert()
       {
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         database.User!.Settings.WarningsToNotify = new WarningKindList([WarningKinds.DuplicatedPasswords]);
+         database.User!.Settings.AlertsToNotify = new AlertKindList([AlertKinds.DuplicatedPasswords]);
 
          IService service = database.User.AddService("DupService");
          IAccount sharedA = service.AddAccount("A", ["a@test"], "shared-secret");
@@ -42,10 +42,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          sharedB.Options = AccountOption.None;
          unique.Options = AccountOption.WarnIfDuplicatedPassword;
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.DuplicatedPasswords, database.Save);
+         IAlert[] alerts = UnitTestsHelper.WaitForAlertKind(database, AlertKinds.DuplicatedPasswords, database.Save);
 
-         IAccountsWarning duplicate = warnings.OfType<IAccountsWarning>()
-            .Single(w => w.Kind == WarningKinds.DuplicatedPasswords);
+         IAccountsAlert duplicate = alerts.OfType<IAccountsAlert>()
+            .Single(w => w.Kind == AlertKinds.DuplicatedPasswords);
          _ = duplicate.Accounts.Should().BeEquivalentTo([sharedA, sharedB]);
          _ = duplicate.Accounts.Should().NotContain(unique);
 
@@ -58,12 +58,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
        * An expired password history raises PasswordUpdateReminder; a
        * freshly dated one does not.
       */
-      public void Case02_PasswordUpdateReminderWarning()
+      public void Case02_PasswordUpdateReminderAlert()
       {
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         database.User!.Settings.WarningsToNotify = new WarningKindList([WarningKinds.PasswordUpdateReminder]);
+         database.User!.Settings.AlertsToNotify = new AlertKindList([AlertKinds.PasswordUpdateReminder]);
 
          IService service = database.User.AddService("ExpiryService");
          IAccount stale = service.AddAccount("Stale", ["stale@test"], "stale-password");
@@ -77,10 +77,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          staleConcrete.Passwords.Clear();
          staleConcrete.Passwords[DateTime.Now.AddMonths(-6)] = ProtectedSecret.Protect("stale-password");
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.PasswordUpdateReminder, database.Save);
+         IAlert[] alerts = UnitTestsHelper.WaitForAlertKind(database, AlertKinds.PasswordUpdateReminder, database.Save);
 
-         IAccountsWarning reminder = warnings.OfType<IAccountsWarning>()
-            .Single(w => w.Kind == WarningKinds.PasswordUpdateReminder);
+         IAccountsAlert reminder = alerts.OfType<IAccountsAlert>()
+            .Single(w => w.Kind == AlertKinds.PasswordUpdateReminder);
          _ = reminder.Accounts.Should().Contain(stale);
          _ = reminder.Accounts.Should().NotContain(fresh);
 
@@ -93,7 +93,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
        * A password the factory reports as leaked raises PasswordLeaked
        * only for accounts that opted into leak checks, and stamps PasswordLeaked.
       */
-      public void Case03_PasswordLeakedWarning()
+      public void Case03_PasswordLeakedAlert()
       {
          UnitTestsHelper.ClearTestEnvironment();
          string username = UnitTestsHelper.GetUsername();
@@ -111,7 +111,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             username,
             passkeys);
 
-         database.User!.Settings.WarningsToNotify = new WarningKindList([WarningKinds.PasswordLeaked]);
+         database.User!.Settings.AlertsToNotify = new AlertKindList([AlertKinds.PasswordLeaked]);
 
          IService service = database.User.AddService("LeakService");
          IAccount watched = service.AddAccount("Watched", ["watched@test"], "pwned-password");
@@ -121,10 +121,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          ignored.Options = AccountOption.None;
          safe.Options = AccountOption.WarnIfPasswordLeaked;
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.PasswordLeaked, database.Save);
+         IAlert[] alerts = UnitTestsHelper.WaitForAlertKind(database, AlertKinds.PasswordLeaked, database.Save);
 
-         IAccountsWarning leaked = warnings.OfType<IAccountsWarning>()
-            .Single(w => w.Kind == WarningKinds.PasswordLeaked);
+         IAccountsAlert leaked = alerts.OfType<IAccountsAlert>()
+            .Single(w => w.Kind == AlertKinds.PasswordLeaked);
          _ = leaked.Accounts.Should().Contain(watched);
          _ = leaked.Accounts.Should().NotContain(ignored);
          _ = leaked.Accounts.Should().NotContain(safe);
@@ -145,14 +145,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         database.User!.Settings.WarningsToNotify = SecurityPostureNotify;
+         database.User!.Settings.AlertsToNotify = SecurityPostureNotify;
          database.User.Settings.LogoutTimeout = 0;
          database.User.Settings.CleaningClipboardTimeout = 0;
          database.User.Settings.ShowPasswordDelay = 0;
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.VaultSecuritySettings, database.Save);
+         IAlert[] alerts = UnitTestsHelper.WaitForAlertKind(database, AlertKinds.VaultSecuritySettings, database.Save);
 
-         IVaultSecuritySettingsWarning posture = warnings.OfType<IVaultSecuritySettingsWarning>().Single();
+         IVaultSecuritySettingsAlert posture = alerts.OfType<IVaultSecuritySettingsAlert>().Single();
          _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.AutoLogoutDisabled);
          _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.ClipboardCleaningDisabled);
          _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.QrAutoCloseDisabled);
@@ -164,8 +164,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Settings.CleaningClipboardTimeout = 30;
          database.User.Settings.ShowPasswordDelay = 5000;
 
-         IWarning[] cleared = UnitTestsHelper.WaitForWarnings(database, database.Save);
-         _ = cleared.Should().NotContain(w => w.Kind == WarningKinds.VaultSecuritySettings);
+         IAlert[] cleared = UnitTestsHelper.WaitForAlerts(database, database.Save);
+         _ = cleared.Should().NotContain(w => w.Kind == AlertKinds.VaultSecuritySettings);
 
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
@@ -183,7 +183,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         database.User!.Settings.WarningsToNotify = SecurityPostureNotify;
+         database.User!.Settings.AlertsToNotify = SecurityPostureNotify;
          database.User.Settings.LogoutTimeout = 5;
          database.User.Settings.CleaningClipboardTimeout = 30;
          database.User.Settings.ShowPasswordDelay = 5000;
@@ -193,9 +193,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          account.Options = AccountOption.None;
          account.PasswordUpdateReminderDelay = 0;
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.VaultSecuritySettings, database.Save);
+         IAlert[] alerts = UnitTestsHelper.WaitForAlertKind(database, AlertKinds.VaultSecuritySettings, database.Save);
 
-         IVaultSecuritySettingsWarning posture = warnings.OfType<IVaultSecuritySettingsWarning>().Single();
+         IVaultSecuritySettingsAlert posture = alerts.OfType<IVaultSecuritySettingsAlert>().Single();
          _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
          _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
          _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
@@ -206,8 +206,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          alsoLeaked.Options = AccountOption.WarnIfPasswordLeaked;
          alsoLeaked.PasswordUpdateReminderDelay = 0;
 
-         IWarning[] afterLeak = UnitTestsHelper.WaitForWarnings(database, database.Save);
-         IVaultSecuritySettingsWarning still = afterLeak.OfType<IVaultSecuritySettingsWarning>().Single();
+         IAlert[] afterLeak = UnitTestsHelper.WaitForAlerts(database, database.Save);
+         IVaultSecuritySettingsAlert still = afterLeak.OfType<IVaultSecuritySettingsAlert>().Single();
          _ = still.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
          _ = still.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
          _ = still.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
@@ -215,8 +215,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // A third account without leak does not revive NoAccountLeakCheck.
          IAccount uncovered = service.AddAccount("C", ["c@test"], "third-secret");
          uncovered.Options = AccountOption.None;
-         IWarning[] mixed = UnitTestsHelper.WaitForWarnings(database, database.Save);
-         IVaultSecuritySettingsWarning mixedPosture = mixed.OfType<IVaultSecuritySettingsWarning>().Single();
+         IAlert[] mixed = UnitTestsHelper.WaitForAlerts(database, database.Save);
+         IVaultSecuritySettingsAlert mixedPosture = mixed.OfType<IVaultSecuritySettingsAlert>().Single();
          _ = mixedPosture.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
          _ = mixedPosture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
          _ = mixedPosture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
@@ -224,8 +224,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          account.Options = AccountOption.WarnIfPasswordLeaked | AccountOption.WarnIfDuplicatedPassword;
          account.PasswordUpdateReminderDelay = 6;
 
-         IWarning[] cleared = UnitTestsHelper.WaitForWarnings(database, database.Save);
-         _ = cleared.Should().NotContain(w => w.Kind == WarningKinds.VaultSecuritySettings);
+         IAlert[] cleared = UnitTestsHelper.WaitForAlerts(database, database.Save);
+         _ = cleared.Should().NotContain(w => w.Kind == AlertKinds.VaultSecuritySettings);
 
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
@@ -235,18 +235,18 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       /*
        * Fewer than RecommendedPasskeyCount onion layers raises InsufficientPasskeys.
       */
-      public void Case06_InsufficientPasskeysWarning()
+      public void Case06_InsufficientPasskeysAlert()
       {
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray(1);
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         database.User!.Settings.WarningsToNotify = new WarningKindList([WarningKinds.InsufficientPasskeys]);
+         database.User!.Settings.AlertsToNotify = new AlertKindList([AlertKinds.InsufficientPasskeys]);
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.InsufficientPasskeys, database.Save);
+         IAlert[] alerts = UnitTestsHelper.WaitForAlertKind(database, AlertKinds.InsufficientPasskeys, database.Save);
 
-         IInsufficientPasskeysWarning insufficient = warnings.OfType<IInsufficientPasskeysWarning>().Single();
+         IInsufficientPasskeysAlert insufficient = alerts.OfType<IInsufficientPasskeysAlert>().Single();
          _ = insufficient.Count.Should().Be(1);
-         _ = insufficient.RecommendedMinimum.Should().Be(WarningKinds.RecommendedPasskeyCount);
+         _ = insufficient.RecommendedMinimum.Should().Be(AlertKinds.RecommendedPasskeyCount);
 
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
@@ -256,17 +256,17 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       /*
        * A short passkey layer raises WeakPasskey after the onion is updated.
       */
-      public void Case07_WeakPasskeyWarning()
+      public void Case07_WeakPasskeyAlert()
       {
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = ["StrongPasskeyOne!", "StrongPasskeyTwo!"];
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         database.User!.Settings.WarningsToNotify = new WarningKindList([WarningKinds.WeakPasskey]);
+         database.User!.Settings.AlertsToNotify = new AlertKindList([AlertKinds.WeakPasskey]);
          database.User.Passkeys = ["StrongPasskeyOne!", "short"];
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.WeakPasskey, database.Save);
+         IAlert[] alerts = UnitTestsHelper.WaitForAlertKind(database, AlertKinds.WeakPasskey, database.Save);
 
-         IWeakPasskeyWarning weak = warnings.OfType<IWeakPasskeyWarning>().Single();
+         IWeakPasskeyAlert weak = alerts.OfType<IWeakPasskeyAlert>().Single();
          _ = weak.PasskeyIndexes.Should().Contain(1);
          _ = weak.Issues.Should().HaveFlag(SecretQualityIssue.TooShort);
 
@@ -281,30 +281,30 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       */
       public void Case08_ActivityReviewSeverity_PerEventMax()
       {
-         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.ImportingDataStarted)
-            .Should().Be(WarningSeverity.Info);
-         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.ItemAdded)
-            .Should().Be(WarningSeverity.Info);
-         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile)
-            .Should().Be(WarningSeverity.Info);
+         _ = ActivityReviewAlert.SeverityFor(ActivityEventType.ImportingDataStarted)
+            .Should().Be(AlertSeverity.Info);
+         _ = ActivityReviewAlert.SeverityFor(ActivityEventType.ItemAdded)
+            .Should().Be(AlertSeverity.Info);
+         _ = ActivityReviewAlert.SeverityFor(ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile)
+            .Should().Be(AlertSeverity.Info);
 
-         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.ItemUpdated)
-            .Should().Be(WarningSeverity.Warning);
-         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.ItemDeleted)
-            .Should().Be(WarningSeverity.Warning);
+         _ = ActivityReviewAlert.SeverityFor(ActivityEventType.ItemUpdated)
+            .Should().Be(AlertSeverity.Warning);
+         _ = ActivityReviewAlert.SeverityFor(ActivityEventType.ItemDeleted)
+            .Should().Be(AlertSeverity.Warning);
 
-         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.ExportingDataStarted)
-            .Should().Be(WarningSeverity.Critical);
-         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.LoginFailed)
-            .Should().Be(WarningSeverity.Critical);
+         _ = ActivityReviewAlert.SeverityFor(ActivityEventType.ExportingDataStarted)
+            .Should().Be(AlertSeverity.Critical);
+         _ = ActivityReviewAlert.SeverityFor(ActivityEventType.LoginFailed)
+            .Should().Be(AlertSeverity.Critical);
 
          Activity infoOnly = new(1, "id", "u", null, null, null, null, null,
             ActivityEventType.ImportingDataSucceded, needsReview: true);
          Activity export = new(2, "id", "u", null, null, null, null, null,
             ActivityEventType.ExportingDataSucceded, needsReview: true);
 
-         _ = new ActivityReviewWarning([infoOnly]).Severity.Should().Be(WarningSeverity.Info);
-         _ = new ActivityReviewWarning([infoOnly, export]).Severity.Should().Be(WarningSeverity.Critical);
+         _ = new ActivityReviewAlert([infoOnly]).Severity.Should().Be(AlertSeverity.Info);
+         _ = new ActivityReviewAlert([infoOnly, export]).Severity.Should().Be(AlertSeverity.Critical);
       }
    }
 }

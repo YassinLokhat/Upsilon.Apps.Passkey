@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -378,11 +378,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Settings.ShowPasswordDelay.Should().Be(999);
          database.User.Settings.NumberOfOldPasswordToKeep.Should().Be(9);
          database.User.Settings.NumberOfMonthActivitiesToKeep.Should().Be(9);
-         database.User.Settings.WarningsToNotify.ToArray().Should().BeEquivalentTo(
+         database.User.Settings.AlertsToNotify.ToArray().Should().BeEquivalentTo(
          [
-            WarningKinds.PasswordUpdateReminder,
-            WarningKinds.DuplicatedPasswords,
-            WarningKinds.PasswordLeaked,
+            AlertKinds.PasswordUpdateReminder,
+            AlertKinds.DuplicatedPasswords,
+            AlertKinds.PasswordLeaked,
          ]);
 
          database.User.Services.Count().Should().Be(2);

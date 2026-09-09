@@ -120,6 +120,36 @@ IUser? user = await database.LoginAsync(passkey, cancellationToken);
 
 Do not start a second `LoginAsync` / `SaveAsync` on the same instance until the first has finished.
 
+## Subscribe to Core alerts
+
+```csharp
+database.PasswordLeakedAlertsChanged += (_, e) =>
+{
+   foreach (IAccountsAlert alert in e.Alerts.OfType<IAccountsAlert>())
+   {
+      foreach (IAccount account in alert.Accounts)
+      {
+         // Surface in UI; severity is on alert.Severity
+      }
+   }
+};
+
+database.CoreAlertsScanCompleted += (_, _) =>
+{
+   // All kinds for this scan are published; host can also call RefreshAlerts()
+   // after app-level posture changes (idle login, offline Bloom filter).
+};
+
+// Unfiltered Core snapshots:
+if (database.CoreAlerts.TryGetValue(AlertKinds.InsufficientPasskeys, out var insufficient)
+   && insufficient.Count > 0)
+{
+   // Fewer than AlertKinds.RecommendedPasskeyCount onion layers
+}
+```
+
+The WPF client aggregates Core + host alerts in `AlertBroker` and filters with `AlertsToNotify` — see [[Alerts and Activity]].
+
 ## Copy a password with auto-clear
 
 ```csharp

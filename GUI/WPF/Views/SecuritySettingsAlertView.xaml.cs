@@ -1,18 +1,18 @@
-﻿using System.Windows;
+using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
-   internal sealed partial class SecuritySettingsWarningView : Window, IDisposable
+   internal sealed partial class SecuritySettingsAlertView : Window, IDisposable
    {
-      private readonly SecuritySettingsWarningViewModel _viewModel;
+      private readonly SecuritySettingsAlertViewModel _viewModel;
       private bool _disposed;
 
-      internal SecuritySettingsWarningView()
+      internal SecuritySettingsAlertView()
       {
          InitializeComponent();
-         DataContext = _viewModel = new SecuritySettingsWarningViewModel();
+         DataContext = _viewModel = new SecuritySettingsAlertViewModel();
          Loaded += (_, _) => this.PostLoadSetup();
          Closed += (_, _) => Dispose();
       }

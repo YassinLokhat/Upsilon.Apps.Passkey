@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -266,76 +266,76 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          NumberOfOldPasswordToKeep = user.Settings.NumberOfOldPasswordToKeep;
          NumberOfMonthActivitiesToKeep = user.Settings.NumberOfMonthActivitiesToKeep;
 
-         WarningKindList notify = user.Settings.WarningsToNotify;
-         NotifyActivityReview = notify.Contains(WarningKinds.ActivityReview);
-         NotifyPasswordUpdateReminder = notify.Contains(WarningKinds.PasswordUpdateReminder);
-         NotifyDuplicatedPasswords = notify.Contains(WarningKinds.DuplicatedPasswords);
-         NotifyPasswordLeaked = notify.Contains(WarningKinds.PasswordLeaked);
-         NotifySecuritySettings = notify.Contains(WarningKinds.VaultSecuritySettings)
-            || notify.Contains(WarningKinds.HostSecuritySettings);
-         NotifyInsufficientPasskeys = notify.Contains(WarningKinds.InsufficientPasskeys);
-         NotifyWeakPasskey = notify.Contains(WarningKinds.WeakPasskey);
-         NotifyPasskeyLeaked = notify.Contains(WarningKinds.PasskeyLeaked);
-         NotifyWeakAccountPassword = notify.Contains(WarningKinds.WeakAccountPassword);
-         NotifyPasskeyReusedAsAccountPassword = notify.Contains(WarningKinds.PasskeyReusedAsAccountPassword);
+         AlertKindList notify = user.Settings.AlertsToNotify;
+         NotifyActivityReview = notify.Contains(AlertKinds.ActivityReview);
+         NotifyPasswordUpdateReminder = notify.Contains(AlertKinds.PasswordUpdateReminder);
+         NotifyDuplicatedPasswords = notify.Contains(AlertKinds.DuplicatedPasswords);
+         NotifyPasswordLeaked = notify.Contains(AlertKinds.PasswordLeaked);
+         NotifySecuritySettings = notify.Contains(AlertKinds.VaultSecuritySettings)
+            || notify.Contains(AlertKinds.HostSecuritySettings);
+         NotifyInsufficientPasskeys = notify.Contains(AlertKinds.InsufficientPasskeys);
+         NotifyWeakPasskey = notify.Contains(AlertKinds.WeakPasskey);
+         NotifyPasskeyLeaked = notify.Contains(AlertKinds.PasskeyLeaked);
+         NotifyWeakAccountPassword = notify.Contains(AlertKinds.WeakAccountPassword);
+         NotifyPasskeyReusedAsAccountPassword = notify.Contains(AlertKinds.PasskeyReusedAsAccountPassword);
       }
 
-      public WarningKindList BuildWarningsToNotify()
+      public AlertKindList BuildAlertsToNotify()
       {
          List<string> kinds = [];
 
          if (NotifyActivityReview)
          {
-            kinds.Add(WarningKinds.ActivityReview);
+            kinds.Add(AlertKinds.ActivityReview);
          }
 
          if (NotifyDuplicatedPasswords)
          {
-            kinds.Add(WarningKinds.DuplicatedPasswords);
+            kinds.Add(AlertKinds.DuplicatedPasswords);
          }
 
          if (NotifyPasswordUpdateReminder)
          {
-            kinds.Add(WarningKinds.PasswordUpdateReminder);
+            kinds.Add(AlertKinds.PasswordUpdateReminder);
          }
 
          if (NotifyPasswordLeaked)
          {
-            kinds.Add(WarningKinds.PasswordLeaked);
+            kinds.Add(AlertKinds.PasswordLeaked);
          }
 
          if (NotifySecuritySettings)
          {
-            kinds.Add(WarningKinds.VaultSecuritySettings);
-            kinds.Add(WarningKinds.HostSecuritySettings);
+            kinds.Add(AlertKinds.VaultSecuritySettings);
+            kinds.Add(AlertKinds.HostSecuritySettings);
          }
 
          if (NotifyInsufficientPasskeys)
          {
-            kinds.Add(WarningKinds.InsufficientPasskeys);
+            kinds.Add(AlertKinds.InsufficientPasskeys);
          }
 
          if (NotifyWeakPasskey)
          {
-            kinds.Add(WarningKinds.WeakPasskey);
+            kinds.Add(AlertKinds.WeakPasskey);
          }
 
          if (NotifyPasskeyLeaked)
          {
-            kinds.Add(WarningKinds.PasskeyLeaked);
+            kinds.Add(AlertKinds.PasskeyLeaked);
          }
 
          if (NotifyWeakAccountPassword)
          {
-            kinds.Add(WarningKinds.WeakAccountPassword);
+            kinds.Add(AlertKinds.WeakAccountPassword);
          }
 
          if (NotifyPasskeyReusedAsAccountPassword)
          {
-            kinds.Add(WarningKinds.PasskeyReusedAsAccountPassword);
+            kinds.Add(AlertKinds.PasskeyReusedAsAccountPassword);
          }
 
-         return new WarningKindList(kinds);
+         return new AlertKindList(kinds);
       }
 
       public void OnLanguageChanged()

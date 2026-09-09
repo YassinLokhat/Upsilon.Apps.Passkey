@@ -45,7 +45,7 @@ This is online friction, not a rate-limit server. It does not replace strong, or
 
 They have write access to the `.pku` (stolen disk, sync conflict, backup restore) but not the passkeys.
 
-* They **cannot** silently rewrite sealed entries from the last logged-in save: login verifies RSA-PSS over the sealed prefix and the watermark inside the AEAD `database` payload. Failure records `ActivityLogTampered` and feeds `ActivityReviewWarning`. Login is not blocked (availability over fail-closed), so the user can still reach their passwords and then inspect the warning.
+* They **cannot** silently rewrite sealed entries from the last logged-in save: login verifies RSA-PSS over the sealed prefix and the watermark inside the AEAD `database` payload. Failure records `ActivityLogTampered` and feeds `ActivityReviewAlert`. Login is not blocked (availability over fail-closed), so the user can still reach their passwords and then inspect the alert.
 * They **can** delete or alter the **unsealed tail** (events since last seal), including failed-login records of their own probing. A trusted external log would be required to close that gap; it is out of scope for a purely local tool.
 
 They still cannot read `database` / `autosave` without the passkeys.

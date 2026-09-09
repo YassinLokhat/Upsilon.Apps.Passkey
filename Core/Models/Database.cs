@@ -53,7 +53,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void Save() => _save(logSaveEvent: true);
 
-      public void RefreshWarnings() => _queueWarningScan();
+      public void RefreshAlerts() => _queueAlertScan();
 
       // Progressive onion login: each call appends a stretched passkey and never
       // rolls back on failure. A wrong attempt poisons the stack until Close/Open,
@@ -128,7 +128,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                _handleAutoSave(eventArg.MergeBehavior);
             }
 
-            _queueWarningScan();
+            _queueAlertScan();
 
             User.ResetTimer();
          }
