@@ -11,7 +11,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningLevel>0</WarningLevel>
 
-    <!-- Default coverage.runsettings when `dotnet test` has no --settings. -->
+    <!-- Default coverage.runsettings when `dotnet test` has no /settings switch. -->
     <RunSettingsFilePath>$(MSBuildThisFileDirectory)..\coverage.runsettings</RunSettingsFilePath>
   </PropertyGroup>
 
