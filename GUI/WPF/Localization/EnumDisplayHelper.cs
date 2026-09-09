@@ -21,7 +21,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             : fieldName switch
             {
                nameof(AccountOption) or "Options" => _formatAccountOption(fieldValue),
-               nameof(WarningType) or "WarningsToNotify" => _formatWarningType(fieldValue),
+#pragma warning disable CS0618 // Legacy activity logs may still store WarningType names.
+               nameof(WarningType) or "WarningsToNotify" => _formatWarningsToNotify(fieldValue),
+#pragma warning restore CS0618
                "Theme" => _formatTheme(fieldValue),
                "Language" => _formatLanguage(fieldValue),
                nameof(ImportExportError) or "errorLog" => _formatImportExportError(fieldValue),
@@ -34,9 +36,49 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
          return stored is "None" or "0" ? Strings.EnumValue_None : _formatFlags(stored, _accountOptionLabel);
       }
 
-      private static string _formatWarningType(string stored)
+      private static string _formatWarningsToNotify(string stored)
       {
-         return stored is "None" or "0" ? Strings.EnumValue_None : _formatFlags(stored, _warningTypeLabel);
+         if (stored is "None" or "[]" or "0")
+         {
+            return Strings.EnumValue_None;
+         }
+
+         // New format: JSON array or comma-separated kind ids.
+         if (stored.StartsWith('[') && stored.EndsWith(']'))
+         {
+            string inner = stored[1..^1].Trim();
+            if (string.IsNullOrEmpty(inner))
+            {
+               return Strings.EnumValue_None;
+            }
+
+            string[] kinds = [.. inner
+               .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+               .Select(static p => p.Trim().Trim('"'))];
+            return string.Join(", ", kinds.Select(_warningKindLabel));
+         }
+
+         if (stored.Contains(',', StringComparison.Ordinal)
+            || WarningKinds.DefaultNotify.Contains(stored)
+            || WarningKinds.AllCore.Contains(stored)
+            || WarningKinds.AllHost.Contains(stored))
+         {
+            return _formatFlags(stored, _warningKindLabel);
+         }
+
+#pragma warning disable CS0618 // Legacy WarningType flag / name migration for activity logs.
+         if (Enum.TryParse(stored, ignoreCase: true, out WarningType legacyFromName))
+         {
+            return string.Join(", ", WarningKinds.FromLegacyWarningType(legacyFromName).Select(_warningKindLabel));
+         }
+
+         if (int.TryParse(stored, out int legacyNumber))
+         {
+            return string.Join(", ", WarningKinds.FromLegacyWarningType((WarningType)legacyNumber).Select(_warningKindLabel));
+         }
+#pragma warning restore CS0618
+
+         return _formatFlags(stored, _warningKindLabel);
       }
 
       private static string _formatTheme(string stored)
@@ -80,15 +122,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             _ => Strings.Get($"{ACCOUNT_OPTION_PREFIX}{memberName}"),
          };
 
-      private static string _warningTypeLabel(string memberName)
-         => memberName switch
+      private static string _warningKindLabel(string kindOrLegacyMember)
+#pragma warning disable CS0618 // Legacy activity-log WarningType member names.
+         => kindOrLegacyMember switch
          {
-            nameof(WarningType.ActivityReviewWarning) => Strings.Label_NotifyActivityReview,
-            nameof(WarningType.PasswordUpdateReminderWarning) => Strings.Label_NotifyPasswordUpdateReminder,
-            nameof(WarningType.DuplicatedPasswordsWarning) => Strings.Label_NotifyDuplicatedPasswords,
-            nameof(WarningType.PasswordLeakedWarning) => Strings.Label_NotifyPasswordLeaked,
-            nameof(WarningType.SecuritySettingsWarning) => Strings.Label_NotifySecuritySettings,
-            _ => Strings.Get($"{WARNING_TYPE_PREFIX}{memberName}"),
+            WarningKinds.ActivityReview or "ActivityReviewWarning" => Strings.Label_NotifyActivityReview,
+            WarningKinds.PasswordUpdateReminder or "PasswordUpdateReminderWarning" => Strings.Label_NotifyPasswordUpdateReminder,
+            WarningKinds.DuplicatedPasswords or "DuplicatedPasswordsWarning" => Strings.Label_NotifyDuplicatedPasswords,
+            WarningKinds.PasswordLeaked or "PasswordLeakedWarning" => Strings.Label_NotifyPasswordLeaked,
+            WarningKinds.VaultSecuritySettings or WarningKinds.HostSecuritySettings
+               or "SecuritySettingsWarning" => Strings.Label_NotifySecuritySettings,
+            WarningKinds.InsufficientPasskeys => Strings.Label_NotifyInsufficientPasskeys,
+            WarningKinds.WeakPasskey => Strings.Label_NotifyWeakPasskey,
+            WarningKinds.PasskeyLeaked => Strings.Label_NotifyPasskeyLeaked,
+            WarningKinds.WeakAccountPassword => Strings.Label_NotifyWeakAccountPassword,
+            WarningKinds.PasskeyReusedAsAccountPassword => Strings.Label_NotifyPasskeyReusedAsAccountPassword,
+            _ => Strings.Get($"{WARNING_TYPE_PREFIX}{kindOrLegacyMember}"),
          };
+#pragma warning restore CS0618
    }
 }

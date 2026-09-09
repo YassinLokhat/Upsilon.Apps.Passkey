@@ -79,6 +79,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = string.Empty;
 
+      public string ShowPasskeyQualityWarnings
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = string.Empty;
+
       public string ServiceFilter
       {
          get;

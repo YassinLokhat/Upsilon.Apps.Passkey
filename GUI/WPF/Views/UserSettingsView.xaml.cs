@@ -9,7 +9,6 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
-using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
@@ -187,33 +186,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _database.User.Settings.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
             _database.User.Settings.Language = _viewModel.SelectedLanguage.Code;
             _database.User.Settings.Theme = _viewModel.SelectedTheme.Code;
-            WarningType warningsToNotify = 0;
-            if (_viewModel.NotifyActivityReview)
-            {
-               warningsToNotify |= WarningType.ActivityReviewWarning;
-            }
+            WarningKindList warningsToNotify = _viewModel.BuildWarningsToNotify();
 
-            if (_viewModel.NotifyDuplicatedPasswords)
-            {
-               warningsToNotify |= WarningType.DuplicatedPasswordsWarning;
-            }
-
-            if (_viewModel.NotifyPasswordUpdateReminder)
-            {
-               warningsToNotify |= WarningType.PasswordUpdateReminderWarning;
-            }
-
-            if (_viewModel.NotifyPasswordLeaked)
-            {
-               warningsToNotify |= WarningType.PasswordLeakedWarning;
-            }
-
-            if (_viewModel.NotifySecuritySettings)
-            {
-               warningsToNotify |= WarningType.SecuritySettingsWarning;
-            }
-
-            if (warningsToNotify == 0)
+            if (warningsToNotify.Count == 0)
             {
                AppServices.Dialogs.Warn(Strings.Msg_NoWarningsToNotify, Strings.Title_NoWarningsToNotify);
             }

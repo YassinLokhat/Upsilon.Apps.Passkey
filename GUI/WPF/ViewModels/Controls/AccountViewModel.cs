@@ -162,9 +162,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public bool PasswordLeaked
          => Account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
-               && AppServices.Session.Database?.Warnings is not null
-               && AppServices.Session.Database.Warnings.Any(x => x.WarningType == WarningType.PasswordLeakedWarning
-                  && (x.Accounts?.Contains(Account) ?? false));
+               && AppServices.Session.Warnings
+                  .GetAllWarnings(WarningKinds.PasswordLeaked)
+                  .OfType<IAccountsWarning>()
+                  .Any(x => x.Accounts.Contains(Account));
 
       public static string[] IdentifierAutoCompleteList => AppServices.Session.User?.Services
          .SelectMany(x => x.Accounts)

@@ -13,7 +13,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="465" Width="1000">
+        Height="560" Width="1000">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -148,6 +148,16 @@
                                   Content="{loc:Loc Label_NotifyPasswordUpdateReminder}"/>
                         <CheckBox IsChecked="{Binding NotifyPasswordLeaked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Content="{loc:Loc Label_NotifyPasswordLeaked}"/>
+                        <CheckBox IsChecked="{Binding NotifyWeakAccountPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_NotifyWeakAccountPassword}"/>
+                        <CheckBox IsChecked="{Binding NotifyPasskeyReusedAsAccountPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_NotifyPasskeyReusedAsAccountPassword}"/>
+                        <CheckBox IsChecked="{Binding NotifyInsufficientPasskeys, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_NotifyInsufficientPasskeys}"/>
+                        <CheckBox IsChecked="{Binding NotifyWeakPasskey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_NotifyWeakPasskey}"/>
+                        <CheckBox IsChecked="{Binding NotifyPasskeyLeaked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_NotifyPasskeyLeaked}"/>
                         <CheckBox IsChecked="{Binding NotifySecuritySettings, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Content="{loc:Loc Label_NotifySecuritySettings}"/>
                      </StackPanel>

@@ -83,6 +83,10 @@
                       Header="{Binding ShowSecuritySettingsWarnings}"
                       Foreground="{DynamicResource WarningBrush}"
                       Click="_securitySettingsWarnings_MI_Click"/>
+            <MenuItem Name="_passkeyQualityWarnings_MI"
+                      Header="{Binding ShowPasskeyQualityWarnings}"
+                      Foreground="{DynamicResource WarningBrush}"
+                      Click="_passkeyQualityWarnings_MI_Click"/>
          </MenuItem>
          <MenuItem Header="{loc:Loc Menu_Logout}"
                    HorizontalAlignment="Right"

@@ -182,6 +182,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _viewModel.RefreshOfflineLeakFilterStatus();
          AppServices.Session.Database?.RefreshWarnings();
+         AppServices.Session.Warnings.RefreshHostWarnings();
       }
 
       private async void _offlineLeakFilterBuild_Click(object sender, RoutedEventArgs e)
@@ -272,6 +273,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             _syncBusyFromService();
             AppServices.Session.Database?.RefreshWarnings();
+            AppServices.Session.Warnings.RefreshHostWarnings();
          }
       }
 
@@ -346,6 +348,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _viewModel.OfflineLeakFilterProgress = string.Empty;
          _viewModel.RefreshOfflineLeakFilterStatus();
          AppServices.Session.Database?.RefreshWarnings();
+         AppServices.Session.Warnings.RefreshHostWarnings();
       }
    }
 }

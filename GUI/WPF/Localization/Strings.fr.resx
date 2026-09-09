@@ -344,6 +344,21 @@
   <data name="Label_NotifySecuritySettings" xml:space="preserve">
     <value>Notifier les paramètres de sécurité</value>
   </data>
+  <data name="Label_NotifyInsufficientPasskeys" xml:space="preserve">
+    <value>Notifier le nombre insuffisant de passkeys</value>
+  </data>
+  <data name="Label_NotifyWeakPasskey" xml:space="preserve">
+    <value>Notifier les passkeys faibles</value>
+  </data>
+  <data name="Label_NotifyPasskeyLeaked" xml:space="preserve">
+    <value>Notifier les fuites de passkey</value>
+  </data>
+  <data name="Label_NotifyWeakAccountPassword" xml:space="preserve">
+    <value>Notifier les mots de passe de compte faibles</value>
+  </data>
+  <data name="Label_NotifyPasskeyReusedAsAccountPassword" xml:space="preserve">
+    <value>Notifier la réutilisation d'une passkey comme mot de passe</value>
+  </data>
   <data name="Label_RemindPasswordUpdate" xml:space="preserve">
     <value>Rappeler de mettre à jour le mot de passe tous les</value>
   </data>
@@ -610,6 +625,9 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="Msg_ShowSecuritySettingsWarnings" xml:space="preserve">
     <value>Afficher {0} alertes de paramètres de sécurité</value>
   </data>
+  <data name="Msg_ShowPasskeyQualityWarnings" xml:space="preserve">
+    <value>Afficher {0} alertes de qualité de passkey</value>
+  </data>
   <data name="Msg_NoWarningsToNotify" xml:space="preserve">
     <value>Aucune notification d'alerte n'est activée.
 
@@ -626,6 +644,18 @@ Vous ne serez pas prévenu pour :
   </data>
   <data name="Title_SecuritySettingsWarningsWindow" xml:space="preserve">
     <value>{0} - Alertes de paramètres de sécurité</value>
+  </data>
+  <data name="Title_PasskeyQualityWarningsWindow" xml:space="preserve">
+    <value>{0} - Alertes de qualité de passkey</value>
+  </data>
+  <data name="Msg_PasskeyQuality_InsufficientPasskeys" xml:space="preserve">
+    <value>Seulement {0} couche(s) de passkey configurée(s) ; au moins {1} sont recommandées.</value>
+  </data>
+  <data name="Msg_PasskeyQuality_WeakPasskey" xml:space="preserve">
+    <value>Couche(s) de passkey faible(s) : {0}.</value>
+  </data>
+  <data name="Msg_PasskeyQuality_PasskeyLeaked" xml:space="preserve">
+    <value>Couche(s) de passkey divulguée(s) : {0}.</value>
   </data>
   <data name="Label_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
     <value>Déconnexion automatique désactivée</value>

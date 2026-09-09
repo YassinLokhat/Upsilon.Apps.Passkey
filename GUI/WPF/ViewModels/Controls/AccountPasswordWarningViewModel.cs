@@ -1,21 +1,24 @@
 ﻿using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class AccountPasswordWarningViewModel(IAccount account, WarningType warningType)
+   internal sealed class AccountPasswordWarningViewModel(IAccount account, string kind)
    {
-      public string ReadableWarningType => WarningType.ToReadableString();
+      public string ReadableWarningKind => EnumHelper.ToReadableWarningKind(Kind);
       public string ServiceString => Account.Service.ToString() ?? string.Empty;
       public string AccountString => Account.ToString() ?? string.Empty;
 
       public readonly IAccount Account = account;
-      public WarningType WarningType { get; } = warningType;
+      public string Kind { get; } = kind;
 
-      public bool MeetsConditions(WarningType warningType, string text)
+      public bool MeetsConditions(string kindFilter, string text)
       {
-         return warningType.HasFlag(WarningType)
+         bool kindOk = EnumHelper.IsAccountPasswordFilterAll(kindFilter)
+            ? EnumHelper.MatchesAccountPasswordKindFilter(Kind, kindFilter)
+            : string.Equals(Kind, kindFilter, StringComparison.Ordinal);
+
+         return kindOk
             && (AccountString.Contains(text, StringComparison.OrdinalIgnoreCase)
                || ServiceString.Contains(text, StringComparison.OrdinalIgnoreCase));
       }

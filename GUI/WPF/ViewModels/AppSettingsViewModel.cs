@@ -195,6 +195,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             AppInfo.AppSettings.Theme,
             AppServices.Session.User?.Settings.Theme);
          AppServices.Session.Database?.RefreshWarnings();
+         AppServices.Session.Warnings.RefreshHostWarnings();
          return languageChanged;
       }
 

@@ -4,7 +4,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
-using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -30,9 +30,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       }
 
       private static DuplicatedPasswordWarningViewModel[] _loadWarnings()
-         => [.. AppServices.Session.Database?.Warnings?
-            .Where(x => x.WarningType == WarningType.DuplicatedPasswordsWarning)
-            .Select(x => new DuplicatedPasswordWarningViewModel(x))
-            ?? []];
+         => [.. AppServices.Session.Warnings
+            .GetNotifiedWarnings(WarningKinds.DuplicatedPasswords)
+            .OfType<IAccountsWarning>()
+            .Select(x => new DuplicatedPasswordWarningViewModel(x))];
    }
 }

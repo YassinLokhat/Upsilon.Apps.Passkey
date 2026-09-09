@@ -4,6 +4,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -170,6 +171,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = true;
+      public bool NotifyInsufficientPasskeys
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = true;
+      public bool NotifyWeakPasskey
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = true;
+      public bool NotifyPasskeyLeaked
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = true;
+      public bool NotifyWeakAccountPassword
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = true;
+      public bool NotifyPasskeyReusedAsAccountPassword
+      {
+         get;
+         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = true;
 
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh the follow-app label on language change.")]
       public IReadOnlyList<AppLanguage> Languages =>
@@ -240,11 +266,76 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          NumberOfOldPasswordToKeep = user.Settings.NumberOfOldPasswordToKeep;
          NumberOfMonthActivitiesToKeep = user.Settings.NumberOfMonthActivitiesToKeep;
 
-         NotifyActivityReview = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.ActivityReviewWarning) != 0;
-         NotifyPasswordUpdateReminder = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordUpdateReminderWarning) != 0;
-         NotifyDuplicatedPasswords = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.DuplicatedPasswordsWarning) != 0;
-         NotifyPasswordLeaked = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.PasswordLeakedWarning) != 0;
-         NotifySecuritySettings = (user.Settings.WarningsToNotify & Passkey.Interfaces.Enums.WarningType.SecuritySettingsWarning) != 0;
+         WarningKindList notify = user.Settings.WarningsToNotify;
+         NotifyActivityReview = notify.Contains(WarningKinds.ActivityReview);
+         NotifyPasswordUpdateReminder = notify.Contains(WarningKinds.PasswordUpdateReminder);
+         NotifyDuplicatedPasswords = notify.Contains(WarningKinds.DuplicatedPasswords);
+         NotifyPasswordLeaked = notify.Contains(WarningKinds.PasswordLeaked);
+         NotifySecuritySettings = notify.Contains(WarningKinds.VaultSecuritySettings)
+            || notify.Contains(WarningKinds.HostSecuritySettings);
+         NotifyInsufficientPasskeys = notify.Contains(WarningKinds.InsufficientPasskeys);
+         NotifyWeakPasskey = notify.Contains(WarningKinds.WeakPasskey);
+         NotifyPasskeyLeaked = notify.Contains(WarningKinds.PasskeyLeaked);
+         NotifyWeakAccountPassword = notify.Contains(WarningKinds.WeakAccountPassword);
+         NotifyPasskeyReusedAsAccountPassword = notify.Contains(WarningKinds.PasskeyReusedAsAccountPassword);
+      }
+
+      public WarningKindList BuildWarningsToNotify()
+      {
+         List<string> kinds = [];
+
+         if (NotifyActivityReview)
+         {
+            kinds.Add(WarningKinds.ActivityReview);
+         }
+
+         if (NotifyDuplicatedPasswords)
+         {
+            kinds.Add(WarningKinds.DuplicatedPasswords);
+         }
+
+         if (NotifyPasswordUpdateReminder)
+         {
+            kinds.Add(WarningKinds.PasswordUpdateReminder);
+         }
+
+         if (NotifyPasswordLeaked)
+         {
+            kinds.Add(WarningKinds.PasswordLeaked);
+         }
+
+         if (NotifySecuritySettings)
+         {
+            kinds.Add(WarningKinds.VaultSecuritySettings);
+            kinds.Add(WarningKinds.HostSecuritySettings);
+         }
+
+         if (NotifyInsufficientPasskeys)
+         {
+            kinds.Add(WarningKinds.InsufficientPasskeys);
+         }
+
+         if (NotifyWeakPasskey)
+         {
+            kinds.Add(WarningKinds.WeakPasskey);
+         }
+
+         if (NotifyPasskeyLeaked)
+         {
+            kinds.Add(WarningKinds.PasskeyLeaked);
+         }
+
+         if (NotifyWeakAccountPassword)
+         {
+            kinds.Add(WarningKinds.WeakAccountPassword);
+         }
+
+         if (NotifyPasskeyReusedAsAccountPassword)
+         {
+            kinds.Add(WarningKinds.PasskeyReusedAsAccountPassword);
+         }
+
+         return new WarningKindList(kinds);
       }
 
       public void OnLanguageChanged()

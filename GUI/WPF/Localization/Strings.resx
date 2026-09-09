@@ -344,6 +344,21 @@
   <data name="Label_NotifySecuritySettings" xml:space="preserve">
     <value>Notify Security Settings</value>
   </data>
+  <data name="Label_NotifyInsufficientPasskeys" xml:space="preserve">
+    <value>Notify Insufficient Passkeys</value>
+  </data>
+  <data name="Label_NotifyWeakPasskey" xml:space="preserve">
+    <value>Notify Weak Passkey</value>
+  </data>
+  <data name="Label_NotifyPasskeyLeaked" xml:space="preserve">
+    <value>Notify Passkey Leaked</value>
+  </data>
+  <data name="Label_NotifyWeakAccountPassword" xml:space="preserve">
+    <value>Notify Weak Account Password</value>
+  </data>
+  <data name="Label_NotifyPasskeyReusedAsAccountPassword" xml:space="preserve">
+    <value>Notify Passkey Reused as Account Password</value>
+  </data>
   <data name="Label_RemindPasswordUpdate" xml:space="preserve">
     <value>Remind to update password every</value>
   </data>
@@ -610,6 +625,9 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="Msg_ShowSecuritySettingsWarnings" xml:space="preserve">
     <value>Show {0} security settings warnings</value>
   </data>
+  <data name="Msg_ShowPasskeyQualityWarnings" xml:space="preserve">
+    <value>Show {0} passkey quality warnings</value>
+  </data>
   <data name="Msg_NoWarningsToNotify" xml:space="preserve">
     <value>No warning notifications are enabled.
 
@@ -626,6 +644,18 @@ You will not be alerted about:
   </data>
   <data name="Title_SecuritySettingsWarningsWindow" xml:space="preserve">
     <value>{0} - Security settings warnings</value>
+  </data>
+  <data name="Title_PasskeyQualityWarningsWindow" xml:space="preserve">
+    <value>{0} - Passkey quality warnings</value>
+  </data>
+  <data name="Msg_PasskeyQuality_InsufficientPasskeys" xml:space="preserve">
+    <value>Only {0} passkey layer(s) configured; at least {1} are recommended.</value>
+  </data>
+  <data name="Msg_PasskeyQuality_WeakPasskey" xml:space="preserve">
+    <value>Weak passkey layer(s): {0}.</value>
+  </data>
+  <data name="Msg_PasskeyQuality_PasskeyLeaked" xml:space="preserve">
+    <value>Leaked passkey layer(s): {0}.</value>
   </data>
   <data name="Label_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
     <value>Auto-logout disabled</value>

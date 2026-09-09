@@ -6,7 +6,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
-using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -15,12 +15,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
       public string Title => Strings.Format(nameof(Strings.Title_AccountPasswordsWarnings), AppInfo.Title);
 
-      public string ReadableWarningType
+      public string ReadableWarningKind
       {
-         get => WarningType.ToReadableString();
-         set => WarningType = EnumHelper.ActivityWarningTypeFromReadableString(value);
+         get => EnumHelper.ToReadableWarningKind(Kind);
+         set => Kind = EnumHelper.AccountPasswordKindFromReadableString(value);
       }
-      public WarningType WarningType
+
+      public string Kind
       {
          get;
          set
@@ -28,11 +29,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               _onPropertyChanged(nameof(ReadableWarningType));
+               _onPropertyChanged(nameof(ReadableWarningKind));
                RefreshFilters();
             }
          }
-      } = WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning;
+      } = EnumHelper.AccountPasswordFilterAll;
+
       public string Text
       {
          get;
@@ -67,13 +69,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public void OnLanguageChanged()
       {
          _onPropertyChanged(nameof(Title));
-         _onPropertyChanged(nameof(ReadableWarningType));
+         _onPropertyChanged(nameof(ReadableWarningKind));
          RefreshFilters();
       }
 
       public void ClearFilters()
       {
-         WarningType = WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning;
+         Kind = EnumHelper.AccountPasswordFilterAll;
          Text = string.Empty;
       }
 
@@ -81,20 +83,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          Warnings.Clear();
 
-         if (AppServices.Session.Database?.Warnings is null)
-         {
-            return;
-         }
-
-         AccountPasswordWarningViewModel[] warnings = [.. AppServices.Session.Database.Warnings
-            .Where(x => WarningType.HasFlag(x.WarningType))
-            .SelectMany(x => x.Accounts?.Select(y => new AccountPasswordWarningViewModel(y, x.WarningType)) ?? [])
-            .Where(x => x.MeetsConditions(WarningType, Text))];
+         AccountPasswordWarningViewModel[] warnings = [.. AppServices.Session.Warnings
+            .GetNotifiedWarnings()
+            .OfType<IAccountsWarning>()
+            .Where(x => _matchesKindFilter(x.Kind, Kind))
+            .SelectMany(x => x.Accounts.Select(y => new AccountPasswordWarningViewModel(y, x.Kind)))
+            .Where(x => x.MeetsConditions(Kind, Text))];
 
          foreach (AccountPasswordWarningViewModel warning in warnings)
          {
             Warnings.Add(warning);
          }
+      }
+
+      private static bool _matchesKindFilter(string warningKind, string filterKind)
+      {
+         if (EnumHelper.IsAccountPasswordFilterAll(filterKind))
+         {
+            return EnumHelper.MatchesAccountPasswordKindFilter(warningKind, filterKind);
+         }
+
+         return string.Equals(warningKind, filterKind, StringComparison.Ordinal);
       }
    }
 }
