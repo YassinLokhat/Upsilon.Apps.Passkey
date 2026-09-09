@@ -2,19 +2,18 @@
 
 namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
+   /// <summary>
+   /// Minimal warning contract. Component-specific payloads live on typed
+   /// interfaces that extend this one.
+   /// </summary>
    public interface IWarning
    {
-      WarningType WarningType { get; }
+      /// <summary>Publishing component (e.g. <see cref="WarningKinds.SourceCore"/>).</summary>
+      string Source { get; }
 
-      IEnumerable<IActivity>? Activities { get; }
+      /// <summary>Stable kind id (e.g. <see cref="WarningKinds.PasswordLeaked"/>).</summary>
+      string Kind { get; }
 
-      IEnumerable<IAccount>? Accounts { get; }
-
-      /// <summary>
-      /// Set when <see cref="WarningType"/> is
-      /// <see cref="WarningType.SecuritySettingsWarning"/>; otherwise
-      /// <see cref="SecuritySettingsIssue.None"/>.
-      /// </summary>
-      SecuritySettingsIssue SecuritySettingsIssues { get; }
+      WarningSeverity Severity { get; }
    }
 }

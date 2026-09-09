@@ -18,8 +18,6 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
 
       IEnumerable<IActivity>? Activities { get; }
 
-      IEnumerable<IWarning>? Warnings { get; }
-
       ISerializationCenter SerializationCenter { get; }
 
       ICryptographyCenter CryptographyCenter { get; }
@@ -30,15 +28,25 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
 
       ISecretMemoryProtector SecretMemoryProtector { get; }
 
-      /// <summary>
-      /// Optional host callback that contributes app-level
-      /// <see cref="SecuritySettingsIssue"/> flags (idle login, offline
-      /// leak filter, …). Evaluated on each warning scan. Leave
-      /// <see langword="null"/> when the host has nothing to report.
-      /// </summary>
-      Func<SecuritySettingsIssue>? HostSecuritySettingsIssues { get; set; }
+      /// <summary>Latest Core warning snapshots keyed by <see cref="WarningKinds"/>.</summary>
+      IReadOnlyDictionary<string, IReadOnlyList<IWarning>> CoreWarnings { get; }
 
-      event EventHandler<WarningsUpdatedEventArgs>? WarningsUpdated;
+      event EventHandler<WarningsChangedEventArgs>? ActivityReviewWarningsChanged;
+      event EventHandler<WarningsChangedEventArgs>? PasswordUpdateReminderWarningsChanged;
+      event EventHandler<WarningsChangedEventArgs>? DuplicatedPasswordsWarningsChanged;
+      event EventHandler<WarningsChangedEventArgs>? PasswordLeakedWarningsChanged;
+      event EventHandler<WarningsChangedEventArgs>? VaultSecuritySettingsWarningsChanged;
+      event EventHandler<WarningsChangedEventArgs>? InsufficientPasskeysWarningsChanged;
+      event EventHandler<WarningsChangedEventArgs>? WeakPasskeyWarningsChanged;
+      event EventHandler<WarningsChangedEventArgs>? PasskeyLeakedWarningsChanged;
+      event EventHandler<WarningsChangedEventArgs>? WeakAccountPasswordWarningsChanged;
+      event EventHandler<WarningsChangedEventArgs>? PasskeyReuseWarningsChanged;
+
+      /// <summary>
+      /// Raised once after a full Core warning scan finishes (all kinds published).
+      /// Useful for tests and hosts that wait for scan completion.
+      /// </summary>
+      event EventHandler? CoreWarningsScanCompleted;
 
       event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
 
@@ -78,7 +86,7 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// Same as <see cref="Save"/> on a worker thread.
       /// </summary>
       /// <remarks>
-      /// <see cref="DatabaseSaved"/> and <see cref="WarningsUpdated"/> are raised from that thread.
+      /// <see cref="DatabaseSaved"/> and Core warning events are raised from that thread.
       /// </remarks>
       Task SaveAsync(CancellationToken cancellationToken = default);
 
