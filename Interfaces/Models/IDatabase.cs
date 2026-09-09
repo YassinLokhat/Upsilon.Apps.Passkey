@@ -28,6 +28,8 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
 
       IClipboardManager ClipboardManager { get; }
 
+      ISecretMemoryProtector SecretMemoryProtector { get; }
+
       /// <summary>
       /// Optional host callback that contributes app-level
       /// <see cref="SecuritySettingsIssue"/> flags (idle login, offline
