@@ -6,7 +6,6 @@ using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
-using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
@@ -30,13 +29,17 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          PasswordUpdateReminderDelay,
       }
 
+      // CSV cells are primitives / enums only — no in-memory secret wrappers.
+      private static readonly JsonSerializerOptions _csvCellOptions = new()
+      {
+         Converters = { new JsonStringEnumConverter() },
+      };
+
       private static string _jsonSerialize<T>(T obj)
-         => JsonSerializer.Serialize(obj, _options);
+         => JsonSerializer.Serialize(obj, _csvCellOptions);
 
       private static T _jsonDeserializeAs<T>(string json)
-         => JsonSerializer.Deserialize<T>(json, _options) ?? throw new NullValueException();
-
-      private static readonly JsonSerializerOptions _options = new() { Converters = { new JsonStringEnumConverter(), new ProtectedSecretJsonConverter() }, WriteIndented = true, };
+         => JsonSerializer.Deserialize<T>(json, _csvCellOptions) ?? throw new NullValueException();
 
       public static ImportExportError ImportCSV(this IDatabase database, string importContent)
       {
@@ -121,9 +124,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          try
          {
-            data = _jsonDeserializeAs<ImportExportData>(importContent);
+            data = database.SerializationCenter.Deserialize<ImportExportData>(importContent);
          }
          catch (JsonException)
+         {
+            return ImportExportError.ImportFileDeserializationFailed;
+         }
+         catch (NullValueException)
          {
             return ImportExportError.ImportFileDeserializationFailed;
          }
@@ -246,7 +253,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             Services = [.. database.User.Services],
          };
 
-         File.WriteAllText(filePath, _jsonSerialize(data));
+         File.WriteAllText(filePath, database.SerializationCenter.Serialize(data));
 
          return ImportExportError.None;
       }

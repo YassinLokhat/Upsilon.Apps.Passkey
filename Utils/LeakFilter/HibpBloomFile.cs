@@ -15,10 +15,8 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       internal const int Sha1ByteLength = 20;
       internal const string DefaultSourceTag = "hibp-sha1";
 
-      // Little-endian field offsets inside the HeaderSize-byte header. Bytes 0..3
-      // carry Magic, which a format has to expose first to be identifiable at all,
-      // and bytes 28..31 are reserved. Frozen: filters already on disk took hours
-      // to build, so a field may only ever be appended behind a FormatVersion bump.
+      // Little-endian header offsets (bytes 0..3 = Magic; 28..31 reserved). Append
+      // only behind a FormatVersion bump — on-disk filters are expensive to rebuild.
       private const int VERSION_OFFSET = 4;
       private const int CAPACITY_OFFSET = 8;
       private const int BIT_COUNT_OFFSET = 16;
@@ -27,9 +25,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       private const int BUILT_UTC_TICKS_OFFSET = 40;
       private const int SOURCE_TAG_OFFSET = 48;
 
-      // Ingestion runs one task per hash range, and two ranges routinely target
-      // two bits of the same byte. Striping the guard by byte index keeps those
-      // read-modify-writes safe without serializing the whole bit array.
+      // Stripe locks by byte index so concurrent range ingestion can touch the same bit array safely.
       private const int LOCK_STRIPES = 4096;
 
       private readonly FileStream _file;
@@ -42,9 +38,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       private bool _disposed;
 
       /// <summary>
-      /// Maps an existing <c>.pkbf</c>. The <see cref="FileStream"/> is owned by this
-      /// instance (<c>leaveOpen: true</c>) and released by <see cref="Dispose"/>: the
-      /// mapping outlives this constructor, so it must not be scoped to a <c>using</c>.
+      /// Maps an existing <c>.pkbf</c>. Owns the <see cref="FileStream"/> (<c>leaveOpen: true</c> for the mapping).
       /// </summary>
       private HibpBloomFile(string path, bool writable)
       {

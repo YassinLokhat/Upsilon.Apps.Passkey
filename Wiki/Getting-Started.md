@@ -53,7 +53,7 @@ Optional: under **App Settings** (`Ctrl+,`), build an offline HIBP Bloom filter 
 
 ## Embed Core without WPF
 
-You must supply an `IClipboardManager` (OS-specific). Utils already ships `CryptographyCenter`, `JsonSerializationCenter`, and `PasswordFactory` in `Upsilon.Apps.Passkey.Utils`.
+You must supply an `IClipboardManager` (OS-specific). Utils already ships `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, and `SecretMemoryProtector` in `Upsilon.Apps.Passkey.Utils`. Core depends only on Interfaces — inject those Utils defaults (or your own) at Create/Open.
 
 ```csharp
 using Upsilon.Apps.Passkey.Core.Models;
@@ -65,6 +65,7 @@ IDatabase database = Database.Create(
    new JsonSerializationCenter(),
    new PasswordFactory(),
    new OsClipboardManager(), // you implement IClipboardManager
+   new SecretMemoryProtector(),
    "./alice.pku",
    "alice",
    ["correct-horse", "battery-staple"]);

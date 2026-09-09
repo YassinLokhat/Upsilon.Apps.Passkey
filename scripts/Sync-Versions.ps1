@@ -499,6 +499,7 @@ function Publish-WpfPackage($Manifest, [string]$PackageKey, [string]$OutDir) {
    Write-Host "Publishing $($pkg.id) $version ..."
    & dotnet publish $projectPath `
       --configuration Release `
+      -r win-x64 `
       "-p:PublishProfile=FolderProfile" `
       "-p:Version=$version" `
       "-p:AssemblyVersion=$numeric" `

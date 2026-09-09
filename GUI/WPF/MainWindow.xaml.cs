@@ -209,6 +209,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
                AppServices.Serialization,
                AppServices.PasswordFactory,
                AppServices.Clipboard,
+               AppServices.SecretProtector,
                _mainViewModel.DatabaseFile,
                _username_TB.Text).ConfigureAwait(true);
 

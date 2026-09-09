@@ -38,6 +38,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
          IClipboardManager clipboardManager,
+         ISecretMemoryProtector secretMemoryProtector,
          string databaseFile,
          string username,
          IEnumerable<string> passkeys,
@@ -46,6 +47,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                serializationCenter,
                passwordFactory,
                clipboardManager,
+               secretMemoryProtector,
                databaseFile,
                username,
                passkeys),
@@ -60,6 +62,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
          IClipboardManager clipboardManager,
+         ISecretMemoryProtector secretMemoryProtector,
          string databaseFile,
          string username,
          CancellationToken cancellationToken = default)
@@ -67,6 +70,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                serializationCenter,
                passwordFactory,
                clipboardManager,
+               secretMemoryProtector,
                databaseFile,
                username),
             cancellationToken);

@@ -338,6 +338,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             username,
             passkeys);
@@ -545,6 +546,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             username,
             passkeys);
@@ -559,6 +561,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             username);
 
@@ -601,6 +604,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             username);
 
@@ -748,6 +752,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             UnitTestsHelper.GetUsername());
          openRestored.Should().NotThrow();
@@ -779,6 +784,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             UnitTestsHelper.GetUsername());
 
@@ -811,6 +817,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             "user",
             ["a"]);
@@ -820,6 +827,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             "user",
             null!);
@@ -866,6 +874,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             clipboard,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             username,
             passkeys);

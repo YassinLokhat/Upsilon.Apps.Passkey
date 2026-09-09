@@ -11,17 +11,17 @@ protects data and how to report a problem.
 Each component is versioned **independently** and may evolve at its own pace.
 Security fixes are applied to the latest released version of each component only,
 so please always upgrade to the most recent release before reporting an issue.
-<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.Interfaces` is on **1.1.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Utils` are on **1.2.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
+<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core`, `Upsilon.Apps.Passkey.Utils` and `Upsilon.Apps.Passkey.Interfaces` are on **2.0.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
 
 Versions and dependency ranges are maintained in [`versions.json`](versions.json).
 
 <!-- BEGIN:versions-supported-table -->
 | Component (assembly)                  | Supported version | Supported          |
 | ------------------------------------- | ----------------- | ------------------ |
-| `Upsilon.Apps.Passkey.GUI.WPF` (app)  | 1.2.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Core`           | 1.2.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Utils`          | 1.2.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.Interfaces`     | 1.1.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.GUI.WPF` (app)  | 2.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Core`           | 2.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Utils`          | 2.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.Interfaces`     | 2.0.x             | :white_check_mark: |
 <!-- END:versions-supported-table -->
 
 Any version older than the latest release of a given component is not supported.
@@ -223,17 +223,19 @@ login:
 
 ### In-memory hygiene
 
-- **`ProtectedSecret`**: once a vault is unlocked, account passwords, password
-  history, master passkeys, and the RSA private key are held as AES-256-GCM
-  ciphertext under a random, process-wide session key (`Utils/ProtectedSecret.cs`).
-  Plaintext is produced only for the duration of `Reveal()` (display, copy,
-  re-encrypt, or JSON persist into the `.pku` onion). `ToString()` never returns
-  the secret (`***`), so a protected value cannot leak into logs or activity
-  messages by accident. The session key never leaves RAM and dies with the
-  process; a dump of the wrapped blobs after exit is worthless. Persistence
-  still stores plaintext JSON **inside** the onion-encrypted `database` /
-  `autosave` entries — `ProtectedSecret` is an in-memory wrapping, not a second
-  at-rest scheme.
+- **`IProtectedSecret` / `ISecretMemoryProtector`**: once a vault is unlocked,
+  account passwords, password history, master passkeys, and the RSA private key
+  are held through the protector injected at Create/Open. The Utils default
+  (`SecretMemoryProtector` → `ProtectedSecret`) uses AES-256-GCM under a random,
+  process-wide session key. Plaintext is produced only for the duration of
+  `Reveal()` (display, copy, re-encrypt, or JSON persist into the `.pku` onion).
+  `ToString()` never returns the secret (`***`), so a protected value cannot leak
+  into logs or activity messages by accident. The session key never leaves RAM
+  and dies with the process; a dump of the wrapped blobs after exit is worthless.
+  Persistence still stores plaintext JSON **inside** the onion-encrypted
+  `database` / `autosave` entries — in-memory wrapping is not a second at-rest
+  scheme. Core depends only on the Interfaces ports; hosts may substitute another
+  protector without changing Core.
 - `IDatabase.Login` takes a plain `string` passkey (there is no `SecureString`
   overload on the Core API). The WPF GUI keeps the typed secret in
   `PasswordBox.SecurePassword` and bridges it through
@@ -323,9 +325,10 @@ login:
 
 These are conscious trade-offs, documented for transparency:
 
-- **Secrets in managed memory**: long-lived fields hold `ProtectedSecret`
-  ciphertext, not plaintext, which shrinks the window compared to keeping
-  passwords as `string` for the whole session. `Reveal()` still returns a .NET
+- **Secrets in managed memory**: long-lived fields hold `IProtectedSecret`
+  ciphertext (default Utils `ProtectedSecret`), not plaintext, which shrinks the
+  window compared to keeping passwords as `string` for the whole session.
+  `Reveal()` still returns a .NET
   `string`, which is immutable and cannot be reliably zeroed before garbage
   collection. An attacker able to read process memory or the OS swap file
   while the database is unlocked — especially during display, clipboard copy,

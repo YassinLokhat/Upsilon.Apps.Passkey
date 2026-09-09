@@ -27,6 +27,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       IClipboardManager ClipboardManager { get; }
 
+      ISecretMemoryProtector SecretMemoryProtector { get; }
+
       string Username { get; }
 
       bool HasPendingChanges(string itemId);

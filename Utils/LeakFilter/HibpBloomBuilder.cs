@@ -32,27 +32,14 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
    }
 
    /// <summary>
-   /// Downloads HIBP SHA-1 ranges and maintains a local <c>.pkbf</c> Bloom filter.
-   /// <para>
-   /// A first build is long — 1 048 576 range requests, roughly 40 GB over the wire
-   /// once brotli/gzip is accounted for — but it is checkpointed, so an interrupted
-   /// run resumes instead of starting over.
-   /// </para>
-   /// <para>
-   /// A refresh replays each range with <c>If-None-Match</c> against the ETag stored
-   /// in the <see cref="HibpRangeStateStore"/> sidecar. Unchanged ranges answer
-   /// <c>304</c> with no body, so only what actually moved is downloaded and folded
-   /// into the existing bit array.
-   /// </para>
+   /// Downloads HIBP SHA-1 ranges into a local <c>.pkbf</c> Bloom filter.
+   /// First builds are checkpointed; refreshes use <c>If-None-Match</c> against the <c>.ranges</c> sidecar.
    /// </summary>
    public static class HibpBloomBuilder
    {
       public const int TotalPrefixes = 1 << 20; // 1048576 = 16^5
 
-      /// <summary>
-      /// Concurrent range requests. A refresh is dominated by round trips rather
-      /// than bytes, so this is what mostly sets its wall-clock time.
-      /// </summary>
+      /// <summary>Concurrent range requests (default for refresh wall-clock).</summary>
       public const int DefaultParallelism = 64;
 
       private const string BUILDING_SUFFIX = ".building";
@@ -61,20 +48,14 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       private const int PREFIX_HEX_LENGTH = 5;
       private const int SUFFIX_HEX_LENGTH = 35;
 
-      /// <summary>
-      /// Prefixes between checkpoints. Each one flushes a multi-gigabyte mapping,
-      /// so it has to stay rare enough to be free and frequent enough to bound
-      /// what an interruption costs.
-      /// </summary>
+      /// <summary>Prefixes between checkpoints (bounds resume cost vs flush cost).</summary>
       private const int CHECKPOINT_PREFIXES = 4096;
 
       private const int PROGRESS_PREFIXES = 256;
 
       private static readonly Uri _rangeBaseUri = new("https://api.pwnedpasswords.com/range/");
 
-      // The corpus is hex text, which brotli roughly halves. Never send
-      // Add-Padding: the API varies on it, and padded bodies would defeat the
-      // ETag revalidation a refresh is built on.
+      // Never send Add-Padding: the API varies on it and would defeat ETag revalidation.
       private static readonly SocketsHttpHandler _httpHandler = new()
       {
          AutomaticDecompression = DecompressionMethods.All,

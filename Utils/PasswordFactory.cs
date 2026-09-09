@@ -14,27 +14,14 @@ namespace Upsilon.Apps.Passkey.Utils
    /// </summary>
    public class PasswordFactory : IPasswordFactory
    {
-      // A single, shared HttpClient avoids the socket exhaustion caused by
-      // creating (and disposing) one client per leak check. The short timeout
-      // keeps a slow or unreachable service from blocking generation or the
-      // warning scan for long.
       private static readonly HttpClient _sharedHttpClient = new()
       {
          Timeout = TimeSpan.FromSeconds(3),
       };
 
-      // Cap how many times we ask leak providers while hunting for a non-leaked
-      // candidate. A strong random password from a wide alphabet is vanishingly
-      // unlikely to be in the corpus, so a handful of attempts is enough; 100
-      // remote calls would only punish the user when the service is slow or
-      // every candidate happens to collide.
       private const int MAX_ATTEMPTS = 5;
-
-      // Bound the in-process caches so a long session cannot grow without
-      // limit. Eviction drops the whole table: the next checks simply refill it.
       private const int MAX_CACHED_RANGES = 512;
       private const int MAX_CACHED_XON_PREFIXES = 512;
-
       private const int HIBP_PREFIX_LENGTH = 5;
       private const int XON_PREFIX_LENGTH = 10;
 
@@ -42,15 +29,9 @@ namespace Upsilon.Apps.Passkey.Utils
       private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> _sendAsync;
       private ILocalLeakFilter? _localFilter;
 
-      // HIBP k-anonymity ranges are keyed by the first five hex chars of the
-      // SHA-1 hash. Caching the parsed suffix set means a second check for the
-      // same prefix is a local lookup - no network round-trip.
       private readonly ConcurrentDictionary<string, HashSet<string>> _hibpRangeCache
          = new(StringComparer.OrdinalIgnoreCase);
 
-      // XON answers yes/no for a Keccak-512 hash prefix; cache the boolean so a
-      // repeated failover (or a second account with the same password) skips the
-      // network. Only definitive answers are stored - never transport failures.
       private readonly ConcurrentDictionary<string, bool> _xonPrefixCache
          = new(StringComparer.OrdinalIgnoreCase);
 
@@ -112,15 +93,11 @@ namespace Upsilon.Apps.Passkey.Utils
             return;
          }
 
-         // The newly opened filter goes straight into the field, so no local ever
-         // owns it: the only filter disposed here is the one being replaced, and
-         // that happens after the re-open outcome is known.
+         // Keep the current filter if re-open fails while the .pkbf still exists
+         // (e.g. file still mapped by this instance).
          ILocalLeakFilter? replaced = _localFilter;
          _localFilter = config.TryOpenConfiguredFilter();
 
-         // A failed re-open (file still mapped by the current instance) must
-         // not tear down a working filter — that would make every later
-         // _tryLocalBloom return null and fail open.
          if (_localFilter is null && replaced is not null && config.Enabled && File.Exists(config.FilterPath))
          {
             _localFilter = replaced;
@@ -212,10 +189,7 @@ namespace Upsilon.Apps.Passkey.Utils
                return bloom.Value;
             }
          }
-         // An explicit cancellation is the caller's decision and must surface as
-         // such; the client's own timeout also lands here as an
-         // OperationCanceledException, and is handled below as a failure to
-         // reach the service.
+         // Caller cancellation must propagate; client timeout is fail-open below.
          catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
          {
             throw;
@@ -225,9 +199,7 @@ namespace Upsilon.Apps.Passkey.Utils
       }
 
       /// <summary>
-      /// Offline Bloom fallback after HIBP and XON failed. Miss = not leaked;
-      /// hit = leaked (conservative; false positives possible). Returns
-      /// <see langword="null"/> when no filter is attached.
+      /// Offline Bloom after HIBP/XON failed. Null when no filter is attached.
       /// </summary>
       private bool? _tryLocalBloom(string password)
       {
@@ -246,9 +218,7 @@ namespace Upsilon.Apps.Passkey.Utils
       }
 
       /// <summary>
-      /// Queries HIBP. Returns a definitive yes/no on HTTP success, or
-      /// <see langword="null"/> when the service is unreachable so the caller
-      /// can fall through to XposedOrNot.
+      /// HIBP: definitive yes/no on HTTP success, otherwise null (try XON).
       /// </summary>
       private bool? _tryHibp(string password)
       {
@@ -327,9 +297,7 @@ namespace Upsilon.Apps.Passkey.Utils
       }
 
       /// <summary>
-      /// Queries XposedOrNot's anonymous password API. Returns a definitive
-      /// yes/no on HTTP 200 (leaked) or 404 (not found), or
-      /// <see langword="null"/> when the service is unreachable.
+      /// XposedOrNot: 200 = leaked, 404 = not found, otherwise null.
       /// </summary>
       private bool? _tryXon(string password)
       {
@@ -403,9 +371,7 @@ namespace Upsilon.Apps.Passkey.Utils
             return null;
          }
 
-         // 200 with a SearchPassAnon payload means the prefix matched a known
-         // exposed password. Any successful 200 is treated as leaked; the body
-         // is not required for the boolean decision.
+         // HTTP 200 = leaked (body not required for the boolean).
          _cacheXon(prefix, leaked: true);
          return true;
       }
@@ -443,13 +409,9 @@ namespace Upsilon.Apps.Passkey.Utils
       private static string _sha1Hex(string password)
          => Convert.ToHexString(_sha1(password));
 
-      // k-anonymity: only the first five characters of the hash ever leave the
-      // machine, so the service never learns which password is being checked.
       private static string _hibpRangeUri(string prefix)
          => $"https://api.pwnedpasswords.com/range/{prefix}";
 
-      // XON k-anonymity: first 10 hex chars of Keccak-512; password and full
-      // hash never leave the machine.
       private static string _xonUri(string prefix)
          => $"https://passwords.xposedornot.com/api/v1/pass/anon/{prefix}";
 
@@ -497,9 +459,6 @@ namespace Upsilon.Apps.Passkey.Utils
 
       private static bool _failOpen(Exception? exception)
       {
-         // A leak check must never crash password generation or the warning
-         // scan. When every provider is unreachable and no offline filter is
-         // attached, we report "not leaked" and trace the failure.
          if (exception is null)
          {
             System.Diagnostics.Trace.TraceWarning(

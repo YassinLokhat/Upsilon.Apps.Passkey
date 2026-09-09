@@ -1,6 +1,6 @@
 # Usage Cookbook
 
-Worked examples against Core. Replace `OsClipboardManager` with your `IClipboardManager`. Prefer the `Async` twins from a UI.
+Worked examples against Core. Replace `OsClipboardManager` with your `IClipboardManager`. Utils ships `SecretMemoryProtector` for in-memory wrapping. Prefer the `Async` twins from a UI.
 
 ## Create a vault and add an account
 
@@ -14,9 +14,10 @@ var crypto = new CryptographyCenter();
 var json = new JsonSerializationCenter();
 var passwords = new PasswordFactory();
 var clipboard = new OsClipboardManager();
+var secretProtector = new SecretMemoryProtector();
 
 IDatabase database = await Database.CreateAsync(
-   crypto, json, passwords, clipboard,
+   crypto, json, passwords, clipboard, secretProtector,
    "./alice.pku",
    "alice",
    ["correct-horse", "battery-staple"]);
@@ -47,7 +48,7 @@ database.Close();
 
 ```csharp
 IDatabase database = await Database.OpenAsync(
-   crypto, json, passwords, clipboard,
+   crypto, json, passwords, clipboard, secretProtector,
    "./alice.pku",
    "alice");
 
@@ -64,14 +65,14 @@ if (user is null)
 ## Mistyped passkey (no rollback)
 
 ```csharp
-IDatabase database = Database.Open(crypto, json, passwords, clipboard, "./alice.pku", "alice");
+IDatabase database = Database.Open(crypto, json, passwords, clipboard, secretProtector, "./alice.pku", "alice");
 
 _ = database.Login("correct-horse");
 _ = database.Login("batery-staple");  // typo — session is poisoned
 _ = database.Login("battery-staple"); // still fails; the stack never rolls back
 
 database.Close();
-database = Database.Open(crypto, json, passwords, clipboard, "./alice.pku", "alice");
+database = Database.Open(crypto, json, passwords, clipboard, secretProtector, "./alice.pku", "alice");
 _ = database.Login("correct-horse");
 IUser user = database.Login("battery-staple")!;
 ```
@@ -141,7 +142,7 @@ This is the only outbound network the application makes (unless both remotes fai
 ## Dispose / `using`
 
 ```csharp
-using IDatabase database = Database.Open(crypto, json, passwords, clipboard, "./alice.pku", "alice");
+using IDatabase database = Database.Open(crypto, json, passwords, clipboard, secretProtector, "./alice.pku", "alice");
 // Login, work, Save...
 // Dispose → Close; file handle released
 ```
