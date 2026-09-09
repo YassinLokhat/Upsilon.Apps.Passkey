@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using System.Text.Json;
 using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Utils
@@ -83,15 +84,15 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       {
          DateTime older = new(2020, 1, 15, 12, 0, 0, DateTimeKind.Utc);
          DateTime newer = new(2024, 6, 1, 8, 30, 0, DateTimeKind.Utc);
-         Dictionary<DateTime, ProtectedSecret> history = new()
+         Dictionary<DateTime, IProtectedSecret> history = new()
          {
             [older] = ProtectedSecret.Protect("old-password"),
             [newer] = ProtectedSecret.Protect("new-password"),
          };
 
          string json = UnitTestsHelper.SerializationCenter.Serialize(history);
-         Dictionary<DateTime, ProtectedSecret> restored =
-            UnitTestsHelper.SerializationCenter.Deserialize<Dictionary<DateTime, ProtectedSecret>>(json);
+         Dictionary<DateTime, IProtectedSecret> restored =
+            UnitTestsHelper.SerializationCenter.Deserialize<Dictionary<DateTime, IProtectedSecret>>(json);
 
          _ = restored.Should().HaveCount(2);
          _ = restored[older].Reveal().Should().Be("old-password");

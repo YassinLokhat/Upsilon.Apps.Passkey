@@ -102,6 +102,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             factory,
             UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             username,
             passkeys);

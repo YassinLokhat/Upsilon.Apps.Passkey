@@ -26,6 +26,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
       public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
       public static readonly IClipboardManager ClipboardManager = new ClipboardManager();
+      public static readonly ISecretMemoryProtector SecretMemoryProtector = new SecretMemoryProtector();
 
       public static string ComputeTestDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
       public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"{ComputeTestDirectory(username)}/{CryptographicCenter.GetHash(username)}";
@@ -187,6 +188,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
             SerializationCenter,
             PasswordFactory,
             ClipboardManager,
+            SecretMemoryProtector,
             databaseFile,
             username,
             passkeys);
@@ -204,6 +206,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
             SerializationCenter,
             PasswordFactory,
             ClipboardManager,
+            SecretMemoryProtector,
             databaseFile,
             username);
 

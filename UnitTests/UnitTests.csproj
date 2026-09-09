@@ -28,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Upsilon.Apps.Passkey.Core.csproj" />
     <ProjectReference Include="..\GUI\WPF\Upsilon.Apps.Passkey.GUI.WPF.csproj" />
+    <ProjectReference Include="..\Utils\Upsilon.Apps.Passkey.Utils.csproj" />
   </ItemGroup>
 
   <ItemGroup>

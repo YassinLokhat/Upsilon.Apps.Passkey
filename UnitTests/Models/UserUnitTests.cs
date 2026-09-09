@@ -102,6 +102,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             newUsername);
          expectedActivities.Push($"Information : User '{newUsername}'s database opened");
@@ -197,6 +198,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             newUsername);
          expectedActivities.Push($"Information : User '{newUsername}'s database opened");
@@ -298,6 +300,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.PasswordFactory,
             UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             newUsername);
          expectedActivities.Push($"Information : User '{newUsername}'s database opened");
