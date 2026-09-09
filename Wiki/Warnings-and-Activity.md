@@ -1,22 +1,42 @@
 # Warnings and Activity
 
-The vault computes **warnings** locally (except opt-in leak checks, which call k-anonymity APIs and may fall back to a local `.pkbf` Bloom filter). The **activity log** is an audit trail stored in the `.pku` `activity` entry.
+Warnings are published by **independent sources** (Core vault scans, host/GUI posture). Each warning implements a minimal `IWarning` (`Source`, `Kind`, `Severity`). Typed payloads live on kind-specific interfaces (`IActivityReviewWarning`, `IAccountsWarning`, `IVaultSecuritySettingsWarning`, passkey interfaces, `IHostSecuritySettingsWarning`). The **WPF client** aggregates sources in `WarningBroker` and filters with `ISettings.WarningsToNotify` (a `WarningKindList` of kind ids).
 
-## Warning types (`WarningType` flags)
+## Warning kinds (`WarningKinds`)
 
-| Flag | When it fires |
-| ---- | ------------- |
-| `ActivityReviewWarning` | Activities marked `NeedsReview` (failed login, possible tamper, …) |
-| `PasswordUpdateReminderWarning` | Current password older than `IAccount.PasswordUpdateReminderDelay` months (`0` on the account means never) |
-| `DuplicatedPasswordsWarning` | The same secret appears on more than one account, and **at least one** account in that group has `AccountOption.WarnIfDuplicatedPassword` (the warning lists every account in the group) |
-| `PasswordLeakedWarning` | Opt-in leak check (`AccountOption.WarnIfPasswordLeaked`) found the password in a corpus |
-| `SecuritySettingsWarning` | Protective settings are off. Concrete reasons are in `IWarning.SecuritySettingsIssues`: `AutoLogoutDisabled`, `ClipboardCleaningDisabled`, `QrAutoCloseDisabled`, `NoAccountLeakCheck` / `NoAccountDuplicateCheck` / `NoAccountUpdateReminder` (each fires independently when **no** account has that opt-in; requires at least one account in the vault), host-supplied `IdleLoginDisabled` / `OfflineLeakFilterUnavailable`, and User Settings notify gaps `DuplicatePasswordNotificationsDisabled` / `PasswordUpdateReminderNotificationsDisabled` / `PasswordLeakedNotificationsDisabled` when those flags are absent from `WarningsToNotify`. Leaving `ActivityReviewWarning` off is intentional and is **not** a settings issue — the WPF client shows a MessageBox when the whole mask is `0` instead. |
+| Kind | Source | Severity | When it fires |
+| ---- | ------ | -------- | ------------- |
+| `ActivityReview` | Core | Critical if login-failed / tamper / session-timeout; else Warning | Activities with `NeedsReview` |
+| `PasswordUpdateReminder` | Core | Critical | Current password older than `IAccount.PasswordUpdateReminderDelay` months (`0` = never) |
+| `DuplicatedPasswords` | Core | Warning | Same secret on ≥2 accounts, and **at least one** has `AccountOption.WarnIfDuplicatedPassword` |
+| `PasswordLeaked` | Core (+ `IPasswordFactory`) | Critical | Opt-in leak check found the password in a corpus |
+| `VaultSecuritySettings` | Core | Warning | Protective **vault** settings off — see `SecuritySettingsIssue` below |
+| `InsufficientPasskeys` | Core | Critical if 1 layer; else Warning | Fewer than `WarningKinds.RecommendedPasskeyCount` (2) onion passkeys |
+| `WeakPasskey` | Core | Critical | A passkey fails `SecretQuality` (length / classes / trivial / matches username) |
+| `PasskeyLeaked` | Core (+ `IPasswordFactory`) | Critical | A passkey is found in a leak corpus |
+| `WeakAccountPassword` | Core | Warning | An account password fails `SecretQuality` |
+| `PasskeyReusedAsAccountPassword` | Core | Critical | A passkey equals an account password |
+| `HostSecuritySettings` | Host (GUI) | Warning | App-level posture — see `HostSecurityIssue` |
 
-`ISettings.WarningsToNotify` filters what is surfaced to the user. Subscribe to `IDatabase.WarningsUpdated` (`WarningsUpdatedEventArgs.Warnings`). Each `IWarning` may point at related `IActivity` rows and/or `IAccount`s; security-settings warnings carry `SecuritySettingsIssues` instead.
+### Vault security issues (`SecuritySettingsIssue`)
 
-When `WarningsToNotify` is `0`, the WPF client shows a **MessageBox** (save + session open): a normal warning would never be notified. That MessageBox covers the "Activity Review notifications off among an empty mask" case; partial masks that omit only `ActivityReviewWarning` do not raise a `SecuritySettingsIssue`.
+`AutoLogoutDisabled`, `ClipboardCleaningDisabled`, `QrAutoCloseDisabled`, `NoAccountLeakCheck` / `NoAccountDuplicateCheck` / `NoAccountUpdateReminder` (each when **no** account has that opt-in; requires ≥1 account).
 
-Duplicate and expiry warnings are computed locally. Leak warnings use `IPasswordFactory.PasswordLeakedAsync` (HIBP → XposedOrNot → optional local `.pkbf` Bloom filter). The UI does **not** surface a separate "could not verify" state: a transient failure is expected to succeed later; a lasting failure without a local filter means the machine is offline or both providers are down — not actionable for a local-only tool. See [[Security]].
+### Host security issues (`HostSecurityIssue`)
+
+`IdleLoginDisabled` (login idle timeout `0`), `OfflineLeakFilterUnavailable` (no loaded `.pkbf`).
+
+Notify preferences no longer feed vault security issues (the old `*NotificationsDisabled` feedback loop is gone). When `WarningsToNotify` is empty, the WPF client shows a **MessageBox**.
+
+## How clients consume warnings
+
+Core raises **per-kind** events (`ActivityReviewWarningsChanged`, …) with unfiltered snapshots, plus `CoreWarningsScanCompleted`. Prefer `IDatabase.CoreWarnings` for the latest Core map.
+
+The WPF `WarningBroker` also publishes host warnings and applies `WarningsToNotify`. Menu colors come from `IWarning.Severity` (`WarningBroker.BrushFor`), not hard-coded kinds.
+
+Legacy vaults may still store `WarningsToNotify` as old `WarningType` flags; `WarningKindList` JSON migration maps them onto kind ids.
+
+Duplicate and expiry warnings are local. Leak / passkey-leak checks use `IPasswordFactory.PasswordLeakedAsync` (HIBP → XposedOrNot → optional local `.pkbf`). Fail-open when unreachable. See [[Security]].
 
 ## Activity log (`IActivity`)
 
@@ -28,7 +48,7 @@ Duplicate and expiry warnings are computed locally. Leak warnings use `IPassword
 | `FieldName` / `FieldValue` | Changed field and new value, or error context (e.g. `ImportExportError` + enum member name). Never contains `ProtectedSecret` plaintext; `ToString()` on secrets is `***`. |
 | `ParentName` | Parent item name for account-level updates |
 | `EventType` | `ActivityEventType` |
-| `NeedsReview` | Drives `ActivityReviewWarning`. Clearing it (the Activities grid checkbox) is written back into the log on the next sealed persist (Save or logout). |
+| `NeedsReview` | Drives `ActivityReview`. Clearing it (the Activities grid checkbox) is written back into the log on the next sealed persist (Save or logout). |
 
 There is no persisted `Message` string. Core stores structured fields in a pipe-delimited wire format (`Activity.ToString()`). The **WPF** Activities grid builds localized text at display time from `EventType` + these fields via `ActivityViewModel` (`Activity_*` / `EnumValue_*` keys — see [[WPF Client]] Localization).
 
@@ -69,18 +89,16 @@ foreach (IActivity activity in database.Activities ?? [])
    if (activity.EventType == ActivityEventType.LoginFailed
       || activity.EventType == ActivityEventType.ActivityLogTampered)
    {
-      // Surface in UI; NeedsReview should already feed ActivityReviewWarning
+      // Surface in UI; NeedsReview should already feed ActivityReview
    }
 }
 
-foreach (IWarning warning in database.Warnings ?? [])
+if (database.CoreWarnings.TryGetValue(WarningKinds.PasswordLeaked, out var leaked)
+    && leaked.OfType<IAccountsWarning>().FirstOrDefault() is { } warning)
 {
-   if (warning.WarningType.HasFlag(WarningType.PasswordLeakedWarning))
+   foreach (IAccount account in warning.Accounts)
    {
-      foreach (IAccount account in warning.Accounts ?? [])
-      {
-         // Prompt the user to rotate account.Password
-      }
+      // …
    }
 }
 ```

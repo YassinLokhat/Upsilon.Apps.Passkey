@@ -178,7 +178,7 @@ classDiagram
             +int ShowPasswordDelay
             +int NumberOfOldPasswordToKeep
             +int NumberOfMonthActivitiesToKeep
-            +WarningType WarningsToNotify
+            +WarningKindList WarningsToNotify
             +string Language
             +string Theme
         }
@@ -189,13 +189,13 @@ classDiagram
             +IUser? User
             +int? SessionLeftTime
             +IEnumerable~IActivity~ Activities
-            +IEnumerable~IWarning~ Warnings
+            +IReadOnlyDictionary CoreWarnings
             +ISerializationCenter SerializationCenter
             +ICryptographyCenter CryptographyCenter
             +IPasswordFactory PasswordFactory
             +IClipboardManager ClipboardManager
             +ISecretMemoryProtector SecretMemoryProtector
-            +EventHandler~WarningsUpdatedEventArgs~ WarningsUpdated
+            +EventHandler CoreWarningsScanCompleted
             +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
             +EventHandler DatabaseSaved
             +EventHandler~LogoutEventArgs~ DatabaseClosed
@@ -203,6 +203,7 @@ classDiagram
             +LoginAsync(in passkey string, in cancellationToken CancellationToken) Task~IUser~
             +Save(void) void
             +SaveAsync(in cancellationToken CancellationToken) Task
+            +RefreshWarnings(void) void
             +Delete(void) void
             +Close(void) void
             +HasChanged(in itemId string) bool
@@ -229,10 +230,9 @@ classDiagram
 
         class IWarning {
             <<interface>>
-            +WarningType WarningType
-            +IEnumerable~IActivity~? Activities
-            +IEnumerable~IAccount~? Accounts
-            +SecuritySettingsIssue SecuritySettingsIssues
+            +string Source
+            +string Kind
+            +WarningSeverity Severity
         }
     }
     
@@ -246,14 +246,11 @@ classDiagram
             WarnIfDuplicatedPassword
         }
         
-        class WarningType {
+        class WarningSeverity {
             <<enumeration>>
-            <<flags>>
-            ActivityReviewWarning
-            PasswordUpdateReminderWarning
-            DuplicatedPasswordsWarning
-            PasswordLeakedWarning
-            SecuritySettingsWarning
+            Info
+            Warning
+            Critical
         }
         
         class AutoSaveMergeBehavior {
@@ -305,8 +302,9 @@ classDiagram
             +AutoSaveMergeBehavior MergeBehavior
         }
         
-        class WarningsUpdatedEventArgs {
-            +IEnumerable~IWarning~ Warnings
+        class WarningsChangedEventArgs {
+            +string Kind
+            +IReadOnlyList~IWarning~ Warnings
         }
         
         class LogoutEventArgs {
@@ -331,7 +329,7 @@ classDiagram
     IService --> IUser : User
     IUser "0" --> "*" IService : Services
     IUser --> ISettings : Settings
-    ISettings --> WarningType : WarningsToNotify
+    ISettings --> WarningKindList : WarningsToNotify
     IDatabase --> ISerializationCenter : SerializationCenter
     IDatabase --> ICryptographyCenter : CryptographyCenter
     IDatabase --> IPasswordFactory : PasswordFactory
@@ -339,16 +337,14 @@ classDiagram
     IDatabase --> ISecretMemoryProtector : SecretMemoryProtector
     IDatabase --> IUser : User
     ISecretMemoryProtector --> IProtectedSecret : Protect
-    IDatabase "0" --> "*" IWarning : Warnings
+    IDatabase "0" --> "*" IWarning : CoreWarnings
     IDatabase "0" --> "*" IActivity : Activities
-    IDatabase --> WarningsUpdatedEventArgs : WarningsUpdated
+    IDatabase --> WarningsChangedEventArgs : per-kind events
     IDatabase --> AutoSaveDetectedEventArgs : AutoSaveDetected
     IDatabase --> LogoutEventArgs : DatabaseClosed
-    IWarning --> WarningType : WarningType
-    IWarning "0" --> "*" IActivity : Activities
-    IWarning "0" --> "*" IAccount : Accounts
+    IWarning --> WarningSeverity : Severity
     AutoSaveDetectedEventArgs --> AutoSaveMergeBehavior : MergeBehavior
-    WarningsUpdatedEventArgs "0" --> "*" IWarning : Warnings
+    WarningsChangedEventArgs "0" --> "*" IWarning : Warnings
 ```
 
 **Example Use Cases**
@@ -508,7 +504,7 @@ Two things to keep in mind:
 
 *   These operations share the progressive passkey stack and the database file,
     so they are not meant to overlap: await one before starting the next.
-*   Their events (`AutoSaveDetected`, `DatabaseSaved`, `WarningsUpdated`,
+*   Their events (`AutoSaveDetected`, `DatabaseSaved`, Core warning kind events / `CoreWarningsScanCompleted`,
     `DatabaseClosed`) are raised from the worker thread, so a handler touching UI
     state has to marshal back to its own thread.
 

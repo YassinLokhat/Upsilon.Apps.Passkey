@@ -47,7 +47,7 @@ Default implementations in `Upsilon.Apps.Passkey.Utils`: `CryptographyCenter`, `
 | `HasChanged(itemId)` / `HasChanged(itemId, fieldName)` | Dirty tracking for UI |
 | `ImportFromFile` / `ExportToFile` (+ Async) | `.json` or `.csv` only — see [[Import Export]] |
 
-Events: `AutoSaveDetected`, `DatabaseSaved`, `WarningsUpdated`, `DatabaseClosed` (`LogoutEventArgs.LoginTimeoutReached` tells you whether idle timeout closed the session).
+Events: `AutoSaveDetected`, `DatabaseSaved`, per-kind Core warning events / `CoreWarningsScanCompleted`, `DatabaseClosed` (`LogoutEventArgs.LoginTimeoutReached` tells you whether idle timeout closed the session).
 
 ### Async rules
 
@@ -92,7 +92,7 @@ account.Options = AccountOption.WarnIfPasswordLeaked | AccountOption.WarnIfDupli
 | `ShowPasswordDelay` | milliseconds | QR window auto-close (`0` = until dismissed). Named historically for password reveal; the WPF client uses it for QR display. |
 | `NumberOfOldPasswordToKeep` | count | Password history cap |
 | `NumberOfMonthActivitiesToKeep` | months | Activity retention |
-| `WarningsToNotify` | `WarningType` flags | Which warnings to surface — [[Warnings and Activity]] |
+| `WarningsToNotify` | `WarningKindList` (kind ids) | Which warnings to surface — [[Warnings and Activity]] |
 | `Language` | IETF tag / `System` or empty | UI language override. Empty = follow the WPF `config.json` language. `System` follows the OS UI language. |
 | `Theme` | `System` / `Light` / `Dark` or empty | UI theme override. Empty = follow the WPF `config.json` theme. |
 

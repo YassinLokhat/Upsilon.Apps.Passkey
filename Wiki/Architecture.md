@@ -155,7 +155,7 @@ classDiagram
             +int ShowPasswordDelay
             +int NumberOfOldPasswordToKeep
             +int NumberOfMonthActivitiesToKeep
-            +WarningType WarningsToNotify
+            +WarningKindList WarningsToNotify
             +string Language
             +string Theme
         }
@@ -172,7 +172,7 @@ classDiagram
             +IPasswordFactory PasswordFactory
             +IClipboardManager ClipboardManager
             +ISecretMemoryProtector SecretMemoryProtector
-            +EventHandler~WarningsUpdatedEventArgs~ WarningsUpdated
+            +EventHandler CoreWarningsScanCompleted
             +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
             +EventHandler DatabaseSaved
             +EventHandler~LogoutEventArgs~ DatabaseClosed
@@ -206,10 +206,9 @@ classDiagram
 
         class IWarning {
             <<interface>>
-            +WarningType WarningType
-            +IEnumerable~IActivity~? Activities
-            +IEnumerable~IAccount~? Accounts
-            +SecuritySettingsIssue SecuritySettingsIssues
+            +string Source
+            +string Kind
+            +WarningSeverity Severity
         }
     }
 
@@ -224,7 +223,7 @@ classDiagram
     IService "0" --> "*" IAccount : Accounts
     IUser "0" --> "*" IService : Services
     IDatabase --> IUser : User
-    IDatabase "0" --> "*" IWarning : Warnings
+    IDatabase "0" --> "*" IWarning : CoreWarnings
     IDatabase "0" --> "*" IActivity : Activities
     IDatabase --> ISerializationCenter : SerializationCenter
     IDatabase --> ICryptographyCenter : CryptographyCenter
@@ -233,7 +232,7 @@ classDiagram
     IDatabase --> ISecretMemoryProtector : SecretMemoryProtector
 ```
 
-Event-arg types (`WarningsUpdatedEventArgs`, `AutoSaveDetectedEventArgs`, `LogoutEventArgs`) and enums live under `Interfaces.Events` / `Interfaces.Enums` — see the fuller diagram in the repository `README.md`.
+Event-arg types (`WarningsChangedEventArgs`, `AutoSaveDetectedEventArgs`, `LogoutEventArgs`) and enums live under `Interfaces.Events` / `Interfaces.Enums` — see the fuller diagram in the repository `README.md`.
 
 ## Design choices that show up in usage
 
