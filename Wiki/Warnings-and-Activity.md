@@ -6,7 +6,7 @@ Warnings are published by **independent sources** (Core vault scans, host/GUI po
 
 | Kind | Source | Severity | When it fires |
 | ---- | ------ | -------- | ------------- |
-| `ActivityReview` | Core | Critical if login-failed / tamper / session-timeout; else Warning | Activities with `NeedsReview` |
+| `ActivityReview` | Core | Max over rows: Critical (login-failed / tamper / session-timeout / **export**), Warning (`ItemUpdated` / `ItemDeleted`, …), Info (import / `ItemAdded` / autosave-merge) | Activities with `NeedsReview` |
 | `PasswordUpdateReminder` | Core | Critical | Current password older than `IAccount.PasswordUpdateReminderDelay` months (`0` = never) |
 | `DuplicatedPasswords` | Core | Warning | Same secret on ≥2 accounts, and **at least one** has `AccountOption.WarnIfDuplicatedPassword` |
 | `PasswordLeaked` | Core (+ `IPasswordFactory`) | Critical | Opt-in leak check found the password in a corpus |

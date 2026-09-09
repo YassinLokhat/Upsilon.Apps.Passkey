@@ -273,5 +273,38 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * ActivityReview severity is the max of per-event severities: import /
+       * ItemAdded / autosave merge are Info; export is Critical.
+      */
+      public void Case08_ActivityReviewSeverity_PerEventMax()
+      {
+         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.ImportingDataStarted)
+            .Should().Be(WarningSeverity.Info);
+         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.ItemAdded)
+            .Should().Be(WarningSeverity.Info);
+         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile)
+            .Should().Be(WarningSeverity.Info);
+
+         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.ItemUpdated)
+            .Should().Be(WarningSeverity.Warning);
+         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.ItemDeleted)
+            .Should().Be(WarningSeverity.Warning);
+
+         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.ExportingDataStarted)
+            .Should().Be(WarningSeverity.Critical);
+         _ = ActivityReviewWarning.SeverityFor(ActivityEventType.LoginFailed)
+            .Should().Be(WarningSeverity.Critical);
+
+         Activity infoOnly = new(1, "id", "u", null, null, null, null, null,
+            ActivityEventType.ImportingDataSucceded, needsReview: true);
+         Activity export = new(2, "id", "u", null, null, null, null, null,
+            ActivityEventType.ExportingDataSucceded, needsReview: true);
+
+         _ = new ActivityReviewWarning([infoOnly]).Severity.Should().Be(WarningSeverity.Info);
+         _ = new ActivityReviewWarning([infoOnly, export]).Severity.Should().Be(WarningSeverity.Critical);
+      }
    }
 }

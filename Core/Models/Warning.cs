@@ -18,11 +18,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public ActivityReviewWarning(IActivity[] activities)
       {
          Activities = activities;
-         Severity = activities.Any(static a => a.EventType is ActivityEventType.LoginFailed
-            or ActivityEventType.ActivityLogTampered
-            or ActivityEventType.LoginSessionTimeoutReached)
-            ? WarningSeverity.Critical
-            : WarningSeverity.Warning;
+         Severity = activities.Length == 0
+            ? WarningSeverity.Info
+            : activities.Max(static a => SeverityFor(a.EventType));
       }
 
       public override string Kind => WarningKinds.ActivityReview;
@@ -30,6 +28,35 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public override WarningSeverity Severity { get; }
 
       public IEnumerable<IActivity> Activities { get; }
+
+      /// <summary>
+      /// Per-event severity; the ActivityReview bucket uses the max across
+      /// its NeedsReview rows.
+      /// </summary>
+      internal static WarningSeverity SeverityFor(ActivityEventType eventType)
+         => eventType switch
+         {
+            ActivityEventType.LoginFailed
+               or ActivityEventType.ActivityLogTampered
+               or ActivityEventType.LoginSessionTimeoutReached
+               or ActivityEventType.ExportingDataStarted
+               or ActivityEventType.ExportingDataSucceded
+               or ActivityEventType.ExportingDataFailed
+               => WarningSeverity.Critical,
+
+            ActivityEventType.ImportingDataStarted
+               or ActivityEventType.ImportingDataSucceded
+               or ActivityEventType.ImportingDataFailed
+               or ActivityEventType.ItemAdded
+               or ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile
+               or ActivityEventType.MergeWithoutSavingAndKeepAutoSaveFile
+               or ActivityEventType.DontMergeAndRemoveAutoSaveFile
+               or ActivityEventType.DontMergeAndKeepAutoSaveFile
+               => WarningSeverity.Info,
+
+            // ItemUpdated, ItemDeleted, and any other NeedsReview row.
+            _ => WarningSeverity.Warning,
+         };
    }
 
    internal sealed class AccountsWarning : WarningBase, IPasswordUpdateReminderWarning, IDuplicatedPasswordsWarning,
