@@ -3,7 +3,6 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
-using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -29,6 +28,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public ISerializationCenter SerializationCenter { get; private set; }
       public IPasswordFactory PasswordFactory { get; private set; }
       public IClipboardManager ClipboardManager { get; private set; }
+      public ISecretMemoryProtector SecretMemoryProtector { get; private set; }
 
       public Func<SecuritySettingsIssue>? HostSecuritySettingsIssues { get; set; }
 
@@ -174,6 +174,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
          IClipboardManager clipboardManager,
+         ISecretMemoryProtector secretMemoryProtector,
          string databaseFile,
          FileMode fileMode,
          string username,
@@ -186,6 +187,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          SerializationCenter = serializationCenter;
          PasswordFactory = passwordFactory;
          ClipboardManager = clipboardManager;
+         SecretMemoryProtector = secretMemoryProtector;
 
          Username = username;
 
@@ -241,6 +243,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
          IClipboardManager clipboardManager,
+         ISecretMemoryProtector secretMemoryProtector,
          string databaseFile,
          string username,
          IEnumerable<string> passkeys)
@@ -249,6 +252,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          ArgumentNullException.ThrowIfNull(serializationCenter);
          ArgumentNullException.ThrowIfNull(passwordFactory);
          ArgumentNullException.ThrowIfNull(clipboardManager);
+         ArgumentNullException.ThrowIfNull(secretMemoryProtector);
          ArgumentNullException.ThrowIfNull(passkeys);
 
          // Snapshot once: Create may receive a one-shot sequence, and the
@@ -273,6 +277,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             serializationCenter,
             passwordFactory,
             clipboardManager,
+            secretMemoryProtector,
             databaseFile,
             FileMode.Create,
             username,
@@ -282,10 +287,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
          database.User = new()
          {
             Host = database,
-            PrivateKey = ProtectedSecret.Protect(privateKey),
+            PrivateKey = secretMemoryProtector.Protect(privateKey),
             ItemId = "U" + cryptographicCenter.GetHash(username),
             Username = username,
-            Passkeys = [.. passkeyList.Select(ProtectedSecret.Protect)],
+            Passkeys = [.. passkeyList.Select(secretMemoryProtector.Protect)],
          };
 
          database.ActivityCenter.AddActivity(itemId: string.Empty,
@@ -312,13 +317,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
          ISerializationCenter serializationCenter,
          IPasswordFactory passwordFactory,
          IClipboardManager clipboardManager,
+         ISecretMemoryProtector secretMemoryProtector,
          string databaseFile,
          string username)
       {
+         ArgumentNullException.ThrowIfNull(secretMemoryProtector);
+
          Database database = new(cryptographicCenter,
             serializationCenter,
             passwordFactory,
             clipboardManager,
+            secretMemoryProtector,
             databaseFile,
             FileMode.Open,
             username);

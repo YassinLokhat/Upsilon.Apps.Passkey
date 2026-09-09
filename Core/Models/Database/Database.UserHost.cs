@@ -18,6 +18,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       IClipboardManager IUserHost.ClipboardManager => ClipboardManager;
 
+      ISecretMemoryProtector IUserHost.SecretMemoryProtector => SecretMemoryProtector;
+
       string IUserHost.Username => Username;
 
       bool IUserHost.HasPendingChanges(string itemId) => HasChanged(itemId);

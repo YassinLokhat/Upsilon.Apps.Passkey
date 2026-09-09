@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel;
+using System.Text.Json.Serialization;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
-using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -52,9 +52,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
             if (!string.IsNullOrEmpty(value)
                && Password != value)
             {
-               Dictionary<DateTime, ProtectedSecret> oldPasswords = Passwords.CloneWith(Host.SerializationCenter);
+               Dictionary<DateTime, IProtectedSecret> oldPasswords = Passwords.CloneWith(Host.SerializationCenter);
                Password = value;
-               Passwords[DateTime.Now] = ProtectedSecret.Protect(value);
+               Passwords[DateTime.Now] = _protectSecret(value);
 
                if (_service is not null)
                {
@@ -134,18 +134,27 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public string Label { get; set; } = string.Empty;
       public IEnumerable<string> Identifiers { get; set; } = [];
 
-      // Backed by a ProtectedSecret so the plaintext is never held in a long-lived
+      // Backed by an IProtectedSecret so the plaintext is never held in a long-lived
       // field: it is only materialized just in time on read and re-protected on
-      // write. Serialization goes through the plaintext (see ProtectedSecret), so
+      // write. Serialization goes through the plaintext (see IProtectedSecret), so
       // the persisted form is unchanged.
+      [JsonIgnore]
       public string Password
       {
          get => _password.Reveal();
-         set => _password = ProtectedSecret.Protect(value);
+         set => _password = _protectSecret(value);
       }
-      private ProtectedSecret _password = ProtectedSecret.Protect(string.Empty);
 
-      public Dictionary<DateTime, ProtectedSecret> Passwords { get; set; } = [];
+      [JsonPropertyName("Password")]
+      public IProtectedSecret PasswordSecret
+      {
+         get => _password;
+         set => _password = value ?? PlaintextSecret.Wrap(string.Empty);
+      }
+
+      private IProtectedSecret _password = PlaintextSecret.Wrap(string.Empty);
+
+      public Dictionary<DateTime, IProtectedSecret> Passwords { get; set; } = [];
       public string Notes { get; set; } = string.Empty;
       public int PasswordUpdateReminderDelay { get; set; }
       public AccountOption Options { get; set; }
@@ -189,7 +198,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      Notes = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);
                      break;
                   case nameof(Password):
-                     Passwords = change.NewValue.DeserializeTo<Dictionary<DateTime, ProtectedSecret>>(Host.SerializationCenter);
+                     Passwords = change.NewValue.DeserializeTo<Dictionary<DateTime, IProtectedSecret>>(Host.SerializationCenter);
                      Password = Passwords.Count != 0 ? Passwords[Passwords.Keys.Max()].Reveal() : string.Empty;
                      break;
                   case nameof(PasswordUpdateReminderDelay):
@@ -210,5 +219,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public override string ToString() => $"{Label} ({string.Join(", ", Identifiers)})".Trim();
 
       public bool HasChanged() => Host.HasPendingChanges(ItemId);
+
+      private IProtectedSecret _protectSecret(string? secret)
+         => _service is not null
+            ? Host.SecretMemoryProtector.Protect(secret)
+            : PlaintextSecret.Wrap(secret);
    }
 }

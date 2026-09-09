@@ -3,7 +3,6 @@ using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
-using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -74,7 +73,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             newValue: account.Password,
             readableValue: string.Empty);
 
-         account.Passwords[DateTime.Now] = ProtectedSecret.Protect(account.Password);
+         account.Passwords[DateTime.Now] = Host.SecretMemoryProtector.Protect(account.Password);
 
          return account;
       }
@@ -128,7 +127,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public string Url { get; set; } = string.Empty;
       public string Notes { get; set; } = string.Empty;
 
-      public IAccount AddAccount(string label, IEnumerable<string> identifiers, string password, Dictionary<DateTime, ProtectedSecret> passwords)
+      public IAccount AddAccount(string label, IEnumerable<string> identifiers, string password, Dictionary<DateTime, IProtectedSecret> passwords)
       {
          Account account = new()
          {
@@ -145,7 +144,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          if (account.Passwords.Count == 0
             && !string.IsNullOrEmpty(password))
          {
-            account.Passwords[DateTime.Now] = ProtectedSecret.Protect(password);
+            account.Passwords[DateTime.Now] = Host.SecretMemoryProtector.Protect(password);
          }
 
          Accounts.Add(Host.AutoSave.AddValue(ItemId, readableValue: account.ToString(), needsReview: false, account));

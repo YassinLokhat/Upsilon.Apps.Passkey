@@ -3,7 +3,6 @@ using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
-using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
@@ -42,7 +41,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          get => Host.Touch<IEnumerable<string>>([.. Passkeys.Select(x => x.Reveal())]);
          set
          {
-            IEnumerable<ProtectedSecret> newPasskeys = [.. value.Select(ProtectedSecret.Protect)];
+            IEnumerable<IProtectedSecret> newPasskeys = [.. value.Select(Host.SecretMemoryProtector.Protect)];
 
             CredentialChanged |= Host.SerializationCenter.AreDifferent(Passkeys, newPasskeys);
 
@@ -111,8 +110,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       // RSA private key held encrypted in memory and revealed just in time (sign /
       // decrypt / derive public key). Persistence stays a plaintext PEM string inside
-      // the onion-encrypted database entry (see ProtectedSecret).
-      public ProtectedSecret PrivateKey { get; set; } = ProtectedSecret.Protect(string.Empty);
+      // the onion-encrypted database entry (see IProtectedSecret).
+      public IProtectedSecret PrivateKey { get; set; } = PlaintextSecret.Wrap(string.Empty);
 
       // The number of activity-log entries sealed at the last save. Stored inside
       // the encrypted (tamper-proof) database so it can act as a trusted anchor:
@@ -128,8 +127,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       // Master passkeys are held encrypted in memory and only revealed just in time
       // (to derive the file keys on save, or to display them in the settings window).
-      // Serialization goes through the plaintext (see ProtectedSecret).
-      public IEnumerable<ProtectedSecret> Passkeys { get; set; } = [];
+      // Serialization goes through the plaintext (see IProtectedSecret).
+      public IEnumerable<IProtectedSecret> Passkeys { get; set; } = [];
       public bool CredentialChanged { get; set; }
 
       public Settings Settings { get; set; } = new();
@@ -313,7 +312,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      break;
                   case nameof(Passkeys):
                      CredentialChanged = true;
-                     Passkeys = change.NewValue.DeserializeTo<IEnumerable<ProtectedSecret>>(Host.SerializationCenter);
+                     Passkeys = change.NewValue.DeserializeTo<IEnumerable<IProtectedSecret>>(Host.SerializationCenter);
                      break;
                   case nameof(Settings.LogoutTimeout):
                      Settings.LogoutTimeout = change.NewValue.DeserializeTo<int>(Host.SerializationCenter);
