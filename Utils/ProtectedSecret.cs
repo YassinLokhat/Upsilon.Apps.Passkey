@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Utils
 {
@@ -20,7 +21,7 @@ namespace Upsilon.Apps.Passkey.Utils
    /// plaintext instead (the .pku onion encryption is what protects it at rest); see
    /// <see cref="ProtectedSecretJsonConverter"/>.
    /// </summary>
-   public sealed class ProtectedSecret
+   public sealed class ProtectedSecret : IProtectedSecret
    {
       private const int KEY_SIZE = 32;
       private const int SALT_SIZE = 16;
@@ -110,12 +111,38 @@ namespace Upsilon.Apps.Passkey.Utils
    }
 
    /// <summary>
-   /// (De)serializes a <see cref="ProtectedSecret"/> as its plaintext string, so a
+   /// Default <see cref="ISecretMemoryProtector"/> using <see cref="ProtectedSecret"/>.
+   /// </summary>
+   public sealed class SecretMemoryProtector : ISecretMemoryProtector
+   {
+      public IProtectedSecret Protect(string? secret) => ProtectedSecret.Protect(secret);
+   }
+
+   /// <summary>
+   /// (De)serializes an <see cref="IProtectedSecret"/> as its plaintext string, so a
    /// persisted secret is a plain JSON string (protected at rest by the .pku onion
    /// encryption) while its in-memory representation stays encrypted. Deserializing
    /// immediately re-protects the value.
    /// </summary>
-   public sealed class ProtectedSecretJsonConverter : JsonConverter<ProtectedSecret>
+   public sealed class ProtectedSecretJsonConverter : JsonConverter<IProtectedSecret>
+   {
+      public override IProtectedSecret Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+         => ProtectedSecret.Protect(reader.GetString());
+
+      public override void Write(Utf8JsonWriter writer, IProtectedSecret value, JsonSerializerOptions options)
+      {
+         ArgumentNullException.ThrowIfNull(writer);
+         ArgumentNullException.ThrowIfNull(value);
+
+         writer.WriteStringValue(value.Reveal());
+      }
+   }
+
+   /// <summary>
+   /// Same wire format as <see cref="ProtectedSecretJsonConverter"/> for the concrete
+   /// <see cref="ProtectedSecret"/> type (e.g. unit tests that round-trip the impl).
+   /// </summary>
+   public sealed class ProtectedSecretConcreteJsonConverter : JsonConverter<ProtectedSecret>
    {
       public override ProtectedSecret Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
          => ProtectedSecret.Protect(reader.GetString());

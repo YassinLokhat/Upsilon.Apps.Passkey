@@ -10,7 +10,15 @@ namespace Upsilon.Apps.Passkey.Utils
    /// </summary>
    public class JsonSerializationCenter : ISerializationCenter
    {
-      private static readonly JsonSerializerOptions _options = new() { Converters = { new JsonStringEnumConverter(), new ProtectedSecretJsonConverter() }, };
+      private static readonly JsonSerializerOptions _options = new()
+      {
+         Converters =
+         {
+            new JsonStringEnumConverter(),
+            new ProtectedSecretJsonConverter(),
+            new ProtectedSecretConcreteJsonConverter(),
+         },
+      };
 
       public string Serialize<T>(T toSerialize) where T : notnull
          => JsonSerializer.Serialize<T>(toSerialize, _options);
