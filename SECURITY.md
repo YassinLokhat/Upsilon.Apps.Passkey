@@ -223,17 +223,19 @@ login:
 
 ### In-memory hygiene
 
-- **`ProtectedSecret`**: once a vault is unlocked, account passwords, password
-  history, master passkeys, and the RSA private key are held as AES-256-GCM
-  ciphertext under a random, process-wide session key (`Utils/ProtectedSecret.cs`).
-  Plaintext is produced only for the duration of `Reveal()` (display, copy,
-  re-encrypt, or JSON persist into the `.pku` onion). `ToString()` never returns
-  the secret (`***`), so a protected value cannot leak into logs or activity
-  messages by accident. The session key never leaves RAM and dies with the
-  process; a dump of the wrapped blobs after exit is worthless. Persistence
-  still stores plaintext JSON **inside** the onion-encrypted `database` /
-  `autosave` entries — `ProtectedSecret` is an in-memory wrapping, not a second
-  at-rest scheme.
+- **`IProtectedSecret` / `ISecretMemoryProtector`**: once a vault is unlocked,
+  account passwords, password history, master passkeys, and the RSA private key
+  are held through the protector injected at Create/Open. The Utils default
+  (`SecretMemoryProtector` → `ProtectedSecret`) uses AES-256-GCM under a random,
+  process-wide session key. Plaintext is produced only for the duration of
+  `Reveal()` (display, copy, re-encrypt, or JSON persist into the `.pku` onion).
+  `ToString()` never returns the secret (`***`), so a protected value cannot leak
+  into logs or activity messages by accident. The session key never leaves RAM
+  and dies with the process; a dump of the wrapped blobs after exit is worthless.
+  Persistence still stores plaintext JSON **inside** the onion-encrypted
+  `database` / `autosave` entries — in-memory wrapping is not a second at-rest
+  scheme. Core depends only on the Interfaces ports; hosts may substitute another
+  protector without changing Core.
 - `IDatabase.Login` takes a plain `string` passkey (there is no `SecureString`
   overload on the Core API). The WPF GUI keeps the typed secret in
   `PasswordBox.SecurePassword` and bridges it through
@@ -323,9 +325,10 @@ login:
 
 These are conscious trade-offs, documented for transparency:
 
-- **Secrets in managed memory**: long-lived fields hold `ProtectedSecret`
-  ciphertext, not plaintext, which shrinks the window compared to keeping
-  passwords as `string` for the whole session. `Reveal()` still returns a .NET
+- **Secrets in managed memory**: long-lived fields hold `IProtectedSecret`
+  ciphertext (default Utils `ProtectedSecret`), not plaintext, which shrinks the
+  window compared to keeping passwords as `string` for the whole session.
+  `Reveal()` still returns a .NET
   `string`, which is immutable and cannot be reliably zeroed before garbage
   collection. An attacker able to read process memory or the OS swap file
   while the database is unlocked — especially during display, clipboard copy,

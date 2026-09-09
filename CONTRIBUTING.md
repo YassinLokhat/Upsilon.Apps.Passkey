@@ -14,9 +14,9 @@ focused change and enough context for review.
 
 | Path | Role |
 | ---- | ---- |
-| `Interfaces/` | Public contracts (`IDatabase`, crypto, serialization, clipboard). |
-| `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `ProtectedSecret`, `LeakFilter/` (`.pkbf` Bloom). Same zero-NuGet policy as Core. |
-| `Core/` | Vault implementation: onion encryption, `.pku` I/O, warnings, import/export. `Database` is a partial class; internal hosts (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) keep ActivityCenter / AutoSave / User from digging into Database members. |
+| `Interfaces/` | Public contracts (`IDatabase`, crypto, serialization, clipboard, `IProtectedSecret`, `ISecretMemoryProtector`). |
+| `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `SecretMemoryProtector` / `ProtectedSecret`, `LeakFilter/` (`.pkbf` Bloom). Same zero-NuGet policy as Core. |
+| `Core/` | Vault implementation (Interfaces only — no ProjectReference to Utils): onion encryption, `.pku` I/O, warnings, import/export. `Database` is a partial class; internal hosts (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) keep ActivityCenter / AutoSave / User from digging into Database members. |
 | `GUI/WPF/` | Windows desktop client (WPF, .NET 10 Windows TFM). |
 | `UnitTests/` | Core/Utils tests plus ViewModel tests through the `AppServices` seam. |
 

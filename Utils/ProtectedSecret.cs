@@ -7,19 +7,8 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 namespace Upsilon.Apps.Passkey.Utils
 {
    /// <summary>
-   /// Holds a secret (an account password or a master passkey) encrypted in memory
-   /// and only reveals it "just in time".
-   ///
-   /// The plaintext is never kept in a long-lived field: it lives encrypted for the
-   /// whole session and a transient plaintext copy is produced only for the brief
-   /// moment <see cref="Reveal"/> is called (e.g. to display, copy or re-encrypt).
-   /// This shrinks the window during which a secret is exposed in the managed heap
-   /// from "the entire session" down to "each individual use".
-   ///
-   /// The in-memory key is random, process-wide and never persisted, so a protected
-   /// secret is worthless once the process ends. Persistence stores the revealed
-   /// plaintext instead (the .pku onion encryption is what protects it at rest); see
-   /// <see cref="ProtectedSecretJsonConverter"/>.
+   /// Holds a secret encrypted in memory and reveals it just in time via <see cref="Reveal"/>.
+   /// Persistence uses plaintext inside the .pku onion; see <see cref="ProtectedSecretJsonConverter"/>.
    /// </summary>
    public sealed class ProtectedSecret : IProtectedSecret
    {
@@ -28,11 +17,6 @@ namespace Upsilon.Apps.Passkey.Utils
       private const int NONCE_SIZE = 12;
       private const int TAG_SIZE = 16;
 
-      // Random, process-wide key used to wrap every secret held in memory. It never
-      // leaves RAM and dies with the process, so an in-memory secret cannot be
-      // recovered from a persisted file or after the process exits. A fresh
-      // per-secret key is still derived from it with HKDF (see below), so the same
-      // key/nonce pair is never reused across two secrets.
       private static readonly byte[] _sessionKey = RandomNumberGenerator.GetBytes(KEY_SIZE);
 
       private readonly byte[] _protectedData;
@@ -47,8 +31,6 @@ namespace Upsilon.Apps.Passkey.Utils
          byte[] salt = RandomNumberGenerator.GetBytes(SALT_SIZE);
          byte[] nonce = RandomNumberGenerator.GetBytes(NONCE_SIZE);
 
-         // A fresh AES-256 key per secret, derived from the session key and a random
-         // salt, removes any nonce-reuse concern under a single long-lived key.
          byte[] key = HKDF.DeriveKey(HashAlgorithmName.SHA256, _sessionKey, KEY_SIZE, salt);
          byte[] plainBytes = Encoding.UTF8.GetBytes(secret ?? string.Empty);
 
@@ -62,7 +44,7 @@ namespace Upsilon.Apps.Passkey.Utils
                aesGcm.Encrypt(nonce, plainBytes, cipherBytes, tag);
             }
 
-            // salt | nonce | tag | ciphertext, so Reveal is self-describing.
+            // Layout: salt | nonce | tag | ciphertext
             return new ProtectedSecret([.. salt, .. nonce, .. tag, .. cipherBytes]);
          }
          finally
@@ -73,10 +55,7 @@ namespace Upsilon.Apps.Passkey.Utils
       }
 
       /// <summary>
-      /// Decrypts the secret just in time. The returned <see cref="string"/> is a
-      /// short-lived plaintext copy that becomes eligible for garbage collection as
-      /// soon as the caller stops referencing it; it should be used and dropped
-      /// promptly rather than stored.
+      /// Decrypts the secret just in time. Drop the returned string promptly; do not store it.
       /// </summary>
       public string Reveal()
       {
@@ -105,8 +84,6 @@ namespace Upsilon.Apps.Passkey.Utils
          }
       }
 
-      // Never expose the secret through ToString: this prevents a protected value
-      // from leaking into logs, debuggers or activity messages by accident.
       public override string ToString() => "***";
    }
 
@@ -119,10 +96,7 @@ namespace Upsilon.Apps.Passkey.Utils
    }
 
    /// <summary>
-   /// (De)serializes an <see cref="IProtectedSecret"/> as its plaintext string, so a
-   /// persisted secret is a plain JSON string (protected at rest by the .pku onion
-   /// encryption) while its in-memory representation stays encrypted. Deserializing
-   /// immediately re-protects the value.
+   /// JSON wire format is plaintext (onion-protected at rest); deserializing re-protects in memory.
    /// </summary>
    public sealed class ProtectedSecretJsonConverter : JsonConverter<IProtectedSecret>
    {
@@ -139,8 +113,7 @@ namespace Upsilon.Apps.Passkey.Utils
    }
 
    /// <summary>
-   /// Same wire format as <see cref="ProtectedSecretJsonConverter"/> for the concrete
-   /// <see cref="ProtectedSecret"/> type (e.g. unit tests that round-trip the impl).
+   /// Same wire format as <see cref="ProtectedSecretJsonConverter"/> for the concrete type.
    /// </summary>
    public sealed class ProtectedSecretConcreteJsonConverter : JsonConverter<ProtectedSecret>
    {

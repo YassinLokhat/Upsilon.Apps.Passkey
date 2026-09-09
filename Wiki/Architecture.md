@@ -1,15 +1,15 @@
 # Architecture
 
-Upsilon.Apps.Passkey is four layers and two solution files. The only **OS-specific** dependency the host must supply is `IClipboardManager`. File I/O lives in Core (BCL). Opt-in HTTP leak checks and the optional offline HIBP Bloom filter live in Utils (`PasswordFactory`, `Utils/LeakFilter/`). Those are not injected ports.
+Upsilon.Apps.Passkey is four layers and two solution files. The only **OS-specific** dependency the host must supply is `IClipboardManager`. In-memory secret wrapping is injected as `ISecretMemoryProtector` (Utils ships a default). File I/O lives in Core (BCL). Opt-in HTTP leak checks and the optional offline HIBP Bloom filter live in Utils (`PasswordFactory`, `Utils/LeakFilter/`). Those are not injected ports. **Core references Interfaces only** — it never takes a ProjectReference to Utils; the host (WPF, tests, or your app) composes the defaults.
 
 ## Repository layout
 
 | Path | Role |
 | ---- | ---- |
-| `Interfaces/` | Public contracts (`IDatabase`, `IUser`, crypto, serialization, clipboard). |
-| `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `ProtectedSecret`, and `LeakFilter/` (`.pkbf` Bloom file, builder, config). **Zero NuGet packages** (BCL only). |
-| `Core/` | Vault implementation: onion encryption, `.pku` I/O, warnings, import/export. **Zero NuGet packages** (BCL only). Vault-internal helpers stay under `Core/Utils/` (`QrCode`, file lock, activity, import/export). |
-| `GUI/WPF/` | Windows desktop client (MVVM + a small `AppServices` locator). |
+| `Interfaces/` | Public contracts (`IDatabase`, `IUser`, crypto, serialization, clipboard, `IProtectedSecret`, `ISecretMemoryProtector`, `PlaintextSecret`). |
+| `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `SecretMemoryProtector` / `ProtectedSecret`, and `LeakFilter/` (`.pkbf` Bloom file, builder, config). **Zero NuGet packages** (BCL only). |
+| `Core/` | Vault implementation: onion encryption, `.pku` I/O, warnings, import/export. **Zero NuGet packages** (BCL only). Depends on Interfaces only. Vault-internal helpers stay under `Core/Utils/` (`QrCode`, file lock, activity, import/export). |
+| `GUI/WPF/` | Windows desktop client (MVVM + a small `AppServices` locator). Composes Utils defaults and supplies `IClipboardManager`. |
 | `UnitTests/` | Core/Utils tests plus ViewModel tests through the `AppServices` seam. |
 
 | Solution | Projects |
@@ -17,7 +17,7 @@ Upsilon.Apps.Passkey is four layers and two solution files. The only **OS-specif
 | `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, WPF GUI, UnitTests |
 | `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, and Core only (no WPF, no tests: the test project targets `net10.0-windows`) |
 
-The WPF app supplies `IClipboardManager` and hosts dialogs, session, and navigation behind `AppServices` so ViewModels stay unit-testable without a window.
+The WPF app supplies `IClipboardManager` and `ISecretMemoryProtector`, and hosts dialogs, session, and navigation behind `AppServices` so ViewModels stay unit-testable without a window.
 
 ## Domain graph
 
@@ -33,6 +33,7 @@ flowchart LR
   IDatabase --> ISerializationCenter
   IDatabase --> IPasswordFactory
   IDatabase --> IClipboardManager
+  IDatabase --> ISecretMemoryProtector
 ```
 
 `IUser`, `IService`, and `IAccount` implement `IItem` (stable `ItemId`, `HasChanged()`, back-reference to `IDatabase`). `IDatabase` implements `IDisposable`: `Dispose()` closes the session the same way as `Close()`.
@@ -66,6 +67,16 @@ classDiagram
             +GeneratePasswordAsync(in length int, in alphabet string, in checkIfLeaked bool, in cancellationToken CancellationToken) Task~string~
             +PasswordLeaked(in password string) bool
             +PasswordLeakedAsync(in password string, in cancellationToken CancellationToken) Task~bool~
+        }
+
+        class ISecretMemoryProtector {
+            <<interface>>
+            +Protect(in secret string?) IProtectedSecret
+        }
+
+        class IProtectedSecret {
+            <<interface>>
+            +Reveal(void) string
         }
 
         class ICryptographyCenter {
@@ -160,6 +171,7 @@ classDiagram
             +ICryptographyCenter CryptographyCenter
             +IPasswordFactory PasswordFactory
             +IClipboardManager ClipboardManager
+            +ISecretMemoryProtector SecretMemoryProtector
             +EventHandler~WarningsUpdatedEventArgs~ WarningsUpdated
             +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
             +EventHandler DatabaseSaved
@@ -218,6 +230,7 @@ classDiagram
     IDatabase --> ICryptographyCenter : CryptographyCenter
     IDatabase --> IPasswordFactory : PasswordFactory
     IDatabase --> IClipboardManager : ClipboardManager
+    IDatabase --> ISecretMemoryProtector : SecretMemoryProtector
 ```
 
 Event-arg types (`WarningsUpdatedEventArgs`, `AutoSaveDetectedEventArgs`, `LogoutEventArgs`) and enums live under `Interfaces.Events` / `Interfaces.Enums` — see the fuller diagram in the repository `README.md`.

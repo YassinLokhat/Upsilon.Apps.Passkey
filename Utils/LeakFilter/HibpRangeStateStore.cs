@@ -3,20 +3,10 @@ using System.Text;
 namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 {
    /// <summary>
-   /// Sidecar (<c>.ranges</c>) recording, for every HIBP hash-range prefix, the
-   /// <c>ETag</c> of the payload already folded into a <c>.pkbf</c>.
-   /// <para>
-   /// It buys two things. A refresh can revalidate each range with
-   /// <c>If-None-Match</c> and download only what actually changed, and an
-   /// interrupted full build can resume instead of starting the corpus over.
-   /// </para>
-   /// <para>
-   /// The recorded <see cref="HibpBloomStamp"/> ties the sidecar to one committed
-   /// state of one filter file. A filter that was deleted, rebuilt or replaced no
-   /// longer matches, and the sidecar is then rejected rather than trusted — the
-   /// alternative would be skipping ranges whose bits are absent, i.e. silent
-   /// false negatives on a leak check.
-   /// </para>
+   /// Sidecar (<c>.ranges</c>) of HIBP range ETags already folded into a <c>.pkbf</c>.
+   /// Enables <c>If-None-Match</c> refresh and resume after an interrupted build.
+   /// Bound to one committed filter stamp — a rebuilt/replaced filter rejects the sidecar
+   /// rather than risk false negatives on leak checks.
    /// </summary>
    internal sealed class HibpRangeStateStore : IDisposable
    {
@@ -27,14 +17,11 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       internal const string FileSuffix = ".ranges";
 
       /// <summary>
-      /// Inline room for an ETag, in ASCII bytes. HIBP serves Azure-style tags
-      /// (<c>"0x8DED132F654ED41"</c>, 19 bytes); a longer one simply is not
-      /// cached, which costs one unconditional download.
+      /// Inline ETag capacity (ASCII). Longer tags are not cached (one unconditional download).
       /// </summary>
       internal const int MaxEtagLength = EntryStride - ETAG_OFFSET;
 
-      // Little-endian field offsets inside the HeaderSize-byte header. Bytes 0..3
-      // carry Magic, which a format has to expose first to be identifiable at all.
+      // Little-endian header offsets (bytes 0..3 = Magic).
       private const int VERSION_OFFSET = 4;
       private const int ENTRY_STRIDE_OFFSET = 8;
       private const int PREFIX_COUNT_OFFSET = 12;
@@ -44,7 +31,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       private const int INSERTED_COUNT_OFFSET = 40;
       private const int BUILT_UTC_TICKS_OFFSET = 48;
 
-      // Field offsets inside an EntryStride-byte range record.
+      // EntryStride field offsets.
       private const int STATE_OFFSET = 0;
       private const int ETAG_LENGTH_OFFSET = 1;
       private const int ETAG_OFFSET = 2;

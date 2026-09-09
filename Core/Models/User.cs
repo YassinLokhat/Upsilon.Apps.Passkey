@@ -108,16 +108,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      // RSA private key held encrypted in memory and revealed just in time (sign /
-      // decrypt / derive public key). Persistence stays a plaintext PEM string inside
-      // the onion-encrypted database entry (see IProtectedSecret).
       public IProtectedSecret PrivateKey { get; set; } = PlaintextSecret.Wrap(string.Empty);
 
-      // The number of activity-log entries sealed at the last save. Stored inside
-      // the encrypted (tamper-proof) database so it can act as a trusted anchor:
-      // if the activity log later presents fewer sealed entries, or no signature
-      // at all, the log has been rolled back or stripped. Not user-editable, so
-      // it deliberately bypasses the AutoSave change-tracking of other fields.
+      // Sealed activity-log count at last save (trusted anchor; not AutoSave-tracked).
+      // Fewer sealed entries later means the log was rolled back or stripped.
       public int ActivitySealWatermark { get; set; }
 
       public string ItemId { get; set; } = string.Empty;
@@ -125,9 +119,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public string Username { get; set; } = string.Empty;
 
-      // Master passkeys are held encrypted in memory and only revealed just in time
-      // (to derive the file keys on save, or to display them in the settings window).
-      // Serialization goes through the plaintext (see IProtectedSecret).
       public IEnumerable<IProtectedSecret> Passkeys { get; set; } = [];
       public bool CredentialChanged { get; set; }
 

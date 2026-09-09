@@ -52,7 +52,7 @@ They still cannot read `database` / `autosave` without the passkeys.
 
 ## Scenario: vault unlocked, malware on the same PC
 
-Out of scope. `ProtectedSecret` shrinks the window (ciphertext in RAM, `***` in logs) but `Reveal()` still produces a `string` for display, copy, QR, and save. Clipboard and screen are OS surfaces. Auto-logout and clipboard timeouts reduce *casual* exposure; they do not stop a scraper with equal privilege to the process.
+Out of scope. The default `ProtectedSecret` (via injected `ISecretMemoryProtector`) shrinks the window (ciphertext in RAM, `***` in logs) but `Reveal()` still produces a `string` for display, copy, QR, and save. Clipboard and screen are OS surfaces. Auto-logout and clipboard timeouts reduce *casual* exposure; they do not stop a scraper with equal privilege to the process.
 
 ## Scenario: user exports JSON "for backup" to a cloud folder
 

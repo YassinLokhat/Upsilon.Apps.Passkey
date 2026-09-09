@@ -134,10 +134,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public string Label { get; set; } = string.Empty;
       public IEnumerable<string> Identifiers { get; set; } = [];
 
-      // Backed by an IProtectedSecret so the plaintext is never held in a long-lived
-      // field: it is only materialized just in time on read and re-protected on
-      // write. Serialization goes through the plaintext (see IProtectedSecret), so
-      // the persisted form is unchanged.
       [JsonIgnore]
       public string Password
       {

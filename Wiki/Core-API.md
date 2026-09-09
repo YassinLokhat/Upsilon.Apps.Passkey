@@ -10,6 +10,7 @@ IDatabase Database.Create(
    ISerializationCenter serializationCenter,
    IPasswordFactory passwordFactory,
    IClipboardManager clipboardManager,
+   ISecretMemoryProtector secretMemoryProtector,
    string databaseFile,
    string username,
    IEnumerable<string> passkeys);
@@ -19,6 +20,7 @@ IDatabase Database.Open(
    ISerializationCenter serializationCenter,
    IPasswordFactory passwordFactory,
    IClipboardManager clipboardManager,
+   ISecretMemoryProtector secretMemoryProtector,
    string databaseFile,
    string username);
 ```
@@ -27,7 +29,7 @@ IDatabase Database.Open(
 * `Open` — the file must exist. `User` stays `null` until progressive login succeeds with every passkey, **in order**.
 * Async twins: `CreateAsync`, `OpenAsync`. Prefer them from a UI thread (RSA-4096 keygen plus one PBKDF2 stretch per passkey).
 
-Default implementations except clipboard: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory` in `Upsilon.Apps.Passkey.Utils`.
+Default implementations in `Upsilon.Apps.Passkey.Utils`: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `SecretMemoryProtector` (AES-GCM via `ProtectedSecret`). The host must still supply an OS-specific `IClipboardManager`. Core references only Interfaces; compose Utils at the host (WPF, tests, or your own app).
 
 ## `IDatabase`
 
@@ -37,6 +39,7 @@ Default implementations except clipboard: `CryptographyCenter`, `JsonSerializati
 | `User` | `null` until login completes (except after `Create`) |
 | `SessionLeftTime` | Seconds remaining before auto-logout; `null` when logged out |
 | `Activities` / `Warnings` | Current audit trail and computed warnings |
+| `SecretMemoryProtector` | Injected at Create/Open; wraps account passwords, passkeys, and the RSA private key as `IProtectedSecret` |
 | `Login` / `LoginAsync` | Append one stretched passkey. Returns `IUser` only on the last correct key. **No rollback.** |
 | `Save` / `SaveAsync` | Persist the logged-in user. Throws `NullValueException` if not logged in. Clears autosave. |
 | `Delete` | Delete the vault file. Requires login. |

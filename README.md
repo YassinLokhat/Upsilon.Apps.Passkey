@@ -28,10 +28,10 @@ independently; see [SECURITY.md](SECURITY.md) and [`versions.json`](versions.jso
 Four layers, two solution files:
 
 ```
-Interfaces/     Public contracts (IDatabase, IUser, crypto, clipboard, …)
-Utils/          Default crypto, JSON, password factory, ProtectedSecret, LeakFilter (.pkbf). Zero NuGet (BCL only).
-Core/           Vault implementation. Zero NuGet packages (BCL only).
-GUI/WPF/        Windows desktop client (MVVM + a small AppServices locator).
+Interfaces/     Public contracts (IDatabase, IUser, crypto, clipboard, IProtectedSecret, ISecretMemoryProtector, …)
+Utils/          Default crypto, JSON, password factory, SecretMemoryProtector / ProtectedSecret, LeakFilter (.pkbf). Zero NuGet (BCL only).
+Core/           Vault implementation (Interfaces only — no ProjectReference to Utils). Zero NuGet packages (BCL only).
+GUI/WPF/        Windows desktop client (MVVM + a small AppServices locator); composes Utils defaults.
 UnitTests/      Core/Utils tests + ViewModel tests (Windows TFM; references the WPF project).
 ```
 
@@ -41,17 +41,18 @@ UnitTests/      Core/Utils tests + ViewModel tests (Windows TFM; references the 
 | `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, and Core only (no WPF, no tests) |
 
 Core talks to the OS for clipboard only through an injected port
-(`IClipboardManager` must be OS-specific). File I/O uses the BCL in Core.
+(`IClipboardManager` must be OS-specific). In-memory secret wrapping goes through
+`ISecretMemoryProtector` (Utils ships `SecretMemoryProtector`). File I/O uses the BCL in Core.
 Opt-in HTTP leak checks and the optional offline HIBP Bloom filter live in Utils
 (`PasswordFactory`, `Utils/LeakFilter/`). The WPF app supplies
-the clipboard implementation and hosts dialogs, session, and navigation behind
+the clipboard implementation, the secret protector, and hosts dialogs, session, and navigation behind
 `AppServices` so ViewModels stay testable without a window.
 
 **Security**
 ------------
 
 *   **At rest**: AES-256-GCM onion (HKDF-SHA256 per layer) over ordered passkeys; the activity log uses RSA-4096 hybrid encryption plus a login-time seal. See [SECURITY.md](SECURITY.md).
-*   **In memory**: account passwords, passkeys, and the RSA private key are wrapped with `ProtectedSecret` (process-wide AES-GCM) and only revealed just in time.
+*   **In memory**: account passwords, passkeys, and the RSA private key are held as `IProtectedSecret` via an injected `ISecretMemoryProtector` (default: Utils `ProtectedSecret`, process-wide AES-GCM) and only revealed just in time.
 *   **Session**: configurable auto-logout, clipboard auto-clear (including Windows clipboard history), and progressive login without rollback.
 *   **Supply chain**: Core, Utils, and Interfaces refuse any third-party NuGet package at build time. GitHub CodeQL scans production code on CI.
 
@@ -89,6 +90,16 @@ classDiagram
             +GeneratePasswordAsync(in length int, in alphabet string, in checkIfLeaked bool, in cancellationToken CancellationToken) Task~string~
             +PasswordLeaked(in password string) bool
             +PasswordLeakedAsync(in password string, in cancellationToken CancellationToken) Task~bool~
+        }
+
+        class ISecretMemoryProtector {
+            <<interface>>
+            +Protect(in secret string?) IProtectedSecret
+        }
+
+        class IProtectedSecret {
+            <<interface>>
+            +Reveal(void) string
         }
 
         class ICryptographyCenter {
@@ -183,11 +194,12 @@ classDiagram
             +ICryptographyCenter CryptographyCenter
             +IPasswordFactory PasswordFactory
             +IClipboardManager ClipboardManager
+            +ISecretMemoryProtector SecretMemoryProtector
             +EventHandler~WarningsUpdatedEventArgs~ WarningsUpdated
             +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
             +EventHandler DatabaseSaved
             +EventHandler~LogoutEventArgs~ DatabaseClosed
-            +Login(in passkey string) IUser
+            +Login(in passkey string) IUser?
             +LoginAsync(in passkey string, in cancellationToken CancellationToken) Task~IUser~
             +Save(void) void
             +SaveAsync(in cancellationToken CancellationToken) Task
@@ -324,7 +336,9 @@ classDiagram
     IDatabase --> ICryptographyCenter : CryptographyCenter
     IDatabase --> IPasswordFactory : PasswordFactory
     IDatabase --> IClipboardManager : ClipboardManager
+    IDatabase --> ISecretMemoryProtector : SecretMemoryProtector
     IDatabase --> IUser : User
+    ISecretMemoryProtector --> IProtectedSecret : Protect
     IDatabase "0" --> "*" IWarning : Warnings
     IDatabase "0" --> "*" IActivity : Activities
     IDatabase --> WarningsUpdatedEventArgs : WarningsUpdated
@@ -345,7 +359,7 @@ classDiagram
 
 To create a new database, use the `Upsilon.Apps.Passkey.Core.Models.Database.Create` static method.
 
-This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation and an `IClipboardManager` implementation.
+This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation, an `IClipboardManager` implementation, and an `ISecretMemoryProtector` implementation.
 The namespace `Upsilon.Apps.Passkey.Utils` already contains implementations for all of these interfaces except for the `IClipboardManager` which needs an OS specific implementation.
 
 The next parameter is the database file itself, which will be created during the process.
@@ -358,6 +372,7 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Create(new Upsilo
    new Upsilon.Apps.Passkey.Utils.JsonSerializationCenter(),
    new Upsilon.Apps.Passkey.Utils.PasswordFactory(),
    new OSSpecificClipboardManager(),
+   new Upsilon.Apps.Passkey.Utils.SecretMemoryProtector(),
    "./database.pku",
    "username",
    new[] { "master_password_1", "master_password_2", "master_password_3" });
@@ -379,7 +394,7 @@ IUser user = database.User!;	// Already logged in after Create
 
 To open an existing database, use the `Upsilon.Apps.Passkey.Core.Models.Database.Open` static method.
 
-This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation and an `IClipboardManager` implementation as in the creation step.
+This method needs an `ICryptographyCenter` implementation, an `ISerializationCenter` implementation, an `IPasswordFactory` implementation, an `IClipboardManager` implementation, and an `ISecretMemoryProtector` implementation as in the creation step.
 
 The next parameter is the database file itself and must, obviously, exist.
 
@@ -390,6 +405,7 @@ IDatabase database = Upsilon.Apps.Passkey.Core.Models.Database.Open(new Upsilon.
    new Upsilon.Apps.Passkey.Utils.JsonSerializationCenter(),
    new Upsilon.Apps.Passkey.Utils.PasswordFactory(),
    new OSSpecificClipboardManager(),
+   new Upsilon.Apps.Passkey.Utils.SecretMemoryProtector(),
    "./database.pku",
    "username");
 ```
@@ -477,6 +493,7 @@ IDatabase database = await Database.OpenAsync(cryptographyCenter,
    serializationCenter,
    passwordFactory,
    clipboardManager,
+   secretMemoryProtector,
    "./database.pku",
    "username");
 

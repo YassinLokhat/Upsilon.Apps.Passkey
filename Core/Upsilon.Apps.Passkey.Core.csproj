@@ -16,12 +16,7 @@
     <InternalsVisibleTo Include="UnitTests" />
   </ItemGroup>
 
-  <!--
-    Zero-dependency policy: the Core library must never take on a third-party
-    NuGet package, to keep the security-critical supply-chain attack surface
-    minimal. ProjectReferences (in-solution) stay allowed. This target turns
-    the policy into a hard build failure.
-  -->
+  <!-- Zero-dependency: fail the build if any PackageReference appears. See CONTRIBUTING.md. -->
   <Target Name="EnforceZeroExternalDependencies" BeforeTargets="Build;Pack">
     <Error Condition="'@(PackageReference)' != ''" Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(PackageReference))." />
   </Target>

@@ -52,9 +52,9 @@ The activity log uses RSA-4096 hybrid encryption plus a login-time seal: [[Warni
 
 ## In memory
 
-Once unlocked, account passwords, password history, master passkeys, and the RSA private key are held as AES-256-GCM ciphertext under a random, process-wide session key (`Utils/ProtectedSecret.cs`). Plaintext exists only for the duration of `Reveal()` (display, copy, re-encrypt, or JSON persist into the `.pku` onion). `ToString()` never returns the secret (`***`), so a protected value cannot leak into logs or activity messages by accident.
+Once unlocked, account passwords, password history, master passkeys, and the RSA private key are held as `IProtectedSecret` values produced by the `ISecretMemoryProtector` injected at Create/Open. The Utils default (`SecretMemoryProtector` → `ProtectedSecret`) wraps them as AES-256-GCM ciphertext under a random, process-wide session key. Plaintext exists only for the duration of `Reveal()` (display, copy, re-encrypt, or JSON persist into the `.pku` onion). `ToString()` never returns the secret (`***`), so a protected value cannot leak into logs or activity messages by accident.
 
-The session key never leaves RAM and dies with the process; a dump of the wrapped blobs after exit is worthless. Persistence still stores plaintext JSON **inside** the onion-encrypted `database` / `autosave` entries — `ProtectedSecret` is an in-memory wrapping, not a second at-rest scheme.
+The session key never leaves RAM and dies with the process; a dump of the wrapped blobs after exit is worthless. Persistence still stores plaintext JSON **inside** the onion-encrypted `database` / `autosave` entries — in-memory wrapping is not a second at-rest scheme. Core depends only on the Interfaces ports; hosts may substitute another `ISecretMemoryProtector` without changing Core.
 
 `IDatabase.Login` takes a plain `string` passkey (no `SecureString` overload on Core). The WPF GUI zeroes the BSTR around that call — [[WPF Client]].
 
