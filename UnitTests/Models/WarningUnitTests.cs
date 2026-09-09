@@ -11,18 +11,20 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
    [TestClass]
    public sealed class WarningUnitTests
    {
-      // SecuritySettingsWarning also reports when duplicate / reminder / leaked
-      // notifications are off in WarningsToNotify; tests that assert a clean
-      // posture must keep those flags enabled alongside SecuritySettingsWarning.
-      private const WarningType SecurityPostureNotify
-         = WarningType.SecuritySettingsWarning
-         | WarningType.DuplicatedPasswordsWarning
-         | WarningType.PasswordUpdateReminderWarning
-         | WarningType.PasswordLeakedWarning;
+      // VaultSecuritySettings also reports when no accounts enable duplicate /
+      // reminder / leaked monitoring; tests that assert a clean posture must
+      // keep those kinds enabled alongside VaultSecuritySettings.
+      private static readonly WarningKindList SecurityPostureNotify = new(
+      [
+         WarningKinds.VaultSecuritySettings,
+         WarningKinds.DuplicatedPasswords,
+         WarningKinds.PasswordUpdateReminder,
+         WarningKinds.PasswordLeaked,
+      ]);
 
       [TestMethod]
       /*
-       * Accounts that share a password raise DuplicatedPasswordsWarning when at
+       * Accounts that share a password raise DuplicatedPasswords when at
        * least one of them opted in; accounts with unique passwords do not.
       */
       public void Case01_DuplicatedPasswordsWarning()
@@ -30,7 +32,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         database.User!.Settings.WarningsToNotify = WarningType.DuplicatedPasswordsWarning;
+         database.User!.Settings.WarningsToNotify = new WarningKindList([WarningKinds.DuplicatedPasswords]);
 
          IService service = database.User.AddService("DupService");
          IAccount sharedA = service.AddAccount("A", ["a@test"], "shared-secret");
@@ -40,9 +42,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          sharedB.Options = AccountOption.None;
          unique.Options = AccountOption.WarnIfDuplicatedPassword;
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningType(database, WarningType.DuplicatedPasswordsWarning, database.Save);
+         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.DuplicatedPasswords, database.Save);
 
-         IWarning duplicate = warnings.Single(w => w.WarningType == WarningType.DuplicatedPasswordsWarning);
+         IAccountsWarning duplicate = warnings.OfType<IAccountsWarning>()
+            .Single(w => w.Kind == WarningKinds.DuplicatedPasswords);
          _ = duplicate.Accounts.Should().BeEquivalentTo([sharedA, sharedB]);
          _ = duplicate.Accounts.Should().NotContain(unique);
 
@@ -52,7 +55,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
       [TestMethod]
       /*
-       * An expired password history raises PasswordUpdateReminderWarning; a
+       * An expired password history raises PasswordUpdateReminder; a
        * freshly dated one does not.
       */
       public void Case02_PasswordUpdateReminderWarning()
@@ -60,7 +63,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         database.User!.Settings.WarningsToNotify = WarningType.PasswordUpdateReminderWarning;
+         database.User!.Settings.WarningsToNotify = new WarningKindList([WarningKinds.PasswordUpdateReminder]);
 
          IService service = database.User.AddService("ExpiryService");
          IAccount stale = service.AddAccount("Stale", ["stale@test"], "stale-password");
@@ -74,9 +77,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          staleConcrete.Passwords.Clear();
          staleConcrete.Passwords[DateTime.Now.AddMonths(-6)] = ProtectedSecret.Protect("stale-password");
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningType(database, WarningType.PasswordUpdateReminderWarning, database.Save);
+         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.PasswordUpdateReminder, database.Save);
 
-         IWarning reminder = warnings.Single(w => w.WarningType == WarningType.PasswordUpdateReminderWarning);
+         IAccountsWarning reminder = warnings.OfType<IAccountsWarning>()
+            .Single(w => w.Kind == WarningKinds.PasswordUpdateReminder);
          _ = reminder.Accounts.Should().Contain(stale);
          _ = reminder.Accounts.Should().NotContain(fresh);
 
@@ -86,7 +90,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
       [TestMethod]
       /*
-       * A password the factory reports as leaked raises PasswordLeakedWarning
+       * A password the factory reports as leaked raises PasswordLeaked
        * only for accounts that opted into leak checks, and stamps PasswordLeaked.
       */
       public void Case03_PasswordLeakedWarning()
@@ -107,7 +111,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             username,
             passkeys);
 
-         database.User!.Settings.WarningsToNotify = WarningType.PasswordLeakedWarning;
+         database.User!.Settings.WarningsToNotify = new WarningKindList([WarningKinds.PasswordLeaked]);
 
          IService service = database.User.AddService("LeakService");
          IAccount watched = service.AddAccount("Watched", ["watched@test"], "pwned-password");
@@ -117,9 +121,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          ignored.Options = AccountOption.None;
          safe.Options = AccountOption.WarnIfPasswordLeaked;
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningType(database, WarningType.PasswordLeakedWarning, database.Save);
+         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.PasswordLeaked, database.Save);
 
-         IWarning leaked = warnings.Single(w => w.WarningType == WarningType.PasswordLeakedWarning);
+         IAccountsWarning leaked = warnings.OfType<IAccountsWarning>()
+            .Single(w => w.Kind == WarningKinds.PasswordLeaked);
          _ = leaked.Accounts.Should().Contain(watched);
          _ = leaked.Accounts.Should().NotContain(ignored);
          _ = leaked.Accounts.Should().NotContain(safe);
@@ -132,10 +137,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
       [TestMethod]
       /*
-       * Zeroed protective timers raise SecuritySettingsWarning with the matching
+       * Zeroed protective timers raise VaultSecuritySettings with the matching
        * issue flags; enabling the timers clears those issues.
       */
-      public void Case04_SecuritySettingsWarning_DisabledTimers()
+      public void Case04_VaultSecuritySettings_DisabledTimers()
       {
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
@@ -145,25 +150,22 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Settings.CleaningClipboardTimeout = 0;
          database.User.Settings.ShowPasswordDelay = 0;
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningType(database, WarningType.SecuritySettingsWarning, database.Save);
+         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.VaultSecuritySettings, database.Save);
 
-         IWarning posture = warnings.Single(w => w.WarningType == WarningType.SecuritySettingsWarning);
-         _ = posture.SecuritySettingsIssues.Should().HaveFlag(SecuritySettingsIssue.AutoLogoutDisabled);
-         _ = posture.SecuritySettingsIssues.Should().HaveFlag(SecuritySettingsIssue.ClipboardCleaningDisabled);
-         _ = posture.SecuritySettingsIssues.Should().HaveFlag(SecuritySettingsIssue.QrAutoCloseDisabled);
-         _ = posture.SecuritySettingsIssues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
-         _ = posture.SecuritySettingsIssues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
-         _ = posture.SecuritySettingsIssues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
-         _ = posture.SecuritySettingsIssues.Should().NotHaveFlag(SecuritySettingsIssue.DuplicatePasswordNotificationsDisabled);
-         _ = posture.SecuritySettingsIssues.Should().NotHaveFlag(SecuritySettingsIssue.PasswordUpdateReminderNotificationsDisabled);
-         _ = posture.SecuritySettingsIssues.Should().NotHaveFlag(SecuritySettingsIssue.PasswordLeakedNotificationsDisabled);
+         IVaultSecuritySettingsWarning posture = warnings.OfType<IVaultSecuritySettingsWarning>().Single();
+         _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.AutoLogoutDisabled);
+         _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.ClipboardCleaningDisabled);
+         _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.QrAutoCloseDisabled);
+         _ = posture.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
+         _ = posture.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
+         _ = posture.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
 
          database.User.Settings.LogoutTimeout = 5;
          database.User.Settings.CleaningClipboardTimeout = 30;
          database.User.Settings.ShowPasswordDelay = 5000;
 
          IWarning[] cleared = UnitTestsHelper.WaitForWarnings(database, database.Save);
-         _ = cleared.Should().NotContain(w => w.WarningType == WarningType.SecuritySettingsWarning);
+         _ = cleared.Should().NotContain(w => w.Kind == WarningKinds.VaultSecuritySettings);
 
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
@@ -176,7 +178,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
        * leaves leak checks off; duplicate / reminder stay warned until some
        * account enables them.
       */
-      public void Case05_SecuritySettingsWarning_PerAccountMonitoringGaps()
+      public void Case05_VaultSecuritySettings_PerAccountMonitoringGaps()
       {
          UnitTestsHelper.ClearTestEnvironment();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
@@ -191,12 +193,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          account.Options = AccountOption.None;
          account.PasswordUpdateReminderDelay = 0;
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningType(database, WarningType.SecuritySettingsWarning, database.Save);
+         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.VaultSecuritySettings, database.Save);
 
-         IWarning posture = warnings.Single(w => w.WarningType == WarningType.SecuritySettingsWarning);
-         _ = posture.SecuritySettingsIssues.Should().HaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
-         _ = posture.SecuritySettingsIssues.Should().HaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
-         _ = posture.SecuritySettingsIssues.Should().HaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
+         IVaultSecuritySettingsWarning posture = warnings.OfType<IVaultSecuritySettingsWarning>().Single();
+         _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
+         _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
+         _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
 
          // Two accounts with leak, still zero duplicate / reminder → warn only those two.
          account.Options = AccountOption.WarnIfPasswordLeaked;
@@ -205,25 +207,25 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          alsoLeaked.PasswordUpdateReminderDelay = 0;
 
          IWarning[] afterLeak = UnitTestsHelper.WaitForWarnings(database, database.Save);
-         IWarning still = afterLeak.Single(w => w.WarningType == WarningType.SecuritySettingsWarning);
-         _ = still.SecuritySettingsIssues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
-         _ = still.SecuritySettingsIssues.Should().HaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
-         _ = still.SecuritySettingsIssues.Should().HaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
+         IVaultSecuritySettingsWarning still = afterLeak.OfType<IVaultSecuritySettingsWarning>().Single();
+         _ = still.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
+         _ = still.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
+         _ = still.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
 
          // A third account without leak does not revive NoAccountLeakCheck.
          IAccount uncovered = service.AddAccount("C", ["c@test"], "third-secret");
          uncovered.Options = AccountOption.None;
          IWarning[] mixed = UnitTestsHelper.WaitForWarnings(database, database.Save);
-         IWarning mixedPosture = mixed.Single(w => w.WarningType == WarningType.SecuritySettingsWarning);
-         _ = mixedPosture.SecuritySettingsIssues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
-         _ = mixedPosture.SecuritySettingsIssues.Should().HaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
-         _ = mixedPosture.SecuritySettingsIssues.Should().HaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
+         IVaultSecuritySettingsWarning mixedPosture = mixed.OfType<IVaultSecuritySettingsWarning>().Single();
+         _ = mixedPosture.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
+         _ = mixedPosture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
+         _ = mixedPosture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
 
          account.Options = AccountOption.WarnIfPasswordLeaked | AccountOption.WarnIfDuplicatedPassword;
          account.PasswordUpdateReminderDelay = 6;
 
          IWarning[] cleared = UnitTestsHelper.WaitForWarnings(database, database.Save);
-         _ = cleared.Should().NotContain(w => w.WarningType == WarningType.SecuritySettingsWarning);
+         _ = cleared.Should().NotContain(w => w.Kind == WarningKinds.VaultSecuritySettings);
 
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
@@ -231,30 +233,20 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
       [TestMethod]
       /*
-       * HostSecuritySettingsIssues contributes app-level idle-login and offline
-       * filter flags into the same SecuritySettingsWarning bucket.
+       * Fewer than RecommendedPasskeyCount onion layers raises InsufficientPasskeys.
       */
-      public void Case06_SecuritySettingsWarning_HostIssues()
+      public void Case06_InsufficientPasskeysWarning()
       {
          UnitTestsHelper.ClearTestEnvironment();
-         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray(1);
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         database.User!.Settings.WarningsToNotify = SecurityPostureNotify;
-         database.User.Settings.LogoutTimeout = 5;
-         database.User.Settings.CleaningClipboardTimeout = 30;
-         database.User.Settings.ShowPasswordDelay = 5000;
-         database.HostSecuritySettingsIssues = static () =>
-            SecuritySettingsIssue.IdleLoginDisabled | SecuritySettingsIssue.OfflineLeakFilterUnavailable;
+         database.User!.Settings.WarningsToNotify = new WarningKindList([WarningKinds.InsufficientPasskeys]);
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningType(database, WarningType.SecuritySettingsWarning, database.Save);
+         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.InsufficientPasskeys, database.Save);
 
-         IWarning posture = warnings.Single(w => w.WarningType == WarningType.SecuritySettingsWarning);
-         _ = posture.SecuritySettingsIssues.Should().Be(
-            SecuritySettingsIssue.IdleLoginDisabled | SecuritySettingsIssue.OfflineLeakFilterUnavailable);
-
-         database.HostSecuritySettingsIssues = null;
-         IWarning[] cleared = UnitTestsHelper.WaitForWarnings(database, database.RefreshWarnings);
-         _ = cleared.Should().NotContain(w => w.WarningType == WarningType.SecuritySettingsWarning);
+         IInsufficientPasskeysWarning insufficient = warnings.OfType<IInsufficientPasskeysWarning>().Single();
+         _ = insufficient.Count.Should().Be(1);
+         _ = insufficient.RecommendedMinimum.Should().Be(WarningKinds.RecommendedPasskeyCount);
 
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
@@ -262,35 +254,21 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
       [TestMethod]
       /*
-       * Clearing Notify Duplicated Passwords / Notify Password Update Reminder /
-       * Notify Password Leaked in User Settings raises SecuritySettingsWarning
-       * while Security Settings notifications remain enabled. Leaving Activity
-       * Review off is intentional and does not contribute an issue flag.
-       */
-      public void Case07_SecuritySettingsWarning_NotifyFlagsDisabled()
+       * A short passkey layer raises WeakPasskey after the onion is updated.
+      */
+      public void Case07_WeakPasskeyWarning()
       {
          UnitTestsHelper.ClearTestEnvironment();
-         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string[] passkeys = ["StrongPasskeyOne!", "StrongPasskeyTwo!"];
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
-         database.User!.Settings.LogoutTimeout = 5;
-         database.User.Settings.CleaningClipboardTimeout = 30;
-         database.User.Settings.ShowPasswordDelay = 5000;
-         database.User.Settings.WarningsToNotify
-            = WarningType.SecuritySettingsWarning
-            | WarningType.ActivityReviewWarning;
+         database.User!.Settings.WarningsToNotify = new WarningKindList([WarningKinds.WeakPasskey]);
+         database.User.Passkeys = ["StrongPasskeyOne!", "short"];
 
-         IWarning[] warnings = UnitTestsHelper.WaitForWarningType(database, WarningType.SecuritySettingsWarning, database.Save);
+         IWarning[] warnings = UnitTestsHelper.WaitForWarningKind(database, WarningKinds.WeakPasskey, database.Save);
 
-         IWarning posture = warnings.Single(w => w.WarningType == WarningType.SecuritySettingsWarning);
-         _ = posture.SecuritySettingsIssues.Should().Be(
-            SecuritySettingsIssue.DuplicatePasswordNotificationsDisabled
-            | SecuritySettingsIssue.PasswordUpdateReminderNotificationsDisabled
-            | SecuritySettingsIssue.PasswordLeakedNotificationsDisabled);
-
-         database.User.Settings.WarningsToNotify = SecurityPostureNotify;
-
-         IWarning[] cleared = UnitTestsHelper.WaitForWarnings(database, database.Save);
-         _ = cleared.Should().NotContain(w => w.WarningType == WarningType.SecuritySettingsWarning);
+         IWeakPasskeyWarning weak = warnings.OfType<IWeakPasskeyWarning>().Single();
+         _ = weak.PasskeyIndexes.Should().Contain(1);
+         _ = weak.Issues.Should().HaveFlag(SecretQualityIssue.TooShort);
 
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();

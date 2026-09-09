@@ -1,4 +1,5 @@
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Warnings;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
@@ -9,12 +10,15 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
 
       public IUser? User => Database?.User;
 
+      public WarningBroker Warnings { get; } = new();
+
       public event EventHandler? SessionChanged;
 
       public void StartSession(IDatabase database)
       {
          ArgumentNullException.ThrowIfNull(database);
          Database = database;
+         Warnings.Attach(database);
          SessionChanged?.Invoke(this, EventArgs.Empty);
       }
 
@@ -24,6 +28,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
          {
             return;
          }
+
+         Warnings.Detach();
 
          if (closeDatabase)
          {

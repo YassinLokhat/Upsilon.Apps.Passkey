@@ -14,6 +14,7 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.UnitTests.Fakes;
 using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests
@@ -25,6 +26,8 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public static readonly ICryptographyCenter CryptographicCenter = new CryptographyCenter();
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
       public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
+      /// <summary>No network — use for vault create/open so warning scans stay fast.</summary>
+      public static readonly IPasswordFactory FastPasswordFactory = new FakePasswordFactory();
       public static readonly IClipboardManager ClipboardManager = new ClipboardManager();
       public static readonly ISecretMemoryProtector SecretMemoryProtector = new SecretMemoryProtector();
 
@@ -186,7 +189,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          IDatabase database = Database.Create(CryptographicCenter,
             SerializationCenter,
-            PasswordFactory,
+            FastPasswordFactory,
             ClipboardManager,
             SecretMemoryProtector,
             databaseFile,
@@ -200,28 +203,47 @@ namespace Upsilon.Apps.Passkey.UnitTests
       {
          string databaseFile = ComputeDatabaseFilePath(username);
 
-         IWarning[] warnings = [];
+         TaskCompletionSource<IWarning[]> scanDone = new();
 
          IDatabase database = Database.Open(CryptographicCenter,
             SerializationCenter,
-            PasswordFactory,
+            FastPasswordFactory,
             ClipboardManager,
             SecretMemoryProtector,
             databaseFile,
             username);
 
          database.AutoSaveDetected += (s, e) => { e.MergeBehavior = mergeAutoSave; };
-         database.WarningsUpdated += (s, e) => { warnings = [.. e.Warnings]; };
+         void OnScanCompleted(object? sender, EventArgs e)
+            => _ = scanDone.TrySetResult(FlattenCoreWarnings(database));
+         database.CoreWarningsScanCompleted += OnScanCompleted;
 
          foreach (string passkey in passkeys)
          {
             _ = database.Login(passkey);
          }
 
-         detectedWarnings = warnings;
+         if (database.User is null)
+         {
+            database.CoreWarningsScanCompleted -= OnScanCompleted;
+            detectedWarnings = [];
+            return database;
+         }
+
+         if (!scanDone.Task.Wait(TimeSpan.FromSeconds(30)))
+         {
+            database.CoreWarningsScanCompleted -= OnScanCompleted;
+            throw new TimeoutException("Timed out waiting for CoreWarningsScanCompleted after login.");
+         }
+
+         database.CoreWarningsScanCompleted -= OnScanCompleted;
+         detectedWarnings = scanDone.Task.Result;
 
          return database;
       }
+
+      public static IWarning[] FlattenCoreWarnings(IDatabase database)
+         => [.. database.CoreWarnings.Values.SelectMany(static list => list)];
 
       public static void ClearTestEnvironment([CallerMemberName] string username = "")
       {
@@ -253,7 +275,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return [.. passkeys];
       }
 
-      public static string GetRandomString(int min = 10, int max = 0)
+      public static string GetRandomString(int min = 16, int max = 0)
       {
          if (max == 0)
          {
@@ -262,10 +284,20 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          int length = GetRandomInt(min, max);
 
-         byte[] randomBytes = new byte[length];
-         _random.GetBytes(randomBytes);
+         // Ensure SecretQuality passes (length + mixed classes) so vault tests
+         // are not flooded by WeakPasskey / WeakAccountPassword noise.
+         const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+         char[] chars = new char[length];
+         chars[0] = 'A';
+         chars[1] = 'a';
+         chars[2] = '2';
+         chars[3] = '!';
+         for (int i = 4; i < length; i++)
+         {
+            chars[i] = alphabet[GetRandomInt(0, alphabet.Length - 1)];
+         }
 
-         return Convert.ToBase64String(randomBytes)[..length];
+         return new string(chars);
       }
 
       public static int GetRandomInt(int max) => GetRandomInt(0, max);
@@ -285,69 +317,83 @@ namespace Upsilon.Apps.Passkey.UnitTests
       }
 
       /// <summary>
-      /// Subscribes to <see cref="IDatabase.WarningsUpdated"/> then runs
+      /// Subscribes to the kind-specific Core warning event and
+      /// <see cref="IDatabase.CoreWarningsScanCompleted"/>, then runs
       /// <paramref name="trigger"/> (typically <see cref="IDatabase.Save"/>) and
-      /// waits until a warning of <paramref name="type"/> is reported.
+      /// waits until a warning of <paramref name="kind"/> is reported.
       /// </summary>
-      public static IWarning[] WaitForWarningType(IDatabase database, WarningType type, Action trigger, TimeSpan? timeout = null)
+      public static IWarning[] WaitForWarningKind(IDatabase database, string kind, Action trigger, TimeSpan? timeout = null)
       {
          timeout ??= TimeSpan.FromSeconds(15);
          TaskCompletionSource<IWarning[]> tcs = new();
 
-         void Handler(object? sender, WarningsUpdatedEventArgs e)
+         void TryCompleteFromKind(IReadOnlyList<IWarning> reported)
          {
-            // Prefer the event payload: database.Warnings can already have been
-            // replaced by a concurrent scan by the time this handler runs.
-            IWarning[] reported = [.. e.Warnings];
-            if (reported.Any(w => w.WarningType == type))
+            if (reported.Count > 0)
             {
-               _ = tcs.TrySetResult(reported);
-               return;
-            }
-
-            IWarning[] current = database.Warnings is null ? [] : [.. database.Warnings];
-            if (current.Any(w => w.WarningType == type))
-            {
-               _ = tcs.TrySetResult(current);
+               _ = tcs.TrySetResult([.. reported]);
             }
          }
 
-         database.WarningsUpdated += Handler;
+         void KindHandler(object? sender, WarningsChangedEventArgs e)
+         {
+            if (string.Equals(e.Kind, kind, StringComparison.Ordinal))
+            {
+               TryCompleteFromKind(e.Warnings);
+            }
+         }
+
+         void ScanCompleted(object? sender, EventArgs e)
+         {
+            if (database.CoreWarnings.TryGetValue(kind, out IReadOnlyList<IWarning>? current)
+               && current.Count > 0)
+            {
+               TryCompleteFromKind(current);
+            }
+         }
+
+         EventHandler<WarningsChangedEventArgs>? kindSubscription = KindHandler;
+         _subscribeKindChanged(database, kind, kindSubscription);
+         database.CoreWarningsScanCompleted += ScanCompleted;
 
          try
          {
+            if (database.CoreWarnings.TryGetValue(kind, out IReadOnlyList<IWarning>? already)
+               && already.Count > 0)
+            {
+               TryCompleteFromKind(already);
+            }
+
             trigger();
 
             if (!tcs.Task.Wait(timeout.Value))
             {
-               throw new TimeoutException($"Timed out waiting for warning '{type}'.");
+               throw new TimeoutException($"Timed out waiting for warning kind '{kind}'.");
             }
 
             return tcs.Task.Result;
          }
          finally
          {
-            database.WarningsUpdated -= Handler;
+            _unsubscribeKindChanged(database, kind, kindSubscription);
+            database.CoreWarningsScanCompleted -= ScanCompleted;
          }
       }
 
       /// <summary>
-      /// Subscribes to <see cref="IDatabase.WarningsUpdated"/> then runs
+      /// Subscribes to <see cref="IDatabase.CoreWarningsScanCompleted"/> then runs
       /// <paramref name="trigger"/> and waits for the next scan to finish,
-      /// returning the current <see cref="IDatabase.Warnings"/> snapshot.
+      /// returning a flattened <see cref="IDatabase.CoreWarnings"/> snapshot.
       /// </summary>
       public static IWarning[] WaitForWarnings(IDatabase database, Action trigger, TimeSpan? timeout = null)
       {
          timeout ??= TimeSpan.FromSeconds(15);
          TaskCompletionSource<IWarning[]> tcs = new();
 
-         void Handler(object? sender, WarningsUpdatedEventArgs e)
-         {
-            IWarning[] current = database.Warnings is null ? [] : [.. database.Warnings];
-            _ = tcs.TrySetResult(current);
-         }
+         void Handler(object? sender, EventArgs e)
+            => _ = tcs.TrySetResult(FlattenCoreWarnings(database));
 
-         database.WarningsUpdated += Handler;
+         database.CoreWarningsScanCompleted += Handler;
 
          try
          {
@@ -355,14 +401,88 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
             if (!tcs.Task.Wait(timeout.Value))
             {
-               throw new TimeoutException("Timed out waiting for a warning scan.");
+               throw new TimeoutException("Timed out waiting for a Core warning scan.");
             }
 
             return tcs.Task.Result;
          }
          finally
          {
-            database.WarningsUpdated -= Handler;
+            database.CoreWarningsScanCompleted -= Handler;
+         }
+      }
+
+      private static void _subscribeKindChanged(IDatabase database, string kind, EventHandler<WarningsChangedEventArgs> handler)
+      {
+         switch (kind)
+         {
+            case WarningKinds.ActivityReview:
+               database.ActivityReviewWarningsChanged += handler;
+               break;
+            case WarningKinds.PasswordUpdateReminder:
+               database.PasswordUpdateReminderWarningsChanged += handler;
+               break;
+            case WarningKinds.DuplicatedPasswords:
+               database.DuplicatedPasswordsWarningsChanged += handler;
+               break;
+            case WarningKinds.PasswordLeaked:
+               database.PasswordLeakedWarningsChanged += handler;
+               break;
+            case WarningKinds.VaultSecuritySettings:
+               database.VaultSecuritySettingsWarningsChanged += handler;
+               break;
+            case WarningKinds.InsufficientPasskeys:
+               database.InsufficientPasskeysWarningsChanged += handler;
+               break;
+            case WarningKinds.WeakPasskey:
+               database.WeakPasskeyWarningsChanged += handler;
+               break;
+            case WarningKinds.PasskeyLeaked:
+               database.PasskeyLeakedWarningsChanged += handler;
+               break;
+            case WarningKinds.WeakAccountPassword:
+               database.WeakAccountPasswordWarningsChanged += handler;
+               break;
+            case WarningKinds.PasskeyReusedAsAccountPassword:
+               database.PasskeyReuseWarningsChanged += handler;
+               break;
+         }
+      }
+
+      private static void _unsubscribeKindChanged(IDatabase database, string kind, EventHandler<WarningsChangedEventArgs> handler)
+      {
+         switch (kind)
+         {
+            case WarningKinds.ActivityReview:
+               database.ActivityReviewWarningsChanged -= handler;
+               break;
+            case WarningKinds.PasswordUpdateReminder:
+               database.PasswordUpdateReminderWarningsChanged -= handler;
+               break;
+            case WarningKinds.DuplicatedPasswords:
+               database.DuplicatedPasswordsWarningsChanged -= handler;
+               break;
+            case WarningKinds.PasswordLeaked:
+               database.PasswordLeakedWarningsChanged -= handler;
+               break;
+            case WarningKinds.VaultSecuritySettings:
+               database.VaultSecuritySettingsWarningsChanged -= handler;
+               break;
+            case WarningKinds.InsufficientPasskeys:
+               database.InsufficientPasskeysWarningsChanged -= handler;
+               break;
+            case WarningKinds.WeakPasskey:
+               database.WeakPasskeyWarningsChanged -= handler;
+               break;
+            case WarningKinds.PasskeyLeaked:
+               database.PasskeyLeakedWarningsChanged -= handler;
+               break;
+            case WarningKinds.WeakAccountPassword:
+               database.WeakAccountPasswordWarningsChanged -= handler;
+               break;
+            case WarningKinds.PasskeyReusedAsAccountPassword:
+               database.PasskeyReuseWarningsChanged -= handler;
+               break;
          }
       }
 
@@ -411,14 +531,24 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
       public static void LastActivityWarningsShouldMatch(IDatabase database, string[] expectedActivities)
       {
-         while (database.Warnings is null)
+         DateTime deadline = DateTime.UtcNow + TimeSpan.FromSeconds(15);
+         IActivityReviewWarning? activityWarning = null;
+
+         while (DateTime.UtcNow < deadline)
          {
+            if (database.CoreWarnings.TryGetValue(WarningKinds.ActivityReview, out IReadOnlyList<IWarning>? list)
+               && list.OfType<IActivityReviewWarning>().FirstOrDefault() is { } found)
+            {
+               activityWarning = found;
+               break;
+            }
+
             Thread.Sleep(200);
          }
 
-         IWarning activityWarning = database.Warnings.First(x => x.WarningType == WarningType.ActivityReviewWarning);
+         _ = activityWarning.Should().NotBeNull("ActivityReview warnings should be available");
 
-         string[] actualActivities = activityWarning.Activities
+         string[] actualActivities = activityWarning!.Activities
             .Select(x => new ActivityViewModel(x))
             .Select(x => $"{(x.NeedsReview ? "Warning" : "Information")} : {x.Message}").ToArray();
 

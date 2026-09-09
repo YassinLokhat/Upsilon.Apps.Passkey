@@ -5,7 +5,7 @@
     "ShowPasswordDelay": 999,
     "NumberOfOldPasswordToKeep": 9,
     "NumberOfMonthActivitiesToKeep": 9,
-    "WarningsToNotify": "PasswordUpdateReminderWarning, DuplicatedPasswordsWarning, PasswordLeakedWarning"
+    "WarningsToNotify": ["PasswordUpdateReminder", "DuplicatedPasswords", "PasswordLeaked"]
   },
   "Services": [
     {

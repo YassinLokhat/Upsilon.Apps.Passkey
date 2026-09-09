@@ -101,7 +101,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       }
 
       [TestMethod]
-      public void EnumDisplayHelper_FormatsWarningTypeFlags_InEachSatelliteLanguage()
+      public void EnumDisplayHelper_FormatsWarningKinds_InEachSatelliteLanguage()
       {
          foreach (AppLanguage language in _satelliteLanguages())
          {
@@ -111,9 +111,18 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
                .Should().Be(Strings.EnumValue_None, because: language.Code);
 
             string combined = EnumDisplayHelper.FormatFieldValue("WarningsToNotify",
-               $"{nameof(WarningType.ActivityReviewWarning)}, {nameof(WarningType.PasswordLeakedWarning)}");
+               $"{WarningKinds.ActivityReview}, {WarningKinds.PasswordLeaked}");
 
             _ = combined.Should().Be(
+               $"{Strings.Label_NotifyActivityReview}, {Strings.Label_NotifyPasswordLeaked}",
+               because: language.Code);
+
+#pragma warning disable CS0618 // Legacy WarningType names still appear in old activity logs.
+            string legacy = EnumDisplayHelper.FormatFieldValue("WarningsToNotify",
+               $"{nameof(WarningType.ActivityReviewWarning)}, {nameof(WarningType.PasswordLeakedWarning)}");
+#pragma warning restore CS0618
+
+            _ = legacy.Should().Be(
                $"{Strings.Label_NotifyActivityReview}, {Strings.Label_NotifyPasswordLeaked}",
                because: language.Code);
          }
@@ -137,17 +146,16 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       }
 
       [TestMethod]
-      public void WarningType_ToReadableString_HasTranslationForEveryMember()
+      public void WarningKinds_ToReadableWarningKind_HasTranslationForEveryKnownKind()
       {
-         foreach (WarningType warningType in Enum.GetValues<WarningType>())
+         foreach (string kind in WarningKinds.DefaultNotify)
          {
-            string label = warningType.ToReadableString();
+            string label = EnumHelper.ToReadableWarningKind(kind);
             _ = label.Should().NotBeNullOrWhiteSpace();
-            _ = label.Should().NotBe(warningType.ToString());
+            _ = label.Should().NotBe(kind);
          }
 
-         _ = (WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning)
-            .ToReadableString()
+         _ = EnumHelper.ToReadableWarningKind(EnumHelper.AccountPasswordFilterAll)
             .Should().Be(Strings.Filter_All);
       }
 

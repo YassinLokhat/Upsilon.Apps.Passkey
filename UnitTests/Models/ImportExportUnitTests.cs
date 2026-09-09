@@ -378,7 +378,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User.Settings.ShowPasswordDelay.Should().Be(999);
          database.User.Settings.NumberOfOldPasswordToKeep.Should().Be(9);
          database.User.Settings.NumberOfMonthActivitiesToKeep.Should().Be(9);
-         database.User.Settings.WarningsToNotify.Should().Be(WarningType.PasswordUpdateReminderWarning | WarningType.DuplicatedPasswordsWarning | WarningType.PasswordLeakedWarning);
+         database.User.Settings.WarningsToNotify.ToArray().Should().BeEquivalentTo(
+         [
+            WarningKinds.PasswordUpdateReminder,
+            WarningKinds.DuplicatedPasswords,
+            WarningKinds.PasswordLeaked,
+         ]);
 
          database.User.Services.Count().Should().Be(2);
 
