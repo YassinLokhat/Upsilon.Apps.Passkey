@@ -321,7 +321,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      Settings.NumberOfMonthActivitiesToKeep = change.NewValue.DeserializeTo<int>(Host.SerializationCenter);
                      break;
                   case nameof(Settings.WarningsToNotify):
-                     Settings.WarningsToNotify = change.NewValue.DeserializeTo<WarningType>(Host.SerializationCenter);
+                     Settings.WarningsToNotify = change.NewValue.DeserializeTo<WarningKindList>(Host.SerializationCenter);
                      break;
                   case nameof(Settings.Language):
                      Settings.Language = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);

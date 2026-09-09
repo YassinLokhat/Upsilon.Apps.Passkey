@@ -3,40 +3,108 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
-   /// <summary>
-   /// One warning bucket: activities that need review, accounts that share a
-   /// leaked / duplicated / expired password, or security-settings posture issues.
-   /// </summary>
-   internal sealed class Warning : IWarning
+   /// <summary>Core-owned warning instances published on per-kind database events.</summary>
+   internal abstract class WarningBase : IWarning
    {
-      #region IWarning interface implicit Internal
+      public string Source => WarningKinds.SourceCore;
 
-      public WarningType WarningType { get; set; }
+      public abstract string Kind { get; }
 
-      public IEnumerable<IActivity>? Activities { get; set; }
+      public abstract WarningSeverity Severity { get; }
+   }
 
-      public IEnumerable<IAccount>? Accounts { get; set; }
-
-      public SecuritySettingsIssue SecuritySettingsIssues { get; set; }
-
-      #endregion
-
-      public Warning(IActivity[] activities)
+   internal sealed class ActivityReviewWarning : WarningBase, IActivityReviewWarning
+   {
+      public ActivityReviewWarning(IActivity[] activities)
       {
-         WarningType = WarningType.ActivityReviewWarning;
          Activities = activities;
+         Severity = activities.Any(static a => a.EventType is ActivityEventType.LoginFailed
+            or ActivityEventType.ActivityLogTampered
+            or ActivityEventType.LoginSessionTimeoutReached)
+            ? WarningSeverity.Critical
+            : WarningSeverity.Warning;
       }
 
-      public Warning(WarningType warningType, IAccount[] accounts)
+      public override string Kind => WarningKinds.ActivityReview;
+
+      public override WarningSeverity Severity { get; }
+
+      public IEnumerable<IActivity> Activities { get; }
+   }
+
+   internal sealed class AccountsWarning : WarningBase, IPasswordUpdateReminderWarning, IDuplicatedPasswordsWarning,
+      IPasswordLeakedWarning, IWeakAccountPasswordWarning, IPasskeyReuseWarning
+   {
+      public AccountsWarning(string kind, WarningSeverity severity, IAccount[] accounts)
       {
-         WarningType = warningType;
+         Kind = kind;
+         Severity = severity;
          Accounts = accounts;
       }
 
-      public Warning(SecuritySettingsIssue issues)
+      public override string Kind { get; }
+
+      public override WarningSeverity Severity { get; }
+
+      public IEnumerable<IAccount> Accounts { get; }
+   }
+
+   internal sealed class VaultSecuritySettingsWarning : WarningBase, IVaultSecuritySettingsWarning
+   {
+      public VaultSecuritySettingsWarning(SecuritySettingsIssue issues)
+         => Issues = issues;
+
+      public override string Kind => WarningKinds.VaultSecuritySettings;
+
+      public override WarningSeverity Severity => WarningSeverity.Warning;
+
+      public SecuritySettingsIssue Issues { get; }
+   }
+
+   internal sealed class InsufficientPasskeysWarning : WarningBase, IInsufficientPasskeysWarning
+   {
+      public InsufficientPasskeysWarning(int count, int recommendedMinimum)
       {
-         WarningType = WarningType.SecuritySettingsWarning;
-         SecuritySettingsIssues = issues;
+         Count = count;
+         RecommendedMinimum = recommendedMinimum;
+         Severity = count <= 1 ? WarningSeverity.Critical : WarningSeverity.Warning;
       }
+
+      public override string Kind => WarningKinds.InsufficientPasskeys;
+
+      public override WarningSeverity Severity { get; }
+
+      public int Count { get; }
+
+      public int RecommendedMinimum { get; }
+   }
+
+   internal sealed class WeakPasskeyWarning : WarningBase, IWeakPasskeyWarning
+   {
+      public WeakPasskeyWarning(IReadOnlyList<int> passkeyIndexes, SecretQualityIssue issues)
+      {
+         PasskeyIndexes = passkeyIndexes;
+         Issues = issues;
+      }
+
+      public override string Kind => WarningKinds.WeakPasskey;
+
+      public override WarningSeverity Severity => WarningSeverity.Critical;
+
+      public IReadOnlyList<int> PasskeyIndexes { get; }
+
+      public SecretQualityIssue Issues { get; }
+   }
+
+   internal sealed class PasskeyLeakedWarning : WarningBase, IPasskeyLeakedWarning
+   {
+      public PasskeyLeakedWarning(IReadOnlyList<int> passkeyIndexes)
+         => PasskeyIndexes = passkeyIndexes;
+
+      public override string Kind => WarningKinds.PasskeyLeaked;
+
+      public override WarningSeverity Severity => WarningSeverity.Critical;
+
+      public IReadOnlyList<int> PasskeyIndexes { get; }
    }
 }

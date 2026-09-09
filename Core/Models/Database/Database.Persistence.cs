@@ -144,7 +144,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
          User = null;
          Username = string.Empty;
          Passkeys = [];
-         Warnings = null;
+         lock (_warningScanGate)
+         {
+            _coreWarnings.Clear();
+         }
 
          FileLocker.Dispose();
 

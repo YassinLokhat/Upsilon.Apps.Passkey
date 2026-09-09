@@ -22,17 +22,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       IEnumerable<IActivity>? IDatabase.Activities => Get(ActivityCenter.GetActivitiesOrdered());
 
-      IEnumerable<IWarning>? IDatabase.Warnings => Get(User is not null ? Warnings : null);
-
       public ICryptographyCenter CryptographyCenter { get; private set; }
       public ISerializationCenter SerializationCenter { get; private set; }
       public IPasswordFactory PasswordFactory { get; private set; }
       public IClipboardManager ClipboardManager { get; private set; }
       public ISecretMemoryProtector SecretMemoryProtector { get; private set; }
 
-      public Func<SecuritySettingsIssue>? HostSecuritySettingsIssues { get; set; }
-
-      public event EventHandler<WarningsUpdatedEventArgs>? WarningsUpdated;
       public event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
       public event EventHandler? DatabaseSaved;
       public event EventHandler<LogoutEventArgs>? DatabaseClosed;
@@ -150,7 +145,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       internal User? User { get; private set; }
       internal AutoSave AutoSave { get; private set; }
       internal ActivityCenter ActivityCenter { get; private set; }
-      internal IEnumerable<Warning>? Warnings { get; private set; }
 
       internal string Username { get; private set; }
       internal string[] Passkeys { get; private set; }

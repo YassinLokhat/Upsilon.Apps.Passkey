@@ -1,11 +1,10 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
-using Upsilon.Apps.Passkey.Interfaces.Models;
+﻿using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
    /// <summary>
-   /// Per-user timeouts and which <see cref="WarningType"/>s to surface.
+   /// Per-user timeouts and which warning kinds to surface.
    /// Stored on the user; edits go through autosave.
    /// </summary>
    internal sealed class Settings : ISettings
@@ -94,15 +93,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      WarningType ISettings.WarningsToNotify
+      WarningKindList ISettings.WarningsToNotify
       {
          get => User.Host.Touch(WarningsToNotify);
          set => WarningsToNotify = User.Host.AutoSave.UpdateValue(User.ItemId,
             fieldName: nameof(WarningsToNotify),
             needsReview: true,
             oldValue: WarningsToNotify,
-            newValue: value,
-            readableValue: value.ToString());
+            newValue: value ?? WarningKindList.Default,
+            readableValue: (value ?? WarningKindList.Default).ToString());
       }
 
       string ISettings.Language
@@ -140,12 +139,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public int ShowPasswordDelay { get; set; }
       public int NumberOfOldPasswordToKeep { get; set; }
       public int NumberOfMonthActivitiesToKeep { get; set; }
-      public WarningType WarningsToNotify { get; set; }
-         = WarningType.ActivityReviewWarning
-         | WarningType.PasswordUpdateReminderWarning
-         | WarningType.DuplicatedPasswordsWarning
-         | WarningType.PasswordLeakedWarning
-         | WarningType.SecuritySettingsWarning;
+      public WarningKindList WarningsToNotify { get; set; } = WarningKindList.Default;
 
       /// <summary>Empty = use application <c>config.json</c> language.</summary>
       public string Language { get; set; } = string.Empty;
