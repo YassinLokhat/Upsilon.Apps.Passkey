@@ -252,6 +252,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnLanguageChanged()
       {
+         if (_disposed)
+         {
+            return;
+         }
+
          Title = _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
          OnPropertyChanged(nameof(UserId));
 
@@ -267,6 +272,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnThemeChanged()
       {
+         if (_disposed)
+         {
+            return;
+         }
+
          foreach (ServiceViewModel service in _serviceViewModelsById.Values)
          {
             service.OnThemeChanged();
@@ -284,13 +294,28 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             return;
          }
 
+         _disposed = true;
+
          _titleTimer.Stop();
          _titleTimer.Tick -= _onTitleTimerElapsed;
 
          _filterDebounceTimer.Stop();
          _filterDebounceTimer.Tick -= _onFilterDebounceElapsed;
 
-         _disposed = true;
+         // Drop UI listeners so EndSession's app language/theme Apply cannot
+         // refresh a closing UserServicesView (alerts menu reorder would throw).
+         LanguageRefreshed = null;
+         ThemeRefreshed = null;
+         FiltersRefreshed = null;
+         SaveRequested = null;
+         UserSettingsRequested = null;
+         GeneratePasswordRequested = null;
+         ShowActivitiesRequested = null;
+         AppSettingsRequested = null;
+         FocusFilterRequested = null;
+         CopyIdentifierRequested = null;
+         CopyPasswordRequested = null;
+
          GC.SuppressFinalize(this);
       }
 

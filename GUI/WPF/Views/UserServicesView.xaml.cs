@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -74,7 +74,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
       {
-         _ = Dispatcher.BeginInvoke(() => { _updateAlertsMenu(_notifiedAlerts()); });
+         _ = Dispatcher.BeginInvoke(() =>
+         {
+            if (_isClosing || !IsLoaded)
+            {
+               return;
+            }
+
+            _updateAlertsMenu(_notifiedAlerts());
+         });
       }
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
@@ -173,7 +181,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _logout_MenuItem_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy())
+         if (_isClosing || this.GetIsBusy())
          {
             return;
          }
@@ -199,9 +207,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          // Drop any PasswordBox / history plaintext before tearing down the session.
          _service_SV.SetDataContext(null);
 
-         _session.EndSession();
-
+         // Dispose the VM before EndSession: Apply(app language/theme) would
+         // otherwise raise LanguageRefreshed/ThemeRefreshed and try to reorder
+         // the alerts MenuItems on an already-unloaded window.
          _viewModel.Dispose();
+
+         _session.EndSession();
       }
 
       private void _services_LB_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -262,13 +273,25 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       }
 
       private void _refreshAlertsMenuFromSession()
-         => _updateAlertsMenu(_notifiedAlerts());
+      {
+         if (_isClosing || !IsLoaded)
+         {
+            return;
+         }
+
+         _updateAlertsMenu(_notifiedAlerts());
+      }
 
       private static IAlert[] _notifiedAlerts()
          => [.. _session.Alerts.GetNotifiedAlerts()];
 
       private void _updateAlertsMenu(IAlert[] alerts)
       {
+         if (_isClosing || !IsLoaded)
+         {
+            return;
+         }
+
          IAlert[] activityKind = [.. alerts.Where(x => x.Kind == AlertKinds.ActivityReview)];
          IAlert[] expiredKind = [.. alerts.Where(x => x.Kind == AlertKinds.PasswordUpdateReminder)];
          IAlert[] duplicatedKind = [.. alerts.Where(x => x.Kind == AlertKinds.DuplicatedPasswords)];
@@ -392,13 +415,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   count++;
                   break;
                case IWeakPasskeyAlert weak:
-                  count += Math.Max(1, weak.PasskeyIndexes.Count);
+                  count++;
                   break;
                case IPasskeyLeakedAlert leaked:
-                  count += Math.Max(1, leaked.PasskeyIndexes.Count);
+                  count++;
                   break;
                case IPasskeyReuseAlert reuse:
-                  count += Math.Max(1, reuse.Accounts.Count());
+                  count++;
                   break;
             }
          }
