@@ -1,3 +1,4 @@
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Alerts;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -9,12 +10,15 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
 
       public IUser? User => Database?.User;
 
+      public AlertBroker Alerts { get; } = new();
+
       public event EventHandler? SessionChanged;
 
       public void StartSession(IDatabase database)
       {
          ArgumentNullException.ThrowIfNull(database);
          Database = database;
+         Alerts.Attach(database);
          SessionChanged?.Invoke(this, EventArgs.Empty);
       }
 
@@ -24,6 +28,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
          {
             return;
          }
+
+         Alerts.Detach();
 
          if (closeDatabase)
          {

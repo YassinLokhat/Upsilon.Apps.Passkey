@@ -1,11 +1,10 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
-using Upsilon.Apps.Passkey.Interfaces.Events;
+﻿using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
    /// <summary>
-   /// Open vault session: progressive login, save, import/export, warnings.
+   /// Open vault session: progressive login, save, import/export, alerts.
    /// </summary>
    public interface IDatabase : IDisposable
    {
@@ -18,8 +17,6 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
 
       IEnumerable<IActivity>? Activities { get; }
 
-      IEnumerable<IWarning>? Warnings { get; }
-
       ISerializationCenter SerializationCenter { get; }
 
       ICryptographyCenter CryptographyCenter { get; }
@@ -30,15 +27,25 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
 
       ISecretMemoryProtector SecretMemoryProtector { get; }
 
-      /// <summary>
-      /// Optional host callback that contributes app-level
-      /// <see cref="SecuritySettingsIssue"/> flags (idle login, offline
-      /// leak filter, …). Evaluated on each warning scan. Leave
-      /// <see langword="null"/> when the host has nothing to report.
-      /// </summary>
-      Func<SecuritySettingsIssue>? HostSecuritySettingsIssues { get; set; }
+      /// <summary>Latest Core alert snapshots keyed by <see cref="AlertKinds"/>.</summary>
+      IReadOnlyDictionary<string, IReadOnlyList<IAlert>> CoreAlerts { get; }
 
-      event EventHandler<WarningsUpdatedEventArgs>? WarningsUpdated;
+      event EventHandler<AlertsChangedEventArgs>? ActivityReviewAlertsChanged;
+      event EventHandler<AlertsChangedEventArgs>? PasswordUpdateReminderAlertsChanged;
+      event EventHandler<AlertsChangedEventArgs>? DuplicatedPasswordsAlertsChanged;
+      event EventHandler<AlertsChangedEventArgs>? PasswordLeakedAlertsChanged;
+      event EventHandler<AlertsChangedEventArgs>? VaultSecuritySettingsAlertsChanged;
+      event EventHandler<AlertsChangedEventArgs>? InsufficientPasskeysAlertsChanged;
+      event EventHandler<AlertsChangedEventArgs>? WeakPasskeyAlertsChanged;
+      event EventHandler<AlertsChangedEventArgs>? PasskeyLeakedAlertsChanged;
+      event EventHandler<AlertsChangedEventArgs>? WeakAccountPasswordAlertsChanged;
+      event EventHandler<AlertsChangedEventArgs>? PasskeyReuseAlertsChanged;
+
+      /// <summary>
+      /// Raised once after a full Core alert scan finishes (all kinds published).
+      /// Useful for tests and hosts that wait for scan completion.
+      /// </summary>
+      event EventHandler? CoreAlertsScanCompleted;
 
       event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
 
@@ -78,15 +85,15 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// Same as <see cref="Save"/> on a worker thread.
       /// </summary>
       /// <remarks>
-      /// <see cref="DatabaseSaved"/> and <see cref="WarningsUpdated"/> are raised from that thread.
+      /// <see cref="DatabaseSaved"/> and Core alert events are raised from that thread.
       /// </remarks>
       Task SaveAsync(CancellationToken cancellationToken = default);
 
       /// <summary>
-      /// Re-runs the warning scan without persisting the vault (e.g. after
+      /// Re-runs the alert scan without persisting the vault (e.g. after
       /// app-level security settings change while a session is open).
       /// </summary>
-      void RefreshWarnings();
+      void RefreshAlerts();
 
       /// <summary>
       /// Delete the vault file. Throws <see cref="NullValueException"/> if not logged in.

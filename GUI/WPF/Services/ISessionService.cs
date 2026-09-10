@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.GUI.WPF.Alerts;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 {
@@ -14,6 +15,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
       /// <summary>The active user, or <c>null</c> when no database is loaded or the user is not logged in.</summary>
       IUser? User { get; }
+
+      /// <summary>Aggregates Core + host alerts and applies notify filters.</summary>
+      AlertBroker Alerts { get; }
 
       /// <summary>Raised whenever <see cref="Database"/> or <see cref="User"/> changes.</summary>
       event EventHandler? SessionChanged;

@@ -38,7 +38,7 @@ Default implementations in `Upsilon.Apps.Passkey.Utils`: `CryptographyCenter`, `
 | `DatabaseFile` | Path to the `.pku` |
 | `User` | `null` until login completes (except after `Create`) |
 | `SessionLeftTime` | Seconds remaining before auto-logout; `null` when logged out |
-| `Activities` / `Warnings` | Current audit trail and computed warnings |
+| `Activities` / `CoreAlerts` | Current audit trail and computed alerts |
 | `SecretMemoryProtector` | Injected at Create/Open; wraps account passwords, passkeys, and the RSA private key as `IProtectedSecret` |
 | `Login` / `LoginAsync` | Append one stretched passkey. Returns `IUser` only on the last correct key. **No rollback.** |
 | `Save` / `SaveAsync` | Persist the logged-in user. Throws `NullValueException` if not logged in. Clears autosave. |
@@ -46,8 +46,9 @@ Default implementations in `Upsilon.Apps.Passkey.Utils`: `CryptographyCenter`, `
 | `Close` / `Dispose` | End the session. Unsaved work remains in the `autosave` ZIP entry. |
 | `HasChanged(itemId)` / `HasChanged(itemId, fieldName)` | Dirty tracking for UI |
 | `ImportFromFile` / `ExportToFile` (+ Async) | `.json` or `.csv` only — see [[Import Export]] |
+| `RefreshAlerts` | Re-run the Core alert scan without saving (e.g. after host posture changes) |
 
-Events: `AutoSaveDetected`, `DatabaseSaved`, `WarningsUpdated`, `DatabaseClosed` (`LogoutEventArgs.LoginTimeoutReached` tells you whether idle timeout closed the session).
+Events: `AutoSaveDetected`, `DatabaseSaved`, per-kind Core alert events (`ActivityReviewAlertsChanged`, `PasswordLeakedAlertsChanged`, …) / `CoreAlertsScanCompleted`, `DatabaseClosed` (`LogoutEventArgs.LoginTimeoutReached` tells you whether idle timeout closed the session).
 
 ### Async rules
 
@@ -92,7 +93,7 @@ account.Options = AccountOption.WarnIfPasswordLeaked | AccountOption.WarnIfDupli
 | `ShowPasswordDelay` | milliseconds | QR window auto-close (`0` = until dismissed). Named historically for password reveal; the WPF client uses it for QR display. |
 | `NumberOfOldPasswordToKeep` | count | Password history cap |
 | `NumberOfMonthActivitiesToKeep` | months | Activity retention |
-| `WarningsToNotify` | `WarningType` flags | Which warnings to surface — [[Warnings and Activity]] |
+| `AlertsToNotify` | `AlertKindList` (kind ids) | Which alerts to surface — [[Alerts and Activity]] |
 | `Language` | IETF tag / `System` or empty | UI language override. Empty = follow the WPF `config.json` language. `System` follows the OS UI language. |
 | `Theme` | `System` / `Light` / `Dark` or empty | UI theme override. Empty = follow the WPF `config.json` theme. |
 

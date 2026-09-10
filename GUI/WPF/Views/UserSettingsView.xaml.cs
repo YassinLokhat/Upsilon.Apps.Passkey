@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,8 +8,8 @@ using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
-using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
@@ -17,7 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserSettingsView.xaml
    /// </summary>
-   internal sealed partial class UserSettingsView : Window
+   internal sealed partial class UserSettingsView : Window, IThemeAware
    {
       private readonly UserSettingsViewModel _viewModel;
       private bool _isClosing;
@@ -53,11 +53,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Closed += _window_Closed;
       }
 
+      public void OnThemeChanged()
+         => _passwordsContainer.OnThemeChanged();
+
       private void _window_Closed(object? sender, EventArgs e)
       {
          _isClosing = true;
 
          _passwordsContainer.ClearSecrets();
+         _passwordsContainer.DisposeItems();
          _database?.DatabaseClosed -= _database_DatabaseClosed;
       }
 
@@ -187,38 +191,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _database.User.Settings.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
             _database.User.Settings.Language = _viewModel.SelectedLanguage.Code;
             _database.User.Settings.Theme = _viewModel.SelectedTheme.Code;
-            WarningType warningsToNotify = 0;
-            if (_viewModel.NotifyActivityReview)
+            AlertKindList alertsToNotify = _viewModel.BuildAlertsToNotify();
+
+            if (alertsToNotify.Count == 0)
             {
-               warningsToNotify |= WarningType.ActivityReviewWarning;
+               AppServices.Dialogs.Warn(Strings.Msg_NoAlertsToNotify, Strings.Title_NoAlertsToNotify);
             }
 
-            if (_viewModel.NotifyDuplicatedPasswords)
-            {
-               warningsToNotify |= WarningType.DuplicatedPasswordsWarning;
-            }
-
-            if (_viewModel.NotifyPasswordUpdateReminder)
-            {
-               warningsToNotify |= WarningType.PasswordUpdateReminderWarning;
-            }
-
-            if (_viewModel.NotifyPasswordLeaked)
-            {
-               warningsToNotify |= WarningType.PasswordLeakedWarning;
-            }
-
-            if (_viewModel.NotifySecuritySettings)
-            {
-               warningsToNotify |= WarningType.SecuritySettingsWarning;
-            }
-
-            if (warningsToNotify == 0)
-            {
-               AppServices.Dialogs.Warn(Strings.Msg_NoWarningsToNotify, Strings.Title_NoWarningsToNotify);
-            }
-
-            _database.User.Settings.WarningsToNotify = warningsToNotify;
+            _database.User.Settings.AlertsToNotify = alertsToNotify;
 
             await _database.SaveAsync().ConfigureAwait(true);
             _session.ApplySessionLanguage();

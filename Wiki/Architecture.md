@@ -8,7 +8,7 @@ Upsilon.Apps.Passkey is four layers and two solution files. The only **OS-specif
 | ---- | ---- |
 | `Interfaces/` | Public contracts (`IDatabase`, `IUser`, crypto, serialization, clipboard, `IProtectedSecret`, `ISecretMemoryProtector`, `PlaintextSecret`). |
 | `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `SecretMemoryProtector` / `ProtectedSecret`, and `LeakFilter/` (`.pkbf` Bloom file, builder, config). **Zero NuGet packages** (BCL only). |
-| `Core/` | Vault implementation: onion encryption, `.pku` I/O, warnings, import/export. **Zero NuGet packages** (BCL only). Depends on Interfaces only. Vault-internal helpers stay under `Core/Utils/` (`QrCode`, file lock, activity, import/export). |
+| `Core/` | Vault implementation: onion encryption, `.pku` I/O, alerts, import/export. **Zero NuGet packages** (BCL only). Depends on Interfaces only. Vault-internal helpers stay under `Core/Utils/` (`QrCode`, file lock, activity, import/export). |
 | `GUI/WPF/` | Windows desktop client (MVVM + a small `AppServices` locator). Composes Utils defaults and supplies `IClipboardManager`. |
 | `UnitTests/` | Core/Utils tests plus ViewModel tests through the `AppServices` seam. |
 
@@ -28,7 +28,7 @@ flowchart LR
   IUser --> IService
   IService --> IAccount
   IDatabase --> IActivity
-  IDatabase --> IWarning
+  IDatabase --> IAlert
   IDatabase --> ICryptographyCenter
   IDatabase --> ISerializationCenter
   IDatabase --> IPasswordFactory
@@ -155,7 +155,7 @@ classDiagram
             +int ShowPasswordDelay
             +int NumberOfOldPasswordToKeep
             +int NumberOfMonthActivitiesToKeep
-            +WarningType WarningsToNotify
+            +AlertKindList AlertsToNotify
             +string Language
             +string Theme
         }
@@ -166,13 +166,13 @@ classDiagram
             +IUser? User
             +int? SessionLeftTime
             +IEnumerable~IActivity~ Activities
-            +IEnumerable~IWarning~ Warnings
+            +IReadOnlyDictionary CoreAlerts
             +ISerializationCenter SerializationCenter
             +ICryptographyCenter CryptographyCenter
             +IPasswordFactory PasswordFactory
             +IClipboardManager ClipboardManager
             +ISecretMemoryProtector SecretMemoryProtector
-            +EventHandler~WarningsUpdatedEventArgs~ WarningsUpdated
+            +EventHandler CoreAlertsScanCompleted
             +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
             +EventHandler DatabaseSaved
             +EventHandler~LogoutEventArgs~ DatabaseClosed
@@ -180,6 +180,7 @@ classDiagram
             +LoginAsync(in passkey string, in cancellationToken CancellationToken) Task~IUser~
             +Save(void) void
             +SaveAsync(in cancellationToken CancellationToken) Task
+            +RefreshAlerts(void) void
             +Delete(void) void
             +Close(void) void
             +HasChanged(in itemId string) bool
@@ -204,12 +205,11 @@ classDiagram
             +bool NeedsReview
         }
 
-        class IWarning {
+        class IAlert {
             <<interface>>
-            +WarningType WarningType
-            +IEnumerable~IActivity~? Activities
-            +IEnumerable~IAccount~? Accounts
-            +SecuritySettingsIssue SecuritySettingsIssues
+            +string Source
+            +string Kind
+            +AlertSeverity Severity
         }
     }
 
@@ -224,7 +224,7 @@ classDiagram
     IService "0" --> "*" IAccount : Accounts
     IUser "0" --> "*" IService : Services
     IDatabase --> IUser : User
-    IDatabase "0" --> "*" IWarning : Warnings
+    IDatabase "0" --> "*" IAlert : CoreAlerts
     IDatabase "0" --> "*" IActivity : Activities
     IDatabase --> ISerializationCenter : SerializationCenter
     IDatabase --> ICryptographyCenter : CryptographyCenter
@@ -233,7 +233,7 @@ classDiagram
     IDatabase --> ISecretMemoryProtector : SecretMemoryProtector
 ```
 
-Event-arg types (`WarningsUpdatedEventArgs`, `AutoSaveDetectedEventArgs`, `LogoutEventArgs`) and enums live under `Interfaces.Events` / `Interfaces.Enums` — see the fuller diagram in the repository `README.md`.
+Event-arg types (`AlertsChangedEventArgs`, `AutoSaveDetectedEventArgs`, `LogoutEventArgs`) and enums live under `Interfaces.Events` / `Interfaces.Enums` — see the fuller diagram in the repository `README.md`.
 
 ## Design choices that show up in usage
 

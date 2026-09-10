@@ -1,4 +1,4 @@
-﻿using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -11,7 +11,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
    internal static class EnumDisplayHelper
    {
       private const string ACCOUNT_OPTION_PREFIX = "EnumValue_AccountOption_";
-      private const string WARNING_TYPE_PREFIX = "EnumValue_WarningType_";
+      private const string ALERT_KIND_PREFIX = "EnumValue_AlertKind_";
       private const string IMPORT_EXPORT_ERROR_PREFIX = "EnumValue_ImportExportError_";
 
       public static string FormatFieldValue(string? fieldName, string? fieldValue)
@@ -21,7 +21,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             : fieldName switch
             {
                nameof(AccountOption) or "Options" => _formatAccountOption(fieldValue),
-               nameof(WarningType) or "WarningsToNotify" => _formatWarningType(fieldValue),
+               "AlertsToNotify" => _formatAlertsToNotify(fieldValue),
                "Theme" => _formatTheme(fieldValue),
                "Language" => _formatLanguage(fieldValue),
                nameof(ImportExportError) or "errorLog" => _formatImportExportError(fieldValue),
@@ -34,9 +34,29 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
          return stored is "None" or "0" ? Strings.EnumValue_None : _formatFlags(stored, _accountOptionLabel);
       }
 
-      private static string _formatWarningType(string stored)
+      private static string _formatAlertsToNotify(string stored)
       {
-         return stored is "None" or "0" ? Strings.EnumValue_None : _formatFlags(stored, _warningTypeLabel);
+         if (stored is "None" or "[]" or "0")
+         {
+            return Strings.EnumValue_None;
+         }
+
+         // JSON array or comma-separated kind ids.
+         if (stored.StartsWith('[') && stored.EndsWith(']'))
+         {
+            string inner = stored[1..^1].Trim();
+            if (string.IsNullOrEmpty(inner))
+            {
+               return Strings.EnumValue_None;
+            }
+
+            string[] kinds = [.. inner
+               .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+               .Select(static p => p.Trim().Trim('"'))];
+            return string.Join(", ", kinds.Select(_alertKindLabel));
+         }
+
+         return _formatFlags(stored, _alertKindLabel);
       }
 
       private static string _formatTheme(string stored)
@@ -80,15 +100,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             _ => Strings.Get($"{ACCOUNT_OPTION_PREFIX}{memberName}"),
          };
 
-      private static string _warningTypeLabel(string memberName)
-         => memberName switch
+      private static string _alertKindLabel(string kind)
+         => kind switch
          {
-            nameof(WarningType.ActivityReviewWarning) => Strings.Label_NotifyActivityReview,
-            nameof(WarningType.PasswordUpdateReminderWarning) => Strings.Label_NotifyPasswordUpdateReminder,
-            nameof(WarningType.DuplicatedPasswordsWarning) => Strings.Label_NotifyDuplicatedPasswords,
-            nameof(WarningType.PasswordLeakedWarning) => Strings.Label_NotifyPasswordLeaked,
-            nameof(WarningType.SecuritySettingsWarning) => Strings.Label_NotifySecuritySettings,
-            _ => Strings.Get($"{WARNING_TYPE_PREFIX}{memberName}"),
+            AlertKinds.ActivityReview => Strings.Label_NotifyActivityReview,
+            AlertKinds.PasswordUpdateReminder => Strings.Label_NotifyPasswordUpdateReminder,
+            AlertKinds.DuplicatedPasswords => Strings.Label_NotifyDuplicatedPasswords,
+            AlertKinds.PasswordLeaked => Strings.Label_NotifyPasswordLeaked,
+            AlertKinds.VaultSecuritySettings or AlertKinds.HostSecuritySettings => Strings.Label_NotifySecuritySettings,
+            AlertKinds.InsufficientPasskeys => Strings.Label_NotifyInsufficientPasskeys,
+            AlertKinds.WeakPasskey => Strings.Label_NotifyWeakPasskey,
+            AlertKinds.PasskeyLeaked => Strings.Label_NotifyPasskeyLeaked,
+            AlertKinds.WeakAccountPassword => Strings.Label_NotifyWeakAccountPassword,
+            AlertKinds.PasskeyReusedAsAccountPassword => Strings.Label_NotifyPasskeyReusedAsAccountPassword,
+            _ => Strings.Get($"{ALERT_KIND_PREFIX}{kind}"),
          };
    }
 }

@@ -6,13 +6,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
 {
    public sealed partial class Database
    {
-      private void _save(bool logSaveEvent, bool refreshWarnings = true)
+      private void _save(bool logSaveEvent, bool refreshAlerts = true)
       {
          _saveActivities(rebuildStringActivities: true);
-         _saveDatabase(logSaveEvent, refreshWarnings);
+         _saveDatabase(logSaveEvent, refreshAlerts);
       }
 
-      private void _saveDatabase(bool logSaveEvent, bool refreshWarnings = true)
+      private void _saveDatabase(bool logSaveEvent, bool refreshAlerts = true)
       {
          if (User is null)
          {
@@ -63,9 +63,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          // before Save returns, matching the previous durability guarantee.
          ActivityCenter.Flush();
 
-         if (refreshWarnings)
+         if (refreshAlerts)
          {
-            _queueWarningScan();
+            _queueAlertScan();
          }
 
          User.ResetTimer();
@@ -144,7 +144,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
          User = null;
          Username = string.Empty;
          Passkeys = [];
-         Warnings = null;
+         lock (_alertScanGate)
+         {
+            _coreAlerts.Clear();
+         }
 
          FileLocker.Dispose();
 
@@ -170,7 +173,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                // Apply may rename the user; sync before logging so the merge
                // activity carries the post-merge username. Log before _save so
                // the event is sealed with that save and visible to Login's
-               // warning scan (skip mid-login refresh below).
+               // alert scan (skip mid-login refresh below).
                Username = User.Username;
                ActivityCenter.AddActivity(itemId: string.Empty,
                   Username,
@@ -181,7 +184,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                   parentName: null,
                   eventType: _toActivityEventType(mergeAutoSave),
                   needsReview: true);
-               _save(logSaveEvent: false, refreshWarnings: false);
+               _save(logSaveEvent: false, refreshAlerts: false);
                break;
             case AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile:
                AutoSave.ApplyChanges(deleteFile: false);

@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -133,7 +133,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             }
 
             _onPropertyChanged(string.Empty);
-            AppServices.Session.Database?.RefreshWarnings();
+            AppServices.Session.Database?.RefreshAlerts();
          }
 
          return accountViewModel;
@@ -152,7 +152,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          _removeAccountViewModel(accountViewModel);
 
          _onPropertyChanged(string.Empty);
-         AppServices.Session.Database?.RefreshWarnings();
+         AppServices.Session.Database?.RefreshAlerts();
 
          return index < Accounts.Count ? index : Accounts.Count - 1;
       }
@@ -182,6 +182,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       private void _removeAccountViewModel(AccountViewModel accountViewModel)
       {
          accountViewModel.PropertyChanged -= _accountViewModel_PropertyChanged;
+         accountViewModel.Dispose();
          _ = _accountViewModelsById.Remove(accountViewModel.Account.ItemId);
       }
 

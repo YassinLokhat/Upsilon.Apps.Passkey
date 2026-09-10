@@ -64,7 +64,7 @@ ActivityEventType.DatabaseOpened
 3. Wire the Message path in `ActivityViewModel`, `StringsHelper`, and/or `EnumDisplayHelper` depending on event shape.
 4. Keep Core persistence unchanged: store enum names and field ids, never translated text.
 
-Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (`EnumValue_WarningType_*`, optional `EnumValue_AccountOption_*`, `EnumValue_ImportExportError_*`, `EnumValue_Theme_*`). `EnumDisplayHelper.FormatFieldValue` localizes values stored in activity `FieldValue` (Core persists `Enum.ToString()` names, not translated text). Import/export failure reasons use `EnumValue_ImportExportError_{Member}`; theme preference values use `EnumValue_Theme_*`. Empty user language/theme is logged as `app` (`ISettings.FollowAppCode`; legacy logs may still have `(app)`) and displayed via `EnumValue_FollowApp`. Warning filter strings may reuse existing `Label_Notify*` keys via `EnumDisplayHelper` when the wording already matches the settings UI.
+Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (optional `EnumValue_AccountOption_*`, `EnumValue_AlertKind_*`, `EnumValue_ImportExportError_*`, `EnumValue_Theme_*`). Activity `FieldValue` for `AlertsToNotify` is a comma-separated list of `AlertKinds` ids; `EnumDisplayHelper` maps those onto `Label_Notify*` strings. Import/export failure reasons use `EnumValue_ImportExportError_{Member}`; theme preference values use `EnumValue_Theme_*`. Empty user language/theme is logged as `app` (`ISettings.FollowAppCode`; older logs may still have `(app)`) and displayed via `EnumValue_FollowApp`.
 
 `FieldName_*` keys localize the middle of ItemUpdated-style sentences (`Strings.Get($"FieldName_{activity.FieldName}")`). If Core starts persisting a new field name, add a matching `FieldName_` entry or the UI falls back to the raw key.
 
@@ -99,6 +99,12 @@ Under **App Settings** (`Ctrl+,`), section **Offline leak database**:
 * Delete the `.pkbf` and its sidecar explicitly.
 
 Preferences that *are* persisted (`Enabled`, auto-update frequency, vault folder, login idle timeout, language, theme) live in application-level `config.json`, shared by all vault users — not stored in the `.pku`. Details: [[Security]].
+
+## Alerts in the GUI
+
+Core publishes **per-kind** alert events; the host publishes app-level posture (`IdleLoginDisabled`, `OfflineLeakFilterUnavailable`). `SessionService.Alerts` (`AlertBroker`) subscribes to both, applies `ISettings.AlertsToNotify`, and drives the services-window Alerts menu. Badge colors come from `IAlert.Severity` (`AlertBroker.BrushFor`), not hard-coded kinds.
+
+User settings exposes one checkbox per known kind (`Label_Notify*`). An empty notify list shows a MessageBox. Detail windows: activities review, account passwords (reminder / leaked / weak / passkey-reuse), duplicates, vault+host security settings, and passkey quality. See [[Alerts and Activity]].
 
 ## App Settings — login idle timeout
 

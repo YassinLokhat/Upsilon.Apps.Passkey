@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -194,7 +194,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          _ = ThemeService.ApplyEffective(
             AppInfo.AppSettings.Theme,
             AppServices.Session.User?.Settings.Theme);
-         AppServices.Session.Database?.RefreshWarnings();
+         AppServices.Session.Database?.RefreshAlerts();
+         AppServices.Session.Alerts.RefreshHostAlerts();
          return languageChanged;
       }
 

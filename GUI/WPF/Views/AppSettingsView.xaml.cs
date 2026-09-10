@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
@@ -181,7 +181,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          _viewModel.RefreshOfflineLeakFilterStatus();
-         AppServices.Session.Database?.RefreshWarnings();
+         AppServices.Session.Database?.RefreshAlerts();
+         AppServices.Session.Alerts.RefreshHostAlerts();
       }
 
       private async void _offlineLeakFilterBuild_Click(object sender, RoutedEventArgs e)
@@ -271,7 +272,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          finally
          {
             _syncBusyFromService();
-            AppServices.Session.Database?.RefreshWarnings();
+            AppServices.Session.Database?.RefreshAlerts();
+            AppServices.Session.Alerts.RefreshHostAlerts();
          }
       }
 
@@ -345,7 +347,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = AppInfo.AppSettings.LeakFilterConfig.TryDeleteFilterFile();
          _viewModel.OfflineLeakFilterProgress = string.Empty;
          _viewModel.RefreshOfflineLeakFilterStatus();
-         AppServices.Session.Database?.RefreshWarnings();
+         AppServices.Session.Database?.RefreshAlerts();
+         AppServices.Session.Alerts.RefreshHostAlerts();
       }
    }
 }

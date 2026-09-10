@@ -1,6 +1,4 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
-
-namespace Upsilon.Apps.Passkey.Interfaces.Models
+﻿namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
    public interface ISettings
    {
@@ -22,8 +20,10 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// <summary>Months of activity history to retain.</summary>
       int NumberOfMonthActivitiesToKeep { get; set; }
 
-      /// <summary>Which warning kinds to surface to the user.</summary>
-      WarningType WarningsToNotify { get; set; }
+      /// <summary>
+      /// Which alert kind ids (<see cref="AlertKinds"/>) to surface to the user.
+      /// </summary>
+      AlertKindList AlertsToNotify { get; set; }
 
       /// <summary>
       /// Activity-log FieldValue when <see cref="Language"/> or <see cref="Theme"/>

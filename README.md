@@ -15,7 +15,7 @@ independently; see [SECURITY.md](SECURITY.md) and [`versions.json`](versions.jso
 *   **Password storage**: services, accounts, identifiers, notes, and password history
 *   **Multi-passkey vault**: ordered master passkeys form an AES-256-GCM onion (see [SECURITY.md](SECURITY.md))
 *   **Activity log**: tamper-evident audit trail of vault events
-*   **Warnings**: password-update reminders, duplicates, leaks, and activity review
+*   **Alerts**: activity review, password reminders / duplicates / leaks, vault & host security posture, passkey quality (count, strength, leak, reuse)
 *   **Autosave**: unsaved edits are kept in the `.pku` ZIP and merged on the next login
 *   **Password generation**: CSPRNG over a configurable alphabet
 *   **Leak detection**: opt-in Have I Been Pwned checks, then XposedOrNot failover, then an optional local HIBP Bloom filter (k-anonymity / offline; see [SECURITY.md](SECURITY.md))
@@ -178,7 +178,7 @@ classDiagram
             +int ShowPasswordDelay
             +int NumberOfOldPasswordToKeep
             +int NumberOfMonthActivitiesToKeep
-            +WarningType WarningsToNotify
+            +AlertKindList AlertsToNotify
             +string Language
             +string Theme
         }
@@ -189,13 +189,13 @@ classDiagram
             +IUser? User
             +int? SessionLeftTime
             +IEnumerable~IActivity~ Activities
-            +IEnumerable~IWarning~ Warnings
+            +IReadOnlyDictionary CoreAlerts
             +ISerializationCenter SerializationCenter
             +ICryptographyCenter CryptographyCenter
             +IPasswordFactory PasswordFactory
             +IClipboardManager ClipboardManager
             +ISecretMemoryProtector SecretMemoryProtector
-            +EventHandler~WarningsUpdatedEventArgs~ WarningsUpdated
+            +EventHandler CoreAlertsScanCompleted
             +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
             +EventHandler DatabaseSaved
             +EventHandler~LogoutEventArgs~ DatabaseClosed
@@ -203,6 +203,7 @@ classDiagram
             +LoginAsync(in passkey string, in cancellationToken CancellationToken) Task~IUser~
             +Save(void) void
             +SaveAsync(in cancellationToken CancellationToken) Task
+            +RefreshAlerts(void) void
             +Delete(void) void
             +Close(void) void
             +HasChanged(in itemId string) bool
@@ -227,12 +228,11 @@ classDiagram
             +bool NeedsReview
         }
 
-        class IWarning {
+        class IAlert {
             <<interface>>
-            +WarningType WarningType
-            +IEnumerable~IActivity~? Activities
-            +IEnumerable~IAccount~? Accounts
-            +SecuritySettingsIssue SecuritySettingsIssues
+            +string Source
+            +string Kind
+            +AlertSeverity Severity
         }
     }
     
@@ -246,14 +246,11 @@ classDiagram
             WarnIfDuplicatedPassword
         }
         
-        class WarningType {
+        class AlertSeverity {
             <<enumeration>>
-            <<flags>>
-            ActivityReviewWarning
-            PasswordUpdateReminderWarning
-            DuplicatedPasswordsWarning
-            PasswordLeakedWarning
-            SecuritySettingsWarning
+            Info
+            Warning
+            Critical
         }
         
         class AutoSaveMergeBehavior {
@@ -305,8 +302,9 @@ classDiagram
             +AutoSaveMergeBehavior MergeBehavior
         }
         
-        class WarningsUpdatedEventArgs {
-            +IEnumerable~IWarning~ Warnings
+        class AlertsChangedEventArgs {
+            +string Kind
+            +IReadOnlyList~IAlert~ Alerts
         }
         
         class LogoutEventArgs {
@@ -331,7 +329,7 @@ classDiagram
     IService --> IUser : User
     IUser "0" --> "*" IService : Services
     IUser --> ISettings : Settings
-    ISettings --> WarningType : WarningsToNotify
+    ISettings --> AlertKindList : AlertsToNotify
     IDatabase --> ISerializationCenter : SerializationCenter
     IDatabase --> ICryptographyCenter : CryptographyCenter
     IDatabase --> IPasswordFactory : PasswordFactory
@@ -339,16 +337,14 @@ classDiagram
     IDatabase --> ISecretMemoryProtector : SecretMemoryProtector
     IDatabase --> IUser : User
     ISecretMemoryProtector --> IProtectedSecret : Protect
-    IDatabase "0" --> "*" IWarning : Warnings
+    IDatabase "0" --> "*" IAlert : CoreAlerts
     IDatabase "0" --> "*" IActivity : Activities
-    IDatabase --> WarningsUpdatedEventArgs : WarningsUpdated
+    IDatabase --> AlertsChangedEventArgs : per-kind events
     IDatabase --> AutoSaveDetectedEventArgs : AutoSaveDetected
     IDatabase --> LogoutEventArgs : DatabaseClosed
-    IWarning --> WarningType : WarningType
-    IWarning "0" --> "*" IActivity : Activities
-    IWarning "0" --> "*" IAccount : Accounts
+    IAlert --> AlertSeverity : Severity
     AutoSaveDetectedEventArgs --> AutoSaveMergeBehavior : MergeBehavior
-    WarningsUpdatedEventArgs "0" --> "*" IWarning : Warnings
+    AlertsChangedEventArgs "0" --> "*" IAlert : Alerts
 ```
 
 **Example Use Cases**
@@ -508,7 +504,7 @@ Two things to keep in mind:
 
 *   These operations share the progressive passkey stack and the database file,
     so they are not meant to overlap: await one before starting the next.
-*   Their events (`AutoSaveDetected`, `DatabaseSaved`, `WarningsUpdated`,
+*   Their events (`AutoSaveDetected`, `DatabaseSaved`, Core alert kind events / `CoreAlertsScanCompleted`,
     `DatabaseClosed`) are raised from the worker thread, so a handler touching UI
     state has to marshal back to its own thread.
 

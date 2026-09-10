@@ -6,21 +6,22 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
-using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class AccountPasswordsWarningViewModel : INotifyPropertyChanged, ILanguageAware
+   internal sealed class AccountPasswordsAlertViewModel : INotifyPropertyChanged, ILanguageAware
    {
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
-      public string Title => Strings.Format(nameof(Strings.Title_AccountPasswordsWarnings), AppInfo.Title);
+      public string Title => Strings.Format(nameof(Strings.Title_AccountPasswordsAlerts), AppInfo.Title);
 
-      public string ReadableWarningType
+      public string ReadableAlertKind
       {
-         get => WarningType.ToReadableString();
-         set => WarningType = EnumHelper.ActivityWarningTypeFromReadableString(value);
+         get => EnumHelper.ToReadableAlertKind(Kind);
+         set => Kind = EnumHelper.AccountPasswordKindFromReadableString(value);
       }
-      public WarningType WarningType
+
+      public string Kind
       {
          get;
          set
@@ -28,11 +29,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (field != value)
             {
                field = value;
-               _onPropertyChanged(nameof(ReadableWarningType));
+               _onPropertyChanged(nameof(ReadableAlertKind));
                RefreshFilters();
             }
          }
-      } = WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning;
+      } = EnumHelper.AccountPasswordFilterAll;
+
       public string Text
       {
          get;
@@ -47,7 +49,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = "";
 
-      public ObservableCollection<AccountPasswordWarningViewModel> Warnings { get; set; } = [];
+      public ObservableCollection<AccountPasswordAlertViewModel> Alerts { get; set; } = [];
 
       public ICommand ClearFiltersCommand { get; }
 
@@ -58,7 +60,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
-      public AccountPasswordsWarningViewModel()
+      public AccountPasswordsAlertViewModel()
       {
          ClearFiltersCommand = new RelayCommand(ClearFilters);
          RefreshFilters();
@@ -67,34 +69,38 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public void OnLanguageChanged()
       {
          _onPropertyChanged(nameof(Title));
-         _onPropertyChanged(nameof(ReadableWarningType));
+         _onPropertyChanged(nameof(ReadableAlertKind));
          RefreshFilters();
       }
 
       public void ClearFilters()
       {
-         WarningType = WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning;
+         Kind = EnumHelper.AccountPasswordFilterAll;
          Text = string.Empty;
       }
 
       public void RefreshFilters()
       {
-         Warnings.Clear();
+         Alerts.Clear();
 
-         if (AppServices.Session.Database?.Warnings is null)
+         AccountPasswordAlertViewModel[] alerts = [.. AppServices.Session.Alerts
+            .GetNotifiedAlerts()
+            .OfType<IAccountsAlert>()
+            .Where(x => _matchesKindFilter(x.Kind, Kind))
+            .SelectMany(x => x.Accounts.Select(y => new AccountPasswordAlertViewModel(y, x.Kind)))
+            .Where(x => x.MeetsConditions(Kind, Text))];
+
+         foreach (AccountPasswordAlertViewModel alert in alerts)
          {
-            return;
+            Alerts.Add(alert);
          }
+      }
 
-         AccountPasswordWarningViewModel[] warnings = [.. AppServices.Session.Database.Warnings
-            .Where(x => WarningType.HasFlag(x.WarningType))
-            .SelectMany(x => x.Accounts?.Select(y => new AccountPasswordWarningViewModel(y, x.WarningType)) ?? [])
-            .Where(x => x.MeetsConditions(WarningType, Text))];
-
-         foreach (AccountPasswordWarningViewModel warning in warnings)
-         {
-            Warnings.Add(warning);
-         }
+      private static bool _matchesKindFilter(string alertKind, string filterKind)
+      {
+         return EnumHelper.IsAccountPasswordFilterAll(filterKind)
+            ? EnumHelper.MatchesAccountPasswordKindFilter(alertKind, filterKind)
+            : string.Equals(alertKind, filterKind, StringComparison.Ordinal);
       }
    }
 }

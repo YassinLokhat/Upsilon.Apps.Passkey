@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -197,7 +197,7 @@
   <data name="Label_Settings" xml:space="preserve">
     <value>Paramètres</value>
   </data>
-  <data name="Label_Warnings" xml:space="preserve">
+  <data name="Label_Alerts" xml:space="preserve">
     <value>Alertes</value>
   </data>
   <data name="Label_Filters" xml:space="preserve">
@@ -251,10 +251,10 @@
   <data name="Label_Copy" xml:space="preserve">
     <value>Copier</value>
   </data>
-  <data name="Label_WarningType" xml:space="preserve">
+  <data name="Label_AlertType" xml:space="preserve">
     <value>Type d'alerte :</value>
   </data>
-  <data name="Label_WarningTypeColumn" xml:space="preserve">
+  <data name="Label_AlertTypeColumn" xml:space="preserve">
     <value>Type d'alerte</value>
   </data>
   <data name="Label_ServiceColumn" xml:space="preserve">
@@ -344,6 +344,21 @@
   <data name="Label_NotifySecuritySettings" xml:space="preserve">
     <value>Notifier les paramètres de sécurité</value>
   </data>
+  <data name="Label_NotifyInsufficientPasskeys" xml:space="preserve">
+    <value>Notifier le nombre insuffisant de passkeys</value>
+  </data>
+  <data name="Label_NotifyWeakPasskey" xml:space="preserve">
+    <value>Notifier les passkeys faibles</value>
+  </data>
+  <data name="Label_NotifyPasskeyLeaked" xml:space="preserve">
+    <value>Notifier les fuites de passkey</value>
+  </data>
+  <data name="Label_NotifyWeakAccountPassword" xml:space="preserve">
+    <value>Notifier les mots de passe de compte faibles</value>
+  </data>
+  <data name="Label_NotifyPasskeyReusedAsAccountPassword" xml:space="preserve">
+    <value>Notifier la réutilisation d'une passkey comme mot de passe</value>
+  </data>
   <data name="Label_RemindPasswordUpdate" xml:space="preserve">
     <value>Rappeler de mettre à jour le mot de passe tous les</value>
   </data>
@@ -392,10 +407,10 @@
   <data name="Title_Activities" xml:space="preserve">
     <value>{0} - Activités</value>
   </data>
-  <data name="Title_AccountPasswordsWarnings" xml:space="preserve">
+  <data name="Title_AccountPasswordsAlerts" xml:space="preserve">
     <value>{0} - Alertes mots de passe</value>
   </data>
-  <data name="Title_DuplicatedPasswordsWarnings" xml:space="preserve">
+  <data name="Title_DuplicatedPasswordsAlerts" xml:space="preserve">
     <value>{0} - Alertes mots de passe dupliqués</value>
   </data>
   <data name="Title_InsertIdentifier" xml:space="preserve">
@@ -592,25 +607,28 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="Title_UserServices" xml:space="preserve">
     <value>{0} - '{1}'</value>
   </data>
-  <data name="Msg_ShowWarnings" xml:space="preserve">
+  <data name="Msg_ShowAlerts" xml:space="preserve">
     <value>Afficher {0} alertes</value>
   </data>
-  <data name="Msg_ShowActivityWarnings" xml:space="preserve">
+  <data name="Msg_ShowActivityAlerts" xml:space="preserve">
     <value>Afficher {0} activités à revoir</value>
   </data>
-  <data name="Msg_ShowExpiredPasswordWarnings" xml:space="preserve">
+  <data name="Msg_ShowExpiredPasswordAlerts" xml:space="preserve">
     <value>Afficher {0} mots de passe expirés</value>
   </data>
-  <data name="Msg_ShowDuplicatedPasswordWarnings" xml:space="preserve">
+  <data name="Msg_ShowDuplicatedPasswordAlerts" xml:space="preserve">
     <value>Afficher {0} mots de passe dupliqués</value>
   </data>
-  <data name="Msg_ShowLeakedPasswordWarnings" xml:space="preserve">
+  <data name="Msg_ShowLeakedPasswordAlerts" xml:space="preserve">
     <value>Afficher {0} mots de passe divulgués</value>
   </data>
-  <data name="Msg_ShowSecuritySettingsWarnings" xml:space="preserve">
+  <data name="Msg_ShowSecuritySettingsAlerts" xml:space="preserve">
     <value>Afficher {0} alertes de paramètres de sécurité</value>
   </data>
-  <data name="Msg_NoWarningsToNotify" xml:space="preserve">
+  <data name="Msg_ShowPasskeyQualityAlerts" xml:space="preserve">
+    <value>Afficher {0} alertes de qualité de passkey</value>
+  </data>
+  <data name="Msg_NoAlertsToNotify" xml:space="preserve">
     <value>Aucune notification d'alerte n'est activée.
 
 Vous ne serez pas prévenu pour :
@@ -618,14 +636,26 @@ Vous ne serez pas prévenu pour :
 • Les mots de passe expirés, dupliqués ou divulgués
 • Les paramètres de sécurité trop permissifs</value>
   </data>
-  <data name="Title_NoWarningsToNotify" xml:space="preserve">
+  <data name="Title_NoAlertsToNotify" xml:space="preserve">
     <value>Notifications d'alertes désactivées</value>
   </data>
-  <data name="Title_SecuritySettingsWarnings" xml:space="preserve">
+  <data name="Title_SecuritySettingsAlerts" xml:space="preserve">
     <value>Alertes de paramètres de sécurité</value>
   </data>
-  <data name="Title_SecuritySettingsWarningsWindow" xml:space="preserve">
+  <data name="Title_SecuritySettingsAlertsWindow" xml:space="preserve">
     <value>{0} - Alertes de paramètres de sécurité</value>
+  </data>
+  <data name="Title_PasskeyQualityAlertsWindow" xml:space="preserve">
+    <value>{0} - Alertes de qualité de passkey</value>
+  </data>
+  <data name="Msg_PasskeyQuality_InsufficientPasskeys" xml:space="preserve">
+    <value>Seulement {0} couche(s) de passkey configurée(s) ; au moins {1} sont recommandées.</value>
+  </data>
+  <data name="Msg_PasskeyQuality_WeakPasskey" xml:space="preserve">
+    <value>Couche(s) de passkey faible(s) : {0}.</value>
+  </data>
+  <data name="Msg_PasskeyQuality_PasskeyLeaked" xml:space="preserve">
+    <value>Couche(s) de passkey divulguée(s) : {0}.</value>
   </data>
   <data name="Label_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
     <value>Déconnexion automatique désactivée</value>
@@ -804,19 +834,19 @@ Vous ne serez pas prévenu pour :
   <data name="EnumValue_ActivityEventType_ActivityLogTampered" xml:space="preserve">
     <value>Journal d'activité altéré</value>
   </data>
-  <data name="EnumValue_WarningType_ActivityReviewWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_ActivityReview" xml:space="preserve">
     <value>Activités à revoir</value>
   </data>
-  <data name="EnumValue_WarningType_PasswordUpdateReminderWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_PasswordUpdateReminder" xml:space="preserve">
     <value>Mots de passe expirés</value>
   </data>
-  <data name="EnumValue_WarningType_DuplicatedPasswordsWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_DuplicatedPasswords" xml:space="preserve">
     <value>Mots de passe dupliqués</value>
   </data>
-  <data name="EnumValue_WarningType_PasswordLeakedWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_PasswordLeaked" xml:space="preserve">
     <value>Mots de passe divulgués</value>
   </data>
-  <data name="EnumValue_WarningType_SecuritySettingsWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_SecuritySettings" xml:space="preserve">
     <value>Paramètres de sécurité</value>
   </data>
   <data name="EnumValue_None" xml:space="preserve">
@@ -948,7 +978,7 @@ Vous ne serez pas prévenu pour :
   <data name="FieldName_NumberOfMonthActivitiesToKeep" xml:space="preserve">
     <value>nombre de mois d'activitées à garder</value>
   </data>
-  <data name="FieldName_WarningsToNotify" xml:space="preserve">
+    <data name="FieldName_AlertsToNotify" xml:space="preserve">
     <value>alertes à remonter</value>
   </data>
   <data name="FieldName_Username" xml:space="preserve">

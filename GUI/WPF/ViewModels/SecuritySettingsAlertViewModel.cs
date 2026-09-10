@@ -1,29 +1,25 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
-using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class SecuritySettingsWarningViewModel : INotifyPropertyChanged, ILanguageAware, IDisposable
+   internal sealed class SecuritySettingsAlertViewModel : INotifyPropertyChanged, ILanguageAware, IDisposable
    {
-      private readonly IDatabase? _database;
-
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
-      public string Title => Strings.Format(nameof(Strings.Title_SecuritySettingsWarningsWindow), AppInfo.Title);
+      public string Title => Strings.Format(nameof(Strings.Title_SecuritySettingsAlertsWindow), AppInfo.Title);
 
       public SecuritySettingsIssueItemViewModel[] Issues { get; private set; }
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
-      public SecuritySettingsWarningViewModel()
+      public SecuritySettingsAlertViewModel()
       {
-         _database = AppServices.Session.Database;
-         _database?.WarningsUpdated += _database_WarningsUpdated;
+         AppServices.Session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
 
          Issues = _loadIssues();
       }
@@ -33,10 +29,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void Dispose()
       {
-         _database?.WarningsUpdated -= _database_WarningsUpdated;
+         AppServices.Session.Alerts.NotifiedAlertsChanged -= _alerts_NotifiedAlertsChanged;
       }
 
-      private void _database_WarningsUpdated(object? sender, WarningsUpdatedEventArgs e)
+      private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
          => _reloadIssues(alsoTitle: false);
 
       private void _reloadIssues(bool alsoTitle)
@@ -51,19 +47,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       private static SecuritySettingsIssueItemViewModel[] _loadIssues()
       {
-         SecuritySettingsIssue issues = SecuritySettingsIssue.None;
-         foreach (IWarning warning in AppServices.Session.Database?.Warnings?.Where(x => x.WarningType.HasFlag(WarningType.SecuritySettingsWarning)) ?? [])
+         SecuritySettingsIssue vaultIssues = SecuritySettingsIssue.None;
+         HostSecurityIssue hostIssues = HostSecurityIssue.None;
+
+         foreach (IVaultSecuritySettingsAlert warning in AppServices.Session.Alerts
+            .GetAllAlerts(AlertKinds.VaultSecuritySettings)
+            .OfType<IVaultSecuritySettingsAlert>())
          {
-            issues |= warning.SecuritySettingsIssues;
+            vaultIssues |= warning.Issues;
+         }
+
+         foreach (IHostSecuritySettingsAlert warning in AppServices.Session.Alerts
+            .GetAllAlerts(AlertKinds.HostSecuritySettings)
+            .OfType<IHostSecuritySettingsAlert>())
+         {
+            hostIssues |= warning.Issues;
          }
 
          return
          [
-            .. _items(issues),
+            .. _vaultItems(vaultIssues),
+            .. _hostItems(hostIssues),
          ];
       }
 
-      private static IEnumerable<SecuritySettingsIssueItemViewModel> _items(SecuritySettingsIssue issues)
+      private static IEnumerable<SecuritySettingsIssueItemViewModel> _vaultItems(SecuritySettingsIssue issues)
       {
          if (issues.HasFlag(SecuritySettingsIssue.AutoLogoutDisabled))
          {
@@ -106,40 +114,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                Strings.Label_SecuritySettings_NoAccountUpdateReminder,
                Strings.Msg_SecuritySettings_NoAccountUpdateReminder);
          }
+      }
 
-         if (issues.HasFlag(SecuritySettingsIssue.IdleLoginDisabled))
+      private static IEnumerable<SecuritySettingsIssueItemViewModel> _hostItems(HostSecurityIssue issues)
+      {
+         if (issues.HasFlag(HostSecurityIssue.IdleLoginDisabled))
          {
             yield return new(
                Strings.Label_SecuritySettings_IdleLoginDisabled,
                Strings.Msg_SecuritySettings_IdleLoginDisabled);
          }
 
-         if (issues.HasFlag(SecuritySettingsIssue.OfflineLeakFilterUnavailable))
+         if (issues.HasFlag(HostSecurityIssue.OfflineLeakFilterUnavailable))
          {
             yield return new(
                Strings.Label_SecuritySettings_OfflineLeakFilterUnavailable,
                Strings.Msg_SecuritySettings_OfflineLeakFilterUnavailable);
-         }
-
-         if (issues.HasFlag(SecuritySettingsIssue.DuplicatePasswordNotificationsDisabled))
-         {
-            yield return new(
-               Strings.Label_SecuritySettings_DuplicatePasswordNotificationsDisabled,
-               Strings.Msg_SecuritySettings_DuplicatePasswordNotificationsDisabled);
-         }
-
-         if (issues.HasFlag(SecuritySettingsIssue.PasswordUpdateReminderNotificationsDisabled))
-         {
-            yield return new(
-               Strings.Label_SecuritySettings_PasswordUpdateReminderNotificationsDisabled,
-               Strings.Msg_SecuritySettings_PasswordUpdateReminderNotificationsDisabled);
-         }
-
-         if (issues.HasFlag(SecuritySettingsIssue.PasswordLeakedNotificationsDisabled))
-         {
-            yield return new(
-               Strings.Label_SecuritySettings_PasswordLeakedNotificationsDisabled,
-               Strings.Msg_SecuritySettings_PasswordLeakedNotificationsDisabled);
          }
       }
    }

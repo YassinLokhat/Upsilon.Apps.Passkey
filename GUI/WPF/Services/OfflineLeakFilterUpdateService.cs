@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Net.Http;
-using System.Windows.Shapes;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.Utils;
 using Upsilon.Apps.Passkey.Utils.LeakFilter;

@@ -2,7 +2,7 @@
 
 Upsilon.Apps.Passkey is a **local-only** password manager. Security is the core feature. This page is the wiki view of [`SECURITY.md`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/SECURITY.md); if they drift, treat the repository file as authoritative for supported versions and reporting SLAs.
 
-Related: [[Vault Format]], [[Threat Model]], [[Warnings and Activity]].
+Related: [[Vault Format]], [[Threat Model]], [[Alerts and Activity]].
 
 ## Supported versions
 
@@ -48,7 +48,7 @@ All security-relevant randomness uses `System.Security.Cryptography.RandomNumber
 
 Ordered master passkeys form an AES-256-GCM onion (HKDF-SHA256 per layer) after PBKDF2-HMAC-SHA-512 stretching. Username hash is an implicit first layer. Sticky KDF header + KDF floor: [[Vault Format]].
 
-The activity log uses RSA-4096 hybrid encryption plus a login-time seal: [[Warnings and Activity]]. The activity ZIP envelope does not store a cleartext username.
+The activity log uses RSA-4096 hybrid encryption plus a login-time seal: [[Alerts and Activity]]. The activity ZIP envelope does not store a cleartext username.
 
 ## In memory
 
@@ -75,7 +75,7 @@ Combined with the expensive PBKDF2 stretch on every attempt, an interactive gues
 
 * Strong generation: CSPRNG over a configurable alphabet. Leak-checked generation retries at most **five** candidates, then returns empty.
 * Leak detection: two free, no-account **k-anonymity** providers (HIBP then XposedOrNot), then an optional machine-local HIBP Bloom filter (`.pkbf`). Only hash prefixes leave the device for the remote calls. Timeouts of a few seconds. Process-local cache of successful answers only. Order: HIBP → XposedOrNot → Bloom (if enabled and present) → fail-open. Filter path is **hardcoded** to `<exe>/pwned-sha1.pkbf` in the WPF host (not in `config.json`); sidecar `<filter>.pkbf.ranges` for incremental updates. A Bloom **miss** is definitive "not leaked"; a **hit** is treated as leaked (~1 % false positives possible, no false negatives). Enabling/disabling never deletes the file; only an explicit delete removes it (and the sidecar). Build / update / enable / delete from WPF **App Settings** (`Ctrl+,`) or `HibpBloomBuilder.RunAsync`. Auto-update interval is `LeakFilterConfig.AutoUpdateFrequency` days (WPF: `LocalLeakDatabaseAutoUpdateFrequency`, default **7**; **0** = off): when offline use is enabled and an existing `.pkbf` + `.ranges` sidecar are present and older than that interval (by header `BuiltUtc`), the WPF host refreshes in the background at startup; it never starts a first full build, and a missing sidecar skips the refresh while keeping the filter. Implementation: `Utils/LeakFilter/`.
-* Duplicate-password and password-expiry warnings are local.
+* Duplicate-password and password-update reminder alerts are local.
 
 These leak-check HTTP calls are the **only** outbound network the application makes. The feature is opt-in per account. The offline filter is **application-scoped** (shared by all vaults; not stored in the `.pku`).
 

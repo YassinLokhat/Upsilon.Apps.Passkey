@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces;
@@ -26,10 +26,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          user.Settings.NumberOfMonthActivitiesToKeep = 0;
          user.Settings.Theme = "System";
          user.Settings.Language = "System";
-         user.Settings.WarningsToNotify = WarningType.ActivityReviewWarning
-            | WarningType.PasswordUpdateReminderWarning
-            | WarningType.PasswordLeakedWarning
-            | WarningType.SecuritySettingsWarning;
+         user.Settings.AlertsToNotify = new AlertKindList(
+         [
+            AlertKinds.ActivityReview,
+            AlertKinds.PasswordUpdateReminder,
+            AlertKinds.PasswordLeaked,
+            AlertKinds.VaultSecuritySettings,
+         ]);
          string logFile = database.DatabaseFile.Replace(".pku", ".log");
          File.WriteAllText(logFile, string.Empty);
 
@@ -52,18 +55,18 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
                {
                   case 1:
                      account = service.AddAccount(label: $"Account{j}",
-                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"👤{x}@test.te"));
+                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"??{x}@test.te"));
                      break;
                   case 2:
-                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"👤{x}@test.te"),
+                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"??{x}@test.te"),
                         password: password);
                      break;
                   case 3:
-                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"👤{x}@test.te"));
+                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"??{x}@test.te"));
                      break;
                   default:
                      account = service.AddAccount(label: $"Account{j}",
-                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"👤{x}@test.te"),
+                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"??{x}@test.te"),
                         password: password);
                      break;
                }
@@ -285,7 +288,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
          wrongPasskeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
          Stack<string> expectedActivities = new();
-         Stack<string> expectedLogWarnings = new();
+         Stack<string> expectedLogAlerts = new();
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -297,7 +300,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          for (int i = wrongKeyIndex; i < wrongPasskeys.Length; i++)
          {
             expectedActivities.Push($"Warning : User '{username}' login failed at level {wrongKeyIndex + 1}");
-            expectedLogWarnings.Push($"Warning : User '{username}' login failed at level {wrongKeyIndex + 1}");
+            expectedLogAlerts.Push($"Warning : User '{username}' login failed at level {wrongKeyIndex + 1}");
          }
 
          // Then
@@ -312,7 +315,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // Then
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
-         UnitTestsHelper.LastActivityWarningsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogAlerts]);
 
          // Finaly
          databaseLoaded.Close();
@@ -331,12 +334,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          bool closedDueToTimeout = false;
          Stack<string> expectedActivities = new();
-         Stack<string> expectedLogWarnings = new();
+         Stack<string> expectedLogAlerts = new();
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase database = Database.Create(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
-            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
             UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
@@ -373,7 +376,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
       [TestMethod]
       /*
-       * A database created and closed normally opens without any tampering warning,
+       * A database created and closed normally opens without any tampering alert,
        * Then stripping the activity-log signature is detected on the next login.
       */
       public void Case06_ActivityLogTamperingIsDetected()
@@ -544,14 +547,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          IDatabase databaseCreated = await Database.CreateAsync(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
-            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
             UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             username,
             passkeys);
 
-         databaseCreated.User.Settings.WarningsToNotify = (WarningType)0;
+         databaseCreated.User.Settings.AlertsToNotify = new AlertKindList([]);
          databaseCreated.User.Settings.NumberOfOldPasswordToKeep = 7;
 
          await databaseCreated.SaveAsync();
@@ -559,7 +562,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          IDatabase databaseLoaded = await Database.OpenAsync(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
-            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
             UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
@@ -602,7 +605,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          IDatabase databaseLoaded = await Database.OpenAsync(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
-            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
             UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
@@ -636,7 +639,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Database databaseCore = (Database)database;
          IUser user = database.User!;
-         user.Settings.WarningsToNotify = (WarningType)0;
+         user.Settings.AlertsToNotify = new AlertKindList([]);
 
          IService service = user.AddService("ConcurrentService");
          IAccount account = service.AddAccount(["id@test.te"], "initial-password");
@@ -700,7 +703,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          flusher.Join();
 
-         // Then — no torn-enumeration / collection-modified exceptions
+         // Then � no torn-enumeration / collection-modified exceptions
          _ = failure.Should().BeNull(failure?.ToString());
          _ = database.HasChanged(string.Empty).Should().BeTrue();
 
@@ -750,7 +753,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseLoaded = null;
          Action openRestored = () => databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
-            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
             UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
@@ -782,13 +785,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          IDatabase databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
-            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
             UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
             UnitTestsHelper.GetUsername());
 
-         // When / Then — wrong passkey stays soft (null); corruption must throw.
+         // When / Then � wrong passkey stays soft (null); corruption must throw.
          Action loginCorrupt = () =>
          {
             foreach (string passkey in passkeys)
@@ -815,7 +818,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          Action missingCrypto = () => Database.Create(null!,
             UnitTestsHelper.SerializationCenter,
-            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
             UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
@@ -825,7 +828,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          Action missingPasskeys = () => Database.Create(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
-            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
             UnitTestsHelper.SecretMemoryProtector,
             databaseFile,
@@ -872,7 +875,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          IDatabase database = Database.Create(UnitTestsHelper.CryptographicCenter,
             UnitTestsHelper.SerializationCenter,
-            UnitTestsHelper.PasswordFactory,
+            UnitTestsHelper.FastPasswordFactory,
             clipboard,
             UnitTestsHelper.SecretMemoryProtector,
             databaseFile,

@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -31,49 +31,85 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh UserId on language change.")]
       public string UserId => Strings.Format(nameof(Strings.Msg_UserId), AppServices.Session.User?.ItemId);
 
-      public string ShowWarnings
+      public string ShowAlerts
       {
          get;
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public Brush ShowWarningsColor
+      public Brush ShowAlertsColor
       {
          get;
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
-      public Brush ShowActivityWarningsColor
+      public Brush ShowActivityAlertsColor
       {
          get;
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
-      public string ShowActivityWarnings
+      public Brush ShowExpiredPasswordAlertsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
+      public Brush ShowDuplicatedPasswordAlertsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
+      public Brush ShowLeakedPasswordAlertsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
+      public Brush ShowSecuritySettingsAlertsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
+      public Brush ShowPasskeyQualityAlertsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
+      public string ShowActivityAlerts
       {
          get;
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public string ShowExpiredPasswordWarnings
+      public string ShowExpiredPasswordAlerts
       {
          get;
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public string ShowDuplicatedPasswordWarnings
+      public string ShowDuplicatedPasswordAlerts
       {
          get;
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public string ShowLeakedPasswordWarnings
+      public string ShowLeakedPasswordAlerts
       {
          get;
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public string ShowSecuritySettingsWarnings
+      public string ShowSecuritySettingsAlerts
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = string.Empty;
+
+      public string ShowPasskeyQualityAlerts
       {
          get;
          set => SetProperty(ref field, value);
@@ -216,6 +252,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnLanguageChanged()
       {
+         if (_disposed)
+         {
+            return;
+         }
+
          Title = _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
          OnPropertyChanged(nameof(UserId));
 
@@ -231,6 +272,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnThemeChanged()
       {
+         if (_disposed)
+         {
+            return;
+         }
+
          foreach (ServiceViewModel service in _serviceViewModelsById.Values)
          {
             service.OnThemeChanged();
@@ -248,13 +294,28 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             return;
          }
 
+         _disposed = true;
+
          _titleTimer.Stop();
          _titleTimer.Tick -= _onTitleTimerElapsed;
 
          _filterDebounceTimer.Stop();
          _filterDebounceTimer.Tick -= _onFilterDebounceElapsed;
 
-         _disposed = true;
+         // Drop UI listeners so EndSession's app language/theme Apply cannot
+         // refresh a closing UserServicesView (alerts menu reorder would throw).
+         LanguageRefreshed = null;
+         ThemeRefreshed = null;
+         FiltersRefreshed = null;
+         SaveRequested = null;
+         UserSettingsRequested = null;
+         GeneratePasswordRequested = null;
+         ShowActivitiesRequested = null;
+         AppSettingsRequested = null;
+         FocusFilterRequested = null;
+         CopyIdentifierRequested = null;
+         CopyPasswordRequested = null;
+
          GC.SuppressFinalize(this);
       }
 

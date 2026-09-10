@@ -320,8 +320,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
                   case nameof(Settings.NumberOfMonthActivitiesToKeep):
                      Settings.NumberOfMonthActivitiesToKeep = change.NewValue.DeserializeTo<int>(Host.SerializationCenter);
                      break;
-                  case nameof(Settings.WarningsToNotify):
-                     Settings.WarningsToNotify = change.NewValue.DeserializeTo<WarningType>(Host.SerializationCenter);
+                  case nameof(Settings.AlertsToNotify):
+                     Settings.AlertsToNotify = change.NewValue.DeserializeTo<AlertKindList>(Host.SerializationCenter);
                      break;
                   case nameof(Settings.Language):
                      Settings.Language = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);

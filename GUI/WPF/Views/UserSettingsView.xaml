@@ -1,4 +1,4 @@
-﻿<Window xmlns:Controls="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views.Controls"
+<Window xmlns:Controls="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views.Controls"
         x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.UserSettingsView"
         x:ClassModifier="internal"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -13,7 +13,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="465" Width="1000">
+        Height="595" Width="1000">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -138,7 +138,7 @@
                                SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
                                DisplayMemberPath="DisplayName"/>
                   </StackPanel>
-                  <GroupBox Header="{loc:Loc Label_Warnings}">
+                  <GroupBox Header="{loc:Loc Label_Alerts}">
                      <StackPanel>
                         <CheckBox IsChecked="{Binding NotifyActivityReview, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Content="{loc:Loc Label_NotifyActivityReview}"/>
@@ -148,6 +148,16 @@
                                   Content="{loc:Loc Label_NotifyPasswordUpdateReminder}"/>
                         <CheckBox IsChecked="{Binding NotifyPasswordLeaked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Content="{loc:Loc Label_NotifyPasswordLeaked}"/>
+                        <CheckBox IsChecked="{Binding NotifyWeakAccountPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_NotifyWeakAccountPassword}"/>
+                        <CheckBox IsChecked="{Binding NotifyPasskeyReusedAsAccountPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_NotifyPasskeyReusedAsAccountPassword}"/>
+                        <CheckBox IsChecked="{Binding NotifyInsufficientPasskeys, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_NotifyInsufficientPasskeys}"/>
+                        <CheckBox IsChecked="{Binding NotifyWeakPasskey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_NotifyWeakPasskey}"/>
+                        <CheckBox IsChecked="{Binding NotifyPasskeyLeaked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_NotifyPasskeyLeaked}"/>
                         <CheckBox IsChecked="{Binding NotifySecuritySettings, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   Content="{loc:Loc Label_NotifySecuritySettings}"/>
                      </StackPanel>

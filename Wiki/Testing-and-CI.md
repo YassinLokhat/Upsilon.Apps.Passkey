@@ -60,7 +60,7 @@ Dependabot is configured for the **.NET SDK** only (`dotnet-sdk` ecosystem). Tes
 
 ## What a change should add
 
-* Tests for Core/Utils behaviour you change (crypto, vault lifecycle, import/export, warnings, persistence)
+* Tests for Core/Utils behaviour you change (crypto, vault lifecycle, import/export, alerts, persistence)
 * ViewModel tests when you change GUI logic that already sits behind `AppServices`
 * README / SECURITY.md / `Wiki/` updates when you change a public contract, a threat-model assumption, or a user-visible security behaviour
 

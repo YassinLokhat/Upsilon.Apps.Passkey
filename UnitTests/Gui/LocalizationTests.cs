@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using System.Globalization;
 using System.Resources;
 using Upsilon.Apps.Passkey.Core.Models;
@@ -101,17 +101,17 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       }
 
       [TestMethod]
-      public void EnumDisplayHelper_FormatsWarningTypeFlags_InEachSatelliteLanguage()
+      public void EnumDisplayHelper_FormatsAlertKinds_InEachSatelliteLanguage()
       {
          foreach (AppLanguage language in _satelliteLanguages())
          {
             LocalizationService.Apply(language.Code);
 
-            _ = EnumDisplayHelper.FormatFieldValue("WarningsToNotify", "None")
+            _ = EnumDisplayHelper.FormatFieldValue("AlertsToNotify", "None")
                .Should().Be(Strings.EnumValue_None, because: language.Code);
 
-            string combined = EnumDisplayHelper.FormatFieldValue("WarningsToNotify",
-               $"{nameof(WarningType.ActivityReviewWarning)}, {nameof(WarningType.PasswordLeakedWarning)}");
+            string combined = EnumDisplayHelper.FormatFieldValue("AlertsToNotify",
+               $"{AlertKinds.ActivityReview}, {AlertKinds.PasswordLeaked}");
 
             _ = combined.Should().Be(
                $"{Strings.Label_NotifyActivityReview}, {Strings.Label_NotifyPasswordLeaked}",
@@ -137,17 +137,16 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       }
 
       [TestMethod]
-      public void WarningType_ToReadableString_HasTranslationForEveryMember()
+      public void AlertKinds_ToReadableAlertKind_HasTranslationForEveryKnownKind()
       {
-         foreach (WarningType warningType in Enum.GetValues<WarningType>())
+         foreach (string kind in AlertKinds.DefaultNotify)
          {
-            string label = warningType.ToReadableString();
+            string label = EnumHelper.ToReadableAlertKind(kind);
             _ = label.Should().NotBeNullOrWhiteSpace();
-            _ = label.Should().NotBe(warningType.ToString());
+            _ = label.Should().NotBe(kind);
          }
 
-         _ = (WarningType.PasswordUpdateReminderWarning | WarningType.PasswordLeakedWarning)
-            .ToReadableString()
+         _ = EnumHelper.ToReadableAlertKind(EnumHelper.AccountPasswordFilterAll)
             .Should().Be(Strings.Filter_All);
       }
 

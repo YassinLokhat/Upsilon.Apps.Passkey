@@ -58,7 +58,7 @@ Match the surrounding file. Do not reformat unrelated code.
 
 ## What a PR should include
 
-* Tests for Core/Utils behaviour you change
+* Tests for Core/Utils behaviour you change (crypto, vault lifecycle, import/export, alerts, persistence)
 * ViewModel tests when you change GUI logic behind `AppServices`
 * README / SECURITY.md / wiki updates when you change a public contract, a threat-model assumption, or a user-visible security behaviour
 * No secrets: vault files, exported JSON/CSV, logs, or credentials
