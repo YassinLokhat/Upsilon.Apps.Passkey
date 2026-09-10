@@ -12,13 +12,13 @@
 
       IEnumerable<IAccount> Accounts { get; }
 
-      IAccount AddAccount(string label, IEnumerable<string> identifiers, string password);
+      IAccount AddAccount(string label, IEnumerable<IIdentifier> identifiers, string password);
 
-      IAccount AddAccount(string label, IEnumerable<string> identifiers);
+      IAccount AddAccount(string label, IEnumerable<IIdentifier> identifiers);
 
-      IAccount AddAccount(IEnumerable<string> identifiers, string password);
+      IAccount AddAccount(IEnumerable<IIdentifier> identifiers, string password);
 
-      IAccount AddAccount(IEnumerable<string> identifiers);
+      IAccount AddAccount(IEnumerable<IIdentifier> identifiers);
 
       void DeleteAccount(IAccount account);
    }

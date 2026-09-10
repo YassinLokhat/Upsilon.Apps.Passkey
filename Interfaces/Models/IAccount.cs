@@ -11,9 +11,9 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       string Notes { get; set; }
 
       /// <summary>
-      /// Logins, emails, or other identifiers for this account.
+      /// Typed logins, emails, or other identifiers for this account.
       /// </summary>
-      IEnumerable<string> Identifiers { get; set; }
+      IEnumerable<IIdentifier> Identifiers { get; set; }
 
       string Password { get; set; }
 
