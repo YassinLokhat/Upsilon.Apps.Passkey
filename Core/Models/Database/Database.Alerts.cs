@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Core.Utils;
+﻿using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -293,13 +293,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          int count = ((IUser)User).Passkeys.Count();
-         if (count >= AlertKinds.RecommendedPasskeyCount)
-         {
-            return [];
-         }
-
-         return
-         [
+         return count >= AlertKinds.RecommendedPasskeyCount
+            ? []
+            : [
             new InsufficientPasskeysAlert(count, AlertKinds.RecommendedPasskeyCount),
          ];
       }

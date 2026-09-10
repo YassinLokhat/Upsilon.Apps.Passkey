@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -41,35 +41,32 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
          switch (reader.TokenType)
          {
             case JsonTokenType.StartArray:
-            {
-               List<string> kinds = [];
-               while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
                {
-                  if (reader.TokenType == JsonTokenType.String)
+                  List<string> kinds = [];
+                  while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
                   {
-                     string? value = reader.GetString();
-                     if (!string.IsNullOrWhiteSpace(value))
+                     if (reader.TokenType == JsonTokenType.String)
                      {
-                        kinds.Add(value);
+                        string? value = reader.GetString();
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                           kinds.Add(value);
+                        }
                      }
                   }
-               }
 
-               return new AlertKindList(kinds);
-            }
+                  return new AlertKindList(kinds);
+               }
 
             case JsonTokenType.String:
-            {
-               // Autosave readable form / activity FieldValue: comma-separated kind ids.
-               string? raw = reader.GetString();
-               if (string.IsNullOrWhiteSpace(raw))
                {
-                  return new AlertKindList([]);
-               }
-
-               return new AlertKindList(
+                  // Autosave readable form / activity FieldValue: comma-separated kind ids.
+                  string? raw = reader.GetString();
+                  return string.IsNullOrWhiteSpace(raw)
+                  ? new AlertKindList([])
+                  : new AlertKindList(
                   raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-            }
+               }
 
             case JsonTokenType.Null:
                return new AlertKindList([]);

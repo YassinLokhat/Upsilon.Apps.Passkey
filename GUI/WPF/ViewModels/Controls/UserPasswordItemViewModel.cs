@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -9,20 +9,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
    internal sealed class UserPasswordItemViewModel : INotifyPropertyChanged, IThemeAware, IDisposable
    {
-      private int _index;
       private bool _disposed;
 
       public int Index
       {
-         get => _index;
+         get;
          set
          {
-            if (_index == value)
+            if (field == value)
             {
                return;
             }
 
-            _index = value;
+            field = value;
             _onPropertyChanged(nameof(Index));
             _onPropertyChanged(nameof(PasskeyLeaked));
             _onPropertyChanged(nameof(PasswordBackground));

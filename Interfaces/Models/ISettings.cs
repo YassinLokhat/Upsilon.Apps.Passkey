@@ -1,6 +1,4 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
-
-namespace Upsilon.Apps.Passkey.Interfaces.Models
+﻿namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
    public interface ISettings
    {

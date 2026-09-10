@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -47,25 +47,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       public static string ToReadableAlertKind(string? kind)
       {
-         if (IsAccountPasswordFilterAll(kind))
-         {
-            return Strings.Filter_All;
-         }
-
-         return kind! switch
-         {
-            AlertKinds.PasswordUpdateReminder => Strings.Label_NotifyPasswordUpdateReminder,
-            AlertKinds.PasswordLeaked => Strings.Label_NotifyPasswordLeaked,
-            AlertKinds.WeakAccountPassword => Strings.Label_NotifyWeakAccountPassword,
-            AlertKinds.PasskeyReusedAsAccountPassword => Strings.Label_NotifyPasskeyReusedAsAccountPassword,
-            AlertKinds.ActivityReview => Strings.Label_NotifyActivityReview,
-            AlertKinds.DuplicatedPasswords => Strings.Label_NotifyDuplicatedPasswords,
-            AlertKinds.VaultSecuritySettings or AlertKinds.HostSecuritySettings => Strings.Label_NotifySecuritySettings,
-            AlertKinds.InsufficientPasskeys => Strings.Label_NotifyInsufficientPasskeys,
-            AlertKinds.WeakPasskey => Strings.Label_NotifyWeakPasskey,
-            AlertKinds.PasskeyLeaked => Strings.Label_NotifyPasskeyLeaked,
-            _ => kind!,
-         };
+         return IsAccountPasswordFilterAll(kind)
+            ? Strings.Filter_All
+            : kind! switch
+            {
+               AlertKinds.PasswordUpdateReminder => Strings.Label_NotifyPasswordUpdateReminder,
+               AlertKinds.PasswordLeaked => Strings.Label_NotifyPasswordLeaked,
+               AlertKinds.WeakAccountPassword => Strings.Label_NotifyWeakAccountPassword,
+               AlertKinds.PasskeyReusedAsAccountPassword => Strings.Label_NotifyPasskeyReusedAsAccountPassword,
+               AlertKinds.ActivityReview => Strings.Label_NotifyActivityReview,
+               AlertKinds.DuplicatedPasswords => Strings.Label_NotifyDuplicatedPasswords,
+               AlertKinds.VaultSecuritySettings or AlertKinds.HostSecuritySettings => Strings.Label_NotifySecuritySettings,
+               AlertKinds.InsufficientPasskeys => Strings.Label_NotifyInsufficientPasskeys,
+               AlertKinds.WeakPasskey => Strings.Label_NotifyWeakPasskey,
+               AlertKinds.PasskeyLeaked => Strings.Label_NotifyPasskeyLeaked,
+               _ => kind!,
+            };
       }
 
       public static string AccountPasswordKindFromReadableString(string readableString)
@@ -80,27 +77,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          string weak = ToReadableAlertKind(AlertKinds.WeakAccountPassword);
          string reused = ToReadableAlertKind(AlertKinds.PasskeyReusedAsAccountPassword);
 
-         if (readableString == reminder)
-         {
-            return AlertKinds.PasswordUpdateReminder;
-         }
-
-         if (readableString == leaked)
-         {
-            return AlertKinds.PasswordLeaked;
-         }
-
-         if (readableString == weak)
-         {
-            return AlertKinds.WeakAccountPassword;
-         }
-
-         if (readableString == reused)
-         {
-            return AlertKinds.PasskeyReusedAsAccountPassword;
-         }
-
-         throw new InvalidOperationException($"'{readableString}' alert kind not handled");
+         return readableString == reminder
+            ? AlertKinds.PasswordUpdateReminder
+            : readableString == leaked
+            ? AlertKinds.PasswordLeaked
+            : readableString == weak
+            ? AlertKinds.WeakAccountPassword
+            : readableString == reused
+            ? AlertKinds.PasskeyReusedAsAccountPassword
+            : throw new InvalidOperationException($"'{readableString}' alert kind not handled");
       }
 
       public static bool IsAccountPasswordFilterAll(string? kind)
@@ -108,12 +93,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       public static bool MatchesAccountPasswordKindFilter(string alertKind, string? filterKind)
       {
-         if (IsAccountPasswordFilterAll(filterKind))
-         {
-            return alertKind is AlertKinds.PasswordUpdateReminder or AlertKinds.PasswordLeaked;
-         }
-
-         return string.Equals(alertKind, filterKind, StringComparison.Ordinal);
+         return IsAccountPasswordFilterAll(filterKind)
+            ? alertKind is AlertKinds.PasswordUpdateReminder or AlertKinds.PasswordLeaked
+            : string.Equals(alertKind, filterKind, StringComparison.Ordinal);
       }
    }
 }

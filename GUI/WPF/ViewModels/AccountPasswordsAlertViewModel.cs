@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
@@ -98,12 +98,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       private static bool _matchesKindFilter(string alertKind, string filterKind)
       {
-         if (EnumHelper.IsAccountPasswordFilterAll(filterKind))
-         {
-            return EnumHelper.MatchesAccountPasswordKindFilter(alertKind, filterKind);
-         }
-
-         return string.Equals(alertKind, filterKind, StringComparison.Ordinal);
+         return EnumHelper.IsAccountPasswordFilterAll(filterKind)
+            ? EnumHelper.MatchesAccountPasswordKindFilter(alertKind, filterKind)
+            : string.Equals(alertKind, filterKind, StringComparison.Ordinal);
       }
    }
 }
