@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Interfaces.Enums;
+﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
@@ -13,21 +13,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public abstract AlertSeverity Severity { get; }
    }
 
-   internal sealed class ActivityReviewAlert : AlertBase, IActivityReviewAlert
+   internal sealed class ActivityReviewAlert(IActivity[] activities) : AlertBase, IActivityReviewAlert
    {
-      public ActivityReviewAlert(IActivity[] activities)
-      {
-         Activities = activities;
-         Severity = activities.Length == 0
-            ? AlertSeverity.Info
-            : activities.Max(static a => SeverityFor(a.EventType));
-      }
-
       public override string Kind => AlertKinds.ActivityReview;
 
-      public override AlertSeverity Severity { get; }
+      public override AlertSeverity Severity { get; } = activities.Length == 0
+            ? AlertSeverity.Info
+            : activities.Max(static a => SeverityFor(a.EventType));
 
-      public IEnumerable<IActivity> Activities { get; }
+      public IEnumerable<IActivity> Activities { get; } = activities;
 
       /// <summary>
       /// Per-event severity; the ActivityReview bucket uses the max across
@@ -59,79 +53,53 @@ namespace Upsilon.Apps.Passkey.Core.Models
          };
    }
 
-   internal sealed class AccountsAlert : AlertBase, IPasswordUpdateReminderAlert, IDuplicatedPasswordsAlert,
+   internal sealed class AccountsAlert(string kind, AlertSeverity severity, IAccount[] accounts) : AlertBase, IPasswordUpdateReminderAlert, IDuplicatedPasswordsAlert,
       IPasswordLeakedAlert, IWeakAccountPasswordAlert, IPasskeyReuseAlert
    {
-      public AccountsAlert(string kind, AlertSeverity severity, IAccount[] accounts)
-      {
-         Kind = kind;
-         Severity = severity;
-         Accounts = accounts;
-      }
+      public override string Kind { get; } = kind;
 
-      public override string Kind { get; }
+      public override AlertSeverity Severity { get; } = severity;
 
-      public override AlertSeverity Severity { get; }
-
-      public IEnumerable<IAccount> Accounts { get; }
+      public IEnumerable<IAccount> Accounts { get; } = accounts;
    }
 
-   internal sealed class VaultSecuritySettingsAlert : AlertBase, IVaultSecuritySettingsAlert
+   internal sealed class VaultSecuritySettingsAlert(SecuritySettingsIssue issues) : AlertBase, IVaultSecuritySettingsAlert
    {
-      public VaultSecuritySettingsAlert(SecuritySettingsIssue issues)
-         => Issues = issues;
-
       public override string Kind => AlertKinds.VaultSecuritySettings;
 
       public override AlertSeverity Severity => AlertSeverity.Warning;
 
-      public SecuritySettingsIssue Issues { get; }
+      public SecuritySettingsIssue Issues { get; } = issues;
    }
 
-   internal sealed class InsufficientPasskeysAlert : AlertBase, IInsufficientPasskeysAlert
+   internal sealed class InsufficientPasskeysAlert(int count, int recommendedMinimum) : AlertBase, IInsufficientPasskeysAlert
    {
-      public InsufficientPasskeysAlert(int count, int recommendedMinimum)
-      {
-         Count = count;
-         RecommendedMinimum = recommendedMinimum;
-         Severity = count <= 1 ? AlertSeverity.Critical : AlertSeverity.Warning;
-      }
-
       public override string Kind => AlertKinds.InsufficientPasskeys;
 
-      public override AlertSeverity Severity { get; }
+      public override AlertSeverity Severity { get; } = count <= 1 ? AlertSeverity.Critical : AlertSeverity.Warning;
 
-      public int Count { get; }
+      public int Count { get; } = count;
 
-      public int RecommendedMinimum { get; }
+      public int RecommendedMinimum { get; } = recommendedMinimum;
    }
 
-   internal sealed class WeakPasskeyAlert : AlertBase, IWeakPasskeyAlert
+   internal sealed class WeakPasskeyAlert(IReadOnlyList<int> passkeyIndexes, SecretQualityIssue issues) : AlertBase, IWeakPasskeyAlert
    {
-      public WeakPasskeyAlert(IReadOnlyList<int> passkeyIndexes, SecretQualityIssue issues)
-      {
-         PasskeyIndexes = passkeyIndexes;
-         Issues = issues;
-      }
-
       public override string Kind => AlertKinds.WeakPasskey;
 
       public override AlertSeverity Severity => AlertSeverity.Critical;
 
-      public IReadOnlyList<int> PasskeyIndexes { get; }
+      public IReadOnlyList<int> PasskeyIndexes { get; } = passkeyIndexes;
 
-      public SecretQualityIssue Issues { get; }
+      public SecretQualityIssue Issues { get; } = issues;
    }
 
-   internal sealed class PasskeyLeakedAlert : AlertBase, IPasskeyLeakedAlert
+   internal sealed class PasskeyLeakedAlert(IReadOnlyList<int> passkeyIndexes) : AlertBase, IPasskeyLeakedAlert
    {
-      public PasskeyLeakedAlert(IReadOnlyList<int> passkeyIndexes)
-         => PasskeyIndexes = passkeyIndexes;
-
       public override string Kind => AlertKinds.PasskeyLeaked;
 
       public override AlertSeverity Severity => AlertSeverity.Critical;
 
-      public IReadOnlyList<int> PasskeyIndexes { get; }
+      public IReadOnlyList<int> PasskeyIndexes { get; } = passkeyIndexes;
    }
 }

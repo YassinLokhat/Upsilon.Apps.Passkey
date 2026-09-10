@@ -7,21 +7,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// to the supplied delegates. Hooks into <see cref="CommandManager.RequerySuggested"/>
    /// so WPF automatically re-evaluates <see cref="CanExecute"/>.
    /// </summary>
-   internal sealed class RelayCommand : ICommand
+   internal sealed class RelayCommand(Action<object?> execute, Predicate<object?>? canExecute = null) : ICommand
    {
-      private readonly Action<object?> _execute;
-      private readonly Predicate<object?>? _canExecute;
+      private readonly Action<object?> _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+      private readonly Predicate<object?>? _canExecute = canExecute;
 
       public RelayCommand(Action execute, Func<bool>? canExecute = null)
          : this(_ => execute(), canExecute is null ? null : _ => canExecute())
       {
          ArgumentNullException.ThrowIfNull(execute);
-      }
-
-      public RelayCommand(Action<object?> execute, Predicate<object?>? canExecute = null)
-      {
-         _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-         _canExecute = canExecute;
       }
 
       public event EventHandler? CanExecuteChanged

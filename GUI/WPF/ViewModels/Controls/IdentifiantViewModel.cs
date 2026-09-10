@@ -19,11 +19,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public string Display => Glyph;
    }
 
-   internal sealed class IdentifierViewModel : INotifyPropertyChanged, IThemeAware, ILanguageAware
+   internal sealed class IdentifierViewModel(IAccount account, IIdentifier identifier) : INotifyPropertyChanged, IThemeAware, ILanguageAware
    {
-      private readonly IAccount _account;
-      private IdentifierType _type = IdentifierType.Username;
-      private string _identifier = string.Empty;
+      private readonly IAccount _account = account;
+      private IdentifierType _type = identifier.Type;
+      private string _identifier = identifier.Value ?? string.Empty;
 
       /// <summary>
       /// Display-only glyphs for identifier kinds. Never persisted.
@@ -118,13 +118,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IdentifierBackground)));
-      }
-
-      public IdentifierViewModel(IAccount account, IIdentifier identifier)
-      {
-         _account = account;
-         _type = identifier.Type;
-         _identifier = identifier.Value ?? string.Empty;
       }
 
       public IdentifierViewModel(IAccount account, string value)

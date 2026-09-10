@@ -8,12 +8,9 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
    /// Notify-preference payload stored on <see cref="ISettings.AlertsToNotify"/>.
    /// </summary>
    [JsonConverter(typeof(AlertKindListJsonConverter))]
-   public sealed class AlertKindList : IReadOnlyList<string>
+   public sealed class AlertKindList(IEnumerable<string>? kinds) : IReadOnlyList<string>
    {
-      private readonly string[] _kinds;
-
-      public AlertKindList(IEnumerable<string>? kinds)
-         => _kinds = kinds is null ? [] : [.. kinds.Where(static k => !string.IsNullOrWhiteSpace(k)).Distinct(StringComparer.Ordinal)];
+      private readonly string[] _kinds = kinds is null ? [] : [.. kinds.Where(static k => !string.IsNullOrWhiteSpace(k)).Distinct(StringComparer.Ordinal)];
 
       public static AlertKindList Default { get; } = new(AlertKinds.DefaultNotify);
 
