@@ -71,22 +71,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
             _ => SemanticBrushes.Info,
          };
 
-      public static AlertSeverity MaxSeverity(IEnumerable<IAlert> warnings)
+      public static AlertSeverity MaxSeverity(IEnumerable<IAlert> alerts)
       {
          AlertSeverity max = AlertSeverity.Info;
-         foreach (IAlert warning in warnings)
+         foreach (IAlert alert in alerts)
          {
-            if (warning.Severity > max)
+            if (alert.Severity > max)
             {
-               max = warning.Severity;
+               max = alert.Severity;
             }
          }
 
          return max;
       }
 
-      public static Brush BrushFor(IEnumerable<IAlert> warnings)
-         => BrushFor(MaxSeverity(warnings));
+      public static Brush BrushFor(IEnumerable<IAlert> alerts)
+         => BrushFor(MaxSeverity(alerts));
 
       public void Attach(IDatabase database)
       {
@@ -139,11 +139,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
             issues |= HostSecurityIssue.OfflineLeakFilterUnavailable;
          }
 
-         IReadOnlyList<IAlert> warnings = issues == HostSecurityIssue.None
+         IReadOnlyList<IAlert> alerts = issues == HostSecurityIssue.None
             ? []
             : [new HostSecuritySettingsAlert(issues)];
 
-         _store(AlertKinds.HostSecuritySettings, warnings);
+         _store(AlertKinds.HostSecuritySettings, alerts);
          _raiseChanged();
       }
 
@@ -200,11 +200,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
          _raiseChanged();
       }
 
-      private void _store(string kind, IReadOnlyList<IAlert> warnings)
+      private void _store(string kind, IReadOnlyList<IAlert> alerts)
       {
          lock (_gate)
          {
-            _byKind[kind] = warnings;
+            _byKind[kind] = alerts;
          }
       }
 

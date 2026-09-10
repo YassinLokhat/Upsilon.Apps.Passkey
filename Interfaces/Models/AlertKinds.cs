@@ -1,5 +1,3 @@
-using Upsilon.Apps.Passkey.Interfaces.Enums;
-
 namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
    /// <summary>
@@ -51,44 +49,5 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
          .. AllCore,
          .. AllHost,
       ];
-
-      /// <summary>
-      /// Maps a legacy warning-type flags value (vault / autosave)
-      /// onto the new kind identifiers.
-      /// </summary>
-#pragma warning disable CS0618 // Legacy WarningType migration surface
-      public static string[] FromLegacyWarningType(WarningType legacy)
-      {
-         List<string> kinds = [];
-
-         if (legacy.HasFlag(WarningType.ActivityReviewWarning))
-         {
-            kinds.Add(ActivityReview);
-         }
-
-         if (legacy.HasFlag(WarningType.PasswordUpdateReminderWarning))
-         {
-            kinds.Add(PasswordUpdateReminder);
-         }
-
-         if (legacy.HasFlag(WarningType.DuplicatedPasswordsWarning))
-         {
-            kinds.Add(DuplicatedPasswords);
-         }
-
-         if (legacy.HasFlag(WarningType.PasswordLeakedWarning))
-         {
-            kinds.Add(PasswordLeaked);
-         }
-
-         if (legacy.HasFlag(WarningType.SecuritySettingsWarning))
-         {
-            kinds.Add(VaultSecuritySettings);
-            kinds.Add(HostSecuritySettings);
-         }
-
-         return [.. kinds];
-      }
-#pragma warning restore CS0618
    }
 }

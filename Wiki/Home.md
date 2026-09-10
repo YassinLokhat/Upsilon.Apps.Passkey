@@ -9,7 +9,7 @@ A **local-only** password manager written in C# on **.NET 10**. There is no serv
 * Services (sites or apps), accounts, identifiers, notes, and dated password history
 * An ordered set of **master passkeys** that form an AES-256-GCM onion (see [[Security]] and [[Vault Format]])
 * A tamper-evident **activity log**
-* Local **warnings**: password-update reminders, duplicates, leaks, and activity review
+* Local **alerts**: password-update reminders, duplicates, leaks, and activity review
 
 ## What it does not do
 

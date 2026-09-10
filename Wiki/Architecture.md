@@ -8,7 +8,7 @@ Upsilon.Apps.Passkey is four layers and two solution files. The only **OS-specif
 | ---- | ---- |
 | `Interfaces/` | Public contracts (`IDatabase`, `IUser`, crypto, serialization, clipboard, `IProtectedSecret`, `ISecretMemoryProtector`, `PlaintextSecret`). |
 | `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `SecretMemoryProtector` / `ProtectedSecret`, and `LeakFilter/` (`.pkbf` Bloom file, builder, config). **Zero NuGet packages** (BCL only). |
-| `Core/` | Vault implementation: onion encryption, `.pku` I/O, warnings, import/export. **Zero NuGet packages** (BCL only). Depends on Interfaces only. Vault-internal helpers stay under `Core/Utils/` (`QrCode`, file lock, activity, import/export). |
+| `Core/` | Vault implementation: onion encryption, `.pku` I/O, alerts, import/export. **Zero NuGet packages** (BCL only). Depends on Interfaces only. Vault-internal helpers stay under `Core/Utils/` (`QrCode`, file lock, activity, import/export). |
 | `GUI/WPF/` | Windows desktop client (MVVM + a small `AppServices` locator). Composes Utils defaults and supplies `IClipboardManager`. |
 | `UnitTests/` | Core/Utils tests plus ViewModel tests through the `AppServices` seam. |
 

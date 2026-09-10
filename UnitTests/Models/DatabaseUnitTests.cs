@@ -288,7 +288,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
          wrongPasskeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
          Stack<string> expectedActivities = new();
-         Stack<string> expectedLogWarnings = new();
+         Stack<string> expectedLogAlerts = new();
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
@@ -300,7 +300,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          for (int i = wrongKeyIndex; i < wrongPasskeys.Length; i++)
          {
             expectedActivities.Push($"Warning : User '{username}' login failed at level {wrongKeyIndex + 1}");
-            expectedLogWarnings.Push($"Warning : User '{username}' login failed at level {wrongKeyIndex + 1}");
+            expectedLogAlerts.Push($"Warning : User '{username}' login failed at level {wrongKeyIndex + 1}");
          }
 
          // Then
@@ -315,7 +315,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          // Then
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
-         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogWarnings]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogAlerts]);
 
          // Finaly
          databaseLoaded.Close();
@@ -334,7 +334,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          bool closedDueToTimeout = false;
          Stack<string> expectedActivities = new();
-         Stack<string> expectedLogWarnings = new();
+         Stack<string> expectedLogAlerts = new();
 
          UnitTestsHelper.ClearTestEnvironment();
          IDatabase database = Database.Create(UnitTestsHelper.CryptographicCenter,
@@ -376,7 +376,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
       [TestMethod]
       /*
-       * A database created and closed normally opens without any tampering warning,
+       * A database created and closed normally opens without any tampering alert,
        * Then stripping the activity-log signature is detected on the next login.
       */
       public void Case06_ActivityLogTamperingIsDetected()

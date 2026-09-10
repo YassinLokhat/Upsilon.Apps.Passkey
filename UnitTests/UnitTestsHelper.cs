@@ -26,7 +26,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public static readonly ICryptographyCenter CryptographicCenter = new CryptographyCenter();
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
       public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
-      /// <summary>No network — use for vault create/open so warning scans stay fast.</summary>
+      /// <summary>No network — use for vault create/open so alert scans stay fast.</summary>
       public static readonly IPasswordFactory FastPasswordFactory = new FakePasswordFactory();
       public static readonly IClipboardManager ClipboardManager = new ClipboardManager();
       public static readonly ISecretMemoryProtector SecretMemoryProtector = new SecretMemoryProtector();

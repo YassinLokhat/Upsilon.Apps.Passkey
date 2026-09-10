@@ -45,7 +45,7 @@ Core raises **per-kind** events (`ActivityReviewAlertsChanged`, …) with unfilt
 
 The WPF `AlertBroker` also publishes host alerts and applies `AlertsToNotify`. Menu colors come from `IAlert.Severity` (`AlertBroker.BrushFor`), not hard-coded kinds.
 
-Legacy vaults may still store `AlertsToNotify` / `WarningsToNotify` as old `WarningType` flags; `AlertKindList` JSON migration maps them onto kind ids.
+`ISettings.AlertsToNotify` is an `AlertKindList` of kind ids. When the list is empty, the WPF client shows a **MessageBox**.
 
 Duplicate and expiry alerts are local. Leak / passkey-leak checks use `IPasswordFactory.PasswordLeakedAsync` (HIBP → XposedOrNot → optional local `.pkbf`). Fail-open when unreachable. See [[Security]].
 

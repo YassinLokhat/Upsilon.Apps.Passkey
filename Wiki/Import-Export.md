@@ -18,7 +18,7 @@ The `.csv` path uses **JSON-encoded cells**, so commas, quotes, and notes surviv
 
 ## JSON shape
 
-Enums use `JsonStringEnumConverter`. Flags (`Options`) are comma-separated names; `AlertsToNotify` is a kind-id list (legacy `WarningsToNotify` / `WarningType` flags still import).
+Enums use `JsonStringEnumConverter`. Flags (`Options`) are comma-separated names; `AlertsToNotify` is a kind-id list (`AlertKindList`).
 
 `ItemId` values appear on export. Import assigns identities through `AddService` / `AddAccount`; do not rely on round-tripping ids as a merge key. Import **fails** if a service name already exists in the vault or is blank — there is no merge-by-name.
 

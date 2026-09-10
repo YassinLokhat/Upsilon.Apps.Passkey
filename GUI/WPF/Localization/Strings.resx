@@ -198,7 +198,7 @@
     <value>Settings</value>
   </data>
   <data name="Label_Alerts" xml:space="preserve">
-    <value>Warnings</value>
+    <value>Alerts</value>
   </data>
   <data name="Label_Filters" xml:space="preserve">
     <value>Filters</value>
@@ -251,11 +251,11 @@
   <data name="Label_Copy" xml:space="preserve">
     <value>Copy</value>
   </data>
-  <data name="Label_WarningType" xml:space="preserve">
-    <value>Warning type :</value>
+  <data name="Label_AlertType" xml:space="preserve">
+    <value>Alert type :</value>
   </data>
-  <data name="Label_WarningTypeColumn" xml:space="preserve">
-    <value>Warning type</value>
+  <data name="Label_AlertTypeColumn" xml:space="preserve">
+    <value>Alert type</value>
   </data>
   <data name="Label_ServiceColumn" xml:space="preserve">
     <value>Service</value>
@@ -408,10 +408,10 @@
     <value>{0} - Activities</value>
   </data>
   <data name="Title_AccountPasswordsAlerts" xml:space="preserve">
-    <value>{0} - Account Passwords Warnings</value>
+    <value>{0} - Account Passwords Alerts</value>
   </data>
   <data name="Title_DuplicatedPasswordsAlerts" xml:space="preserve">
-    <value>{0} - Duplicated Passwords Warnings</value>
+    <value>{0} - Duplicated Passwords Alerts</value>
   </data>
   <data name="Title_InsertIdentifier" xml:space="preserve">
     <value>Insert identifier</value>
@@ -608,7 +608,7 @@ Click Cancel to ignore and keep the save file.</value>
     <value>{0} - '{1}'</value>
   </data>
   <data name="Msg_ShowAlerts" xml:space="preserve">
-    <value>Show {0} warnings</value>
+    <value>Show {0} alerts</value>
   </data>
   <data name="Msg_ShowActivityAlerts" xml:space="preserve">
     <value>Show {0} activities to review</value>
@@ -623,13 +623,13 @@ Click Cancel to ignore and keep the save file.</value>
     <value>Show {0} leaked passwords</value>
   </data>
   <data name="Msg_ShowSecuritySettingsAlerts" xml:space="preserve">
-    <value>Show {0} security settings warnings</value>
+    <value>Show {0} security settings alerts</value>
   </data>
   <data name="Msg_ShowPasskeyQualityAlerts" xml:space="preserve">
-    <value>Show {0} passkey quality warnings</value>
+    <value>Show {0} passkey quality alerts</value>
   </data>
   <data name="Msg_NoAlertsToNotify" xml:space="preserve">
-    <value>No warning notifications are enabled.
+    <value>No alert notifications are enabled.
 
 You will not be alerted about:
 • Activities to review
@@ -637,16 +637,16 @@ You will not be alerted about:
 • Insecure security settings</value>
   </data>
   <data name="Title_NoAlertsToNotify" xml:space="preserve">
-    <value>Warning notifications disabled</value>
+    <value>Alert notifications disabled</value>
   </data>
   <data name="Title_SecuritySettingsAlerts" xml:space="preserve">
-    <value>Security settings warnings</value>
+    <value>Security settings alerts</value>
   </data>
   <data name="Title_SecuritySettingsAlertsWindow" xml:space="preserve">
-    <value>{0} - Security settings warnings</value>
+    <value>{0} - Security settings alerts</value>
   </data>
   <data name="Title_PasskeyQualityAlertsWindow" xml:space="preserve">
-    <value>{0} - Passkey quality warnings</value>
+    <value>{0} - Passkey quality alerts</value>
   </data>
   <data name="Msg_PasskeyQuality_InsufficientPasskeys" xml:space="preserve">
     <value>Only {0} passkey layer(s) configured; at least {1} are recommended.</value>
@@ -834,19 +834,19 @@ You will not be alerted about:
   <data name="EnumValue_ActivityEventType_ActivityLogTampered" xml:space="preserve">
     <value>Activity log tampered</value>
   </data>
-  <data name="EnumValue_WarningType_ActivityReviewWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_ActivityReview" xml:space="preserve">
     <value>Activities to review</value>
   </data>
-  <data name="EnumValue_WarningType_PasswordUpdateReminderWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_PasswordUpdateReminder" xml:space="preserve">
     <value>Expired passwords</value>
   </data>
-  <data name="EnumValue_WarningType_DuplicatedPasswordsWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_DuplicatedPasswords" xml:space="preserve">
     <value>Duplicated passwords</value>
   </data>
-  <data name="EnumValue_WarningType_PasswordLeakedWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_PasswordLeaked" xml:space="preserve">
     <value>Leaked passwords</value>
   </data>
-  <data name="EnumValue_WarningType_SecuritySettingsWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_SecuritySettings" xml:space="preserve">
     <value>Security settings</value>
   </data>
   <data name="EnumValue_None" xml:space="preserve">
@@ -978,11 +978,8 @@ You will not be alerted about:
   <data name="FieldName_NumberOfMonthActivitiesToKeep" xml:space="preserve">
     <value>number of month activities to keep</value>
   </data>
-    <data name="FieldName_AlertsToNotify" xml:space="preserve">
-    <value>warnings to notify</value>
-  </data>
-  <data name="FieldName_WarningsToNotify" xml:space="preserve">
-    <value>warnings to notify</value>
+  <data name="FieldName_AlertsToNotify" xml:space="preserve">
+    <value>alerts to notify</value>
   </data>
   <data name="FieldName_Username" xml:space="preserve">
     <value>username</value>

@@ -116,15 +116,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
             _ = combined.Should().Be(
                $"{Strings.Label_NotifyActivityReview}, {Strings.Label_NotifyPasswordLeaked}",
                because: language.Code);
-
-#pragma warning disable CS0618 // Legacy WarningType names still appear in old activity logs.
-            string legacy = EnumDisplayHelper.FormatFieldValue("AlertsToNotify",
-               $"{nameof(WarningType.ActivityReviewWarning)}, {nameof(WarningType.PasswordLeakedWarning)}");
-#pragma warning restore CS0618
-
-            _ = legacy.Should().Be(
-               $"{Strings.Label_NotifyActivityReview}, {Strings.Label_NotifyPasswordLeaked}",
-               because: language.Code);
          }
       }
 

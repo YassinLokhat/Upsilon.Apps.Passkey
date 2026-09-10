@@ -64,7 +64,7 @@ ActivityEventType.DatabaseOpened
 3. Wire the Message path in `ActivityViewModel`, `StringsHelper`, and/or `EnumDisplayHelper` depending on event shape.
 4. Keep Core persistence unchanged: store enum names and field ids, never translated text.
 
-Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (optional `EnumValue_AccountOption_*`, `EnumValue_ImportExportError_*`, `EnumValue_Theme_*`). Legacy activity logs may still store old `WarningType` flag names for `AlertsToNotify` / `WarningsToNotify`; `EnumDisplayHelper` maps those (and modern `AlertKinds` ids) onto `Label_Notify*` strings. Import/export failure reasons use `EnumValue_ImportExportError_{Member}`; theme preference values use `EnumValue_Theme_*`. Empty user language/theme is logged as `app` (`ISettings.FollowAppCode`; legacy logs may still have `(app)`) and displayed via `EnumValue_FollowApp`.
+Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (optional `EnumValue_AccountOption_*`, `EnumValue_AlertKind_*`, `EnumValue_ImportExportError_*`, `EnumValue_Theme_*`). Activity `FieldValue` for `AlertsToNotify` is a comma-separated list of `AlertKinds` ids; `EnumDisplayHelper` maps those onto `Label_Notify*` strings. Import/export failure reasons use `EnumValue_ImportExportError_{Member}`; theme preference values use `EnumValue_Theme_*`. Empty user language/theme is logged as `app` (`ISettings.FollowAppCode`; older logs may still have `(app)`) and displayed via `EnumValue_FollowApp`.
 
 `FieldName_*` keys localize the middle of ItemUpdated-style sentences (`Strings.Get($"FieldName_{activity.FieldName}")`). If Core starts persisting a new field name, add a matching `FieldName_` entry or the UI falls back to the raw key.
 

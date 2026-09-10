@@ -165,8 +165,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Label_Username => Get(nameof(Label_Username));
       public static string Label_WarnDuplicatedPassword => Get(nameof(Label_WarnDuplicatedPassword));
       public static string Label_Alerts => Get(nameof(Label_Alerts));
-      public static string Label_WarningType => Get(nameof(Label_WarningType));
-      public static string Label_WarningTypeColumn => Get(nameof(Label_WarningTypeColumn));
+      public static string Label_AlertType => Get(nameof(Label_AlertType));
+      public static string Label_AlertTypeColumn => Get(nameof(Label_AlertTypeColumn));
       public static string Label_WarnPasswordLeak => Get(nameof(Label_WarnPasswordLeak));
       public static string Menu_AppSettings => Get(nameof(Menu_AppSettings));
       public static string Menu_Copy => Get(nameof(Menu_Copy));

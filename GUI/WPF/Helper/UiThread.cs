@@ -4,7 +4,7 @@ using System.Windows.Threading;
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
    /// <summary>
-   /// Marshals work onto the WPF UI thread (warning scans finish on workers).
+   /// Marshals work onto the WPF UI thread (alert scans finish on workers).
    /// </summary>
    internal static class UiThread
    {

@@ -3,7 +3,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 namespace Upsilon.Apps.Passkey.UnitTests.Fakes
 {
    /// <summary>
-   /// Deterministic leak-check double so warning-scan tests never hit the network.
+   /// Deterministic leak-check double so alert-scan tests never hit the network.
    /// </summary>
    internal sealed class FakePasswordFactory : IPasswordFactory
    {

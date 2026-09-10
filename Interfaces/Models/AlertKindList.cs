@@ -1,13 +1,11 @@
 using System.Collections;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
    /// <summary>
    /// Notify-preference payload stored on <see cref="ISettings.AlertsToNotify"/>.
-   /// Distinct from <c>string[]</c> so JSON can migrate legacy <see cref="WarningType"/> flags.
    /// </summary>
    [JsonConverter(typeof(AlertKindListJsonConverter))]
    public sealed class AlertKindList : IReadOnlyList<string>
@@ -62,29 +60,15 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
 
             case JsonTokenType.String:
             {
+               // Autosave readable form / activity FieldValue: comma-separated kind ids.
                string? raw = reader.GetString();
                if (string.IsNullOrWhiteSpace(raw))
                {
                   return new AlertKindList([]);
                }
 
-#pragma warning disable CS0618 // Legacy WarningType migration
-               if (Enum.TryParse(raw, ignoreCase: true, out WarningType legacyFromName))
-               {
-                  return new AlertKindList(AlertKinds.FromLegacyWarningType(legacyFromName));
-               }
-#pragma warning restore CS0618
-
                return new AlertKindList(
                   raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-            }
-
-            case JsonTokenType.Number:
-            {
-#pragma warning disable CS0618 // Legacy WarningType migration
-               return new AlertKindList(
-                  AlertKinds.FromLegacyWarningType((WarningType)reader.GetInt32()));
-#pragma warning restore CS0618
             }
 
             case JsonTokenType.Null:

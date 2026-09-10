@@ -251,10 +251,10 @@
   <data name="Label_Copy" xml:space="preserve">
     <value>Copier</value>
   </data>
-  <data name="Label_WarningType" xml:space="preserve">
+  <data name="Label_AlertType" xml:space="preserve">
     <value>Type d'alerte :</value>
   </data>
-  <data name="Label_WarningTypeColumn" xml:space="preserve">
+  <data name="Label_AlertTypeColumn" xml:space="preserve">
     <value>Type d'alerte</value>
   </data>
   <data name="Label_ServiceColumn" xml:space="preserve">
@@ -834,19 +834,19 @@ Vous ne serez pas prévenu pour :
   <data name="EnumValue_ActivityEventType_ActivityLogTampered" xml:space="preserve">
     <value>Journal d'activité altéré</value>
   </data>
-  <data name="EnumValue_WarningType_ActivityReviewWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_ActivityReview" xml:space="preserve">
     <value>Activités à revoir</value>
   </data>
-  <data name="EnumValue_WarningType_PasswordUpdateReminderWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_PasswordUpdateReminder" xml:space="preserve">
     <value>Mots de passe expirés</value>
   </data>
-  <data name="EnumValue_WarningType_DuplicatedPasswordsWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_DuplicatedPasswords" xml:space="preserve">
     <value>Mots de passe dupliqués</value>
   </data>
-  <data name="EnumValue_WarningType_PasswordLeakedWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_PasswordLeaked" xml:space="preserve">
     <value>Mots de passe divulgués</value>
   </data>
-  <data name="EnumValue_WarningType_SecuritySettingsWarning" xml:space="preserve">
+  <data name="EnumValue_AlertKind_SecuritySettings" xml:space="preserve">
     <value>Paramètres de sécurité</value>
   </data>
   <data name="EnumValue_None" xml:space="preserve">
@@ -979,9 +979,6 @@ Vous ne serez pas prévenu pour :
     <value>nombre de mois d'activitées à garder</value>
   </data>
     <data name="FieldName_AlertsToNotify" xml:space="preserve">
-    <value>alertes à remonter</value>
-  </data>
-  <data name="FieldName_WarningsToNotify" xml:space="preserve">
     <value>alertes à remonter</value>
   </data>
   <data name="FieldName_Username" xml:space="preserve">

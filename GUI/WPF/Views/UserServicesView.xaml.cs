@@ -267,52 +267,52 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private static IAlert[] _notifiedAlerts()
          => [.. _session.Alerts.GetNotifiedAlerts()];
 
-      private void _updateAlertsMenu(IAlert[] warnings)
+      private void _updateAlertsMenu(IAlert[] alerts)
       {
-         IAlert[] activityKind = [.. warnings.Where(x => x.Kind == AlertKinds.ActivityReview)];
-         IAlert[] expiredKind = [.. warnings.Where(x => x.Kind == AlertKinds.PasswordUpdateReminder)];
-         IAlert[] duplicatedKind = [.. warnings.Where(x => x.Kind == AlertKinds.DuplicatedPasswords)];
-         IAlert[] leakedKind = [.. warnings.Where(x => x.Kind == AlertKinds.PasswordLeaked)];
+         IAlert[] activityKind = [.. alerts.Where(x => x.Kind == AlertKinds.ActivityReview)];
+         IAlert[] expiredKind = [.. alerts.Where(x => x.Kind == AlertKinds.PasswordUpdateReminder)];
+         IAlert[] duplicatedKind = [.. alerts.Where(x => x.Kind == AlertKinds.DuplicatedPasswords)];
+         IAlert[] leakedKind = [.. alerts.Where(x => x.Kind == AlertKinds.PasswordLeaked)];
          IAlert[] securityKind =
          [
-            .. warnings.Where(x => x.Kind is AlertKinds.VaultSecuritySettings
+            .. alerts.Where(x => x.Kind is AlertKinds.VaultSecuritySettings
                or AlertKinds.HostSecuritySettings),
          ];
          IAlert[] passkeyKind =
          [
-            .. warnings.Where(x => x.Kind is AlertKinds.InsufficientPasskeys
+            .. alerts.Where(x => x.Kind is AlertKinds.InsufficientPasskeys
                or AlertKinds.WeakPasskey
                or AlertKinds.PasskeyLeaked
                or AlertKinds.PasskeyReusedAsAccountPassword),
          ];
 
-         int activityWarnings = activityKind
+         int activityAlerts = activityKind
             .OfType<IActivityReviewAlert>()
             .SelectMany(x => x.Activities)
             .Count();
-         int expiredPasswordWarnings = expiredKind
+         int expiredPasswordAlerts = expiredKind
             .OfType<IAccountsAlert>()
             .SelectMany(x => x.Accounts)
             .Count();
-         int duplicatedPasswordWarnings = duplicatedKind.Length;
-         int leakedPasswordWarnings = leakedKind
+         int duplicatedPasswordAlerts = duplicatedKind.Length;
+         int leakedPasswordAlerts = leakedKind
             .OfType<IAccountsAlert>()
             .SelectMany(x => x.Accounts)
             .Count();
-         int securitySettingsWarnings = securityKind
+         int securitySettingsAlerts = securityKind
             .OfType<IVaultSecuritySettingsAlert>()
             .Sum(x => BitOperations.PopCount((uint)x.Issues))
             + securityKind
             .OfType<IHostSecuritySettingsAlert>()
             .Sum(x => BitOperations.PopCount((uint)x.Issues));
-         int passkeyQualityWarnings = _passkeyQualityCount(passkeyKind);
+         int passkeyQualityAlerts = _passkeyQualityCount(passkeyKind);
 
-         int totalWarningCount = activityWarnings
-            + expiredPasswordWarnings
-            + duplicatedPasswordWarnings
-            + leakedPasswordWarnings
-            + securitySettingsWarnings
-            + passkeyQualityWarnings;
+         int totalAlertCount = activityAlerts
+            + expiredPasswordAlerts
+            + duplicatedPasswordAlerts
+            + leakedPasswordAlerts
+            + securitySettingsAlerts
+            + passkeyQualityAlerts;
 
          AlertSeverity activitySeverity = AlertBroker.MaxSeverity(activityKind);
          AlertSeverity expiredSeverity = AlertBroker.MaxSeverity(expiredKind);
@@ -321,37 +321,37 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          AlertSeverity securitySeverity = AlertBroker.MaxSeverity(securityKind);
          AlertSeverity passkeySeverity = AlertBroker.MaxSeverity(passkeyKind);
 
-         _viewModel.ShowAlerts = Strings.Format(nameof(Strings.Msg_ShowAlerts), totalWarningCount);
-         _viewModel.ShowAlertsColor = AlertBroker.BrushFor(warnings);
+         _viewModel.ShowAlerts = Strings.Format(nameof(Strings.Msg_ShowAlerts), totalAlertCount);
+         _viewModel.ShowAlertsColor = AlertBroker.BrushFor(alerts);
          _viewModel.ShowActivityAlertsColor = AlertBroker.BrushFor(activitySeverity);
          _viewModel.ShowExpiredPasswordAlertsColor = AlertBroker.BrushFor(expiredSeverity);
          _viewModel.ShowDuplicatedPasswordAlertsColor = AlertBroker.BrushFor(duplicatedSeverity);
          _viewModel.ShowLeakedPasswordAlertsColor = AlertBroker.BrushFor(leakedSeverity);
          _viewModel.ShowSecuritySettingsAlertsColor = AlertBroker.BrushFor(securitySeverity);
          _viewModel.ShowPasskeyQualityAlertsColor = AlertBroker.BrushFor(passkeySeverity);
-         _viewModel.ShowActivityAlerts = Strings.Format(nameof(Strings.Msg_ShowActivityAlerts), activityWarnings);
-         _viewModel.ShowExpiredPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowExpiredPasswordAlerts), expiredPasswordWarnings);
-         _viewModel.ShowDuplicatedPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowDuplicatedPasswordAlerts), duplicatedPasswordWarnings);
-         _viewModel.ShowLeakedPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowLeakedPasswordAlerts), leakedPasswordWarnings);
-         _viewModel.ShowSecuritySettingsAlerts = Strings.Format(nameof(Strings.Msg_ShowSecuritySettingsAlerts), securitySettingsWarnings);
-         _viewModel.ShowPasskeyQualityAlerts = Strings.Format(nameof(Strings.Msg_ShowPasskeyQualityAlerts), passkeyQualityWarnings);
+         _viewModel.ShowActivityAlerts = Strings.Format(nameof(Strings.Msg_ShowActivityAlerts), activityAlerts);
+         _viewModel.ShowExpiredPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowExpiredPasswordAlerts), expiredPasswordAlerts);
+         _viewModel.ShowDuplicatedPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowDuplicatedPasswordAlerts), duplicatedPasswordAlerts);
+         _viewModel.ShowLeakedPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowLeakedPasswordAlerts), leakedPasswordAlerts);
+         _viewModel.ShowSecuritySettingsAlerts = Strings.Format(nameof(Strings.Msg_ShowSecuritySettingsAlerts), securitySettingsAlerts);
+         _viewModel.ShowPasskeyQualityAlerts = Strings.Format(nameof(Strings.Msg_ShowPasskeyQualityAlerts), passkeyQualityAlerts);
 
-         _alerts_MI.Visibility = totalWarningCount != 0 ? Visibility.Visible : Visibility.Collapsed;
-         _activityAlerts_MI.Visibility = activityWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
-         _expiredPasswordAlerts_MI.Visibility = expiredPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
-         _duplicatedPasswordAlerts_MI.Visibility = duplicatedPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
-         _leakedPasswordAlerts_MI.Visibility = leakedPasswordWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
-         _securitySettingsAlerts_MI.Visibility = securitySettingsWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
-         _passkeyQualityAlerts_MI.Visibility = passkeyQualityWarnings != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _alerts_MI.Visibility = totalAlertCount != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _activityAlerts_MI.Visibility = activityAlerts != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _expiredPasswordAlerts_MI.Visibility = expiredPasswordAlerts != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _duplicatedPasswordAlerts_MI.Visibility = duplicatedPasswordAlerts != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _leakedPasswordAlerts_MI.Visibility = leakedPasswordAlerts != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _securitySettingsAlerts_MI.Visibility = securitySettingsAlerts != 0 ? Visibility.Visible : Visibility.Collapsed;
+         _passkeyQualityAlerts_MI.Visibility = passkeyQualityAlerts != 0 ? Visibility.Visible : Visibility.Collapsed;
 
          _reorderAlertsMenu(
          [
-            (_leakedPasswordAlerts_MI, leakedSeverity, leakedPasswordWarnings),
-            (_passkeyQualityAlerts_MI, passkeySeverity, passkeyQualityWarnings),
-            (_expiredPasswordAlerts_MI, expiredSeverity, expiredPasswordWarnings),
-            (_activityAlerts_MI, activitySeverity, activityWarnings),
-            (_duplicatedPasswordAlerts_MI, duplicatedSeverity, duplicatedPasswordWarnings),
-            (_securitySettingsAlerts_MI, securitySeverity, securitySettingsWarnings),
+            (_leakedPasswordAlerts_MI, leakedSeverity, leakedPasswordAlerts),
+            (_passkeyQualityAlerts_MI, passkeySeverity, passkeyQualityAlerts),
+            (_expiredPasswordAlerts_MI, expiredSeverity, expiredPasswordAlerts),
+            (_activityAlerts_MI, activitySeverity, activityAlerts),
+            (_duplicatedPasswordAlerts_MI, duplicatedSeverity, duplicatedPasswordAlerts),
+            (_securitySettingsAlerts_MI, securitySeverity, securitySettingsAlerts),
          ]);
       }
 
@@ -380,13 +380,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
-      private static int _passkeyQualityCount(IEnumerable<IAlert> warnings)
+      private static int _passkeyQualityCount(IEnumerable<IAlert> alerts)
       {
          int count = 0;
 
-         foreach (IAlert warning in warnings)
+         foreach (IAlert alert in alerts)
          {
-            switch (warning)
+            switch (alert)
             {
                case IInsufficientPasskeysAlert:
                   count++;

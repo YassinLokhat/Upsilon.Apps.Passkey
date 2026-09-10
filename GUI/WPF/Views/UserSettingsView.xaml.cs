@@ -191,14 +191,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _database.User.Settings.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
             _database.User.Settings.Language = _viewModel.SelectedLanguage.Code;
             _database.User.Settings.Theme = _viewModel.SelectedTheme.Code;
-            AlertKindList warningsToNotify = _viewModel.BuildAlertsToNotify();
+            AlertKindList alertsToNotify = _viewModel.BuildAlertsToNotify();
 
-            if (warningsToNotify.Count == 0)
+            if (alertsToNotify.Count == 0)
             {
                AppServices.Dialogs.Warn(Strings.Msg_NoAlertsToNotify, Strings.Title_NoAlertsToNotify);
             }
 
-            _database.User.Settings.AlertsToNotify = warningsToNotify;
+            _database.User.Settings.AlertsToNotify = alertsToNotify;
 
             await _database.SaveAsync().ConfigureAwait(true);
             _session.ApplySessionLanguage();

@@ -83,27 +83,27 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          Alerts.Clear();
 
-         AccountPasswordAlertViewModel[] warnings = [.. AppServices.Session.Alerts
+         AccountPasswordAlertViewModel[] alerts = [.. AppServices.Session.Alerts
             .GetNotifiedAlerts()
             .OfType<IAccountsAlert>()
             .Where(x => _matchesKindFilter(x.Kind, Kind))
             .SelectMany(x => x.Accounts.Select(y => new AccountPasswordAlertViewModel(y, x.Kind)))
             .Where(x => x.MeetsConditions(Kind, Text))];
 
-         foreach (AccountPasswordAlertViewModel warning in warnings)
+         foreach (AccountPasswordAlertViewModel alert in alerts)
          {
-            Alerts.Add(warning);
+            Alerts.Add(alert);
          }
       }
 
-      private static bool _matchesKindFilter(string warningKind, string filterKind)
+      private static bool _matchesKindFilter(string alertKind, string filterKind)
       {
          if (EnumHelper.IsAccountPasswordFilterAll(filterKind))
          {
-            return EnumHelper.MatchesAccountPasswordKindFilter(warningKind, filterKind);
+            return EnumHelper.MatchesAccountPasswordKindFilter(alertKind, filterKind);
          }
 
-         return string.Equals(warningKind, filterKind, StringComparison.Ordinal);
+         return string.Equals(alertKind, filterKind, StringComparison.Ordinal);
       }
    }
 }
