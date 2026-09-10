@@ -22,7 +22,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          IService service = database.User!.AddService("Service_" + UnitTestsHelper.GetUsername());
-         IAccount account = service.AddAccount("Acc0", ["id0"], UnitTestsHelper.GetRandomString());
+         IAccount account = service.AddAccount("Acc0", UnitTestsHelper.Ids("id0"), UnitTestsHelper.GetRandomString());
          string originalLabel = account.Label;
 
          int itemUpdatedBeforeEdits = database.Activities!
@@ -97,7 +97,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          IService service = database.User!.AddService("Service_" + UnitTestsHelper.GetUsername());
-         IAccount account = service.AddAccount("Acc0", ["id0"], UnitTestsHelper.GetRandomString());
+         IAccount account = service.AddAccount("Acc0", UnitTestsHelper.Ids("id0"), UnitTestsHelper.GetRandomString());
 
          int notesBefore = database.Activities!
             .Count(x => x.EventType == ActivityEventType.ItemUpdated

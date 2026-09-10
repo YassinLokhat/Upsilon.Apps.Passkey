@@ -135,12 +135,23 @@ classDiagram
             +HasChanged(void) bool
         }
 
+        class IIdentifier {
+            <<interface>>
+            +IdentifierType Type
+            +string Value
+        }
+
+        class Identifier {
+            +IdentifierType Type
+            +string Value
+        }
+
         class IAccount {
             <<interface>>
             +IService Service
             +string Label
             +string Notes
-            +IEnumerable~string~ Identifiers
+            +IEnumerable~IIdentifier~ Identifiers
             +string Password
             +Dictionary~DateTime_string~ Passwords
             +int PasswordUpdateReminderDelay
@@ -154,10 +165,10 @@ classDiagram
             +Uri? Url
             +string Notes
             +IEnumerable~IAccount~ Accounts
-            +AddAccount(in label string, in identifiers IEnumerable~string~, in password string) IAccount
-            +AddAccount(in label string, in identifiers IEnumerable~string~) IAccount
-            +AddAccount(in identifiers IEnumerable~string~, in password string) IAccount
-            +AddAccount(in identifiers IEnumerable~string~) IAccount
+            +AddAccount(in label string, in identifiers IEnumerable~IIdentifier~, in password string) IAccount
+            +AddAccount(in label string, in identifiers IEnumerable~IIdentifier~) IAccount
+            +AddAccount(in identifiers IEnumerable~IIdentifier~, in password string) IAccount
+            +AddAccount(in identifiers IEnumerable~IIdentifier~) IAccount
             +DeleteAccount(in account IAccount) void
         }
 
@@ -238,6 +249,15 @@ classDiagram
     
     %% Enums
     namespace Upsilon.Apps.Passkey.Interfaces.Enums {
+        class IdentifierType {
+            <<enumeration>>
+            Username
+            Email
+            PhoneNumber
+            Passkey
+            AuthenticatorApp
+        }
+
         class AccountOption {
             <<enumeration>>
             <<flags>>
@@ -316,11 +336,14 @@ classDiagram
     IUser --|> IItem
     IService --|> IItem
     IAccount --|> IItem
+    Identifier ..|> IIdentifier
     IDatabase ..|> IDisposable
     
     %% Link Relations
     IItem --> IDatabase : Database
     IAccount --> IService : Service
+    IAccount "0" --> "*" IIdentifier : Identifiers
+    IIdentifier --> IdentifierType : Type
     IAccount --> AccountOption : Options
     IActivity --> ActivityEventType : EventType
     ICryptographyCenter --> KdfParameters : DefaultSlowHashParameters
@@ -460,12 +483,15 @@ database.Close();
 `ImportFromFile` / `ExportToFile` (and their `Async` twins) are routed by file
 extension. Only `.json` and `.csv` are supported; any other extension fails.
 
-*   **JSON** carries `Settings` and `Services` (with accounts).
-*   **CSV** uses JSON-encoded cells. Import accepts **comma- or tab-delimited**
-    rows; export writes **tab-separated** rows. Headers are
-    `ServiceName`, `ServiceUrl`, `ServiceNotes`, `AccountLabel`, `Identifiers`,
-    `Password`, `AccountNotes`, `AccountOptions`, `PasswordUpdateReminderDelay`.
-    Settings are not included in CSV.
+*   **JSON** carries `Settings` and `Services` (with accounts). Each identifier
+    is `{ "Type", "Value" }` (`IdentifierType` + string).
+*   **CSV** uses JSON-encoded cells. The `Identifiers` cell is pipe-joined
+    **values only** (type is not stored); on import, types are re-detected
+    (phone → `PhoneNumber`, email → `Email`, else `Username`). Import accepts
+    **comma- or tab-delimited** rows; export writes **tab-separated** rows.
+    Headers are `ServiceName`, `ServiceUrl`, `ServiceNotes`, `AccountLabel`,
+    `Identifiers`, `Password`, `AccountNotes`, `AccountOptions`,
+    `PasswordUpdateReminderDelay`. Settings are not included in CSV.
 
 Import requires a logged-in user. Export and import files are **plaintext** — see
 [SECURITY.md](SECURITY.md#known-limitations). A successful import already

@@ -6,7 +6,7 @@ Upsilon.Apps.Passkey is four layers and two solution files. The only **OS-specif
 
 | Path | Role |
 | ---- | ---- |
-| `Interfaces/` | Public contracts (`IDatabase`, `IUser`, crypto, serialization, clipboard, `IProtectedSecret`, `ISecretMemoryProtector`, `PlaintextSecret`). |
+| `Interfaces/` | Public contracts (`IDatabase`, `IUser`, `IIdentifier` / `Identifier`, crypto, serialization, clipboard, `IProtectedSecret`, `ISecretMemoryProtector`, `PlaintextSecret`). |
 | `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `SecretMemoryProtector` / `ProtectedSecret`, and `LeakFilter/` (`.pkbf` Bloom file, builder, config). **Zero NuGet packages** (BCL only). |
 | `Core/` | Vault implementation: onion encryption, `.pku` I/O, alerts, import/export. **Zero NuGet packages** (BCL only). Depends on Interfaces only. Vault-internal helpers stay under `Core/Utils/` (`QrCode`, file lock, activity, import/export). |
 | `GUI/WPF/` | Windows desktop client (MVVM + a small `AppServices` locator). Composes Utils defaults and supplies `IClipboardManager`. |
@@ -27,6 +27,7 @@ flowchart LR
   IUser --> ISettings
   IUser --> IService
   IService --> IAccount
+  IAccount --> IIdentifier
   IDatabase --> IActivity
   IDatabase --> IAlert
   IDatabase --> ICryptographyCenter
@@ -36,7 +37,7 @@ flowchart LR
   IDatabase --> ISecretMemoryProtector
 ```
 
-`IUser`, `IService`, and `IAccount` implement `IItem` (stable `ItemId`, `HasChanged()`, back-reference to `IDatabase`). `IDatabase` implements `IDisposable`: `Dispose()` closes the session the same way as `Close()`.
+`IUser`, `IService`, and `IAccount` implement `IItem` (stable `ItemId`, `HasChanged()`, back-reference to `IDatabase`). Account logins are typed `IIdentifier` values (`IdentifierType` + `Value`), not bare strings. `IDatabase` implements `IDisposable`: `Dispose()` closes the session the same way as `Close()`.
 
 ## Class diagram
 
@@ -112,12 +113,23 @@ classDiagram
             +HasChanged(void) bool
         }
 
+        class IIdentifier {
+            <<interface>>
+            +IdentifierType Type
+            +string Value
+        }
+
+        class Identifier {
+            +IdentifierType Type
+            +string Value
+        }
+
         class IAccount {
             <<interface>>
             +IService Service
             +string Label
             +string Notes
-            +IEnumerable~string~ Identifiers
+            +IEnumerable~IIdentifier~ Identifiers
             +string Password
             +Dictionary~DateTime_string~ Passwords
             +int PasswordUpdateReminderDelay
@@ -131,10 +143,10 @@ classDiagram
             +Uri? Url
             +string Notes
             +IEnumerable~IAccount~ Accounts
-            +AddAccount(in label string, in identifiers IEnumerable~string~, in password string) IAccount
-            +AddAccount(in label string, in identifiers IEnumerable~string~) IAccount
-            +AddAccount(in identifiers IEnumerable~string~, in password string) IAccount
-            +AddAccount(in identifiers IEnumerable~string~) IAccount
+            +AddAccount(in label string, in identifiers IEnumerable~IIdentifier~, in password string) IAccount
+            +AddAccount(in label string, in identifiers IEnumerable~IIdentifier~) IAccount
+            +AddAccount(in identifiers IEnumerable~IIdentifier~, in password string) IAccount
+            +AddAccount(in identifiers IEnumerable~IIdentifier~) IAccount
             +DeleteAccount(in account IAccount) void
         }
 
@@ -216,9 +228,11 @@ classDiagram
     IUser --|> IItem
     IService --|> IItem
     IAccount --|> IItem
+    Identifier ..|> IIdentifier
     IDatabase ..|> IDisposable
     IItem --> IDatabase : Database
     IAccount --> IService : Service
+    IAccount "0" --> "*" IIdentifier : Identifiers
     IService --> IUser : User
     IUser --> ISettings : Settings
     IService "0" --> "*" IAccount : Accounts
@@ -233,7 +247,7 @@ classDiagram
     IDatabase --> ISecretMemoryProtector : SecretMemoryProtector
 ```
 
-Event-arg types (`AlertsChangedEventArgs`, `AutoSaveDetectedEventArgs`, `LogoutEventArgs`) and enums live under `Interfaces.Events` / `Interfaces.Enums` — see the fuller diagram in the repository `README.md`.
+Event-arg types (`AlertsChangedEventArgs`, `AutoSaveDetectedEventArgs`, `LogoutEventArgs`) and enums (`IdentifierType`, `AccountOption`, …) live under `Interfaces.Events` / `Interfaces.Enums` — see the fuller diagram in the repository `README.md`.
 
 ## Design choices that show up in usage
 

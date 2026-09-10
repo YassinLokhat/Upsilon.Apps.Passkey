@@ -275,6 +275,15 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return [.. passkeys];
       }
 
+      public static Identifier Id(string value)
+         => new(IdentifierTypeDetector.Detect(value), value);
+
+      public static Identifier[] Ids(params string[] values)
+         => [.. values.Select(Id)];
+
+      public static Identifier[] Ids(IEnumerable<string> values)
+         => [.. values.Select(Id)];
+
       public static string GetRandomString(int min = 16, int max = 0)
       {
          if (max == 0)

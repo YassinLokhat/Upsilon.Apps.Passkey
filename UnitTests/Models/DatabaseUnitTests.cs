@@ -55,18 +55,18 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
                {
                   case 1:
                      account = service.AddAccount(label: $"Account{j}",
-                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"??{x}@test.te"));
+                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => UnitTestsHelper.Id($"??{x}@test.te")));
                      break;
                   case 2:
-                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"??{x}@test.te"),
+                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => UnitTestsHelper.Id($"??{x}@test.te")),
                         password: password);
                      break;
                   case 3:
-                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"??{x}@test.te"));
+                     account = service.AddAccount(identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => UnitTestsHelper.Id($"??{x}@test.te")));
                      break;
                   default:
                      account = service.AddAccount(label: $"Account{j}",
-                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => $"??{x}@test.te"),
+                        identifiers: UnitTestsHelper.GetRandomStringArray(random / 2).Select(x => UnitTestsHelper.Id($"??{x}@test.te")),
                         password: password);
                      break;
                }
@@ -642,7 +642,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          user.Settings.AlertsToNotify = new AlertKindList([]);
 
          IService service = user.AddService("ConcurrentService");
-         IAccount account = service.AddAccount(["id@test.te"], "initial-password");
+         IAccount account = service.AddAccount(UnitTestsHelper.Ids("id@test.te"), "initial-password");
          database.Save();
 
          const int editorCount = 3;
@@ -883,7 +883,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             passkeys);
 
          IService service = database.User!.AddService("ClipService");
-         _ = service.AddAccount("Account", ["id@test"], "clipboard-secret");
+         _ = service.AddAccount("Account", UnitTestsHelper.Ids("id@test"), "clipboard-secret");
 
          User user = (User)database.User;
          user.Settings.CleaningClipboardTimeout = 1;

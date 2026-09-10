@@ -44,7 +44,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User!.Settings.NumberOfOldPasswordToKeep = 0;
 
          IService service = database.User.AddService("RetentionService");
-         IAccount account = service.AddAccount("Account", ["id@test"], "p0");
+         IAccount account = service.AddAccount("Account", UnitTestsHelper.Ids("id@test"), "p0");
          Account concrete = (Account)account;
          concrete.Passwords[DateTime.Now.AddDays(-4)] = ProtectedSecret.Protect("p1");
          concrete.Passwords[DateTime.Now.AddDays(-3)] = ProtectedSecret.Protect("p2");

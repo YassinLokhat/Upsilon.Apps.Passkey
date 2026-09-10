@@ -6,7 +6,10 @@
     "Accounts": [
       {
         "Label": "Account0",
-        "Identifiers": [ "account0@service0.xyz", "account0_backup@service0.xyz" ],
+        "Identifiers": [
+          { "Type": "Email", "Value": "account0@service0.xyz" },
+          { "Type": "Email", "Value": "account0_backup@service0.xyz" }
+        ],
         "Password": "0000",
         "Passwords": { "2025-11-26T21:33:12.4829309+03:00": "0000" },
         "Notes": "Service0\u0027s Account0\u0027s notes",
@@ -15,7 +18,10 @@
       },
       {
         "Label": "Account1",
-        "Identifiers": [ "account1@service0.xyz", "account1_backup@service0.xyz" ],
+        "Identifiers": [
+          { "Type": "Email", "Value": "account1@service0.xyz" },
+          { "Type": "Email", "Value": "account1_backup@service0.xyz" }
+        ],
         "Password": "1111",
         "Passwords": { "2025-11-26T21:33:12.7380781+03:00": "1111" },
         "Notes": "Service0\u0027s Account1\u0027s notes",
@@ -31,7 +37,10 @@
     "Accounts": [
       {
         "Label": "Account0",
-        "Identifiers": [ "account0@service1.xyz", "account0_backup@service1.xyz" ],
+        "Identifiers": [
+          { "Type": "Email", "Value": "account0@service1.xyz" },
+          { "Type": "Email", "Value": "account0_backup@service1.xyz" }
+        ],
         "Password": "AAAA",
         "Passwords": { "2025-11-26T21:33:13.1589472+03:00": "AAAA" },
         "Notes": "Service1\u0027s Account0\u0027s notes",
@@ -40,7 +49,10 @@
       },
       {
         "Label": "Account1",
-        "Identifiers": [ "account1@service1.xyz", "account1_backup@service1.xyz" ],
+        "Identifiers": [
+          { "Type": "Email", "Value": "account1@service1.xyz" },
+          { "Type": "Email", "Value": "account1_backup@service1.xyz" }
+        ],
         "Password": "BBBB",
         "Passwords": { "2025-11-26T21:33:13.4643103+03:00": "BBBB" },
         "Notes": "Service1\u0027s Account1\u0027s notes",
