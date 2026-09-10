@@ -45,17 +45,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       }
 
       public string? GetIdentifier()
-      {
-         string? identifier = _identifiers_LB.SelectedItem is not IdentifierViewModel identifierViewModel ? null : identifierViewModel.Identifier;
-
-         if (identifier is not null)
-         {
-            int idLenght = IdentifierViewModel.IdentifiersTypes.Values.FirstOrDefault(x => identifier.StartsWith(x, StringComparison.Ordinal))?.Length ?? 0;
-            identifier = identifier[idLenght..];
-         }
-
-         return identifier;
-      }
+         => _identifiers_LB.SelectedItem is IdentifierViewModel identifierViewModel
+            ? identifierViewModel.Identifier
+            : null;
 
       public string? Password
       {
@@ -377,14 +369,25 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          if (e.Key is Key.Enter
             or Key.Insert)
          {
-            string? identifier = InsertIdentifierView.InsertIdentifierDialog(AccountViewModel.IdentifierAutoCompleteList ?? [], identifier_TB.Text);
+            Interfaces.Models.IIdentifier? identifier = InsertIdentifierView.InsertIdentifierDialog(
+               AccountViewModel.IdentifierAutoCompleteList ?? [],
+               identifier_TB.Text);
 
-            if (string.IsNullOrEmpty(identifier))
+            if (identifier is null
+               || string.IsNullOrEmpty(identifier.Value))
             {
                return;
             }
 
-            identifier_TB.Text = identifier;
+            if (_identifiers_LB.SelectedItem is IdentifierViewModel viewModel)
+            {
+               viewModel.Type = identifier.Type;
+               viewModel.Identifier = identifier.Value;
+            }
+            else
+            {
+               identifier_TB.Text = identifier.Value;
+            }
          }
       }
    }

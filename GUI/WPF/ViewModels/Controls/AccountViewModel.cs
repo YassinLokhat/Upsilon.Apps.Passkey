@@ -26,7 +26,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       {
          get
          {
-            string accountDisplay = $"{Account.Label} {Account.Identifiers.First()}";
+            string accountDisplay = $"{Account.Label} {Account.Identifiers.First().Value}";
             return $"{(Account.HasChanged() ? "* " : string.Empty)}{accountDisplay.Trim()}";
          }
       }
@@ -182,6 +182,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public static string[] IdentifierAutoCompleteList => AppServices.Session.User?.Services
          .SelectMany(x => x.Accounts)
          .SelectMany(x => x.Identifiers)
+         .Select(x => x.Value)
          .Distinct()
          .Where(x => !string.IsNullOrEmpty(x))
          .OrderBy(x => x)
@@ -236,7 +237,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             return;
          }
 
-         Account.Identifiers = [.. Identifiers.Select(x => x.Identifier)];
+         Account.Identifiers = [.. Identifiers.Select(x => x.ToIdentifier())];
 
          foreach (IdentifierViewModel? identifier in Identifiers.Except([sender]).Cast<IdentifierViewModel?>())
          {

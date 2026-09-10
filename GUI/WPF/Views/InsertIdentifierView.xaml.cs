@@ -2,7 +2,8 @@
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -12,7 +13,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    internal sealed partial class InsertIdentifierView : Window
    {
       private readonly InsertIdentifierViewModel _viewModel;
-      private string? _selectedIdentifier;
+      private IIdentifier? _selectedIdentifier;
 
       private InsertIdentifierView(IEnumerable<string> identifiers, string identifier)
       {
@@ -26,13 +27,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
-      internal static string? InsertIdentifierDialog(IEnumerable<string> identifiers, string identifier)
+      internal static IIdentifier? InsertIdentifierDialog(IEnumerable<string> identifiers, string identifier)
       {
          InsertIdentifierView insertIdentifierView = new(identifiers, identifier);
 
          _ = insertIdentifierView.ShowDialog();
 
-         return insertIdentifierView._selectedIdentifier?.Trim();
+         return insertIdentifierView._selectedIdentifier;
       }
 
       private void _identifier_TextBox_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
@@ -55,7 +56,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             }
             else if (!_viewModel.Identifiers.Any())
             {
-               _selectedIdentifier = _viewModel.Identifier;
+               _selectedIdentifier = _viewModel.ToIdentifier();
                DialogResult = true;
             }
          }
@@ -63,7 +64,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _identifiers_LB_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
-         _selectedIdentifier = _identifiers_LB.SelectedItem as string;
+         if (_identifiers_LB.SelectedItem is not string value)
+         {
+            return;
+         }
+
+         _viewModel.Identifier = value;
+         _selectedIdentifier = _viewModel.ToIdentifier();
          DialogResult = true;
       }
 
@@ -71,9 +78,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          string? idType = ((Button)sender).Tag as string;
 
-         if (idType is not null)
+         if (idType is not null
+            && Enum.TryParse(idType, ignoreCase: false, out IdentifierType type))
          {
-            _viewModel.Identifier = IdentifierViewModel.IdentifiersTypes[$"[{idType}]"] + _viewModel.Identifier;
+            _viewModel.Type = type;
          }
       }
 

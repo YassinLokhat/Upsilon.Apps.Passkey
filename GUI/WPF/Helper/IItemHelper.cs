@@ -59,7 +59,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          string accountId = account.ItemId.Trim();
          string label = account.Label.Trim();
          string notes = account.Notes.Trim();
-         string identifiers = string.Join("\n", account.Identifiers.Select(x => x.Trim()));
+         string identifiers = string.Join("\n", account.Identifiers.Select(x => x.Value.Trim()));
 
          bool globalTextFilterSearch = accountId.Equals(globalTextFilter, StringComparison.OrdinalIgnoreCase)
                || identifiers.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)

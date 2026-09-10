@@ -69,9 +69,15 @@
                            Name="_identifiers_LB">
                      <ListBox.ItemTemplate>
                         <DataTemplate>
-                           <TextBox Background="{Binding IdentifierBackground}"
-                                    Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    KeyUp="_identifier_TextBox_KeyUp"/>
+                           <DockPanel LastChildFill="True">
+                              <TextBlock DockPanel.Dock="Left"
+                                         Text="{Binding TypeGlyph}"
+                                         VerticalAlignment="Center"
+                                         Margin="0,0,4,0"/>
+                              <TextBox Background="{Binding IdentifierBackground}"
+                                       Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                       KeyUp="_identifier_TextBox_KeyUp"/>
+                           </DockPanel>
                         </DataTemplate>
                      </ListBox.ItemTemplate>
                   </ListBox>
