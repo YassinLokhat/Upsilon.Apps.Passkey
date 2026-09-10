@@ -9,7 +9,7 @@ Import requires a logged-in user. Export and import files are **unencrypted plai
 | Format | Settings | Services and accounts | Password history |
 | ------ | -------- | --------------------- | ---------------- |
 | `.json` | Yes | Yes | Yes (`Passwords` dictionary) |
-| `.csv` | No | Yes | No in the file (current password only); import seeds one dated history entry from that password so password-update reminders and expiry checks work immediately |
+| `.csv` | No | Yes | No in the file (current password only); import seeds one dated history entry from that password so password-update reminders work immediately |
 
 The `.csv` path uses **JSON-encoded cells**, so commas, quotes, and notes survive. Identifiers inside a cell are joined with `|`.
 

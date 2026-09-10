@@ -4,19 +4,21 @@ Alerts are published by **independent sources** (Core vault scans, host/GUI post
 
 ## Alert kinds (`AlertKinds`)
 
+Severity values are `AlertSeverity` (`Info` / `Warning` / `Critical`).
+
 | Kind | Source | Severity | When it fires |
 | ---- | ------ | -------- | ------------- |
-| `ActivityReview` | Core | Max over rows: Critical (login-failed / tamper / session-timeout / **export**), Warning (`ItemUpdated` / `ItemDeleted`, …), Info (import / `ItemAdded` / autosave-merge) | Activities with `NeedsReview` |
-| `PasswordUpdateReminder` | Core | Critical | Current password older than `IAccount.PasswordUpdateReminderDelay` months (`0` = never) |
-| `DuplicatedPasswords` | Core | Warning | Same secret on ≥2 accounts, and **at least one** has `AccountOption.WarnIfDuplicatedPassword` |
-| `PasswordLeaked` | Core (+ `IPasswordFactory`) | Critical | Opt-in leak check found the password in a corpus |
-| `VaultSecuritySettings` | Core | Warning | Protective **vault** settings off — see `SecuritySettingsIssue` below |
-| `InsufficientPasskeys` | Core | Critical if 1 layer; else Warning | Fewer than `AlertKinds.RecommendedPasskeyCount` (2) onion passkeys |
-| `WeakPasskey` | Core | Critical | A passkey fails `SecretQuality` (length / classes / trivial / matches username) |
-| `PasskeyLeaked` | Core (+ `IPasswordFactory`) | Critical | A passkey is found in a leak corpus |
-| `WeakAccountPassword` | Core | Warning | An account password fails `SecretQuality` |
-| `PasskeyReusedAsAccountPassword` | Core | Critical | A passkey equals an account password |
-| `HostSecuritySettings` | Host (GUI) | Warning | App-level posture — see `HostSecurityIssue` |
+| `ActivityReview` | Core | Max over rows: `Critical` (login-failed / tamper / session-timeout / **export**), `Warning` (`ItemUpdated` / `ItemDeleted`, …), `Info` (import / `ItemAdded` / autosave-merge) | Activities with `NeedsReview` |
+| `PasswordUpdateReminder` | Core | `Critical` | Current password older than `IAccount.PasswordUpdateReminderDelay` months (`0` = never) |
+| `DuplicatedPasswords` | Core | `Warning` | Same secret on ≥2 accounts, and **at least one** has `AccountOption.WarnIfDuplicatedPassword` |
+| `PasswordLeaked` | Core (+ `IPasswordFactory`) | `Critical` | Opt-in leak check found the password in a corpus |
+| `VaultSecuritySettings` | Core | `Warning` | Protective **vault** settings off — see `SecuritySettingsIssue` below |
+| `InsufficientPasskeys` | Core | `Critical` if ≤1 layer; else `Warning` | Fewer than `AlertKinds.RecommendedPasskeyCount` (2) onion passkeys |
+| `WeakPasskey` | Core | `Critical` | A passkey fails `SecretQuality` (length / classes / trivial / matches username) |
+| `PasskeyLeaked` | Core (+ `IPasswordFactory`) | `Critical` | A passkey is found in a leak corpus |
+| `WeakAccountPassword` | Core | `Warning` | An account password fails `SecretQuality` |
+| `PasskeyReusedAsAccountPassword` | Core | `Critical` | A passkey equals an account password |
+| `HostSecuritySettings` | Host (GUI) | `Warning` | App-level posture — see `HostSecurityIssue` |
 
 ### Vault security issues (`SecuritySettingsIssue`)
 
@@ -25,8 +27,6 @@ Alerts are published by **independent sources** (Core vault scans, host/GUI post
 ### Host security issues (`HostSecurityIssue`)
 
 `IdleLoginDisabled` (login idle timeout `0`), `OfflineLeakFilterUnavailable` (no loaded `.pkbf`).
-
-Notify preferences no longer feed vault security issues (the old `*NotificationsDisabled` feedback loop is gone). When `AlertsToNotify` is empty, the WPF client shows a **MessageBox**.
 
 ### Secret quality (`SecretQuality`)
 
@@ -43,11 +43,9 @@ Payloads never include the secret plaintext — only indexes / issue flags / rel
 
 Core raises **per-kind** events (`ActivityReviewAlertsChanged`, …) with unfiltered snapshots, plus `CoreAlertsScanCompleted`. Prefer `IDatabase.CoreAlerts` for the latest Core map.
 
-The WPF `AlertBroker` also publishes host alerts and applies `AlertsToNotify`. Menu colors come from `IAlert.Severity` (`AlertBroker.BrushFor`), not hard-coded kinds.
+The WPF `AlertBroker` also publishes host alerts and applies `AlertsToNotify`. Menu colors come from `IAlert.Severity` (`AlertBroker.BrushFor`), not hard-coded kinds. When `AlertsToNotify` is empty, the WPF client shows a **MessageBox**.
 
-`ISettings.AlertsToNotify` is an `AlertKindList` of kind ids. When the list is empty, the WPF client shows a **MessageBox**.
-
-Duplicate and expiry alerts are local. Leak / passkey-leak checks use `IPasswordFactory.PasswordLeakedAsync` (HIBP → XposedOrNot → optional local `.pkbf`). Fail-open when unreachable. See [[Security]].
+Duplicate and password-update reminder alerts are local. Leak / passkey-leak checks use `IPasswordFactory.PasswordLeakedAsync` (HIBP → XposedOrNot → optional local `.pkbf`). Fail-open when unreachable. See [[Security]].
 
 ## Activity log (`IActivity`)
 

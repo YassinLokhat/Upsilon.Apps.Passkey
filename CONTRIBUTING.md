@@ -16,7 +16,7 @@ focused change and enough context for review.
 | ---- | ---- |
 | `Interfaces/` | Public contracts (`IDatabase`, crypto, serialization, clipboard, `IProtectedSecret`, `ISecretMemoryProtector`). |
 | `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `SecretMemoryProtector` / `ProtectedSecret`, `LeakFilter/` (`.pkbf` Bloom). Same zero-NuGet policy as Core. |
-| `Core/` | Vault implementation (Interfaces only — no ProjectReference to Utils): onion encryption, `.pku` I/O, warnings, import/export. `Database` is a partial class; internal hosts (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) keep ActivityCenter / AutoSave / User from digging into Database members. |
+| `Core/` | Vault implementation (Interfaces only — no ProjectReference to Utils): onion encryption, `.pku` I/O, alerts, import/export. `Database` is a partial class; internal hosts (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) keep ActivityCenter / AutoSave / User from digging into Database members. |
 | `GUI/WPF/` | Windows desktop client (WPF, .NET 10 Windows TFM). |
 | `UnitTests/` | Core/Utils tests plus ViewModel tests through the `AppServices` seam. |
 
@@ -94,7 +94,7 @@ Match the surrounding file. Do not reformat unrelated code.
 ## What a PR should include
 
 - Tests for Core/Utils behaviour you change (crypto, vault lifecycle, import/export,
-  warnings, persistence).
+  alerts, persistence).
 - ViewModel tests when you change GUI logic that already sits behind
   `AppServices` (dialogs, session, clipboard, navigation).
 - README / SECURITY.md updates when you change a public contract, a threat-model

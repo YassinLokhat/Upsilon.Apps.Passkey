@@ -26,7 +26,7 @@ No. Only a hash prefix (k-anonymity): first 5 characters of SHA-1 to Have I Been
 
 ## The leak check said nothing. Is my password safe?
 
-If both providers are down (or you are offline) **and** no offline Bloom filter is attached, the check **fails open** and reports "not leaked". When a filter *is* attached, a Bloom miss is definitive "not leaked"; a hit is treated as leaked (may include ~1 % false positives). Failures are not cached, so a later successful remote check can still raise a warning. There is no separate "unverified" UI state. Build or enable the filter under **App Settings** (`Ctrl+,`). See [[Security]].
+If both providers are down (or you are offline) **and** no offline Bloom filter is attached, the check **fails open** and reports "not leaked". When a filter *is* attached, a Bloom miss is definitive "not leaked"; a hit is treated as leaked (may include ~1 % false positives). Failures are not cached, so a later successful remote check can still raise an alert. There is no separate "unverified" UI state. Build or enable the filter under **App Settings** (`Ctrl+,`). See [[Security]].
 
 ## Does the offline leak database update itself?
 

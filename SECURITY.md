@@ -301,7 +301,7 @@ login:
   feature is opt-in per account. Failed remote checks are **not** cached: only
   successful answers are kept in process (HIBP ranges by 5-character prefix,
   XON yes/no by 10-character prefix; both bounded, never persisted). Requests
-  time out after a few seconds. The GUI and the warning scan use the
+  time out after a few seconds. The GUI and the alert scan use the
   asynchronous API so the UI thread is not blocked while waiting on the
   network. The UI does **not** surface a separate "could not verify" state: a
   transient failure is expected to succeed on a later attempt, and a lasting
@@ -319,7 +319,7 @@ login:
   never triggers an automatic first build, and a missing sidecar skips the
   refresh while keeping the filter. Application logs still live under
   `%LocalAppData%\Passkey\logs` — that path is unrelated to the Bloom filter.
-- **Duplicate-password** and **password-expiry** warnings are computed locally.
+- **Duplicate-password** and **password-update reminder** alerts are computed locally.
 
 ## Known Limitations
 
@@ -357,7 +357,7 @@ These are conscious trade-offs, documented for transparency:
   `LeakFilterConfig` in the WPF host's `config.json`),
   the check reports "not leaked" and the UI stays quiet. Failures are not
   cached, so a later successful reach of either API can still raise a leak
-  warning. When an offline filter *is* attached, a Bloom **miss** is definitive
+  alert. When an offline filter *is* attached, a Bloom **miss** is definitive
   "not leaked"; a Bloom **hit** is treated as leaked and may include ~1 % false
   positives (no false negatives). The residual risk without a local filter is a
   **prolonged** outage of *both* providers during which a password that *is* in
