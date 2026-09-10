@@ -284,6 +284,42 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public static Identifier[] Ids(IEnumerable<string> values)
          => [.. values.Select(Id)];
 
+      public static IdentifierType GetRandomIdentifierType()
+      {
+         IdentifierType[] types = Enum.GetValues<IdentifierType>();
+         return types[GetRandomInt(0, types.Length)];
+      }
+
+      /// <summary>
+      /// Builds an identifier with a random <see cref="IdentifierType"/> and a
+      /// value shaped for that type (so CSV re-detection stays coherent for
+      /// Email / PhoneNumber).
+      /// </summary>
+      public static Identifier GetRandomIdentifier()
+      {
+         IdentifierType type = GetRandomIdentifierType();
+         string token = GetRandomString(min: 8, max: 12);
+
+         string value = type switch
+         {
+            IdentifierType.Email => $"??{token}@test.te",
+            IdentifierType.PhoneNumber => $"+33 6 {GetRandomInt(10, 99)} {GetRandomInt(10, 99)} {GetRandomInt(10, 99)} {GetRandomInt(10, 99)}",
+            _ => token,
+         };
+
+         return new Identifier(type, value);
+      }
+
+      public static Identifier[] GetRandomIdentifierArray(int count = 0)
+      {
+         if (count == 0)
+         {
+            count = GetRandomInt(2, 5);
+         }
+
+         return [.. Enumerable.Range(0, count).Select(_ => GetRandomIdentifier())];
+      }
+
       public static string GetRandomString(int min = 16, int max = 0)
       {
          if (max == 0)
