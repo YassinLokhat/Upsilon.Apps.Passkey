@@ -12,7 +12,7 @@
         Title="{loc:Loc Title_InsertIdentifier}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="300" Width="400">
+        Height="300" Width="450">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -29,7 +29,8 @@
                  ToolTip="{loc:Loc Tooltip_Clear}"
                  Click="_clearFilter_Button_Click"/>
       </StackPanel>
-      <Grid Grid.Row="1">
+      <Grid Grid.Row="1"
+            Name="_identifierTypes_GB">
          <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>

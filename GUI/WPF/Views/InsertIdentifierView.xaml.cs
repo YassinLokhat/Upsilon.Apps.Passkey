@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -20,6 +21,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          InitializeComponent();
 
          DataContext = _viewModel = new(identifiers, identifier);
+
+         foreach (var c in _identifierTypes_GB.Children)
+         {
+            if (c is not Button b)
+            {
+               IdentifierType type = Enum.GetValues<IdentifierType>().FirstOrDefault(x => Enum.GetName(x) == $"{b.Tag}");
+               string glyph = IdentifierViewModel.TypeGlyphs[type];
+               b.Content = $"{glyph} {b.Content}";
+            }
+         }
+
          _identifiers_LB.ItemsSource = _viewModel.Identifiers;
          _identifier_TB.SelectAll();
          _ = _identifier_TB.Focus();
