@@ -12,7 +12,7 @@
         Title="{loc:Loc Title_InsertIdentifier}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="300" Width="450">
+        Height="300" Width="270">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -22,58 +22,31 @@
       <StackPanel Grid.Row="0"
                   Orientation="Horizontal">
          <TextBox Name="_identifier_TB"
-                  Width="330"
+                  Width="200"
                   Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   KeyUp="_identifier_TextBox_KeyUp"/>
          <Button Content="✕"
                  ToolTip="{loc:Loc Tooltip_Clear}"
                  Click="_clearFilter_Button_Click"/>
       </StackPanel>
-      <Grid Grid.Row="1"
-            Name="_identifierTypes_GB">
-         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-         </Grid.ColumnDefinitions>
-         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-         </Grid.RowDefinitions>
-         <Button Grid.Row="0"
-                 Grid.Column="0"
-                 Grid.ColumnSpan="2"
-                 Content="{loc:Loc IdentifierType_Username}"
+      <StackPanel Grid.Row="1"
+            Name="_identifierTypes_SP">
+         <RadioButton Content="{loc:Loc IdentifierType_Username}"
                  Tag="Username"
-                 Click="_insertIdentifierType_Button_Click"/>
-         <Button Grid.Row="0"
-                 Grid.Column="2"
-                 Grid.ColumnSpan="2"
-                 Content="{loc:Loc IdentifierType_Email}"
+                 Checked="_insertIdentifierType_RadioButton_Checked"/>
+         <RadioButton Content="{loc:Loc IdentifierType_Email}"
                  Tag="Email"
-                 Click="_insertIdentifierType_Button_Click"/>
-         <Button Grid.Row="0"
-                 Grid.Column="4"
-                 Grid.ColumnSpan="2"
-                 Content="{loc:Loc IdentifierType_Passkey}"
+                 Checked="_insertIdentifierType_RadioButton_Checked"/>
+         <RadioButton Content="{loc:Loc IdentifierType_Passkey}"
                  Tag="Passkey"
-                 Click="_insertIdentifierType_Button_Click"/>
-         <Button Grid.Row="1"
-                 Grid.Column="0"
-                 Grid.ColumnSpan="3"
-                 Content="{loc:Loc IdentifierType_PhoneNumber}"
+                 Checked="_insertIdentifierType_RadioButton_Checked"/>
+         <RadioButton Content="{loc:Loc IdentifierType_PhoneNumber}"
                  Tag="PhoneNumber"
-                 Click="_insertIdentifierType_Button_Click"/>
-         <Button Grid.Row="1"
-                 Grid.Column="3"
-                 Grid.ColumnSpan="3"
-                 Content="{loc:Loc IdentifierType_AuthenticatorApp}"
+                 Checked="_insertIdentifierType_RadioButton_Checked"/>
+         <RadioButton Content="{loc:Loc IdentifierType_AuthenticatorApp}"
                  Tag="AuthenticatorApp"
-                 Click="_insertIdentifierType_Button_Click"/>
-      </Grid>
+                 Checked="_insertIdentifierType_RadioButton_Checked"/>
+      </StackPanel>
       <ListBox Name="_identifiers_LB"
                Grid.Row="2"
                SelectionChanged="_identifiers_LB_SelectionChanged"/>

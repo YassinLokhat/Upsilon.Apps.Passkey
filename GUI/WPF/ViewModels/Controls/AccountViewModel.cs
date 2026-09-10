@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -179,13 +179,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                   .OfType<IAccountsAlert>()
                   .Any(x => x.Accounts.Contains(Account));
 
-      public static string[] IdentifierAutoCompleteList => AppServices.Session.User?.Services
+      public static IIdentifier[] IdentifierAutoCompleteList => AppServices.Session.User?.Services
          .SelectMany(x => x.Accounts)
          .SelectMany(x => x.Identifiers)
-         .Select(x => x.Value)
-         .Distinct()
-         .Where(x => !string.IsNullOrEmpty(x))
-         .OrderBy(x => x)
+         .Where(x => !string.IsNullOrEmpty(x.Value))
+         .OrderBy(x => x.Value)
          .ToArray() ?? [];
 
       public event PropertyChangedEventHandler? PropertyChanged;

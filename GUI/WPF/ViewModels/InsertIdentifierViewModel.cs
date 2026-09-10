@@ -6,56 +6,51 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class InsertIdentifierViewModel(IEnumerable<string> identifiers, string identifier) : INotifyPropertyChanged
+   internal sealed class InsertIdentifierViewModel : INotifyPropertyChanged
    {
-      private readonly IEnumerable<string> _identifiers = identifiers;
-      private IdentifierType _type = IdentifierTypeDetector.Detect(identifier);
-      private string _identifier = identifier;
+      private readonly IEnumerable<IIdentifier> _identifiers;
 
-      public readonly ObservableCollection<string> Identifiers = [.. identifiers.Where(x => x.StartsWith(identifier.Trim(), StringComparison.OrdinalIgnoreCase)),
-            .. identifiers.Where(x => x.Contains(identifier.Trim(), StringComparison.OrdinalIgnoreCase)
-               && !x.StartsWith(identifier.Trim(), StringComparison.OrdinalIgnoreCase))];
+      public readonly ObservableCollection<string> Identifiers = [];
 
       public IdentifierType Type
       {
-         get => _type;
+         get => field;
          set
          {
-            if (_type == value)
+            if (field == value)
             {
                return;
             }
 
-            _type = value;
+            field = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Type)));
+            _refreshIdentifiers();
          }
       }
 
       public string Identifier
       {
-         get => _identifier;
+         get => field;
          set
          {
             value ??= string.Empty;
 
-            if (_identifier == value)
+            if (field == value)
             {
                return;
             }
 
-            _identifier = value;
-
-            if (_type is IdentifierType.Username
-               or IdentifierType.Email
-               or IdentifierType.PhoneNumber)
-            {
-               _type = IdentifierTypeDetector.Detect(_identifier);
-               PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Type)));
-            }
-
+            field = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Identifier)));
             _refreshIdentifiers();
          }
+      }
+
+      public InsertIdentifierViewModel(IEnumerable<IIdentifier> identifiers, IIdentifier identifier)
+      {
+         _identifiers = identifiers;
+         Identifier = identifier.Value;
+         Type = identifier.Type;
       }
 
       public IIdentifier ToIdentifier() => new Identifier(Type, Identifier.Trim());
@@ -66,13 +61,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          Identifiers.Clear();
 
-         string[] matches = [.. _identifiers.Where(x => x.StartsWith(Identifier, StringComparison.OrdinalIgnoreCase)),
-            .. _identifiers.Where(x => x.Contains(Identifier, StringComparison.OrdinalIgnoreCase)
-               && !x.StartsWith(Identifier, StringComparison.OrdinalIgnoreCase))];
+         IIdentifier[] start = [.. _identifiers.Where(x => x.Type == Type && x.Value.StartsWith(Identifier, StringComparison.OrdinalIgnoreCase))];
 
-         foreach (string match in matches)
+         IIdentifier[] contains = [.. _identifiers.Where(x => x.Type == Type
+            && x.Value.Contains(Identifier, StringComparison.OrdinalIgnoreCase)
+            && !x.Value.StartsWith(Identifier, StringComparison.OrdinalIgnoreCase))];
+
+         IIdentifier[] matches = [.. start, .. contains];
+
+         foreach (IIdentifier match in matches)
          {
-            Identifiers.Add(match);
+            Identifiers.Add(match.Value);
          }
       }
    }

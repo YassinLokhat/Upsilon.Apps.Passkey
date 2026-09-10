@@ -8,13 +8,11 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class IdentifierTypeChoice(IdentifierType type, string glyph, string label)
+   internal sealed class IdentifierTypeChoice(IdentifierType type, string glyph)
    {
       public IdentifierType Type { get; } = type;
 
       public string Glyph { get; } = glyph;
-
-      public string Label { get; } = label;
 
       public string Display => Glyph;
    }
@@ -37,19 +35,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          { IdentifierType.AuthenticatorApp, "📲" },
       };
 
-      public static IReadOnlyList<IdentifierTypeChoice> CreateTypeChoices()
-         =>
-         [
-            new(IdentifierType.Username, TypeGlyphs[IdentifierType.Username], Strings.IdentifierType_Username),
-            new(IdentifierType.Email, TypeGlyphs[IdentifierType.Email], Strings.IdentifierType_Email),
-            new(IdentifierType.PhoneNumber, TypeGlyphs[IdentifierType.PhoneNumber], Strings.IdentifierType_PhoneNumber),
-            new(IdentifierType.Passkey, TypeGlyphs[IdentifierType.Passkey], Strings.IdentifierType_Passkey),
-            new(IdentifierType.AuthenticatorApp, TypeGlyphs[IdentifierType.AuthenticatorApp], Strings.IdentifierType_AuthenticatorApp),
-         ];
+      private static readonly IReadOnlyList<IdentifierTypeChoice> _typeChoices =
+      [
+         new(IdentifierType.Username, TypeGlyphs[IdentifierType.Username]),
+         new(IdentifierType.Email, TypeGlyphs[IdentifierType.Email]),
+         new(IdentifierType.PhoneNumber, TypeGlyphs[IdentifierType.PhoneNumber]),
+         new(IdentifierType.Passkey, TypeGlyphs[IdentifierType.Passkey]),
+         new(IdentifierType.AuthenticatorApp, TypeGlyphs[IdentifierType.AuthenticatorApp]),
+      ];
 
-      private IReadOnlyList<IdentifierTypeChoice> _typeChoices = CreateTypeChoices();
-
-      public IReadOnlyList<IdentifierTypeChoice> TypeChoices => _typeChoices;
+      public static IReadOnlyList<IdentifierTypeChoice> TypeChoices => _typeChoices;
 
       public Brush IdentifierBackground => _account.HasChanged("Identifiers") ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
 
@@ -72,8 +67,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string TypeGlyph => TypeGlyphs.TryGetValue(Type, out string? glyph) ? glyph : string.Empty;
 
-      public string TypeLabel
-         => _typeChoices.FirstOrDefault(x => x.Type == Type)?.Label ?? string.Empty;
+      public string TypeLabel => Type switch
+      {
+         IdentifierType.Username => Strings.IdentifierType_Username,
+         IdentifierType.Email => Strings.IdentifierType_Email,
+         IdentifierType.PhoneNumber => Strings.IdentifierType_PhoneNumber,
+         IdentifierType.Passkey => Strings.IdentifierType_Passkey,
+         IdentifierType.AuthenticatorApp => Strings.IdentifierType_AuthenticatorApp,
+         _ => string.Empty,
+      };
 
       /// <summary>
       /// Identifier value only (no type glyph).
@@ -134,8 +136,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void OnLanguageChanged()
       {
-         _typeChoices = CreateTypeChoices();
-         _onPropertyChanged(nameof(TypeChoices));
+         // TypeChoices is static (glyphs only); refresh the localized tooltip.
          _onPropertyChanged(nameof(TypeLabel));
       }
    }

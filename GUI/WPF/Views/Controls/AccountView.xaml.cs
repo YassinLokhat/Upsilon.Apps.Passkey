@@ -356,12 +356,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _identifier_TextBox_KeyUp(object sender, KeyEventArgs e)
       {
-         if (this.GetIsBusy())
-         {
-            return;
-         }
-
-         if (sender is not TextBox identifier_TB)
+         if (this.GetIsBusy()
+            || _identifiers_LB.SelectedItem is not IdentifierViewModel viewModel)
          {
             return;
          }
@@ -371,7 +367,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          {
             Interfaces.Models.IIdentifier? identifier = InsertIdentifierView.InsertIdentifierDialog(
                AccountViewModel.IdentifierAutoCompleteList ?? [],
-               identifier_TB.Text);
+               viewModel.ToIdentifier());
 
             if (identifier is null
                || string.IsNullOrEmpty(identifier.Value))
@@ -379,15 +375,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
                return;
             }
 
-            if (_identifiers_LB.SelectedItem is IdentifierViewModel viewModel)
-            {
-               viewModel.Type = identifier.Type;
-               viewModel.Identifier = identifier.Value;
-            }
-            else
-            {
-               identifier_TB.Text = identifier.Value;
-            }
+            viewModel.Type = identifier.Type;
+            viewModel.Identifier = identifier.Value;
          }
       }
    }

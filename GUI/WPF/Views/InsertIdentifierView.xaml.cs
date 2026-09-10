@@ -16,30 +16,32 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private readonly InsertIdentifierViewModel _viewModel;
       private IIdentifier? _selectedIdentifier;
 
-      private InsertIdentifierView(IEnumerable<string> identifiers, string identifier)
+      private InsertIdentifierView(IEnumerable<IIdentifier> identifiers, IIdentifier identifier)
       {
          InitializeComponent();
 
          DataContext = _viewModel = new(identifiers, identifier);
 
-         foreach (var c in _identifierTypes_GB.Children)
+         foreach (var child in _identifierTypes_SP.Children)
          {
-            if (c is not Button b)
+            if (child is RadioButton button)
             {
-               IdentifierType type = Enum.GetValues<IdentifierType>().FirstOrDefault(x => Enum.GetName(x) == $"{b.Tag}");
+               IdentifierType type = Enum.GetValues<IdentifierType>().FirstOrDefault(x => Enum.GetName(x) == $"{button.Tag}");
                string glyph = IdentifierViewModel.TypeGlyphs[type];
-               b.Content = $"{glyph} {b.Content}";
+               button.Content = $"{glyph} {button.Content}";
+               button.IsChecked = identifier.Type == type;
             }
          }
 
          _identifiers_LB.ItemsSource = _viewModel.Identifiers;
-         _identifier_TB.SelectAll();
+         _identifier_TB.SelectionStart = 0;
+         _identifier_TB.SelectionLength = _identifier_TB.Text.Length;
          _ = _identifier_TB.Focus();
 
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
-      internal static IIdentifier? InsertIdentifierDialog(IEnumerable<string> identifiers, string identifier)
+      internal static IIdentifier? InsertIdentifierDialog(IEnumerable<IIdentifier> identifiers, IIdentifier identifier)
       {
          InsertIdentifierView insertIdentifierView = new(identifiers, identifier);
 
@@ -86,9 +88,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          DialogResult = true;
       }
 
-      private void _insertIdentifierType_Button_Click(object sender, RoutedEventArgs e)
+      private void _insertIdentifierType_RadioButton_Checked(object sender, RoutedEventArgs e)
       {
-         string? idType = ((Button)sender).Tag as string;
+         string? idType = ((RadioButton)sender).Tag as string;
 
          if (idType is not null
             && Enum.TryParse(idType, ignoreCase: false, out IdentifierType type))
