@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Windows.Media;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -7,7 +8,18 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class IdentifierViewModel : INotifyPropertyChanged, IThemeAware
+   internal sealed class IdentifierTypeChoice(IdentifierType type, string glyph, string label)
+   {
+      public IdentifierType Type { get; } = type;
+
+      public string Glyph { get; } = glyph;
+
+      public string Label { get; } = label;
+
+      public string Display => Glyph;
+   }
+
+   internal sealed class IdentifierViewModel : INotifyPropertyChanged, IThemeAware, ILanguageAware
    {
       private readonly IAccount _account;
       private IdentifierType _type = IdentifierType.Username;
@@ -25,6 +37,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          { IdentifierType.AuthenticatorApp, "📲" },
       };
 
+      public static IReadOnlyList<IdentifierTypeChoice> CreateTypeChoices()
+         =>
+         [
+            new(IdentifierType.Username, TypeGlyphs[IdentifierType.Username], Strings.IdentifierType_Username),
+            new(IdentifierType.Email, TypeGlyphs[IdentifierType.Email], Strings.IdentifierType_Email),
+            new(IdentifierType.PhoneNumber, TypeGlyphs[IdentifierType.PhoneNumber], Strings.IdentifierType_PhoneNumber),
+            new(IdentifierType.Passkey, TypeGlyphs[IdentifierType.Passkey], Strings.IdentifierType_Passkey),
+            new(IdentifierType.AuthenticatorApp, TypeGlyphs[IdentifierType.AuthenticatorApp], Strings.IdentifierType_AuthenticatorApp),
+         ];
+
+      private IReadOnlyList<IdentifierTypeChoice> _typeChoices = CreateTypeChoices();
+
+      public IReadOnlyList<IdentifierTypeChoice> TypeChoices => _typeChoices;
+
       public Brush IdentifierBackground => _account.HasChanged("Identifiers") ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
 
       public IdentifierType Type
@@ -40,11 +66,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             _type = value;
             _onPropertyChanged(nameof(Type));
             _onPropertyChanged(nameof(TypeGlyph));
-            _onPropertyChanged(nameof(Identifier));
+            _onPropertyChanged(nameof(TypeLabel));
          }
       }
 
       public string TypeGlyph => TypeGlyphs.TryGetValue(Type, out string? glyph) ? glyph : string.Empty;
+
+      public string TypeLabel
+         => _typeChoices.FirstOrDefault(x => x.Type == Type)?.Label ?? string.Empty;
 
       /// <summary>
       /// Identifier value only (no type glyph).
@@ -67,9 +96,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                or IdentifierType.Email
                or IdentifierType.PhoneNumber)
             {
-               _type = IdentifierTypeDetector.Detect(_identifier);
-               _onPropertyChanged(nameof(Type));
-               _onPropertyChanged(nameof(TypeGlyph));
+               IdentifierType detected = IdentifierTypeDetector.Detect(_identifier);
+               if (_type != detected)
+               {
+                  _type = detected;
+                  _onPropertyChanged(nameof(Type));
+                  _onPropertyChanged(nameof(TypeGlyph));
+                  _onPropertyChanged(nameof(TypeLabel));
+               }
             }
 
             _onPropertyChanged(nameof(Identifier));
@@ -104,5 +138,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       }
 
       public void OnThemeChanged() => Refresh();
+
+      public void OnLanguageChanged()
+      {
+         _typeChoices = CreateTypeChoices();
+         _onPropertyChanged(nameof(TypeChoices));
+         _onPropertyChanged(nameof(TypeLabel));
+      }
    }
 }

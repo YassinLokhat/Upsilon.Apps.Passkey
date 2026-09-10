@@ -70,10 +70,15 @@
                      <ListBox.ItemTemplate>
                         <DataTemplate>
                            <DockPanel LastChildFill="True">
-                              <TextBlock DockPanel.Dock="Left"
-                                         Text="{Binding TypeGlyph}"
-                                         VerticalAlignment="Center"
-                                         Margin="0,0,4,0"/>
+                              <ComboBox DockPanel.Dock="Left"
+                                        MinWidth="44"
+                                        Margin="0,0,4,0"
+                                        VerticalAlignment="Center"
+                                        ItemsSource="{Binding TypeChoices}"
+                                        SelectedValue="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        SelectedValuePath="Type"
+                                        DisplayMemberPath="Display"
+                                        ToolTip="{Binding TypeLabel}"/>
                               <TextBox Background="{Binding IdentifierBackground}"
                                        Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                        KeyUp="_identifier_TextBox_KeyUp"/>

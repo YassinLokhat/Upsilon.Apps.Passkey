@@ -202,8 +202,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       }
 
       public void OnLanguageChanged()
-         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountId)));
+      {
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountId)));
 
+         foreach (IdentifierViewModel identifier in Identifiers)
+         {
+            identifier.OnLanguageChanged();
+         }
+      }
       public void OnThemeChanged()
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LabelBackground)));
@@ -232,7 +238,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       private void _identifierViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
       {
-         if (e.PropertyName != "Identifier")
+         if (e.PropertyName is not (nameof(IdentifierViewModel.Identifier) or nameof(IdentifierViewModel.Type)))
          {
             return;
          }
