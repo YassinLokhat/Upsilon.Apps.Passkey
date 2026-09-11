@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces;
@@ -89,7 +89,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          string exportFile = database.DatabaseFile.Replace(".pku", ".json");
 
-         if (database.ExportToFile(exportFile))
+         if (database.ExportToFile(exportFile) == ImportExportError.None)
          {
             database.Delete();
 

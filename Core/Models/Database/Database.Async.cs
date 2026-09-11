@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Models;
+﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
@@ -22,10 +23,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public Task SaveAsync(CancellationToken cancellationToken = default)
          => Task.Run(Save, cancellationToken);
 
-      public Task<bool> ImportFromFileAsync(string filePath, CancellationToken cancellationToken = default)
+      public Task<ImportExportError> ImportFromFileAsync(string filePath, CancellationToken cancellationToken = default)
          => Task.Run(() => ImportFromFile(filePath), cancellationToken);
 
-      public Task<bool> ExportToFileAsync(string filePath, CancellationToken cancellationToken = default)
+      public Task<ImportExportError> ExportToFileAsync(string filePath, CancellationToken cancellationToken = default)
          => Task.Run(() => ExportToFile(filePath), cancellationToken);
 
       /// <summary>

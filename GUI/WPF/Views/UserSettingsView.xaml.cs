@@ -10,6 +10,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
@@ -323,11 +324,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          try
          {
-            bool imported = await database.ImportFromFileAsync(dialog.FileName).ConfigureAwait(true);
+            ImportExportError imported = await database.ImportFromFileAsync(dialog.FileName).ConfigureAwait(true);
 
-            _ = imported
-               ? AppServices.Dialogs.Confirm(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess, MessageBoxButton.OK, MessageBoxImage.None)
-               : AppServices.Dialogs.Confirm(Strings.Msg_ImportFailed, Strings.Title_ImportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
+            if (imported == ImportExportError.None)
+            {
+               _ = AppServices.Dialogs.Confirm(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess, MessageBoxButton.OK, MessageBoxImage.None);
+            }
+            else
+            {
+               string reason = EnumDisplayHelper.FormatFieldValue(nameof(ImportExportError), imported.ToString());
+               _ = AppServices.Dialogs.Confirm($"{Strings.Msg_ImportFailed}\n{reason}", Strings.Title_ImportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
          }
          finally
          {
@@ -401,11 +408,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          try
          {
-            bool exported = await database.ExportToFileAsync(fileName).ConfigureAwait(true);
+            ImportExportError exported = await database.ExportToFileAsync(fileName).ConfigureAwait(true);
 
-            _ = exported
-               ? AppServices.Dialogs.Confirm(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess, MessageBoxButton.OK, MessageBoxImage.None)
-               : AppServices.Dialogs.Confirm(Strings.Msg_ExportFailed, Strings.Title_ExportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
+            if (exported == ImportExportError.None)
+            {
+               _ = AppServices.Dialogs.Confirm(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess, MessageBoxButton.OK, MessageBoxImage.None);
+            }
+            else
+            {
+               string reason = EnumDisplayHelper.FormatFieldValue(nameof(ImportExportError), exported.ToString());
+               _ = AppServices.Dialogs.Confirm($"{Strings.Msg_ExportFailed}\n{reason}", Strings.Title_ExportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
          }
          finally
          {

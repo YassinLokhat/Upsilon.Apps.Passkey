@@ -7,7 +7,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 {
    public sealed partial class Database
    {
-      public bool ImportFromFile(string filePath)
+      public ImportExportError ImportFromFile(string filePath)
       {
          if (User is null)
          {
@@ -87,10 +87,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
                needsReview: true);
          }
 
-         return errorLog == ImportExportError.None;
+         return errorLog;
       }
 
-      public bool ExportToFile(string filePath)
+      public ImportExportError ExportToFile(string filePath)
       {
          if (User is null)
          {
@@ -156,7 +156,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                needsReview: true);
          }
 
-         return errorLog == ImportExportError.None;
+         return errorLog;
       }
    }
 }

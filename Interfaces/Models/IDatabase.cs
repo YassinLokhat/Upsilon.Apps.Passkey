@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Events;
+﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Interfaces.Models
@@ -109,15 +110,17 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// <summary>
       /// Import from <c>.json</c> or <c>.csv</c> (comma- or tab-delimited). Requires a logged-in user.
       /// </summary>
-      bool ImportFromFile(string filePath);
+      /// <returns><see cref="ImportExportError.None"/> on success; otherwise the failure reason.</returns>
+      ImportExportError ImportFromFile(string filePath);
 
-      Task<bool> ImportFromFileAsync(string filePath, CancellationToken cancellationToken = default);
+      Task<ImportExportError> ImportFromFileAsync(string filePath, CancellationToken cancellationToken = default);
 
       /// <summary>
       /// Export to <c>.json</c> or <c>.csv</c>. Files are plaintext — see SECURITY.md.
       /// </summary>
-      bool ExportToFile(string filePath);
+      /// <returns><see cref="ImportExportError.None"/> on success; otherwise the failure reason.</returns>
+      ImportExportError ExportToFile(string filePath);
 
-      Task<bool> ExportToFileAsync(string filePath, CancellationToken cancellationToken = default);
+      Task<ImportExportError> ExportToFileAsync(string filePath, CancellationToken cancellationToken = default);
    }
 }

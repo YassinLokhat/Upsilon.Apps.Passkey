@@ -548,12 +548,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase source = UnitTestsHelper.CreateTestDatabase(passkeys);
 
          // When (import into the source database, then export it back to JSON)
-         source.ImportFromFile(importFile).Should().BeTrue();
-         source.ExportToFile(exportFile).Should().BeTrue();
+         source.ImportFromFile(importFile).Should().Be(ImportExportError.None);
+         source.ExportToFile(exportFile).Should().Be(ImportExportError.None);
 
          // Then (the exported file can be re-imported into a fresh database)
          IDatabase roundTripped = UnitTestsHelper.CreateTestDatabase(passkeys, roundTripUsername);
-         roundTripped.ImportFromFile(exportFile).Should().BeTrue();
+         roundTripped.ImportFromFile(exportFile).Should().Be(ImportExportError.None);
 
          // Then (both databases hold an equivalent set of services and accounts)
          _project(source).Should().BeEquivalentTo(_project(roundTripped));
@@ -581,8 +581,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
 
-         _ = (await database.ImportFromFileAsync(importFile)).Should().BeTrue();
-         _ = (await database.ExportToFileAsync(exportFile)).Should().BeTrue();
+         _ = (await database.ImportFromFileAsync(importFile)).Should().Be(ImportExportError.None);
+         _ = (await database.ExportToFileAsync(exportFile)).Should().Be(ImportExportError.None);
          _ = File.Exists(exportFile).Should().BeTrue();
 
          database.Close();
@@ -602,8 +602,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string importFile = UnitTestsHelper.GetTestFilePath("import.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
 
-         bool imported = database.ImportFromFile(importFile);
-         imported.Should().BeTrue();
+         ImportExportError imported = database.ImportFromFile(importFile);
+         imported.Should().Be(ImportExportError.None);
 
          foreach (IAccount account in database.User!.Services.SelectMany(s => s.Accounts))
          {
@@ -639,8 +639,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
 
-         bool imported = database.ImportFromFile(importFile);
-         imported.Should().BeTrue();
+         ImportExportError imported = database.ImportFromFile(importFile);
+         imported.Should().Be(ImportExportError.None);
 
          IAccount account = database.User!.Services.Single().Accounts.Single();
          account.Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids(phone));

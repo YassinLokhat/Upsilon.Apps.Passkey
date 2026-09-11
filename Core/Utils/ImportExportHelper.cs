@@ -172,8 +172,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private static ImportExportError _importServices(IDatabase database, List<Service> services)
       {
-         if (database.User is null
-            || services.Count == 0)
+         if (database.User is null)
+         {
+            throw new NullValueException(nameof(database.User));
+         }
+
+         if (services.Count == 0)
          {
             return ImportExportError.None;
          }
@@ -213,7 +217,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          if (database.User is null)
          {
-            return ImportExportError.None;
+            throw new NullValueException(nameof(database.User));
          }
 
          StringBuilder sb = new(string.Join("\t", Enum.GetNames<Headers>()) + "\n");
@@ -249,7 +253,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          if (database.User is null)
          {
-            return ImportExportError.None;
+            throw new NullValueException(nameof(database.User));
          }
 
          ImportExportData data = new()
