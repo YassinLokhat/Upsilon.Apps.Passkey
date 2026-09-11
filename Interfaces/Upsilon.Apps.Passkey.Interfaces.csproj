@@ -8,10 +8,17 @@
     <FileVersion>2.0.0</FileVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn />
+  </PropertyGroup>
+
   <!-- Zero-dependency: fail the build if any PackageReference appears. See CONTRIBUTING.md. -->
   <Target Name="EnforceZeroExternalDependencies" BeforeTargets="Build;Pack">
-    <Error Condition="'@(PackageReference)' != ''"
-           Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(PackageReference))." />
+    <Error Condition="'@(PackageReference)' != ''" Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(PackageReference))." />
   </Target>
 
 </Project>
