@@ -13,11 +13,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       public void Case01_Generate_ReturnsSquareMatrix()
       {
          // Given / When
-         bool[,] matrix = QrCode.Generate("https://github.com/YassinLokhat/Upsilon.Apps.Passkey");
+         bool[][] matrix = QrCode.Generate("https://github.com/YassinLokhat/Upsilon.Apps.Passkey");
 
          // Then
-         _ = matrix.GetLength(0).Should().BeGreaterThan(0);
-         _ = matrix.GetLength(0).Should().Be(matrix.GetLength(1));
+         _ = matrix.Length.Should().BeGreaterThan(0);
+         _ = matrix.Length.Should().Be(matrix[0].Length);
       }
 
       [TestMethod]
@@ -29,12 +29,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       {
          // Given / When
          QrCode qrCode = new("Some data to encode", ErrorCorrection.M);
+         bool[][] matrix = qrCode.GetQRCodeMatrix();
 
          // Then
          _ = qrCode.QRCodeVersion.Should().BeInRange(1, 40);
          _ = qrCode.QRCodeDimension.Should().Be(17 + (4 * qrCode.QRCodeVersion));
-         _ = qrCode.QRCodeMatrix.GetLength(0).Should().Be(qrCode.QRCodeDimension);
-         _ = qrCode.QRCodeMatrix.GetLength(1).Should().Be(qrCode.QRCodeDimension);
+         _ = matrix.Length.Should().Be(qrCode.QRCodeDimension);
+         _ = matrix[0].Length.Should().Be(qrCode.QRCodeDimension);
       }
 
       [TestMethod]
@@ -46,11 +47,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       {
          // Given / When
          QrCode qrCode = new("finder pattern check", ErrorCorrection.H);
+         bool[][] matrix = qrCode.GetQRCodeMatrix();
 
          // Then
-         _ = qrCode.QRCodeMatrix[0, 0].Should().BeTrue();
-         _ = qrCode.QRCodeMatrix[0, 6].Should().BeTrue();
-         _ = qrCode.QRCodeMatrix[0, 7].Should().BeFalse();
+         _ = matrix[0][0].Should().BeTrue();
+         _ = matrix[0][6].Should().BeTrue();
+         _ = matrix[0][7].Should().BeFalse();
       }
 
       [TestMethod]
@@ -126,17 +128,17 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          const string data = "deterministic payload 12345";
 
          // When
-         bool[,] first = QrCode.Generate(data, ErrorCorrection.Q);
-         bool[,] second = QrCode.Generate(data, ErrorCorrection.Q);
+         bool[][] first = QrCode.Generate(data, ErrorCorrection.Q);
+         bool[][] second = QrCode.Generate(data, ErrorCorrection.Q);
 
          // Then
-         _ = first.GetLength(0).Should().Be(second.GetLength(0));
+         _ = first.Length.Should().Be(second.Length);
 
-         for (int row = 0; row < first.GetLength(0); row++)
+         for (int row = 0; row < first.Length; row++)
          {
-            for (int col = 0; col < first.GetLength(1); col++)
+            for (int col = 0; col < first[row].Length; col++)
             {
-               _ = first[row, col].Should().Be(second[row, col]);
+               _ = first[row][col].Should().Be(second[row][col]);
             }
          }
       }
@@ -163,15 +165,15 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       */
       public void Case10_EncodingModes_ProduceValidMatrices()
       {
-         bool[,] numeric = QrCode.Generate("12345678901234567890", ErrorCorrection.L);
-         bool[,] alphanumeric = QrCode.Generate("HELLO WORLD 123", ErrorCorrection.M);
-         bool[,] binary = new QrCode(Enumerable.Range(0, 64).Select(i => (byte)i).ToArray(), ErrorCorrection.Q).QRCodeMatrix;
-         bool[,] high = QrCode.Generate(new string('Q', 400), ErrorCorrection.L);
+         bool[][] numeric = QrCode.Generate("12345678901234567890", ErrorCorrection.L);
+         bool[][] alphanumeric = QrCode.Generate("HELLO WORLD 123", ErrorCorrection.M);
+         bool[][] binary = new QrCode(Enumerable.Range(0, 64).Select(i => (byte)i).ToArray(), ErrorCorrection.Q).GetQRCodeMatrix();
+         bool[][] high = QrCode.Generate(new string('Q', 400), ErrorCorrection.L);
 
-         _ = numeric.GetLength(0).Should().Be(numeric.GetLength(1));
-         _ = alphanumeric.GetLength(0).Should().Be(alphanumeric.GetLength(1));
-         _ = binary.GetLength(0).Should().Be(binary.GetLength(1));
-         _ = high.GetLength(0).Should().BeGreaterThan(numeric.GetLength(0));
+         _ = numeric.Length.Should().Be(numeric[0].Length);
+         _ = alphanumeric.Length.Should().Be(alphanumeric[0].Length);
+         _ = binary.Length.Should().Be(binary[0].Length);
+         _ = high.Length.Should().BeGreaterThan(numeric.Length);
       }
    }
 }
