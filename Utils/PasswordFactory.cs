@@ -160,9 +160,10 @@ namespace Upsilon.Apps.Passkey.Utils
                return bloom.Value;
             }
          }
-         catch (OperationCanceledException ex)
+         // Sync path has no caller token; unexpected cancellation must not look like "not leaked".
+         catch (OperationCanceledException)
          {
-            return _failOpen(ex);
+            throw;
          }
 
          return _failOpen(null);
