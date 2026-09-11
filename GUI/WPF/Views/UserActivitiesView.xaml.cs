@@ -1,7 +1,6 @@
 ﻿using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
@@ -41,16 +40,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             .Select(x => x.ToReadableString())
             .ToArray();
          _eventType_CB.SelectedItem = selected.ToReadableString();
-      }
-
-      private void _viewItemButton_Click(object sender, RoutedEventArgs e)
-      {
-         AppServices.Navigation.RequestItem(ViewModel.Activities[_activities_DGV.SelectedIndex].Activity.ItemId);
-      }
-
-      private void _copyButton_Click(object sender, RoutedEventArgs e)
-      {
-         AppServices.Clipboard.SetText(ViewModel.Activities[_activities_DGV.SelectedIndex].Message);
       }
    }
 }

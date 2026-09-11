@@ -1,4 +1,4 @@
-﻿namespace Upsilon.Apps.Passkey.Interfaces.Enums
+namespace Upsilon.Apps.Passkey.Interfaces.Enums
 {
    /// <summary>
    /// Activity-log event kinds. Numeric values are a persistence contract
@@ -24,10 +24,10 @@
       UserLoggedIn,
       UserLoggedOut,
       ImportingDataStarted,
-      ImportingDataSucceded,
+      ImportingDataSucceeded,
       ImportingDataFailed,
       ExportingDataStarted,
-      ExportingDataSucceded,
+      ExportingDataSucceeded,
       ExportingDataFailed,
       ItemUpdated,
       ItemAdded,

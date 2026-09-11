@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using System.IO;
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
 
@@ -73,6 +74,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       public void Warn(string text, string title)
          => _ = Confirm(text, title, MessageBoxButton.OK, MessageBoxImage.Warning);
 
+      public void Error(string text, string title)
+         => _ = Confirm(text, title, MessageBoxButton.OK, MessageBoxImage.Error);
+
       public string? PickBrowseFolder(string title, string defaultPath)
       {
          OpenFolderDialog dialog = new()
@@ -95,7 +99,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          return (dialog.ShowDialog() ?? false) ? dialog.FileName : null;
       }
 
-      public string? PickSaveFile(string filter, string title, string? defaultFileName = null)
+      public string? PickSaveFile(string filter, string title, string? defaultFileName = null, string? initialDirectory = null)
       {
          SaveFileDialog dialog = new()
          {
@@ -103,6 +107,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
             Filter = filter,
             FileName = defaultFileName ?? string.Empty,
          };
+
+         if (!string.IsNullOrWhiteSpace(initialDirectory) && Directory.Exists(initialDirectory))
+         {
+            dialog.InitialDirectory = initialDirectory;
+         }
 
          return (dialog.ShowDialog() ?? false) ? dialog.FileName : null;
       }

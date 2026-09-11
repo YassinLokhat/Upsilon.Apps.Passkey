@@ -1,25 +1,46 @@
-using System.ComponentModel;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class PasskeyQualityAlertViewModel : INotifyPropertyChanged, ILanguageAware, IDisposable
+   internal sealed class PasskeyQualityAlertViewModel : ObservableObject, ILanguageAware, IDisposable
    {
       public string Title
       {
          get;
-         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         private set => SetProperty(ref field, value);
       } = Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppInfo.Title);
 
-      public PasskeyQualityIssueItemViewModel[] Issues { get; private set; }
+      public IssueItemViewModel[] Issues
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      }
 
-      public event PropertyChangedEventHandler? PropertyChanged;
+      public ICommand OpenUserSettingsCommand { get; }
+      public ICommand OpenAppSettingsCommand { get; }
+      public ICommand OkCommand { get; }
+
+      public event EventHandler? CloseRequested;
 
       public PasskeyQualityAlertViewModel()
       {
+         OpenUserSettingsCommand = new RelayCommand(() =>
+         {
+            UserSettingsView.ShowUserSettings();
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+         });
+         OpenAppSettingsCommand = new RelayCommand(() =>
+         {
+            AppSettingsView.ShowAppSettings();
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+         });
+         OkCommand = new RelayCommand(() => CloseRequested?.Invoke(this, EventArgs.Empty));
+
          AppServices.Session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
          Issues = _loadIssues();
       }
@@ -30,24 +51,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public void Dispose()
       {
          AppServices.Session.Alerts.NotifiedAlertsChanged -= _alerts_NotifiedAlertsChanged;
+         CloseRequested = null;
       }
 
       private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
-         => _reloadIssues(alsoTitle: false);
+         => UiThread.Post(() => _reloadIssues(alsoTitle: false));
 
       private void _reloadIssues(bool alsoTitle)
       {
          Issues = _loadIssues();
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Issues)));
          if (alsoTitle)
          {
             Title = Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppInfo.Title);
          }
       }
 
-      private static PasskeyQualityIssueItemViewModel[] _loadIssues()
+      private static IssueItemViewModel[] _loadIssues()
       {
-         List<PasskeyQualityIssueItemViewModel> items = [];
+         List<IssueItemViewModel> items = [];
 
          foreach (IInsufficientPasskeysAlert warning in AppServices.Session.Alerts
             .GetNotifiedAlerts(AlertKinds.InsufficientPasskeys)
@@ -80,11 +101,5 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          return [.. items];
       }
-   }
-
-   internal sealed class PasskeyQualityIssueItemViewModel(string title, string description)
-   {
-      public string Title { get; } = title;
-      public string Description { get; } = description;
    }
 }

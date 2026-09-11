@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -53,7 +53,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       public event EventHandler? PasswordChanged;
       public event EventHandler? Validated;
-      public event EventHandler? Aborded;
+      public event EventHandler? Aborted;
 
       public VisiblePasswordBox()
       {
@@ -126,7 +126,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
                // Clear the edit buffer, then let the host restore the committed value.
                Clear();
-               Aborded?.Invoke(this, EventArgs.Empty);
+               Aborted?.Invoke(this, EventArgs.Empty);
                break;
          }
       }

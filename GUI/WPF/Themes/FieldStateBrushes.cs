@@ -1,9 +1,12 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Media;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
 {
-   internal static class DarkMode
+   /// <summary>
+   /// Theme-synced brushes for field edit state (unchanged vs dirty), for light and dark appearances.
+   /// </summary>
+   internal static class FieldStateBrushes
    {
       /// <summary>Background brush used for the main window/panel surfaces.</summary>
       public static Brush UnchangedBrush1 { get; private set; } = _freeze(Color.FromRgb(0x1E, 0x1E, 0x1E));

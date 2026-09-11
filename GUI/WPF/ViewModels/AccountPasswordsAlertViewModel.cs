@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -9,12 +8,12 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class AccountPasswordsAlertViewModel : INotifyPropertyChanged, ILanguageAware
+   internal sealed class AccountPasswordsAlertViewModel : ObservableObject, ILanguageAware
    {
       public string Title
       {
          get;
-         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         private set => SetProperty(ref field, value);
       } = Strings.Format(nameof(Strings.Title_AccountPasswordsAlerts), AppInfo.Title);
 
       public string ReadableAlertKind
@@ -28,10 +27,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _onPropertyChanged(nameof(ReadableAlertKind));
+               OnPropertyChanged(nameof(ReadableAlertKind));
                RefreshFilters();
             }
          }
@@ -42,10 +40,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _onPropertyChanged(nameof(Text));
                RefreshFilters();
             }
          }
@@ -54,13 +50,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public ObservableCollection<AccountPasswordAlertViewModel> Alerts { get; set; } = [];
 
       public ICommand ClearFiltersCommand { get; }
-
-      public event PropertyChangedEventHandler? PropertyChanged;
-
-      private void _onPropertyChanged(string propertyName)
-      {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-      }
 
       public AccountPasswordsAlertViewModel()
       {
@@ -71,7 +60,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public void OnLanguageChanged()
       {
          Title = Strings.Format(nameof(Strings.Title_AccountPasswordsAlerts), AppInfo.Title);
-         _onPropertyChanged(nameof(ReadableAlertKind));
+         OnPropertyChanged(nameof(ReadableAlertKind));
          RefreshFilters();
       }
 

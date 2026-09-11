@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+﻿using System.Windows.Input;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -7,7 +7,7 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class UserPasswordItemViewModel : INotifyPropertyChanged, IThemeAware, IDisposable
+   internal sealed class UserPasswordItemViewModel : ObservableObject, IThemeAware, IDisposable
    {
       private bool _disposed;
 
@@ -16,15 +16,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          get;
          set
          {
-            if (field == value)
+            if (SetProperty(ref field, value))
             {
-               return;
+               OnPropertyChanged(nameof(PasskeyLeaked));
+               OnPropertyChanged(nameof(PasswordBackground));
             }
-
-            field = value;
-            _onPropertyChanged(nameof(Index));
-            _onPropertyChanged(nameof(PasskeyLeaked));
-            _onPropertyChanged(nameof(PasswordBackground));
          }
       }
 
@@ -47,15 +43,25 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public Brush PasswordBackground
          => SecretFieldBrushes.Background(isDirty: false, isNotifiedLeak: PasskeyLeaked);
 
-      public event PropertyChangedEventHandler? PropertyChanged;
+      public ICommand UpCommand { get; }
+      public ICommand DownCommand { get; }
+      public ICommand DeleteCommand { get; }
+
+      public event EventHandler? UpRequested;
+      public event EventHandler? DownRequested;
+      public event EventHandler? DeleteRequested;
 
       public UserPasswordItemViewModel()
       {
+         UpCommand = new RelayCommand(() => UpRequested?.Invoke(this, EventArgs.Empty));
+         DownCommand = new RelayCommand(() => DownRequested?.Invoke(this, EventArgs.Empty));
+         DeleteCommand = new RelayCommand(() => DeleteRequested?.Invoke(this, EventArgs.Empty));
+
          AppServices.Session.Alerts.NotifiedAlertsChanged += _onAlertsChanged;
       }
 
       public void OnThemeChanged()
-         => _onPropertyChanged(nameof(PasswordBackground));
+         => OnPropertyChanged(nameof(PasswordBackground));
 
       public void Dispose()
       {
@@ -66,16 +72,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
          _disposed = true;
          AppServices.Session.Alerts.NotifiedAlertsChanged -= _onAlertsChanged;
+         UpRequested = null;
+         DownRequested = null;
+         DeleteRequested = null;
       }
 
       private void _onAlertsChanged(object? sender, EventArgs e)
          => UiThread.Post(() =>
          {
-            _onPropertyChanged(nameof(PasskeyLeaked));
-            _onPropertyChanged(nameof(PasswordBackground));
+            OnPropertyChanged(nameof(PasskeyLeaked));
+            OnPropertyChanged(nameof(PasswordBackground));
          });
-
-      private void _onPropertyChanged(string propertyName)
-         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
    }
 }

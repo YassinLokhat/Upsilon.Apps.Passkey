@@ -2,6 +2,8 @@
 
 The Windows desktop app lives in `GUI/WPF`. It is MVVM with a small service locator (`AppServices`) instead of a DI container, so ViewModels stay unit-testable. The project currently has no NuGet packages either; keep it that way unless a Windows-only capability cannot be done with the BCL.
 
+**MVVM conventions:** ViewModels inherit `ObservableObject` (`SetProperty` / `OnPropertyChanged`) and expose `RelayCommand` for user actions. Prefer `{Binding}` / `ItemsSource="{Binding …}"` over code-behind assignments. Keep code-behind for focus, list selection, and secret lifecycle (`VisiblePasswordBox`, `SetDataContext`). Marshal worker-thread callbacks with `UiThread.Post` / `UiThread.Send`. Busy UI uses bindable `IsBusy` on shells (e.g. `MainViewModel`) plus `WindowHelper.SetIsBusy` wait-cursor for modal save/import flows. Field dirty/unchanged brushes live in `FieldStateBrushes` (synced from the active theme).
+
 Target framework: `net10.0-windows10.0.18362.0`. Light and dark WPF resource dictionaries, with Windows immersive title bars matching the active appearance.
 
 ## Localization
@@ -82,7 +84,7 @@ While logged in, **User settings** offers **Import** (`.json` or `.csv`) and **E
 
 ## Dialogs
 
-Confirmations and alerts use `ThemedMessageBoxView` (via `DialogService.Confirm`) — a themed in-app window that follows application light/dark resources, not `System.Windows.MessageBox.Show`.
+All window / message / file picks go through `IDialogService` (`AppServices.Dialogs`): `ShowDialog`, `ShowSingleton`, `PickOpenFile` / `PickSaveFile`, and `Confirm` / `Info` / `Warn` / `Error`. Thin static `Show*` helpers on views may remain as wrappers that call `Dialogs.ShowDialog`. Themed prompts use `ThemedMessageBoxView` — not `System.Windows.MessageBox.Show`. Shared issue lists (passkey quality / security settings) use `IssuesAlertView` with a parameterized footer.
 
 ## Vault files and logs
 

@@ -41,7 +41,7 @@ Payloads never include the secret plaintext — only indexes / issue flags / rel
 
 ## How clients consume alerts
 
-Core raises **per-kind** events (`ActivityReviewAlertsChanged`, …) with unfiltered snapshots, plus `CoreAlertsScanCompleted`. Prefer `IDatabase.CoreAlerts` for the latest Core map.
+Core raises `CoreAlertsChanged` once per kind with an unfiltered snapshot (`AlertsChangedEventArgs.Kind` / `Alerts`), plus `CoreAlertsScanCompleted`. Prefer `IDatabase.CoreAlerts` for the latest Core map.
 
 The WPF `AlertBroker` also publishes host alerts and applies `AlertsToNotify`. Menu colors come from `IAlert.Severity` (`AlertBroker.BrushFor`), not hard-coded kinds. When `AlertsToNotify` is empty, the WPF client shows a **MessageBox**.
 
@@ -71,7 +71,7 @@ Numeric values are a **persistence contract** and must stay stable. Mapping from
 | ----- | ------ |
 | Autosave merge | `MergeAndSaveThenRemoveAutoSaveFile`, `MergeWithoutSavingAndKeepAutoSaveFile`, `DontMergeAndRemoveAutoSaveFile`, `DontMergeAndKeepAutoSaveFile` |
 | Session | `DatabaseCreated`, `DatabaseOpened`, `DatabaseSaved`, `DatabaseClosed`, `LoginSessionTimeoutReached`, `LoginFailed`, `UserLoggedIn`, `UserLoggedOut` |
-| Import / export | `ImportingDataStarted`, `ImportingDataSucceded`, `ImportingDataFailed`, `ExportingDataStarted`, `ExportingDataSucceded`, `ExportingDataFailed` |
+| Import / export | `ImportingDataStarted`, `ImportingDataSucceeded`, `ImportingDataFailed`, `ExportingDataStarted`, `ExportingDataSucceeded`, `ExportingDataFailed` |
 | Items | `ItemUpdated`, `ItemAdded`, `ItemDeleted` |
 | Integrity | `ActivityLogTampered` |
 

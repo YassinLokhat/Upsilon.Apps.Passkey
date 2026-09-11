@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -22,7 +23,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          DataContext = _viewModel = new(identifiers, identifier);
 
-         foreach (var child in _identifierTypes_SP.Children)
+         foreach (object? child in _identifierTypes_SP.Children)
          {
             if (child is RadioButton button)
             {
@@ -44,9 +45,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       internal static IIdentifier? InsertIdentifierDialog(IEnumerable<IIdentifier> identifiers, IIdentifier identifier)
       {
          InsertIdentifierView insertIdentifierView = new(identifiers, identifier);
-
-         _ = insertIdentifierView.ShowDialog();
-
+         _ = AppServices.Dialogs.ShowDialog(insertIdentifierView);
          return insertIdentifierView._selectedIdentifier;
       }
 

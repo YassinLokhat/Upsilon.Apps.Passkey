@@ -46,13 +46,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          base.OnClosed(e);
       }
 
-      public static void ShowAppSettings(Window owner)
+      public static void ShowAppSettings(Window? owner = null)
       {
-         _ = new AppSettingsView
-         {
-            Owner = owner,
-         }
-         .ShowDialog();
+         _ = AppServices.Dialogs.ShowDialog(new AppSettingsView());
       }
 
       private void _unsubscribeUpdateService()

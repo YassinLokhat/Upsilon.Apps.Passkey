@@ -90,12 +90,12 @@ namespace Upsilon.Apps.Passkey.Interfaces.Utils
 
       public NullValueException() { }
 
-      public NullValueException(string message) : base($"Value named '{message}'is null.")
+      public NullValueException(string message) : base($"Value named '{message}' is null.")
       {
          Name = message;
       }
 
-      public NullValueException(string message, Exception innerException) : base($"Value named '{message}'is null.", innerException)
+      public NullValueException(string message, Exception innerException) : base($"Value named '{message}' is null.", innerException)
       {
          Name = message;
       }

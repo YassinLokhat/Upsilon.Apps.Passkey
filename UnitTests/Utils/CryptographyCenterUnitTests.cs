@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using System.Diagnostics;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
@@ -19,7 +19,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          Stopwatch _stopwatch = Stopwatch.StartNew();
 
          // When
-         _ = UnitTestsHelper.CryptographicCenter.GetSlowHash(string.Empty, UnitTestsHelper.CryptographicCenter.DefaultSlowHashParameters);
+         _ = UnitTestsHelper.CryptographyCenter.GetSlowHash(string.Empty, UnitTestsHelper.CryptographyCenter.DefaultSlowHashParameters);
          _stopwatch.Stop();
 
          // Then
@@ -38,13 +38,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          {
             // Given
             string source = UnitTestsHelper.GetRandomString();
-            KdfParameters firstParameters = UnitTestsHelper.CryptographicCenter.DefaultSlowHashParameters;
-            KdfParameters secondParameters = UnitTestsHelper.CryptographicCenter.DefaultSlowHashParameters;
+            KdfParameters firstParameters = UnitTestsHelper.CryptographyCenter.DefaultSlowHashParameters;
+            KdfParameters secondParameters = UnitTestsHelper.CryptographyCenter.DefaultSlowHashParameters;
 
             // When
-            string firstHash = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, firstParameters);
-            string firstHashAgain = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, firstParameters);
-            string secondHash = UnitTestsHelper.CryptographicCenter.GetSlowHash(source, secondParameters);
+            string firstHash = UnitTestsHelper.CryptographyCenter.GetSlowHash(source, firstParameters);
+            string firstHashAgain = UnitTestsHelper.CryptographyCenter.GetSlowHash(source, firstParameters);
+            string secondHash = UnitTestsHelper.CryptographyCenter.GetSlowHash(source, secondParameters);
 
             // Then
             _ = firstParameters.Salt.Should().NotBe(secondParameters.Salt);
@@ -65,10 +65,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             string source = UnitTestsHelper.GetRandomString();
 
             // When
-            string hash = UnitTestsHelper.CryptographicCenter.GetHash(source);
+            string hash = UnitTestsHelper.CryptographyCenter.GetHash(source);
 
             // Then
-            _ = hash.Length.Should().Be(UnitTestsHelper.CryptographicCenter.HashLength);
+            _ = hash.Length.Should().Be(UnitTestsHelper.CryptographyCenter.HashLength);
          }
       }
 
@@ -86,8 +86,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             string[] passkeys = UnitTestsHelper.GetRandomStringArray();
 
             // When
-            string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptSymmetrically(source, passkeys);
-            string decryptedSource = UnitTestsHelper.CryptographicCenter.DecryptSymmetrically(encryptedSource, passkeys);
+            string encryptedSource = UnitTestsHelper.CryptographyCenter.EncryptSymmetrically(source, passkeys);
+            string decryptedSource = UnitTestsHelper.CryptographyCenter.DecryptSymmetrically(encryptedSource, passkeys);
 
             // Then
             _ = decryptedSource.Should().Be(source);
@@ -105,7 +105,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             // Given
             string source = UnitTestsHelper.GetRandomString();
             string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-            string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptSymmetrically(source, passkeys);
+            string encryptedSource = UnitTestsHelper.CryptographyCenter.EncryptSymmetrically(source, passkeys);
             // Appending a character breaks the Base64 alignment of the
             // outermost layer (a lone space would be ignored by the decoder).
             string corruptedSource = encryptedSource + "A";
@@ -116,7 +116,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             {
                try
                {
-                  string decryptedSource = UnitTestsHelper.CryptographicCenter.DecryptSymmetrically(corruptedSource, passkeys);
+                  string decryptedSource = UnitTestsHelper.CryptographyCenter.DecryptSymmetrically(corruptedSource, passkeys);
                }
                catch (CorruptedSourceException ex)
                {
@@ -142,7 +142,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             // Given
             string source = UnitTestsHelper.GetRandomString();
             string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-            string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptSymmetrically(source, passkeys);
+            string encryptedSource = UnitTestsHelper.CryptographyCenter.EncryptSymmetrically(source, passkeys);
             int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
             passkeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
             WrongPasswordException exception = null;
@@ -152,7 +152,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             {
                try
                {
-                  string decryptedSource = UnitTestsHelper.CryptographicCenter.DecryptSymmetrically(encryptedSource, passkeys);
+                  string decryptedSource = UnitTestsHelper.CryptographyCenter.DecryptSymmetrically(encryptedSource, passkeys);
                }
                catch (WrongPasswordException ex)
                {
@@ -179,11 +179,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          {
             // Given
             string source = UnitTestsHelper.GetRandomString(150);
-            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
+            UnitTestsHelper.CryptographyCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
 
             // When
-            string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptAsymmetrically(source, publicKey);
-            string decryptedSource = UnitTestsHelper.CryptographicCenter.DecryptAsymmetrically(encryptedSource, privateKey);
+            string encryptedSource = UnitTestsHelper.CryptographyCenter.EncryptAsymmetrically(source, publicKey);
+            string decryptedSource = UnitTestsHelper.CryptographyCenter.DecryptAsymmetrically(encryptedSource, privateKey);
 
             // Then
             _ = decryptedSource.Should().Be(source);
@@ -200,8 +200,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          {
             // Given
             string source = UnitTestsHelper.GetRandomString(150);
-            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
-            string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptAsymmetrically(source, publicKey);
+            UnitTestsHelper.CryptographyCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
+            string encryptedSource = UnitTestsHelper.CryptographyCenter.EncryptAsymmetrically(source, publicKey);
             // Appending a character makes the JSON envelope invalid (a lone
             // space would be ignored by the JSON reader).
             string corruptedSource = encryptedSource + "A";
@@ -212,7 +212,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             {
                try
                {
-                  string decryptedSource = UnitTestsHelper.CryptographicCenter.DecryptAsymmetrically(corruptedSource, privateKey);
+                  string decryptedSource = UnitTestsHelper.CryptographyCenter.DecryptAsymmetrically(corruptedSource, privateKey);
                }
                catch (CorruptedSourceException ex)
                {
@@ -237,9 +237,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          {
             // Given
             string source = UnitTestsHelper.GetRandomString(150);
-            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
-            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string wrongPublicKey, out string wrongPrivateKey);
-            string encryptedSource = UnitTestsHelper.CryptographicCenter.EncryptAsymmetrically(source, publicKey);
+            UnitTestsHelper.CryptographyCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
+            UnitTestsHelper.CryptographyCenter.GenerateRandomKeys(out string wrongPublicKey, out string wrongPrivateKey);
+            string encryptedSource = UnitTestsHelper.CryptographyCenter.EncryptAsymmetrically(source, publicKey);
             WrongPasswordException exception = null;
 
             // When
@@ -247,7 +247,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             {
                try
                {
-                  string decryptedSource = UnitTestsHelper.CryptographicCenter.DecryptAsymmetrically(encryptedSource, wrongPrivateKey);
+                  string decryptedSource = UnitTestsHelper.CryptographyCenter.DecryptAsymmetrically(encryptedSource, wrongPrivateKey);
                }
                catch (WrongPasswordException ex)
                {
@@ -272,10 +272,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          for (int i = 0; i < UnitTestsHelper.RANDOMIZED_TESTS_LOOP; i++)
          {
             // Given
-            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
+            UnitTestsHelper.CryptographyCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
 
             // When
-            string derivedPublicKey = UnitTestsHelper.CryptographicCenter.GetPublicKey(privateKey);
+            string derivedPublicKey = UnitTestsHelper.CryptographyCenter.GetPublicKey(privateKey);
 
             // Then
             _ = derivedPublicKey.Should().Be(publicKey);
@@ -293,17 +293,17 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          {
             // Given
             string source = UnitTestsHelper.GetRandomString(150);
-            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
-            UnitTestsHelper.CryptographicCenter.GenerateRandomKeys(out string wrongPublicKey, out _);
+            UnitTestsHelper.CryptographyCenter.GenerateRandomKeys(out string publicKey, out string privateKey);
+            UnitTestsHelper.CryptographyCenter.GenerateRandomKeys(out string wrongPublicKey, out _);
 
             // When
-            string signature = UnitTestsHelper.CryptographicCenter.Sign(source, privateKey);
+            string signature = UnitTestsHelper.CryptographyCenter.Sign(source, privateKey);
 
             // Then
-            _ = UnitTestsHelper.CryptographicCenter.Verify(source, signature, publicKey).Should().BeTrue();
-            _ = UnitTestsHelper.CryptographicCenter.Verify(source + "X", signature, publicKey).Should().BeFalse();
-            _ = UnitTestsHelper.CryptographicCenter.Verify(source, signature, wrongPublicKey).Should().BeFalse();
-            _ = UnitTestsHelper.CryptographicCenter.Verify(source, "not-a-signature", publicKey).Should().BeFalse();
+            _ = UnitTestsHelper.CryptographyCenter.Verify(source, signature, publicKey).Should().BeTrue();
+            _ = UnitTestsHelper.CryptographyCenter.Verify(source + "X", signature, publicKey).Should().BeFalse();
+            _ = UnitTestsHelper.CryptographyCenter.Verify(source, signature, wrongPublicKey).Should().BeFalse();
+            _ = UnitTestsHelper.CryptographyCenter.Verify(source, "not-a-signature", publicKey).Should().BeFalse();
          }
       }
 
@@ -314,7 +314,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       */
       public void Case12_SlowHashKdfFloor()
       {
-         ICryptographyCenter crypto = UnitTestsHelper.CryptographicCenter;
+         ICryptographyCenter crypto = UnitTestsHelper.CryptographyCenter;
          KdfParameters defaults = crypto.DefaultSlowHashParameters;
 
          Action ensureDefaults = () => crypto.EnsureSufficientSlowHashParameters(defaults);

@@ -22,17 +22,17 @@ namespace Upsilon.Apps.Passkey.UnitTests
    {
       public static readonly int RANDOMIZED_TESTS_LOOP = 10;
 
-      public static readonly ICryptographyCenter CryptographicCenter = new CryptographyCenter();
+      public static readonly ICryptographyCenter CryptographyCenter = new CryptographyCenter();
       public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
       public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
       /// <summary>No network — use for vault create/open so alert scans stay fast.</summary>
       public static readonly IPasswordFactory FastPasswordFactory = new FakePasswordFactory();
-      public static readonly IClipboardManager ClipboardManager = new ClipboardManager();
+      public static readonly IClipboardManager ClipboardManager = new FakeClipboardManager();
       public static readonly ISecretMemoryProtector SecretMemoryProtector = new SecretMemoryProtector();
 
       public static string ComputeTestDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";
-      public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"{ComputeTestDirectory(username)}/{CryptographicCenter.GetHash(username)}";
-      public static string ComputeDatabaseFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographicCenter.GetHash(username)}.pku";
+      public static string ComputeDatabaseFileDirectory([CallerMemberName] string username = "") => $"{ComputeTestDirectory(username)}/{CryptographyCenter.GetHash(username)}";
+      public static string ComputeDatabaseFilePath([CallerMemberName] string username = "") => $"{ComputeDatabaseFileDirectory(username)}/{CryptographyCenter.GetHash(username)}.pku";
 
       public static string ReadFileZipEntry(string zipFile, string fileEntry)
       {
@@ -89,7 +89,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
       // the stored public key no longer matches it: a key substitution.
       public static void TamperActivityLogPublicKey(string databaseFile)
       {
-         CryptographicCenter.GenerateRandomKeys(out string attackerPublicKey, out _);
+         CryptographyCenter.GenerateRandomKeys(out string attackerPublicKey, out _);
 
          JsonNode node = _readActivityNode(databaseFile);
          node["PublicKey"] = attackerPublicKey;
@@ -185,7 +185,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          passkeys ??= GetRandomStringArray();
 
-         IDatabase database = Database.Create(CryptographicCenter,
+         IDatabase database = Database.Create(CryptographyCenter,
             SerializationCenter,
             FastPasswordFactory,
             ClipboardManager,
@@ -203,7 +203,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          TaskCompletionSource<IAlert[]> scanDone = new();
 
-         IDatabase database = Database.Open(CryptographicCenter,
+         IDatabase database = Database.Open(CryptographyCenter,
             SerializationCenter,
             FastPasswordFactory,
             ClipboardManager,
@@ -360,7 +360,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
       }
 
       /// <summary>
-      /// Subscribes to the kind-specific Core alert event and
+      /// Subscribes to <see cref="IDatabase.CoreAlertsChanged"/> and
       /// <see cref="IDatabase.CoreAlertsScanCompleted"/>, then runs
       /// <paramref name="trigger"/> (typically <see cref="IDatabase.Save"/>) and
       /// waits until an alert of <paramref name="kind"/> is reported.
@@ -395,8 +395,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
             }
          }
 
-         EventHandler<AlertsChangedEventArgs>? kindSubscription = KindHandler;
-         _subscribeKindChanged(database, kind, kindSubscription);
+         database.CoreAlertsChanged += KindHandler;
          database.CoreAlertsScanCompleted += ScanCompleted;
 
          try
@@ -415,7 +414,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          }
          finally
          {
-            _unsubscribeKindChanged(database, kind, kindSubscription);
+            database.CoreAlertsChanged -= KindHandler;
             database.CoreAlertsScanCompleted -= ScanCompleted;
          }
       }
@@ -452,80 +451,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
          }
       }
 
-      private static void _subscribeKindChanged(IDatabase database, string kind, EventHandler<AlertsChangedEventArgs> handler)
-      {
-         switch (kind)
-         {
-            case AlertKinds.ActivityReview:
-               database.ActivityReviewAlertsChanged += handler;
-               break;
-            case AlertKinds.PasswordUpdateReminder:
-               database.PasswordUpdateReminderAlertsChanged += handler;
-               break;
-            case AlertKinds.DuplicatedPasswords:
-               database.DuplicatedPasswordsAlertsChanged += handler;
-               break;
-            case AlertKinds.PasswordLeaked:
-               database.PasswordLeakedAlertsChanged += handler;
-               break;
-            case AlertKinds.VaultSecuritySettings:
-               database.VaultSecuritySettingsAlertsChanged += handler;
-               break;
-            case AlertKinds.InsufficientPasskeys:
-               database.InsufficientPasskeysAlertsChanged += handler;
-               break;
-            case AlertKinds.WeakPasskey:
-               database.WeakPasskeyAlertsChanged += handler;
-               break;
-            case AlertKinds.PasskeyLeaked:
-               database.PasskeyLeakedAlertsChanged += handler;
-               break;
-            case AlertKinds.WeakAccountPassword:
-               database.WeakAccountPasswordAlertsChanged += handler;
-               break;
-            case AlertKinds.PasskeyReusedAsAccountPassword:
-               database.PasskeyReuseAlertsChanged += handler;
-               break;
-         }
-      }
-
-      private static void _unsubscribeKindChanged(IDatabase database, string kind, EventHandler<AlertsChangedEventArgs> handler)
-      {
-         switch (kind)
-         {
-            case AlertKinds.ActivityReview:
-               database.ActivityReviewAlertsChanged -= handler;
-               break;
-            case AlertKinds.PasswordUpdateReminder:
-               database.PasswordUpdateReminderAlertsChanged -= handler;
-               break;
-            case AlertKinds.DuplicatedPasswords:
-               database.DuplicatedPasswordsAlertsChanged -= handler;
-               break;
-            case AlertKinds.PasswordLeaked:
-               database.PasswordLeakedAlertsChanged -= handler;
-               break;
-            case AlertKinds.VaultSecuritySettings:
-               database.VaultSecuritySettingsAlertsChanged -= handler;
-               break;
-            case AlertKinds.InsufficientPasskeys:
-               database.InsufficientPasskeysAlertsChanged -= handler;
-               break;
-            case AlertKinds.WeakPasskey:
-               database.WeakPasskeyAlertsChanged -= handler;
-               break;
-            case AlertKinds.PasskeyLeaked:
-               database.PasskeyLeakedAlertsChanged -= handler;
-               break;
-            case AlertKinds.WeakAccountPassword:
-               database.WeakAccountPasswordAlertsChanged -= handler;
-               break;
-            case AlertKinds.PasskeyReusedAsAccountPassword:
-               database.PasskeyReuseAlertsChanged -= handler;
-               break;
-         }
-      }
-
       public static void LastActivitiesShouldMatch(IDatabase database, string[] expectedActivities)
       {
          string[] actualActivities = database.Activities
@@ -549,7 +474,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          => FormatActivityLine(true, Strings.Format(nameof(Strings.Activity_ImportingDataStarted), filePath));
 
       public static string FormatImportSucceeded()
-         => FormatActivityLine(true, Strings.Activity_ImportingDataSucceded);
+         => FormatActivityLine(true, Strings.Activity_ImportingDataSucceeded);
 
       public static string FormatImportFailed(ImportExportError error)
       {
@@ -561,7 +486,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          => FormatActivityLine(true, Strings.Format(nameof(Strings.Activity_ExportingDataStarted), filePath));
 
       public static string FormatExportSucceeded()
-         => FormatActivityLine(true, Strings.Activity_ExportingDataSucceded);
+         => FormatActivityLine(true, Strings.Activity_ExportingDataSucceeded);
 
       public static string FormatExportFailed(ImportExportError error)
       {
@@ -569,21 +494,21 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return FormatActivityLine(true, Strings.Format(nameof(Strings.Activity_ExportingDataFailed), reason));
       }
 
+      public static string FormatDatabaseSaved(string username)
+         => FormatActivityLine(false, Strings.Format(nameof(Strings.Activity_DatabaseSaved), username));
+
       public static void LastActivityAlertsShouldMatch(IDatabase database, string[] expectedActivities)
       {
-         DateTime deadline = DateTime.UtcNow + TimeSpan.FromSeconds(15);
          IActivityReviewAlert? activityAlert = null;
-
-         while (DateTime.UtcNow < deadline)
+         if (database.CoreAlerts.TryGetValue(AlertKinds.ActivityReview, out IReadOnlyList<IAlert>? existing)
+            && existing.OfType<IActivityReviewAlert>().FirstOrDefault() is { } current)
          {
-            if (database.CoreAlerts.TryGetValue(AlertKinds.ActivityReview, out IReadOnlyList<IAlert>? list)
-               && list.OfType<IActivityReviewAlert>().FirstOrDefault() is { } found)
-            {
-               activityAlert = found;
-               break;
-            }
-
-            Thread.Sleep(200);
+            activityAlert = current;
+         }
+         else
+         {
+            IAlert[] alerts = WaitForAlertKind(database, AlertKinds.ActivityReview, database.RefreshAlerts);
+            activityAlert = alerts.OfType<IActivityReviewAlert>().FirstOrDefault();
          }
 
          _ = activityAlert.Should().NotBeNull("ActivityReview alerts should be available");

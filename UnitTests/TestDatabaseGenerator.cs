@@ -89,7 +89,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
 
          string exportFile = database.DatabaseFile.Replace(".pku", ".json");
 
-         if (database.ExportToFile(exportFile))
+         if (database.ExportToFile(exportFile) == ImportExportError.None)
          {
             database.Delete();
 

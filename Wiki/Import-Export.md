@@ -83,11 +83,11 @@ Two rows with the same `ServiceName` become two accounts on one service, in file
 ## API usage
 
 ```csharp
-bool imported = await database.ImportFromFileAsync(@"C:\temp\migration.json");
-bool exported = await database.ExportToFileAsync(@"C:\temp\backup.csv");
+ImportExportError imported = await database.ImportFromFileAsync(@"C:\temp\migration.json");
+ImportExportError exported = await database.ExportToFileAsync(@"C:\temp\backup.csv");
 ```
 
-Both return `false` on failure (missing file, destination already exists on export, bad extension, empty data, duplicate service name, malformed cells, and so on). Failures append `ImportingDataFailed` / `ExportingDataFailed` activities with `FieldName = ImportExportError`, `FieldValue = <enum member name>`, and `NeedsReview = true`. Localization happens in the WPF client — see [[Alerts and Activity]].
+Both return `ImportExportError.None` on success. Any other value is the failure reason (missing file, destination already exists on export, bad extension, empty data, duplicate service name, malformed cells, and so on). Failures also append `ImportingDataFailed` / `ExportingDataFailed` activities with `FieldName = ImportExportError`, `FieldValue = <enum member name>`, and `NeedsReview = true`. Localization happens in the WPF client — see [[Alerts and Activity]].
 
 ### Persistence side effects
 
@@ -110,7 +110,7 @@ Core records failures as `ImportingDataFailed` / `ExportingDataFailed` activitie
 | Situation | `ImportExportError` | English reason (`EnumValue_ImportExportError_*`) |
 | --------- | ------------------- | ------------------------------------------------ |
 | File missing | `ImportFileNotAccessible` | import file is not accessible |
-| Extension `.txt` (or anything but `.json` / `.csv`) | `ExtentionFileNotSupported` | file extension type is not supported |
+| Extension `.txt` (or anything but `.json` / `.csv`) | `ExtensionFileNotSupported` | file extension type is not supported |
 | Headers only / no rows | `NoDataToImport` | no data to import |
 | Service name already in the vault | `ServiceAlreadyExists` | a service already exists |
 | Blank service name | `BlankService` | a service is blank |

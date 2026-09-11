@@ -1,4 +1,3 @@
-﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -6,7 +5,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class VisiblePasswordBoxViewModel : INotifyPropertyChanged
+   internal sealed class VisiblePasswordBoxViewModel : ObservableObject
    {
       /// <summary>
       /// Plaintext shown in the reveal <c>TextBox</c> only while the eye button
@@ -16,40 +15,38 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public string RevealText
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = string.Empty;
 
       public Visibility PasswordVisibility
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = Visibility.Visible;
 
       public Visibility TextVisibility
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = Visibility.Collapsed;
 
       public Visibility ButtonVisibility
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = Visibility.Visible;
 
       public bool IsEnabled
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = true;
 
       public Brush Background
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
-      } = DarkMode.UnchangedBrush2;
-
-      public event PropertyChangedEventHandler? PropertyChanged;
+         set => SetProperty(ref field, value);
+      } = FieldStateBrushes.UnchangedBrush2;
 
       public void ShowPassword()
       {

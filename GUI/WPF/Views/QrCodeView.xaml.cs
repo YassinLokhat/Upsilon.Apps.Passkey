@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -48,15 +49,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          DialogResult = true;
       }
 
-      public static void ShowQrCode(Window owner, string qrCode, int delay)
+      public static void ShowQrCode(Window? owner, string qrCode, int delay)
       {
          if (!string.IsNullOrEmpty(qrCode))
          {
-            _ = new QrCodeView(qrCode, delay)
-            {
-               Owner = owner
-            }
-            .ShowDialog();
+            _ = AppServices.Dialogs.ShowDialog(new QrCodeView(qrCode, delay));
          }
       }
 

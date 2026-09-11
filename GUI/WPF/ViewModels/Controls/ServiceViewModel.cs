@@ -1,17 +1,21 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class ServiceViewModel : INotifyPropertyChanged, IThemeAware
+   internal sealed class ServiceViewModel : ObservableObject, IThemeAware
    {
       public readonly IService Service;
 
@@ -21,7 +25,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string ServiceId => Strings.Format(nameof(Strings.Msg_ServiceId), Service.ItemId);
 
-      public Brush ServiceNameBackground => Service.HasChanged(nameof(ServiceName)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public AccountViewModel? SelectedAccount
+      {
+         get;
+         set => SetProperty(ref field, value);
+      }
+
+      public ICommand AddAccountCommand { get; }
+      public ICommand DeleteAccountCommand { get; }
+      public ICommand OpenUrlCommand { get; }
+      public ICommand ViewActivitiesCommand { get; }
+
+      public Brush ServiceNameBackground => Service.HasChanged(nameof(ServiceName)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string ServiceName
       {
          get => Service.ServiceName;
@@ -30,12 +45,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Service.ServiceName != value)
             {
                Service.ServiceName = value;
-               _onPropertyChanged(nameof(ServiceName));
+               _notify(nameof(ServiceName));
             }
          }
       }
 
-      public Brush UrlBackground => Service.HasChanged(nameof(Url)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush UrlBackground => Service.HasChanged(nameof(Url)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string Url
       {
          get => Service.Url?.OriginalString ?? string.Empty;
@@ -44,12 +59,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Service.Url?.OriginalString != value)
             {
                Service.Url = new(value);
-               _onPropertyChanged(nameof(Url));
+               _notify(nameof(Url));
             }
          }
       }
 
-      public Brush NotesBackground => Service.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush NotesBackground => Service.HasChanged(nameof(Notes)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string Notes
       {
          get => Service.Notes;
@@ -58,31 +73,34 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Service.Notes != value)
             {
                Service.Notes = value;
-               _onPropertyChanged(nameof(Notes));
+               _notify(nameof(Notes));
             }
          }
       }
 
       public readonly ObservableCollection<AccountViewModel> Accounts = [];
 
-      public event PropertyChangedEventHandler? PropertyChanged;
-
-      private void _onPropertyChanged(string propertyName)
+      private void _notify(string propertyName)
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplay)));
+         OnPropertyChanged(propertyName);
+         OnPropertyChanged($"{propertyName}Background");
+         OnPropertyChanged(nameof(ServiceDisplay));
       }
 
       public ServiceViewModel(IService service)
       {
          Service = service;
          _syncAccountViewModels();
+
+         AddAccountCommand = new RelayCommand(_addAccount);
+         DeleteAccountCommand = new RelayCommand(_deleteAccount);
+         OpenUrlCommand = new RelayCommand(_openUrl);
+         ViewActivitiesCommand = new RelayCommand(_viewActivities);
       }
 
       public void OnLanguageChanged()
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceId)));
+         OnPropertyChanged(nameof(ServiceId));
          foreach (AccountViewModel account in _accountViewModelsById.Values)
          {
             account.OnLanguageChanged();
@@ -91,9 +109,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void OnThemeChanged()
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceNameBackground)));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UrlBackground)));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NotesBackground)));
+         OnPropertyChanged(nameof(ServiceNameBackground));
+         OnPropertyChanged(nameof(UrlBackground));
+         OnPropertyChanged(nameof(NotesBackground));
 
          foreach (AccountViewModel account in _accountViewModelsById.Values)
          {
@@ -109,12 +127,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          IAccount[] toShow = matching.Length != 0 ? matching : [.. Service.Accounts];
          HashSet<string> visibleIds = [.. toShow.Select(x => x.ItemId)];
 
+         string? selectedId = SelectedAccount?.Account.ItemId;
+
          Accounts.Clear();
 
          foreach (IAccount account in Service.Accounts.Where(x => visibleIds.Contains(x.ItemId)))
          {
             Accounts.Add(_accountViewModelsById[account.ItemId]);
          }
+
+         SelectedAccount = selectedId is not null
+            ? Accounts.FirstOrDefault(x => x.Account.ItemId == selectedId) ?? Accounts.FirstOrDefault()
+            : Accounts.FirstOrDefault();
       }
 
       public AccountViewModel AddAccount()
@@ -138,7 +162,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                Accounts.Insert(0, accountViewModel);
             }
 
-            _onPropertyChanged(string.Empty);
+            _notify(string.Empty);
             AppServices.Session.Database?.RefreshAlerts();
          }
 
@@ -157,7 +181,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          Service.DeleteAccount(accountViewModel.Account);
          _removeAccountViewModel(accountViewModel);
 
-         _onPropertyChanged(string.Empty);
+         _notify(string.Empty);
          AppServices.Session.Database?.RefreshAlerts();
 
          return index < Accounts.Count ? index : Accounts.Count - 1;
@@ -194,7 +218,57 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       private void _accountViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
       {
-         _onPropertyChanged(string.Empty);
+         _notify(string.Empty);
+      }
+
+      private void _addAccount()
+         => SelectedAccount = AddAccount();
+
+      private void _deleteAccount()
+      {
+         if (SelectedAccount is not { } accountViewModel
+            || AppServices.Dialogs.Confirm(
+               Strings.Format(nameof(Strings.Msg_DeleteAccount), accountViewModel.AccountDisplay),
+               Strings.Title_DeleteAccount) != MessageBoxResult.Yes)
+         {
+            return;
+         }
+
+         int index = DeleteAccount(accountViewModel);
+         SelectedAccount = index >= 0 && index < Accounts.Count ? Accounts[index] : null;
+      }
+
+      private void _openUrl()
+      {
+         if (string.IsNullOrWhiteSpace(Url))
+         {
+            return;
+         }
+
+         using Process process = new()
+         {
+            StartInfo = new ProcessStartInfo(Url)
+            {
+               UseShellExecute = true,
+            },
+         };
+
+         _ = process.Start();
+      }
+
+      private void _viewActivities()
+      {
+         string itemId = Service.ItemId;
+
+         _ = AppServices.Dialogs.ShowSingleton(
+            factory: () =>
+            {
+               UserActivitiesView view = new(needsReviewFilter: false);
+               view.ViewModel.ClearFilters();
+               view.ViewModel.SearchCriteria = itemId;
+               return view;
+            },
+            configure: view => view.ViewModel.SearchCriteria = itemId);
       }
 
       public override string ToString() => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service}";

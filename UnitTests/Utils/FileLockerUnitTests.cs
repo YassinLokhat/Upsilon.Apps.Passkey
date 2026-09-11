@@ -200,7 +200,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       }
 
       private static FileLocker _createLocker(string path, FileMode mode) =>
-         new(UnitTestsHelper.CryptographicCenter, UnitTestsHelper.SerializationCenter, path, mode);
+         new(UnitTestsHelper.CryptographyCenter, UnitTestsHelper.SerializationCenter, path, mode);
 
       private static string _preparePath([System.Runtime.CompilerServices.CallerMemberName] string name = "")
       {

@@ -5,7 +5,7 @@ using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Models
 {
-   internal class AppSettings
+   internal sealed class AppSettings
    {
       public string DefaultDatabaseDirectory { get; set; } = Path.GetFullPath(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "raw"));
 

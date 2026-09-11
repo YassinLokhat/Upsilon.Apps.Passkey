@@ -160,9 +160,11 @@ namespace Upsilon.Apps.Passkey.Utils
                return bloom.Value;
             }
          }
+         // Sync path has no caller token; unexpected cancellation must not look
+         // like "not leaked" and must not crash the caller — fail closed.
          catch (OperationCanceledException ex)
          {
-            return _failOpen(ex);
+            return _failClosed(ex);
          }
 
          return _failOpen(null);
@@ -461,6 +463,13 @@ namespace Upsilon.Apps.Passkey.Utils
          }
 
          return false;
+      }
+
+      private static bool _failClosed(Exception exception)
+      {
+         System.Diagnostics.Trace.TraceWarning(
+            $"Password leak check failed closed (treated as leaked): {exception}");
+         return true;
       }
 
       /// <summary>

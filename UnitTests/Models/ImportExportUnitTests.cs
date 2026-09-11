@@ -8,7 +8,7 @@ using Upsilon.Apps.Passkey.UnitTests;
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
    [TestClass]
-   public class ImportExportUnitTests
+   public sealed class ImportExportUnitTests
    {
       [TestMethod]
       public void Case01_Import_MissingFile()
@@ -33,13 +33,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
 
       [TestMethod]
-      public void Case02_Import_WrongExtention()
+      public void Case02_Import_WrongExtension()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
@@ -54,14 +54,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.ImportFromFile(importFile);
 
          expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
-         expectedActivities.Push(UnitTestsHelper.FormatImportFailed(ImportExportError.ExtentionFileNotSupported));
+         expectedActivities.Push(UnitTestsHelper.FormatImportFailed(ImportExportError.ExtensionFileNotSupported));
 
          // Then
          database.User.Services.Should().BeEmpty();
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -89,7 +89,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -110,7 +110,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ImportFromFile(importFile);
 
-         expectedActivities.Push($"Information : User '{username}'s database saved");
+         expectedActivities.Push(UnitTestsHelper.FormatDatabaseSaved(username));
          expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
          expectedActivities.Push(UnitTestsHelper.FormatImportFailed(ImportExportError.ServiceAlreadyExists));
 
@@ -120,20 +120,20 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
 
       [TestMethod]
-      public void Case05_ImportBlanckService()
+      public void Case05_ImportBlankService()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string importFile = UnitTestsHelper.GetTestFilePath($"import_blanckService.csv");
+         string importFile = UnitTestsHelper.GetTestFilePath($"import_blankService.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedActivities = new();
 
@@ -148,7 +148,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -204,7 +204,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to '3'");
 
          expectedActivities.Push(UnitTestsHelper.FormatImportSucceeded());
-         expectedActivities.Push($"Information : User '{username}'s database saved");
+         expectedActivities.Push(UnitTestsHelper.FormatDatabaseSaved(username));
 
          // Then
          database.User.Services.Count().Should().Be(2);
@@ -259,7 +259,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -272,7 +272,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string importFile = UnitTestsHelper.GetTestFilePath($"import_MissingHearder.csv");
+         string importFile = UnitTestsHelper.GetTestFilePath($"import_MissingHeader.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedActivities = new();
 
@@ -287,20 +287,20 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
 
       [TestMethod]
-      public void Case08_ImportCSV_MissingCollumn()
+      public void Case08_ImportCSV_MissingColumn()
       {
          // Given
          UnitTestsHelper.ClearTestEnvironment();
 
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
-         string importFile = UnitTestsHelper.GetTestFilePath($"import_MissingCollumn.csv");
+         string importFile = UnitTestsHelper.GetTestFilePath($"import_MissingColumn.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          Stack<string> expectedActivities = new();
 
@@ -315,7 +315,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -370,7 +370,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to '3'");
 
          expectedActivities.Push(UnitTestsHelper.FormatImportSucceeded());
-         expectedActivities.Push($"Information : User '{username}'s database saved");
+         expectedActivities.Push(UnitTestsHelper.FormatDatabaseSaved(username));
 
          // Then
          database.User.Settings.LogoutTimeout.Should().Be(9);
@@ -429,7 +429,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -457,7 +457,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -480,7 +480,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ExportToFile(exportFile);
 
-         expectedActivities.Push($"Information : User '{username}'s database saved");
+         expectedActivities.Push(UnitTestsHelper.FormatDatabaseSaved(username));
          expectedActivities.Push(UnitTestsHelper.FormatExportStarted(exportFile));
          expectedActivities.Push(UnitTestsHelper.FormatExportFailed(ImportExportError.ExportFileAlreadyExists));
 
@@ -489,7 +489,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -512,16 +512,16 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ExportToFile(exportFile);
 
-         expectedActivities.Push($"Information : User '{username}'s database saved");
+         expectedActivities.Push(UnitTestsHelper.FormatDatabaseSaved(username));
          expectedActivities.Push(UnitTestsHelper.FormatExportStarted(exportFile));
-         expectedActivities.Push(UnitTestsHelper.FormatExportFailed(ImportExportError.ExtentionFileNotSupported));
+         expectedActivities.Push(UnitTestsHelper.FormatExportFailed(ImportExportError.ExtensionFileNotSupported));
 
          // Then
          File.Exists(exportFile).Should().BeFalse();
 
          UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -548,17 +548,17 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase source = UnitTestsHelper.CreateTestDatabase(passkeys);
 
          // When (import into the source database, then export it back to JSON)
-         source.ImportFromFile(importFile).Should().BeTrue();
-         source.ExportToFile(exportFile).Should().BeTrue();
+         source.ImportFromFile(importFile).Should().Be(ImportExportError.None);
+         source.ExportToFile(exportFile).Should().Be(ImportExportError.None);
 
          // Then (the exported file can be re-imported into a fresh database)
          IDatabase roundTripped = UnitTestsHelper.CreateTestDatabase(passkeys, roundTripUsername);
-         roundTripped.ImportFromFile(exportFile).Should().BeTrue();
+         roundTripped.ImportFromFile(exportFile).Should().Be(ImportExportError.None);
 
          // Then (both databases hold an equivalent set of services and accounts)
          _project(source).Should().BeEquivalentTo(_project(roundTripped));
 
-         // Finaly
+         // Finally
          source.Close();
          roundTripped.Close();
          UnitTestsHelper.ClearTestEnvironment();
@@ -581,8 +581,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
 
-         _ = (await database.ImportFromFileAsync(importFile)).Should().BeTrue();
-         _ = (await database.ExportToFileAsync(exportFile)).Should().BeTrue();
+         _ = (await database.ImportFromFileAsync(importFile)).Should().Be(ImportExportError.None);
+         _ = (await database.ExportToFileAsync(exportFile)).Should().Be(ImportExportError.None);
          _ = File.Exists(exportFile).Should().BeTrue();
 
          database.Close();
@@ -602,8 +602,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string importFile = UnitTestsHelper.GetTestFilePath("import.csv");
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
 
-         bool imported = database.ImportFromFile(importFile);
-         imported.Should().BeTrue();
+         ImportExportError imported = database.ImportFromFile(importFile);
+         _ = imported.Should().Be(ImportExportError.None);
 
          foreach (IAccount account in database.User!.Services.SelectMany(s => s.Accounts))
          {
@@ -626,7 +626,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       /*
        * CSV import detects phone-looking values as PhoneNumber via IdentifierTypeDetector.
       */
-      public void Case15_ImportCSV_DetectsPhoneNumber()
+      public void Case16_ImportCSV_DetectsPhoneNumber()
       {
          UnitTestsHelper.ClearTestEnvironment();
 
@@ -639,8 +639,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
 
-         bool imported = database.ImportFromFile(importFile);
-         imported.Should().BeTrue();
+         ImportExportError imported = database.ImportFromFile(importFile);
+         _ = imported.Should().Be(ImportExportError.None);
 
          IAccount account = database.User!.Services.Single().Accounts.Single();
          account.Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids(phone));

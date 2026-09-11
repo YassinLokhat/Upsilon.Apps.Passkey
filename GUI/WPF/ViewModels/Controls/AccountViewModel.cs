@@ -1,17 +1,20 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Input;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.GUI.WPF.Utils;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class AccountViewModel : INotifyPropertyChanged, IThemeAware, IDisposable
+   internal sealed class AccountViewModel : ObservableObject, IThemeAware, IDisposable
    {
       public readonly IAccount Account;
       private bool _disposed;
@@ -20,6 +23,28 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       {
          Account = account;
          AppServices.Session.Alerts.NotifiedAlertsChanged += _onAlertsChanged;
+
+         AddIdentifierCommand = new RelayCommand(_addIdentifier);
+         MoveIdentifierUpCommand = new RelayCommand(_moveIdentifierUp);
+         MoveIdentifierDownCommand = new RelayCommand(_moveIdentifierDown);
+         DeleteIdentifierCommand = new RelayCommand(_deleteIdentifier);
+         CopyIdentifierCommand = new RelayCommand(_copyIdentifier);
+         ShowQrCodeIdentifierCommand = new RelayCommand(_showQrCodeIdentifier);
+         ViewActivitiesCommand = new RelayCommand(_viewActivities);
+      }
+
+      public ICommand AddIdentifierCommand { get; }
+      public ICommand MoveIdentifierUpCommand { get; }
+      public ICommand MoveIdentifierDownCommand { get; }
+      public ICommand DeleteIdentifierCommand { get; }
+      public ICommand CopyIdentifierCommand { get; }
+      public ICommand ShowQrCodeIdentifierCommand { get; }
+      public ICommand ViewActivitiesCommand { get; }
+
+      public IdentifierViewModel? SelectedIdentifier
+      {
+         get;
+         set => SetProperty(ref field, value);
       }
 
       public string AccountDisplay
@@ -33,7 +58,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string AccountId => Strings.Format(nameof(Strings.Msg_AccountId), Account.ItemId);
 
-      public Brush LabelBackground => Account.HasChanged(nameof(Label)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush LabelBackground => Account.HasChanged(nameof(Label)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string Label
       {
          get => Account.Label;
@@ -42,7 +67,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Account.Label != value)
             {
                Account.Label = value;
-               _onPropertyChanged(nameof(Label));
+               _notify(nameof(Label));
             }
          }
       }
@@ -62,7 +87,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Account.Password != value)
             {
                Account.Password = value;
-               _onPropertyChanged(nameof(Password));
+               _notify(nameof(Password));
             }
          }
       }
@@ -85,7 +110,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public Brush NotesBackground => Account.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush NotesBackground => Account.HasChanged(nameof(Notes)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string Notes
       {
          get => Account.Notes;
@@ -94,7 +119,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Account.Notes != value)
             {
                Account.Notes = value;
-               _onPropertyChanged(nameof(Notes));
+               _notify(nameof(Notes));
             }
          }
       }
@@ -108,8 +133,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             {
                Account.PasswordUpdateReminderDelay = value;
 
-               _onPropertyChanged(nameof(RemindPasswordUpdateDelay));
-               _onPropertyChanged(nameof(RemindPasswordUpdate));
+               OnPropertyChanged(nameof(RemindPasswordUpdateDelay));
+               OnPropertyChanged(nameof(RemindPasswordUpdate));
                AppServices.Session.Database?.RefreshAlerts();
             }
          }
@@ -123,7 +148,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (RemindPasswordUpdate != value)
             {
                RemindPasswordUpdateDelay = value ? 2 : 0;
-               _onPropertyChanged(nameof(RemindPasswordUpdate));
+               OnPropertyChanged(nameof(RemindPasswordUpdate));
             }
          }
       }
@@ -144,7 +169,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                   Account.Options &= ~AccountOption.WarnIfPasswordLeaked;
                }
 
-               _onPropertyChanged(nameof(WarnPasswordLeak));
+               OnPropertyChanged(nameof(WarnPasswordLeak));
                AppServices.Session.Database?.RefreshAlerts();
             }
          }
@@ -166,7 +191,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                   Account.Options &= ~AccountOption.WarnIfDuplicatedPassword;
                }
 
-               _onPropertyChanged(nameof(WarnIfDuplicatedPassword));
+               OnPropertyChanged(nameof(WarnIfDuplicatedPassword));
                AppServices.Session.Database?.RefreshAlerts();
             }
          }
@@ -186,8 +211,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          .OrderBy(x => x.Value)
          .ToArray() ?? [];
 
-      public event PropertyChangedEventHandler? PropertyChanged;
-
       public void Dispose()
       {
          if (_disposed)
@@ -201,7 +224,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void OnLanguageChanged()
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountId)));
+         OnPropertyChanged(nameof(AccountId));
 
          foreach (IdentifierViewModel identifier in Identifiers)
          {
@@ -210,9 +233,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       }
       public void OnThemeChanged()
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LabelBackground)));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PasswordBackground)));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NotesBackground)));
+         OnPropertyChanged(nameof(LabelBackground));
+         OnPropertyChanged(nameof(PasswordBackground));
+         OnPropertyChanged(nameof(NotesBackground));
 
          foreach (IdentifierViewModel identifier in Identifiers)
          {
@@ -223,15 +246,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       private void _onAlertsChanged(object? sender, EventArgs e)
          => UiThread.Post(() =>
          {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PasswordLeaked)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PasswordBackground)));
+            OnPropertyChanged(nameof(PasswordLeaked));
+            OnPropertyChanged(nameof(PasswordBackground));
          });
 
-      private void _onPropertyChanged(string propertyName)
+      private void _notify(string propertyName)
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountDisplay)));
+         OnPropertyChanged(propertyName);
+         OnPropertyChanged($"{propertyName}Background");
+         OnPropertyChanged(nameof(AccountDisplay));
       }
 
       private void _identifierViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -248,7 +271,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             identifier?.Refresh();
          }
 
-         _onPropertyChanged(string.Empty);
+         _notify(string.Empty);
       }
 
       public void AddIdentifier(IdentifierViewModel identifierViewModel)
@@ -296,6 +319,93 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          _identifierViewModel_PropertyChanged(null, new("Identifier"));
 
          return true;
+      }
+
+      private void _addIdentifier()
+      {
+         AddIdentifier(string.Empty);
+         SelectedIdentifier = Identifiers.LastOrDefault();
+      }
+
+      private void _moveIdentifierUp()
+      {
+         if (SelectedIdentifier is null)
+         {
+            return;
+         }
+
+         int index = Identifiers.IndexOf(SelectedIdentifier);
+         if (MoveIdentifier(index, index - 1))
+         {
+            SelectedIdentifier = Identifiers[index - 1];
+         }
+      }
+
+      private void _moveIdentifierDown()
+      {
+         if (SelectedIdentifier is null)
+         {
+            return;
+         }
+
+         int index = Identifiers.IndexOf(SelectedIdentifier);
+         if (MoveIdentifier(index, index + 1))
+         {
+            SelectedIdentifier = Identifiers[index + 1];
+         }
+      }
+
+      private void _deleteIdentifier()
+      {
+         if (SelectedIdentifier is null)
+         {
+            return;
+         }
+
+         int index = Identifiers.IndexOf(SelectedIdentifier);
+         if (RemoveIdentifier(SelectedIdentifier))
+         {
+            SelectedIdentifier = Identifiers.Count == 0
+               ? null
+               : Identifiers[index < Identifiers.Count ? index : Identifiers.Count - 1];
+         }
+      }
+
+      private void _copyIdentifier()
+      {
+         if (SelectedIdentifier is null)
+         {
+            return;
+         }
+
+         AppServices.Clipboard.SetText(SelectedIdentifier.Identifier, ClipboardManager.AutoClearAfter);
+      }
+
+      private void _showQrCodeIdentifier()
+      {
+         if (SelectedIdentifier is null)
+         {
+            return;
+         }
+
+         QrCodeView.ShowQrCode(null,
+            SelectedIdentifier.Identifier,
+            AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
+      }
+
+      private void _viewActivities()
+      {
+         string itemId = Account.ItemId;
+
+         _ = AppServices.Dialogs.ShowSingleton(
+            factory: () =>
+            {
+               UserActivitiesView view = new(needsReviewFilter: false);
+               view.ViewModel.ClearFilters();
+               view.ViewModel.SearchCriteria = itemId;
+               return view;
+            },
+            configure: view => view.ViewModel.SearchCriteria = itemId);
       }
 
       public override string ToString() => $"{(Account.HasChanged() ? "* " : string.Empty)}{Account}";

@@ -1,12 +1,12 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
-namespace Upsilon.Apps.Passkey.Core.Utils
+namespace Upsilon.Apps.Passkey.UnitTests.Fakes
 {
    /// <summary>
    /// Test stub: clipboard I/O is OS-specific. Records SetText calls so GUI
    /// ViewModel tests can assert without touching the real clipboard.
    /// </summary>
-   public class ClipboardManager : IClipboardManager
+   public sealed class FakeClipboardManager : IClipboardManager
    {
       public string? LastText { get; private set; }
 

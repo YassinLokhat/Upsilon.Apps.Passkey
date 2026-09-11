@@ -11,9 +11,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    {
       public static Brush Background(bool isDirty, bool isNotifiedLeak)
          => isDirty
-            ? DarkMode.ChangedBrush
+            ? FieldStateBrushes.ChangedBrush
             : isNotifiedLeak
                ? SemanticBrushes.Danger
-               : DarkMode.UnchangedBrush2;
+               : FieldStateBrushes.UnchangedBrush2;
    }
 }

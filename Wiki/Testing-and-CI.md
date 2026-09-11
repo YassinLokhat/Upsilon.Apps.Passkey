@@ -8,7 +8,13 @@ There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global ho
 
 ### Activity log assertions
 
-Import/export and persistence tests compare localized activity lines via `UnitTestsHelper.LastActivitiesShouldMatch`, which renders through `ActivityViewModel` (the same path as the WPF Activities grid). For import/export failures, prefer `UnitTestsHelper.FormatImportFailed(ImportExportError.…)` / `FormatExportFailed(…)` instead of hard-coded English strings. GUI localization coverage lives in `UnitTests/Gui/LocalizationTests.cs` (satellite key parity, `EnumDisplayHelper`, import/export failure messages).
+Import/export and persistence tests compare localized activity lines via `UnitTestsHelper.LastActivitiesShouldMatch`, which renders through `ActivityViewModel` (the same path as the WPF Activities grid). Prefer `UnitTestsHelper.FormatImportFailed` / `FormatExportFailed` / `FormatDatabaseSaved` (and related helpers) instead of hard-coded English strings. Alert waits use `WaitForAlertKind` / `WaitForAlerts` (event-driven); avoid `Thread.Sleep` polling.
+
+### Naming conventions
+
+- Models/Utils tests: `*UnitTests` classes and `CaseNN_…` method names.
+- GUI tests: `*Tests` classes, descriptive method names, `[TestInitialize]` / `[TestCleanup]` via `GuiTestServices`.
+- `TestDatabaseGenerator` is a manual fixture tool (not a `[TestMethod]` in the CI suite).
 
 ```bash
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings

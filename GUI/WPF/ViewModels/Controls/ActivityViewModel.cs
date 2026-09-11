@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -7,9 +7,9 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class ActivityViewModel(IActivity activity) : INotifyPropertyChanged
+   internal sealed class ActivityViewModel : ObservableObject
    {
-      public readonly IActivity Activity = activity;
+      public readonly IActivity Activity;
       public string DateTime => Activity.DateTime.ToString(Strings.Activity_DateTimeFormat, System.Globalization.CultureInfo.InvariantCulture);
       public string EventType => Activity.EventType.ToReadableString();
       public string Message => _buildMessage(Activity);
@@ -21,18 +21,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Activity.NeedsReview != value)
             {
                Activity.NeedsReview = value;
-               _onPropertyChanged(nameof(NeedsReview));
-               _onPropertyChanged(nameof(NeedsReviewString));
+               OnPropertyChanged(nameof(NeedsReview));
+               OnPropertyChanged(nameof(NeedsReviewString));
             }
          }
       }
       public string NeedsReviewString => NeedsReview ? Strings.Label_NeedsReview : Strings.Label_Reviewed;
 
-      public event PropertyChangedEventHandler? PropertyChanged;
+      public ICommand GoToCommand { get; }
+      public ICommand CopyCommand { get; }
 
-      private void _onPropertyChanged(string propertyName)
+      public ActivityViewModel(IActivity activity)
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+         Activity = activity;
+         GoToCommand = new RelayCommand(() => AppServices.Navigation.RequestItem(Activity.ItemId));
+         CopyCommand = new RelayCommand(() => AppServices.Clipboard.SetText(Message));
       }
 
       public bool MeetsConditions(DateTime fromDateFilter, DateTime toDateFilter, ActivityEventType eventType, string searchCriteria, bool needsReview)
@@ -78,12 +81,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             ActivityEventType.UserLoggedIn => Strings.Format(nameof(Strings.Activity_UserLoggedIn), activity.Username),
             ActivityEventType.UserLoggedOut => StringsHelper.ComputeUserLoggedOutStrings(activity),
             ActivityEventType.ImportingDataStarted => Strings.Format(nameof(Strings.Activity_ImportingDataStarted), activity.FieldValue),
-            ActivityEventType.ImportingDataSucceded => Strings.Activity_ImportingDataSucceded,
+            ActivityEventType.ImportingDataSucceeded => Strings.Activity_ImportingDataSucceeded,
             ActivityEventType.ImportingDataFailed => Strings.Format(
                nameof(Strings.Activity_ImportingDataFailed),
                EnumDisplayHelper.FormatFieldValue(activity.FieldName, activity.FieldValue)),
             ActivityEventType.ExportingDataStarted => Strings.Format(nameof(Strings.Activity_ExportingDataStarted), activity.FieldValue),
-            ActivityEventType.ExportingDataSucceded => Strings.Activity_ExportingDataSucceded,
+            ActivityEventType.ExportingDataSucceeded => Strings.Activity_ExportingDataSucceeded,
             ActivityEventType.ExportingDataFailed => Strings.Format(
                nameof(Strings.Activity_ExportingDataFailed),
                EnumDisplayHelper.FormatFieldValue(activity.FieldName, activity.FieldValue)),

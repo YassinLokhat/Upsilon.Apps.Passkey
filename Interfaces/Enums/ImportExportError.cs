@@ -1,10 +1,10 @@
-﻿namespace Upsilon.Apps.Passkey.Interfaces.Enums
+namespace Upsilon.Apps.Passkey.Interfaces.Enums
 {
    public enum ImportExportError
    {
       None = 0,
       ImportFileNotAccessible,
-      ExtentionFileNotSupported,
+      ExtensionFileNotSupported,
       CSVHeadersDontMatch,
       IncorrectCSVFormat,
       NoDataToImport,

@@ -117,7 +117,7 @@
                   <DataTemplate>
                      <Button Content="🔍"
                              ToolTip="{loc:Loc Tooltip_GoToItem}"
-                             Click="_viewItemButton_Click"
+                             Command="{Binding GoToCommand}"
                              Margin="4"/>
                   </DataTemplate>
                </DataGridTemplateColumn.CellTemplate>
@@ -127,7 +127,7 @@
                   <DataTemplate>
                      <Button Content="📋"
                              ToolTip="{loc:Loc Tooltip_Copy}"
-                             Click="_copyButton_Click"
+                             Command="{Binding CopyCommand}"
                              Margin="4"/>
                   </DataTemplate>
                </DataGridTemplateColumn.CellTemplate>

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.Controls.AccountView"
+<UserControl x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.Controls.AccountView"
              x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -31,7 +31,7 @@
                  Grid.Column="2"
                  Content="👓"
                  ToolTip="{loc:Loc Tooltip_ViewActivities}"
-                 Click="_viewActivities_Button_Click"/>
+                 Command="{Binding ViewActivitiesCommand}"/>
          <TextBox Grid.Row="0"
                   Grid.Column="1"
                   Text="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -66,7 +66,8 @@
                            ScrollViewer.IsDeferredScrollingEnabled="True"
                            VirtualizingStackPanel.IsVirtualizing="True"
                            VirtualizingStackPanel.VirtualizationMode="Recycling"
-                           Name="_identifiers_LB">
+                           Name="_identifiers_LB"
+                           SelectedItem="{Binding SelectedIdentifier, Mode=TwoWay}">
                      <ListBox.ItemTemplate>
                         <DataTemplate>
                            <DockPanel LastChildFill="True">
@@ -90,32 +91,32 @@
                           Grid.Column="0"
                           Content="+"
                           ToolTip="{loc:Loc Tooltip_AddIdentifier}"
-                          Click="_addButton_Click"/>
+                          Command="{Binding AddIdentifierCommand}"/>
                   <Button Grid.Row="1"
                           Grid.Column="1"
                           Content="🠉"
                           ToolTip="{loc:Loc Tooltip_MoveUp}"
-                          Click="_identifier_UpClicked"/>
+                          Command="{Binding MoveIdentifierUpCommand}"/>
                   <Button Grid.Row="1"
                           Grid.Column="2"
-                          Click="_identifier_DownClicked"
+                          Command="{Binding MoveIdentifierDownCommand}"
                           ToolTip="{loc:Loc Tooltip_MoveDown}"
                           Content="🠋"/>
                   <Button Grid.Row="1"
                           Grid.Column="3"
-                          Click="_identifier_DeleteClicked"
+                          Command="{Binding DeleteIdentifierCommand}"
                           ToolTip="{loc:Loc Tooltip_DeleteIdentifier}"
                           Content="✕"/>
                   <Button Grid.Row="1"
                           Grid.Column="4"
                           Content="📋"
                           ToolTip="{loc:Loc Tooltip_CopyIdentifier}"
-                          Click="_copyIdentifier_Clicked"/>
+                          Command="{Binding CopyIdentifierCommand}"/>
                   <Button Grid.Row="1"
                           Grid.Column="5"
                           Content="▣"
                           ToolTip="{loc:Loc Tooltip_ShowQrCodeIdentifier}"
-                          Click="_showQrCodeIdentifier_Clicked"/>
+                          Command="{Binding ShowQrCodeIdentifierCommand}"/>
                </Grid>
             </GroupBox>
             <GroupBox Header="{loc:Loc Label_PasswordGroup}"
@@ -136,7 +137,7 @@
                                             Margin="5"
                                             Background="{Binding PasswordBackground}"
                                             Validated="_password_VPB_Validated"
-                                            Aborded="_password_VPB_Aborded"/>
+                                            Aborted="_password_VPB_Aborted"/>
                   <Button Grid.Row="0"
                           Grid.Column="1"
                           Content="📋"
@@ -176,11 +177,11 @@
                               <Button Grid.Column="2"
                                       Content="📋"
                                       ToolTip="{loc:Loc Tooltip_CopyPassword}"
-                                      Click="_copyPasswords_Clicked"/>
+                                      Command="{Binding CopyCommand}"/>
                               <Button Grid.Column="3"
                                       Content="▣"
                                       ToolTip="{loc:Loc Tooltip_ShowQrCodePassword}"
-                                      Click="_showQrCodePasswords_Clicked"/>
+                                      Command="{Binding ShowQrCodeCommand}"/>
                            </Grid>
                         </DataTemplate>
                      </ListBox.ItemTemplate>

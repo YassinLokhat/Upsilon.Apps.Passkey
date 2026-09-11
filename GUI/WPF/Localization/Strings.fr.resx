@@ -807,7 +807,7 @@ Vous ne serez pas prévenu pour :
   <data name="EnumValue_ActivityEventType_ImportingDataStarted" xml:space="preserve">
     <value>Import démarré</value>
   </data>
-  <data name="EnumValue_ActivityEventType_ImportingDataSucceded" xml:space="preserve">
+  <data name="EnumValue_ActivityEventType_ImportingDataSucceeded" xml:space="preserve">
     <value>Import réussi</value>
   </data>
   <data name="EnumValue_ActivityEventType_ImportingDataFailed" xml:space="preserve">
@@ -816,7 +816,7 @@ Vous ne serez pas prévenu pour :
   <data name="EnumValue_ActivityEventType_ExportingDataStarted" xml:space="preserve">
     <value>Export démarré</value>
   </data>
-  <data name="EnumValue_ActivityEventType_ExportingDataSucceded" xml:space="preserve">
+  <data name="EnumValue_ActivityEventType_ExportingDataSucceeded" xml:space="preserve">
     <value>Export réussi</value>
   </data>
   <data name="EnumValue_ActivityEventType_ExportingDataFailed" xml:space="preserve">
@@ -900,7 +900,7 @@ Vous ne serez pas prévenu pour :
   <data name="Activity_ImportingDataStarted" xml:space="preserve">
     <value>Import des données depuis le fichier : '{0}'</value>
   </data>
-  <data name="Activity_ImportingDataSucceded" xml:space="preserve">
+  <data name="Activity_ImportingDataSucceeded" xml:space="preserve">
     <value>Import terminé avec succès</value>
   </data>
   <data name="Activity_ImportingDataFailed" xml:space="preserve">
@@ -909,7 +909,7 @@ Vous ne serez pas prévenu pour :
   <data name="Activity_ExportingDataStarted" xml:space="preserve">
     <value>Export des données vers le fichier : '{0}'</value>
   </data>
-  <data name="Activity_ExportingDataSucceded" xml:space="preserve">
+  <data name="Activity_ExportingDataSucceeded" xml:space="preserve">
     <value>Export terminé avec succès</value>
   </data>
   <data name="Activity_ExportingDataFailed" xml:space="preserve">
@@ -1014,7 +1014,7 @@ Vous ne serez pas prévenu pour :
   <data name="EnumValue_ImportExportError_ImportFileNotAccessible" xml:space="preserve">
     <value>le fichier d'import n'est pas accessible</value>
   </data>
-  <data name="EnumValue_ImportExportError_ExtentionFileNotSupported" xml:space="preserve">
+  <data name="EnumValue_ImportExportError_ExtensionFileNotSupported" xml:space="preserve">
     <value>le type d'extention de fichier n'est pas supporté</value>
   </data>
   <data name="EnumValue_ImportExportError_CSVHeadersDontMatch" xml:space="preserve">

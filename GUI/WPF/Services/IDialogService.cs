@@ -36,13 +36,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       /// <summary>Shows a warning dialog with the given message.</summary>
       void Warn(string text, string title);
 
+      /// <summary>Shows an error dialog with the given message.</summary>
+      void Error(string text, string title);
+
       /// <summary>Asks the user to pick an existing folder. Returns <c>null</c> when cancelled.</summary>
       string? PickBrowseFolder(string title, string defaultPath);
 
       /// <summary>Asks the user to pick an existing file. Returns <c>null</c> when cancelled.</summary>
       string? PickOpenFile(string filter, string title);
 
-      /// <summary>Asks the user to pick a destination file. Returns <c>null</c> when cancelled.</summary>
-      string? PickSaveFile(string filter, string title, string? defaultFileName = null);
+      /// <summary>
+      /// Asks the user to pick a destination file. Returns <c>null</c> when cancelled.
+      /// <paramref name="initialDirectory"/> is used when non-empty and the folder exists.
+      /// </summary>
+      string? PickSaveFile(string filter, string title, string? defaultFileName = null, string? initialDirectory = null);
    }
 }

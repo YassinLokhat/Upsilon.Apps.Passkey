@@ -807,7 +807,7 @@ You will not be alerted about:
   <data name="EnumValue_ActivityEventType_ImportingDataStarted" xml:space="preserve">
     <value>Importing data started</value>
   </data>
-  <data name="EnumValue_ActivityEventType_ImportingDataSucceded" xml:space="preserve">
+  <data name="EnumValue_ActivityEventType_ImportingDataSucceeded" xml:space="preserve">
     <value>Importing data succeeded</value>
   </data>
   <data name="EnumValue_ActivityEventType_ImportingDataFailed" xml:space="preserve">
@@ -816,7 +816,7 @@ You will not be alerted about:
   <data name="EnumValue_ActivityEventType_ExportingDataStarted" xml:space="preserve">
     <value>Exporting data started</value>
   </data>
-  <data name="EnumValue_ActivityEventType_ExportingDataSucceded" xml:space="preserve">
+  <data name="EnumValue_ActivityEventType_ExportingDataSucceeded" xml:space="preserve">
     <value>Exporting data succeeded</value>
   </data>
   <data name="EnumValue_ActivityEventType_ExportingDataFailed" xml:space="preserve">
@@ -900,7 +900,7 @@ You will not be alerted about:
   <data name="Activity_ImportingDataStarted" xml:space="preserve">
     <value>Importing data from file : '{0}'</value>
   </data>
-  <data name="Activity_ImportingDataSucceded" xml:space="preserve">
+  <data name="Activity_ImportingDataSucceeded" xml:space="preserve">
     <value>Import completed successfully</value>
   </data>
   <data name="Activity_ImportingDataFailed" xml:space="preserve">
@@ -909,7 +909,7 @@ You will not be alerted about:
   <data name="Activity_ExportingDataStarted" xml:space="preserve">
     <value>Exporting data to file : '{0}'</value>
   </data>
-  <data name="Activity_ExportingDataSucceded" xml:space="preserve">
+  <data name="Activity_ExportingDataSucceeded" xml:space="preserve">
     <value>Export completed successfully</value>
   </data>
   <data name="Activity_ExportingDataFailed" xml:space="preserve">
@@ -1014,7 +1014,7 @@ You will not be alerted about:
   <data name="EnumValue_ImportExportError_ImportFileNotAccessible" xml:space="preserve">
     <value>import file is not accessible</value>
   </data>
-  <data name="EnumValue_ImportExportError_ExtentionFileNotSupported" xml:space="preserve">
+  <data name="EnumValue_ImportExportError_ExtensionFileNotSupported" xml:space="preserve">
     <value>file extension type is not supported</value>
   </data>
   <data name="EnumValue_ImportExportError_CSVHeadersDontMatch" xml:space="preserve">

@@ -1,11 +1,11 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Utils
 {
    /// <summary>
    /// Serialization helpers used by autosave (clone-by-JSON, structural equality).
    /// </summary>
-   public static class StaticMethods
+   public static class SerializationHelpers
    {
       public static string SerializeWith<T>(this T obj, ISerializationCenter serializationCenter) where T : notnull
       {

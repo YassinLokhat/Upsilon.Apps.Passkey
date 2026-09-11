@@ -1,26 +1,47 @@
-using System.ComponentModel;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class SecuritySettingsAlertViewModel : INotifyPropertyChanged, ILanguageAware, IDisposable
+   internal sealed class SecuritySettingsAlertViewModel : ObservableObject, ILanguageAware, IDisposable
    {
       public string Title
       {
          get;
-         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         private set => SetProperty(ref field, value);
       } = Strings.Format(nameof(Strings.Title_SecuritySettingsAlertsWindow), AppInfo.Title);
 
-      public SecuritySettingsIssueItemViewModel[] Issues { get; private set; }
+      public IssueItemViewModel[] Issues
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      }
 
-      public event PropertyChangedEventHandler? PropertyChanged;
+      public ICommand OpenUserSettingsCommand { get; }
+      public ICommand OpenAppSettingsCommand { get; }
+      public ICommand OkCommand { get; }
+
+      public event EventHandler? CloseRequested;
 
       public SecuritySettingsAlertViewModel()
       {
+         OpenUserSettingsCommand = new RelayCommand(() =>
+         {
+            UserSettingsView.ShowUserSettings();
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+         });
+         OpenAppSettingsCommand = new RelayCommand(() =>
+         {
+            AppSettingsView.ShowAppSettings();
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+         });
+         OkCommand = new RelayCommand(() => CloseRequested?.Invoke(this, EventArgs.Empty));
+
          AppServices.Session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
 
          Issues = _loadIssues();
@@ -32,22 +53,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public void Dispose()
       {
          AppServices.Session.Alerts.NotifiedAlertsChanged -= _alerts_NotifiedAlertsChanged;
+         CloseRequested = null;
       }
 
       private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
-         => _reloadIssues(alsoTitle: false);
+         => UiThread.Post(() => _reloadIssues(alsoTitle: false));
 
       private void _reloadIssues(bool alsoTitle)
       {
          Issues = _loadIssues();
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Issues)));
          if (alsoTitle)
          {
             Title = Strings.Format(nameof(Strings.Title_SecuritySettingsAlertsWindow), AppInfo.Title);
          }
       }
 
-      private static SecuritySettingsIssueItemViewModel[] _loadIssues()
+      private static IssueItemViewModel[] _loadIssues()
       {
          SecuritySettingsIssue vaultIssues = SecuritySettingsIssue.None;
          HostSecurityIssue hostIssues = HostSecurityIssue.None;
@@ -73,7 +94,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          ];
       }
 
-      private static IEnumerable<SecuritySettingsIssueItemViewModel> _vaultItems(SecuritySettingsIssue issues)
+      private static IEnumerable<IssueItemViewModel> _vaultItems(SecuritySettingsIssue issues)
       {
          if (issues.HasFlag(SecuritySettingsIssue.AutoLogoutDisabled))
          {
@@ -118,7 +139,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       }
 
-      private static IEnumerable<SecuritySettingsIssueItemViewModel> _hostItems(HostSecurityIssue issues)
+      private static IEnumerable<IssueItemViewModel> _hostItems(HostSecurityIssue issues)
       {
          if (issues.HasFlag(HostSecurityIssue.IdleLoginDisabled))
          {
@@ -134,11 +155,5 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                Strings.Msg_SecuritySettings_OfflineLeakFilterUnavailable);
          }
       }
-   }
-
-   internal sealed class SecuritySettingsIssueItemViewModel(string title, string description)
-   {
-      public string Title { get; } = title;
-      public string Description { get; } = description;
    }
 }

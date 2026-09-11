@@ -1,7 +1,6 @@
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -25,8 +24,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _bindAlertKindCombo();
 
-         _alerts_DGV.ItemsSource = _viewModel.Alerts;
-
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
@@ -43,11 +40,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = _alertKind_CB.Items.Add(EnumHelper.ToReadableAlertKind(AlertKinds.WeakAccountPassword));
          _ = _alertKind_CB.Items.Add(EnumHelper.ToReadableAlertKind(AlertKinds.PasskeyReusedAsAccountPassword));
          _alertKind_CB.SelectedItem = EnumHelper.ToReadableAlertKind(selected);
-      }
-
-      private void _viewItemButton_Click(object sender, RoutedEventArgs e)
-      {
-         AppServices.Navigation.RequestItem(_viewModel.Alerts[_alerts_DGV.SelectedIndex].Account.ItemId);
       }
    }
 }

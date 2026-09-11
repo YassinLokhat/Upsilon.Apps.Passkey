@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -77,10 +77,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             [ActivityEventType.UserLoggedIn] = ["alice", null, null, null, null, null],
             [ActivityEventType.UserLoggedOut] = ["alice", null, null, null, null, null],
             [ActivityEventType.ImportingDataStarted] = [null, null, null, null, "vault.json", null],
-            [ActivityEventType.ImportingDataSucceded] = [null, null, null, null, null, null],
+            [ActivityEventType.ImportingDataSucceeded] = [null, null, null, null, null, null],
             [ActivityEventType.ImportingDataFailed] = [null, null, null, nameof(ImportExportError), nameof(ImportExportError.IncorrectCSVFormat), null],
             [ActivityEventType.ExportingDataStarted] = [null, null, null, null, "vault.csv", null],
-            [ActivityEventType.ExportingDataSucceded] = [null, null, null, null, null, null],
+            [ActivityEventType.ExportingDataSucceeded] = [null, null, null, null, null, null],
             [ActivityEventType.ExportingDataFailed] = [null, null, null, nameof(ImportExportError), nameof(ImportExportError.ExportFileAlreadyExists), null],
             [ActivityEventType.ItemUpdated] = [null, null, "Account", "Notes", "hello", "Service X"],
             [ActivityEventType.ItemAdded] = ["User alice", null, null, null, "Service X", null],

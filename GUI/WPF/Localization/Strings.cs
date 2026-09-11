@@ -61,10 +61,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Activity_UserLoggedOut => Get(nameof(Activity_UserLoggedOut));
       public static string Activity_UserLoggedOutWithoutSaving => Get(nameof(Activity_UserLoggedOutWithoutSaving));
       public static string Activity_ImportingDataStarted => Get(nameof(Activity_ImportingDataStarted));
-      public static string Activity_ImportingDataSucceded => Get(nameof(Activity_ImportingDataSucceded));
+      public static string Activity_ImportingDataSucceeded => Get(nameof(Activity_ImportingDataSucceeded));
       public static string Activity_ImportingDataFailed => Get(nameof(Activity_ImportingDataFailed));
       public static string Activity_ExportingDataStarted => Get(nameof(Activity_ExportingDataStarted));
-      public static string Activity_ExportingDataSucceded => Get(nameof(Activity_ExportingDataSucceded));
+      public static string Activity_ExportingDataSucceeded => Get(nameof(Activity_ExportingDataSucceeded));
       public static string Activity_ExportingDataFailed => Get(nameof(Activity_ExportingDataFailed));
       public static string Activity_AccountUpdated => Get(nameof(Activity_AccountUpdated));
       public static string Activity_AccountSet => Get(nameof(Activity_AccountSet));
@@ -342,7 +342,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string EnumValue_Theme_Dark => Get(nameof(EnumValue_Theme_Dark));
       public static string EnumValue_ImportExportError_None => Get(nameof(EnumValue_ImportExportError_None));
       public static string EnumValue_ImportExportError_ImportFileNotAccessible => Get(nameof(EnumValue_ImportExportError_ImportFileNotAccessible));
-      public static string EnumValue_ImportExportError_ExtentionFileNotSupported => Get(nameof(EnumValue_ImportExportError_ExtentionFileNotSupported));
+      public static string EnumValue_ImportExportError_ExtensionFileNotSupported => Get(nameof(EnumValue_ImportExportError_ExtensionFileNotSupported));
       public static string EnumValue_ImportExportError_CSVHeadersDontMatch => Get(nameof(EnumValue_ImportExportError_CSVHeadersDontMatch));
       public static string EnumValue_ImportExportError_IncorrectCSVFormat => Get(nameof(EnumValue_ImportExportError_IncorrectCSVFormat));
       public static string EnumValue_ImportExportError_NoDataToImport => Get(nameof(EnumValue_ImportExportError_NoDataToImport));

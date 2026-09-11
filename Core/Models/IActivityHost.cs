@@ -1,4 +1,6 @@
-namespace Upsilon.Apps.Passkey.Core.Utils
+using Upsilon.Apps.Passkey.Core.Utils;
+
+namespace Upsilon.Apps.Passkey.Core.Models
 {
    /// <summary>
    /// Narrow surface ActivityCenter needs from its owning vault. Keeps the

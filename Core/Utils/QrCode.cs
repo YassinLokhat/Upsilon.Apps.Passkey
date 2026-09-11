@@ -160,10 +160,7 @@ public class QrCode
 
    public QrCode(string stringDataSegment, ErrorCorrection errorCorrection)
    {
-      if (string.IsNullOrEmpty(stringDataSegment))
-      {
-         throw new ArgumentException("String data segment is null or missing");
-      }
+      ArgumentException.ThrowIfNullOrEmpty(stringDataSegment);
 
       ErrorCorrection = errorCorrection;
       _ = _encode([Encoding.UTF8.GetBytes(stringDataSegment)]);
@@ -171,9 +168,10 @@ public class QrCode
 
    public QrCode(byte[] singleDataSeg, ErrorCorrection errorCorrection)
    {
-      if (singleDataSeg is null || singleDataSeg.Length == 0)
+      ArgumentNullException.ThrowIfNull(singleDataSeg);
+      if (singleDataSeg.Length == 0)
       {
-         throw new ArgumentException("Single data segment argument is null or empty");
+         throw new ArgumentException("Single data segment argument is empty", nameof(singleDataSeg));
       }
 
       ErrorCorrection = errorCorrection;
@@ -182,9 +180,10 @@ public class QrCode
 
    private bool[][] _encode(byte[][] dataSegments)
    {
-      if (dataSegments == null || dataSegments.Length == 0)
+      ArgumentNullException.ThrowIfNull(dataSegments);
+      if (dataSegments.Length == 0)
       {
-         throw new ArgumentException("Data segments argument is null or empty");
+         throw new ArgumentException("Data segments argument is empty", nameof(dataSegments));
       }
 
       QRCodeVersion = 0;
@@ -193,8 +192,8 @@ public class QrCode
       int totalDataLength = 0;
       for (int segmentIndex = 0; segmentIndex < dataSegments.Length; ++segmentIndex)
       {
-         byte[] segment = dataSegments[segmentIndex];
-         if (segment == null)
+         byte[]? segment = dataSegments[segmentIndex];
+         if (segment is null)
          {
             dataSegments[segmentIndex] = [];
          }
