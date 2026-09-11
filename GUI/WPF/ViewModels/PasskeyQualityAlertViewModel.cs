@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -9,8 +8,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
    internal sealed class PasskeyQualityAlertViewModel : INotifyPropertyChanged, ILanguageAware, IDisposable
    {
-      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
-      public string Title => Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppInfo.Title);
+      public string Title
+      {
+         get;
+         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppInfo.Title);
 
       public PasskeyQualityIssueItemViewModel[] Issues { get; private set; }
 
@@ -39,7 +41,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Issues)));
          if (alsoTitle)
          {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
+            Title = Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppInfo.Title);
          }
       }
 

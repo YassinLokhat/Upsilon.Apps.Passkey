@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -12,14 +11,23 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
    internal class AppSettingsViewModel : INotifyPropertyChanged, ILanguageAware
    {
-      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
-      public string Title => Strings.Format(nameof(Strings.Title_AppSettings), AppInfo.Title);
+      public string Title
+      {
+         get;
+         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = Strings.Format(nameof(Strings.Title_AppSettings), AppInfo.Title);
 
-      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh the System language label on language change.")]
-      public IReadOnlyList<AppLanguage> Languages => LocalizationService.Supported;
+      public IReadOnlyList<AppLanguage> Languages
+      {
+         get;
+         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = LocalizationService.Supported;
 
-      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh theme labels on language change.")]
-      public IReadOnlyList<AppThemeOption> Themes => ThemeService.Supported;
+      public IReadOnlyList<AppThemeOption> Themes
+      {
+         get;
+         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = ThemeService.Supported;
 
       public string DefaultDatabaseDirectory
       {
@@ -170,9 +178,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          string languageCode = SelectedLanguage.Code;
          string themeCode = SelectedTheme.Code;
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Title)));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Languages)));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Themes)));
+         Title = Strings.Format(nameof(Strings.Title_AppSettings), AppInfo.Title);
+         Languages = LocalizationService.Supported;
+         Themes = ThemeService.Supported;
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBuildButtonText)));
          SelectedLanguage = LocalizationService.GetLanguageOrDefault(languageCode);
          SelectedTheme = ThemeService.GetOptionOrDefault(themeCode);
@@ -184,8 +192,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       /// override when a session is open, otherwise the app values).
       /// Returns <see langword="true"/> when the culture code changed.
       /// </summary>
-      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Called on the bound ViewModel instance from the view.")]
-      public bool Save()
+      public static bool Save()
       {
          AppInfo.AppSettings.Save(AppInfo.ConfigFile);
          bool languageChanged = LocalizationService.ApplyEffective(

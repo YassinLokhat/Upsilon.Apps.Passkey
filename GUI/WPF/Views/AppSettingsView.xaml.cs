@@ -124,7 +124,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         _ = _viewModel.Save();
+         _ = AppSettingsViewModel.Save();
          DialogResult = true;
       }
 

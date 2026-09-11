@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Text;
+﻿using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -11,11 +10,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
    internal sealed class PasswordGeneratorViewModel : ObservableObject, ILanguageAware
    {
-      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
-      public string Title => Strings.Format(nameof(Strings.Title_PasswordGenerator), AppInfo.Title);
+      public string Title
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      } = Strings.Format(nameof(Strings.Title_PasswordGenerator), AppInfo.Title);
 
       public void OnLanguageChanged()
-         => OnPropertyChanged(nameof(Title));
+         => Title = Strings.Format(nameof(Strings.Title_PasswordGenerator), AppInfo.Title);
 
       public bool CheckIfLeaked
       {

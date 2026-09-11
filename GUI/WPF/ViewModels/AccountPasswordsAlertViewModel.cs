@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -12,8 +11,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
    internal sealed class AccountPasswordsAlertViewModel : INotifyPropertyChanged, ILanguageAware
    {
-      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
-      public string Title => Strings.Format(nameof(Strings.Title_AccountPasswordsAlerts), AppInfo.Title);
+      public string Title
+      {
+         get;
+         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = Strings.Format(nameof(Strings.Title_AccountPasswordsAlerts), AppInfo.Title);
 
       public string ReadableAlertKind
       {
@@ -68,7 +70,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnLanguageChanged()
       {
-         _onPropertyChanged(nameof(Title));
+         Title = Strings.Format(nameof(Strings.Title_AccountPasswordsAlerts), AppInfo.Title);
          _onPropertyChanged(nameof(ReadableAlertKind));
          RefreshFilters();
       }
