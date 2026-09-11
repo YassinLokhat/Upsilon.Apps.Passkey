@@ -1,5 +1,5 @@
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.UnitTests.Fakes;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.UnitTests.Gui.Fakes;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Gui

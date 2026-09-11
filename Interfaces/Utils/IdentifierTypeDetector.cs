@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.Interfaces.Utils
@@ -11,22 +11,11 @@ namespace Upsilon.Apps.Passkey.Interfaces.Utils
    {
       public static IdentifierType Detect(string? value)
       {
-         if (string.IsNullOrWhiteSpace(value))
-         {
-            return IdentifierType.Username;
-         }
-
-         if (_phoneRegex().IsMatch(value))
-         {
-            return IdentifierType.PhoneNumber;
-         }
-
-         if (_mailRegex().IsMatch(value))
-         {
-            return IdentifierType.Email;
-         }
-
-         return IdentifierType.Username;
+         return string.IsNullOrWhiteSpace(value)
+            ? IdentifierType.Username
+            : _phoneRegex().IsMatch(value)
+            ? IdentifierType.PhoneNumber
+            : _mailRegex().IsMatch(value) ? IdentifierType.Email : IdentifierType.Username;
       }
 
       [GeneratedRegex(@"^\+\d{1,3}[\d\s\-\.]{6,20}$")]

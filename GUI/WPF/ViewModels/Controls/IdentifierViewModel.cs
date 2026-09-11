@@ -1,4 +1,4 @@
-using System.Windows.Media;
+﻿using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
@@ -21,7 +21,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
    {
       private readonly IAccount _account = account;
       private IdentifierType _type = identifier.Type;
-      private string _identifier = identifier.Value ?? string.Empty;
 
       /// <summary>
       /// Display-only glyphs for identifier kinds. Never persisted.
@@ -35,16 +34,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          { IdentifierType.AuthenticatorApp, "📲" },
       };
 
-      private static readonly IReadOnlyList<IdentifierTypeChoice> _typeChoices =
-      [
+      public static IReadOnlyList<IdentifierTypeChoice> TypeChoices { get; } = [
          new(IdentifierType.Username, TypeGlyphs[IdentifierType.Username]),
          new(IdentifierType.Email, TypeGlyphs[IdentifierType.Email]),
          new(IdentifierType.PhoneNumber, TypeGlyphs[IdentifierType.PhoneNumber]),
          new(IdentifierType.Passkey, TypeGlyphs[IdentifierType.Passkey]),
          new(IdentifierType.AuthenticatorApp, TypeGlyphs[IdentifierType.AuthenticatorApp]),
       ];
-
-      public static IReadOnlyList<IdentifierTypeChoice> TypeChoices => _typeChoices;
 
       public Brush IdentifierBackground => _account.HasChanged("Identifiers") ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
 
@@ -79,23 +75,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       /// </summary>
       public string Identifier
       {
-         get => _identifier;
-         set
+         get; set
          {
             value ??= string.Empty;
 
-            if (_identifier == value)
+            if (field == value)
             {
                return;
             }
 
-            _identifier = value;
+            field = value;
 
             if (_type is IdentifierType.Username
                or IdentifierType.Email
                or IdentifierType.PhoneNumber)
             {
-               IdentifierType detected = IdentifierTypeDetector.Detect(_identifier);
+               IdentifierType detected = IdentifierTypeDetector.Detect(field);
                if (_type != detected)
                {
                   _type = detected;
@@ -108,7 +103,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             OnPropertyChanged(nameof(Identifier));
             OnPropertyChanged(nameof(IdentifierBackground));
          }
-      }
+      } = identifier.Value ?? string.Empty;
 
       public Identifier ToIdentifier() => new(Type, Identifier);
 

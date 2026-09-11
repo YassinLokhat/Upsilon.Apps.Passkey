@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Threading;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
@@ -42,12 +42,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          ArgumentNullException.ThrowIfNull(func);
 
          Dispatcher? dispatcher = Application.Current?.Dispatcher;
-         if (dispatcher is null || dispatcher.CheckAccess())
-         {
-            return func();
-         }
-
-         return dispatcher.Invoke(func);
+         return dispatcher is null || dispatcher.CheckAccess() ? func() : dispatcher.Invoke(func);
       }
    }
 }

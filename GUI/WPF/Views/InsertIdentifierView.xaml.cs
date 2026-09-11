@@ -23,7 +23,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          DataContext = _viewModel = new(identifiers, identifier);
 
-         foreach (var child in _identifierTypes_SP.Children)
+         foreach (object? child in _identifierTypes_SP.Children)
          {
             if (child is RadioButton button)
             {

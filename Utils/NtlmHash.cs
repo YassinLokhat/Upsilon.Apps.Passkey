@@ -1,4 +1,4 @@
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 using System.Text;
 
 namespace Upsilon.Apps.Passkey.Utils
@@ -43,7 +43,7 @@ namespace Upsilon.Apps.Passkey.Utils
             uint d = 0x10325476;
 
             int bitLength = input.Length * 8;
-            int paddedLength = ((input.Length + 8) / 64 + 1) * 64;
+            int paddedLength = (((input.Length + 8) / 64) + 1) * 64;
             Span<byte> block = paddedLength <= 128
                ? stackalloc byte[paddedLength]
                : new byte[paddedLength];
