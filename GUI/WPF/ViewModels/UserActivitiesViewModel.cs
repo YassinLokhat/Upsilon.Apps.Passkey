@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -9,12 +8,12 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class UserActivitiesViewModel : INotifyPropertyChanged, ILanguageAware
+   internal sealed class UserActivitiesViewModel : ObservableObject, ILanguageAware
    {
       public string Title
       {
          get;
-         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         private set => SetProperty(ref field, value);
       } = Strings.Format(nameof(Strings.Title_Activities), AppInfo.Title);
 
       public string FiltersHeader => Strings.Format(nameof(Strings.Msg_FiltersHeader), Activities.Count, AppServices.Session.Database?.Activities?.Count());
@@ -23,10 +22,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _onPropertyChanged(nameof(FromDateFilter));
                RefreshFilters();
             }
          }
@@ -36,10 +33,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _onPropertyChanged(nameof(ToDateFilter));
                RefreshFilters();
             }
          }
@@ -55,10 +50,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _onPropertyChanged(nameof(ReadableEventType));
+               OnPropertyChanged(nameof(ReadableEventType));
                RefreshFilters();
             }
          }
@@ -69,10 +63,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _onPropertyChanged(nameof(SearchCriteria));
                RefreshFilters();
             }
          }
@@ -83,10 +75,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _onPropertyChanged(nameof(NeedsReview));
                RefreshFilters();
             }
          }
@@ -95,13 +85,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public ObservableCollection<ActivityViewModel> Activities { get; set; } = [];
 
       public ICommand ClearFiltersCommand { get; }
-
-      public event PropertyChangedEventHandler? PropertyChanged;
-
-      private void _onPropertyChanged(string propertyName)
-      {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-      }
 
       public UserActivitiesViewModel()
       {
@@ -113,7 +96,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public void OnLanguageChanged()
       {
          Title = Strings.Format(nameof(Strings.Title_Activities), AppInfo.Title);
-         _onPropertyChanged(nameof(ReadableEventType));
+         OnPropertyChanged(nameof(ReadableEventType));
          RefreshFilters();
       }
 
@@ -156,7 +139,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             Activities.Add(activity);
          }
 
-         _onPropertyChanged(nameof(FiltersHeader));
+         OnPropertyChanged(nameof(FiltersHeader));
       }
    }
 }

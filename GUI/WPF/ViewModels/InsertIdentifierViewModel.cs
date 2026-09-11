@@ -1,12 +1,12 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class InsertIdentifierViewModel : INotifyPropertyChanged
+   internal sealed class InsertIdentifierViewModel : ObservableObject
    {
       private readonly IEnumerable<IIdentifier> _identifiers;
 
@@ -17,14 +17,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get => field;
          set
          {
-            if (field == value)
+            if (SetProperty(ref field, value))
             {
-               return;
+               _refreshIdentifiers();
             }
-
-            field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Type)));
-            _refreshIdentifiers();
          }
       }
 
@@ -35,14 +31,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          {
             value ??= string.Empty;
 
-            if (field == value)
+            if (SetProperty(ref field, value))
             {
-               return;
+               _refreshIdentifiers();
             }
-
-            field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Identifier)));
-            _refreshIdentifiers();
          }
       }
 
@@ -54,8 +46,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       }
 
       public IIdentifier ToIdentifier() => new Identifier(Type, Identifier.Trim());
-
-      public event PropertyChangedEventHandler? PropertyChanged;
 
       private void _refreshIdentifiers()
       {

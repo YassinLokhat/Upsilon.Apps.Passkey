@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -7,7 +6,7 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class ActivityViewModel(IActivity activity) : INotifyPropertyChanged
+   internal sealed class ActivityViewModel(IActivity activity) : ObservableObject
    {
       public readonly IActivity Activity = activity;
       public string DateTime => Activity.DateTime.ToString(Strings.Activity_DateTimeFormat, System.Globalization.CultureInfo.InvariantCulture);
@@ -21,19 +20,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Activity.NeedsReview != value)
             {
                Activity.NeedsReview = value;
-               _onPropertyChanged(nameof(NeedsReview));
-               _onPropertyChanged(nameof(NeedsReviewString));
+               OnPropertyChanged(nameof(NeedsReview));
+               OnPropertyChanged(nameof(NeedsReviewString));
             }
          }
       }
       public string NeedsReviewString => NeedsReview ? Strings.Label_NeedsReview : Strings.Label_Reviewed;
-
-      public event PropertyChangedEventHandler? PropertyChanged;
-
-      private void _onPropertyChanged(string propertyName)
-      {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-      }
 
       public bool MeetsConditions(DateTime fromDateFilter, DateTime toDateFilter, ActivityEventType eventType, string searchCriteria, bool needsReview)
       {

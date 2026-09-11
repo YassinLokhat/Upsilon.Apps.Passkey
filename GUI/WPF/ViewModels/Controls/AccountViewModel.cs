@@ -11,7 +11,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class AccountViewModel : INotifyPropertyChanged, IThemeAware, IDisposable
+   internal sealed class AccountViewModel : ObservableObject, IThemeAware, IDisposable
    {
       public readonly IAccount Account;
       private bool _disposed;
@@ -42,7 +42,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Account.Label != value)
             {
                Account.Label = value;
-               _onPropertyChanged(nameof(Label));
+               _notify(nameof(Label));
             }
          }
       }
@@ -62,7 +62,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Account.Password != value)
             {
                Account.Password = value;
-               _onPropertyChanged(nameof(Password));
+               _notify(nameof(Password));
             }
          }
       }
@@ -94,7 +94,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Account.Notes != value)
             {
                Account.Notes = value;
-               _onPropertyChanged(nameof(Notes));
+               _notify(nameof(Notes));
             }
          }
       }
@@ -108,8 +108,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             {
                Account.PasswordUpdateReminderDelay = value;
 
-               _onPropertyChanged(nameof(RemindPasswordUpdateDelay));
-               _onPropertyChanged(nameof(RemindPasswordUpdate));
+               OnPropertyChanged(nameof(RemindPasswordUpdateDelay));
+               OnPropertyChanged(nameof(RemindPasswordUpdate));
                AppServices.Session.Database?.RefreshAlerts();
             }
          }
@@ -123,7 +123,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (RemindPasswordUpdate != value)
             {
                RemindPasswordUpdateDelay = value ? 2 : 0;
-               _onPropertyChanged(nameof(RemindPasswordUpdate));
+               OnPropertyChanged(nameof(RemindPasswordUpdate));
             }
          }
       }
@@ -144,7 +144,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                   Account.Options &= ~AccountOption.WarnIfPasswordLeaked;
                }
 
-               _onPropertyChanged(nameof(WarnPasswordLeak));
+               OnPropertyChanged(nameof(WarnPasswordLeak));
                AppServices.Session.Database?.RefreshAlerts();
             }
          }
@@ -166,7 +166,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                   Account.Options &= ~AccountOption.WarnIfDuplicatedPassword;
                }
 
-               _onPropertyChanged(nameof(WarnIfDuplicatedPassword));
+               OnPropertyChanged(nameof(WarnIfDuplicatedPassword));
                AppServices.Session.Database?.RefreshAlerts();
             }
          }
@@ -186,8 +186,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          .OrderBy(x => x.Value)
          .ToArray() ?? [];
 
-      public event PropertyChangedEventHandler? PropertyChanged;
-
       public void Dispose()
       {
          if (_disposed)
@@ -201,7 +199,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void OnLanguageChanged()
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountId)));
+         OnPropertyChanged(nameof(AccountId));
 
          foreach (IdentifierViewModel identifier in Identifiers)
          {
@@ -210,9 +208,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       }
       public void OnThemeChanged()
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LabelBackground)));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PasswordBackground)));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NotesBackground)));
+         OnPropertyChanged(nameof(LabelBackground));
+         OnPropertyChanged(nameof(PasswordBackground));
+         OnPropertyChanged(nameof(NotesBackground));
 
          foreach (IdentifierViewModel identifier in Identifiers)
          {
@@ -223,15 +221,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       private void _onAlertsChanged(object? sender, EventArgs e)
          => UiThread.Post(() =>
          {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PasswordLeaked)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PasswordBackground)));
+            OnPropertyChanged(nameof(PasswordLeaked));
+            OnPropertyChanged(nameof(PasswordBackground));
          });
 
-      private void _onPropertyChanged(string propertyName)
+      private void _notify(string propertyName)
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountDisplay)));
+         OnPropertyChanged(propertyName);
+         OnPropertyChanged($"{propertyName}Background");
+         OnPropertyChanged(nameof(AccountDisplay));
       }
 
       private void _identifierViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -248,7 +246,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             identifier?.Refresh();
          }
 
-         _onPropertyChanged(string.Empty);
+         _notify(string.Empty);
       }
 
       public void AddIdentifier(IdentifierViewModel identifierViewModel)

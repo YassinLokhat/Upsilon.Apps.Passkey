@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -7,17 +6,19 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class SecuritySettingsAlertViewModel : INotifyPropertyChanged, ILanguageAware, IDisposable
+   internal sealed class SecuritySettingsAlertViewModel : ObservableObject, ILanguageAware, IDisposable
    {
       public string Title
       {
          get;
-         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         private set => SetProperty(ref field, value);
       } = Strings.Format(nameof(Strings.Title_SecuritySettingsAlertsWindow), AppInfo.Title);
 
-      public SecuritySettingsIssueItemViewModel[] Issues { get; private set; }
-
-      public event PropertyChangedEventHandler? PropertyChanged;
+      public SecuritySettingsIssueItemViewModel[] Issues
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      }
 
       public SecuritySettingsAlertViewModel()
       {
@@ -40,7 +41,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       private void _reloadIssues(bool alsoTitle)
       {
          Issues = _loadIssues();
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Issues)));
          if (alsoTitle)
          {
             Title = Strings.Format(nameof(Strings.Title_SecuritySettingsAlertsWindow), AppInfo.Title);

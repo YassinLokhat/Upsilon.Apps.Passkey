@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -9,24 +8,24 @@ using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class AppSettingsViewModel : INotifyPropertyChanged, ILanguageAware
+   internal sealed class AppSettingsViewModel : ObservableObject, ILanguageAware
    {
       public string Title
       {
          get;
-         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         private set => SetProperty(ref field, value);
       } = Strings.Format(nameof(Strings.Title_AppSettings), AppInfo.Title);
 
       public IReadOnlyList<AppLanguage> Languages
       {
          get;
-         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         private set => SetProperty(ref field, value);
       } = LocalizationService.Supported;
 
       public IReadOnlyList<AppThemeOption> Themes
       {
          get;
-         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         private set => SetProperty(ref field, value);
       } = ThemeService.Supported;
 
       public string DefaultDatabaseDirectory
@@ -39,7 +38,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                value = new AppSettings().DefaultDatabaseDirectory;
             }
 
-            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+            _ = SetProperty(ref field, value);
             AppInfo.AppSettings.DefaultDatabaseDirectory = field;
          }
       } = AppInfo.AppSettings.DefaultDatabaseDirectory;
@@ -54,7 +53,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                return;
             }
 
-            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+            _ = SetProperty(ref field, value);
             AppInfo.AppSettings.Language = field.Code;
          }
       } = LocalizationService.GetLanguageOrDefault(AppInfo.AppSettings.Language);
@@ -69,7 +68,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                return;
             }
 
-            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+            _ = SetProperty(ref field, value);
             AppInfo.AppSettings.Theme = field.Code;
          }
       } = ThemeService.GetOptionOrDefault(AppInfo.AppSettings.Theme);
@@ -88,7 +87,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                value = 0;
             }
 
-            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+            _ = SetProperty(ref field, value);
             AppInfo.AppSettings.LoginIdleTimeoutSeconds = field;
          }
       } = Math.Max(0, AppInfo.AppSettings.LoginIdleTimeoutSeconds);
@@ -100,30 +99,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field == value)
+            if (SetProperty(ref field, value))
             {
-               return;
+               OnPropertyChanged(nameof(OfflineLeakFilterAutoUpdateEditable));
             }
-
-            field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterEnabled)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterAutoUpdateEditable)));
          }
       }
 
       public int OfflineLeakFilterAutoUpdateFrequency
       {
          get;
-         set
-         {
-            if (field == value)
-            {
-               return;
-            }
-
-            field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterAutoUpdateFrequency)));
-         }
+         set => SetProperty(ref field, value);
       }
 
       /// <summary>
@@ -135,7 +121,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public string OfflineLeakFilterStatus
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = Strings.Msg_OfflineLeakStatusUnknown;
 
       public bool OfflineLeakFilterBusy
@@ -143,16 +129,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field == value)
+            if (SetProperty(ref field, value))
             {
-               return;
+               OnPropertyChanged(nameof(OfflineLeakFilterIdle));
+               OnPropertyChanged(nameof(OfflineLeakFilterBuildButtonText));
+               OnPropertyChanged(nameof(OfflineLeakFilterAutoUpdateEditable));
             }
-
-            field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBusy)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterIdle)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBuildButtonText)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterAutoUpdateEditable)));
          }
       }
 
@@ -164,10 +146,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public string OfflineLeakFilterProgress
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = string.Empty;
-
-      public event PropertyChangedEventHandler? PropertyChanged;
 
       public AppSettingsViewModel()
       {
@@ -181,7 +161,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          Title = Strings.Format(nameof(Strings.Title_AppSettings), AppInfo.Title);
          Languages = LocalizationService.Supported;
          Themes = ThemeService.Supported;
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OfflineLeakFilterBuildButtonText)));
+         OnPropertyChanged(nameof(OfflineLeakFilterBuildButtonText));
          SelectedLanguage = LocalizationService.GetLanguageOrDefault(languageCode);
          SelectedTheme = ThemeService.GetOptionOrDefault(themeCode);
          RefreshOfflineLeakFilterStatus();

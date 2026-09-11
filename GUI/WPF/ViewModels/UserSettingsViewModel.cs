@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -7,30 +6,27 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class UserSettingsViewModel : INotifyPropertyChanged, ILanguageAware
+   internal sealed class UserSettingsViewModel : ObservableObject, ILanguageAware
    {
       public string Title
       {
          get;
-         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         private set => SetProperty(ref field, value);
       } = _buildTitle();
 
       public string Username
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = Strings.Label_NewUser;
       public int LogoutTimeout
       {
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-
-               _onPropertyChanged(nameof(LogoutTimeout));
-               _onPropertyChanged(nameof(LogoutTimeoutChecked));
+               OnPropertyChanged(nameof(LogoutTimeoutChecked));
             }
          }
       } = 5;
@@ -42,7 +38,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (LogoutTimeoutChecked != value)
             {
                LogoutTimeout = value ? 5 : 0;
-               _onPropertyChanged(nameof(LogoutTimeoutChecked));
             }
          }
       }
@@ -51,12 +46,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-
-               _onPropertyChanged(nameof(CleaningClipboardTimeout));
-               _onPropertyChanged(nameof(CleaningClipboardTimeoutChecked));
+               OnPropertyChanged(nameof(CleaningClipboardTimeoutChecked));
             }
          }
       } = 30;
@@ -68,7 +60,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (CleaningClipboardTimeoutChecked != value)
             {
                CleaningClipboardTimeout = value ? 30 : 0;
-               _onPropertyChanged(nameof(CleaningClipboardTimeoutChecked));
             }
          }
       }
@@ -77,11 +68,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _onPropertyChanged(nameof(ShowPasswordDelay));
-               _onPropertyChanged(nameof(ShowPasswordDelayChecked));
+               OnPropertyChanged(nameof(ShowPasswordDelayChecked));
             }
          }
       } = 500;
@@ -93,7 +82,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (ShowPasswordDelayChecked != value)
             {
                ShowPasswordDelay = value ? 500 : 0;
-               _onPropertyChanged(nameof(ShowPasswordDelayChecked));
             }
          }
       }
@@ -102,11 +90,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _onPropertyChanged(nameof(NumberOfOldPasswordToKeep));
-               _onPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
+               OnPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
             }
          }
       }
@@ -118,7 +104,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (NumberOfOldPasswordToKeepChecked != value)
             {
                NumberOfOldPasswordToKeep = value ? 10 : 0;
-               _onPropertyChanged(nameof(NumberOfOldPasswordToKeepChecked));
             }
          }
       }
@@ -127,11 +112,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (field != value)
+            if (SetProperty(ref field, value))
             {
-               field = value;
-               _onPropertyChanged(nameof(NumberOfMonthActivitiesToKeep));
-               _onPropertyChanged(nameof(NumberOfMonthActivitiesToKeepChecked));
+               OnPropertyChanged(nameof(NumberOfMonthActivitiesToKeepChecked));
             }
          }
       }
@@ -143,65 +126,64 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (NumberOfMonthActivitiesToKeepChecked != value)
             {
                NumberOfMonthActivitiesToKeep = value ? 12 : 0;
-               _onPropertyChanged(nameof(NumberOfMonthActivitiesToKeepChecked));
             }
          }
       }
       public bool NotifyActivityReview
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = true;
       public bool NotifyPasswordUpdateReminder
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = true;
       public bool NotifyDuplicatedPasswords
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = true;
       public bool NotifyPasswordLeaked
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = true;
       public bool NotifySecuritySettings
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = true;
       public bool NotifyInsufficientPasskeys
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = true;
       public bool NotifyWeakPasskey
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = true;
       public bool NotifyPasskeyLeaked
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = true;
       public bool NotifyWeakAccountPassword
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = true;
       public bool NotifyPasskeyReusedAsAccountPassword
       {
          get;
-         set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         set => SetProperty(ref field, value);
       } = true;
 
       public IReadOnlyList<AppLanguage> Languages
       {
          get;
-         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         private set => SetProperty(ref field, value);
       } = _buildLanguages();
 
       public AppLanguage SelectedLanguage
@@ -214,14 +196,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                return;
             }
 
-            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+            _ = SetProperty(ref field, value);
          }
       }
 
       public IReadOnlyList<AppThemeOption> Themes
       {
          get;
-         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         private set => SetProperty(ref field, value);
       } = _buildThemes();
 
       public AppThemeOption SelectedTheme
@@ -234,15 +216,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                return;
             }
 
-            _ = PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+            _ = SetProperty(ref field, value);
          }
-      }
-
-      public event PropertyChangedEventHandler? PropertyChanged;
-
-      private void _onPropertyChanged(string propertyName)
-      {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
       }
 
       public UserSettingsViewModel()

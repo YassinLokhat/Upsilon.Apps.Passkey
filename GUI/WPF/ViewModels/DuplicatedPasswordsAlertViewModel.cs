@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -7,17 +6,19 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class DuplicatedPasswordsAlertViewModel : INotifyPropertyChanged, ILanguageAware
+   internal sealed class DuplicatedPasswordsAlertViewModel : ObservableObject, ILanguageAware
    {
       public string Title
       {
          get;
-         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+         private set => SetProperty(ref field, value);
       } = Strings.Format(nameof(Strings.Title_DuplicatedPasswordsAlerts), AppInfo.Title);
 
-      public DuplicatedPasswordAlertViewModel[] Alerts { get; private set; }
-
-      public event PropertyChangedEventHandler? PropertyChanged;
+      public DuplicatedPasswordAlertViewModel[] Alerts
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      }
 
       public DuplicatedPasswordsAlertViewModel()
       {
@@ -28,7 +29,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          Title = Strings.Format(nameof(Strings.Title_DuplicatedPasswordsAlerts), AppInfo.Title);
          Alerts = _loadAlerts();
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Alerts)));
       }
 
       private static DuplicatedPasswordAlertViewModel[] _loadAlerts()

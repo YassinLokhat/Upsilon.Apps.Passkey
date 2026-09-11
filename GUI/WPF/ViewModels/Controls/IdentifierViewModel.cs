@@ -1,5 +1,5 @@
-﻿using System.ComponentModel;
-using System.Windows.Media;
+﻿using System.Windows.Media;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -17,7 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public string Display => Glyph;
    }
 
-   internal sealed class IdentifierViewModel(IAccount account, IIdentifier identifier) : INotifyPropertyChanged, IThemeAware, ILanguageAware
+   internal sealed class IdentifierViewModel(IAccount account, IIdentifier identifier) : ObservableObject, IThemeAware, ILanguageAware
    {
       private readonly IAccount _account = account;
       private IdentifierType _type = identifier.Type;
@@ -53,15 +53,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          get => _type;
          set
          {
-            if (_type == value)
+            if (SetProperty(ref _type, value))
             {
-               return;
+               OnPropertyChanged(nameof(TypeGlyph));
+               OnPropertyChanged(nameof(TypeLabel));
+               OnPropertyChanged(nameof(IdentifierBackground));
             }
-
-            _type = value;
-            _onPropertyChanged(nameof(Type));
-            _onPropertyChanged(nameof(TypeGlyph));
-            _onPropertyChanged(nameof(TypeLabel));
          }
       }
 
@@ -102,25 +99,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                if (_type != detected)
                {
                   _type = detected;
-                  _onPropertyChanged(nameof(Type));
-                  _onPropertyChanged(nameof(TypeGlyph));
-                  _onPropertyChanged(nameof(TypeLabel));
+                  OnPropertyChanged(nameof(Type));
+                  OnPropertyChanged(nameof(TypeGlyph));
+                  OnPropertyChanged(nameof(TypeLabel));
                }
             }
 
-            _onPropertyChanged(nameof(Identifier));
+            OnPropertyChanged(nameof(Identifier));
+            OnPropertyChanged(nameof(IdentifierBackground));
          }
       }
 
       public Identifier ToIdentifier() => new(Type, Identifier);
-
-      public event PropertyChangedEventHandler? PropertyChanged;
-
-      private void _onPropertyChanged(string propertyName)
-      {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IdentifierBackground)));
-      }
 
       public IdentifierViewModel(IAccount account, string value)
          : this(account, new Identifier(IdentifierTypeDetector.Detect(value), value ?? string.Empty))
@@ -129,7 +119,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void Refresh()
       {
-         _onPropertyChanged(nameof(IdentifierBackground));
+         OnPropertyChanged(nameof(IdentifierBackground));
       }
 
       public void OnThemeChanged() => Refresh();
@@ -137,7 +127,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public void OnLanguageChanged()
       {
          // TypeChoices is static (glyphs only); refresh the localized tooltip.
-         _onPropertyChanged(nameof(TypeLabel));
+         OnPropertyChanged(nameof(TypeLabel));
       }
    }
 }

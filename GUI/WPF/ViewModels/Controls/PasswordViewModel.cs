@@ -1,18 +1,19 @@
-﻿using System.ComponentModel;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class PasswordViewModel(string updateDate, string password) : INotifyPropertyChanged
+   internal sealed class PasswordViewModel(string updateDate, string password) : ObservableObject
    {
       public string UpdateDate { get; set; } = updateDate;
-      public string Password { get; set; } = password;
-
-      public event PropertyChangedEventHandler? PropertyChanged;
+      public string Password
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = password;
 
       public void Clear()
       {
          Password = string.Empty;
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Password)));
       }
    }
 }

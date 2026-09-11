@@ -11,7 +11,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed class ServiceViewModel : INotifyPropertyChanged, IThemeAware
+   internal sealed class ServiceViewModel : ObservableObject, IThemeAware
    {
       public readonly IService Service;
 
@@ -30,7 +30,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Service.ServiceName != value)
             {
                Service.ServiceName = value;
-               _onPropertyChanged(nameof(ServiceName));
+               _notify(nameof(ServiceName));
             }
          }
       }
@@ -44,7 +44,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Service.Url?.OriginalString != value)
             {
                Service.Url = new(value);
-               _onPropertyChanged(nameof(Url));
+               _notify(nameof(Url));
             }
          }
       }
@@ -58,20 +58,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Service.Notes != value)
             {
                Service.Notes = value;
-               _onPropertyChanged(nameof(Notes));
+               _notify(nameof(Notes));
             }
          }
       }
 
       public readonly ObservableCollection<AccountViewModel> Accounts = [];
 
-      public event PropertyChangedEventHandler? PropertyChanged;
-
-      private void _onPropertyChanged(string propertyName)
+      private void _notify(string propertyName)
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceDisplay)));
+         OnPropertyChanged(propertyName);
+         OnPropertyChanged($"{propertyName}Background");
+         OnPropertyChanged(nameof(ServiceDisplay));
       }
 
       public ServiceViewModel(IService service)
@@ -82,7 +80,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void OnLanguageChanged()
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceId)));
+         OnPropertyChanged(nameof(ServiceId));
          foreach (AccountViewModel account in _accountViewModelsById.Values)
          {
             account.OnLanguageChanged();
@@ -91,9 +89,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void OnThemeChanged()
       {
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ServiceNameBackground)));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UrlBackground)));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NotesBackground)));
+         OnPropertyChanged(nameof(ServiceNameBackground));
+         OnPropertyChanged(nameof(UrlBackground));
+         OnPropertyChanged(nameof(NotesBackground));
 
          foreach (AccountViewModel account in _accountViewModelsById.Values)
          {
@@ -138,7 +136,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                Accounts.Insert(0, accountViewModel);
             }
 
-            _onPropertyChanged(string.Empty);
+            _notify(string.Empty);
             AppServices.Session.Database?.RefreshAlerts();
          }
 
@@ -157,7 +155,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          Service.DeleteAccount(accountViewModel.Account);
          _removeAccountViewModel(accountViewModel);
 
-         _onPropertyChanged(string.Empty);
+         _notify(string.Empty);
          AppServices.Session.Database?.RefreshAlerts();
 
          return index < Accounts.Count ? index : Accounts.Count - 1;
@@ -194,7 +192,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       private void _accountViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
       {
-         _onPropertyChanged(string.Empty);
+         _notify(string.Empty);
       }
 
       public override string ToString() => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service}";
