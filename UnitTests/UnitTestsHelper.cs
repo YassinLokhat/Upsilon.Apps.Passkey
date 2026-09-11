@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -360,7 +360,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
       }
 
       /// <summary>
-      /// Subscribes to the kind-specific Core alert event and
+      /// Subscribes to <see cref="IDatabase.CoreAlertsChanged"/> and
       /// <see cref="IDatabase.CoreAlertsScanCompleted"/>, then runs
       /// <paramref name="trigger"/> (typically <see cref="IDatabase.Save"/>) and
       /// waits until an alert of <paramref name="kind"/> is reported.
@@ -395,8 +395,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
             }
          }
 
-         EventHandler<AlertsChangedEventArgs>? kindSubscription = KindHandler;
-         _subscribeKindChanged(database, kind, kindSubscription);
+         database.CoreAlertsChanged += KindHandler;
          database.CoreAlertsScanCompleted += ScanCompleted;
 
          try
@@ -415,7 +414,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
          }
          finally
          {
-            _unsubscribeKindChanged(database, kind, kindSubscription);
+            database.CoreAlertsChanged -= KindHandler;
             database.CoreAlertsScanCompleted -= ScanCompleted;
          }
       }
@@ -449,80 +448,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
          finally
          {
             database.CoreAlertsScanCompleted -= Handler;
-         }
-      }
-
-      private static void _subscribeKindChanged(IDatabase database, string kind, EventHandler<AlertsChangedEventArgs> handler)
-      {
-         switch (kind)
-         {
-            case AlertKinds.ActivityReview:
-               database.ActivityReviewAlertsChanged += handler;
-               break;
-            case AlertKinds.PasswordUpdateReminder:
-               database.PasswordUpdateReminderAlertsChanged += handler;
-               break;
-            case AlertKinds.DuplicatedPasswords:
-               database.DuplicatedPasswordsAlertsChanged += handler;
-               break;
-            case AlertKinds.PasswordLeaked:
-               database.PasswordLeakedAlertsChanged += handler;
-               break;
-            case AlertKinds.VaultSecuritySettings:
-               database.VaultSecuritySettingsAlertsChanged += handler;
-               break;
-            case AlertKinds.InsufficientPasskeys:
-               database.InsufficientPasskeysAlertsChanged += handler;
-               break;
-            case AlertKinds.WeakPasskey:
-               database.WeakPasskeyAlertsChanged += handler;
-               break;
-            case AlertKinds.PasskeyLeaked:
-               database.PasskeyLeakedAlertsChanged += handler;
-               break;
-            case AlertKinds.WeakAccountPassword:
-               database.WeakAccountPasswordAlertsChanged += handler;
-               break;
-            case AlertKinds.PasskeyReusedAsAccountPassword:
-               database.PasskeyReuseAlertsChanged += handler;
-               break;
-         }
-      }
-
-      private static void _unsubscribeKindChanged(IDatabase database, string kind, EventHandler<AlertsChangedEventArgs> handler)
-      {
-         switch (kind)
-         {
-            case AlertKinds.ActivityReview:
-               database.ActivityReviewAlertsChanged -= handler;
-               break;
-            case AlertKinds.PasswordUpdateReminder:
-               database.PasswordUpdateReminderAlertsChanged -= handler;
-               break;
-            case AlertKinds.DuplicatedPasswords:
-               database.DuplicatedPasswordsAlertsChanged -= handler;
-               break;
-            case AlertKinds.PasswordLeaked:
-               database.PasswordLeakedAlertsChanged -= handler;
-               break;
-            case AlertKinds.VaultSecuritySettings:
-               database.VaultSecuritySettingsAlertsChanged -= handler;
-               break;
-            case AlertKinds.InsufficientPasskeys:
-               database.InsufficientPasskeysAlertsChanged -= handler;
-               break;
-            case AlertKinds.WeakPasskey:
-               database.WeakPasskeyAlertsChanged -= handler;
-               break;
-            case AlertKinds.PasskeyLeaked:
-               database.PasskeyLeakedAlertsChanged -= handler;
-               break;
-            case AlertKinds.WeakAccountPassword:
-               database.WeakAccountPasswordAlertsChanged -= handler;
-               break;
-            case AlertKinds.PasskeyReusedAsAccountPassword:
-               database.PasskeyReuseAlertsChanged -= handler;
-               break;
          }
       }
 

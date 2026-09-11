@@ -160,31 +160,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
 
       private void _subscribe(IDatabase database)
       {
-         database.ActivityReviewAlertsChanged += _onKindChanged;
-         database.PasswordUpdateReminderAlertsChanged += _onKindChanged;
-         database.DuplicatedPasswordsAlertsChanged += _onKindChanged;
-         database.PasswordLeakedAlertsChanged += _onKindChanged;
-         database.VaultSecuritySettingsAlertsChanged += _onKindChanged;
-         database.InsufficientPasskeysAlertsChanged += _onKindChanged;
-         database.WeakPasskeyAlertsChanged += _onKindChanged;
-         database.PasskeyLeakedAlertsChanged += _onKindChanged;
-         database.WeakAccountPasswordAlertsChanged += _onKindChanged;
-         database.PasskeyReuseAlertsChanged += _onKindChanged;
+         database.CoreAlertsChanged += _onKindChanged;
          database.CoreAlertsScanCompleted += _onScanCompleted;
       }
 
       private void _unsubscribe(IDatabase database)
       {
-         database.ActivityReviewAlertsChanged -= _onKindChanged;
-         database.PasswordUpdateReminderAlertsChanged -= _onKindChanged;
-         database.DuplicatedPasswordsAlertsChanged -= _onKindChanged;
-         database.PasswordLeakedAlertsChanged -= _onKindChanged;
-         database.VaultSecuritySettingsAlertsChanged -= _onKindChanged;
-         database.InsufficientPasskeysAlertsChanged -= _onKindChanged;
-         database.WeakPasskeyAlertsChanged -= _onKindChanged;
-         database.PasskeyLeakedAlertsChanged -= _onKindChanged;
-         database.WeakAccountPasswordAlertsChanged -= _onKindChanged;
-         database.PasskeyReuseAlertsChanged -= _onKindChanged;
+         database.CoreAlertsChanged -= _onKindChanged;
          database.CoreAlertsScanCompleted -= _onScanCompleted;
       }
 

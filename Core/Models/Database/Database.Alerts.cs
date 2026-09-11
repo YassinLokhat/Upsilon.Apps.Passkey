@@ -26,16 +26,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      public event EventHandler<AlertsChangedEventArgs>? ActivityReviewAlertsChanged;
-      public event EventHandler<AlertsChangedEventArgs>? PasswordUpdateReminderAlertsChanged;
-      public event EventHandler<AlertsChangedEventArgs>? DuplicatedPasswordsAlertsChanged;
-      public event EventHandler<AlertsChangedEventArgs>? PasswordLeakedAlertsChanged;
-      public event EventHandler<AlertsChangedEventArgs>? VaultSecuritySettingsAlertsChanged;
-      public event EventHandler<AlertsChangedEventArgs>? InsufficientPasskeysAlertsChanged;
-      public event EventHandler<AlertsChangedEventArgs>? WeakPasskeyAlertsChanged;
-      public event EventHandler<AlertsChangedEventArgs>? PasskeyLeakedAlertsChanged;
-      public event EventHandler<AlertsChangedEventArgs>? WeakAccountPasswordAlertsChanged;
-      public event EventHandler<AlertsChangedEventArgs>? PasskeyReuseAlertsChanged;
+      public event EventHandler<AlertsChangedEventArgs>? CoreAlertsChanged;
       public event EventHandler? CoreAlertsScanCompleted;
 
       private void _queueAlertScan()
@@ -105,16 +96,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
                }
             }
 
-            _raiseKind(ActivityReviewAlertsChanged, AlertKinds.ActivityReview, snapshot);
-            _raiseKind(PasswordUpdateReminderAlertsChanged, AlertKinds.PasswordUpdateReminder, snapshot);
-            _raiseKind(PasswordLeakedAlertsChanged, AlertKinds.PasswordLeaked, snapshot);
-            _raiseKind(DuplicatedPasswordsAlertsChanged, AlertKinds.DuplicatedPasswords, snapshot);
-            _raiseKind(VaultSecuritySettingsAlertsChanged, AlertKinds.VaultSecuritySettings, snapshot);
-            _raiseKind(InsufficientPasskeysAlertsChanged, AlertKinds.InsufficientPasskeys, snapshot);
-            _raiseKind(WeakPasskeyAlertsChanged, AlertKinds.WeakPasskey, snapshot);
-            _raiseKind(PasskeyLeakedAlertsChanged, AlertKinds.PasskeyLeaked, snapshot);
-            _raiseKind(WeakAccountPasswordAlertsChanged, AlertKinds.WeakAccountPassword, snapshot);
-            _raiseKind(PasskeyReuseAlertsChanged, AlertKinds.PasskeyReusedAsAccountPassword, snapshot);
+            foreach (KeyValuePair<string, IReadOnlyList<IAlert>> pair in snapshot)
+            {
+               CoreAlertsChanged?.Invoke(this, new AlertsChangedEventArgs(pair.Key, pair.Value));
+            }
 
             CoreAlertsScanCompleted?.Invoke(this, EventArgs.Empty);
          }
@@ -125,22 +110,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
             // so we trace it for diagnostics rather than swallowing it silently.
             System.Diagnostics.Trace.TraceWarning($"Alert scan failed: {ex}");
          }
-      }
-
-      private void _raiseKind(
-         EventHandler<AlertsChangedEventArgs>? handler,
-         string kind,
-         Dictionary<string, IReadOnlyList<IAlert>> snapshot)
-      {
-         if (handler is null)
-         {
-            return;
-         }
-
-         IReadOnlyList<IAlert> alerts = snapshot.TryGetValue(kind, out IReadOnlyList<IAlert>? list)
-            ? list
-            : [];
-         handler.Invoke(this, new AlertsChangedEventArgs(kind, alerts));
       }
 
       private IAlert[] _lookAtActivityAlerts()

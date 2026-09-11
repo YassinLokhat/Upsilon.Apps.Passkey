@@ -31,16 +31,11 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       /// <summary>Latest Core alert snapshots keyed by <see cref="AlertKinds"/>.</summary>
       IReadOnlyDictionary<string, IReadOnlyList<IAlert>> CoreAlerts { get; }
 
-      event EventHandler<AlertsChangedEventArgs>? ActivityReviewAlertsChanged;
-      event EventHandler<AlertsChangedEventArgs>? PasswordUpdateReminderAlertsChanged;
-      event EventHandler<AlertsChangedEventArgs>? DuplicatedPasswordsAlertsChanged;
-      event EventHandler<AlertsChangedEventArgs>? PasswordLeakedAlertsChanged;
-      event EventHandler<AlertsChangedEventArgs>? VaultSecuritySettingsAlertsChanged;
-      event EventHandler<AlertsChangedEventArgs>? InsufficientPasskeysAlertsChanged;
-      event EventHandler<AlertsChangedEventArgs>? WeakPasskeyAlertsChanged;
-      event EventHandler<AlertsChangedEventArgs>? PasskeyLeakedAlertsChanged;
-      event EventHandler<AlertsChangedEventArgs>? WeakAccountPasswordAlertsChanged;
-      event EventHandler<AlertsChangedEventArgs>? PasskeyReuseAlertsChanged;
+      /// <summary>
+      /// Raised once per alert kind after a scan publishes that kind's snapshot.
+      /// May be raised from a worker thread; filter on <see cref="AlertsChangedEventArgs.Kind"/>.
+      /// </summary>
+      event EventHandler<AlertsChangedEventArgs>? CoreAlertsChanged;
 
       /// <summary>
       /// Raised once after a full Core alert scan finishes (all kinds published).
