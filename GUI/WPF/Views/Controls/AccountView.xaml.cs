@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -222,7 +222,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          _refreshPasswordHistory();
       }
 
-      private void _password_VPB_Aborded(object sender, EventArgs e)
+      private void _password_VPB_Aborted(object sender, EventArgs e)
       {
          if (this.GetIsBusy()
             || _viewModel is null)

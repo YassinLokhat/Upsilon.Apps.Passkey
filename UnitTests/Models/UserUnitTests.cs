@@ -50,7 +50,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // Then
          _ = UnitTestsHelper.ReadFileZipEntry(databaseFile, "database").Should().Be(oldDatabaseContent);
 
-         // Finaly
+         // Finally
          UnitTestsHelper.ClearTestEnvironment();
       }
 
@@ -98,7 +98,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          databaseCreated.Close();
          expectedActivities.Push($"Information : User '{newUsername}' logged out");
          expectedActivities.Push($"Information : User '{newUsername}'s database closed");
-         IDatabase databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
+         IDatabase databaseLoaded = Database.Open(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
@@ -123,7 +123,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          _ = UnitTestsHelper.FlattenCoreAlerts(databaseLoaded).Should().NotBeEmpty();
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -195,7 +195,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : User '{newUsername}' logged out");
          expectedActivities.Push($"Information : User '{newUsername}'s database closed");
 
-         databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
+         databaseLoaded = Database.Open(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
@@ -220,7 +220,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          _ = UnitTestsHelper.FlattenCoreAlerts(databaseLoaded).Should().NotBeEmpty();
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -298,7 +298,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : User '{newUsername}' logged out");
          expectedActivities.Push($"Information : User '{newUsername}'s database closed");
 
-         databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
+         databaseLoaded = Database.Open(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
@@ -323,7 +323,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          _ = UnitTestsHelper.FlattenCoreAlerts(databaseLoaded).Should().NotBeEmpty();
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }

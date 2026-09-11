@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -78,12 +78,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             ActivityEventType.UserLoggedIn => Strings.Format(nameof(Strings.Activity_UserLoggedIn), activity.Username),
             ActivityEventType.UserLoggedOut => StringsHelper.ComputeUserLoggedOutStrings(activity),
             ActivityEventType.ImportingDataStarted => Strings.Format(nameof(Strings.Activity_ImportingDataStarted), activity.FieldValue),
-            ActivityEventType.ImportingDataSucceded => Strings.Activity_ImportingDataSucceded,
+            ActivityEventType.ImportingDataSucceeded => Strings.Activity_ImportingDataSucceeded,
             ActivityEventType.ImportingDataFailed => Strings.Format(
                nameof(Strings.Activity_ImportingDataFailed),
                EnumDisplayHelper.FormatFieldValue(activity.FieldName, activity.FieldValue)),
             ActivityEventType.ExportingDataStarted => Strings.Format(nameof(Strings.Activity_ExportingDataStarted), activity.FieldValue),
-            ActivityEventType.ExportingDataSucceded => Strings.Activity_ExportingDataSucceded,
+            ActivityEventType.ExportingDataSucceeded => Strings.Activity_ExportingDataSucceeded,
             ActivityEventType.ExportingDataFailed => Strings.Format(
                nameof(Strings.Activity_ExportingDataFailed),
                EnumDisplayHelper.FormatFieldValue(activity.FieldName, activity.FieldValue)),

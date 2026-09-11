@@ -1,4 +1,4 @@
-﻿using System.Security;
+using System.Security;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
@@ -57,7 +57,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             {
                ".json" => this.ImportJson(importContent),
                ".csv" => this.ImportCSV(importContent),
-               _ => ImportExportError.ExtentionFileNotSupported,
+               _ => ImportExportError.ExtensionFileNotSupported,
             };
          }
 
@@ -70,7 +70,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                fieldName: null,
                fieldValue: null,
                parentName: null,
-               eventType: ActivityEventType.ImportingDataSucceded,
+               eventType: ActivityEventType.ImportingDataSucceeded,
                needsReview: true);
             _save(logSaveEvent: true);
          }
@@ -127,7 +127,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             {
                ".json" => this.ExportJson(filePath),
                ".csv" => this.ExportCSV(filePath),
-               _ => ImportExportError.ExtentionFileNotSupported,
+               _ => ImportExportError.ExtensionFileNotSupported,
             };
          }
 
@@ -140,7 +140,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                fieldName: null,
                fieldValue: null,
                parentName: null,
-               eventType: ActivityEventType.ExportingDataSucceded,
+               eventType: ActivityEventType.ExportingDataSucceeded,
                needsReview: true);
          }
          else

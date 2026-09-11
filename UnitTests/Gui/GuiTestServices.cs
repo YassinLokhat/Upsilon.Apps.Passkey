@@ -38,7 +38,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
             AppServices.Session = Session;
             AppServices.Dialogs = Dialogs;
             AppServices.Navigation = Navigation;
-            AppServices.Cryptography = UnitTestsHelper.CryptographicCenter;
+            AppServices.Cryptography = UnitTestsHelper.CryptographyCenter;
             AppServices.Serialization = UnitTestsHelper.SerializationCenter;
             AppServices.PasswordFactory = UnitTestsHelper.PasswordFactory;
          }

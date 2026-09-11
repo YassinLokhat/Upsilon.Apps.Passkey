@@ -1,4 +1,4 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
@@ -9,19 +9,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       void IAutoSaveHost.ResolveActivityNames(string itemId,
          ActivityEventType action,
-         out string? usernname,
+         out string? username,
          out string? serviceName,
          out string? accountName,
          out string? parentName)
       {
-         usernname = null;
+         username = null;
          serviceName = null;
          accountName = null;
          parentName = null;
 
          if (itemId == User?.ItemId)
          {
-            usernname = User.ToString();
+            username = User.ToString();
          }
          else if (itemId.StartsWith('S'))
          {

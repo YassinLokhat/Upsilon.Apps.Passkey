@@ -110,7 +110,7 @@ Core records failures as `ImportingDataFailed` / `ExportingDataFailed` activitie
 | Situation | `ImportExportError` | English reason (`EnumValue_ImportExportError_*`) |
 | --------- | ------------------- | ------------------------------------------------ |
 | File missing | `ImportFileNotAccessible` | import file is not accessible |
-| Extension `.txt` (or anything but `.json` / `.csv`) | `ExtentionFileNotSupported` | file extension type is not supported |
+| Extension `.txt` (or anything but `.json` / `.csv`) | `ExtensionFileNotSupported` | file extension type is not supported |
 | Headers only / no rows | `NoDataToImport` | no data to import |
 | Service name already in the vault | `ServiceAlreadyExists` | a service already exists |
 | Blank service name | `BlankService` | a service is blank |

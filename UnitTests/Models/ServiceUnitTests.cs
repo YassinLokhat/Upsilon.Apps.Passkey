@@ -82,7 +82,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogAlerts]);
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -151,7 +151,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogAlerts]);
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -203,7 +203,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogAlerts]);
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -255,7 +255,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogAlerts]);
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }

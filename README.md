@@ -304,10 +304,10 @@ classDiagram
             UserLoggedIn
             UserLoggedOut
             ImportingDataStarted
-            ImportingDataSucceded
+            ImportingDataSucceeded
             ImportingDataFailed
             ExportingDataStarted
-            ExportingDataSucceded
+            ExportingDataSucceeded
             ExportingDataFailed
             ItemUpdated
             ItemAdded

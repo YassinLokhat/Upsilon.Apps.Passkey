@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.Controls.AccountView"
+<UserControl x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.Controls.AccountView"
              x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -136,7 +136,7 @@
                                             Margin="5"
                                             Background="{Binding PasswordBackground}"
                                             Validated="_password_VPB_Validated"
-                                            Aborded="_password_VPB_Aborded"/>
+                                            Aborted="_password_VPB_Aborted"/>
                   <Button Grid.Row="0"
                           Grid.Column="1"
                           Content="📋"

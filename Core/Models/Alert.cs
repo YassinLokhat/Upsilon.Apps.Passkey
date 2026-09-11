@@ -1,4 +1,4 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Core.Models
@@ -34,12 +34,12 @@ namespace Upsilon.Apps.Passkey.Core.Models
                or ActivityEventType.ActivityLogTampered
                or ActivityEventType.LoginSessionTimeoutReached
                or ActivityEventType.ExportingDataStarted
-               or ActivityEventType.ExportingDataSucceded
+               or ActivityEventType.ExportingDataSucceeded
                or ActivityEventType.ExportingDataFailed
                => AlertSeverity.Critical,
 
             ActivityEventType.ImportingDataStarted
-               or ActivityEventType.ImportingDataSucceded
+               or ActivityEventType.ImportingDataSucceeded
                or ActivityEventType.ImportingDataFailed
                or ActivityEventType.ItemAdded
                or ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile

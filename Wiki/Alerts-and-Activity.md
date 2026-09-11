@@ -71,7 +71,7 @@ Numeric values are a **persistence contract** and must stay stable. Mapping from
 | ----- | ------ |
 | Autosave merge | `MergeAndSaveThenRemoveAutoSaveFile`, `MergeWithoutSavingAndKeepAutoSaveFile`, `DontMergeAndRemoveAutoSaveFile`, `DontMergeAndKeepAutoSaveFile` |
 | Session | `DatabaseCreated`, `DatabaseOpened`, `DatabaseSaved`, `DatabaseClosed`, `LoginSessionTimeoutReached`, `LoginFailed`, `UserLoggedIn`, `UserLoggedOut` |
-| Import / export | `ImportingDataStarted`, `ImportingDataSucceded`, `ImportingDataFailed`, `ExportingDataStarted`, `ExportingDataSucceded`, `ExportingDataFailed` |
+| Import / export | `ImportingDataStarted`, `ImportingDataSucceeded`, `ImportingDataFailed`, `ExportingDataStarted`, `ExportingDataSucceeded`, `ExportingDataFailed` |
 | Items | `ItemUpdated`, `ItemAdded`, `ItemDeleted` |
 | Integrity | `ActivityLogTampered` |
 

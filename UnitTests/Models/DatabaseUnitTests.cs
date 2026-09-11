@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces;
@@ -76,7 +76,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = databaseCreated.User.Should().BeNull();
          _ = File.Exists(databaseFile).Should().BeFalse();
 
-         // Finaly
+         // Finally
          UnitTestsHelper.ClearTestEnvironment();
       }
 
@@ -113,7 +113,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = exception.Should().NotBeNull();
          _ = exception.Message.Should().Be($"'{UnitTestsHelper.ComputeDatabaseFilePath()}' database file already exists");
 
-         // Finaly
+         // Finally
          UnitTestsHelper.ClearTestEnvironment();
       }
 
@@ -174,7 +174,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = exception.Should().BeNull();
          _ = databaseLoaded.Should().NotBeNull();
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -221,7 +221,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
          UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogAlerts]);
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -241,7 +241,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          Stack<string> expectedLogAlerts = new();
 
          UnitTestsHelper.ClearTestEnvironment();
-         IDatabase database = Database.Create(UnitTestsHelper.CryptographicCenter,
+         IDatabase database = Database.Create(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
@@ -273,7 +273,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             && x.EventType == ActivityEventType.LoginSessionTimeoutReached
             && x.NeedsReview).Should().NotBeNull();
 
-         // Finaly
+         // Finally
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -311,7 +311,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             && x.EventType == ActivityEventType.ActivityLogTampered
             && x.NeedsReview).Should().BeTrue();
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -350,7 +350,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             && x.EventType == ActivityEventType.ActivityLogTampered
             && x.NeedsReview).Should().BeTrue();
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -389,7 +389,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             && x.EventType == ActivityEventType.ActivityLogTampered
             && x.NeedsReview).Should().BeTrue();
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -428,7 +428,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             && x.EventType == ActivityEventType.ActivityLogTampered
             && x.NeedsReview).Should().BeTrue();
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -449,7 +449,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          UnitTestsHelper.ClearTestEnvironment();
 
          // When
-         IDatabase databaseCreated = await Database.CreateAsync(UnitTestsHelper.CryptographicCenter,
+         IDatabase databaseCreated = await Database.CreateAsync(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
@@ -464,7 +464,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          await databaseCreated.SaveAsync();
          databaseCreated.Close();
 
-         IDatabase databaseLoaded = await Database.OpenAsync(UnitTestsHelper.CryptographicCenter,
+         IDatabase databaseLoaded = await Database.OpenAsync(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
@@ -484,7 +484,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = user.Username.Should().Be(username);
          _ = user.Settings.NumberOfOldPasswordToKeep.Should().Be(7);
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -507,7 +507,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          databaseCreated.Close();
 
-         IDatabase databaseLoaded = await Database.OpenAsync(UnitTestsHelper.CryptographicCenter,
+         IDatabase databaseLoaded = await Database.OpenAsync(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
@@ -523,7 +523,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          _ = (await databaseLoaded.LoginAsync(passkeys[^1])).Should().NotBeNull();
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -622,7 +622,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = reopenedAccount.Label.Should().StartWith("label-");
          _ = reopened.Activities.Should().NotBeEmpty();
 
-         // Finaly
+         // Finally
          reopened.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -655,7 +655,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          UnitTestsHelper.TamperKdfHeaderIterations(databaseFile, iterations: 1_000_000);
 
          IDatabase databaseLoaded = null;
-         Action openRestored = () => databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
+         Action openRestored = () => databaseLoaded = Database.Open(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
@@ -665,7 +665,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          openRestored.Should().NotThrow();
          databaseLoaded.Should().NotBeNull();
 
-         // Finaly
+         // Finally
          databaseLoaded!.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -687,7 +687,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          UnitTestsHelper.TamperDatabaseEntryCorrupt(databaseFile);
 
-         IDatabase databaseLoaded = Database.Open(UnitTestsHelper.CryptographicCenter,
+         IDatabase databaseLoaded = Database.Open(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
@@ -706,7 +706,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          loginCorrupt.Should().Throw<CorruptedSourceException>();
          databaseLoaded.User.Should().BeNull();
 
-         // Finaly
+         // Finally
          databaseLoaded.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -730,7 +730,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             ["a"]);
          missingCrypto.Should().Throw<ArgumentNullException>();
 
-         Action missingPasskeys = () => Database.Create(UnitTestsHelper.CryptographicCenter,
+         Action missingPasskeys = () => Database.Create(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.FastPasswordFactory,
             UnitTestsHelper.ClipboardManager,
@@ -777,7 +777,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
          ClipboardManager clipboard = new();
 
-         IDatabase database = Database.Create(UnitTestsHelper.CryptographicCenter,
+         IDatabase database = Database.Create(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,
             UnitTestsHelper.FastPasswordFactory,
             clipboard,

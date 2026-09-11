@@ -102,7 +102,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          FakePasswordFactory factory = new();
          factory.MarkLeaked("pwned-password");
 
-         IDatabase database = Database.Create(UnitTestsHelper.CryptographicCenter,
+         IDatabase database = Database.Create(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,
             factory,
             UnitTestsHelper.ClipboardManager,
@@ -299,9 +299,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
             .Should().Be(AlertSeverity.Critical);
 
          Activity infoOnly = new(1, "id", "u", null, null, null, null, null,
-            ActivityEventType.ImportingDataSucceded, needsReview: true);
+            ActivityEventType.ImportingDataSucceeded, needsReview: true);
          Activity export = new(2, "id", "u", null, null, null, null, null,
-            ActivityEventType.ExportingDataSucceded, needsReview: true);
+            ActivityEventType.ExportingDataSucceeded, needsReview: true);
 
          _ = new ActivityReviewAlert([infoOnly]).Severity.Should().Be(AlertSeverity.Info);
          _ = new ActivityReviewAlert([infoOnly, export]).Severity.Should().Be(AlertSeverity.Critical);
