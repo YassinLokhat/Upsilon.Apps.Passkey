@@ -8,10 +8,13 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests
 {
+   /// <summary>
+   /// Manual vault fixture generator (not part of the automated test suite).
+   /// </summary>
    [TestClass]
    public sealed class TestDatabaseGenerator
    {
-      [TestMethod]
+      // Intentionally not a [TestMethod]: run manually when regenerating large fixtures.
       public void GenerateNewDatabase()
       {
          UnitTestsHelper.ClearTestEnvironment("_");

@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -494,21 +494,21 @@ namespace Upsilon.Apps.Passkey.UnitTests
          return FormatActivityLine(true, Strings.Format(nameof(Strings.Activity_ExportingDataFailed), reason));
       }
 
+      public static string FormatDatabaseSaved(string username)
+         => FormatActivityLine(false, Strings.Format(nameof(Strings.Activity_DatabaseSaved), username));
+
       public static void LastActivityAlertsShouldMatch(IDatabase database, string[] expectedActivities)
       {
-         DateTime deadline = DateTime.UtcNow + TimeSpan.FromSeconds(15);
          IActivityReviewAlert? activityAlert = null;
-
-         while (DateTime.UtcNow < deadline)
+         if (database.CoreAlerts.TryGetValue(AlertKinds.ActivityReview, out IReadOnlyList<IAlert>? existing)
+            && existing.OfType<IActivityReviewAlert>().FirstOrDefault() is { } current)
          {
-            if (database.CoreAlerts.TryGetValue(AlertKinds.ActivityReview, out IReadOnlyList<IAlert>? list)
-               && list.OfType<IActivityReviewAlert>().FirstOrDefault() is { } found)
-            {
-               activityAlert = found;
-               break;
-            }
-
-            Thread.Sleep(200);
+            activityAlert = current;
+         }
+         else
+         {
+            IAlert[] alerts = WaitForAlertKind(database, AlertKinds.ActivityReview, database.RefreshAlerts);
+            activityAlert = alerts.OfType<IActivityReviewAlert>().FirstOrDefault();
          }
 
          _ = activityAlert.Should().NotBeNull("ActivityReview alerts should be available");

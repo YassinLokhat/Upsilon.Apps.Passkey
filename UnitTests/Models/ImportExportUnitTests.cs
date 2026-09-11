@@ -8,7 +8,7 @@ using Upsilon.Apps.Passkey.UnitTests;
 namespace Upsilon.Apps.Passkey.UnitTests.Models
 {
    [TestClass]
-   public class ImportExportUnitTests
+   public sealed class ImportExportUnitTests
    {
       [TestMethod]
       public void Case01_Import_MissingFile()
@@ -110,7 +110,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ImportFromFile(importFile);
 
-         expectedActivities.Push($"Information : User '{username}'s database saved");
+         expectedActivities.Push(UnitTestsHelper.FormatDatabaseSaved(username));
          expectedActivities.Push(UnitTestsHelper.FormatImportStarted(importFile));
          expectedActivities.Push(UnitTestsHelper.FormatImportFailed(ImportExportError.ServiceAlreadyExists));
 
@@ -204,7 +204,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to '3'");
 
          expectedActivities.Push(UnitTestsHelper.FormatImportSucceeded());
-         expectedActivities.Push($"Information : User '{username}'s database saved");
+         expectedActivities.Push(UnitTestsHelper.FormatDatabaseSaved(username));
 
          // Then
          database.User.Services.Count().Should().Be(2);
@@ -370,7 +370,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          expectedActivities.Push($"Information : Service 'Service1's Account 'Account1 (account1@service1.xyz, account1_backup@service1.xyz)'s password update reminder delay has been set to '3'");
 
          expectedActivities.Push(UnitTestsHelper.FormatImportSucceeded());
-         expectedActivities.Push($"Information : User '{username}'s database saved");
+         expectedActivities.Push(UnitTestsHelper.FormatDatabaseSaved(username));
 
          // Then
          database.User.Settings.LogoutTimeout.Should().Be(9);
@@ -480,7 +480,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ExportToFile(exportFile);
 
-         expectedActivities.Push($"Information : User '{username}'s database saved");
+         expectedActivities.Push(UnitTestsHelper.FormatDatabaseSaved(username));
          expectedActivities.Push(UnitTestsHelper.FormatExportStarted(exportFile));
          expectedActivities.Push(UnitTestsHelper.FormatExportFailed(ImportExportError.ExportFileAlreadyExists));
 
@@ -512,7 +512,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          // When
          database.ExportToFile(exportFile);
 
-         expectedActivities.Push($"Information : User '{username}'s database saved");
+         expectedActivities.Push(UnitTestsHelper.FormatDatabaseSaved(username));
          expectedActivities.Push(UnitTestsHelper.FormatExportStarted(exportFile));
          expectedActivities.Push(UnitTestsHelper.FormatExportFailed(ImportExportError.ExtensionFileNotSupported));
 
@@ -603,7 +603,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
 
          ImportExportError imported = database.ImportFromFile(importFile);
-         imported.Should().Be(ImportExportError.None);
+         _ = imported.Should().Be(ImportExportError.None);
 
          foreach (IAccount account in database.User!.Services.SelectMany(s => s.Accounts))
          {
@@ -626,7 +626,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
       /*
        * CSV import detects phone-looking values as PhoneNumber via IdentifierTypeDetector.
       */
-      public void Case15_ImportCSV_DetectsPhoneNumber()
+      public void Case16_ImportCSV_DetectsPhoneNumber()
       {
          UnitTestsHelper.ClearTestEnvironment();
 
@@ -640,7 +640,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
 
          ImportExportError imported = database.ImportFromFile(importFile);
-         imported.Should().Be(ImportExportError.None);
+         _ = imported.Should().Be(ImportExportError.None);
 
          IAccount account = database.User!.Services.Single().Accounts.Single();
          account.Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids(phone));
