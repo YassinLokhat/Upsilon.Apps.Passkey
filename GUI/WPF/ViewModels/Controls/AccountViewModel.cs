@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -33,7 +33,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string AccountId => Strings.Format(nameof(Strings.Msg_AccountId), Account.ItemId);
 
-      public Brush LabelBackground => Account.HasChanged(nameof(Label)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush LabelBackground => Account.HasChanged(nameof(Label)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string Label
       {
          get => Account.Label;
@@ -85,7 +85,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public Brush NotesBackground => Account.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush NotesBackground => Account.HasChanged(nameof(Notes)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string Notes
       {
          get => Account.Notes;

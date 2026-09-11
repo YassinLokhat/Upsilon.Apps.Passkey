@@ -21,7 +21,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string ServiceId => Strings.Format(nameof(Strings.Msg_ServiceId), Service.ItemId);
 
-      public Brush ServiceNameBackground => Service.HasChanged(nameof(ServiceName)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush ServiceNameBackground => Service.HasChanged(nameof(ServiceName)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string ServiceName
       {
          get => Service.ServiceName;
@@ -35,7 +35,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public Brush UrlBackground => Service.HasChanged(nameof(Url)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush UrlBackground => Service.HasChanged(nameof(Url)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string Url
       {
          get => Service.Url?.OriginalString ?? string.Empty;
@@ -49,7 +49,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public Brush NotesBackground => Service.HasChanged(nameof(Notes)) ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush NotesBackground => Service.HasChanged(nameof(Notes)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string Notes
       {
          get => Service.Notes;

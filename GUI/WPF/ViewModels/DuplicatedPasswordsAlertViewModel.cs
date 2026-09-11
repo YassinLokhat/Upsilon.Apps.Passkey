@@ -20,15 +20,29 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          private set => SetProperty(ref field, value);
       }
 
+      public DuplicatedPasswordAlertViewModel? SelectedAlert
+      {
+         get;
+         set => SetProperty(ref field, value);
+      }
+
       public DuplicatedPasswordsAlertViewModel()
       {
          Alerts = _loadAlerts();
+         SelectedAlert = Alerts.FirstOrDefault();
       }
 
       public void OnLanguageChanged()
       {
          Title = Strings.Format(nameof(Strings.Title_DuplicatedPasswordsAlerts), AppInfo.Title);
+
+         DuplicatedPasswordAlertViewModel? previous = SelectedAlert;
          Alerts = _loadAlerts();
+         SelectedAlert = previous is not null
+            ? Alerts.FirstOrDefault(w => w.Accounts.Length == previous.Accounts.Length
+               && ReferenceEquals(w.Accounts.FirstOrDefault()?.Account, previous.Accounts.FirstOrDefault()?.Account))
+              ?? Alerts.FirstOrDefault()
+            : Alerts.FirstOrDefault();
       }
 
       private static DuplicatedPasswordAlertViewModel[] _loadAlerts()

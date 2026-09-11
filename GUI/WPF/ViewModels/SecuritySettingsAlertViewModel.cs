@@ -14,14 +14,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          private set => SetProperty(ref field, value);
       } = Strings.Format(nameof(Strings.Title_SecuritySettingsAlertsWindow), AppInfo.Title);
 
-      public SecuritySettingsIssueItemViewModel[] Issues
+      public IssueItemViewModel[] Issues
       {
          get;
          private set => SetProperty(ref field, value);
       }
 
+      private readonly bool _showAppSettingsButton;
+
+      public bool ShowAppSettingsButton => _showAppSettingsButton;
+
       public SecuritySettingsAlertViewModel()
       {
+         _showAppSettingsButton = true;
          AppServices.Session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
 
          Issues = _loadIssues();
@@ -47,7 +52,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       }
 
-      private static SecuritySettingsIssueItemViewModel[] _loadIssues()
+      private static IssueItemViewModel[] _loadIssues()
       {
          SecuritySettingsIssue vaultIssues = SecuritySettingsIssue.None;
          HostSecurityIssue hostIssues = HostSecurityIssue.None;
@@ -73,7 +78,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          ];
       }
 
-      private static IEnumerable<SecuritySettingsIssueItemViewModel> _vaultItems(SecuritySettingsIssue issues)
+      private static IEnumerable<IssueItemViewModel> _vaultItems(SecuritySettingsIssue issues)
       {
          if (issues.HasFlag(SecuritySettingsIssue.AutoLogoutDisabled))
          {
@@ -118,7 +123,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       }
 
-      private static IEnumerable<SecuritySettingsIssueItemViewModel> _hostItems(HostSecurityIssue issues)
+      private static IEnumerable<IssueItemViewModel> _hostItems(HostSecurityIssue issues)
       {
          if (issues.HasFlag(HostSecurityIssue.IdleLoginDisabled))
          {
@@ -134,11 +139,5 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                Strings.Msg_SecuritySettings_OfflineLeakFilterUnavailable);
          }
       }
-   }
-
-   internal sealed class SecuritySettingsIssueItemViewModel(string title, string description)
-   {
-      public string Title { get; } = title;
-      public string Description { get; } = description;
    }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System.IO;
 using System.Security;
 using System.Windows;
@@ -142,7 +142,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
          }
 
          _swapColorDictionary(appearance);
-         DarkMode.SyncFromApplicationResources();
+         FieldStateBrushes.SyncFromApplicationResources();
          SemanticBrushes.SyncFromApplicationResources();
          _notifyOpenWindows();
          ThemeChanged?.Invoke(null, EventArgs.Empty);

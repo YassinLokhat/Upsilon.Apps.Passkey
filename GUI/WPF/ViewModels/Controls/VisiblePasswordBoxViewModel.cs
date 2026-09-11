@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
@@ -46,7 +46,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       {
          get;
          set => SetProperty(ref field, value);
-      } = DarkMode.UnchangedBrush2;
+      } = FieldStateBrushes.UnchangedBrush2;
 
       public void ShowPassword()
       {

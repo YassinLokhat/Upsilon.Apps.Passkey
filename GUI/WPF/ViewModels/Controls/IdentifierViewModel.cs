@@ -1,4 +1,4 @@
-﻿using System.Windows.Media;
+using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
@@ -46,7 +46,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public static IReadOnlyList<IdentifierTypeChoice> TypeChoices => _typeChoices;
 
-      public Brush IdentifierBackground => _account.HasChanged("Identifiers") ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
+      public Brush IdentifierBackground => _account.HasChanged("Identifiers") ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
 
       public IdentifierType Type
       {

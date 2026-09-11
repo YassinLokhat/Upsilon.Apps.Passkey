@@ -25,8 +25,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _bindAlertKindCombo();
 
-         _alerts_DGV.ItemsSource = _viewModel.Alerts;
-
          Loaded += (s, e) => this.PostLoadSetup();
       }
 

@@ -13,14 +13,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          private set => SetProperty(ref field, value);
       } = Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppInfo.Title);
 
-      public PasskeyQualityIssueItemViewModel[] Issues
+      public IssueItemViewModel[] Issues
       {
          get;
          private set => SetProperty(ref field, value);
       }
 
+      private readonly bool _showAppSettingsButton;
+
+      public bool ShowAppSettingsButton => _showAppSettingsButton;
+
       public PasskeyQualityAlertViewModel()
       {
+         _showAppSettingsButton = false;
          AppServices.Session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
          Issues = _loadIssues();
       }
@@ -45,9 +50,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       }
 
-      private static PasskeyQualityIssueItemViewModel[] _loadIssues()
+      private static IssueItemViewModel[] _loadIssues()
       {
-         List<PasskeyQualityIssueItemViewModel> items = [];
+         List<IssueItemViewModel> items = [];
 
          foreach (IInsufficientPasskeysAlert warning in AppServices.Session.Alerts
             .GetNotifiedAlerts(AlertKinds.InsufficientPasskeys)
@@ -80,11 +85,5 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          return [.. items];
       }
-   }
-
-   internal sealed class PasskeyQualityIssueItemViewModel(string title, string description)
-   {
-      public string Title { get; } = title;
-      public string Description { get; } = description;
    }
 }
