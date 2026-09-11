@@ -33,15 +33,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
             readableValue: value);
       }
 
-      IEnumerable<string> IAccount.Identifiers
+      IEnumerable<IIdentifier> IAccount.Identifiers
       {
          get => Host.Touch(Identifiers);
          set => Identifiers = Host.AutoSave.UpdateValue(ItemId,
             fieldName: nameof(Identifiers),
             needsReview: true,
             oldValue: Identifiers,
-            newValue: value,
-            readableValue: $"({string.Join(", ", value)})");
+            newValue: _toIdentifierList(value),
+            readableValue: $"({string.Join(", ", value.Select(x => x.Value))})");
       }
 
       string IAccount.Password
@@ -132,7 +132,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       }
 
       public string Label { get; set; } = string.Empty;
-      public IEnumerable<string> Identifiers { get; set; } = [];
+      public List<Identifier> Identifiers { get; set; } = [];
 
       [JsonIgnore]
       public string Password
@@ -188,7 +188,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      Label = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);
                      break;
                   case nameof(Identifiers):
-                     Identifiers = change.NewValue.DeserializeTo<string[]>(Host.SerializationCenter);
+                     Identifiers = [.. change.NewValue.DeserializeTo<Identifier[]>(Host.SerializationCenter)];
                      break;
                   case nameof(Notes):
                      Notes = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);
@@ -212,7 +212,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
-      public override string ToString() => $"{Label} ({string.Join(", ", Identifiers)})".Trim();
+      public override string ToString() => $"{Label} ({string.Join(", ", Identifiers.Select(x => x.Value))})".Trim();
 
       public bool HasChanged() => Host.HasPendingChanges(ItemId);
 
@@ -220,5 +220,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
          => _service is not null
             ? Host.SecretMemoryProtector.Protect(secret)
             : PlaintextSecret.Wrap(secret);
+
+      private static List<Identifier> _toIdentifierList(IEnumerable<IIdentifier> identifiers)
+         => [.. identifiers.Select(x => x as Identifier ?? new Identifier(x.Type, x.Value))];
    }
 }

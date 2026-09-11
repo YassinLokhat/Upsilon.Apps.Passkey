@@ -53,14 +53,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
             readableValue: value);
       }
 
-      public IAccount AddAccount(string label, IEnumerable<string> identifiers, string password)
+      public IAccount AddAccount(string label, IEnumerable<IIdentifier> identifiers, string password)
       {
          Account account = new()
          {
             Service = this,
-            ItemId = "A" + Host.CryptographyCenter.GetHash(ItemId + label + string.Join(string.Empty, identifiers)),
+            ItemId = "A" + Host.CryptographyCenter.GetHash(ItemId + label + _identifierHashMaterial(identifiers)),
             Label = label,
-            Identifiers = [.. identifiers],
+            Identifiers = _toIdentifierList(identifiers),
             Password = password,
          };
 
@@ -78,17 +78,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
          return account;
       }
 
-      public IAccount AddAccount(string label, IEnumerable<string> identifiers)
+      public IAccount AddAccount(string label, IEnumerable<IIdentifier> identifiers)
       {
          return AddAccount(label, identifiers, password: string.Empty);
       }
 
-      public IAccount AddAccount(IEnumerable<string> identifiers, string password)
+      public IAccount AddAccount(IEnumerable<IIdentifier> identifiers, string password)
       {
          return AddAccount(label: string.Empty, identifiers, password);
       }
 
-      public IAccount AddAccount(IEnumerable<string> identifiers)
+      public IAccount AddAccount(IEnumerable<IIdentifier> identifiers)
       {
          return AddAccount(label: string.Empty, identifiers, password: string.Empty);
       }
@@ -127,14 +127,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public string Url { get; set; } = string.Empty;
       public string Notes { get; set; } = string.Empty;
 
-      public IAccount AddAccount(string label, IEnumerable<string> identifiers, string password, Dictionary<DateTime, IProtectedSecret> passwords)
+      public IAccount AddAccount(string label, IEnumerable<IIdentifier> identifiers, string password, Dictionary<DateTime, IProtectedSecret> passwords)
       {
          Account account = new()
          {
             Service = this,
-            ItemId = "A" + Host.CryptographyCenter.GetHash(ItemId + label + string.Join(string.Empty, identifiers)),
+            ItemId = "A" + Host.CryptographyCenter.GetHash(ItemId + label + _identifierHashMaterial(identifiers)),
             Label = label,
-            Identifiers = [.. identifiers],
+            Identifiers = _toIdentifierList(identifiers),
             Password = password,
             Passwords = passwords,
          };
@@ -196,5 +196,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public override string ToString() => ServiceName;
 
       public bool HasChanged() => Host.HasPendingChanges(ItemId) || Accounts.Any(x => x.HasChanged());
+
+      private static string _identifierHashMaterial(IEnumerable<IIdentifier> identifiers)
+         => string.Join(string.Empty, identifiers.Select(x => $"{x.Type}{x.Value}"));
+
+      private static List<Identifier> _toIdentifierList(IEnumerable<IIdentifier> identifiers)
+         => [.. identifiers.Select(x => x as Identifier ?? new Identifier(x.Type, x.Value))];
    }
 }

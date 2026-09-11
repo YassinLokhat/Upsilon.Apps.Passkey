@@ -271,15 +271,15 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase database = UnitTestsHelper.CreateTestDatabase();
          IService service = database.User!.AddService("OverloadService");
 
-         IAccount withLabel = service.AddAccount("Labeled", ["id-1"]);
-         IAccount withPassword = service.AddAccount(["id-2"], "secret");
-         IAccount identifiersOnly = service.AddAccount(["id-3"]);
+         IAccount withLabel = service.AddAccount("Labeled", UnitTestsHelper.Ids("id-1"));
+         IAccount withPassword = service.AddAccount(UnitTestsHelper.Ids("id-2"), "secret");
+         IAccount identifiersOnly = service.AddAccount(UnitTestsHelper.Ids("id-3"));
 
          _ = withLabel.Label.Should().Be("Labeled");
          _ = withLabel.Password.Should().BeEmpty();
          _ = withPassword.Label.Should().BeEmpty();
          _ = withPassword.Password.Should().Be("secret");
-         _ = identifiersOnly.Identifiers.Should().Equal("id-3");
+         _ = identifiersOnly.Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids("id-3"));
          _ = service.Accounts.Should().HaveCount(3);
 
          service.Url = null;

@@ -36,7 +36,13 @@ IService github = user.AddService("GitHub");
 github.Url = new Uri("https://github.com");
 github.Notes = "Work organisation";
 
-IAccount work = github.AddAccount("work", ["alice@company.com", "alice-backup"], secret);
+IAccount work = github.AddAccount(
+   "work",
+   [
+      new Identifier(IdentifierType.Email, "alice@company.com"),
+      new Identifier(IdentifierType.Username, "alice-backup"),
+   ],
+   secret);
 work.PasswordUpdateReminderDelay = 6;
 work.Options = AccountOption.WarnIfPasswordLeaked | AccountOption.WarnIfDuplicatedPassword;
 

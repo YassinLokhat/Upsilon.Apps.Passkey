@@ -69,9 +69,20 @@
                            Name="_identifiers_LB">
                      <ListBox.ItemTemplate>
                         <DataTemplate>
-                           <TextBox Background="{Binding IdentifierBackground}"
-                                    Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    KeyUp="_identifier_TextBox_KeyUp"/>
+                           <DockPanel LastChildFill="True">
+                              <ComboBox DockPanel.Dock="Left"
+                                        MinWidth="44"
+                                        Margin="0,0,4,0"
+                                        VerticalAlignment="Center"
+                                        ItemsSource="{Binding TypeChoices}"
+                                        SelectedValue="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        SelectedValuePath="Type"
+                                        DisplayMemberPath="Display"
+                                        ToolTip="{Binding TypeLabel}"/>
+                              <TextBox Background="{Binding IdentifierBackground}"
+                                       Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                       KeyUp="_identifier_TextBox_KeyUp"/>
+                           </DockPanel>
                         </DataTemplate>
                      </ListBox.ItemTemplate>
                   </ListBox>

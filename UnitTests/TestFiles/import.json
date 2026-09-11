@@ -15,8 +15,8 @@
           "ItemId": "eXZ6qTu9LwbPIRGL0YgYZQ==7Fo5YgcgzaCQbBFmigk1WbNgUwU=37RLlpzi9VX85YalKXG0cA==sbuNCB\u002B7gEqqz55oh0i3U9mTDPs=jHeUM0yDZ3766A6Q\u002BBuRGQ==b\u002B6nLTM-xoUZGm6mH8aLxJ5R1Ok=",
           "Label": "Account0",
           "Identifiers": [
-            "account0@service0.xyz",
-            "account0_backup@service0.xyz"
+            { "Type": "Email", "Value": "account0@service0.xyz" },
+            { "Type": "Email", "Value": "account0_backup@service0.xyz" }
           ],
           "Password": "0000",
           "Passwords": {
@@ -30,8 +30,8 @@
           "ItemId": "eXZ6qTu9LwbPIRGL0YgYZQ==7Fo5YgcgzaCQbBFmigk1WbNgUwU=37RLlpzi9VX85YalKXG0cA==sbuNCB\u002B7gEqqz55oh0i3U9mTDPs=WA6YxI54pKPhOViHyC37RA==talAus-d2TCHuNMcKrWtpgSmsss=",
           "Label": "Account1",
           "Identifiers": [
-            "account1@service0.xyz",
-            "account1_backup@service0.xyz"
+            { "Type": "Email", "Value": "account1@service0.xyz" },
+            { "Type": "Email", "Value": "account1_backup@service0.xyz" }
           ],
           "Password": "1111",
           "Passwords": {
@@ -53,8 +53,8 @@
           "ItemId": "eXZ6qTu9LwbPIRGL0YgYZQ==7Fo5YgcgzaCQbBFmigk1WbNgUwU=jrxkc\u002BsJFH\u002BIFczozfFImQ==HjTPTnu9u2anbu8mhoHj2YSnGJY=TPIjH-MHbiYdF0c3smzJHQ==4N-tDXIlas1bY47AMMGvU1GtZjw=",
           "Label": "Account0",
           "Identifiers": [
-            "account0@service1.xyz",
-            "account0_backup@service1.xyz"
+            { "Type": "Email", "Value": "account0@service1.xyz" },
+            { "Type": "Email", "Value": "account0_backup@service1.xyz" }
           ],
           "Password": "AAAA",
           "Passwords": {
@@ -68,8 +68,8 @@
           "ItemId": "eXZ6qTu9LwbPIRGL0YgYZQ==7Fo5YgcgzaCQbBFmigk1WbNgUwU=jrxkc\u002BsJFH\u002BIFczozfFImQ==HjTPTnu9u2anbu8mhoHj2YSnGJY=34tP0ZDF29WU5eVpYJR0qw==ZBW4YjgfwYfRrpGaaTqmsLfcQNU=",
           "Label": "Account1",
           "Identifiers": [
-            "account1@service1.xyz",
-            "account1_backup@service1.xyz"
+            { "Type": "Email", "Value": "account1@service1.xyz" },
+            { "Type": "Email", "Value": "account1_backup@service1.xyz" }
           ],
           "Password": "BBBB",
           "Passwords": {

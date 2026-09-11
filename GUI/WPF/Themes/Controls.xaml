@@ -404,6 +404,71 @@
         </Setter>
     </Style>
 
+    <!-- Same Grid-Background issue as CheckBox: the default RadioButton bullet
+         hosts an inner Grid that picks up BackgroundBrush and hides the chrome
+         in dark theme. Own the template; keep layout Grids transparent. -->
+    <Style TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Margin" Value="5"/>
+        <Setter Property="Padding" Value="4,0,0,0"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid Background="Transparent"
+                          SnapsToDevicePixels="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="radioButtonBorder"
+                                Width="14"
+                                Height="14"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7"
+                                VerticalAlignment="Center">
+                            <Grid Background="Transparent">
+                                <Ellipse x:Name="optionMark"
+                                         Margin="3"
+                                         Fill="{DynamicResource ForegroundBrush}"
+                                         Opacity="0"/>
+                            </Grid>
+                        </Border>
+                        <ContentPresenter Grid.Column="1"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          RecognizesAccessKey="True"
+                                          Focusable="False"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="optionMark" Property="Opacity" Value="1"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="radioButtonBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="radioButtonBorder" Property="Background" Value="{DynamicResource BorderBrush}"/>
+                            <Setter TargetName="radioButtonBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}"/>
+                            <Setter TargetName="radioButtonBorder" Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+                            <Setter TargetName="radioButtonBorder" Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                            <Setter TargetName="optionMark" Property="Fill" Value="{DynamicResource DisabledForegroundBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Default chrome hard-codes a light blue mouse-over fill and border that
          ignore Background, so hovering clashed with both themes. Own the
          template and follow the CheckBox states: accent border on hover,

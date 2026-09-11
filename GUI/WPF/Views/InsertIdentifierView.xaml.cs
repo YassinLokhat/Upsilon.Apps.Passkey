@@ -3,6 +3,8 @@ using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -12,27 +14,40 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    internal sealed partial class InsertIdentifierView : Window
    {
       private readonly InsertIdentifierViewModel _viewModel;
-      private string? _selectedIdentifier;
+      private IIdentifier? _selectedIdentifier;
 
-      private InsertIdentifierView(IEnumerable<string> identifiers, string identifier)
+      private InsertIdentifierView(IEnumerable<IIdentifier> identifiers, IIdentifier identifier)
       {
          InitializeComponent();
 
          DataContext = _viewModel = new(identifiers, identifier);
+
+         foreach (var child in _identifierTypes_SP.Children)
+         {
+            if (child is RadioButton button)
+            {
+               IdentifierType type = Enum.GetValues<IdentifierType>().FirstOrDefault(x => Enum.GetName(x) == $"{button.Tag}");
+               string glyph = IdentifierViewModel.TypeGlyphs[type];
+               button.Content = $"{glyph} {button.Content}";
+               button.IsChecked = identifier.Type == type;
+            }
+         }
+
          _identifiers_LB.ItemsSource = _viewModel.Identifiers;
-         _identifier_TB.SelectAll();
+         _identifier_TB.SelectionStart = 0;
+         _identifier_TB.SelectionLength = _identifier_TB.Text.Length;
          _ = _identifier_TB.Focus();
 
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
-      internal static string? InsertIdentifierDialog(IEnumerable<string> identifiers, string identifier)
+      internal static IIdentifier? InsertIdentifierDialog(IEnumerable<IIdentifier> identifiers, IIdentifier identifier)
       {
          InsertIdentifierView insertIdentifierView = new(identifiers, identifier);
 
          _ = insertIdentifierView.ShowDialog();
 
-         return insertIdentifierView._selectedIdentifier?.Trim();
+         return insertIdentifierView._selectedIdentifier;
       }
 
       private void _identifier_TextBox_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
@@ -55,7 +70,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             }
             else if (!_viewModel.Identifiers.Any())
             {
-               _selectedIdentifier = _viewModel.Identifier;
+               _selectedIdentifier = _viewModel.ToIdentifier();
                DialogResult = true;
             }
          }
@@ -63,17 +78,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _identifiers_LB_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
-         _selectedIdentifier = _identifiers_LB.SelectedItem as string;
+         if (_identifiers_LB.SelectedItem is not string value)
+         {
+            return;
+         }
+
+         _viewModel.Identifier = value;
+         _selectedIdentifier = _viewModel.ToIdentifier();
          DialogResult = true;
       }
 
-      private void _insertIdentifierType_Button_Click(object sender, RoutedEventArgs e)
+      private void _insertIdentifierType_RadioButton_Checked(object sender, RoutedEventArgs e)
       {
-         string? idType = ((Button)sender).Tag as string;
+         string? idType = ((RadioButton)sender).Tag as string;
 
-         if (idType is not null)
+         if (idType is not null
+            && Enum.TryParse(idType, ignoreCase: false, out IdentifierType type))
          {
-            _viewModel.Identifier = IdentifierViewModel.IdentifiersTypes[$"[{idType}]"] + _viewModel.Identifier;
+            _viewModel.Type = type;
          }
       }
 

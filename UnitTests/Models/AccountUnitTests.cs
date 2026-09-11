@@ -27,8 +27,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IService service = databaseCreated.User.AddService("Service_" + UnitTestsHelper.GetUsername());
          string oldAccountLabel = "Account_" + UnitTestsHelper.GetUsername();
          string newAccountLabel = "new_" + oldAccountLabel;
-         string[] oldIdentifiers = UnitTestsHelper.GetRandomStringArray();
-         string[] newIdentifiers = UnitTestsHelper.GetRandomStringArray();
+         Identifier[] oldIdentifiers = UnitTestsHelper.Ids(UnitTestsHelper.GetRandomStringArray());
+         Identifier[] newIdentifiers = UnitTestsHelper.Ids(UnitTestsHelper.GetRandomStringArray());
          string oldPassword = UnitTestsHelper.GetRandomString();
          string newPassword = UnitTestsHelper.GetRandomString();
          string notes = UnitTestsHelper.GetRandomString();
@@ -137,8 +137,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IService service = databaseCreated.User.AddService("Service_" + UnitTestsHelper.GetUsername());
          string oldAccountLabel = "Account_" + UnitTestsHelper.GetUsername();
          string newAccountLabel = "new_" + oldAccountLabel;
-         string[] oldIdentifiers = UnitTestsHelper.GetRandomStringArray();
-         string[] newIdentifiers = UnitTestsHelper.GetRandomStringArray();
+         Identifier[] oldIdentifiers = UnitTestsHelper.Ids(UnitTestsHelper.GetRandomStringArray());
+         Identifier[] newIdentifiers = UnitTestsHelper.Ids(UnitTestsHelper.GetRandomStringArray());
          string oldPassword = UnitTestsHelper.GetRandomString();
          string newPassword = UnitTestsHelper.GetRandomString();
          string notes = UnitTestsHelper.GetRandomString();
@@ -230,7 +230,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          IService service = databaseCreated.User.AddService("Service_" + UnitTestsHelper.GetUsername());
          string accountLabel = "Account_" + UnitTestsHelper.GetUsername();
-         string[] identifiers = UnitTestsHelper.GetRandomStringArray();
+         Identifier[] identifiers = UnitTestsHelper.Ids(UnitTestsHelper.GetRandomStringArray());
          string password = UnitTestsHelper.GetRandomString();
          _ = service.AddAccount(accountLabel, identifiers, password);
          databaseCreated.Save();
@@ -288,7 +288,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
          IService service = databaseCreated.User.AddService("Service_" + UnitTestsHelper.GetUsername());
          string accountLabel = "Account_" + UnitTestsHelper.GetUsername();
-         string[] identifiers = UnitTestsHelper.GetRandomStringArray();
+         Identifier[] identifiers = UnitTestsHelper.Ids(UnitTestsHelper.GetRandomStringArray());
          string password = UnitTestsHelper.GetRandomString();
          _ = service.AddAccount(accountLabel, identifiers, password);
          databaseCreated.Save();
@@ -345,7 +345,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
          IService service = database.User!.AddService("Service_PasswordExpired");
-         IAccount account = service.AddAccount("Account", ["id@test"], "current-password");
+         IAccount account = service.AddAccount("Account", UnitTestsHelper.Ids("id@test"), "current-password");
          Account concrete = (Account)account;
 
          concrete.PasswordUpdateReminderDelay = 0;
@@ -383,7 +383,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.User!.Settings.NumberOfOldPasswordToKeep = 2;
 
          IService service = database.User.AddService("Service_Retention");
-         IAccount account = service.AddAccount("Account", ["id@test"], "p0");
+         IAccount account = service.AddAccount("Account", UnitTestsHelper.Ids("id@test"), "p0");
          _setPasswordDistinctTick(account, "p1");
          _setPasswordDistinctTick(account, "p2");
          _setPasswordDistinctTick(account, "p3");

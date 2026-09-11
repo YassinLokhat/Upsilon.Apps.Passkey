@@ -751,7 +751,7 @@ You will not be alerted about:
     <value>New Service #</value>
   </data>
   <data name="Msg_NewAccountPrefix" xml:space="preserve">
-    <value>👤New Account #</value>
+    <value>New Account #</value>
   </data>
   <data name="IdentifierType_Username" xml:space="preserve">
     <value>Username</value>
@@ -766,7 +766,7 @@ You will not be alerted about:
     <value>Passkey</value>
   </data>
   <data name="IdentifierType_AuthenticatorApp" xml:space="preserve">
-    <value>Authentificator App</value>
+    <value>Authenticator App</value>
   </data>
   <data name="EnumValue_ActivityEventType_MergeAndSaveThenRemoveAutoSaveFile" xml:space="preserve">
     <value>Auto-save merged then saved</value>

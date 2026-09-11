@@ -5,6 +5,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
@@ -123,7 +124,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
          if (accountViewModel is null)
          {
-            IAccount account = Service.AddAccount([Strings.Msg_NewAccountPrefix + DateTime.Now.Ticks]);
+            IAccount account = Service.AddAccount(
+            [
+               new Identifier(
+                  IdentifierType.Username,
+                  Strings.Msg_NewAccountPrefix + DateTime.Now.Ticks),
+            ]);
             _syncAccountViewModels();
             accountViewModel = _accountViewModelsById[account.ItemId];
 

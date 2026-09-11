@@ -1,61 +1,130 @@
 ﻿using System.ComponentModel;
-using System.Text.RegularExpressions;
 using System.Windows.Media;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
-   internal sealed partial class IdentifierViewModel : INotifyPropertyChanged, IThemeAware
+   internal sealed class IdentifierTypeChoice(IdentifierType type, string glyph)
    {
-      private readonly IAccount _account;
+      public IdentifierType Type { get; } = type;
 
-      public static readonly Dictionary<string, string> IdentifiersTypes = new()
+      public string Glyph { get; } = glyph;
+
+      public string Display => Glyph;
+   }
+
+   internal sealed class IdentifierViewModel(IAccount account, IIdentifier identifier) : INotifyPropertyChanged, IThemeAware, ILanguageAware
+   {
+      private readonly IAccount _account = account;
+      private IdentifierType _type = identifier.Type;
+      private string _identifier = identifier.Value ?? string.Empty;
+
+      /// <summary>
+      /// Display-only glyphs for identifier kinds. Never persisted.
+      /// </summary>
+      public static readonly IReadOnlyDictionary<IdentifierType, string> TypeGlyphs = new Dictionary<IdentifierType, string>
       {
-         { "[Username]", "👤" },
-         { "[Email]", "📧" },
-         { "[Phone Number]", "🖁" },
-         { "[Passkey]", "🗝" },
-         { "[Authentificator App]", "📲" },
+         { IdentifierType.Username, "👤" },
+         { IdentifierType.Email, "📧" },
+         { IdentifierType.PhoneNumber, "🖁" },
+         { IdentifierType.Passkey, "🗝" },
+         { IdentifierType.AuthenticatorApp, "📲" },
       };
+
+      private static readonly IReadOnlyList<IdentifierTypeChoice> _typeChoices =
+      [
+         new(IdentifierType.Username, TypeGlyphs[IdentifierType.Username]),
+         new(IdentifierType.Email, TypeGlyphs[IdentifierType.Email]),
+         new(IdentifierType.PhoneNumber, TypeGlyphs[IdentifierType.PhoneNumber]),
+         new(IdentifierType.Passkey, TypeGlyphs[IdentifierType.Passkey]),
+         new(IdentifierType.AuthenticatorApp, TypeGlyphs[IdentifierType.AuthenticatorApp]),
+      ];
+
+      public static IReadOnlyList<IdentifierTypeChoice> TypeChoices => _typeChoices;
 
       public Brush IdentifierBackground => _account.HasChanged("Identifiers") ? DarkMode.ChangedBrush : DarkMode.UnchangedBrush2;
 
-      public string Identifier
+      public IdentifierType Type
       {
-         get;
+         get => _type;
          set
          {
-            if (field != value)
+            if (_type == value)
             {
-               if (IdentifiersTypes.Keys.Union(IdentifiersTypes.Values).All(x => !value.StartsWith(x, StringComparison.Ordinal)))
-               {
-                  value = _getIdentifierType(value);
-               }
-
-               foreach (KeyValuePair<string, string> idType in IdentifiersTypes)
-               {
-                  field = value.Replace(idType.Key, idType.Value, StringComparison.Ordinal);
-               }
-
-               _onPropertyChanged(nameof(Identifier));
+               return;
             }
+
+            _type = value;
+            _onPropertyChanged(nameof(Type));
+            _onPropertyChanged(nameof(TypeGlyph));
+            _onPropertyChanged(nameof(TypeLabel));
          }
-      } = string.Empty;
+      }
+
+      public string TypeGlyph => TypeGlyphs.TryGetValue(Type, out string? glyph) ? glyph : string.Empty;
+
+      public string TypeLabel => Type switch
+      {
+         IdentifierType.Username => Strings.IdentifierType_Username,
+         IdentifierType.Email => Strings.IdentifierType_Email,
+         IdentifierType.PhoneNumber => Strings.IdentifierType_PhoneNumber,
+         IdentifierType.Passkey => Strings.IdentifierType_Passkey,
+         IdentifierType.AuthenticatorApp => Strings.IdentifierType_AuthenticatorApp,
+         _ => string.Empty,
+      };
+
+      /// <summary>
+      /// Identifier value only (no type glyph).
+      /// </summary>
+      public string Identifier
+      {
+         get => _identifier;
+         set
+         {
+            value ??= string.Empty;
+
+            if (_identifier == value)
+            {
+               return;
+            }
+
+            _identifier = value;
+
+            if (_type is IdentifierType.Username
+               or IdentifierType.Email
+               or IdentifierType.PhoneNumber)
+            {
+               IdentifierType detected = IdentifierTypeDetector.Detect(_identifier);
+               if (_type != detected)
+               {
+                  _type = detected;
+                  _onPropertyChanged(nameof(Type));
+                  _onPropertyChanged(nameof(TypeGlyph));
+                  _onPropertyChanged(nameof(TypeLabel));
+               }
+            }
+
+            _onPropertyChanged(nameof(Identifier));
+         }
+      }
+
+      public Identifier ToIdentifier() => new(Type, Identifier);
 
       public event PropertyChangedEventHandler? PropertyChanged;
 
       private void _onPropertyChanged(string propertyName)
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"{propertyName}Background"));
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IdentifierBackground)));
       }
 
-      public IdentifierViewModel(IAccount account, string identifier)
+      public IdentifierViewModel(IAccount account, string value)
+         : this(account, new Identifier(IdentifierTypeDetector.Detect(value), value ?? string.Empty))
       {
-         _account = account;
-         Identifier = identifier;
       }
 
       public void Refresh()
@@ -65,15 +134,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void OnThemeChanged() => Refresh();
 
-      [GeneratedRegex(@"^\+\d{1,3}[\d\s\-\.]{6,20}$")]
-      private static partial Regex _phoneRegex();
-      [GeneratedRegex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")]
-      private static partial Regex _mailRegex();
-      private static string _getIdentifierType(string identifier)
+      public void OnLanguageChanged()
       {
-         return _phoneRegex().IsMatch(identifier) ? "🖁" + identifier
-            : _mailRegex().IsMatch(identifier) ? "📧" + identifier
-            : "👤" + identifier;
+         // TypeChoices is static (glyphs only); refresh the localized tooltip.
+         _onPropertyChanged(nameof(TypeLabel));
       }
    }
 }

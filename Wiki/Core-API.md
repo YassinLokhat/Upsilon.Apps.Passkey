@@ -74,13 +74,25 @@ user.Settings.CleaningClipboardTimeout = 20;  // seconds
 user.Passkeys = ["pk1", "pk2"];               // changing passkeys rewrites the onion on Save
 
 IService mail = user.AddService("Proton");
-IAccount account = mail.AddAccount("personal", ["me@pm.me"], generated);
+IAccount account = mail.AddAccount(
+   "personal",
+   [new Identifier(IdentifierType.Email, "me@pm.me")],
+   generated);
 account.Notes = "2FA on hardware key";
 account.PasswordUpdateReminderDelay = 6; // months; 0 = never
 account.Options = AccountOption.WarnIfPasswordLeaked | AccountOption.WarnIfDuplicatedPassword;
 ```
 
-`IAccount.Passwords` is dated history. Length is capped by `ISettings.NumberOfOldPasswordToKeep`. `IAccount.Identifiers` are logins, emails, or other labels for that account.
+`IAccount.Passwords` is dated history. Length is capped by `ISettings.NumberOfOldPasswordToKeep`. `IAccount.Identifiers` are **typed** (`IIdentifier`: `IdentifierType` + `Value`) — username, email, phone, passkey label, or authenticator-app label — not bare strings.
+
+```csharp
+public enum IdentifierType { Username, Email, PhoneNumber, Passkey, AuthenticatorApp }
+public interface IIdentifier { IdentifierType Type { get; } string Value { get; } }
+public sealed class Identifier : IIdentifier { /* Type, Value */ }
+
+IEnumerable<IIdentifier> Identifiers { get; set; }
+IAccount AddAccount(string label, IEnumerable<IIdentifier> identifiers, string password);
+```
 
 `AddAccount` has overloads that omit the label, the password, or both (password can be generated later).
 

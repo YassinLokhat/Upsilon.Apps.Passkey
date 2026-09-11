@@ -11,7 +11,7 @@ Import requires a logged-in user. Export and import files are **unencrypted plai
 | `.json` | Yes | Yes | Yes (`Passwords` dictionary) |
 | `.csv` | No | Yes | No in the file (current password only); import seeds one dated history entry from that password so password-update reminders work immediately |
 
-The `.csv` path uses **JSON-encoded cells**, so commas, quotes, and notes survive. Identifiers inside a cell are joined with `|`.
+The `.csv` path uses **JSON-encoded cells**, so commas, quotes, and notes survive. The `Identifiers` cell is pipe-joined **values only** — type is **not** stored in CSV. On import, each value is re-typed with `IdentifierTypeDetector` (phone → `PhoneNumber`, email → `Email`, otherwise `Username`). JSON vault export/import keeps full `{ "Type", "Value" }` objects.
 
 * **Import** accepts **comma-separated** or **tab-separated** rows (delimiters inside quoted or backslash-escaped cells are kept).
 * **Export** always writes **tab-separated (TSV)** rows.
@@ -41,8 +41,8 @@ Enums use `JsonStringEnumConverter`. Flags (`Options`) are comma-separated names
         {
           "Label": "work",
           "Identifiers": [
-            "alice@company.com",
-            "alice-backup"
+            { "Type": "Email", "Value": "alice@company.com" },
+            { "Type": "Username", "Value": "alice-backup" }
           ],
           "Password": "use-a-real-secret",
           "Passwords": {
@@ -60,11 +60,15 @@ Enums use `JsonStringEnumConverter`. Flags (`Options`) are comma-separated names
 
 `AccountOption` values: `None`, `WarnIfPasswordLeaked`, `WarnIfDuplicatedPassword` (flags).
 
+`IdentifierType` values (JSON / vault): `Username`, `Email`, `PhoneNumber`, `Passkey`, `AuthenticatorApp`.
+
 ## CSV shape
 
 Required headers, in any column order as long as **all names are present**:
 
 `ServiceName`, `ServiceUrl`, `ServiceNotes`, `AccountLabel`, `Identifiers`, `Password`, `AccountNotes`, `AccountOptions`, `PasswordUpdateReminderDelay`
+
+The `Identifiers` cell holds pipe-joined **string values only** (no type field). Example: `"alice@company.com|alice-backup"`. Types are inferred on import as above; `Passkey` / `AuthenticatorApp` cannot be expressed in CSV and become `Username` / `Email` / `PhoneNumber` by detection.
 
 Example (tabs between columns — commas work the same on import; each cell is a JSON string):
 

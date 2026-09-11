@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -26,7 +26,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       {
          get
          {
-            string accountDisplay = $"{Account.Label} {Account.Identifiers.First()}";
+            string accountDisplay = $"{Account.Label} {Account.Identifiers.First().Value}";
             return $"{(Account.HasChanged() ? "* " : string.Empty)}{accountDisplay.Trim()}";
          }
       }
@@ -179,12 +179,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                   .OfType<IAccountsAlert>()
                   .Any(x => x.Accounts.Contains(Account));
 
-      public static string[] IdentifierAutoCompleteList => AppServices.Session.User?.Services
+      public static IIdentifier[] IdentifierAutoCompleteList => AppServices.Session.User?.Services
          .SelectMany(x => x.Accounts)
          .SelectMany(x => x.Identifiers)
-         .Distinct()
-         .Where(x => !string.IsNullOrEmpty(x))
-         .OrderBy(x => x)
+         .Where(x => !string.IsNullOrEmpty(x.Value))
+         .OrderBy(x => x.Value)
          .ToArray() ?? [];
 
       public event PropertyChangedEventHandler? PropertyChanged;
@@ -201,8 +200,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       }
 
       public void OnLanguageChanged()
-         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountId)));
+      {
+         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AccountId)));
 
+         foreach (IdentifierViewModel identifier in Identifiers)
+         {
+            identifier.OnLanguageChanged();
+         }
+      }
       public void OnThemeChanged()
       {
          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LabelBackground)));
@@ -231,12 +236,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       private void _identifierViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
       {
-         if (e.PropertyName != "Identifier")
+         if (e.PropertyName is not (nameof(IdentifierViewModel.Identifier) or nameof(IdentifierViewModel.Type)))
          {
             return;
          }
 
-         Account.Identifiers = [.. Identifiers.Select(x => x.Identifier)];
+         Account.Identifiers = [.. Identifiers.Select(x => x.ToIdentifier())];
 
          foreach (IdentifierViewModel? identifier in Identifiers.Except([sender]).Cast<IdentifierViewModel?>())
          {

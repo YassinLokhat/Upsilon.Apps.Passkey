@@ -99,7 +99,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                Account account = new()
                {
                   Label = accountLabel,
-                  Identifiers = [.. identifiers.Split('|').Select(x => x.Trim())],
+                  Identifiers = [.. identifiers.Split('|')
+                     .Select(x => x.Trim())
+                     .Where(x => !string.IsNullOrWhiteSpace(x))
+                     .Select(x => new Identifier(IdentifierTypeDetector.Detect(x), x))],
                   Password = password,
                   Notes = accountNotes,
                   Options = accountOptions,
@@ -223,7 +226,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
             foreach (Account account in service.Accounts)
             {
-               string identifiers = string.Join("|", account.Identifiers.Where(x => !string.IsNullOrWhiteSpace(x)));
+               string identifiers = string.Join("|", account.Identifiers
+                  .Select(x => x.Value)
+                  .Where(x => !string.IsNullOrWhiteSpace(x)));
 
                _ = sb.Append(serviceLine);
                _ = sb.Append(CultureInfo.InvariantCulture, $"{_jsonSerialize(account.Label.Trim())}\t" +

@@ -57,6 +57,7 @@ You must supply an `IClipboardManager` (OS-specific). Utils already ships `Crypt
 
 ```csharp
 using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Utils;
 
@@ -73,7 +74,10 @@ IDatabase database = Database.Create(
 IUser user = database.User!; // already logged in after Create — do not Login again
 IService github = user.AddService("GitHub");
 github.Url = new Uri("https://github.com");
-github.AddAccount("work", ["alice@example.com"], "a-long-generated-secret");
+github.AddAccount(
+   "work",
+   [new Identifier(IdentifierType.Email, "alice@example.com")],
+   "a-long-generated-secret");
 database.Save();
 database.Close();
 ```
