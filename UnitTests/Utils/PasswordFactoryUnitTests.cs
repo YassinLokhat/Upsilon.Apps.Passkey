@@ -17,7 +17,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       public void Case01_BuiltInAlphabets()
       {
          // Given / When
-         string alphabetic = UnitTestsHelper.PasswordFactory.Alphabetic;
+         string alphabetic = UnitTestsHelper.PasswordFactory.UpperAlphabetic
+            + UnitTestsHelper.PasswordFactory.LowerAlphabetic;
          string numeric = UnitTestsHelper.PasswordFactory.Numeric;
          string specialChars = UnitTestsHelper.PasswordFactory.SpecialChars;
 
@@ -39,7 +40,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          {
             // Given
             int length = UnitTestsHelper.GetRandomInt(1, 64);
-            string alphabet = UnitTestsHelper.PasswordFactory.Alphabetic
+            string alphabet = UnitTestsHelper.PasswordFactory.UpperAlphabetic
+               + UnitTestsHelper.PasswordFactory.LowerAlphabetic
                + UnitTestsHelper.PasswordFactory.Numeric
                + UnitTestsHelper.PasswordFactory.SpecialChars;
 
@@ -78,7 +80,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       public void Case04_GeneratePassword_IsRandom()
       {
          // Given
-         string alphabet = UnitTestsHelper.PasswordFactory.Alphabetic
+         string alphabet = UnitTestsHelper.PasswordFactory.UpperAlphabetic
+            + UnitTestsHelper.PasswordFactory.LowerAlphabetic
             + UnitTestsHelper.PasswordFactory.Numeric
             + UnitTestsHelper.PasswordFactory.SpecialChars;
 
@@ -97,7 +100,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       public void Case05_GeneratePassword_NonPositiveLength()
       {
          // Given
-         string alphabet = UnitTestsHelper.PasswordFactory.Alphabetic;
+         string alphabet = UnitTestsHelper.PasswordFactory.UpperAlphabetic
+            + UnitTestsHelper.PasswordFactory.LowerAlphabetic;
 
          // When
          string zeroLength = UnitTestsHelper.PasswordFactory.GeneratePassword(0, alphabet, checkIfLeaked: false);

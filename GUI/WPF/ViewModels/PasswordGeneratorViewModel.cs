@@ -178,14 +178,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          if (IncludeUpperCaseAlphabet)
          {
-            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToUpperInvariant());
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.UpperAlphabetic);
          }
 
          if (IncludeLowerCaseAlphabet)
          {
-#pragma warning disable CA1308 // Not a normalization key: lower-case letters are a legitimate part of the password character set.
-            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToLowerInvariant());
-#pragma warning restore CA1308
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.LowerAlphabetic);
          }
 
          if (IncludeSpecialCharacters)

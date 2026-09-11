@@ -10,7 +10,8 @@
       /// </summary>
       bool HasLocalFilter { get; }
 
-      string Alphabetic { get; }
+      string UpperAlphabetic { get; }
+      string LowerAlphabetic { get; }
 
       string Numeric { get; }
 

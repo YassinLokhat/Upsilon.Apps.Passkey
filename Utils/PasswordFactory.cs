@@ -107,7 +107,8 @@ namespace Upsilon.Apps.Passkey.Utils
          replaced?.Dispose();
       }
 
-      public string Alphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      public string UpperAlphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      public string LowerAlphabetic => "abcdefghijklmnopqrstuvwxyz";
       public string Numeric => "0123456789";
       public string SpecialChars => "~!@#$%^&*()_-+={[}]\\|'\";:,<.>/?";
 
