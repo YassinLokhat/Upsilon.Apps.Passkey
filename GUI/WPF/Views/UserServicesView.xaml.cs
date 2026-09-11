@@ -95,18 +95,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
           => this.DatabaseClosed(_isClosing);
 
-      public static bool ShowUser(Window owner)
+      public static bool ShowUser(Window? owner = null)
       {
-         using UserServicesView view = new()
-         {
-            Owner = owner,
-         };
+         using UserServicesView view = new();
 
          // Only an explicit DialogResult (Logout menu or session-timeout via
          // WindowHelper) should keep the login window open. Closing with X /
          // Alt+F4 leaves DialogResult null — that must exit the app, not
          // return to MainWindow.
-         return view.ShowDialog() == true;
+         return AppServices.Dialogs.ShowDialog(view) == true;
       }
 
       private void _userServicesView_Loaded(object sender, RoutedEventArgs e)

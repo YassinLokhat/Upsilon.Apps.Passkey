@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
@@ -25,14 +26,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
-      public static string? ShowGeneratePasswordDialog(Window owner)
+      public static string? ShowGeneratePasswordDialog(Window? owner = null)
       {
-         PasswordGenerator _passwordGenerator = new()
-         {
-            Owner = owner,
-         };
-
-         return _passwordGenerator.ShowDialog() ?? false ? _passwordGenerator.GeneratedPassword : null;
+         PasswordGenerator passwordGenerator = new();
+         return AppServices.Dialogs.ShowDialog(passwordGenerator) ?? false
+            ? passwordGenerator.GeneratedPassword
+            : null;
       }
 
       private void _viewModel_InsertRequested(object? sender, EventArgs e)

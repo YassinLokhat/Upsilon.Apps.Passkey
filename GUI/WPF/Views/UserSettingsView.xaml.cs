@@ -1,4 +1,3 @@
-using Microsoft.Win32;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -66,13 +65,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _database?.DatabaseClosed -= _database_DatabaseClosed;
       }
 
-      public static void ShowUserSettings(Window owner)
+      public static void ShowUserSettings(Window? owner = null)
       {
-         _ = new UserSettingsView()
-         {
-            Owner = owner
-         }
-         .ShowDialog();
+         _ = AppServices.Dialogs.ShowDialog(new UserSettingsView());
       }
 
       private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
@@ -118,7 +113,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _database.Delete();
 
-         _ = AppServices.Dialogs.Confirm(Strings.Format(nameof(Strings.Msg_UserDeleted), _viewModel.Username), Strings.Title_Success, MessageBoxButton.OK, MessageBoxImage.None);
+         AppServices.Dialogs.Info(Strings.Format(nameof(Strings.Msg_UserDeleted), _viewModel.Username), Strings.Title_Success);
       }
 
       private async Task _saveAsync()
@@ -126,7 +121,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          string error = _canSave();
          if (!string.IsNullOrEmpty(error))
          {
-            _ = AppServices.Dialogs.Confirm(error, Strings.Title_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+            AppServices.Dialogs.Error(error, Strings.Title_Error);
 
             return;
          }
@@ -142,17 +137,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             if (AppServices.Dialogs.Confirm(Strings.Format(nameof(Strings.Msg_UseDefaultLocation), newDatabaseFile), Strings.Title_UseDefaultLocation, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             {
-               SaveFileDialog dialog = new()
+               string? picked = AppServices.Dialogs.PickSaveFile(
+                  Strings.Filter_Pku,
+                  Strings.Title_NewUserDatabase,
+                  Path.GetFileName(newDatabaseFile));
+               if (!string.IsNullOrEmpty(picked))
                {
-                  Title = Strings.Title_NewUserDatabase,
-                  Filter = Strings.Filter_Pku,
-                  DefaultDirectory = Path.GetDirectoryName(newDatabaseFile),
-                  FileName = Path.GetFileName(newDatabaseFile),
-               };
-
-               if (dialog.ShowDialog() ?? false)
-               {
-                  newDatabaseFile = dialog.FileName;
+                  newDatabaseFile = picked;
                }
             }
 
@@ -247,7 +238,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             this.DatabaseClosed(_isClosing);
          }
 
-         _ = AppServices.Dialogs.Confirm(message, Strings.Title_Success, MessageBoxButton.OK, MessageBoxImage.None);
+         AppServices.Dialogs.Info(message, Strings.Title_Success);
       }
 
       private async void _save_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -309,13 +300,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         OpenFileDialog dialog = new()
-         {
-            Title = Strings.Title_ImportData,
-            Filter = $"{Strings.Filter_Json}|{Strings.Filter_Csv}",
-         };
-
-         if (!(dialog.ShowDialog() ?? false))
+         string? fileName = AppServices.Dialogs.PickOpenFile($"{Strings.Filter_Json}|{Strings.Filter_Csv}", Strings.Title_ImportData);
+         if (string.IsNullOrEmpty(fileName))
          {
             return;
          }
@@ -324,16 +310,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          try
          {
-            ImportExportError imported = await database.ImportFromFileAsync(dialog.FileName).ConfigureAwait(true);
+            ImportExportError imported = await database.ImportFromFileAsync(fileName).ConfigureAwait(true);
 
             if (imported == ImportExportError.None)
             {
-               _ = AppServices.Dialogs.Confirm(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess, MessageBoxButton.OK, MessageBoxImage.None);
+               AppServices.Dialogs.Info(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess);
             }
             else
             {
                string reason = EnumDisplayHelper.FormatFieldValue(nameof(ImportExportError), imported.ToString());
-               _ = AppServices.Dialogs.Confirm($"{Strings.Msg_ImportFailed}\n{reason}", Strings.Title_ImportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
+               AppServices.Dialogs.Error($"{Strings.Msg_ImportFailed}\n{reason}", Strings.Title_ImportFailed);
             }
          }
          finally
@@ -357,19 +343,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         SaveFileDialog dialog = new()
-         {
-            Title = Strings.Title_ExportJson,
-            Filter = Strings.Filter_Json,
-            FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
-         };
-
-         if (!(dialog.ShowDialog() ?? false))
+         string? fileName = AppServices.Dialogs.PickSaveFile(
+            Strings.Filter_Json,
+            Strings.Title_ExportJson,
+            $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}");
+         if (string.IsNullOrEmpty(fileName))
          {
             return;
          }
 
-         await _exportAsync(database, dialog.FileName).ConfigureAwait(true);
+         await _exportAsync(database, fileName).ConfigureAwait(true);
       }
 
       private async void _export_csv_MenuItem_Click(object sender, RoutedEventArgs e)
@@ -387,19 +370,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         SaveFileDialog dialog = new()
-         {
-            Title = Strings.Title_ExportCsv,
-            Filter = Strings.Filter_CsvExport,
-            FileName = $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}",
-         };
-
-         if (!(dialog.ShowDialog() ?? false))
+         string? fileName = AppServices.Dialogs.PickSaveFile(
+            Strings.Filter_CsvExport,
+            Strings.Title_ExportCsv,
+            $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}");
+         if (string.IsNullOrEmpty(fileName))
          {
             return;
          }
 
-         await _exportAsync(database, dialog.FileName).ConfigureAwait(true);
+         await _exportAsync(database, fileName).ConfigureAwait(true);
       }
 
       private async Task _exportAsync(IDatabase database, string fileName)
@@ -412,12 +392,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
             if (exported == ImportExportError.None)
             {
-               _ = AppServices.Dialogs.Confirm(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess, MessageBoxButton.OK, MessageBoxImage.None);
+               AppServices.Dialogs.Info(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess);
             }
             else
             {
                string reason = EnumDisplayHelper.FormatFieldValue(nameof(ImportExportError), exported.ToString());
-               _ = AppServices.Dialogs.Confirm($"{Strings.Msg_ExportFailed}\n{reason}", Strings.Title_ExportFailed, MessageBoxButton.OK, MessageBoxImage.Error);
+               AppServices.Dialogs.Error($"{Strings.Msg_ExportFailed}\n{reason}", Strings.Title_ExportFailed);
             }
          }
          finally

@@ -12,6 +12,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
 
       public List<string> Infos { get; } = [];
 
+      public List<string> Errors { get; } = [];
+
       public MessageBoxResult ConfirmResult { get; set; } = MessageBoxResult.Yes;
 
       public string? BrowseFolderResult { get; set; }
@@ -40,6 +42,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
       public void Info(string text, string title) => Infos.Add(text);
 
       public void Warn(string text, string title) => Warnings.Add(text);
+
+      public void Error(string text, string title) => Errors.Add(text);
 
       public string? PickBrowseFolder(string title, string defaultPath) => BrowseFolderResult;
 
