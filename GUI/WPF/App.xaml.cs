@@ -20,6 +20,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          Log.Info($"Application starting (PID {Environment.ProcessId}).");
 
+         // Touch so CA1812 sees BAML-created types as used (factories are never invoked).
+         _ = XamlBamlCreatedTypeAnchors.Factories.Length;
+
          _ = AppInfo.ConfigFile;
          _ = LocalizationService.Apply(AppInfo.AppSettings.Language);
          _ = ThemeService.Apply(AppInfo.AppSettings.Theme);

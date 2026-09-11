@@ -18,7 +18,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
    /// <summary>
    /// Interaction logic for MainWindow.xaml
    /// </summary>
-   [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by WPF via XAML/BAML.")]
    internal sealed partial class MainWindow : Window
    {
       private readonly MainViewModel _mainViewModel;
