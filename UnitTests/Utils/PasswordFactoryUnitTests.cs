@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using System.Net;
-using System.Security.Cryptography;
 using System.Text;
 using Upsilon.Apps.Passkey.Utils;
 using Upsilon.Apps.Passkey.Utils.LeakFilter;
@@ -18,7 +17,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       public void Case01_BuiltInAlphabets()
       {
          // Given / When
-         string alphabetic = UnitTestsHelper.PasswordFactory.Alphabetic;
+         string alphabetic = UnitTestsHelper.PasswordFactory.UpperAlphabetic
+            + UnitTestsHelper.PasswordFactory.LowerAlphabetic;
          string numeric = UnitTestsHelper.PasswordFactory.Numeric;
          string specialChars = UnitTestsHelper.PasswordFactory.SpecialChars;
 
@@ -40,7 +40,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          {
             // Given
             int length = UnitTestsHelper.GetRandomInt(1, 64);
-            string alphabet = UnitTestsHelper.PasswordFactory.Alphabetic
+            string alphabet = UnitTestsHelper.PasswordFactory.UpperAlphabetic
+               + UnitTestsHelper.PasswordFactory.LowerAlphabetic
                + UnitTestsHelper.PasswordFactory.Numeric
                + UnitTestsHelper.PasswordFactory.SpecialChars;
 
@@ -79,7 +80,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       public void Case04_GeneratePassword_IsRandom()
       {
          // Given
-         string alphabet = UnitTestsHelper.PasswordFactory.Alphabetic
+         string alphabet = UnitTestsHelper.PasswordFactory.UpperAlphabetic
+            + UnitTestsHelper.PasswordFactory.LowerAlphabetic
             + UnitTestsHelper.PasswordFactory.Numeric
             + UnitTestsHelper.PasswordFactory.SpecialChars;
 
@@ -98,7 +100,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       public void Case05_GeneratePassword_NonPositiveLength()
       {
          // Given
-         string alphabet = UnitTestsHelper.PasswordFactory.Alphabetic;
+         string alphabet = UnitTestsHelper.PasswordFactory.UpperAlphabetic
+            + UnitTestsHelper.PasswordFactory.LowerAlphabetic;
 
          // When
          string zeroLength = UnitTestsHelper.PasswordFactory.GeneratePassword(0, alphabet, checkIfLeaked: false);
@@ -175,7 +178,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       {
          // Given
          const string password = "unique-test-password-for-cache";
-         string hash = _sha1Hex(password);
+         string hash = _ntlmHex(password);
          RoutingHandler handler = new(
             hibp: _ => (HttpStatusCode.OK, $"{hash[5..]}:1\r\n"),
             xon: _ => (HttpStatusCode.OK, "{\"SearchPassAnon\":{}}"));
@@ -231,7 +234,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          // Given: a one-character alphabet yields a single possible password,
          // whose HIBP range we mark as leaked.
          const string alphabet = "A";
-         string hash = _sha1Hex("A");
+         string hash = _ntlmHex("A");
          RoutingHandler handler = new(
             hibp: _ => (HttpStatusCode.OK, $"{hash[5..]}:99\r\n"),
             xon: _ => (HttpStatusCode.NotFound, "{\"Error\":\"Not found\"}"));
@@ -254,7 +257,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       {
          // Given
          const string password = "async-cache-password";
-         string hash = _sha1Hex(password);
+         string hash = _ntlmHex(password);
          RoutingHandler handler = new(
             hibp: _ => (HttpStatusCode.OK, $"{hash[5..]}:1\r\n"),
             xon: _ => (HttpStatusCode.OK, "{\"SearchPassAnon\":{}}"));
@@ -357,12 +360,28 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
       [TestMethod]
       /*
+       * Classic Windows NTLM vectors must match so HIBP ?mode=ntlm prefixes
+       * align with the corpus (and the offline Bloom filter).
+      */
+      public void Case16b_NtlmHash_MatchesClassicVectors()
+      {
+         _ = NtlmHash.HashHex("").Should().Be("31D6CFE0D16AE931B73C59D7E0C089C0");
+         _ = NtlmHash.HashHex("password").Should().Be("8846F7EAEE8FB117AD06BDD830B7586C");
+         _ = NtlmHash.HashHex("test").Should().Be("0CB6948805F797BF2A82807973B89537");
+         _ = NtlmHash.Hash("test").Should().HaveCount(NtlmHash.ByteLength);
+
+         Action fromNull = () => NtlmHash.HashHex(null!);
+         fromNull.Should().Throw<ArgumentNullException>();
+      }
+
+      [TestMethod]
+      /*
        * When HIBP succeeds, the offline Bloom filter must not be consulted.
       */
       public void Case17_PasswordLeaked_DoesNotQueryBloomWhenHibpSucceeds()
       {
          const string password = "hibp-wins-over-bloom";
-         string hash = _sha1Hex(password);
+         string hash = _ntlmHex(password);
          RecordingBloom bloom = new(mightContain: true);
          RoutingHandler handler = new(
             hibp: _ => (HttpStatusCode.OK, $"{hash[5..]}:1\r\n"),
@@ -408,7 +427,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
       [TestMethod]
       /*
-       * A real .pkbf that contains SHA-1("test") must surface as leaked once
+       * A real .pkbf that contains NTLM("test") must surface as leaked once
        * HIBP and XON are unreachable.
       */
       public void Case20_PasswordLeaked_RealBloomDetectsTestWhenNetworkDown()
@@ -523,7 +542,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
             using (HibpBloomFile writable = HibpBloomFile.Create(path, capacity, bitCount, hashFunctions))
             {
-               writable.Add(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword));
+               writable.Add(BloomTestHelper.Ntlm(BloomTestHelper.LeakedPassword));
                writable.CommitHeader();
             }
 
@@ -558,8 +577,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             (request, cancellationToken) => handler.InvokeAsync(request, cancellationToken),
             localFilter);
 
-      private static string _sha1Hex(string value)
-         => Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(value)));
+      private static string _ntlmHex(string value)
+         => NtlmHash.HashHex(value);
 
       private sealed class RecordingBloom : ILocalLeakFilter
       {
@@ -575,7 +594,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
          public ulong InsertedCount => 0;
 
-         public bool MightContain(ReadOnlySpan<byte> sha1)
+         public bool MightContain(ReadOnlySpan<byte> ntlm)
          {
             _ = Interlocked.Increment(ref QueryCount);
             return _mightContain;

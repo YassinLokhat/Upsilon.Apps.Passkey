@@ -11,7 +11,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    /// <summary>
    /// Interaction logic for AccountView.xaml
    /// </summary>
-   [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Instantiated by WPF via XAML/BAML.")]
    internal sealed partial class AccountView : UserControl
    {
       private AccountViewModel? _viewModel;

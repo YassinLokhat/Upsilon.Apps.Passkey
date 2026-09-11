@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Interfaces.Utils;
+﻿using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Fakes
 {
@@ -9,7 +9,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Fakes
    {
       private readonly HashSet<string> _leaked = new(StringComparer.Ordinal);
 
-      public string Alphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      public string UpperAlphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      public string LowerAlphabetic => "abcdefghijklmnopqrstuvwxyz";
       public string Numeric => "0123456789";
       public string SpecialChars => "!@#";
 

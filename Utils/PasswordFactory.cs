@@ -107,7 +107,8 @@ namespace Upsilon.Apps.Passkey.Utils
          replaced?.Dispose();
       }
 
-      public string Alphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      public string UpperAlphabetic => "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      public string LowerAlphabetic => "abcdefghijklmnopqrstuvwxyz";
       public string Numeric => "0123456789";
       public string SpecialChars => "~!@#$%^&*()_-+={[}]\\|'\";:,<.>/?";
 
@@ -209,7 +210,7 @@ namespace Upsilon.Apps.Passkey.Utils
             return null;
          }
 
-         bool hit = filter.MightContain(_sha1(password));
+         bool hit = filter.MightContain(NtlmHash.Hash(password));
          System.Diagnostics.Trace.TraceWarning(
             hit
                ? "Password leak check: HIBP and XposedOrNot unreachable; offline Bloom reported a possible hit (treated as leaked)."
@@ -222,7 +223,7 @@ namespace Upsilon.Apps.Passkey.Utils
       /// </summary>
       private bool? _tryHibp(string password)
       {
-         string hash = _sha1Hex(password);
+         string hash = NtlmHash.HashHex(password);
          string prefix = hash[..HIBP_PREFIX_LENGTH];
 
          if (_hibpRangeCache.TryGetValue(prefix, out HashSet<string>? suffixes))
@@ -258,7 +259,7 @@ namespace Upsilon.Apps.Passkey.Utils
 
       private async Task<bool?> _tryHibpAsync(string password, CancellationToken cancellationToken)
       {
-         string hash = _sha1Hex(password);
+         string hash = NtlmHash.HashHex(password);
          string prefix = hash[..HIBP_PREFIX_LENGTH];
 
          if (_hibpRangeCache.TryGetValue(prefix, out HashSet<string>? suffixes))
@@ -399,18 +400,8 @@ namespace Upsilon.Apps.Passkey.Utils
          }
       }
 
-      private static byte[] _sha1(string password)
-      {
-#pragma warning disable CA5350 // Do Not Use Weak Cryptographic Algorithms : pwnedpasswords.com's API and the offline filter both index SHA-1 digests
-         return SHA1.HashData(Encoding.UTF8.GetBytes(password));
-#pragma warning restore CA5350 // Do Not Use Weak Cryptographic Algorithms
-      }
-
-      private static string _sha1Hex(string password)
-         => Convert.ToHexString(_sha1(password));
-
       private static string _hibpRangeUri(string prefix)
-         => $"https://api.pwnedpasswords.com/range/{prefix}";
+         => $"https://api.pwnedpasswords.com/range/{prefix}?mode=ntlm";
 
       private static string _xonUri(string prefix)
          => $"https://passwords.xposedornot.com/api/v1/pass/anon/{prefix}";

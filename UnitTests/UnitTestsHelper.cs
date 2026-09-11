@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -66,11 +65,10 @@ namespace Upsilon.Apps.Passkey.UnitTests
       // tamper with the activity log to exercise the integrity checks.
       public static void TamperActivityLogSignature(string databaseFile)
       {
-         string json = _decompress(ReadFileZipEntry(databaseFile, "activity"));
+         JsonNode node = _readActivityNode(databaseFile);
+         node["Signature"] = "";
 
-         string tampered = Regex.Replace(json, "\"Signature\":\"[^\"]*\"", "\"Signature\":\"\"");
-
-         WriteFileZipEntry(databaseFile, "activity", _compress(tampered));
+         _writeActivityNode(databaseFile, node);
       }
 
       // Drops one entry from the sealed log while leaving SealedCount untouched,

@@ -544,9 +544,9 @@ remote providers fail) instead of blocking a thread on the network.
 ------------------------------------
 
 When HIBP and XposedOrNot are both unreachable, Passkey can fall back to a
-local Bloom filter built from the HIBP SHA-1 corpus:
+local Bloom filter built from the HIBP NTLM corpus:
 
-*   File: `<exe>/pwned-sha1.pkbf` (~2.4 GiB for the default sizing) — path fixed
+*   File: `<exe>/pwned-ntlm.pkbf` (~2.4 GiB for the default sizing) — path fixed
     in the WPF host (not stored in `config.json`)
 *   Sidecar: `<filter>.pkbf.ranges` (~32 MiB), one fixed-width record per hash-range prefix holding the `ETag` already folded into the filter
 *   Config in `config.json`: `LocalLeakDatabaseEnabled` and

@@ -8,6 +8,14 @@
     <FileVersion>2.0.0</FileVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn />
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Interfaces\Upsilon.Apps.Passkey.Interfaces.csproj" />
   </ItemGroup>

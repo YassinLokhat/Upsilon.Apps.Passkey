@@ -32,7 +32,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
    }
 
    /// <summary>
-   /// Downloads HIBP SHA-1 ranges into a local <c>.pkbf</c> Bloom filter.
+   /// Downloads HIBP NTLM ranges into a local <c>.pkbf</c> Bloom filter.
    /// First builds are checkpointed; refreshes use <c>If-None-Match</c> against the <c>.ranges</c> sidecar.
    /// </summary>
    public static class HibpBloomBuilder
@@ -46,14 +46,12 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       private const string USER_AGENT = "Upsilon.Apps.Passkey-LeakFilter/1.0";
       private const int MAX_ATTEMPTS = 5;
       private const int PREFIX_HEX_LENGTH = 5;
-      private const int SUFFIX_HEX_LENGTH = 35;
+      private const int SUFFIX_HEX_LENGTH = 27; // NTLM = 32 hex chars total
 
       /// <summary>Prefixes between checkpoints (bounds resume cost vs flush cost).</summary>
       private const int CHECKPOINT_PREFIXES = 4096;
 
       private const int PROGRESS_PREFIXES = 256;
-
-      private static readonly Uri _rangeBaseUri = new("https://api.pwnedpasswords.com/range/");
 
       // Never send Add-Padding: the API varies on it and would defeat ETag revalidation.
       private static readonly SocketsHttpHandler _httpHandler = new()
@@ -194,59 +192,59 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          (ulong bitCount, int hashFunctions) = BloomSizing.For(capacity, falsePositiveRate);
          string statePath = GetRangeStatePath(outputPath);
 
-         using HibpBloomFile? filter = _openForRefresh(outputPath, capacity, bitCount, hashFunctions);
-         if (filter is null)
-         {
-            return null;
-         }
-
-         // Without a usable sidecar there are no ETags to revalidate against.
-         // Creating an empty one and ingesting would re-download every range
-         // (~1M requests) while the .pkbf itself is still valid for lookups —
-         // that must never happen on Update (especially auto-update at startup).
-         // Callers that need a fresh corpus should use Rebuild.
-         HibpRangeStateStore? opened = HibpRangeStateStore.TryOpen(statePath, TotalPrefixes, filter);
-         if (opened is null || opened.IngestedPrefixes == 0)
-         {
-            opened?.Dispose();
-            System.Diagnostics.Trace.TraceWarning(
-               $"HIBP range sidecar missing or empty at '{statePath}'; refresh skipped, existing filter kept.");
-
-            progress?.Report(new HibpBloomBuildProgress(
-               TotalPrefixes,
-               TotalPrefixes,
-               InsertedHashes: 0,
-               Skipped: true,
-               IsRefresh: true,
-               UnchangedPrefixes: 0,
-               ChangedPrefixes: 0,
-               DownloadedBytes: 0));
-
-            return new HibpBloomBuildResult(
-               outputPath,
-               Skipped: true,
-               filter.InsertedCount,
-               filter.BuiltUtc,
-               IsRefresh: true,
-               UnchangedPrefixes: 0,
-               ChangedPrefixes: 0,
-               DownloadedBytes: 0);
-         }
-
-         using HibpRangeStateStore store = opened;
-         bool committed = false;
+         // Open inside this using so ownership never leaves via return (CA2000 /
+         // CodeQL factory transfer). Sharing violations still propagate: silently
+         // folding that into a full corpus download would be a terrible trade.
          try
          {
-            HibpBloomIngestTotals totals = await _ingestAllAsync(
+            using HibpBloomFile filter = HibpBloomFile.OpenForUpdate(outputPath);
+
+            // A bit array sized for other parameters cannot absorb these hashes:
+            // the positions would not match what a later query computes.
+            if (!_sizingMatches(filter, capacity, bitCount, hashFunctions))
+            {
+               return null;
+            }
+
+            // Without a usable sidecar there are no ETags to revalidate against.
+            // Creating an empty one and ingesting would re-download every range
+            // (~1M requests) while the .pkbf itself is still valid for lookups —
+            // that must never happen on Update (especially auto-update at startup).
+            // Callers that need a fresh corpus should use Rebuild.
+            using HibpRangeStateStore? store = HibpRangeStateStore.TryOpen(statePath, TotalPrefixes, filter);
+            if (store is null || store.IngestedPrefixes == 0)
+            {
+               System.Diagnostics.Trace.TraceWarning(
+                  $"HIBP range sidecar missing or empty at '{statePath}'; refresh skipped, existing filter kept.");
+
+               progress?.Report(new HibpBloomBuildProgress(
+                  TotalPrefixes,
+                  TotalPrefixes,
+                  InsertedHashes: 0,
+                  Skipped: true,
+                  IsRefresh: true,
+                  UnchangedPrefixes: 0,
+                  ChangedPrefixes: 0,
+                  DownloadedBytes: 0));
+
+               return new HibpBloomBuildResult(
+                  outputPath,
+                  Skipped: true,
+                  filter.InsertedCount,
+                  filter.BuiltUtc,
+                  IsRefresh: true,
+                  UnchangedPrefixes: 0,
+                  ChangedPrefixes: 0,
+                  DownloadedBytes: 0);
+            }
+
+            (HibpBloomIngestTotals totals, _) = await _ingestWithCheckpointAsync(
                filter,
                store,
                revalidate: true,
                maxDegreeOfParallelism,
                progress,
                cancellationToken).ConfigureAwait(false);
-
-            store.Commit(filter);
-            committed = true;
 
             return new HibpBloomBuildResult(
                outputPath,
@@ -258,14 +256,10 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
                totals.ChangedPrefixes,
                totals.DownloadedBytes);
          }
-         finally
+         catch (InvalidDataException ex)
          {
-            // An interrupted refresh still checkpoints, so the next run picks up
-            // where this one stopped instead of revalidating everything again.
-            if (!committed)
-            {
-               _commitQuietly(filter, store);
-            }
+            System.Diagnostics.Trace.TraceWarning($"Bloom filter at '{outputPath}' is unusable and will be rebuilt: {ex}");
+            return null;
          }
       }
 
@@ -287,35 +281,62 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          string tempStatePath = GetRangeStatePath(tempPath);
          (ulong bitCount, int hashFunctions) = BloomSizing.For(capacity, falsePositiveRate);
 
-         HibpBloomIngestTotals totals;
-         ulong insertedCount;
-         using (HibpBloomFile filter = _openScratchFilter(tempPath, tempStatePath, capacity, falsePositiveRate, bitCount, hashFunctions, out HibpRangeStateStore store))
-         using (store)
+         HibpBloomIngestTotals totals = default;
+         ulong insertedCount = 0;
+         bool resumed = false;
+
+         // Resume only when the in-progress filter and sidecar still agree. Open /
+         // create stay inside using scopes here — no factory returns a live handle.
+         if (File.Exists(tempPath))
          {
-            bool committed = false;
             try
             {
-               totals = await _ingestAllAsync(
-                  filter,
-                  store,
-                  revalidate: false,
-                  maxDegreeOfParallelism,
-                  progress,
-                  cancellationToken).ConfigureAwait(false);
-
-               store.Commit(filter);
-               committed = true;
-               insertedCount = filter.InsertedCount;
-            }
-            finally
-            {
-               // The partial pair is deliberately left on disk: it is what lets the
-               // next run resume rather than re-download the whole corpus.
-               if (!committed)
+               using HibpBloomFile filter = HibpBloomFile.OpenForUpdate(tempPath);
+               if (_sizingMatches(filter, capacity, bitCount, hashFunctions))
                {
-                  _commitQuietly(filter, store);
+                  using HibpRangeStateStore? store = HibpRangeStateStore.TryOpen(tempStatePath, TotalPrefixes, filter);
+                  if (store is not null)
+                  {
+                     (totals, insertedCount) = await _ingestWithCheckpointAsync(
+                        filter,
+                        store,
+                        revalidate: false,
+                        maxDegreeOfParallelism,
+                        progress,
+                        cancellationToken).ConfigureAwait(false);
+                     resumed = true;
+                  }
                }
             }
+            catch (InvalidDataException ex)
+            {
+               System.Diagnostics.Trace.TraceWarning($"Bloom filter at '{tempPath}' is unusable and will be rebuilt: {ex}");
+            }
+            catch (Exception ex)
+               when (ex is IOException
+               or UnauthorizedAccessException
+               or NotSupportedException
+               or ArgumentException
+               or System.Security.SecurityException)
+            {
+               System.Diagnostics.Trace.TraceWarning($"In-progress build at '{tempPath}' cannot be resumed, restarting it: {ex}");
+            }
+         }
+
+         if (!resumed)
+         {
+            _deleteQuietly(tempPath);
+            _deleteQuietly(tempStatePath);
+
+            using HibpBloomFile filter = HibpBloomFile.Create(tempPath, capacity, falsePositiveRate);
+            using HibpRangeStateStore store = HibpRangeStateStore.CreateNew(tempStatePath, TotalPrefixes, filter);
+            (totals, insertedCount) = await _ingestWithCheckpointAsync(
+               filter,
+               store,
+               revalidate: false,
+               maxDegreeOfParallelism,
+               progress,
+               cancellationToken).ConfigureAwait(false);
          }
 
          _deleteQuietly(outputPath);
@@ -334,127 +355,44 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             totals.DownloadedBytes);
       }
 
-      /// <summary>
-      /// Opens a resumable in-progress filter, or creates a fresh pair when resume
-      /// is impossible. The returned filter is owned by the caller; <paramref name="store"/>
-      /// is opened against it and must be disposed by the caller as well.
-      /// </summary>
-      private static HibpBloomFile _openScratchFilter(
-         string tempPath,
-         string tempStatePath,
-         ulong capacity,
-         double falsePositiveRate,
-         ulong bitCount,
-         int hashFunctions,
-         out HibpRangeStateStore store)
-      {
-         // Resume the previous attempt when its filter and sidecar still agree
-         // on the same committed state; start the corpus over otherwise.
-         // Ownership transfers to the caller on return — a using would dispose
-         // before return and break every resume/build path (see 67cccc2).
-#pragma warning disable CA2000 // Returned to caller, or disposed on every failure path below.
-         HibpBloomFile? existing = _tryOpenForResume(tempPath, capacity, bitCount, hashFunctions);
-#pragma warning restore CA2000
-         if (existing is not null)
-         {
-            HibpRangeStateStore? existingStore;
-            try
-            {
-               existingStore = HibpRangeStateStore.TryOpen(tempStatePath, TotalPrefixes, existing);
-            }
-            catch
-            {
-               existing.Dispose();
-               throw;
-            }
-
-            if (existingStore is not null)
-            {
-               store = existingStore;
-               return existing;
-            }
-
-            existing.Dispose();
-         }
-
-         _deleteQuietly(tempPath);
-         _deleteQuietly(tempStatePath);
-
-         HibpBloomFile created = HibpBloomFile.Create(tempPath, capacity, falsePositiveRate);
-         try
-         {
-            store = HibpRangeStateStore.CreateNew(tempStatePath, TotalPrefixes, created);
-         }
-         catch
-         {
-            created.Dispose();
-            throw;
-         }
-
-         return created;
-      }
+      private static bool _sizingMatches(HibpBloomFile filter, ulong capacity, ulong bitCount, int hashFunctions)
+         => filter.Capacity == capacity
+            && filter.BitCount == bitCount
+            && filter.HashFunctions == hashFunctions;
 
       /// <summary>
-      /// Opens the filter a refresh will write into. Returns <see langword="null"/>
-      /// only when the file itself is unusable — corrupt, or sized for other
-      /// parameters — which is exactly what a full build fixes.
-      /// <para>
-      /// Anything else propagates. In particular a sharing violation, which is what
-      /// a filter still mapped by a running leak check looks like: silently turning
-      /// that into a full corpus download would be a terrible trade.
-      /// </para>
-      /// <para>
-      /// The returned instance is owned by the caller. A <c>using</c> around the
-      /// local would dispose it before return and break every refresh/build path.
-      /// </para>
+      /// Runs one full ingest pass and commits. On cancel/failure the partial pair
+      /// is still checkpointed so the next run can resume.
       /// </summary>
-      private static HibpBloomFile? _openForRefresh(string path, ulong capacity, ulong bitCount, int hashFunctions)
+      private static async Task<(HibpBloomIngestTotals Totals, ulong InsertedCount)> _ingestWithCheckpointAsync(
+         HibpBloomFile filter,
+         HibpRangeStateStore store,
+         bool revalidate,
+         int maxDegreeOfParallelism,
+         IProgress<HibpBloomBuildProgress>? progress,
+         CancellationToken cancellationToken)
       {
+         bool committed = false;
          try
          {
-            HibpBloomFile filter = HibpBloomFile.OpenForUpdate(path);
+            HibpBloomIngestTotals totals = await _ingestAllAsync(
+               filter,
+               store,
+               revalidate,
+               maxDegreeOfParallelism,
+               progress,
+               cancellationToken).ConfigureAwait(false);
 
-            if (filter.Capacity != capacity || filter.BitCount != bitCount || filter.HashFunctions != hashFunctions)
+            store.Commit(filter);
+            committed = true;
+            return (totals, filter.InsertedCount);
+         }
+         finally
+         {
+            if (!committed)
             {
-               // A bit array sized for other parameters cannot absorb these hashes:
-               // the positions would not match what a later query computes.
-               filter.Dispose();
-               return null;
+               _commitQuietly(filter, store);
             }
-
-            return filter;
-         }
-         catch (InvalidDataException ex)
-         {
-            System.Diagnostics.Trace.TraceWarning($"Bloom filter at '{path}' is unusable and will be rebuilt: {ex}");
-            return null;
-         }
-      }
-
-      /// <summary>
-      /// Probes the in-progress filter of an earlier build. Any failure here just
-      /// means the attempt cannot be resumed, so every error folds into a fresh start.
-      /// </summary>
-      private static HibpBloomFile? _tryOpenForResume(string path, ulong capacity, ulong bitCount, int hashFunctions)
-      {
-         if (!File.Exists(path))
-         {
-            return null;
-         }
-
-         try
-         {
-            return _openForRefresh(path, capacity, bitCount, hashFunctions);
-         }
-         catch (Exception ex)
-            when (ex is IOException
-            or UnauthorizedAccessException
-            or NotSupportedException
-            or ArgumentException
-            or System.Security.SecurityException)
-         {
-            System.Diagnostics.Trace.TraceWarning($"In-progress build at '{path}' cannot be resumed, restarting it: {ex}");
-            return null;
          }
       }
 
@@ -587,7 +525,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          string? knownEtag,
          CancellationToken cancellationToken)
       {
-         Uri uri = new(_rangeBaseUri, prefix);
+         Uri uri = new($"https://api.pwnedpasswords.com/range/{prefix}?mode=ntlm");
 
          for (int attempt = 1; ; attempt++)
          {
@@ -638,7 +576,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       {
          Span<char> hex = stackalloc char[PREFIX_HEX_LENGTH + SUFFIX_HEX_LENGTH];
          prefix.CopyTo(hex);
-         Span<byte> sha1 = stackalloc byte[HibpBloomFile.Sha1ByteLength];
+         Span<byte> ntlm = stackalloc byte[HibpBloomFile.NtlmByteLength];
 
          int added = 0;
          foreach (ReadOnlySpan<char> rawLine in body.AsSpan().EnumerateLines())
@@ -652,13 +590,13 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             }
 
             suffix.CopyTo(hex[PREFIX_HEX_LENGTH..]);
-            if (Convert.FromHexString(hex, sha1, out _, out int written) != OperationStatus.Done
-               || written != HibpBloomFile.Sha1ByteLength)
+            if (Convert.FromHexString(hex, ntlm, out _, out int written) != OperationStatus.Done
+               || written != HibpBloomFile.NtlmByteLength)
             {
                continue;
             }
 
-            filter.Add(sha1);
+            filter.Add(ntlm);
             added++;
          }
 

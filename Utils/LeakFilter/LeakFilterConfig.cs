@@ -14,7 +14,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       public bool Enabled { get; set; } = true;
 
       /// <summary>
-      /// Absolute path of the <c>.pkbf</c>; defaults to <c>pwned-sha1.pkbf</c> next to the
+      /// Absolute path of the <c>.pkbf</c>; defaults to <c>pwned-ntlm.pkbf</c> next to the
       /// executable.
       /// </summary>
       public string FilterPath { get; set; } = filterPath;

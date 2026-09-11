@@ -37,7 +37,6 @@ internal enum EncodingMode
    Unknown14,
    Unknown15,
 }
-#pragma warning disable CA1814, CA1819
 /// <summary>
 /// In-process QR encoder (ISO/IEC 18004), no NuGet. Used to put identifiers and
 /// passwords on screen; it does not talk to the network.
@@ -60,9 +59,9 @@ public class QrCode
    private int _codewordsPtr;
    private uint _bitBuffer;
    private int _bitBufferLen;
-   private byte[,] _baseMatrix = new byte[0, 0];
-   private byte[,] _maskMatrix = new byte[0, 0];
-   private byte[,] _resultMatrix = new byte[0, 0];
+   private byte[][] _baseMatrix = [];
+   private byte[][] _maskMatrix = [];
+   private byte[][] _resultMatrix = [];
    internal static readonly byte[]?[] AlignmentPositionArray = [null, null, [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50], [6, 30, 54], [6, 32/*0x20*/, 58], [6, 34, 62], [6, 26, 46, 66], [6, 26, 48/*0x30*/, 70], [6, 26, 50, 74], [6, 30, 54, 78], [6, 30, 56, 82], [6, 30, 58, 86], [6, 34, 62, 90], [6, 28, 50, 72, 94], [6, 26, 50, 74, 98], [6, 30, 54, 78, 102], [6, 28, 54, 80/*0x50*/, 106], [6, 32/*0x20*/, 58, 84, 110], [6, 30, 58, 86, 114], [6, 34, 62, 90, 118], [6, 26, 50, 74, 98, 122], [6, 30, 54, 78, 102, 126], [6, 26, 52, 78, 104, 130], [6, 30, 56, 82, 108, 134], [6, 34, 60, 86, 112/*0x70*/, 138], [6, 30, 58, 86, 114, 142], [6, 34, 62, 90, 118, 146], [6, 30, 54, 78, 102, 126, 150], [6, 24, 50, 76, 102, 128/*0x80*/, 154], [6, 28, 54, 80/*0x50*/, 106, 132, 158], [6, 32/*0x20*/, 58, 84, 110, 136, 162], [6, 26, 54, 82, 110, 138, 166], [6, 30, 58, 86, 114, 142, 170]];
    internal static readonly int[] MaxCodewordsArray = [0, 26, 44, 70, 100, 134, 172, 196, 242, 292, 346, 404, 466, 532, 581, 655, 733, 815, 901, 991, 1085, 1156, 1258, 1364, 1474, 1588, 1706, 1828, 1921, 2051, 2185, 2323, 2465, 2611, 2761, 2876, 3034, 3196, 3362, 3532, 3706];
    internal static readonly byte[] EncodingTable = [45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 36, 45, 45, 45, 37, 38, 45, 45, 45, 45, 39, 40, 45, 41, 42, 43, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 44, 45, 45, 45, 45, 45, 45, 10, 11, 12, 13, 14, 15, 16/*0x10*/, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31/*0x1F*/, 32/*0x20*/, 33, 34, 35, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45];
@@ -70,7 +69,7 @@ public class QrCode
    internal const int DATA_CODEWORDS_GROUP1 = 1;
    internal const int BLOCKS_GROUP2 = 2;
    internal const int DATA_CODEWORDS_GROUP2 = 3;
-   internal static readonly byte[,] ECBlockInfo = new byte[160/*0xA0*/, 4] { { 1, 19, 0, 0 }, { 1, 16/*0x10*/, 0, 0 }, { 1, 13, 0, 0 }, { 1, 9, 0, 0 }, { 1, 34, 0, 0 }, { 1, 28, 0, 0 }, { 1, 22, 0, 0 }, { 1, 16/*0x10*/, 0, 0 }, { 1, 55, 0, 0 }, { 1, 44, 0, 0 }, { 2, 17, 0, 0 }, { 2, 13, 0, 0 }, { 1, 80/*0x50*/, 0, 0 }, { 2, 32/*0x20*/, 0, 0 }, { 2, 24, 0, 0 }, { 4, 9, 0, 0 }, { 1, 108, 0, 0 }, { 2, 43, 0, 0 }, { 2, 15, 2, 16/*0x10*/}, { 2, 11, 2, 12 }, { 2, 68, 0, 0 }, { 4, 27, 0, 0 }, { 4, 19, 0, 0 }, { 4, 15, 0, 0 }, { 2, 78, 0, 0 }, { 4, 31/*0x1F*/, 0, 0 }, { 2, 14, 4, 15 }, { 4, 13, 1, 14 }, { 2, 97, 0, 0 }, { 2, 38, 2, 39 }, { 4, 18, 2, 19 }, { 4, 14, 2, 15 }, { 2, 116, 0, 0 }, { 3, 36, 2, 37 }, { 4, 16/*0x10*/, 4, 17 }, { 4, 12, 4, 13 }, { 2, 68, 2, 69 }, { 4, 43, 1, 44 }, { 6, 19, 2, 20 }, { 6, 15, 2, 16/*0x10*/}, { 4, 81, 0, 0 }, { 1, 50, 4, 51 }, { 4, 22, 4, 23 }, { 3, 12, 8, 13 }, { 2, 92, 2, 93 }, { 6, 36, 2, 37 }, { 4, 20, 6, 21 }, { 7, 14, 4, 15 }, { 4, 107, 0, 0 }, { 8, 37, 1, 38 }, { 8, 20, 4, 21 }, { 12, 11, 4, 12 }, { 3, 115, 1, 116 }, { 4, 40, 5, 41 }, { 11, 16/*0x10*/, 5, 17 }, { 11, 12, 5, 13 }, { 5, 87, 1, 88 }, { 5, 41, 5, 42 }, { 5, 24, 7, 25 }, { 11, 12, 7, 13 }, { 5, 98, 1, 99 }, { 7, 45, 3, 46 }, { 15, 19, 2, 20 }, { 3, 15, 13, 16/*0x10*/}, { 1, 107, 5, 108 }, { 10, 46, 1, 47 }, { 1, 22, 15, 23 }, { 2, 14, 17, 15 }, { 5, 120, 1, 121 }, { 9, 43, 4, 44 }, { 17, 22, 1, 23 }, { 2, 14, 19, 15 }, { 3, 113, 4, 114 }, { 3, 44, 11, 45 }, { 17, 21, 4, 22 }, { 9, 13, 16/*0x10*/, 14 }, { 3, 107, 5, 108 }, { 3, 41, 13, 42 }, { 15, 24, 5, 25 }, { 15, 15, 10, 16/*0x10*/}, { 4, 116, 4, 117 }, { 17, 42, 0, 0 }, { 17, 22, 6, 23 }, { 19, 16/*0x10*/, 6, 17 }, { 2, 111, 7, 112/*0x70*/}, { 17, 46, 0, 0 }, { 7, 24, 16/*0x10*/, 25 }, { 34, 13, 0, 0 }, { 4, 121, 5, 122 }, { 4, 47, 14, 48/*0x30*/}, { 11, 24, 14, 25 }, { 16/*0x10*/, 15, 14, 16/*0x10*/}, { 6, 117, 4, 118 }, { 6, 45, 14, 46 }, { 11, 24, 16/*0x10*/, 25 }, { 30, 16/*0x10*/, 2, 17 }, { 8, 106, 4, 107 }, { 8, 47, 13, 48/*0x30*/}, { 7, 24, 22, 25 }, { 22, 15, 13, 16/*0x10*/}, { 10, 114, 2, 115 }, { 19, 46, 4, 47 }, { 28, 22, 6, 23 }, { 33, 16/*0x10*/, 4, 17 }, { 8, 122, 4, 123 }, { 22, 45, 3, 46 }, { 8, 23, 26, 24 }, { 12, 15, 28, 16/*0x10*/}, { 3, 117, 10, 118 }, { 3, 45, 23, 46 }, { 4, 24, 31/*0x1F*/, 25 }, { 11, 15, 31/*0x1F*/, 16/*0x10*/}, { 7, 116, 7, 117 }, { 21, 45, 7, 46 }, { 1, 23, 37, 24 }, { 19, 15, 26, 16/*0x10*/}, { 5, 115, 10, 116 }, { 19, 47, 10, 48/*0x30*/}, { 15, 24, 25, 25 }, { 23, 15, 25, 16/*0x10*/}, { 13, 115, 3, 116 }, { 2, 46, 29, 47 }, { 42, 24, 1, 25 }, { 23, 15, 28, 16/*0x10*/}, { 17, 115, 0, 0 }, { 10, 46, 23, 47 }, { 10, 24, 35, 25 }, { 19, 15, 35, 16/*0x10*/}, { 17, 115, 1, 116 }, { 14, 46, 21, 47 }, { 29, 24, 19, 25 }, { 11, 15, 46, 16/*0x10*/}, { 13, 115, 6, 116 }, { 14, 46, 23, 47 }, { 44, 24, 7, 25 }, { 59, 16/*0x10*/, 1, 17 }, { 12, 121, 7, 122 }, { 12, 47, 26, 48/*0x30*/}, { 39, 24, 14, 25 }, { 22, 15, 41, 16/*0x10*/}, { 6, 121, 14, 122 }, { 6, 47, 34, 48/*0x30*/}, { 46, 24, 10, 25 }, { 2, 15, 64/*0x40*/, 16/*0x10*/}, { 17, 122, 4, 123 }, { 29, 46, 14, 47 }, { 49, 24, 10, 25 }, { 24, 15, 46, 16/*0x10*/}, { 4, 122, 18, 123 }, { 13, 46, 32/*0x20*/, 47 }, { 48/*0x30*/, 24, 14, 25 }, { 42, 15, 32/*0x20*/, 16/*0x10*/}, { 20, 117, 4, 118 }, { 40, 47, 7, 48/*0x30*/}, { 43, 24, 22, 25 }, { 10, 15, 67, 16/*0x10*/}, { 19, 118, 6, 119 }, { 18, 47, 31/*0x1F*/, 48/*0x30*/}, { 34, 24, 34, 25 }, { 20, 15, 61, 16/*0x10*/} };
+   internal static readonly byte[][] ECBlockInfo = [[1, 19, 0, 0], [1, 16/*0x10*/, 0, 0], [1, 13, 0, 0], [1, 9, 0, 0], [1, 34, 0, 0], [1, 28, 0, 0], [1, 22, 0, 0], [1, 16/*0x10*/, 0, 0], [1, 55, 0, 0], [1, 44, 0, 0], [2, 17, 0, 0], [2, 13, 0, 0], [1, 80/*0x50*/, 0, 0], [2, 32/*0x20*/, 0, 0], [2, 24, 0, 0], [4, 9, 0, 0], [1, 108, 0, 0], [2, 43, 0, 0], [2, 15, 2, 16/*0x10*/], [2, 11, 2, 12], [2, 68, 0, 0], [4, 27, 0, 0], [4, 19, 0, 0], [4, 15, 0, 0], [2, 78, 0, 0], [4, 31/*0x1F*/, 0, 0], [2, 14, 4, 15], [4, 13, 1, 14], [2, 97, 0, 0], [2, 38, 2, 39], [4, 18, 2, 19], [4, 14, 2, 15], [2, 116, 0, 0], [3, 36, 2, 37], [4, 16/*0x10*/, 4, 17], [4, 12, 4, 13], [2, 68, 2, 69], [4, 43, 1, 44], [6, 19, 2, 20], [6, 15, 2, 16/*0x10*/], [4, 81, 0, 0], [1, 50, 4, 51], [4, 22, 4, 23], [3, 12, 8, 13], [2, 92, 2, 93], [6, 36, 2, 37], [4, 20, 6, 21], [7, 14, 4, 15], [4, 107, 0, 0], [8, 37, 1, 38], [8, 20, 4, 21], [12, 11, 4, 12], [3, 115, 1, 116], [4, 40, 5, 41], [11, 16/*0x10*/, 5, 17], [11, 12, 5, 13], [5, 87, 1, 88], [5, 41, 5, 42], [5, 24, 7, 25], [11, 12, 7, 13], [5, 98, 1, 99], [7, 45, 3, 46], [15, 19, 2, 20], [3, 15, 13, 16/*0x10*/], [1, 107, 5, 108], [10, 46, 1, 47], [1, 22, 15, 23], [2, 14, 17, 15], [5, 120, 1, 121], [9, 43, 4, 44], [17, 22, 1, 23], [2, 14, 19, 15], [3, 113, 4, 114], [3, 44, 11, 45], [17, 21, 4, 22], [9, 13, 16/*0x10*/, 14], [3, 107, 5, 108], [3, 41, 13, 42], [15, 24, 5, 25], [15, 15, 10, 16/*0x10*/], [4, 116, 4, 117], [17, 42, 0, 0], [17, 22, 6, 23], [19, 16/*0x10*/, 6, 17], [2, 111, 7, 112/*0x70*/], [17, 46, 0, 0], [7, 24, 16/*0x10*/, 25], [34, 13, 0, 0], [4, 121, 5, 122], [4, 47, 14, 48/*0x30*/], [11, 24, 14, 25], [16/*0x10*/, 15, 14, 16/*0x10*/], [6, 117, 4, 118], [6, 45, 14, 46], [11, 24, 16/*0x10*/, 25], [30, 16/*0x10*/, 2, 17], [8, 106, 4, 107], [8, 47, 13, 48/*0x30*/], [7, 24, 22, 25], [22, 15, 13, 16/*0x10*/], [10, 114, 2, 115], [19, 46, 4, 47], [28, 22, 6, 23], [33, 16/*0x10*/, 4, 17], [8, 122, 4, 123], [22, 45, 3, 46], [8, 23, 26, 24], [12, 15, 28, 16/*0x10*/], [3, 117, 10, 118], [3, 45, 23, 46], [4, 24, 31/*0x1F*/, 25], [11, 15, 31/*0x1F*/, 16/*0x10*/], [7, 116, 7, 117], [21, 45, 7, 46], [1, 23, 37, 24], [19, 15, 26, 16/*0x10*/], [5, 115, 10, 116], [19, 47, 10, 48/*0x30*/], [15, 24, 25, 25], [23, 15, 25, 16/*0x10*/], [13, 115, 3, 116], [2, 46, 29, 47], [42, 24, 1, 25], [23, 15, 28, 16/*0x10*/], [17, 115, 0, 0], [10, 46, 23, 47], [10, 24, 35, 25], [19, 15, 35, 16/*0x10*/], [17, 115, 1, 116], [14, 46, 21, 47], [29, 24, 19, 25], [11, 15, 46, 16/*0x10*/], [13, 115, 6, 116], [14, 46, 23, 47], [44, 24, 7, 25], [59, 16/*0x10*/, 1, 17], [12, 121, 7, 122], [12, 47, 26, 48/*0x30*/], [39, 24, 14, 25], [22, 15, 41, 16/*0x10*/], [6, 121, 14, 122], [6, 47, 34, 48/*0x30*/], [46, 24, 10, 25], [2, 15, 64/*0x40*/, 16/*0x10*/], [17, 122, 4, 123], [29, 46, 14, 47], [49, 24, 10, 25], [24, 15, 46, 16/*0x10*/], [4, 122, 18, 123], [13, 46, 32/*0x20*/, 47], [48/*0x30*/, 24, 14, 25], [42, 15, 32/*0x20*/, 16/*0x10*/], [20, 117, 4, 118], [40, 47, 7, 48/*0x30*/], [43, 24, 22, 25], [10, 15, 67, 16/*0x10*/], [19, 118, 6, 119], [18, 47, 31/*0x1F*/, 48/*0x30*/], [34, 24, 34, 25], [20, 15, 61, 16/*0x10*/]];
    private static readonly byte[] _generator7 = [87, 229, 146, 149, 238, 102, 21];
    private static readonly byte[] _generator10 = [251, 67, 46, 61, 118, 70, 64 /*0x40*/, 94, 32 /*0x20*/, 45];
    private static readonly byte[] _generator13 = [74, 152, 176 /*0xB0*/, 100, 86, 100, 106, 104, 130, 218, 206, 140, 78];
@@ -106,8 +105,8 @@ public class QrCode
    internal static readonly byte[] ExpToInt = [1, 2, 4, 8, 16 /*0x10*/, 32 /*0x20*/, 64 /*0x40*/, 128 /*0x80*/, 29, 58, 116, 232, 205, 135, 19, 38, 76, 152, 45, 90, 180, 117, 234, 201, 143, 3, 6, 12, 24, 48 /*0x30*/, 96 /*0x60*/, 192 /*0xC0*/, 157, 39, 78, 156, 37, 74, 148, 53, 106, 212, 181, 119, 238, 193, 159, 35, 70, 140, 5, 10, 20, 40, 80 /*0x50*/, 160 /*0xA0*/, 93, 186, 105, 210, 185, 111, 222, 161, 95, 190, 97, 194, 153, 47, 94, 188, 101, 202, 137, 15, 30, 60, 120, 240 /*0xF0*/, 253, 231, 211, 187, 107, 214, 177, 127 /*0x7F*/, 254, 225, 223, 163, 91, 182, 113, 226, 217, 175, 67, 134, 17, 34, 68, 136, 13, 26, 52, 104, 208 /*0xD0*/, 189, 103, 206, 129, 31 /*0x1F*/, 62, 124, 248, 237, 199, 147, 59, 118, 236, 197, 151, 51, 102, 204, 133, 23, 46, 92, 184, 109, 218, 169, 79, 158, 33, 66, 132, 21, 42, 84, 168, 77, 154, 41, 82, 164, 85, 170, 73, 146, 57, 114, 228, 213, 183, 115, 230, 209, 191, 99, 198, 145, 63 /*0x3F*/, 126, 252, 229, 215, 179, 123, 246, 241, byte.MaxValue, 227, 219, 171, 75, 150, 49, 98, 196, 149, 55, 110, 220, 165, 87, 174, 65, 130, 25, 50, 100, 200, 141, 7, 14, 28, 56, 112 /*0x70*/, 224 /*0xE0*/, 221, 167, 83, 166, 81, 162, 89, 178, 121, 242, 249, 239, 195, 155, 43, 86, 172, 69, 138, 9, 18, 36, 72, 144 /*0x90*/, 61, 122, 244, 245, 247, 243, 251, 235, 203, 139, 11, 22, 44, 88, 176 /*0xB0*/, 125, 250, 233, 207, 131, 27, 54, 108, 216, 173, 71, 142, 1, 2, 4, 8, 16 /*0x10*/, 32 /*0x20*/, 64 /*0x40*/, 128 /*0x80*/, 29, 58, 116, 232, 205, 135, 19, 38, 76, 152, 45, 90, 180, 117, 234, 201, 143, 3, 6, 12, 24, 48 /*0x30*/, 96 /*0x60*/, 192 /*0xC0*/, 157, 39, 78, 156, 37, 74, 148, 53, 106, 212, 181, 119, 238, 193, 159, 35, 70, 140, 5, 10, 20, 40, 80 /*0x50*/, 160 /*0xA0*/, 93, 186, 105, 210, 185, 111, 222, 161, 95, 190, 97, 194, 153, 47, 94, 188, 101, 202, 137, 15, 30, 60, 120, 240 /*0xF0*/, 253, 231, 211, 187, 107, 214, 177, 127 /*0x7F*/, 254, 225, 223, 163, 91, 182, 113, 226, 217, 175, 67, 134, 17, 34, 68, 136, 13, 26, 52, 104, 208 /*0xD0*/, 189, 103, 206, 129, 31 /*0x1F*/, 62, 124, 248, 237, 199, 147, 59, 118, 236, 197, 151, 51, 102, 204, 133, 23, 46, 92, 184, 109, 218, 169, 79, 158, 33, 66, 132, 21, 42, 84, 168, 77, 154, 41, 82, 164, 85, 170, 73, 146, 57, 114, 228, 213, 183, 115, 230, 209, 191, 99, 198, 145, 63 /*0x3F*/, 126, 252, 229, 215, 179, 123, 246, 241, byte.MaxValue, 227, 219, 171, 75, 150, 49, 98, 196, 149, 55, 110, 220, 165, 87, 174, 65, 130, 25, 50, 100, 200, 141, 7, 14, 28, 56, 112 /*0x70*/, 224 /*0xE0*/, 221, 167, 83, 166, 81, 162, 89, 178, 121, 242, 249, 239, 195, 155, 43, 86, 172, 69, 138, 9, 18, 36, 72, 144 /*0x90*/, 61, 122, 244, 245, 247, 243, 251, 235, 203, 139, 11, 22, 44, 88, 176 /*0xB0*/, 125, 250, 233, 207, 131, 27, 54, 108, 216, 173, 71, 142, 1];
    internal static readonly byte[] IntToExp = [0, 0, 1, 25, 2, 50, 26, 198, 3, 223, 51, 238, 27, 104, 199, 75, 4, 100, 224 /*0xE0*/, 14, 52, 141, 239, 129, 28, 193, 105, 248, 200, 8, 76, 113, 5, 138, 101, 47, 225, 36, 15, 33, 53, 147, 142, 218, 240 /*0xF0*/, 18, 130, 69, 29, 181, 194, 125, 106, 39, 249, 185, 201, 154, 9, 120, 77, 228, 114, 166, 6, 191, 139, 98, 102, 221, 48 /*0x30*/, 253, 226, 152, 37, 179, 16 /*0x10*/, 145, 34, 136, 54, 208 /*0xD0*/, 148, 206, 143, 150, 219, 189, 241, 210, 19, 92, 131, 56, 70, 64 /*0x40*/, 30, 66, 182, 163, 195, 72, 126, 110, 107, 58, 40, 84, 250, 133, 186, 61, 202, 94, 155, 159, 10, 21, 121, 43, 78, 212, 229, 172, 115, 243, 167, 87, 7, 112 /*0x70*/, 192 /*0xC0*/, 247, 140, 128 /*0x80*/, 99, 13, 103, 74, 222, 237, 49, 197, 254, 24, 227, 165, 153, 119, 38, 184, 180, 124, 17, 68, 146, 217, 35, 32 /*0x20*/, 137, 46, 55, 63 /*0x3F*/, 209, 91, 149, 188, 207, 205, 144 /*0x90*/, 135, 151, 178, 220, 252, 190, 97, 242, 86, 211, 171, 20, 42, 93, 158, 132, 60, 57, 83, 71, 109, 65, 162, 31 /*0x1F*/, 45, 67, 216, 183, 123, 164, 118, 196, 23, 73, 236, 127 /*0x7F*/, 12, 111, 246, 108, 161, 59, 82, 41, 157, 85, 170, 251, 96 /*0x60*/, 134, 177, 187, 204, 62, 90, 203, 89, 95, 176 /*0xB0*/, 156, 169, 160 /*0xA0*/, 81, 11, 245, 22, 235, 122, 117, 44, 215, 79, 174, 213, 233, 230, 231, 173, 232, 116, 214, 244, 234, 168, 80 /*0x50*/, 88, 175];
    internal static readonly int[] FormatInfoArray = [21522, 20773, 24188, 23371, 17913, 16590, 20375, 19104, 30660, 29427, 32170, 30877, 26159, 25368, 27713, 26998, 5769, 5054, 7399, 6608, 1890, 597, 3340, 2107, 13663, 12392, 16177, 14854, 9396, 8579, 11994, 11245];
-   internal static readonly int[,] FormatInfoOne = new int[15, 2] { { 0, 8 }, { 1, 8 }, { 2, 8 }, { 3, 8 }, { 4, 8 }, { 5, 8 }, { 7, 8 }, { 8, 8 }, { 8, 7 }, { 8, 5 }, { 8, 4 }, { 8, 3 }, { 8, 2 }, { 8, 1 }, { 8, 0 } };
-   internal static readonly int[,] FormatInfoTwo = new int[15, 2] { { 8, -1 }, { 8, -2 }, { 8, -3 }, { 8, -4 }, { 8, -5 }, { 8, -6 }, { 8, -7 }, { 8, -8 }, { -7, 8 }, { -6, 8 }, { -5, 8 }, { -4, 8 }, { -3, 8 }, { -2, 8 }, { -1, 8 } };
+   internal static readonly int[][] FormatInfoOne = [[0, 8], [1, 8], [2, 8], [3, 8], [4, 8], [5, 8], [7, 8], [8, 8], [8, 7], [8, 5], [8, 4], [8, 3], [8, 2], [8, 1], [8, 0]];
+   internal static readonly int[][] FormatInfoTwo = [[8, -1], [8, -2], [8, -3], [8, -4], [8, -5], [8, -6], [8, -7], [8, -8], [-7, 8], [-6, 8], [-5, 8], [-4, 8], [-3, 8], [-2, 8], [-1, 8]];
    internal static readonly int[] VersionCodeArray = [31892, 34236, 39577, 42195, 48118, 51042, 55367, 58893, 63784, 68472, 70749, 76311, 79154, 84390, 87683, 92361, 96236, 102084, 102881, 110507, 110734, 117786, 119615, 126325, 127568, 133589, 136944, 141498, 145311, 150283, 152622, 158308, 161089, 167017];
    internal const byte White = 0;
    internal const byte Black = 1;
@@ -119,12 +118,14 @@ public class QrCode
    internal const byte FormatBlack = 3;
    internal const byte FixedWhite = 6;
    internal const byte FixedBlack = 7;
-   internal static readonly byte[,] FinderPatternTopLeft = new byte[9, 9] { { 7, 7, 7, 7, 7, 7, 7, 6, 2 }, { 7, 6, 6, 6, 6, 6, 7, 6, 2 }, { 7, 6, 7, 7, 7, 6, 7, 6, 2 }, { 7, 6, 7, 7, 7, 6, 7, 6, 2 }, { 7, 6, 7, 7, 7, 6, 7, 6, 2 }, { 7, 6, 6, 6, 6, 6, 7, 6, 2 }, { 7, 7, 7, 7, 7, 7, 7, 6, 2 }, { 6, 6, 6, 6, 6, 6, 6, 6, 2 }, { 2, 2, 2, 2, 2, 2, 2, 2, 2 } };
-   internal static readonly byte[,] FinderPatternTopRight = new byte[9, 8] { { 6, 7, 7, 7, 7, 7, 7, 7 }, { 6, 7, 6, 6, 6, 6, 6, 7 }, { 6, 7, 6, 7, 7, 7, 6, 7 }, { 6, 7, 6, 7, 7, 7, 6, 7 }, { 6, 7, 6, 7, 7, 7, 6, 7 }, { 6, 7, 6, 6, 6, 6, 6, 7 }, { 6, 7, 7, 7, 7, 7, 7, 7 }, { 6, 6, 6, 6, 6, 6, 6, 6 }, { 2, 2, 2, 2, 2, 2, 2, 2 } };
-   internal static readonly byte[,] FinderPatternBottomLeft = new byte[8, 9] { { 6, 6, 6, 6, 6, 6, 6, 6, 7 }, { 7, 7, 7, 7, 7, 7, 7, 6, 2 }, { 7, 6, 6, 6, 6, 6, 7, 6, 2 }, { 7, 6, 7, 7, 7, 6, 7, 6, 2 }, { 7, 6, 7, 7, 7, 6, 7, 6, 2 }, { 7, 6, 7, 7, 7, 6, 7, 6, 2 }, { 7, 6, 6, 6, 6, 6, 7, 6, 2 }, { 7, 7, 7, 7, 7, 7, 7, 6, 2 } };
-   internal static readonly byte[,] AlignmentPattern = new byte[5, 5] { { 7, 7, 7, 7, 7 }, { 7, 6, 6, 6, 7 }, { 7, 6, 7, 6, 7 }, { 7, 6, 6, 6, 7 }, { 7, 7, 7, 7, 7 } };
+   internal static readonly byte[][] FinderPatternTopLeft = [[7, 7, 7, 7, 7, 7, 7, 6, 2], [7, 6, 6, 6, 6, 6, 7, 6, 2], [7, 6, 7, 7, 7, 6, 7, 6, 2], [7, 6, 7, 7, 7, 6, 7, 6, 2], [7, 6, 7, 7, 7, 6, 7, 6, 2], [7, 6, 6, 6, 6, 6, 7, 6, 2], [7, 7, 7, 7, 7, 7, 7, 6, 2], [6, 6, 6, 6, 6, 6, 6, 6, 2], [2, 2, 2, 2, 2, 2, 2, 2, 2]];
+   internal static readonly byte[][] FinderPatternTopRight = [[6, 7, 7, 7, 7, 7, 7, 7], [6, 7, 6, 6, 6, 6, 6, 7], [6, 7, 6, 7, 7, 7, 6, 7], [6, 7, 6, 7, 7, 7, 6, 7], [6, 7, 6, 7, 7, 7, 6, 7], [6, 7, 6, 6, 6, 6, 6, 7], [6, 7, 7, 7, 7, 7, 7, 7], [6, 6, 6, 6, 6, 6, 6, 6], [2, 2, 2, 2, 2, 2, 2, 2]];
+   internal static readonly byte[][] FinderPatternBottomLeft = [[6, 6, 6, 6, 6, 6, 6, 6, 7], [7, 7, 7, 7, 7, 7, 7, 6, 2], [7, 6, 6, 6, 6, 6, 7, 6, 2], [7, 6, 7, 7, 7, 6, 7, 6, 2], [7, 6, 7, 7, 7, 6, 7, 6, 2], [7, 6, 7, 7, 7, 6, 7, 6, 2], [7, 6, 6, 6, 6, 6, 7, 6, 2], [7, 7, 7, 7, 7, 7, 7, 6, 2]];
+   internal static readonly byte[][] AlignmentPattern = [[7, 7, 7, 7, 7], [7, 6, 6, 6, 7], [7, 6, 7, 6, 7], [7, 6, 6, 6, 7], [7, 7, 7, 7, 7]];
 
-   public bool[,] QRCodeMatrix { get; private set; } = new bool[0, 0];
+   private bool[][] _qrCodeMatrix = [];
+
+   public bool[][] GetQRCodeMatrix() => _cloneMatrix(_qrCodeMatrix);
 
    public int QRCodeVersion { get; private set; }
 
@@ -152,9 +153,9 @@ public class QrCode
    /// Encodes <paramref name="data"/> as a module matrix
    /// (<see langword="true"/> = dark). Default correction is <see cref="ErrorCorrection.H"/>.
    /// </summary>
-   public static bool[,] Generate(string data, ErrorCorrection errorCorrection = ErrorCorrection.H)
+   public static bool[][] Generate(string data, ErrorCorrection errorCorrection = ErrorCorrection.H)
    {
-      return new QrCode(data, errorCorrection).QRCodeMatrix;
+      return new QrCode(data, errorCorrection).GetQRCodeMatrix();
    }
 
    public QrCode(string stringDataSegment, ErrorCorrection errorCorrection)
@@ -179,7 +180,7 @@ public class QrCode
       _ = _encode([singleDataSeg]);
    }
 
-   private bool[,] _encode(byte[][] dataSegments)
+   private bool[][] _encode(byte[][] dataSegments)
    {
       if (dataSegments == null || dataSegments.Length == 0)
       {
@@ -219,19 +220,19 @@ public class QrCode
       _selectBestMask();
       _addFormatInformation();
 
-      QRCodeMatrix = new bool[QRCodeDimension, QRCodeDimension];
+      _qrCodeMatrix = _createMatrix<bool>(QRCodeDimension);
       for (int row = 0; row < QRCodeDimension; ++row)
       {
          for (int col = 0; col < QRCodeDimension; ++col)
          {
-            if ((_resultMatrix[row, col] & 1) != 0)
+            if ((_resultMatrix[row][col] & 1) != 0)
             {
-               QRCodeMatrix[row, col] = true;
+               _qrCodeMatrix[row][col] = true;
             }
          }
       }
 
-      return QRCodeMatrix;
+      return GetQRCodeMatrix();
    }
 
    private void _initialization()
@@ -578,11 +579,11 @@ public class QrCode
 
       while (true)
       {
-         if ((_baseMatrix[row, col] & 2) == 0)
+         if ((_baseMatrix[row][col] & 2) == 0)
          {
             if ((_codewordsArray[bitIndex >> 3] & (1 << (7 - (bitIndex & 7)))) != 0)
             {
-               _baseMatrix[row, col] = 1;
+               _baseMatrix[row][col] = 1;
             }
 
             if (++bitIndex == totalBits)
@@ -667,7 +668,7 @@ public class QrCode
          int runLength = 1;
          for (int col = 1; col < QRCodeDimension; ++col)
          {
-            if (((_maskMatrix[row, col - 1] ^ _maskMatrix[row, col]) & 1) != 0)
+            if (((_maskMatrix[row][col - 1] ^ _maskMatrix[row][col]) & 1) != 0)
             {
                if (runLength >= 5)
                {
@@ -689,7 +690,7 @@ public class QrCode
          int runLength = 1;
          for (int row = 1; row < QRCodeDimension; ++row)
          {
-            if (((_maskMatrix[row - 1, col] ^ _maskMatrix[row, col]) & 1) != 0)
+            if (((_maskMatrix[row - 1][col] ^ _maskMatrix[row][col]) & 1) != 0)
             {
                if (runLength >= 5)
                {
@@ -716,10 +717,10 @@ public class QrCode
       {
          for (int col = 1; col < QRCodeDimension; ++col)
          {
-            int topLeft = _maskMatrix[row - 1, col - 1];
-            int topRight = _maskMatrix[row - 1, col];
-            int bottomLeft = _maskMatrix[row, col - 1];
-            int bottomRight = _maskMatrix[row, col];
+            int topLeft = _maskMatrix[row - 1][col - 1];
+            int topRight = _maskMatrix[row - 1][col];
+            int bottomLeft = _maskMatrix[row][col - 1];
+            int bottomRight = _maskMatrix[row][col];
 
             if ((topLeft & topRight & bottomLeft & bottomRight & 1) != 0)
             {
@@ -743,7 +744,7 @@ public class QrCode
          int afterLastDark = 0;
          for (int col = 0; col < QRCodeDimension; ++col)
          {
-            if ((_maskMatrix[row, col] & 1) != 0)
+            if ((_maskMatrix[row][col] & 1) != 0)
             {
                if (col - afterLastDark >= 4)
                {
@@ -772,7 +773,7 @@ public class QrCode
          int afterLastDark = 0;
          for (int row = 0; row < QRCodeDimension; ++row)
          {
-            if ((_maskMatrix[row, col] & 1) != 0)
+            if ((_maskMatrix[row][col] & 1) != 0)
             {
                if (row - afterLastDark >= 4)
                {
@@ -806,7 +807,7 @@ public class QrCode
       {
          for (int col = 0; col < QRCodeDimension; ++col)
          {
-            if ((_maskMatrix[row, col] & 1) != 0)
+            if ((_maskMatrix[row][col] & 1) != 0)
             {
                ++darkCount;
             }
@@ -823,12 +824,12 @@ public class QrCode
 
    private bool _matchesFinderPatternHorizontally(int row, int col)
    {
-      return (_maskMatrix[row, col] & ~_maskMatrix[row, col + 1] & _maskMatrix[row, col + 2] & _maskMatrix[row, col + 3] & _maskMatrix[row, col + 4] & ~_maskMatrix[row, col + 5] & _maskMatrix[row, col + 6] & 1) != 0;
+      return (_maskMatrix[row][col] & ~_maskMatrix[row][col + 1] & _maskMatrix[row][col + 2] & _maskMatrix[row][col + 3] & _maskMatrix[row][col + 4] & ~_maskMatrix[row][col + 5] & _maskMatrix[row][col + 6] & 1) != 0;
    }
 
    private bool _matchesFinderPatternVertically(int row, int col)
    {
-      return (_maskMatrix[row, col] & ~_maskMatrix[row + 1, col] & _maskMatrix[row + 2, col] & _maskMatrix[row + 3, col] & _maskMatrix[row + 4, col] & ~_maskMatrix[row + 5, col] & _maskMatrix[row + 6, col] & 1) != 0;
+      return (_maskMatrix[row][col] & ~_maskMatrix[row + 1][col] & _maskMatrix[row + 2][col] & _maskMatrix[row + 3][col] & _maskMatrix[row + 4][col] & ~_maskMatrix[row + 5][col] & _maskMatrix[row + 6][col] & 1) != 0;
    }
 
    private void _addFormatInformation()
@@ -843,7 +844,7 @@ public class QrCode
          {
             for (int col = 0; col < 3; ++col)
             {
-               _resultMatrix[row, versionBlockCol + col] = (versionCode & bit) != 0 ? FixedBlack : FixedWhite;
+               _resultMatrix[row][versionBlockCol + col] = (versionCode & bit) != 0 ? FixedBlack : FixedWhite;
                bit <<= 1;
             }
          }
@@ -853,7 +854,7 @@ public class QrCode
          {
             for (int row = 0; row < 3; ++row)
             {
-               _resultMatrix[versionBlockCol + row, col] = (versionCode & bit) != 0 ? FixedBlack : FixedWhite;
+               _resultMatrix[versionBlockCol + row][col] = (versionCode & bit) != 0 ? FixedBlack : FixedWhite;
                bit <<= 1;
             }
          }
@@ -874,21 +875,21 @@ public class QrCode
          byte moduleValue = (formatInfo & formatBit) != 0 ? FixedBlack : FixedWhite;
          formatBit <<= 1;
 
-         _resultMatrix[FormatInfoOne[i, 0], FormatInfoOne[i, 1]] = moduleValue;
+         _resultMatrix[FormatInfoOne[i][0]][FormatInfoOne[i][1]] = moduleValue;
 
-         int row = FormatInfoTwo[i, 0];
+         int row = FormatInfoTwo[i][0];
          if (row < 0)
          {
             row += QRCodeDimension;
          }
 
-         int col = FormatInfoTwo[i, 1];
+         int col = FormatInfoTwo[i][1];
          if (col < 0)
          {
             col += QRCodeDimension;
          }
 
-         _resultMatrix[row, col] = moduleValue;
+         _resultMatrix[row][col] = moduleValue;
       }
    }
 
@@ -920,10 +921,10 @@ public class QrCode
    private void _setDataCodewordsLength()
    {
       int ecBlockRow = (int)(((QRCodeVersion - 1) * 4) + ErrorCorrection);
-      _blocksGroup1 = ECBlockInfo[ecBlockRow, BLOCKS_GROUP1];
-      _dataCodewordsGroup1 = ECBlockInfo[ecBlockRow, DATA_CODEWORDS_GROUP1];
-      _blocksGroup2 = ECBlockInfo[ecBlockRow, BLOCKS_GROUP2];
-      _dataCodewordsGroup2 = ECBlockInfo[ecBlockRow, DATA_CODEWORDS_GROUP2];
+      _blocksGroup1 = ECBlockInfo[ecBlockRow][BLOCKS_GROUP1];
+      _dataCodewordsGroup1 = ECBlockInfo[ecBlockRow][DATA_CODEWORDS_GROUP1];
+      _blocksGroup2 = ECBlockInfo[ecBlockRow][BLOCKS_GROUP2];
+      _dataCodewordsGroup2 = ECBlockInfo[ecBlockRow][DATA_CODEWORDS_GROUP2];
       _maxDataCodewords = (_blocksGroup1 * _dataCodewordsGroup1) + (_blocksGroup2 * _dataCodewordsGroup2);
       _maxDataBits = 8 * _maxDataCodewords;
       _maxCodewords = MaxCodewordsArray[QRCodeVersion];
@@ -932,7 +933,7 @@ public class QrCode
 
    private void _buildBaseMatrix()
    {
-      _baseMatrix = new byte[QRCodeDimension, QRCodeDimension];
+      _baseMatrix = _createMatrix<byte>(QRCodeDimension);
       _copyFinderPatternsToBaseMatrix();
       _drawTimingPatternsOnBaseMatrix();
       _drawAlignmentPatternsOnBaseMatrix();
@@ -945,7 +946,7 @@ public class QrCode
       {
          for (int col = 0; col < 9; ++col)
          {
-            _baseMatrix[row, col] = FinderPatternTopLeft[row, col];
+            _baseMatrix[row][col] = FinderPatternTopLeft[row][col];
          }
       }
 
@@ -954,7 +955,7 @@ public class QrCode
       {
          for (int col = 0; col < 8; ++col)
          {
-            _baseMatrix[row, farCorner + col] = FinderPatternTopRight[row, col];
+            _baseMatrix[row][farCorner + col] = FinderPatternTopRight[row][col];
          }
       }
 
@@ -962,7 +963,7 @@ public class QrCode
       {
          for (int col = 0; col < 9; ++col)
          {
-            _baseMatrix[farCorner + row, col] = FinderPatternBottomLeft[row, col];
+            _baseMatrix[farCorner + row][col] = FinderPatternBottomLeft[row][col];
          }
       }
    }
@@ -971,7 +972,7 @@ public class QrCode
    {
       for (int i = 8; i < QRCodeDimension - 8; ++i)
       {
-         _baseMatrix[i, 6] = _baseMatrix[6, i] = (i & 1) == 0 ? FixedBlack : FixedWhite;
+         _baseMatrix[i][6] = _baseMatrix[6][i] = (i & 1) == 0 ? FixedBlack : FixedWhite;
       }
    }
 
@@ -1004,7 +1005,7 @@ public class QrCode
             {
                for (int dCol = -2; dCol < 3; ++dCol)
                {
-                  _baseMatrix[centerRow + dRow, centerCol + dCol] = AlignmentPattern[dRow + 2, dCol + 2];
+                  _baseMatrix[centerRow + dRow][centerCol + dCol] = AlignmentPattern[dRow + 2][dCol + 2];
                }
             }
          }
@@ -1023,7 +1024,7 @@ public class QrCode
       {
          for (int col = 0; col < 3; ++col)
          {
-            _baseMatrix[row, versionBlockCol + col] = NonData;
+            _baseMatrix[row][versionBlockCol + col] = NonData;
          }
       }
 
@@ -1031,30 +1032,52 @@ public class QrCode
       {
          for (int row = 0; row < 3; ++row)
          {
-            _baseMatrix[versionBlockCol + row, col] = NonData;
+            _baseMatrix[versionBlockCol + row][col] = NonData;
          }
       }
    }
 
    private void _applyMask(int maskPattern)
    {
-      _maskMatrix = (byte[,])_baseMatrix.Clone();
+      _maskMatrix = _cloneMatrix(_baseMatrix);
 
       for (int row = 0; row < QRCodeDimension; ++row)
       {
          for (int col = 0; col < QRCodeDimension; ++col)
          {
-            if ((_maskMatrix[row, col] & 2) != 0)
+            if ((_maskMatrix[row][col] & 2) != 0)
             {
                continue;
             }
 
             if (_maskCondition(maskPattern, row, col))
             {
-               _maskMatrix[row, col] ^= 1;
+               _maskMatrix[row][col] ^= 1;
             }
          }
       }
+   }
+
+   private static T[][] _createMatrix<T>(int dimension)
+   {
+      T[][] matrix = new T[dimension][];
+      for (int row = 0; row < dimension; ++row)
+      {
+         matrix[row] = new T[dimension];
+      }
+
+      return matrix;
+   }
+
+   private static T[][] _cloneMatrix<T>(T[][] source)
+   {
+      T[][] clone = new T[source.Length][];
+      for (int row = 0; row < source.Length; ++row)
+      {
+         clone[row] = (T[])source[row].Clone();
+      }
+
+      return clone;
    }
 
    private static bool _maskCondition(int maskPattern, int row, int col) => maskPattern switch
@@ -1070,5 +1093,4 @@ public class QrCode
       _ => false,
    };
 }
-#pragma warning restore CA1814
 

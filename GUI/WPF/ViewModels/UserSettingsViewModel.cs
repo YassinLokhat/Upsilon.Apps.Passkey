@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -10,10 +9,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
    internal sealed class UserSettingsViewModel : INotifyPropertyChanged, ILanguageAware
    {
-      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
-      public string Title => AppServices.Session.Database?.User is null
-         ? Strings.Format(nameof(Strings.Title_NewUser), AppInfo.Title)
-         : Strings.Format(nameof(Strings.Title_UserSettings), AppInfo.Title);
+      public string Title
+      {
+         get;
+         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = _buildTitle();
+
       public string Username
       {
          get;
@@ -197,12 +198,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
       } = true;
 
-      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh the follow-app label on language change.")]
-      public IReadOnlyList<AppLanguage> Languages =>
-      [
-         new(string.Empty, Strings.Label_UseAppLanguage),
-         .. LocalizationService.Supported,
-      ];
+      public IReadOnlyList<AppLanguage> Languages
+      {
+         get;
+         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = _buildLanguages();
 
       public AppLanguage SelectedLanguage
       {
@@ -218,12 +218,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       }
 
-      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh theme labels on language change.")]
-      public IReadOnlyList<AppThemeOption> Themes =>
-      [
-         new(string.Empty, Strings.Label_UseAppTheme),
-         .. ThemeService.Supported,
-      ];
+      public IReadOnlyList<AppThemeOption> Themes
+      {
+         get;
+         private set => PropertyHelper.SetProperty(ref field, value, this, PropertyChanged);
+      } = _buildThemes();
 
       public AppThemeOption SelectedTheme
       {
@@ -342,12 +341,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          string languageCode = SelectedLanguage.Code;
          string themeCode = SelectedTheme.Code;
-         _onPropertyChanged(nameof(Title));
-         _onPropertyChanged(nameof(Languages));
-         _onPropertyChanged(nameof(Themes));
+         Title = _buildTitle();
+         Languages = _buildLanguages();
+         Themes = _buildThemes();
          SelectedLanguage = _languageFromSettings(languageCode);
          SelectedTheme = _themeFromSettings(themeCode);
       }
+
+      private static string _buildTitle()
+         => AppServices.Session.Database?.User is null
+            ? Strings.Format(nameof(Strings.Title_NewUser), AppInfo.Title)
+            : Strings.Format(nameof(Strings.Title_UserSettings), AppInfo.Title);
+
+      private static IReadOnlyList<AppLanguage> _buildLanguages()
+         =>
+         [
+            new(string.Empty, Strings.Label_UseAppLanguage),
+            .. LocalizationService.Supported,
+         ];
+
+      private static IReadOnlyList<AppThemeOption> _buildThemes()
+         =>
+         [
+            new(string.Empty, Strings.Label_UseAppTheme),
+            .. ThemeService.Supported,
+         ];
 
       private AppLanguage _languageFromSettings(string? code)
       {

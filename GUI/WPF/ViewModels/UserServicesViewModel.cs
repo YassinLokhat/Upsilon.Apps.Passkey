@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -28,8 +27,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh UserId on language change.")]
-      public string UserId => Strings.Format(nameof(Strings.Msg_UserId), AppServices.Session.User?.ItemId);
+      public string UserId
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      } = Strings.Format(nameof(Strings.Msg_UserId), AppServices.Session.User?.ItemId);
 
       public string ShowAlerts
       {
@@ -258,7 +260,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
 
          Title = _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
-         OnPropertyChanged(nameof(UserId));
+         UserId = Strings.Format(nameof(Strings.Msg_UserId), AppServices.Session.User?.ItemId);
 
          foreach (ServiceViewModel service in _serviceViewModelsById.Values)
          {

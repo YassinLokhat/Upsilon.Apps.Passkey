@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Text;
+﻿using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -11,11 +10,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
    internal sealed class PasswordGeneratorViewModel : ObservableObject, ILanguageAware
    {
-      [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance property so WPF can refresh Title on language change.")]
-      public string Title => Strings.Format(nameof(Strings.Title_PasswordGenerator), AppInfo.Title);
+      public string Title
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      } = Strings.Format(nameof(Strings.Title_PasswordGenerator), AppInfo.Title);
 
       public void OnLanguageChanged()
-         => OnPropertyChanged(nameof(Title));
+         => Title = Strings.Format(nameof(Strings.Title_PasswordGenerator), AppInfo.Title);
 
       public bool CheckIfLeaked
       {
@@ -178,14 +180,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          if (IncludeUpperCaseAlphabet)
          {
-            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToUpperInvariant());
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.UpperAlphabetic);
          }
 
          if (IncludeLowerCaseAlphabet)
          {
-#pragma warning disable CA1308 // Not a normalization key: lower-case letters are a legitimate part of the password character set.
-            _ = alphabetBuilder.Append(AppServices.PasswordFactory.Alphabetic.ToLowerInvariant());
-#pragma warning restore CA1308
+            _ = alphabetBuilder.Append(AppServices.PasswordFactory.LowerAlphabetic);
          }
 
          if (IncludeSpecialCharacters)

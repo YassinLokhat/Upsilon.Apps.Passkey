@@ -29,8 +29,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
          var factory = AppServices.PasswordFactory;
 
          _ = alphabet.Should().Contain(factory.Numeric);
-         _ = alphabet.Should().Contain(factory.Alphabetic.ToUpperInvariant());
-         _ = alphabet.Should().Contain(factory.Alphabetic.ToLowerInvariant());
+         _ = alphabet.Should().Contain(factory.UpperAlphabetic);
+         _ = alphabet.Should().Contain(factory.LowerAlphabetic);
          _ = alphabet.Should().Contain(factory.SpecialChars);
       }
 
@@ -45,7 +45,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
          vm.IncludeLowerCaseAlphabet = true;
          vm.IncludeSpecialCharacters = false;
 
-         string expected = AppServices.PasswordFactory.Alphabetic.ToLowerInvariant();
+         string expected = AppServices.PasswordFactory.LowerAlphabetic;
 
          _ = vm.Alphabet.Should().Be(expected);
       }

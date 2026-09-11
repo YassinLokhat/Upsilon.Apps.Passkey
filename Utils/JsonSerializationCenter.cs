@@ -12,6 +12,7 @@ namespace Upsilon.Apps.Passkey.Utils
    {
       private static readonly JsonSerializerOptions _options = new()
       {
+         WriteIndented = true,
          Converters =
          {
             new JsonStringEnumConverter(),
