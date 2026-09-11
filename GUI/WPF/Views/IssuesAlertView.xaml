@@ -49,13 +49,13 @@
                   Orientation="Horizontal"
                   HorizontalAlignment="Right">
          <Button Content="{loc:Loc Menu_UserSettings}"
-                 Click="_openUserSettings_Click"/>
+                 Command="{Binding OpenUserSettingsCommand}"/>
          <Button x:Name="_openAppSettings_BT"
                  Content="{loc:Loc Menu_AppSettings}"
-                 Click="_openAppSettings_Click"/>
+                 Command="{Binding OpenAppSettingsCommand}"/>
          <Button Content="{loc:Loc Button_OK}"
                  IsDefault="True"
-                 Click="_ok_Click"/>
+                 Command="{Binding OkCommand}"/>
       </StackPanel>
    </Grid>
 </Window>

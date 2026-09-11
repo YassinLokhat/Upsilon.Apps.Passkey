@@ -1,6 +1,8 @@
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -20,13 +22,26 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          private set => SetProperty(ref field, value);
       }
 
-      private readonly bool _showAppSettingsButton;
+      public ICommand OpenUserSettingsCommand { get; }
+      public ICommand OpenAppSettingsCommand { get; }
+      public ICommand OkCommand { get; }
 
-      public bool ShowAppSettingsButton => _showAppSettingsButton;
+      public event EventHandler? CloseRequested;
 
       public SecuritySettingsAlertViewModel()
       {
-         _showAppSettingsButton = true;
+         OpenUserSettingsCommand = new RelayCommand(() =>
+         {
+            UserSettingsView.ShowUserSettings();
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+         });
+         OpenAppSettingsCommand = new RelayCommand(() =>
+         {
+            AppSettingsView.ShowAppSettings();
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+         });
+         OkCommand = new RelayCommand(() => CloseRequested?.Invoke(this, EventArgs.Empty));
+
          AppServices.Session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
 
          Issues = _loadIssues();
@@ -38,6 +53,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public void Dispose()
       {
          AppServices.Session.Alerts.NotifiedAlertsChanged -= _alerts_NotifiedAlertsChanged;
+         CloseRequested = null;
       }
 
       private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)

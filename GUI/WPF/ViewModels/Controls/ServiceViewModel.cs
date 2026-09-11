@@ -1,10 +1,14 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
@@ -20,6 +24,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public string ServiceDisplay => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service.ServiceName}";
 
       public string ServiceId => Strings.Format(nameof(Strings.Msg_ServiceId), Service.ItemId);
+
+      public AccountViewModel? SelectedAccount
+      {
+         get;
+         set => SetProperty(ref field, value);
+      }
+
+      public ICommand AddAccountCommand { get; }
+      public ICommand DeleteAccountCommand { get; }
+      public ICommand OpenUrlCommand { get; }
+      public ICommand ViewActivitiesCommand { get; }
 
       public Brush ServiceNameBackground => Service.HasChanged(nameof(ServiceName)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string ServiceName
@@ -76,6 +91,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       {
          Service = service;
          _syncAccountViewModels();
+
+         AddAccountCommand = new RelayCommand(_addAccount);
+         DeleteAccountCommand = new RelayCommand(_deleteAccount);
+         OpenUrlCommand = new RelayCommand(_openUrl);
+         ViewActivitiesCommand = new RelayCommand(_viewActivities);
       }
 
       public void OnLanguageChanged()
@@ -107,12 +127,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          IAccount[] toShow = matching.Length != 0 ? matching : [.. Service.Accounts];
          HashSet<string> visibleIds = [.. toShow.Select(x => x.ItemId)];
 
+         string? selectedId = SelectedAccount?.Account.ItemId;
+
          Accounts.Clear();
 
          foreach (IAccount account in Service.Accounts.Where(x => visibleIds.Contains(x.ItemId)))
          {
             Accounts.Add(_accountViewModelsById[account.ItemId]);
          }
+
+         SelectedAccount = selectedId is not null
+            ? Accounts.FirstOrDefault(x => x.Account.ItemId == selectedId) ?? Accounts.FirstOrDefault()
+            : Accounts.FirstOrDefault();
       }
 
       public AccountViewModel AddAccount()
@@ -193,6 +219,56 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       private void _accountViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
       {
          _notify(string.Empty);
+      }
+
+      private void _addAccount()
+         => SelectedAccount = AddAccount();
+
+      private void _deleteAccount()
+      {
+         if (SelectedAccount is not { } accountViewModel
+            || AppServices.Dialogs.Confirm(
+               Strings.Format(nameof(Strings.Msg_DeleteAccount), accountViewModel.AccountDisplay),
+               Strings.Title_DeleteAccount) != MessageBoxResult.Yes)
+         {
+            return;
+         }
+
+         int index = DeleteAccount(accountViewModel);
+         SelectedAccount = index >= 0 && index < Accounts.Count ? Accounts[index] : null;
+      }
+
+      private void _openUrl()
+      {
+         if (string.IsNullOrWhiteSpace(Url))
+         {
+            return;
+         }
+
+         using Process process = new()
+         {
+            StartInfo = new ProcessStartInfo(Url)
+            {
+               UseShellExecute = true,
+            },
+         };
+
+         _ = process.Start();
+      }
+
+      private void _viewActivities()
+      {
+         string itemId = Service.ItemId;
+
+         _ = AppServices.Dialogs.ShowSingleton(
+            factory: () =>
+            {
+               UserActivitiesView view = new(needsReviewFilter: false);
+               view.ViewModel.ClearFilters();
+               view.ViewModel.SearchCriteria = itemId;
+               return view;
+            },
+            configure: view => view.ViewModel.SearchCriteria = itemId);
       }
 
       public override string ToString() => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service}";

@@ -39,7 +39,7 @@
                     Grid.Column="2"
                     Content="👓"
                     ToolTip="{loc:Loc Tooltip_ViewActivities}"
-                    Click="_viewActivities_Button_Click"/>
+                    Command="{Binding ViewActivitiesCommand}"/>
             <Label Grid.Row="1"
                    Grid.Column="0"
                    Content="{loc:Loc Label_Url}"/>
@@ -51,7 +51,7 @@
                     Grid.Column="2"
                     Content="🌐"
                     ToolTip="{loc:Loc Tooltip_OpenUrl}"
-                    Click="_openUrl_Button_Click"/>
+                    Command="{Binding OpenUrlCommand}"/>
             <Label Grid.Row="2"
                    Grid.Column="0"
                    Content="{loc:Loc Label_Notes}"/>
@@ -77,6 +77,8 @@
             <ListBox Grid.Row="0"
                      Grid.Column="0"
                      Name="_accounts_LB"
+                     ItemsSource="{Binding Accounts}"
+                     SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                      ScrollViewer.CanContentScroll="True"
                      ScrollViewer.IsDeferredScrollingEnabled="True"
@@ -98,11 +100,11 @@
                   <ColumnDefinition Width="Auto"/>
                </Grid.ColumnDefinitions>
                <Button Grid.Column="0"
-                       Click="_addAccount_Button_Click"
+                       Command="{Binding AddAccountCommand}"
                        ToolTip="{loc:Loc Tooltip_AddAccount}"
                        Content="+"/>
                <Button Grid.Column="1"
-                       Click="_deleteAccount_Button_Click"
+                       Command="{Binding DeleteAccountCommand}"
                        ToolTip="{loc:Loc Tooltip_DeleteAccount}"
                        Content="✕"/>
             </Grid>

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -7,6 +8,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
@@ -167,6 +169,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public ObservableCollection<ServiceViewModel> Services { get; } = [];
 
+      public ServiceViewModel? SelectedService
+      {
+         get;
+         set => SetProperty(ref field, value);
+      }
+
       private readonly Dictionary<string, ServiceViewModel> _serviceViewModelsById = new(StringComparer.Ordinal);
 
       public ICommand SaveCommand { get; }
@@ -178,6 +186,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public ICommand ClearFiltersCommand { get; }
       public ICommand CopyIdentifierCommand { get; }
       public ICommand CopyPasswordCommand { get; }
+      public ICommand LogoutCommand { get; }
+      public ICommand AddServiceCommand { get; }
+      public ICommand DeleteServiceCommand { get; }
+      public ICommand ShowActivityAlertsCommand { get; }
+      public ICommand ShowDuplicatedPasswordAlertsCommand { get; }
+      public ICommand ShowExpiredPasswordAlertsCommand { get; }
+      public ICommand ShowLeakedPasswordAlertsCommand { get; }
+      public ICommand ShowSecuritySettingsAlertsCommand { get; }
+      public ICommand ShowPasskeyQualityAlertsCommand { get; }
 
       /// <summary>
       /// Raised when <see cref="SaveCommand"/> runs; the view performs the async save.
@@ -185,24 +202,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public event EventHandler? SaveRequested;
 
       /// <summary>
-      /// Raised when <see cref="UserSettingsCommand"/> runs; the view opens the user settings dialog.
-      /// </summary>
-      public event EventHandler? UserSettingsRequested;
-
-      /// <summary>
       /// Raised when <see cref="GeneratePasswordCommand"/> runs; the view owns the dialog and password insert.
       /// </summary>
       public event EventHandler? GeneratePasswordRequested;
-
-      /// <summary>
-      /// Raised when <see cref="ShowActivitiesCommand"/> runs; the view opens the activities window.
-      /// </summary>
-      public event EventHandler? ShowActivitiesRequested;
-
-      /// <summary>
-      /// Raised when <see cref="AppSettingsCommand"/> runs; the view opens the app settings dialog.
-      /// </summary>
-      public event EventHandler? AppSettingsRequested;
 
       /// <summary>
       /// Raised when <see cref="FocusFilterCommand"/> runs; the view focuses the service filter box.
@@ -210,14 +212,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public event EventHandler? FocusFilterRequested;
 
       /// <summary>
-      /// Raised when <see cref="CopyIdentifierCommand"/> runs; the view focuses the service filter box.
+      /// Raised when <see cref="CopyIdentifierCommand"/> runs; the view reads the selected identifier.
       /// </summary>
       public event EventHandler? CopyIdentifierRequested;
 
       /// <summary>
-      /// Raised when <see cref="CopyPasswordCommand"/> runs; the view focuses the service filter box.
+      /// Raised when <see cref="CopyPasswordCommand"/> runs; the view reads the selected password box.
       /// </summary>
       public event EventHandler? CopyPasswordRequested;
+
+      /// <summary>
+      /// Raised when <see cref="LogoutCommand"/> runs; the view sets <c>DialogResult</c>.
+      /// </summary>
+      public event EventHandler? LogoutRequested;
 
       public event EventHandler? FiltersRefreshed;
 
@@ -227,14 +234,28 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          Title = _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
 
          SaveCommand = new RelayCommand(() => SaveRequested?.Invoke(this, EventArgs.Empty));
-         UserSettingsCommand = new RelayCommand(() => UserSettingsRequested?.Invoke(this, EventArgs.Empty));
+         UserSettingsCommand = new RelayCommand(_openUserSettings);
          GeneratePasswordCommand = new RelayCommand(() => GeneratePasswordRequested?.Invoke(this, EventArgs.Empty));
-         ShowActivitiesCommand = new RelayCommand(() => ShowActivitiesRequested?.Invoke(this, EventArgs.Empty));
-         AppSettingsCommand = new RelayCommand(() => AppSettingsRequested?.Invoke(this, EventArgs.Empty));
+         ShowActivitiesCommand = new RelayCommand(_showActivities);
+         AppSettingsCommand = new RelayCommand(_openAppSettings);
          FocusFilterCommand = new RelayCommand(() => FocusFilterRequested?.Invoke(this, EventArgs.Empty));
          CopyIdentifierCommand = new RelayCommand(() => CopyIdentifierRequested?.Invoke(this, EventArgs.Empty));
          CopyPasswordCommand = new RelayCommand(() => CopyPasswordRequested?.Invoke(this, EventArgs.Empty));
          ClearFiltersCommand = new RelayCommand(ClearFilters);
+         LogoutCommand = new RelayCommand(() => LogoutRequested?.Invoke(this, EventArgs.Empty));
+         AddServiceCommand = new RelayCommand(_addService);
+         DeleteServiceCommand = new RelayCommand(_deleteService);
+         ShowActivityAlertsCommand = new RelayCommand(_showActivityAlerts);
+         ShowDuplicatedPasswordAlertsCommand = new RelayCommand(() =>
+            _ = AppServices.Dialogs.ShowSingleton(() => new DuplicatedPasswordsAlertView()));
+         ShowExpiredPasswordAlertsCommand = new RelayCommand(() =>
+            _showAccountPasswordAlerts(AlertKinds.PasswordUpdateReminder));
+         ShowLeakedPasswordAlertsCommand = new RelayCommand(() =>
+            _showAccountPasswordAlerts(AlertKinds.PasswordLeaked));
+         ShowSecuritySettingsAlertsCommand = new RelayCommand(() =>
+            _ = AppServices.Dialogs.ShowSingleton(() => new SecuritySettingsAlertView()));
+         ShowPasskeyQualityAlertsCommand = new RelayCommand(() =>
+            _ = AppServices.Dialogs.ShowSingleton(() => new PasskeyQualityAlertView()));
 
          RefreshFilters();
 
@@ -310,13 +331,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          ThemeRefreshed = null;
          FiltersRefreshed = null;
          SaveRequested = null;
-         UserSettingsRequested = null;
          GeneratePasswordRequested = null;
-         ShowActivitiesRequested = null;
-         AppSettingsRequested = null;
          FocusFilterRequested = null;
          CopyIdentifierRequested = null;
          CopyPasswordRequested = null;
+         LogoutRequested = null;
 
          GC.SuppressFinalize(this);
       }
@@ -360,6 +379,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          {
             Services.Clear();
             _serviceViewModelsById.Clear();
+            SelectedService = null;
             FiltersRefreshed?.Invoke(this, EventArgs.Empty);
             return;
          }
@@ -375,6 +395,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             serviceViewModel.ApplyFilters(IdentifierFilter, TextFilter, ChangedItemsOnly);
          }
 
+         string? selectedId = SelectedService?.Service.ItemId;
+
          Services.Clear();
 
          foreach (ServiceViewModel serviceViewModel in visible)
@@ -382,7 +404,79 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             Services.Add(serviceViewModel);
          }
 
+         SelectedService = selectedId is not null
+            ? Services.FirstOrDefault(x => x.Service.ItemId == selectedId) ?? Services.FirstOrDefault()
+            : Services.FirstOrDefault();
+
          FiltersRefreshed?.Invoke(this, EventArgs.Empty);
+      }
+
+      private void _openUserSettings()
+      {
+         UserSettingsView.ShowUserSettings();
+         RefreshFilters();
+      }
+
+      private void _openAppSettings()
+      {
+         AppSettingsView.ShowAppSettings();
+         RefreshFilters();
+      }
+
+      private static void _showActivities()
+      {
+         _ = AppServices.Dialogs.ShowSingleton(
+            factory: () => new UserActivitiesView(needsReviewFilter: false),
+            configure: view =>
+            {
+               if (view.DataContext is UserActivitiesViewModel vm)
+               {
+                  vm.NeedsReview = false;
+               }
+            });
+      }
+
+      private static void _showActivityAlerts()
+      {
+         _ = AppServices.Dialogs.ShowSingleton(
+            factory: () => new UserActivitiesView(needsReviewFilter: true),
+            configure: view =>
+            {
+               if (view.DataContext is UserActivitiesViewModel vm)
+               {
+                  vm.NeedsReview = true;
+               }
+            });
+      }
+
+      private static void _showAccountPasswordAlerts(string kind)
+      {
+         _ = AppServices.Dialogs.ShowSingleton(
+            factory: () => new AccountPasswordsAlertView(kind),
+            configure: view =>
+            {
+               if (view.DataContext is AccountPasswordsAlertViewModel vm)
+               {
+                  vm.Kind = kind;
+               }
+            });
+      }
+
+      private void _addService()
+         => SelectedService = AddService();
+
+      private void _deleteService()
+      {
+         if (SelectedService is not { } serviceViewModel
+            || AppServices.Dialogs.Confirm(
+               Strings.Format(nameof(Strings.Msg_DeleteService), serviceViewModel.ServiceDisplay),
+               Strings.Title_DeleteService) != MessageBoxResult.Yes)
+         {
+            return;
+         }
+
+         int index = DeleteService(serviceViewModel);
+         SelectedService = index >= 0 && index < Services.Count ? Services[index] : null;
       }
 
       private void _ensureServiceViewModels(IUser user)

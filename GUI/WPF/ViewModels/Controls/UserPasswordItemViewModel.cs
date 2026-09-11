@@ -1,4 +1,5 @@
-﻿using System.Windows.Media;
+﻿using System.Windows.Input;
+using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
@@ -42,8 +43,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public Brush PasswordBackground
          => SecretFieldBrushes.Background(isDirty: false, isNotifiedLeak: PasskeyLeaked);
 
+      public ICommand UpCommand { get; }
+      public ICommand DownCommand { get; }
+      public ICommand DeleteCommand { get; }
+
+      public event EventHandler? UpRequested;
+      public event EventHandler? DownRequested;
+      public event EventHandler? DeleteRequested;
+
       public UserPasswordItemViewModel()
       {
+         UpCommand = new RelayCommand(() => UpRequested?.Invoke(this, EventArgs.Empty));
+         DownCommand = new RelayCommand(() => DownRequested?.Invoke(this, EventArgs.Empty));
+         DeleteCommand = new RelayCommand(() => DeleteRequested?.Invoke(this, EventArgs.Empty));
+
          AppServices.Session.Alerts.NotifiedAlertsChanged += _onAlertsChanged;
       }
 
@@ -59,6 +72,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
          _disposed = true;
          AppServices.Session.Alerts.NotifiedAlertsChanged -= _onAlertsChanged;
+         UpRequested = null;
+         DownRequested = null;
+         DeleteRequested = null;
       }
 
       private void _onAlertsChanged(object? sender, EventArgs e)

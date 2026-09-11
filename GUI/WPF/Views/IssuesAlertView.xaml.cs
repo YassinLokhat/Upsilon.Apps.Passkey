@@ -23,22 +23,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             : Visibility.Collapsed;
          Loaded += (_, _) => this.PostLoadSetup();
          Closed += (_, _) => Dispose();
-      }
 
-      private void _openUserSettings_Click(object sender, RoutedEventArgs e)
-      {
-         UserSettingsView.ShowUserSettings(Owner ?? this);
-         Close();
+         switch (viewModel)
+         {
+            case PasskeyQualityAlertViewModel passkey:
+               passkey.CloseRequested += (_, _) => Close();
+               break;
+            case SecuritySettingsAlertViewModel security:
+               security.CloseRequested += (_, _) => Close();
+               break;
+         }
       }
-
-      private void _openAppSettings_Click(object sender, RoutedEventArgs e)
-      {
-         AppSettingsView.ShowAppSettings(Owner ?? this);
-         Close();
-      }
-
-      private void _ok_Click(object sender, RoutedEventArgs e)
-         => Close();
 
       public void Dispose()
       {
