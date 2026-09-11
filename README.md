@@ -219,10 +219,10 @@ classDiagram
             +Close(void) void
             +HasChanged(in itemId string) bool
             +HasChanged(in itemId string, in fieldName string) bool
-            +ImportFromFile(in filePath string) bool
-            +ImportFromFileAsync(in filePath string, in cancellationToken CancellationToken) Task~bool~
-            +ExportToFile(in filePath string) bool
-            +ExportToFileAsync(in filePath string, in cancellationToken CancellationToken) Task~bool~
+            +ImportFromFile(in filePath string) ImportExportError
+            +ImportFromFileAsync(in filePath string, in cancellationToken CancellationToken) Task~ImportExportError~
+            +ExportToFile(in filePath string) ImportExportError
+            +ExportToFileAsync(in filePath string, in cancellationToken CancellationToken) Task~ImportExportError~
         }
 
         class IActivity {
@@ -362,7 +362,7 @@ classDiagram
     ISecretMemoryProtector --> IProtectedSecret : Protect
     IDatabase "0" --> "*" IAlert : CoreAlerts
     IDatabase "0" --> "*" IActivity : Activities
-    IDatabase --> AlertsChangedEventArgs : per-kind events
+    IDatabase --> AlertsChangedEventArgs : CoreAlertsChanged
     IDatabase --> AutoSaveDetectedEventArgs : AutoSaveDetected
     IDatabase --> LogoutEventArgs : DatabaseClosed
     IAlert --> AlertSeverity : Severity

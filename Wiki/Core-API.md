@@ -45,10 +45,10 @@ Default implementations in `Upsilon.Apps.Passkey.Utils`: `CryptographyCenter`, `
 | `Delete` | Delete the vault file. Requires login. |
 | `Close` / `Dispose` | End the session. Unsaved work remains in the `autosave` ZIP entry. |
 | `HasChanged(itemId)` / `HasChanged(itemId, fieldName)` | Dirty tracking for UI |
-| `ImportFromFile` / `ExportToFile` (+ Async) | `.json` or `.csv` only — see [[Import Export]] |
+| `ImportFromFile` / `ExportToFile` (+ Async) | `.json` or `.csv` only — returns `ImportExportError` (see [[Import Export]]) |
 | `RefreshAlerts` | Re-run the Core alert scan without saving (e.g. after host posture changes) |
 
-Events: `AutoSaveDetected`, `DatabaseSaved`, per-kind Core alert events (`ActivityReviewAlertsChanged`, `PasswordLeakedAlertsChanged`, …) / `CoreAlertsScanCompleted`, `DatabaseClosed` (`LogoutEventArgs.LoginTimeoutReached` tells you whether idle timeout closed the session).
+Events: `AutoSaveDetected`, `DatabaseSaved`, per-kind Core alert events (`CoreAlertsChanged` (filter on `AlertsChangedEventArgs.Kind`) / `CoreAlertsScanCompleted`, `DatabaseClosed` (`LogoutEventArgs.LoginTimeoutReached` tells you whether idle timeout closed the session).
 
 ### Async rules
 

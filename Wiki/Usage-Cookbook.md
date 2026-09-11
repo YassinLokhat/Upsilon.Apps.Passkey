@@ -129,8 +129,13 @@ Do not start a second `LoginAsync` / `SaveAsync` on the same instance until the 
 ## Subscribe to Core alerts
 
 ```csharp
-database.PasswordLeakedAlertsChanged += (_, e) =>
+database.CoreAlertsChanged += (_, e) =>
 {
+   if (!string.Equals(e.Kind, AlertKinds.PasswordLeaked, StringComparison.Ordinal))
+   {
+      return;
+   }
+
    foreach (IAccountsAlert alert in e.Alerts.OfType<IAccountsAlert>())
    {
       foreach (IAccount account in alert.Accounts)
