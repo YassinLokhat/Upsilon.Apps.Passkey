@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.UnitTests.Fakes;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.UnitTests.Gui.Fakes;
 
@@ -14,7 +14,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       private static readonly object _appServicesGate = new();
       private static bool _gateHeld;
 
-      public static ClipboardManager Clipboard { get; private set; } = null!;
+      public static FakeClipboardManager Clipboard { get; private set; } = null!;
 
       public static FakeSessionService Session { get; private set; } = null!;
 
@@ -29,7 +29,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
 
          try
          {
-            Clipboard = new ClipboardManager();
+            Clipboard = new FakeClipboardManager();
             Session = new FakeSessionService();
             Dialogs = new FakeDialogService();
             Navigation = new FakeNavigationService();

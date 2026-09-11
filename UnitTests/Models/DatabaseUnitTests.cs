@@ -1,3 +1,4 @@
+using Upsilon.Apps.Passkey.UnitTests.Fakes;
 using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Core.Utils;
@@ -775,7 +776,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          string username = UnitTestsHelper.GetUsername();
          string[] passkeys = UnitTestsHelper.GetRandomStringArray();
          string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
-         ClipboardManager clipboard = new();
+         FakeClipboardManager clipboard = new();
 
          IDatabase database = Database.Create(UnitTestsHelper.CryptographyCenter,
             UnitTestsHelper.SerializationCenter,

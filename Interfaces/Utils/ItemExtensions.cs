@@ -1,11 +1,11 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.Interfaces.Utils
 {
    /// <summary>
    /// Convenience extensions over <see cref="IItem"/> that forward to the owning database.
    /// </summary>
-   public static class StaticMethods
+   public static class ItemExtensions
    {
       /// <summary>
       /// Whether <paramref name="fieldName"/> on <paramref name="item"/> has an

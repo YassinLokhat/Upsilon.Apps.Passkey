@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -27,7 +27,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
       public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
       /// <summary>No network — use for vault create/open so alert scans stay fast.</summary>
       public static readonly IPasswordFactory FastPasswordFactory = new FakePasswordFactory();
-      public static readonly IClipboardManager ClipboardManager = new ClipboardManager();
+      public static readonly IClipboardManager ClipboardManager = new FakeClipboardManager();
       public static readonly ISecretMemoryProtector SecretMemoryProtector = new SecretMemoryProtector();
 
       public static string ComputeTestDirectory([CallerMemberName] string username = "") => $"./TestFiles/{username}";

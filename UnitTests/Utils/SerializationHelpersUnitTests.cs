@@ -1,10 +1,10 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Utils
 {
    [TestClass]
-   public sealed class StaticMethodsUnitTests
+   public sealed class SerializationHelpersUnitTests
    {
       [TestMethod]
       /*
