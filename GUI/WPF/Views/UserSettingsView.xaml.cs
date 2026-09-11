@@ -140,7 +140,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                string? picked = AppServices.Dialogs.PickSaveFile(
                   Strings.Filter_Pku,
                   Strings.Title_NewUserDatabase,
-                  Path.GetFileName(newDatabaseFile));
+                  Path.GetFileName(newDatabaseFile),
+                  Path.GetDirectoryName(newDatabaseFile));
                if (!string.IsNullOrEmpty(picked))
                {
                   newDatabaseFile = picked;

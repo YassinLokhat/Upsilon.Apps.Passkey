@@ -55,7 +55,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       }
 
       private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
-         => _reloadIssues(alsoTitle: false);
+         => UiThread.Post(() => _reloadIssues(alsoTitle: false));
 
       private void _reloadIssues(bool alsoTitle)
       {

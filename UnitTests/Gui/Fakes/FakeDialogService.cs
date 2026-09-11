@@ -49,6 +49,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui.Fakes
 
       public string? PickOpenFile(string filter, string title) => OpenFileResult;
 
-      public string? PickSaveFile(string filter, string title, string? defaultFileName = null) => SaveFileResult;
+      public string? PickSaveFile(string filter, string title, string? defaultFileName = null, string? initialDirectory = null) => SaveFileResult;
    }
 }
