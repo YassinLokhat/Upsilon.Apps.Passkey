@@ -6,7 +6,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
    public static class BloomSizing
    {
       /// <summary>
-      /// Default expected HIBP SHA-1 unique-hash count used when building a full filter.
+      /// Default expected HIBP NTLM unique-hash count used when building a full filter.
       /// </summary>
       public const ulong DefaultCapacity = 2_100_000_000UL;
 

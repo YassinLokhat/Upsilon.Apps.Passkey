@@ -4,7 +4,7 @@ using System.Text;
 namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 {
    /// <summary>
-   /// On-disk HIBP SHA-1 Bloom filter (<c>.pkbf</c>) backed by a memory-mapped bit array.
+   /// On-disk HIBP NTLM Bloom filter (<c>.pkbf</c>) backed by a memory-mapped bit array.
    /// </summary>
    internal sealed class HibpBloomFile : ILocalLeakFilter
    {
@@ -12,8 +12,8 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       internal const uint FormatVersion = 1;
       internal const int HeaderSize = 80;
       internal const int SourceTagBytes = 32;
-      internal const int Sha1ByteLength = 20;
-      internal const string DefaultSourceTag = "hibp-sha1";
+      internal const int NtlmByteLength = 16;
+      internal const string DefaultSourceTag = "hibp-ntlm";
 
       // Little-endian header offsets (bytes 0..3 = Magic; 28..31 reserved). Append
       // only behind a FormatVersion bump — on-disk filters are expensive to rebuild.
@@ -229,12 +229,12 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          return new HibpBloomFile(path, writable: true);
       }
 
-      public bool MightContain(ReadOnlySpan<byte> sha1)
+      public bool MightContain(ReadOnlySpan<byte> ntlm)
       {
          ObjectDisposedException.ThrowIf(_disposed, this);
-         _ensureSha1(sha1);
+         _ensureNtlm(ntlm);
 
-         _positions(sha1, out ulong h1, out ulong h2);
+         _positions(ntlm, out ulong h1, out ulong h2);
          for (int i = 0; i < HashFunctions; i++)
          {
             ulong bit = (h1 + ((ulong)i * h2)) % BitCount;
@@ -248,9 +248,9 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       }
 
       /// <summary>
-      /// Inserts a SHA-1 hash into a writable filter. Safe to call concurrently.
+      /// Inserts an NTLM hash into a writable filter. Safe to call concurrently.
       /// </summary>
-      internal void Add(ReadOnlySpan<byte> sha1)
+      internal void Add(ReadOnlySpan<byte> ntlm)
       {
          ObjectDisposedException.ThrowIf(_disposed, this);
          if (!_writable)
@@ -258,9 +258,9 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             throw new InvalidOperationException("Bloom filter was opened read-only.");
          }
 
-         _ensureSha1(sha1);
+         _ensureNtlm(ntlm);
 
-         _positions(sha1, out ulong h1, out ulong h2);
+         _positions(ntlm, out ulong h1, out ulong h2);
          for (int i = 0; i < HashFunctions; i++)
          {
             ulong bit = (h1 + ((ulong)i * h2)) % BitCount;
@@ -386,18 +386,18 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          return stripes;
       }
 
-      private static void _ensureSha1(ReadOnlySpan<byte> sha1)
+      private static void _ensureNtlm(ReadOnlySpan<byte> ntlm)
       {
-         if (sha1.Length != Sha1ByteLength)
+         if (ntlm.Length != NtlmByteLength)
          {
-            throw new ArgumentException($"SHA-1 digest must be {Sha1ByteLength} bytes.", nameof(sha1));
+            throw new ArgumentException($"NTLM digest must be {NtlmByteLength} bytes.", nameof(ntlm));
          }
       }
 
-      private static void _positions(ReadOnlySpan<byte> sha1, out ulong h1, out ulong h2)
+      private static void _positions(ReadOnlySpan<byte> ntlm, out ulong h1, out ulong h2)
       {
-         h1 = BitConverter.ToUInt64(sha1);
-         h2 = BitConverter.ToUInt64(sha1[8..]);
+         h1 = BitConverter.ToUInt64(ntlm);
+         h2 = BitConverter.ToUInt64(ntlm[8..]);
          // Keep the stride odd so (h1 + i*h2) covers the ring for typical m.
          h2 |= 1UL;
       }

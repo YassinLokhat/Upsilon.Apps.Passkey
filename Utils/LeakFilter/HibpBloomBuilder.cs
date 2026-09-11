@@ -32,7 +32,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
    }
 
    /// <summary>
-   /// Downloads HIBP SHA-1 ranges into a local <c>.pkbf</c> Bloom filter.
+   /// Downloads HIBP NTLM ranges into a local <c>.pkbf</c> Bloom filter.
    /// First builds are checkpointed; refreshes use <c>If-None-Match</c> against the <c>.ranges</c> sidecar.
    /// </summary>
    public static class HibpBloomBuilder
@@ -46,14 +46,12 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       private const string USER_AGENT = "Upsilon.Apps.Passkey-LeakFilter/1.0";
       private const int MAX_ATTEMPTS = 5;
       private const int PREFIX_HEX_LENGTH = 5;
-      private const int SUFFIX_HEX_LENGTH = 35;
+      private const int SUFFIX_HEX_LENGTH = 27; // NTLM = 32 hex chars total
 
       /// <summary>Prefixes between checkpoints (bounds resume cost vs flush cost).</summary>
       private const int CHECKPOINT_PREFIXES = 4096;
 
       private const int PROGRESS_PREFIXES = 256;
-
-      private static readonly Uri _rangeBaseUri = new("https://api.pwnedpasswords.com/range/");
 
       // Never send Add-Padding: the API varies on it and would defeat ETag revalidation.
       private static readonly SocketsHttpHandler _httpHandler = new()
@@ -587,7 +585,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          string? knownEtag,
          CancellationToken cancellationToken)
       {
-         Uri uri = new(_rangeBaseUri, prefix);
+         Uri uri = new($"https://api.pwnedpasswords.com/range/{prefix}?mode=ntlm");
 
          for (int attempt = 1; ; attempt++)
          {
@@ -638,7 +636,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       {
          Span<char> hex = stackalloc char[PREFIX_HEX_LENGTH + SUFFIX_HEX_LENGTH];
          prefix.CopyTo(hex);
-         Span<byte> sha1 = stackalloc byte[HibpBloomFile.Sha1ByteLength];
+         Span<byte> ntlm = stackalloc byte[HibpBloomFile.NtlmByteLength];
 
          int added = 0;
          foreach (ReadOnlySpan<char> rawLine in body.AsSpan().EnumerateLines())
@@ -652,13 +650,13 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             }
 
             suffix.CopyTo(hex[PREFIX_HEX_LENGTH..]);
-            if (Convert.FromHexString(hex, sha1, out _, out int written) != OperationStatus.Done
-               || written != HibpBloomFile.Sha1ByteLength)
+            if (Convert.FromHexString(hex, ntlm, out _, out int written) != OperationStatus.Done
+               || written != HibpBloomFile.NtlmByteLength)
             {
                continue;
             }
 
-            filter.Add(sha1);
+            filter.Add(ntlm);
             added++;
          }
 

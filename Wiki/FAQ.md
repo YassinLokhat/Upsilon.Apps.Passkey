@@ -22,7 +22,7 @@ The extension is `.csv`. **Export** writes **tab-separated** rows with each cell
 
 ## Does leak checking send my password to the internet?
 
-No. Only a hash prefix (k-anonymity): first 5 characters of SHA-1 to Have I Been Pwned, or first 10 characters of Keccak-512 to XposedOrNot if HIBP is unreachable. The password never leaves the device. When both remotes fail, an optional local HIBP Bloom filter (`.pkbf`) may answer entirely offline. The feature is opt-in per account (`WarnIfPasswordLeaked`). Remote leak checks are the only outbound network calls in the product.
+No. Only a hash prefix (k-anonymity): first 5 characters of NTLM to Have I Been Pwned (`?mode=ntlm`), or first 10 characters of Keccak-512 to XposedOrNot if HIBP is unreachable. The password never leaves the device. When both remotes fail, an optional local HIBP Bloom filter (`.pkbf`) may answer entirely offline. The feature is opt-in per account (`WarnIfPasswordLeaked`). Remote leak checks are the only outbound network calls in the product.
 
 ## The leak check said nothing. Is my password safe?
 

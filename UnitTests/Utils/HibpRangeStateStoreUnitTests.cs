@@ -28,14 +28,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
             using (HibpBloomFile update = HibpBloomFile.OpenForUpdate(path))
             {
-               update.Add(BloomTestHelper.Sha1("added-by-the-refresh"));
+               update.Add(BloomTestHelper.Ntlm("added-by-the-refresh"));
                update.CommitHeader();
             }
 
             using HibpBloomFile readable = HibpBloomFile.Open(path);
             _ = readable.InsertedCount.Should().Be(2);
-            _ = readable.MightContain(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword)).Should().BeTrue();
-            _ = readable.MightContain(BloomTestHelper.Sha1("added-by-the-refresh")).Should().BeTrue();
+            _ = readable.MightContain(BloomTestHelper.Ntlm(BloomTestHelper.LeakedPassword)).Should().BeTrue();
+            _ = readable.MightContain(BloomTestHelper.Ntlm("added-by-the-refresh")).Should().BeTrue();
          }
          finally
          {
@@ -56,7 +56,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          {
             const ulong capacity = 20_000;
             (ulong bits, int hashFunctions) = BloomSizing.For(capacity, 0.01);
-            byte[][] hashes = [.. Enumerable.Range(0, 5_000).Select(i => BloomTestHelper.Sha1($"concurrent-{i}"))];
+            byte[][] hashes = [.. Enumerable.Range(0, 5_000).Select(i => BloomTestHelper.Ntlm($"concurrent-{i}"))];
 
             using (HibpBloomFile writable = HibpBloomFile.Create(path, capacity, bits, hashFunctions))
             {
@@ -155,7 +155,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             // back: a rebuild, a restore from backup, a manual delete.
             using (HibpBloomFile diverged = HibpBloomFile.OpenForUpdate(path))
             {
-               diverged.Add(BloomTestHelper.Sha1("written-without-the-sidecar"));
+               diverged.Add(BloomTestHelper.Ntlm("written-without-the-sidecar"));
                diverged.CommitHeader();
             }
 

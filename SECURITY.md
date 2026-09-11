@@ -286,14 +286,14 @@ login:
 - **Leak detection** uses two free, no-account **k-anonymity** providers in
   order, then an optional machine-local Bloom filter. Primary: the Have I Been
   Pwned range API (`api.pwnedpasswords.com`) — only the first 5 characters of the
-  SHA-1 hash are sent. Failover: XposedOrNot's anonymous password API
+  NTLM hash are sent (`?mode=ntlm`). Failover: XposedOrNot's anonymous password API
   (`passwords.xposedornot.com`) — only the first 10 characters of a Keccak-512
   hash are sent (raw Keccak, not NIST SHA-3). The password itself never leaves
   the device. If **both** remote providers are unreachable and an offline HIBP
   Bloom filter (`.pkbf`) is enabled and present, that filter is consulted last:
   a **miss** means not leaked (no false negatives); a **hit** is treated as
   leaked (conservative — ~1 % false positives possible). The filter file is
-  `<exe>/pwned-sha1.pkbf` (fixed path in the WPF host — not stored in
+  `<exe>/pwned-ntlm.pkbf` (fixed path in the WPF host — not stored in
   `config.json`); a sidecar `<filter>.pkbf.ranges` holds per-range
   ETags for incremental updates. If no offline filter is attached, the check
   **fails open** (reports "not leaked") so a network problem never blocks the

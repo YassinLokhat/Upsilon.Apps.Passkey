@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
-using System.Security.Cryptography;
 using System.Text;
+using Upsilon.Apps.Passkey.Utils;
 using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Utils
@@ -30,9 +30,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             {
                for (int i = 0; i < 200; i++)
                {
-                  byte[] sha1 = SHA1.HashData(Encoding.UTF8.GetBytes($"pwd-{i}"));
-                  writable.Add(sha1);
-                  inserted.Add(sha1);
+                  byte[] ntlm = NtlmHash.Hash($"pwd-{i}");
+                  writable.Add(ntlm);
+                  inserted.Add(ntlm);
                }
 
                writable.CommitHeader();
@@ -42,9 +42,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             _ = readable.InsertedCount.Should().Be(200);
             _ = readable.SourceTag.Should().Be(HibpBloomFile.DefaultSourceTag);
 
-            foreach (byte[] sha1 in inserted)
+            foreach (byte[] ntlm in inserted)
             {
-               _ = readable.MightContain(sha1).Should().BeTrue();
+               _ = readable.MightContain(ntlm).Should().BeTrue();
             }
          }
          finally
@@ -70,7 +70,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             {
                for (int i = 0; i < 1_000; i++)
                {
-                  writable.Add(SHA1.HashData(Encoding.UTF8.GetBytes($"in-{i}")));
+                  writable.Add(NtlmHash.Hash($"in-{i}"));
                }
 
                writable.CommitHeader();
@@ -81,7 +81,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             int hits = 0;
             for (int i = 0; i < probes; i++)
             {
-               if (readable.MightContain(SHA1.HashData(Encoding.UTF8.GetBytes($"out-{i}"))))
+               if (readable.MightContain(NtlmHash.Hash($"out-{i}")))
                {
                   hits++;
                }
@@ -99,7 +99,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
       [TestMethod]
       /*
-       * "test" is in the HIBP corpus. A filter that ingested its SHA-1 must
+       * "test" is in the HIBP corpus. A filter that ingested its NTLM must
        * report a hit after close/reopen (no false negatives).
       */
       public void Case04_PasswordTest_IsAHitAfterRoundTrip()
@@ -111,8 +111,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
             using HibpBloomFile readable = HibpBloomFile.Open(path);
             _ = readable.InsertedCount.Should().Be(1);
-            _ = readable.MightContain(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword)).Should().BeTrue();
-            _ = readable.MightContain(BloomTestHelper.Sha1("this-password-is-not-in-this-tiny-filter")).Should().BeFalse();
+            _ = readable.MightContain(BloomTestHelper.Ntlm(BloomTestHelper.LeakedPassword)).Should().BeTrue();
+            _ = readable.MightContain(BloomTestHelper.Ntlm("this-password-is-not-in-this-tiny-filter")).Should().BeFalse();
          }
          finally
          {
@@ -137,7 +137,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
 
             using (HibpBloomFile writable = HibpBloomFile.Create(path, capacity, bitCount, hashFunctions))
             {
-               writable.Add(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword));
+               writable.Add(BloomTestHelper.Ntlm(BloomTestHelper.LeakedPassword));
                writable.CommitHeader();
             }
 
@@ -147,7 +147,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             }
 
             using HibpBloomFile readable = HibpBloomFile.Open(path);
-            _ = readable.MightContain(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword)).Should().BeTrue();
+            _ = readable.MightContain(BloomTestHelper.Ntlm(BloomTestHelper.LeakedPassword)).Should().BeTrue();
          }
          finally
          {
@@ -168,14 +168,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          {
             using (HibpBloomFile writable = HibpBloomFile.Create(buildingPath, 1_000, 16_000, 4))
             {
-               writable.Add(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword));
+               writable.Add(BloomTestHelper.Ntlm(BloomTestHelper.LeakedPassword));
                writable.CommitHeader();
             }
 
             File.Move(buildingPath, outputPath);
 
             using HibpBloomFile readable = HibpBloomFile.Open(outputPath);
-            _ = readable.MightContain(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword)).Should().BeTrue();
+            _ = readable.MightContain(BloomTestHelper.Ntlm(BloomTestHelper.LeakedPassword)).Should().BeTrue();
          }
          finally
          {
@@ -213,7 +213,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
 
             using HibpBloomFile readable = HibpBloomFile.Open(path);
-            Action add = () => readable.Add(BloomTestHelper.Sha1("other"));
+            Action add = () => readable.Add(BloomTestHelper.Ntlm("other"));
             _ = add.Should().Throw<InvalidOperationException>();
          }
          finally
@@ -243,7 +243,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             LeakFilterConfig enabled = new(path) { Enabled = true, };
             using ILocalLeakFilter? filter = enabled.TryOpenConfiguredFilter();
             _ = filter.Should().NotBeNull();
-            _ = filter!.MightContain(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword)).Should().BeTrue();
+            _ = filter!.MightContain(BloomTestHelper.Ntlm(BloomTestHelper.LeakedPassword)).Should().BeTrue();
          }
          finally
          {
@@ -271,7 +271,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             DateTime builtUtc;
             using (HibpBloomFile writable = HibpBloomFile.Create(path, capacity, bitCount, hashFunctions))
             {
-               writable.Add(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword));
+               writable.Add(BloomTestHelper.Ntlm(BloomTestHelper.LeakedPassword));
                writable.CommitHeader();
                builtUtc = writable.BuiltUtc;
             }
@@ -291,7 +291,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             _ = header[28..32].Should().OnlyContain(b => b == 0, "bytes 28..31 are reserved");
             _ = BitConverter.ToUInt64(header, 32).Should().Be(1);
             _ = BitConverter.ToInt64(header, 40).Should().Be(builtUtc.Ticks);
-            _ = Encoding.ASCII.GetString(header, 48, 32).TrimEnd('\0').Should().Be("hibp-sha1");
+            _ = Encoding.ASCII.GetString(header, 48, 32).TrimEnd('\0').Should().Be("hibp-ntlm");
          }
          finally
          {
@@ -313,7 +313,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
             DateTime committed;
             using (HibpBloomFile writable = HibpBloomFile.Create(path, capacity: 1_000, bitCount: 9_600, hashFunctions: 5))
             {
-               writable.Add(BloomTestHelper.Sha1(BloomTestHelper.LeakedPassword));
+               writable.Add(BloomTestHelper.Ntlm(BloomTestHelper.LeakedPassword));
                writable.CommitHeader();
                committed = writable.BuiltUtc;
             }
