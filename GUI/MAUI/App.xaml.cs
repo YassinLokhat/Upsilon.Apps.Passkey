@@ -1,8 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-namespace Upsilon.Apps.Passkey.GUI.MAUI
+﻿namespace Upsilon.Apps.Passkey.GUI.MAUI
 {
-   public partial class App : Application
+   internal sealed partial class App : Application
    {
       public App()
       {
