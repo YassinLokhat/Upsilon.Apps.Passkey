@@ -109,11 +109,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         _ = Path.GetDirectoryName(_database.DatabaseFile) ?? string.Empty;
+         string username = _viewModel.Username;
+         _passwordsContainer.ClearSecrets();
+         _database.DatabaseClosed -= _database_DatabaseClosed;
+
+         // Close settings before Delete so DatabaseClosed hits UserServicesView
+         // without a nested modal (MainWindow Show() depends on ShowUser == true).
+         if (!_isClosing && IsLoaded)
+         {
+            DialogResult = true;
+         }
 
          _database.Delete();
 
-         AppServices.Dialogs.Info(Strings.Format(nameof(Strings.Msg_UserDeleted), _viewModel.Username), Strings.Title_Success);
+         AppServices.Dialogs.Info(Strings.Format(nameof(Strings.Msg_UserDeleted), username), Strings.Title_Success);
       }
 
       private async Task _saveAsync()
@@ -199,47 +208,71 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          string message;
+         bool endSessionAfterClose = false;
 
          if (credentialsChanged)
          {
             message = Strings.Format(nameof(Strings.Msg_CredentialsUpdated), _viewModel.Username);
             _passwordsContainer.ClearSecrets();
-            _session.EndSession();
-
-            string oldDatabaseDirectory = Path.GetDirectoryName(oldDatabaseFile) ?? string.Empty;
-            string newDatabaseDirectory = Path.GetDirectoryName(newDatabaseFile) ?? string.Empty;
-
-            if (oldDatabaseDirectory != newDatabaseDirectory)
-            {
-               if (!Directory.Exists(newDatabaseDirectory))
-               {
-                  _ = Directory.CreateDirectory(newDatabaseDirectory);
-               }
-
-               if (File.Exists(oldDatabaseFile))
-               {
-                  File.Move(oldDatabaseFile, newDatabaseFile);
-               }
-
-               if (Directory.Exists(oldDatabaseDirectory))
-               {
-                  Directory.Delete(oldDatabaseDirectory, true);
-               }
-            }
+            endSessionAfterClose = true;
          }
          else if (newUser)
          {
             message = Strings.Format(nameof(Strings.Msg_UserCreated), _viewModel.Username);
             _passwordsContainer.ClearSecrets();
-            _session.EndSession();
+            endSessionAfterClose = true;
          }
          else
          {
             message = Strings.Format(nameof(Strings.Msg_UserUpdated), _viewModel.Username);
-            this.DatabaseClosed(_isClosing);
          }
 
+         // Success UI before closing this dialog: DatabaseClosed sets DialogResult
+         // synchronously on the UI thread and would otherwise dismiss Info's owner.
          AppServices.Dialogs.Info(message, Strings.Title_Success);
+
+         if (!endSessionAfterClose)
+         {
+            this.DatabaseClosed(_isClosing);
+            return;
+         }
+
+         // Close settings first so EndSession's DatabaseClosed hits UserServicesView
+         // without nested modals. MainWindow only Show()s when ShowUser returns true.
+         _database?.DatabaseClosed -= _database_DatabaseClosed;
+
+         if (!_isClosing && IsLoaded)
+         {
+            DialogResult = true;
+         }
+
+         _session.EndSession();
+
+         if (!credentialsChanged)
+         {
+            return;
+         }
+
+         string oldDatabaseDirectory = Path.GetDirectoryName(oldDatabaseFile) ?? string.Empty;
+         string newDatabaseDirectory = Path.GetDirectoryName(newDatabaseFile) ?? string.Empty;
+
+         if (oldDatabaseDirectory != newDatabaseDirectory)
+         {
+            if (!Directory.Exists(newDatabaseDirectory))
+            {
+               _ = Directory.CreateDirectory(newDatabaseDirectory);
+            }
+
+            if (File.Exists(oldDatabaseFile))
+            {
+               File.Move(oldDatabaseFile, newDatabaseFile);
+            }
+
+            if (Directory.Exists(oldDatabaseDirectory))
+            {
+               Directory.Delete(oldDatabaseDirectory, true);
+            }
+         }
       }
 
       private async void _save_MenuItem_Click(object sender, RoutedEventArgs e)
