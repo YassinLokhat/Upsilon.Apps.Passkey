@@ -96,6 +96,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             _viewModel.Type = type;
          }
+         else
+         {
+            _viewModel.Type = InsertIdentifierViewModel.AllIdentifierType;
+         }
       }
 
       private void _clearFilter_Button_Click(object sender, RoutedEventArgs e)

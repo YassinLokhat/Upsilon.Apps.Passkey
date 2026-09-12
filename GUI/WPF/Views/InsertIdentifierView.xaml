@@ -12,7 +12,7 @@
         Title="{loc:Loc Title_InsertIdentifier}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="300" Width="270">
+        Height="300" Width="370">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -22,31 +22,55 @@
       <StackPanel Grid.Row="0"
                   Orientation="Horizontal">
          <TextBox Name="_identifier_TB"
-                  Width="200"
+                  Width="300"
                   Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   KeyUp="_identifier_TextBox_KeyUp"/>
          <Button Content="✕"
                  ToolTip="{loc:Loc Tooltip_Clear}"
                  Click="_clearFilter_Button_Click"/>
       </StackPanel>
-      <StackPanel Grid.Row="1"
+      <Grid Grid.Row="1"
             Name="_identifierTypes_SP">
-         <RadioButton Content="{loc:Loc IdentifierType_Username}"
-                 Tag="Username"
-                 Checked="_insertIdentifierType_RadioButton_Checked"/>
-         <RadioButton Content="{loc:Loc IdentifierType_Email}"
-                 Tag="Email"
-                 Checked="_insertIdentifierType_RadioButton_Checked"/>
-         <RadioButton Content="{loc:Loc IdentifierType_Passkey}"
-                 Tag="Passkey"
-                 Checked="_insertIdentifierType_RadioButton_Checked"/>
-         <RadioButton Content="{loc:Loc IdentifierType_PhoneNumber}"
-                 Tag="PhoneNumber"
-                 Checked="_insertIdentifierType_RadioButton_Checked"/>
-         <RadioButton Content="{loc:Loc IdentifierType_AuthenticatorApp}"
+         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+         </Grid.ColumnDefinitions>
+         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+         </Grid.RowDefinitions>
+         <RadioButton Grid.Row="0"
+                      Grid.Column="0"
+                      Content="{loc:Loc IdentifierType_All}"
+                      Tag="All"
+                      Checked="_insertIdentifierType_RadioButton_Checked"/>
+         <RadioButton Grid.Row="0"
+                      Grid.Column="1"
+                      Content="{loc:Loc IdentifierType_Username}"
+                      Tag="Username"
+                      Checked="_insertIdentifierType_RadioButton_Checked"/>
+         <RadioButton Grid.Row="1"
+                      Grid.Column="0"
+                      Content="{loc:Loc IdentifierType_Email}"
+                      Tag="Email"
+                      Checked="_insertIdentifierType_RadioButton_Checked"/>
+         <RadioButton Grid.Row="1"
+                      Grid.Column="1"
+                      Content="{loc:Loc IdentifierType_PhoneNumber}"
+                      Tag="PhoneNumber"
+                      Checked="_insertIdentifierType_RadioButton_Checked"/>
+         <RadioButton Grid.Row="2"
+                      Grid.Column="0"
+                      Content="{loc:Loc IdentifierType_Passkey}"
+                      Tag="Passkey"
+                      Checked="_insertIdentifierType_RadioButton_Checked"/>
+         <RadioButton Grid.Row="2"
+                      Grid.Column="1"
+                      Content="{loc:Loc IdentifierType_AuthenticatorApp}"
                  Tag="AuthenticatorApp"
                  Checked="_insertIdentifierType_RadioButton_Checked"/>
-      </StackPanel>
+      </Grid>
       <ListBox Name="_identifiers_LB"
                Grid.Row="2"
                SelectionChanged="_identifiers_LB_SelectionChanged"/>

@@ -753,6 +753,9 @@ Vous ne serez pas prévenu pour :
   <data name="Msg_NewAccountPrefix" xml:space="preserve">
     <value>Nouveau compte #</value>
   </data>
+  <data name="IdentifierType_All" xml:space="preserve">
+    <value>Tous</value>
+  </data>
   <data name="IdentifierType_Username" xml:space="preserve">
     <value>Nom d'utilisateur</value>
   </data>

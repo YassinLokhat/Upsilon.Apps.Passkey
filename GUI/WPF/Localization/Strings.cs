@@ -83,6 +83,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Filter_CsvExport => Get(nameof(Filter_CsvExport));
       public static string Filter_Json => Get(nameof(Filter_Json));
       public static string Filter_Pku => Get(nameof(Filter_Pku));
+      public static string IdentifierType_All => Get(nameof(IdentifierType_All));
       public static string IdentifierType_AuthenticatorApp => Get(nameof(IdentifierType_AuthenticatorApp));
       public static string IdentifierType_Email => Get(nameof(IdentifierType_Email));
       public static string IdentifierType_Passkey => Get(nameof(IdentifierType_Passkey));

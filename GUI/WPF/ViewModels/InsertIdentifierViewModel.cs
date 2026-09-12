@@ -11,9 +11,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public readonly ObservableCollection<string> Identifiers = [];
 
+      public static IdentifierType AllIdentifierType => (IdentifierType)byte.MaxValue;
+
       public IdentifierType Type
       {
-         get => field;
+         get;
          set
          {
             if (SetProperty(ref field, value))
@@ -25,7 +27,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public string Identifier
       {
-         get => field;
+         get;
          set
          {
             value ??= string.Empty;
@@ -50,18 +52,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          Identifiers.Clear();
 
-         IIdentifier[] start = [.. _identifiers.Where(x => x.Type == Type && x.Value.StartsWith(Identifier, StringComparison.OrdinalIgnoreCase))];
+         IIdentifier[] start = [.. _identifiers.Where(x => _typeMatches(x.Type) && x.Value.StartsWith(Identifier, StringComparison.OrdinalIgnoreCase))];
 
-         IIdentifier[] contains = [.. _identifiers.Where(x => x.Type == Type
+         IIdentifier[] contains = [.. _identifiers.Where(x => _typeMatches(x.Type)
             && x.Value.Contains(Identifier, StringComparison.OrdinalIgnoreCase)
             && !x.Value.StartsWith(Identifier, StringComparison.OrdinalIgnoreCase))];
 
-         IIdentifier[] matches = [.. start, .. contains];
+         string[] matches = [.. start.Union(contains).Select(x => x.Value).Distinct()];
 
-         foreach (IIdentifier match in matches)
+         foreach (string match in matches)
          {
-            Identifiers.Add(match.Value);
+            Identifiers.Add(match);
          }
       }
+
+      private bool _typeMatches(IdentifierType type)
+         => Type == AllIdentifierType || Type == type;
    }
 }
