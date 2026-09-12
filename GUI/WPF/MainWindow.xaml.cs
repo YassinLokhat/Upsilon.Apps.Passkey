@@ -38,8 +38,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       // one-second idle timer is running (LoginIdleTimeoutSeconds > 0).
       private int _idleSecondsRemaining;
 
-      // Closing while an offline leak-filter update is busy: prompt once, then
-      // either abort+quit, continue headless, or stay open.
+      // Close-while-busy: prompt once (abort, continue headless, or stay open).
       private bool _forceClose;
       private bool _exitPromptActive;
       private bool _awaitingLeakFilterExit;
@@ -85,8 +84,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
-         // Headless continue: keep the hidden window alive until the update
-         // finishes and Shutdown runs; allow the final close when idle.
+         // Keep the hidden window until the job finishes and Shutdown runs.
          if (_awaitingLeakFilterExit)
          {
             if (AppServices.OfflineLeakFilterUpdate.IsBusy)
@@ -108,6 +106,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
+         // Vault window already handled Yes/No.
          if (AppServices.OfflineLeakFilterUpdate.SkipClosePrompt)
          {
             AppServices.OfflineLeakFilterUpdate.SkipClosePrompt = false;
@@ -119,8 +118,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          try
          {
-            // Vault close leaves this window hidden; show it so the prompt has a
-            // sensible owner and is not lost behind other apps.
+            // Vault close may leave this window hidden; show so the prompt has an owner.
             if (!IsVisible)
             {
                Show();
@@ -152,7 +150,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
                   break;
 
                default:
-                  // Cancel / Esc: keep the app open; update keeps running.
                   break;
             }
          }
@@ -175,8 +172,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _awaitingLeakFilterExit = true;
          update.ContinueThroughExit = true;
 
-         // Vault + clipboard must be gone before any further filter I/O with the
-         // UI hidden — do not wait for Closed.
+         // EndSession before Hide so vault/clipboard are gone before further filter I/O.
          _isClosing = true;
          _stopIdleTimer();
          _endSession();
@@ -496,8 +492,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
-         // Vault closed with X: UserServicesView may already have asked whether to
-         // finish the leak-filter update in the background.
+         // Vault already prompted; finish headless or quit without re-asking.
          OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;
          if (update.ContinueThroughExit)
          {

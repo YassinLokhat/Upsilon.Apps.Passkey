@@ -189,7 +189,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         // X / Alt+F4 exits the app after this dialog — ask before tearing down.
+         // App exit path — prompt while the filter job is busy.
          e.Cancel = true;
          _exitPromptActive = true;
 
@@ -225,7 +225,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   break;
 
                default:
-                  // Keep the vault open; update keeps running.
                   break;
             }
          }

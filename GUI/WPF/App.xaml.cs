@@ -40,8 +40,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;
          if (update.ContinueThroughExit)
          {
-            // UI already tore down the vault; wait for the consented refresh
-            // without cancelling (Shutdown is normally deferred until idle).
+            // Consented background continue — wait without cancelling.
             if (!update.WaitUntilIdle(TimeSpan.FromSeconds(30)))
             {
                Log.Warn("Offline leak filter: still busy after background-continue exit wait.");
@@ -49,8 +48,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          }
          else if (!update.WaitForIdle(TimeSpan.FromSeconds(15)))
          {
-            // Cancel and give an in-flight refresh a short window to unwind so
-            // the process does not linger (e.g. after the window is already gone).
             Log.Warn("Offline leak filter: still busy after exit cancel timeout.");
          }
 

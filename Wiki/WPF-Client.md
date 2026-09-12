@@ -100,7 +100,7 @@ Under **App Settings** (`Ctrl+,`), section **Offline leak database**:
 * Enable / disable the local HIBP Bloom filter (`LocalLeakDatabaseEnabled` / `LeakFilterConfig.Enabled`). Disabling never deletes the file.
 * **Auto-update frequency** in days (`LocalLeakDatabaseAutoUpdateFrequency` / `LeakFilterConfig.AutoUpdateFrequency`, default **7**; **0** = off). When offline use is enabled, a `.pkbf` already exists with its `.ranges` sidecar, and the filter header `BuiltUtc` is older than that many days, the WPF host refreshes the filter at startup via `HibpBloomBuildMode.Update` (incremental). A first full build is **never** started automatically — it is too heavy (~tens of GiB / hours). If the sidecar is missing, auto-update is skipped and the existing `.pkbf` is kept; use **Rebuild** to restore incremental updates.
 * The filter path is **fixed in code** to `<exe>/pwned-ntlm.pkbf` (not stored in `config.json`). Build or update via `HibpBloomBuilder` — a full build can take hours (~2.4 GiB); updates revalidate ranges concurrently (`If-None-Match`, default parallelism 64) using the `.pkbf.ranges` sidecar. Manual and automatic runs share one in-process slot (`OfflineLeakFilterUpdateService`).
-* Closing the main window **or** the vault services window (X / Alt+F4) while a build/update is running prompts (Yes / No / Cancel): **Yes** ends the vault session (and clears owned clipboard), hides the UI, sets `OfflineLeakFilterUpdateService.ContinueThroughExit`, and lets the in-process refresh finish before `Shutdown`; **No** cancels the refresh and quits; **Cancel** keeps Passkey open. Logout / session timeout return to the login window without that prompt. Closing **App Settings** alone does not stop a run.
+* Closing the main window or vault services window (X / Alt+F4) while a build/update is running prompts Yes / No / Cancel: finish in the background after locking the vault, cancel and quit, or stay open. Logout / session timeout skip that prompt. Closing **App Settings** alone does not stop a run.
 * Delete the `.pkbf` and its sidecar explicitly.
 
 Preferences that *are* persisted (`Enabled`, auto-update frequency, vault folder, login idle timeout, language, theme) live in application-level `config.json`, shared by all vault users — not stored in the `.pku`. Details: [[Security]].
@@ -154,7 +154,7 @@ Identifiers and passwords can be shown as a QR matrix generated **in-process** (
 
 * **Login idle reset** after `LoginIdleTimeoutSeconds` of inactivity on the login window (app setting; `0` = off). Credentials and any half-open session are cleared; the title bar shows the countdown.
 * **Auto-logout** after `LogoutTimeout` minutes of inactivity once logged in. The database file handle is released.
-* On process exit, `AppServices.Session.EndSession()` closes any open vault and clears owned clipboard content, in case `MainWindow.Closed` did not run first. When the user chose **Yes** on the offline leak-filter exit prompt, `ContinueThroughExit` is already set and the vault was ended before Hide; `App.OnExit` then waits with `WaitUntilIdle` (no cancel). Otherwise exit cancels via `WaitForIdle`.
+* On process exit, `AppServices.Session.EndSession()` closes any open vault and clears owned clipboard content, in case `MainWindow.Closed` did not run first. Exit also waits for or cancels any offline leak-filter job (see Offline leak database above).
 * Unhandled UI exceptions are logged and marked handled so a single dialog failure does not tear down the process. AppDomain / unobserved-task exceptions are logged and flushed.
 
 ## Autosave in the GUI
@@ -182,6 +182,6 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 5. Idle until auto-logout; confirm the session closes and the vault file is released.
 6. Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
 7. Show a password as a QR code and confirm the window closes after the configured delay.
-8. While an offline leak-database build/update is running, close the main window: **Yes** hides the UI and exits only after the job finishes; **No** cancels and quits; **Cancel** keeps Passkey open.
+8. Close while an offline leak-database build/update is running: Yes / No / Cancel (finish after vault lock, cancel, or stay open).
 
 There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay out of the automated suite — [[Testing and CI]].

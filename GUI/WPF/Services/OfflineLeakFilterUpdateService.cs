@@ -90,17 +90,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       public event EventHandler? ProgressChanged;
 
       /// <summary>
-      /// When <see langword="true"/>, <see cref="App.OnExit"/> must wait with
-      /// <see cref="WaitUntilIdle"/> instead of <see cref="WaitForIdle"/> so the
-      /// consented background refresh is not cancelled. The main window sets this
-      /// after <c>EndSession</c> + Hide when the user chooses Yes on the exit
-      /// prompt, then defers <see cref="Application.Shutdown"/> until idle.
+      /// When true, process exit waits without cancelling so a consented background refresh can finish.
       /// </summary>
       public bool ContinueThroughExit { get; set; }
 
       /// <summary>
-      /// When <see langword="true"/>, <see cref="MainWindow"/> must not show the
-      /// exit prompt again (the vault window already handled Yes/No).
+      /// When true, MainWindow skips the exit prompt (vault window already handled Yes/No).
       /// </summary>
       public bool SkipClosePrompt { get; set; }
 
@@ -130,14 +125,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       }
 
       /// <summary>
-      /// Blocks until any in-flight run finishes or <paramref name="timeout"/>
-      /// elapses. Does <strong>not</strong> cancel the run.
+      /// Blocks until idle or <paramref name="timeout"/> without cancelling. Returns false if still busy when the timeout elapses.
       /// </summary>
-      /// <param name="timeout">Maximum time to wait; negative values are treated as zero.</param>
-      /// <returns>
-      /// <see langword="true"/> if the service is idle (including already idle);
-      /// <see langword="false"/> if it is still busy when the timeout elapses.
-      /// </returns>
       public bool WaitUntilIdle(TimeSpan timeout)
       {
          if (!IsBusy)
@@ -157,15 +146,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       }
 
       /// <summary>
-      /// Cancels any in-flight run and blocks until it finishes or
-      /// <paramref name="timeout"/> elapses. Used on process exit when
-      /// <see cref="ContinueThroughExit"/> is <see langword="false"/>.
+      /// Cancels any in-flight run, then waits like <see cref="WaitUntilIdle"/>. Used on exit when <see cref="ContinueThroughExit"/> is false.
       /// </summary>
-      /// <param name="timeout">Maximum time to wait after cancellation.</param>
-      /// <returns>
-      /// <see langword="true"/> if idle within the timeout; otherwise
-      /// <see langword="false"/>.
-      /// </returns>
       public bool WaitForIdle(TimeSpan timeout)
       {
          Cancel();
