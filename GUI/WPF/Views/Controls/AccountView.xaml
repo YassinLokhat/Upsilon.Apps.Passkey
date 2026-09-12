@@ -67,7 +67,8 @@
                            VirtualizingStackPanel.IsVirtualizing="True"
                            VirtualizingStackPanel.VirtualizationMode="Recycling"
                            Name="_identifiers_LB"
-                           SelectedItem="{Binding SelectedIdentifier, Mode=TwoWay}">
+                           SelectedItem="{Binding SelectedIdentifier, Mode=TwoWay}"
+                           PreviewGotKeyboardFocus="_identifiers_LB_PreviewGotKeyboardFocus">
                      <ListBox.ItemTemplate>
                         <DataTemplate>
                            <DockPanel LastChildFill="True">

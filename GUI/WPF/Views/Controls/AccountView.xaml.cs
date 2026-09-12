@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -353,30 +353,38 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             configure: view => view.ViewModel.SearchCriteria = itemId);
       }
 
+      private void _identifiers_LB_PreviewGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+      {
+         // Focusing a TextBox/ComboBox inside a row does not always select that ListBoxItem;
+         // sync so Copy / QR / Ctrl+Shift+L / move / delete use the focused identifier.
+         if (_identifiers_LB.ContainerFromElement(e.NewFocus as DependencyObject) is ListBoxItem item)
+         {
+            item.IsSelected = true;
+         }
+      }
+
       private void _identifier_TextBox_KeyUp(object sender, KeyEventArgs e)
       {
          if (this.GetIsBusy()
-            || _identifiers_LB.SelectedItem is not IdentifierViewModel viewModel)
+            || e.Key is not Key.Enter
+            || sender is not FrameworkElement element
+            || element.DataContext is not IdentifierViewModel viewModel)
          {
             return;
          }
 
-         if (e.Key is Key.Enter
-            or Key.Insert)
+         Interfaces.Models.IIdentifier? identifier = InsertIdentifierView.InsertIdentifierDialog(
+            AccountViewModel.IdentifierAutoCompleteList ?? [],
+            viewModel.ToIdentifier());
+
+         if (identifier is null
+            || string.IsNullOrEmpty(identifier.Value))
          {
-            Interfaces.Models.IIdentifier? identifier = InsertIdentifierView.InsertIdentifierDialog(
-               AccountViewModel.IdentifierAutoCompleteList ?? [],
-               viewModel.ToIdentifier());
-
-            if (identifier is null
-               || string.IsNullOrEmpty(identifier.Value))
-            {
-               return;
-            }
-
-            viewModel.Type = identifier.Type;
-            viewModel.Identifier = identifier.Value;
+            return;
          }
+
+         viewModel.Type = identifier.Type;
+         viewModel.Identifier = identifier.Value;
       }
    }
 }
