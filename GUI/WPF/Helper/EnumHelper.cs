@@ -15,9 +15,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       private const string ACTIVITY_EVENT_TYPE_PREFIX = "EnumValue_ActivityEventType_";
 
       /// <summary>
-      /// Sentinel for the account-passwords filter meaning both
-      /// <see cref="AlertKinds.PasswordUpdateReminder"/> and
-      /// <see cref="AlertKinds.PasswordLeaked"/>.
+      /// Sentinel for the account-passwords filter meaning reminder, leaked,
+      /// weak, and passkey-reuse account alerts.
       /// </summary>
       public const string AccountPasswordFilterAll = "";
 
@@ -94,7 +93,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       public static bool MatchesAccountPasswordKindFilter(string alertKind, string? filterKind)
       {
          return IsAccountPasswordFilterAll(filterKind)
-            ? alertKind is AlertKinds.PasswordUpdateReminder or AlertKinds.PasswordLeaked
+            ? alertKind is AlertKinds.PasswordUpdateReminder
+               or AlertKinds.PasswordLeaked
+               or AlertKinds.WeakAccountPassword
+               or AlertKinds.PasskeyReusedAsAccountPassword
             : string.Equals(alertKind, filterKind, StringComparison.Ordinal);
       }
    }

@@ -71,6 +71,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
+      public Brush ShowWeakPasswordAlertsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
       public Brush ShowSecuritySettingsAlertsColor
       {
          get;
@@ -102,6 +108,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       } = string.Empty;
 
       public string ShowLeakedPasswordAlerts
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = string.Empty;
+
+      public string ShowWeakPasswordAlerts
       {
          get;
          set => SetProperty(ref field, value);
@@ -193,6 +205,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public ICommand ShowDuplicatedPasswordAlertsCommand { get; }
       public ICommand ShowExpiredPasswordAlertsCommand { get; }
       public ICommand ShowLeakedPasswordAlertsCommand { get; }
+      public ICommand ShowWeakPasswordAlertsCommand { get; }
       public ICommand ShowSecuritySettingsAlertsCommand { get; }
       public ICommand ShowPasskeyQualityAlertsCommand { get; }
 
@@ -252,6 +265,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             _showAccountPasswordAlerts(AlertKinds.PasswordUpdateReminder));
          ShowLeakedPasswordAlertsCommand = new RelayCommand(() =>
             _showAccountPasswordAlerts(AlertKinds.PasswordLeaked));
+         ShowWeakPasswordAlertsCommand = new RelayCommand(() =>
+            _showAccountPasswordAlerts(AlertKinds.WeakAccountPassword));
          ShowSecuritySettingsAlertsCommand = new RelayCommand(() =>
             _ = AppServices.Dialogs.ShowSingleton(() => new SecuritySettingsAlertView()));
          ShowPasskeyQualityAlertsCommand = new RelayCommand(() =>

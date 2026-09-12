@@ -79,6 +79,10 @@
                       Header="{Binding ShowLeakedPasswordAlerts}"
                       Foreground="{Binding ShowLeakedPasswordAlertsColor}"
                       Command="{Binding ShowLeakedPasswordAlertsCommand}"/>
+            <MenuItem Name="_weakPasswordAlerts_MI"
+                      Header="{Binding ShowWeakPasswordAlerts}"
+                      Foreground="{Binding ShowWeakPasswordAlertsColor}"
+                      Command="{Binding ShowWeakPasswordAlertsCommand}"/>
             <MenuItem Name="_securitySettingsAlerts_MI"
                       Header="{Binding ShowSecuritySettingsAlerts}"
                       Foreground="{Binding ShowSecuritySettingsAlertsColor}"

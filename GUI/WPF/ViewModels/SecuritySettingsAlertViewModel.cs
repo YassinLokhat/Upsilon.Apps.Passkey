@@ -74,14 +74,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          HostSecurityIssue hostIssues = HostSecurityIssue.None;
 
          foreach (IVaultSecuritySettingsAlert warning in AppServices.Session.Alerts
-            .GetAllAlerts(AlertKinds.VaultSecuritySettings)
+            .GetNotifiedAlerts(AlertKinds.VaultSecuritySettings)
             .OfType<IVaultSecuritySettingsAlert>())
          {
             vaultIssues |= warning.Issues;
          }
 
          foreach (IHostSecuritySettingsAlert warning in AppServices.Session.Alerts
-            .GetAllAlerts(AlertKinds.HostSecuritySettings)
+            .GetNotifiedAlerts(AlertKinds.HostSecuritySettings)
             .OfType<IHostSecuritySettingsAlert>())
          {
             hostIssues |= warning.Issues;

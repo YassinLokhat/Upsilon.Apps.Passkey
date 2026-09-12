@@ -622,6 +622,9 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="Msg_ShowLeakedPasswordAlerts" xml:space="preserve">
     <value>Show {0} leaked passwords</value>
   </data>
+  <data name="Msg_ShowWeakPasswordAlerts" xml:space="preserve">
+    <value>Show {0} weak passwords</value>
+  </data>
   <data name="Msg_ShowSecuritySettingsAlerts" xml:space="preserve">
     <value>Show {0} security settings alerts</value>
   </data>
@@ -656,6 +659,9 @@ You will not be alerted about:
   </data>
   <data name="Msg_PasskeyQuality_PasskeyLeaked" xml:space="preserve">
     <value>Leaked passkey layer(s): {0}.</value>
+  </data>
+  <data name="Msg_PasskeyQuality_PasskeyReused" xml:space="preserve">
+    <value>Vault passkey reused as account password: {0}.</value>
   </data>
   <data name="Label_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
     <value>Auto-logout disabled</value>

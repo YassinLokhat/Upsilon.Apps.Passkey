@@ -241,6 +241,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_ShowDuplicatedPasswordAlerts => Get(nameof(Msg_ShowDuplicatedPasswordAlerts));
       public static string Msg_ShowExpiredPasswordAlerts => Get(nameof(Msg_ShowExpiredPasswordAlerts));
       public static string Msg_ShowLeakedPasswordAlerts => Get(nameof(Msg_ShowLeakedPasswordAlerts));
+      public static string Msg_ShowWeakPasswordAlerts => Get(nameof(Msg_ShowWeakPasswordAlerts));
       public static string Msg_ShowSecuritySettingsAlerts => Get(nameof(Msg_ShowSecuritySettingsAlerts));
       public static string Msg_ShowPasskeyQualityAlerts => Get(nameof(Msg_ShowPasskeyQualityAlerts));
       public static string Msg_ShowAlerts => Get(nameof(Msg_ShowAlerts));
@@ -252,6 +253,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_PasskeyQuality_InsufficientPasskeys => Get(nameof(Msg_PasskeyQuality_InsufficientPasskeys));
       public static string Msg_PasskeyQuality_WeakPasskey => Get(nameof(Msg_PasskeyQuality_WeakPasskey));
       public static string Msg_PasskeyQuality_PasskeyLeaked => Get(nameof(Msg_PasskeyQuality_PasskeyLeaked));
+      public static string Msg_PasskeyQuality_PasskeyReused => Get(nameof(Msg_PasskeyQuality_PasskeyReused));
       public static string Label_SecuritySettings_AutoLogoutDisabled => Get(nameof(Label_SecuritySettings_AutoLogoutDisabled));
       public static string Msg_SecuritySettings_AutoLogoutDisabled => Get(nameof(Msg_SecuritySettings_AutoLogoutDisabled));
       public static string Label_SecuritySettings_ClipboardCleaningDisabled => Get(nameof(Label_SecuritySettings_ClipboardCleaningDisabled));

@@ -99,6 +99,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                Strings.Format(nameof(Strings.Msg_PasskeyQuality_PasskeyLeaked), indexes)));
          }
 
+         foreach (IPasskeyReuseAlert warning in AppServices.Session.Alerts
+            .GetNotifiedAlerts(AlertKinds.PasskeyReusedAsAccountPassword)
+            .OfType<IPasskeyReuseAlert>())
+         {
+            string accounts = string.Join(
+               ", ",
+               warning.Accounts.Select(a => $"{a.Service} / {a}"));
+            items.Add(new(
+               Strings.Label_NotifyPasskeyReusedAsAccountPassword,
+               Strings.Format(nameof(Strings.Msg_PasskeyQuality_PasskeyReused), accounts)));
+         }
+
          return [.. items];
       }
    }

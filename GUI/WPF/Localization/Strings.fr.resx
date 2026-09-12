@@ -622,6 +622,9 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="Msg_ShowLeakedPasswordAlerts" xml:space="preserve">
     <value>Afficher {0} mots de passe divulgués</value>
   </data>
+  <data name="Msg_ShowWeakPasswordAlerts" xml:space="preserve">
+    <value>Afficher {0} mots de passe faibles</value>
+  </data>
   <data name="Msg_ShowSecuritySettingsAlerts" xml:space="preserve">
     <value>Afficher {0} alertes de paramètres de sécurité</value>
   </data>
@@ -656,6 +659,9 @@ Vous ne serez pas prévenu pour :
   </data>
   <data name="Msg_PasskeyQuality_PasskeyLeaked" xml:space="preserve">
     <value>Couche(s) de passkey divulguée(s) : {0}.</value>
+  </data>
+  <data name="Msg_PasskeyQuality_PasskeyReused" xml:space="preserve">
+    <value>Passkey du coffre réutilisée comme mot de passe de compte : {0}.</value>
   </data>
   <data name="Label_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
     <value>Déconnexion automatique désactivée</value>
