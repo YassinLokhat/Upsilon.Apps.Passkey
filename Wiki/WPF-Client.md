@@ -26,7 +26,7 @@ Theme is an **app** setting (`config.json`, property `Theme`: `System`, `Light`,
 
 Do not put UI strings in Core, Utils, or Interfaces. The vault persists **stable** data (enum member names, field names, `ISettings.FollowAppCode` = `app` when language/theme follow the application). The WPF client localizes at display time. Default service/account names (`Msg_NewServicePrefix`, `Msg_NewAccountPrefix`) are written in the current UI language.
 
-Account identifiers are typed in Interfaces (`IdentifierType` + `IIdentifier.Value`). WPF may show emoji **glyphs** beside a value (`IdentifierViewModel.TypeGlyphs`) for readability; those glyphs are **display-only** and are never stored in the vault, JSON export, or CSV.
+Account identifiers are typed in Interfaces (`IdentifierType` + `IIdentifier.Value`). WPF may show emoji **glyphs** beside a value (`IdentifierViewModel.TypeGlyphs`) for readability; those glyphs are **display-only** and are never stored in the vault, JSON export, or CSV. The services list filter bar has a glyph-only type ComboBox next to Identifiant (`IdentifierViewModel.FilterTypeChoices`, including All = `✳️` / `AllIdentifierType`); the selected type is UI-only and never persisted.
 
 ### Key prefixes
 
@@ -37,7 +37,7 @@ Account identifiers are typed in Interfaces (`IdentifierType` + `IIdentifier.Val
 | `Title_` | Window / dialog titles | `Title_UserSettings` → `{0} - User settings` |
 | `Msg_` | MessageBox / busy / status text | `Msg_OpeningDatabase` |
 | `Filter_` | File dialog filters and “All” | `Filter_Pku` |
-| `IdentifierType_` | Insert-identifier buttons (localized type labels) | `IdentifierType_Email` |
+| `IdentifierType_` | Identifier type labels (insert dialog, services filter tooltip / All) | `IdentifierType_Email`, `IdentifierType_All` |
 | `FieldName_` | Field names inside activity sentences | `FieldName_ServiceName` → `service name` |
 | `EnumValue_*_` | Short enum labels (filters, combo boxes) | see below |
 | `EnumValue_ImportExportError_*` | Import/export failure reasons in activity messages | `EnumValue_ImportExportError_NoDataToImport` → `no data to import` |

@@ -28,15 +28,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             if (child is RadioButton button)
             {
                IdentifierType type = Enum.GetValues<IdentifierType>().FirstOrDefault(x => Enum.GetName(x) == $"{button.Tag}");
-               string glyph = IdentifierViewModel.TypeGlyphs[type];
+               string glyph = $"{button.Tag}" != "All" ? IdentifierViewModel.TypeGlyphs[type] : IdentifierViewModel.AllTypeGlyph;
                button.Content = $"{glyph} {button.Content}";
                button.IsChecked = identifier.Type == type;
             }
          }
 
          _identifiers_LB.ItemsSource = _viewModel.Identifiers;
-         _identifier_TB.SelectionStart = 0;
-         _identifier_TB.SelectionLength = _identifier_TB.Text.Length;
          _ = _identifier_TB.Focus();
 
          Loaded += (s, e) => this.PostLoadSetup();
@@ -98,7 +96,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
          else
          {
-            _viewModel.Type = InsertIdentifierViewModel.AllIdentifierType;
+            _viewModel.Type = IdentifierViewModel.AllIdentifierType;
          }
       }
 

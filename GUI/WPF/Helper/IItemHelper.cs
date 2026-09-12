@@ -1,4 +1,6 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Models;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -17,7 +19,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          _ = user.ItemId;
       }
 
-      public static bool MeetsFilterConditions(this IService service, string serviceFilter, string identifierFilter, string globalTextFilter, bool changedItemsOnly)
+      /// <param name="identifierTypeFilter">
+      /// Restricts matching accounts by identifier kind; use <see cref="IdentifierViewModel.AllIdentifierType"/> for any type.
+      /// </param>
+      public static bool MeetsFilterConditions(
+         this IService service,
+         string serviceFilter,
+         string identifierFilter,
+         string globalTextFilter,
+         bool changedItemsOnly,
+         IdentifierType identifierTypeFilter)
       {
          serviceFilter = serviceFilter.Trim();
          identifierFilter = identifierFilter.Trim();
@@ -32,13 +43,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
                || serviceName.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
                || url.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
                || notes.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
-               || service.Accounts.Any(x => x.MeetsFilterConditions(string.Empty, globalTextFilter, changedItemsOnly));
-
+               || service.Accounts.Any(x => x.MeetsFilterConditions(string.Empty, globalTextFilter, changedItemsOnly, identifierTypeFilter));
 
          bool serviceFilterSearch = string.IsNullOrWhiteSpace(serviceFilter)
             || serviceName.Contains(serviceFilter, StringComparison.OrdinalIgnoreCase);
-         bool identifierFilterSearch = string.IsNullOrWhiteSpace(identifierFilter)
-            || service.Accounts.Any(x => x.MeetsFilterConditions(identifierFilter, globalTextFilter, changedItemsOnly));
+
+         bool identifierFilterSearch = service.Accounts.Any(x => x.MeetsFilterConditions(identifierFilter, globalTextFilter, changedItemsOnly, identifierTypeFilter));
+
+         // No identifier/type constraint: keep previous "match all accounts" behavior for the identifier axis.
+         if (string.IsNullOrWhiteSpace(identifierFilter)
+            && identifierTypeFilter == IdentifierViewModel.AllIdentifierType)
+         {
+            identifierFilterSearch = true;
+         }
 
          bool serviceAndIdentifierFilterSearch = serviceFilterSearch && identifierFilterSearch;
 
@@ -51,15 +68,35 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          return filterSearch && changedItemsOnlySearch;
       }
 
-      public static bool MeetsFilterConditions(this IAccount account, string identifierFilter, string globalTextFilter, bool changedItemsOnly)
+      /// <param name="identifierTypeFilter">
+      /// Restricts which identifiers participate in the match; use <see cref="IdentifierViewModel.AllIdentifierType"/> for any type.
+      /// When a concrete type is set and the account has no identifiers of that type, the account is excluded.
+      /// </param>
+      public static bool MeetsFilterConditions(
+         this IAccount account,
+         string identifierFilter,
+         string globalTextFilter,
+         bool changedItemsOnly,
+         IdentifierType identifierTypeFilter)
       {
          identifierFilter = identifierFilter.Trim();
          globalTextFilter = globalTextFilter.Trim();
 
+         bool typeIsAll = identifierTypeFilter == IdentifierViewModel.AllIdentifierType;
+
+         IEnumerable<IIdentifier> typedIdentifiers = typeIsAll
+            ? account.Identifiers
+            : account.Identifiers.Where(x => x.Type == identifierTypeFilter);
+
+         if (!typeIsAll && !typedIdentifiers.Any())
+         {
+            return false;
+         }
+
          string accountId = account.ItemId.Trim();
          string label = account.Label.Trim();
          string notes = account.Notes.Trim();
-         string identifiers = string.Join("\n", account.Identifiers.Select(x => x.Value.Trim()));
+         string identifiers = string.Join("\n", typedIdentifiers.Select(x => x.Value.Trim()));
 
          bool globalTextFilterSearch = accountId.Equals(globalTextFilter, StringComparison.OrdinalIgnoreCase)
                || identifiers.Contains(globalTextFilter, StringComparison.OrdinalIgnoreCase)
@@ -68,7 +105,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
          bool identifierFilterSearch = string.IsNullOrWhiteSpace(identifierFilter)
                || identifiers.Contains(identifierFilter, StringComparison.OrdinalIgnoreCase)
-               || label.Contains(identifierFilter, StringComparison.OrdinalIgnoreCase);
+               || (typeIsAll && label.Contains(identifierFilter, StringComparison.OrdinalIgnoreCase));
 
          bool changedItemsOnlySearch = !changedItemsOnly || account.HasChanged();
 

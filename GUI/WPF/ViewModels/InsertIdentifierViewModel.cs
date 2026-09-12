@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -10,8 +11,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       private readonly IEnumerable<IIdentifier> _identifiers;
 
       public readonly ObservableCollection<string> Identifiers = [];
-
-      public static IdentifierType AllIdentifierType => (IdentifierType)byte.MaxValue;
 
       public IdentifierType Type
       {
@@ -67,6 +66,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       }
 
       private bool _typeMatches(IdentifierType type)
-         => Type == AllIdentifierType || Type == type;
+         => Type == IdentifierViewModel.AllIdentifierType || Type == type;
    }
 }
