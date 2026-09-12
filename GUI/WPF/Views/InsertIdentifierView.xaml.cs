@@ -89,15 +89,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          string? idType = ((RadioButton)sender).Tag as string;
 
-         if (idType is not null
-            && Enum.TryParse(idType, ignoreCase: false, out IdentifierType type))
-         {
-            _viewModel.Type = type;
-         }
-         else
-         {
-            _viewModel.Type = IdentifierViewModel.AllIdentifierType;
-         }
+         _viewModel.Type = idType is not null
+            && Enum.TryParse(idType, ignoreCase: false, out IdentifierType type)
+            ? type
+            : IdentifierViewModel.AllIdentifierType;
       }
 
       private void _clearFilter_Button_Click(object sender, RoutedEventArgs e)
