@@ -8,5 +8,8 @@
     <Project Path="UnitTests/Multiplateform/UnitTests.Multiplateform.csproj" />
     <Project Path="UnitTests/Windows/UnitTests.Windows.csproj" />
   </Folder>
-  <Project Path="GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj" />
+  <Folder Name="/GUI/">
+    <Project Path="GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj" />
+    <Project Path="GUI/MAUI/Upsilon.Apps.Passkey.GUI.MAUI.csproj" />
+  </Folder>
 </Solution>
