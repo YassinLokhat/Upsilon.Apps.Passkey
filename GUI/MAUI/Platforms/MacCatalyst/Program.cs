@@ -3,7 +3,7 @@ using UIKit;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI
 {
-   public class Program
+   internal sealed class Program
    {
       // This is the main entry point of the application.
       static void Main(string[] args)

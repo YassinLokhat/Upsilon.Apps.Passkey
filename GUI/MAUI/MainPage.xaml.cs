@@ -1,22 +1,22 @@
 ﻿namespace Upsilon.Apps.Passkey.GUI.MAUI
 {
-   public partial class MainPage : ContentPage
+   internal sealed partial class MainPage : ContentPage
    {
-      int count = 0;
+      int _count;
 
       public MainPage()
       {
          InitializeComponent();
       }
 
-      private void OnCounterClicked(object? sender, EventArgs e)
+      private void _onCounterClicked(object? sender, EventArgs e)
       {
-         count++;
+         _count++;
 
-         if (count == 1)
-            CounterBtn.Text = $"Clicked {count} time";
+         if (_count == 1)
+            CounterBtn.Text = $"Clicked {_count} time";
          else
-            CounterBtn.Text = $"Clicked {count} times";
+            CounterBtn.Text = $"Clicked {_count} times";
 
          SemanticScreenReader.Announce(CounterBtn.Text);
       }
