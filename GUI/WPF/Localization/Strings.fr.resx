@@ -1115,6 +1115,13 @@ La construction initiale télécharge tout le corpus (plusieurs dizaines de Gio)
   <data name="Msg_OfflineLeakUpdateComplete" xml:space="preserve">
     <value>Terminé · {0} plages rafraîchies · {1} inchangées · {2:0.0} Mio téléchargés.</value>
   </data>
+  <data name="Msg_OfflineLeakUpdateExitPrompt" xml:space="preserve">
+    <value>Une mise à jour de la base de fuites hors ligne est encore en cours.
+
+Oui — masquer Passkey et terminer la mise à jour en arrière-plan (le processus reste actif jusqu'à la fin, puis se ferme).
+Non — annuler la mise à jour et quitter maintenant.
+Annuler — garder Passkey ouvert.</value>
+  </data>
   <data name="Msg_OfflineLeakBuildFailed" xml:space="preserve">
     <value>Échec de la construction de la base de fuites hors ligne :
 {0}</value>
@@ -1130,6 +1137,9 @@ La construction initiale télécharge tout le corpus (plusieurs dizaines de Gio)
   </data>
   <data name="Title_OfflineLeakDatabase" xml:space="preserve">
     <value>Base de fuites hors ligne</value>
+  </data>
+  <data name="Title_OfflineLeakUpdateInProgress" xml:space="preserve">
+    <value>Mise à jour de la base de fuites hors ligne en cours</value>
   </data>
   <data name="Msg_DeleteOfflineLeakDatabase" xml:space="preserve">
     <value>Supprimer définitivement la base de fuites hors ligne partagée de cette machine ?

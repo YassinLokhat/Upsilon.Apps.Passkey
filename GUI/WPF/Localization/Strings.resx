@@ -1115,6 +1115,13 @@ The first build downloads the whole corpus (tens of GiB) and can take several ho
   <data name="Msg_OfflineLeakUpdateComplete" xml:space="preserve">
     <value>Completed · {0} ranges refreshed · {1} unchanged · {2:0.0} MiB downloaded.</value>
   </data>
+  <data name="Msg_OfflineLeakUpdateExitPrompt" xml:space="preserve">
+    <value>An offline leak database update is still running.
+
+Yes — hide Passkey and finish the update in the background (the process stays until it completes, then exits).
+No — cancel the update and exit now.
+Cancel — keep Passkey open.</value>
+  </data>
   <data name="Msg_OfflineLeakBuildFailed" xml:space="preserve">
     <value>Offline leak database build failed:
 {0}</value>
@@ -1130,6 +1137,9 @@ The first build downloads the whole corpus (tens of GiB) and can take several ho
   </data>
   <data name="Title_OfflineLeakDatabase" xml:space="preserve">
     <value>Offline leak database</value>
+  </data>
+  <data name="Title_OfflineLeakUpdateInProgress" xml:space="preserve">
+    <value>Offline leak database update in progress</value>
   </data>
   <data name="Msg_DeleteOfflineLeakDatabase" xml:space="preserve">
     <value>Permanently delete the shared offline leak database from this machine?

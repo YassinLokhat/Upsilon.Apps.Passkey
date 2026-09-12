@@ -317,7 +317,11 @@ login:
   startup when offline use is also enabled, the `.ranges` sidecar is present,
   and the filter header `BuiltUtc` is older than that interval; a missing file
   never triggers an automatic first build, and a missing sidecar skips the
-  refresh while keeping the filter. Application logs still live under
+  refresh while keeping the filter. Closing the WPF UI while a build/update is
+  still running prompts Yes / No / Cancel: **Yes** ends the vault session (and
+  clears owned clipboard), hides the UI, and keeps only the in-process filter
+  job until it finishes, then exits; **No** cancels the job and quits; **Cancel**
+  keeps the app open. Application logs still live under
   `%LocalAppData%\Passkey\logs` — that path is unrelated to the Bloom filter.
 - **Duplicate-password** and **password-update reminder** alerts are computed locally.
 

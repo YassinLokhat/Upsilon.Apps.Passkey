@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.ComponentModel;
+using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,6 +22,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private readonly UserServicesViewModel _viewModel;
       private readonly IDatabase _database;
       private bool _isClosing;
+      private bool _forceClose;
+      private bool _exitPromptActive;
 
       private static ISessionService _session => AppServices.Session;
       private static IDialogService _dialogs => AppServices.Dialogs;
@@ -58,6 +61,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _database.DatabaseClosed += _database_DatabaseClosed;
          _session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
          Loaded += _userServicesView_Loaded;
+         Closing += _window_Closing;
 
          IAlert[] notified = _notifiedAlerts();
          if (notified.Length != 0)
@@ -158,6 +162,77 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          DialogResult = true;
+      }
+
+      private void _window_Closing(object? sender, CancelEventArgs e)
+      {
+         if (_forceClose)
+         {
+            return;
+         }
+
+         if (_exitPromptActive)
+         {
+            e.Cancel = true;
+            return;
+         }
+
+         // Logout / session-timeout: return to MainWindow; leave any refresh running.
+         if (DialogResult == true)
+         {
+            return;
+         }
+
+         OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;
+         if (!update.IsBusy)
+         {
+            return;
+         }
+
+         // X / Alt+F4 exits the app after this dialog — ask before tearing down.
+         e.Cancel = true;
+         _exitPromptActive = true;
+
+         try
+         {
+            if (!update.IsBusy)
+            {
+               _forceClose = true;
+               Close();
+               return;
+            }
+
+            MessageBoxResult result = _dialogs.Confirm(
+               Strings.Msg_OfflineLeakUpdateExitPrompt,
+               Strings.Title_OfflineLeakUpdateInProgress,
+               MessageBoxButton.YesNoCancel,
+               MessageBoxImage.Question);
+
+            switch (result)
+            {
+               case MessageBoxResult.Yes:
+                  update.ContinueThroughExit = true;
+                  update.SkipClosePrompt = true;
+                  _forceClose = true;
+                  Close();
+                  break;
+
+               case MessageBoxResult.No:
+                  update.Cancel();
+                  update.SkipClosePrompt = true;
+                  _forceClose = true;
+                  Close();
+                  break;
+
+               default:
+                  // Keep the vault open; update keeps running.
+                  break;
+            }
+         }
+         finally
+         {
+            _exitPromptActive = false;
+         }
       }
 
       private void _window_Closed(object sender, EventArgs e)
