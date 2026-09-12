@@ -1,6 +1,6 @@
 ﻿namespace Upsilon.Apps.Passkey.GUI.MAUI
 {
-   public partial class AppShell : Shell
+   internal sealed partial class AppShell : Shell
    {
       public AppShell()
       {

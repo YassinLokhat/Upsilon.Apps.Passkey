@@ -2,10 +2,13 @@
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI
 {
-   public static class MauiProgram
+   internal static class MauiProgram
    {
       public static MauiApp CreateMauiApp()
       {
+         // Touch so CA1812 sees framework-created types as used (factories are never invoked).
+         _ = MauiFrameworkCreatedTypeAnchors.Factories.Length;
+
          var builder = MauiApp.CreateBuilder();
          builder
             .UseMauiApp<App>()
@@ -16,7 +19,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
             });
 
 #if DEBUG
-   		builder.Logging.AddDebug();
+         builder.Logging.AddDebug();
 #endif
 
          return builder.Build();
