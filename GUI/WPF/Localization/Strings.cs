@@ -83,6 +83,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Filter_CsvExport => Get(nameof(Filter_CsvExport));
       public static string Filter_Json => Get(nameof(Filter_Json));
       public static string Filter_Pku => Get(nameof(Filter_Pku));
+      public static string IdentifierType_All => Get(nameof(IdentifierType_All));
       public static string IdentifierType_AuthenticatorApp => Get(nameof(IdentifierType_AuthenticatorApp));
       public static string IdentifierType_Email => Get(nameof(IdentifierType_Email));
       public static string IdentifierType_Passkey => Get(nameof(IdentifierType_Passkey));
@@ -168,6 +169,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Label_AlertType => Get(nameof(Label_AlertType));
       public static string Label_AlertTypeColumn => Get(nameof(Label_AlertTypeColumn));
       public static string Label_WarnPasswordLeak => Get(nameof(Label_WarnPasswordLeak));
+      public static string Label_WarnWeakPassword => Get(nameof(Label_WarnWeakPassword));
       public static string Menu_AppSettings => Get(nameof(Menu_AppSettings));
       public static string Menu_Copy => Get(nameof(Menu_Copy));
       public static string Menu_DeleteUser => Get(nameof(Menu_DeleteUser));
@@ -228,6 +230,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_OfflineLeakFilePresentDisabled => Get(nameof(Msg_OfflineLeakFilePresentDisabled));
       public static string Msg_OfflineLeakStatusUnknown => Get(nameof(Msg_OfflineLeakStatusUnknown));
       public static string Msg_OfflineLeakUpdateComplete => Get(nameof(Msg_OfflineLeakUpdateComplete));
+      public static string Msg_OfflineLeakUpdateExitPrompt => Get(nameof(Msg_OfflineLeakUpdateExitPrompt));
       public static string Msg_OfflineLeakUpdateProgress => Get(nameof(Msg_OfflineLeakUpdateProgress));
       public static string Msg_OpeningDatabase => Get(nameof(Msg_OpeningDatabase));
       public static string Msg_UpdateOfflineLeakDatabase => Get(nameof(Msg_UpdateOfflineLeakDatabase));
@@ -240,6 +243,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_ShowDuplicatedPasswordAlerts => Get(nameof(Msg_ShowDuplicatedPasswordAlerts));
       public static string Msg_ShowExpiredPasswordAlerts => Get(nameof(Msg_ShowExpiredPasswordAlerts));
       public static string Msg_ShowLeakedPasswordAlerts => Get(nameof(Msg_ShowLeakedPasswordAlerts));
+      public static string Msg_ShowWeakPasswordAlerts => Get(nameof(Msg_ShowWeakPasswordAlerts));
       public static string Msg_ShowSecuritySettingsAlerts => Get(nameof(Msg_ShowSecuritySettingsAlerts));
       public static string Msg_ShowPasskeyQualityAlerts => Get(nameof(Msg_ShowPasskeyQualityAlerts));
       public static string Msg_ShowAlerts => Get(nameof(Msg_ShowAlerts));
@@ -251,6 +255,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_PasskeyQuality_InsufficientPasskeys => Get(nameof(Msg_PasskeyQuality_InsufficientPasskeys));
       public static string Msg_PasskeyQuality_WeakPasskey => Get(nameof(Msg_PasskeyQuality_WeakPasskey));
       public static string Msg_PasskeyQuality_PasskeyLeaked => Get(nameof(Msg_PasskeyQuality_PasskeyLeaked));
+      public static string Msg_PasskeyQuality_PasskeyReused => Get(nameof(Msg_PasskeyQuality_PasskeyReused));
       public static string Label_SecuritySettings_AutoLogoutDisabled => Get(nameof(Label_SecuritySettings_AutoLogoutDisabled));
       public static string Msg_SecuritySettings_AutoLogoutDisabled => Get(nameof(Msg_SecuritySettings_AutoLogoutDisabled));
       public static string Label_SecuritySettings_ClipboardCleaningDisabled => Get(nameof(Label_SecuritySettings_ClipboardCleaningDisabled));
@@ -261,6 +266,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_SecuritySettings_NoAccountLeakCheck => Get(nameof(Msg_SecuritySettings_NoAccountLeakCheck));
       public static string Label_SecuritySettings_NoAccountDuplicateCheck => Get(nameof(Label_SecuritySettings_NoAccountDuplicateCheck));
       public static string Msg_SecuritySettings_NoAccountDuplicateCheck => Get(nameof(Msg_SecuritySettings_NoAccountDuplicateCheck));
+      public static string Label_SecuritySettings_NoAccountWeakPasswordCheck => Get(nameof(Label_SecuritySettings_NoAccountWeakPasswordCheck));
+      public static string Msg_SecuritySettings_NoAccountWeakPasswordCheck => Get(nameof(Msg_SecuritySettings_NoAccountWeakPasswordCheck));
       public static string Label_SecuritySettings_NoAccountUpdateReminder => Get(nameof(Label_SecuritySettings_NoAccountUpdateReminder));
       public static string Msg_SecuritySettings_NoAccountUpdateReminder => Get(nameof(Msg_SecuritySettings_NoAccountUpdateReminder));
       public static string Label_SecuritySettings_IdleLoginDisabled => Get(nameof(Label_SecuritySettings_IdleLoginDisabled));
@@ -309,6 +316,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Title_NewUser => Get(nameof(Title_NewUser));
       public static string Title_NewUserDatabase => Get(nameof(Title_NewUserDatabase));
       public static string Title_OfflineLeakDatabase => Get(nameof(Title_OfflineLeakDatabase));
+      public static string Title_OfflineLeakUpdateInProgress => Get(nameof(Title_OfflineLeakUpdateInProgress));
       public static string Title_OpenDatabase => Get(nameof(Title_OpenDatabase));
       public static string Title_PasswordGenerator => Get(nameof(Title_PasswordGenerator));
       public static string Title_QrCode => Get(nameof(Title_QrCode));

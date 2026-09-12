@@ -97,6 +97,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             nameof(AccountOption.None) => Strings.EnumValue_None,
             nameof(AccountOption.WarnIfPasswordLeaked) => Strings.Label_WarnPasswordLeak,
             nameof(AccountOption.WarnIfDuplicatedPassword) => Strings.Label_WarnDuplicatedPassword,
+            nameof(AccountOption.WarnIfWeakPassword) => Strings.Label_WarnWeakPassword,
             _ => Strings.Get($"{ACCOUNT_OPTION_PREFIX}{memberName}"),
          };
 

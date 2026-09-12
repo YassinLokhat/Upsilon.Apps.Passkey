@@ -368,6 +368,9 @@
   <data name="Label_WarnDuplicatedPassword" xml:space="preserve">
     <value>Warn if the password is same as another account's password.</value>
   </data>
+  <data name="Label_WarnWeakPassword" xml:space="preserve">
+    <value>Warn if the password is weak.</value>
+  </data>
   <data name="Label_CheckIfLeaked" xml:space="preserve">
     <value>Check if leaked</value>
   </data>
@@ -622,6 +625,9 @@ Click Cancel to ignore and keep the save file.</value>
   <data name="Msg_ShowLeakedPasswordAlerts" xml:space="preserve">
     <value>Show {0} leaked passwords</value>
   </data>
+  <data name="Msg_ShowWeakPasswordAlerts" xml:space="preserve">
+    <value>Show {0} weak passwords</value>
+  </data>
   <data name="Msg_ShowSecuritySettingsAlerts" xml:space="preserve">
     <value>Show {0} security settings alerts</value>
   </data>
@@ -657,6 +663,9 @@ You will not be alerted about:
   <data name="Msg_PasskeyQuality_PasskeyLeaked" xml:space="preserve">
     <value>Leaked passkey layer(s): {0}.</value>
   </data>
+  <data name="Msg_PasskeyQuality_PasskeyReused" xml:space="preserve">
+    <value>Vault passkey reused as account password: {0}.</value>
+  </data>
   <data name="Label_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
     <value>Auto-logout disabled</value>
   </data>
@@ -686,6 +695,12 @@ You will not be alerted about:
   </data>
   <data name="Msg_SecuritySettings_NoAccountDuplicateCheck" xml:space="preserve">
     <value>No account has duplicated-password checks enabled.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountWeakPasswordCheck" xml:space="preserve">
+    <value>No weak-password check on any account</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountWeakPasswordCheck" xml:space="preserve">
+    <value>No account has weak-password checks enabled.</value>
   </data>
   <data name="Label_SecuritySettings_NoAccountUpdateReminder" xml:space="preserve">
     <value>No update reminder on any account</value>
@@ -752,6 +767,9 @@ You will not be alerted about:
   </data>
   <data name="Msg_NewAccountPrefix" xml:space="preserve">
     <value>New Account #</value>
+  </data>
+  <data name="IdentifierType_All" xml:space="preserve">
+    <value>All</value>
   </data>
   <data name="IdentifierType_Username" xml:space="preserve">
     <value>Username</value>
@@ -1097,6 +1115,13 @@ The first build downloads the whole corpus (tens of GiB) and can take several ho
   <data name="Msg_OfflineLeakUpdateComplete" xml:space="preserve">
     <value>Completed · {0} ranges refreshed · {1} unchanged · {2:0.0} MiB downloaded.</value>
   </data>
+  <data name="Msg_OfflineLeakUpdateExitPrompt" xml:space="preserve">
+    <value>An offline leak database update is still running.
+
+Yes — hide Passkey and finish the update in the background (the process stays until it completes, then exits).
+No — cancel the update and exit now.
+Cancel — keep Passkey open.</value>
+  </data>
   <data name="Msg_OfflineLeakBuildFailed" xml:space="preserve">
     <value>Offline leak database build failed:
 {0}</value>
@@ -1112,6 +1137,9 @@ The first build downloads the whole corpus (tens of GiB) and can take several ho
   </data>
   <data name="Title_OfflineLeakDatabase" xml:space="preserve">
     <value>Offline leak database</value>
+  </data>
+  <data name="Title_OfflineLeakUpdateInProgress" xml:space="preserve">
+    <value>Offline leak database update in progress</value>
   </data>
   <data name="Msg_DeleteOfflineLeakDatabase" xml:space="preserve">
     <value>Permanently delete the shared offline leak database from this machine?

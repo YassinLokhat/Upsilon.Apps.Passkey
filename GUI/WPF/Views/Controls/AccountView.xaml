@@ -67,7 +67,8 @@
                            VirtualizingStackPanel.IsVirtualizing="True"
                            VirtualizingStackPanel.VirtualizationMode="Recycling"
                            Name="_identifiers_LB"
-                           SelectedItem="{Binding SelectedIdentifier, Mode=TwoWay}">
+                           SelectedItem="{Binding SelectedIdentifier, Mode=TwoWay}"
+                           PreviewGotKeyboardFocus="_identifiers_LB_PreviewGotKeyboardFocus">
                      <ListBox.ItemTemplate>
                         <DataTemplate>
                            <DockPanel LastChildFill="True">
@@ -224,6 +225,8 @@
                   <CheckBox IsChecked="{Binding WarnIfDuplicatedPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Content="{loc:Loc Label_WarnDuplicatedPassword}"/>
                </StackPanel>
+               <CheckBox IsChecked="{Binding WarnIfWeakPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Content="{loc:Loc Label_WarnWeakPassword}"/>
             </StackPanel>
          </GroupBox>
       </Grid>

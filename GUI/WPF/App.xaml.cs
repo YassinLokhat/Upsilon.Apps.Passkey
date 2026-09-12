@@ -37,9 +37,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       {
          ArgumentNullException.ThrowIfNull(e);
 
-         // Cancel and give an in-flight refresh a short window to unwind so the
-         // process does not linger (e.g. after the window is already gone).
-         if (!AppServices.OfflineLeakFilterUpdate.WaitForIdle(TimeSpan.FromSeconds(15)))
+         OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;
+         if (update.ContinueThroughExit)
+         {
+            // Consented background continue — wait without cancelling.
+            if (!update.WaitUntilIdle(TimeSpan.FromSeconds(30)))
+            {
+               Log.Warn("Offline leak filter: still busy after background-continue exit wait.");
+            }
+         }
+         else if (!update.WaitForIdle(TimeSpan.FromSeconds(15)))
          {
             Log.Warn("Offline leak filter: still busy after exit cancel timeout.");
          }

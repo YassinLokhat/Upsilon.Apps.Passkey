@@ -243,6 +243,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
                issues |= SecuritySettingsIssue.NoAccountDuplicateCheck;
             }
 
+            if (!accounts.Any(static a => a.Options.HasFlag(AccountOption.WarnIfWeakPassword)))
+            {
+               issues |= SecuritySettingsIssue.NoAccountWeakPasswordCheck;
+            }
+
             if (!accounts.Any(static a => a.PasswordUpdateReminderDelay > 0))
             {
                issues |= SecuritySettingsIssue.NoAccountUpdateReminder;
@@ -341,7 +346,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          Account[] weak = [.. User.Services
             .SelectMany(x => x.Accounts)
-            .Where(a => SecretQuality.IsWeak(a.Password))];
+            .Where(a => a.Options.HasFlag(AccountOption.WarnIfWeakPassword)
+               && SecretQuality.IsWeak(a.Password))];
 
          return weak.Length == 0
             ? []

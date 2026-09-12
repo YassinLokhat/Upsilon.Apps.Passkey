@@ -3,6 +3,7 @@ using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Gui
@@ -121,6 +122,39 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
          vm.RefreshFilters();
 
          _ = vm.Services.Should().BeEmpty();
+      }
+
+      [TestMethod]
+      public void Case07_RefreshFilters_AppliesIdentifierTypeFilter()
+      {
+         IUser user = _database!.User!;
+         IService emailService = user.AddService("Email Service");
+         _ = emailService.AddAccount("Mail", [new Identifier(IdentifierType.Email, "a@test.te")]);
+         IService userService = user.AddService("User Service");
+         _ = userService.AddAccount("User", [new Identifier(IdentifierType.Username, "alice")]);
+
+         using UserServicesViewModel vm = new("Test");
+         vm.Type = IdentifierType.Email;
+         vm.RefreshFilters();
+
+         _ = vm.Services.Select(s => s.ServiceName).Should().Equal("Email Service");
+         _ = vm.TypeChoices.Select(c => c.Display).Should().Equal(
+            IdentifierViewModel.AllTypeGlyph,
+            "👤", "📧", "🖁", "🗝", "📲");
+      }
+
+      [TestMethod]
+      public void Case08_ClearFilters_ResetsIdentifierTypeToAll()
+      {
+         using UserServicesViewModel vm = new("Test");
+         vm.Type = IdentifierType.Passkey;
+         vm.IdentifierFilter = "x";
+
+         vm.ClearFilters();
+
+         _ = vm.Type.Should().Be(IdentifierViewModel.AllIdentifierType);
+         _ = vm.IdentifierFilter.Should().BeEmpty();
+         _ = vm.TypeLabel.Should().Be(Strings.IdentifierType_All);
       }
    }
 }

@@ -317,8 +317,10 @@ login:
   startup when offline use is also enabled, the `.ranges` sidecar is present,
   and the filter header `BuiltUtc` is older than that interval; a missing file
   never triggers an automatic first build, and a missing sidecar skips the
-  refresh while keeping the filter. Application logs still live under
-  `%LocalAppData%\Passkey\logs` — that path is unrelated to the Bloom filter.
+  refresh while keeping the filter. If the WPF UI continues a mid-close
+  refresh in the background, the vault session (and owned clipboard) is ended
+  first. Application logs still live under `%LocalAppData%\Passkey\logs` —
+  that path is unrelated to the Bloom filter.
 - **Duplicate-password** and **password-update reminder** alerts are computed locally.
 
 ## Known Limitations

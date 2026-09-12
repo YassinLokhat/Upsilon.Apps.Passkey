@@ -621,6 +621,8 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     the local `.pkbf` Bloom filter next to the executable, and schedule
     auto-refresh of an existing file at startup
     (`LocalLeakDatabaseAutoUpdateFrequency` days; see Offline leak database above).
+    Closing while a build/update is running prompts Yes / No / Cancel (finish
+    after locking the vault, cancel, or stay open).
 *   **QR codes**: identifiers and passwords can be shown as a QR matrix generated
     in-process (`Core/Utils/QrCode.cs`, no network). The window closes after
     `ISettings.ShowPasswordDelay` milliseconds when that setting is non-zero.
@@ -663,6 +665,8 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 4.  Idle until auto-logout; confirm the session closes and the vault file is released.
 5.  Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
 6.  Show a password as a QR code and confirm the window closes after the configured delay.
+7.  Close while an offline leak-database build/update is running: Yes / No / Cancel
+    (finish after vault lock, cancel, or stay open).
 
 **CI**
 ------

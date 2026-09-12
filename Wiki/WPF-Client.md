@@ -26,7 +26,7 @@ Theme is an **app** setting (`config.json`, property `Theme`: `System`, `Light`,
 
 Do not put UI strings in Core, Utils, or Interfaces. The vault persists **stable** data (enum member names, field names, `ISettings.FollowAppCode` = `app` when language/theme follow the application). The WPF client localizes at display time. Default service/account names (`Msg_NewServicePrefix`, `Msg_NewAccountPrefix`) are written in the current UI language.
 
-Account identifiers are typed in Interfaces (`IdentifierType` + `IIdentifier.Value`). WPF may show emoji **glyphs** beside a value (`IdentifierViewModel.TypeGlyphs`) for readability; those glyphs are **display-only** and are never stored in the vault, JSON export, or CSV.
+Account identifiers are typed in Interfaces (`IdentifierType` + `IIdentifier.Value`). WPF may show emoji **glyphs** beside a value (`IdentifierViewModel.TypeGlyphs`) for readability; those glyphs are **display-only** and are never stored in the vault, JSON export, or CSV. The services list filter bar has a glyph-only type ComboBox next to Identifiant (`IdentifierViewModel.FilterTypeChoices`, including All = `✳️` / `AllIdentifierType`); the selected type is UI-only and never persisted.
 
 ### Key prefixes
 
@@ -37,7 +37,7 @@ Account identifiers are typed in Interfaces (`IdentifierType` + `IIdentifier.Val
 | `Title_` | Window / dialog titles | `Title_UserSettings` → `{0} - User settings` |
 | `Msg_` | MessageBox / busy / status text | `Msg_OpeningDatabase` |
 | `Filter_` | File dialog filters and “All” | `Filter_Pku` |
-| `IdentifierType_` | Insert-identifier buttons (localized type labels) | `IdentifierType_Email` |
+| `IdentifierType_` | Identifier type labels (insert dialog, services filter tooltip / All) | `IdentifierType_Email`, `IdentifierType_All` |
 | `FieldName_` | Field names inside activity sentences | `FieldName_ServiceName` → `service name` |
 | `EnumValue_*_` | Short enum labels (filters, combo boxes) | see below |
 | `EnumValue_ImportExportError_*` | Import/export failure reasons in activity messages | `EnumValue_ImportExportError_NoDataToImport` → `no data to import` |
@@ -100,6 +100,7 @@ Under **App Settings** (`Ctrl+,`), section **Offline leak database**:
 * Enable / disable the local HIBP Bloom filter (`LocalLeakDatabaseEnabled` / `LeakFilterConfig.Enabled`). Disabling never deletes the file.
 * **Auto-update frequency** in days (`LocalLeakDatabaseAutoUpdateFrequency` / `LeakFilterConfig.AutoUpdateFrequency`, default **7**; **0** = off). When offline use is enabled, a `.pkbf` already exists with its `.ranges` sidecar, and the filter header `BuiltUtc` is older than that many days, the WPF host refreshes the filter at startup via `HibpBloomBuildMode.Update` (incremental). A first full build is **never** started automatically — it is too heavy (~tens of GiB / hours). If the sidecar is missing, auto-update is skipped and the existing `.pkbf` is kept; use **Rebuild** to restore incremental updates.
 * The filter path is **fixed in code** to `<exe>/pwned-ntlm.pkbf` (not stored in `config.json`). Build or update via `HibpBloomBuilder` — a full build can take hours (~2.4 GiB); updates revalidate ranges concurrently (`If-None-Match`, default parallelism 64) using the `.pkbf.ranges` sidecar. Manual and automatic runs share one in-process slot (`OfflineLeakFilterUpdateService`).
+* Closing the main window or vault services window (X / Alt+F4) while a build/update is running prompts Yes / No / Cancel: finish in the background after locking the vault, cancel and quit, or stay open. Logout / session timeout skip that prompt. Closing **App Settings** alone does not stop a run.
 * Delete the `.pkbf` and its sidecar explicitly.
 
 Preferences that *are* persisted (`Enabled`, auto-update frequency, vault folder, login idle timeout, language, theme) live in application-level `config.json`, shared by all vault users — not stored in the `.pku`. Details: [[Security]].
@@ -153,7 +154,7 @@ Identifiers and passwords can be shown as a QR matrix generated **in-process** (
 
 * **Login idle reset** after `LoginIdleTimeoutSeconds` of inactivity on the login window (app setting; `0` = off). Credentials and any half-open session are cleared; the title bar shows the countdown.
 * **Auto-logout** after `LogoutTimeout` minutes of inactivity once logged in. The database file handle is released.
-* On process exit, `AppServices.Session.EndSession()` closes any open vault and clears owned clipboard content, in case `MainWindow.Closed` did not run first.
+* On process exit, `AppServices.Session.EndSession()` closes any open vault and clears owned clipboard content, in case `MainWindow.Closed` did not run first. Exit also waits for or cancels any offline leak-filter job (see Offline leak database above).
 * Unhandled UI exceptions are logged and marked handled so a single dialog failure does not tear down the process. AppDomain / unobserved-task exceptions are logged and flushed.
 
 ## Autosave in the GUI
@@ -181,5 +182,6 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 5. Idle until auto-logout; confirm the session closes and the vault file is released.
 6. Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
 7. Show a password as a QR code and confirm the window closes after the configured delay.
+8. Close while an offline leak-database build/update is running: Yes / No / Cancel (finish after vault lock, cancel, or stay open).
 
 There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay out of the automated suite — [[Testing and CI]].

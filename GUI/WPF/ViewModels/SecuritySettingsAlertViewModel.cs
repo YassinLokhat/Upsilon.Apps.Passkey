@@ -74,14 +74,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          HostSecurityIssue hostIssues = HostSecurityIssue.None;
 
          foreach (IVaultSecuritySettingsAlert warning in AppServices.Session.Alerts
-            .GetAllAlerts(AlertKinds.VaultSecuritySettings)
+            .GetNotifiedAlerts(AlertKinds.VaultSecuritySettings)
             .OfType<IVaultSecuritySettingsAlert>())
          {
             vaultIssues |= warning.Issues;
          }
 
          foreach (IHostSecuritySettingsAlert warning in AppServices.Session.Alerts
-            .GetAllAlerts(AlertKinds.HostSecuritySettings)
+            .GetNotifiedAlerts(AlertKinds.HostSecuritySettings)
             .OfType<IHostSecuritySettingsAlert>())
          {
             hostIssues |= warning.Issues;
@@ -129,6 +129,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             yield return new(
                Strings.Label_SecuritySettings_NoAccountDuplicateCheck,
                Strings.Msg_SecuritySettings_NoAccountDuplicateCheck);
+         }
+
+         if (issues.HasFlag(SecuritySettingsIssue.NoAccountWeakPasswordCheck))
+         {
+            yield return new(
+               Strings.Label_SecuritySettings_NoAccountWeakPasswordCheck,
+               Strings.Msg_SecuritySettings_NoAccountWeakPasswordCheck);
          }
 
          if (issues.HasFlag(SecuritySettingsIssue.NoAccountUpdateReminder))

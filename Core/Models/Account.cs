@@ -154,7 +154,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public string Notes { get; set; } = string.Empty;
       public int PasswordUpdateReminderDelay { get; set; }
       public AccountOption Options { get; set; }
-         = AccountOption.WarnIfPasswordLeaked;
+         = AccountOption.WarnIfPasswordLeaked
+         | AccountOption.WarnIfWeakPassword
+         | AccountOption.WarnIfDuplicatedPassword;
 
       internal bool PasswordExpired
       {

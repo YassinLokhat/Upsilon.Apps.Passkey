@@ -30,7 +30,7 @@ If both providers are down (or you are offline) **and** no offline Bloom filter 
 
 ## Does the offline leak database update itself?
 
-Yes, on a schedule you control. Under **App Settings → Offline leak database**, set **auto-update frequency** (`LocalLeakDatabaseAutoUpdateFrequency` / `LeakFilterConfig.AutoUpdateFrequency`, default **7** days; **0** disables). At startup, if offline use is enabled, a `.pkbf` already exists (with its `.ranges` sidecar), and the filter’s header `BuiltUtc` is older than that many days, Passkey refreshes it in the background (incremental HIBP range revalidation). A missing file never triggers an automatic first build — that download is too large. If the sidecar is missing, auto-update is skipped and the existing `.pkbf` is kept; use **Rebuild** in App Settings to restore incremental updates. See [[WPF Client]].
+Yes, on a schedule you control. Under **App Settings → Offline leak database**, set **auto-update frequency** (`LocalLeakDatabaseAutoUpdateFrequency` / `LeakFilterConfig.AutoUpdateFrequency`, default **7** days; **0** disables). At startup, if offline use is enabled, a `.pkbf` already exists (with its `.ranges` sidecar), and the filter’s header `BuiltUtc` is older than that many days, Passkey refreshes it in the background (incremental HIBP range revalidation). A missing file never triggers an automatic first build — that download is too large. If the sidecar is missing, auto-update is skipped and the existing `.pkbf` is kept; use **Rebuild** in App Settings to restore incremental updates. Closing while a build/update is running: see [[WPF Client]].
 
 ## Why PBKDF2 instead of Argon2?
 

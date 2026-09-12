@@ -67,7 +67,7 @@ namespace Upsilon.Apps.Passkey.UnitTests
                random = UnitTestsHelper.GetRandomInt(100);
                account.Notes = random % 10 == 0 ? $"Service{i}'s Account{j} notes : \n{UnitTestsHelper.GetRandomString(min: 10, max: 150)}" : "";
                account.PasswordUpdateReminderDelay = 0;
-               account.Options = (!string.IsNullOrEmpty(account.Password) && random % 2 == 0) ? AccountOption.WarnIfPasswordLeaked : AccountOption.None;
+               account.Options = !string.IsNullOrEmpty(account.Password) ? (AccountOption)(random % 8) : AccountOption.None;
                File.AppendAllText(logFile, "#");
             }
             File.AppendAllText(logFile, "\n");

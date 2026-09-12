@@ -119,12 +119,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public void ApplyFilters(string identifierFilter, string textFilter, bool changedItemsOnly)
+      /// <summary>
+      /// Applies list filters to visible accounts. With a concrete type filter, an empty match stays empty;
+      /// with All, a service-level text hit with no account match still shows every account.
+      /// </summary>
+      public void ApplyFilters(string identifierFilter, string textFilter, bool changedItemsOnly, IdentifierType identifierTypeFilter)
       {
          _syncAccountViewModels();
 
-         IAccount[] matching = [.. Service.Accounts.Where(x => x.MeetsFilterConditions(identifierFilter, textFilter, changedItemsOnly))];
-         IAccount[] toShow = matching.Length != 0 ? matching : [.. Service.Accounts];
+         IAccount[] matching = [.. Service.Accounts.Where(x => x.MeetsFilterConditions(identifierFilter, textFilter, changedItemsOnly, identifierTypeFilter))];
+         // Preserve prior behavior for text-only global hits on the service: if no account
+         // matched, still list all accounts. When a type filter is active, keep the empty set.
+         IAccount[] toShow = matching.Length != 0 || identifierTypeFilter != IdentifierViewModel.AllIdentifierType
+            ? matching
+            : [.. Service.Accounts];
          HashSet<string> visibleIds = [.. toShow.Select(x => x.ItemId)];
 
          string? selectedId = SelectedAccount?.Account.ItemId;

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.IO;
 using System.Security;
 using System.Windows;
 using System.Windows.Input;
@@ -37,6 +38,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       // one-second idle timer is running (LoginIdleTimeoutSeconds > 0).
       private int _idleSecondsRemaining;
 
+      // Close-while-busy: prompt once (abort, continue headless, or stay open).
+      private bool _forceClose;
+      private bool _exitPromptActive;
+      private bool _awaitingLeakFilterExit;
+
       public MainWindow()
       {
          InitializeComponent();
@@ -57,6 +63,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _password_PB.KeyUp += _credential_TB_KeyUp;
          _idleTimer.Tick += _idleTimer_Tick;
          Loaded += _mainWindow_Loaded;
+         Closing += _window_Closing;
          Closed += _window_Closed;
       }
 
@@ -67,6 +74,157 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          if (AppInfo.TryConsumeConfigLoadError())
          {
             AppServices.Dialogs.Warn(Strings.Msg_ConfigFileError, Strings.Title_ConfigFileError);
+         }
+      }
+
+      private void _window_Closing(object? sender, CancelEventArgs e)
+      {
+         if (_forceClose)
+         {
+            return;
+         }
+
+         // Keep the hidden window until the job finishes and Shutdown runs.
+         if (_awaitingLeakFilterExit)
+         {
+            if (AppServices.OfflineLeakFilterUpdate.IsBusy)
+            {
+               e.Cancel = true;
+            }
+
+            return;
+         }
+
+         if (_exitPromptActive)
+         {
+            e.Cancel = true;
+            return;
+         }
+
+         if (!AppServices.OfflineLeakFilterUpdate.IsBusy)
+         {
+            return;
+         }
+
+         // Vault window already handled Yes/No.
+         if (AppServices.OfflineLeakFilterUpdate.SkipClosePrompt)
+         {
+            AppServices.OfflineLeakFilterUpdate.SkipClosePrompt = false;
+            return;
+         }
+
+         e.Cancel = true;
+         _exitPromptActive = true;
+
+         try
+         {
+            // Vault close may leave this window hidden; show so the prompt has an owner.
+            if (!IsVisible)
+            {
+               Show();
+            }
+
+            if (!AppServices.OfflineLeakFilterUpdate.IsBusy)
+            {
+               _forceClose = true;
+               Close();
+               return;
+            }
+
+            MessageBoxResult result = AppServices.Dialogs.Confirm(
+               Strings.Msg_OfflineLeakUpdateExitPrompt,
+               Strings.Title_OfflineLeakUpdateInProgress,
+               MessageBoxButton.YesNoCancel,
+               MessageBoxImage.Question);
+
+            switch (result)
+            {
+               case MessageBoxResult.Yes:
+                  _continueLeakFilterInBackground();
+                  break;
+
+               case MessageBoxResult.No:
+                  AppServices.OfflineLeakFilterUpdate.Cancel();
+                  _forceClose = true;
+                  Close();
+                  break;
+
+               default:
+                  break;
+            }
+         }
+         finally
+         {
+            _exitPromptActive = false;
+         }
+      }
+
+      private void _continueLeakFilterInBackground()
+      {
+         OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;
+         if (!update.IsBusy)
+         {
+            _forceClose = true;
+            Close();
+            return;
+         }
+
+         _awaitingLeakFilterExit = true;
+         update.ContinueThroughExit = true;
+
+         // EndSession before Hide so vault/clipboard are gone before further filter I/O.
+         _isClosing = true;
+         _stopIdleTimer();
+         _endSession();
+         _resetCredentials();
+
+         List<Window> others = [];
+         foreach (Window window in Application.Current.Windows)
+         {
+            if (!ReferenceEquals(window, this))
+            {
+               others.Add(window);
+            }
+         }
+
+         foreach (Window window in others)
+         {
+            try
+            {
+               window.Close();
+            }
+            catch (InvalidOperationException)
+            {
+               // Already closing / dispatcher shutting down.
+            }
+         }
+
+         Hide();
+         Log.Info("Offline leak filter: continuing update in background after UI close.");
+
+         void onBusyChanged(object? sender, EventArgs args)
+         {
+            if (update.IsBusy)
+            {
+               return;
+            }
+
+            update.BusyChanged -= onBusyChanged;
+            _ = Dispatcher.BeginInvoke(() =>
+            {
+               if (Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
+               {
+                  return;
+               }
+
+               Application.Current?.Shutdown();
+            });
+         }
+
+         update.BusyChanged += onBusyChanged;
+         if (!update.IsBusy)
+         {
+            onBusyChanged(update, EventArgs.Empty);
          }
       }
 
@@ -328,14 +486,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _restoreAppPreferences();
          _resetCredentials();
 
-         if (!stayOpen)
-         {
-            Close();
-         }
-         else
+         if (stayOpen)
          {
             Show();
+            return;
          }
+
+         // Vault already prompted; finish headless or quit without re-asking.
+         OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;
+         if (update.ContinueThroughExit)
+         {
+            update.SkipClosePrompt = false;
+            if (update.IsBusy)
+            {
+               _continueLeakFilterInBackground();
+            }
+            else
+            {
+               _forceClose = true;
+               Close();
+            }
+
+            return;
+         }
+
+         Close();
       }
 
       private static void _restoreAppPreferences()

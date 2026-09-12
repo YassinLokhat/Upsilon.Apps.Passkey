@@ -70,6 +70,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       /// <summary>
       /// Closes this dialog because the vault session ended. No-ops if the window
       /// is already shutting down (setting <see cref="Window.DialogResult"/> then throws).
+      /// When already on the UI thread, sets <see cref="Window.DialogResult"/>
+      /// immediately so nested modals (e.g. UserSettings over the vault) do not
+      /// race a deferred <see cref="Dispatcher.BeginInvoke"/> against still-open
+      /// child dialogs.
       /// </summary>
       public static void DatabaseClosed(this Window window, bool IsClosing)
       {
@@ -78,7 +82,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             return;
          }
 
-         _ = window.Dispatcher.BeginInvoke(() =>
+         void close()
          {
             if (IsClosing || !window.IsLoaded)
             {
@@ -86,7 +90,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             }
 
             window.DialogResult = true;
-         });
+         }
+
+         if (window.Dispatcher.CheckAccess())
+         {
+            close();
+         }
+         else
+         {
+            _ = window.Dispatcher.BeginInvoke(close);
+         }
       }
    }
 }

@@ -9,6 +9,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
@@ -71,6 +72,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = SemanticBrushes.Info;
 
+      public Brush ShowWeakPasswordAlertsColor
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = SemanticBrushes.Info;
+
       public Brush ShowSecuritySettingsAlertsColor
       {
          get;
@@ -102,6 +109,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       } = string.Empty;
 
       public string ShowLeakedPasswordAlerts
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = string.Empty;
+
+      public string ShowWeakPasswordAlerts
       {
          get;
          set => SetProperty(ref field, value);
@@ -142,6 +155,28 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             }
          }
       } = string.Empty;
+
+      /// <summary>
+      /// Identifier-type filter for the services list. Defaults to <see cref="IdentifierViewModel.AllIdentifierType"/> (never persisted).
+      /// </summary>
+      public IdentifierType Type
+      {
+         get;
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               OnPropertyChanged(nameof(TypeLabel));
+               _scheduleRefresh();
+            }
+         }
+      } = IdentifierViewModel.AllIdentifierType;
+
+      /// <summary>Glyph-only choices including All; see <see cref="IdentifierViewModel.FilterTypeChoices"/>.</summary>
+      public IReadOnlyList<IdentifierTypeChoice> TypeChoices { get; } = IdentifierViewModel.FilterTypeChoices;
+
+      /// <summary>Localized tooltip for the current <see cref="Type"/>.</summary>
+      public string TypeLabel => IdentifierViewModel.GetTypeLabel(Type);
 
       public string TextFilter
       {
@@ -193,6 +228,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public ICommand ShowDuplicatedPasswordAlertsCommand { get; }
       public ICommand ShowExpiredPasswordAlertsCommand { get; }
       public ICommand ShowLeakedPasswordAlertsCommand { get; }
+      public ICommand ShowWeakPasswordAlertsCommand { get; }
       public ICommand ShowSecuritySettingsAlertsCommand { get; }
       public ICommand ShowPasskeyQualityAlertsCommand { get; }
 
@@ -252,6 +288,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             _showAccountPasswordAlerts(AlertKinds.PasswordUpdateReminder));
          ShowLeakedPasswordAlertsCommand = new RelayCommand(() =>
             _showAccountPasswordAlerts(AlertKinds.PasswordLeaked));
+         ShowWeakPasswordAlertsCommand = new RelayCommand(() =>
+            _showAccountPasswordAlerts(AlertKinds.WeakAccountPassword));
          ShowSecuritySettingsAlertsCommand = new RelayCommand(() =>
             _ = AppServices.Dialogs.ShowSingleton(() => new SecuritySettingsAlertView()));
          ShowPasskeyQualityAlertsCommand = new RelayCommand(() =>
@@ -282,6 +320,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          Title = _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
          UserId = Strings.Format(nameof(Strings.Msg_UserId), AppServices.Session.User?.ItemId);
+         OnPropertyChanged(nameof(TypeLabel));
 
          foreach (ServiceViewModel service in _serviceViewModelsById.Values)
          {
@@ -370,6 +409,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public void ClearFilters()
       {
          ServiceFilter = TextFilter = IdentifierFilter = string.Empty;
+         Type = IdentifierViewModel.AllIdentifierType;
          ChangedItemsOnly = false;
       }
 
@@ -387,12 +427,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          _ensureServiceViewModels(user);
 
          ServiceViewModel[] visible = [.. _serviceViewModelsById.Values
-            .Where(x => x.Service.MeetsFilterConditions(ServiceFilter, IdentifierFilter, TextFilter, ChangedItemsOnly))
+            .Where(x => x.Service.MeetsFilterConditions(ServiceFilter, IdentifierFilter, TextFilter, ChangedItemsOnly, Type))
             .OrderBy(x => x.Service.ServiceName)];
 
          foreach (ServiceViewModel serviceViewModel in visible)
          {
-            serviceViewModel.ApplyFilters(IdentifierFilter, TextFilter, ChangedItemsOnly);
+            serviceViewModel.ApplyFilters(IdentifierFilter, TextFilter, ChangedItemsOnly, Type);
          }
 
          string? selectedId = SelectedService?.Service.ItemId;

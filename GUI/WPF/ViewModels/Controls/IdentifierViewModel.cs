@@ -23,6 +23,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       private IdentifierType _type = identifier.Type;
 
       /// <summary>
+      /// Sentinel for "any type" UI filters. Never persist to the vault.
+      /// </summary>
+      public static IdentifierType AllIdentifierType => (IdentifierType)byte.MaxValue;
+
+      /// <summary>
+      /// Glyph for the "All" type filter. Display-only; never persisted.
+      /// </summary>
+      public const string AllTypeGlyph = "✳️";
+
+      /// <summary>
       /// Display-only glyphs for identifier kinds. Never persisted.
       /// </summary>
       public static readonly IReadOnlyDictionary<IdentifierType, string> TypeGlyphs = new Dictionary<IdentifierType, string>
@@ -42,6 +52,28 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          new(IdentifierType.AuthenticatorApp, TypeGlyphs[IdentifierType.AuthenticatorApp]),
       ];
 
+      /// <summary>
+      /// Glyph-only choices for the services list identifier-type filter (includes All).
+      /// </summary>
+      public static IReadOnlyList<IdentifierTypeChoice> FilterTypeChoices { get; } = [
+         new(AllIdentifierType, AllTypeGlyph),
+         .. TypeChoices,
+      ];
+
+      /// <summary>
+      /// Localized type label for tooltips; maps <see cref="AllIdentifierType"/> to <see cref="Strings.IdentifierType_All"/>.
+      /// </summary>
+      public static string GetTypeLabel(IdentifierType type) => type switch
+      {
+         IdentifierType.Username => Strings.IdentifierType_Username,
+         IdentifierType.Email => Strings.IdentifierType_Email,
+         IdentifierType.PhoneNumber => Strings.IdentifierType_PhoneNumber,
+         IdentifierType.Passkey => Strings.IdentifierType_Passkey,
+         IdentifierType.AuthenticatorApp => Strings.IdentifierType_AuthenticatorApp,
+         _ when type == AllIdentifierType => Strings.IdentifierType_All,
+         _ => string.Empty,
+      };
+
       public Brush IdentifierBackground => _account.HasChanged("Identifiers") ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
 
       public IdentifierType Type
@@ -60,15 +92,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string TypeGlyph => TypeGlyphs.TryGetValue(Type, out string? glyph) ? glyph : string.Empty;
 
-      public string TypeLabel => Type switch
-      {
-         IdentifierType.Username => Strings.IdentifierType_Username,
-         IdentifierType.Email => Strings.IdentifierType_Email,
-         IdentifierType.PhoneNumber => Strings.IdentifierType_PhoneNumber,
-         IdentifierType.Passkey => Strings.IdentifierType_Passkey,
-         IdentifierType.AuthenticatorApp => Strings.IdentifierType_AuthenticatorApp,
-         _ => string.Empty,
-      };
+      public string TypeLabel => GetTypeLabel(Type);
 
       /// <summary>
       /// Identifier value only (no type glyph).

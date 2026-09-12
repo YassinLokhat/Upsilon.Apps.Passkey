@@ -79,6 +79,10 @@
                       Header="{Binding ShowLeakedPasswordAlerts}"
                       Foreground="{Binding ShowLeakedPasswordAlertsColor}"
                       Command="{Binding ShowLeakedPasswordAlertsCommand}"/>
+            <MenuItem Name="_weakPasswordAlerts_MI"
+                      Header="{Binding ShowWeakPasswordAlerts}"
+                      Foreground="{Binding ShowWeakPasswordAlertsColor}"
+                      Command="{Binding ShowWeakPasswordAlertsCommand}"/>
             <MenuItem Name="_securitySettingsAlerts_MI"
                       Header="{Binding ShowSecuritySettingsAlerts}"
                       Foreground="{Binding ShowSecuritySettingsAlertsColor}"
@@ -105,6 +109,7 @@
                <ColumnDefinition Width="Auto"/>
                <ColumnDefinition Width="*"/>
                <ColumnDefinition Width="Auto"/>
+               <ColumnDefinition Width="Auto"/>
                <ColumnDefinition Width="*"/>
                <ColumnDefinition Width="Auto"/>
                <ColumnDefinition Width="*"/>
@@ -119,16 +124,24 @@
                      Text="{Binding ServiceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             <Label Grid.Column="2"
                    Content="{loc:Loc Label_Identifier}"/>
-            <TextBox Grid.Column="3"
+            <ComboBox Grid.Column="3"
+                     MinWidth="44"
+                     VerticalAlignment="Center"
+                     ItemsSource="{Binding TypeChoices}"
+                     SelectedValue="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     SelectedValuePath="Type"
+                     DisplayMemberPath="Display"
+                     ToolTip="{Binding TypeLabel}"/>
+            <TextBox Grid.Column="4"
                      Text="{Binding IdentifierFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <Label Grid.Column="4"
+            <Label Grid.Column="5"
                    Content="{loc:Loc Label_Text}"/>
-            <TextBox Grid.Column="5"
+            <TextBox Grid.Column="6"
                      Text="{Binding TextFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <CheckBox Grid.Column="6"
+            <CheckBox Grid.Column="7"
                       Content="{loc:Loc Label_UnsavedItemsOnly}"
                       IsChecked="{Binding ChangedItemsOnly, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <Button Grid.Column="7"
+            <Button Grid.Column="8"
                     Content="✕"
                     ToolTip="{loc:Loc Tooltip_ClearFilters}"
                     Command="{Binding ClearFiltersCommand}"/>

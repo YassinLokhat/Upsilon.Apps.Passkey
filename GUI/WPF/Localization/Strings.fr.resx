@@ -368,6 +368,9 @@
   <data name="Label_WarnDuplicatedPassword" xml:space="preserve">
     <value>Alerter si le mot de passe est identique à celui d'un autre compte.</value>
   </data>
+  <data name="Label_WarnWeakPassword" xml:space="preserve">
+    <value>Alerter si le mot de passe est faible.</value>
+  </data>
   <data name="Label_CheckIfLeaked" xml:space="preserve">
     <value>Vérifier les fuites</value>
   </data>
@@ -622,6 +625,9 @@ Annuler : ignorer et conserver le fichier.</value>
   <data name="Msg_ShowLeakedPasswordAlerts" xml:space="preserve">
     <value>Afficher {0} mots de passe divulgués</value>
   </data>
+  <data name="Msg_ShowWeakPasswordAlerts" xml:space="preserve">
+    <value>Afficher {0} mots de passe faibles</value>
+  </data>
   <data name="Msg_ShowSecuritySettingsAlerts" xml:space="preserve">
     <value>Afficher {0} alertes de paramètres de sécurité</value>
   </data>
@@ -657,6 +663,9 @@ Vous ne serez pas prévenu pour :
   <data name="Msg_PasskeyQuality_PasskeyLeaked" xml:space="preserve">
     <value>Couche(s) de passkey divulguée(s) : {0}.</value>
   </data>
+  <data name="Msg_PasskeyQuality_PasskeyReused" xml:space="preserve">
+    <value>Passkey du coffre réutilisée comme mot de passe de compte : {0}.</value>
+  </data>
   <data name="Label_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
     <value>Déconnexion automatique désactivée</value>
   </data>
@@ -686,6 +695,12 @@ Vous ne serez pas prévenu pour :
   </data>
   <data name="Msg_SecuritySettings_NoAccountDuplicateCheck" xml:space="preserve">
     <value>Aucun compte n'a activé le contrôle des mots de passe dupliqués.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountWeakPasswordCheck" xml:space="preserve">
+    <value>Aucun contrôle de mot de passe faible</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountWeakPasswordCheck" xml:space="preserve">
+    <value>Aucun compte n'a activé le contrôle des mots de passe faibles.</value>
   </data>
   <data name="Label_SecuritySettings_NoAccountUpdateReminder" xml:space="preserve">
     <value>Aucun rappel de mise à jour</value>
@@ -752,6 +767,9 @@ Vous ne serez pas prévenu pour :
   </data>
   <data name="Msg_NewAccountPrefix" xml:space="preserve">
     <value>Nouveau compte #</value>
+  </data>
+  <data name="IdentifierType_All" xml:space="preserve">
+    <value>Tous</value>
   </data>
   <data name="IdentifierType_Username" xml:space="preserve">
     <value>Nom d'utilisateur</value>
@@ -1097,6 +1115,13 @@ La construction initiale télécharge tout le corpus (plusieurs dizaines de Gio)
   <data name="Msg_OfflineLeakUpdateComplete" xml:space="preserve">
     <value>Terminé · {0} plages rafraîchies · {1} inchangées · {2:0.0} Mio téléchargés.</value>
   </data>
+  <data name="Msg_OfflineLeakUpdateExitPrompt" xml:space="preserve">
+    <value>Une mise à jour de la base de fuites hors ligne est encore en cours.
+
+Oui — masquer Passkey et terminer la mise à jour en arrière-plan (le processus reste actif jusqu'à la fin, puis se ferme).
+Non — annuler la mise à jour et quitter maintenant.
+Annuler — garder Passkey ouvert.</value>
+  </data>
   <data name="Msg_OfflineLeakBuildFailed" xml:space="preserve">
     <value>Échec de la construction de la base de fuites hors ligne :
 {0}</value>
@@ -1112,6 +1137,9 @@ La construction initiale télécharge tout le corpus (plusieurs dizaines de Gio)
   </data>
   <data name="Title_OfflineLeakDatabase" xml:space="preserve">
     <value>Base de fuites hors ligne</value>
+  </data>
+  <data name="Title_OfflineLeakUpdateInProgress" xml:space="preserve">
+    <value>Mise à jour de la base de fuites hors ligne en cours</value>
   </data>
   <data name="Msg_DeleteOfflineLeakDatabase" xml:space="preserve">
     <value>Supprimer définitivement la base de fuites hors ligne partagée de cette machine ?

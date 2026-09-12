@@ -90,6 +90,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       public event EventHandler? ProgressChanged;
 
       /// <summary>
+      /// When true, process exit waits without cancelling so a consented background refresh can finish.
+      /// </summary>
+      public bool ContinueThroughExit { get; set; }
+
+      /// <summary>
+      /// When true, MainWindow skips the exit prompt (vault window already handled Yes/No).
+      /// </summary>
+      public bool SkipClosePrompt { get; set; }
+
+      /// <summary>
       /// Cancels the in-flight run, if any. Safe to call when idle.
       /// </summary>
       public void Cancel()
@@ -115,14 +125,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       }
 
       /// <summary>
-      /// Cancels any in-flight run and blocks until it finishes or
-      /// <paramref name="timeout"/> elapses. Used on process exit so a refresh
-      /// cannot outlive the UI.
+      /// Blocks until idle or <paramref name="timeout"/> without cancelling. Returns false if still busy when the timeout elapses.
       /// </summary>
-      public bool WaitForIdle(TimeSpan timeout)
+      public bool WaitUntilIdle(TimeSpan timeout)
       {
-         Cancel();
-
          if (!IsBusy)
          {
             return true;
@@ -137,6 +143,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          {
             return !IsBusy;
          }
+      }
+
+      /// <summary>
+      /// Cancels any in-flight run, then waits like <see cref="WaitUntilIdle"/>. Used on exit when <see cref="ContinueThroughExit"/> is false.
+      /// </summary>
+      public bool WaitForIdle(TimeSpan timeout)
+      {
+         Cancel();
+         return WaitUntilIdle(timeout);
       }
 
       /// <summary>
