@@ -368,6 +368,9 @@
   <data name="Label_WarnDuplicatedPassword" xml:space="preserve">
     <value>Warn if the password is same as another account's password.</value>
   </data>
+  <data name="Label_WarnWeakPassword" xml:space="preserve">
+    <value>Warn if the password is weak.</value>
+  </data>
   <data name="Label_CheckIfLeaked" xml:space="preserve">
     <value>Check if leaked</value>
   </data>
@@ -692,6 +695,12 @@ You will not be alerted about:
   </data>
   <data name="Msg_SecuritySettings_NoAccountDuplicateCheck" xml:space="preserve">
     <value>No account has duplicated-password checks enabled.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountWeakPasswordCheck" xml:space="preserve">
+    <value>No weak-password check on any account</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountWeakPasswordCheck" xml:space="preserve">
+    <value>No account has weak-password checks enabled.</value>
   </data>
   <data name="Label_SecuritySettings_NoAccountUpdateReminder" xml:space="preserve">
     <value>No update reminder on any account</value>

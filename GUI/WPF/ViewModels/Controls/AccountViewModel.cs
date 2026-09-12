@@ -197,6 +197,28 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
+      public bool WarnIfWeakPassword
+      {
+         get => Account.Options.HasFlag(AccountOption.WarnIfWeakPassword);
+         set
+         {
+            if (WarnIfWeakPassword != value)
+            {
+               if (value)
+               {
+                  Account.Options |= AccountOption.WarnIfWeakPassword;
+               }
+               else
+               {
+                  Account.Options &= ~AccountOption.WarnIfWeakPassword;
+               }
+
+               OnPropertyChanged(nameof(WarnIfWeakPassword));
+               AppServices.Session.Database?.RefreshAlerts();
+            }
+         }
+      }
+
       public bool PasswordLeaked
          => Account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
                && AppServices.Session.Alerts

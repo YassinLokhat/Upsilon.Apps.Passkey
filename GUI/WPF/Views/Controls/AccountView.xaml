@@ -224,6 +224,8 @@
                   <CheckBox IsChecked="{Binding WarnIfDuplicatedPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Content="{loc:Loc Label_WarnDuplicatedPassword}"/>
                </StackPanel>
+               <CheckBox IsChecked="{Binding WarnIfWeakPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Content="{loc:Loc Label_WarnWeakPassword}"/>
             </StackPanel>
          </GroupBox>
       </Grid>

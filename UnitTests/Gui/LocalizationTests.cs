@@ -95,9 +95,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
             .Should().Be(Strings.Label_WarnPasswordLeak);
 
          string combined = EnumDisplayHelper.FormatFieldValue("Options",
-            $"{nameof(AccountOption.WarnIfPasswordLeaked)}, {nameof(AccountOption.WarnIfDuplicatedPassword)}");
+            $"{nameof(AccountOption.WarnIfPasswordLeaked)}, {nameof(AccountOption.WarnIfDuplicatedPassword)}, {nameof(AccountOption.WarnIfWeakPassword)}");
 
-         _ = combined.Should().Be($"{Strings.Label_WarnPasswordLeak}, {Strings.Label_WarnDuplicatedPassword}");
+         _ = combined.Should().Be(
+            $"{Strings.Label_WarnPasswordLeak}, {Strings.Label_WarnDuplicatedPassword}, {Strings.Label_WarnWeakPassword}");
       }
 
       [TestMethod]

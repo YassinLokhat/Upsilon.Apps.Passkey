@@ -368,6 +368,9 @@
   <data name="Label_WarnDuplicatedPassword" xml:space="preserve">
     <value>Alerter si le mot de passe est identique à celui d'un autre compte.</value>
   </data>
+  <data name="Label_WarnWeakPassword" xml:space="preserve">
+    <value>Alerter si le mot de passe est faible.</value>
+  </data>
   <data name="Label_CheckIfLeaked" xml:space="preserve">
     <value>Vérifier les fuites</value>
   </data>
@@ -692,6 +695,12 @@ Vous ne serez pas prévenu pour :
   </data>
   <data name="Msg_SecuritySettings_NoAccountDuplicateCheck" xml:space="preserve">
     <value>Aucun compte n'a activé le contrôle des mots de passe dupliqués.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountWeakPasswordCheck" xml:space="preserve">
+    <value>Aucun contrôle de mot de passe faible</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountWeakPasswordCheck" xml:space="preserve">
+    <value>Aucun compte n'a activé le contrôle des mots de passe faibles.</value>
   </data>
   <data name="Label_SecuritySettings_NoAccountUpdateReminder" xml:space="preserve">
     <value>Aucun rappel de mise à jour</value>

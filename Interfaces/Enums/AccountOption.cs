@@ -6,5 +6,6 @@
       None = 0b0000,
       WarnIfPasswordLeaked = 0b0001,
       WarnIfDuplicatedPassword = 0b0010,
+      WarnIfWeakPassword = 0b0100,
    }
 }

@@ -158,6 +158,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.QrAutoCloseDisabled);
          _ = posture.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
          _ = posture.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
+         _ = posture.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountWeakPasswordCheck);
          _ = posture.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
 
          database.User.Settings.LogoutTimeout = 5;
@@ -198,9 +199,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IVaultSecuritySettingsAlert posture = alerts.OfType<IVaultSecuritySettingsAlert>().Single();
          _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
          _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
+         _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountWeakPasswordCheck);
          _ = posture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
 
-         // Two accounts with leak, still zero duplicate / reminder → warn only those two.
+         // Two accounts with leak, still zero duplicate / weak / reminder → warn only those.
          account.Options = AccountOption.WarnIfPasswordLeaked;
          IAccount alsoLeaked = service.AddAccount("B", UnitTestsHelper.Ids("b@test"), "other-secret");
          alsoLeaked.Options = AccountOption.WarnIfPasswordLeaked;
@@ -210,6 +212,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IVaultSecuritySettingsAlert still = afterLeak.OfType<IVaultSecuritySettingsAlert>().Single();
          _ = still.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
          _ = still.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
+         _ = still.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountWeakPasswordCheck);
          _ = still.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
 
          // A third account without leak does not revive NoAccountLeakCheck.
@@ -219,9 +222,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          IVaultSecuritySettingsAlert mixedPosture = mixed.OfType<IVaultSecuritySettingsAlert>().Single();
          _ = mixedPosture.Issues.Should().NotHaveFlag(SecuritySettingsIssue.NoAccountLeakCheck);
          _ = mixedPosture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountDuplicateCheck);
+         _ = mixedPosture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountWeakPasswordCheck);
          _ = mixedPosture.Issues.Should().HaveFlag(SecuritySettingsIssue.NoAccountUpdateReminder);
 
-         account.Options = AccountOption.WarnIfPasswordLeaked | AccountOption.WarnIfDuplicatedPassword;
+         account.Options = AccountOption.WarnIfPasswordLeaked
+            | AccountOption.WarnIfDuplicatedPassword
+            | AccountOption.WarnIfWeakPassword;
          account.PasswordUpdateReminderDelay = 6;
 
          IAlert[] cleared = UnitTestsHelper.WaitForAlerts(database, database.Save);
@@ -305,6 +311,38 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
 
          _ = new ActivityReviewAlert([infoOnly]).Severity.Should().Be(AlertSeverity.Info);
          _ = new ActivityReviewAlert([infoOnly, export]).Severity.Should().Be(AlertSeverity.Critical);
+      }
+
+      [TestMethod]
+      /*
+       * WeakAccountPassword only includes accounts that opted in via
+       * WarnIfWeakPassword (same gating pattern as leak checks).
+      */
+      public void Case09_WeakAccountPassword_RespectsPerAccountOption()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         database.User!.Settings.AlertsToNotify = new AlertKindList([AlertKinds.WeakAccountPassword]);
+
+         IService service = database.User.AddService("WeakService");
+         IAccount watched = service.AddAccount("Watched", UnitTestsHelper.Ids("watched@test"), "Ab1!");
+         IAccount ignored = service.AddAccount("Ignored", UnitTestsHelper.Ids("ignored@test"), "Ab1!");
+         IAccount strong = service.AddAccount("Strong", UnitTestsHelper.Ids("strong@test"), "Correct-Horse-Battery1");
+         watched.Options = AccountOption.WarnIfWeakPassword;
+         ignored.Options = AccountOption.None;
+         strong.Options = AccountOption.WarnIfWeakPassword;
+
+         IAlert[] alerts = UnitTestsHelper.WaitForAlertKind(database, AlertKinds.WeakAccountPassword, database.Save);
+
+         IAccountsAlert weak = alerts.OfType<IAccountsAlert>()
+            .Single(w => w.Kind == AlertKinds.WeakAccountPassword);
+         _ = weak.Accounts.Should().Contain(watched);
+         _ = weak.Accounts.Should().NotContain(ignored);
+         _ = weak.Accounts.Should().NotContain(strong);
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
       }
    }
 }

@@ -17,5 +17,7 @@ namespace Upsilon.Apps.Passkey.Interfaces.Enums
       NoAccountDuplicateCheck = 0b0000_0001_0000,
       /// <summary>No account has a password-update reminder delay (requires at least one account).</summary>
       NoAccountUpdateReminder = 0b0000_0010_0000,
+      /// <summary>No account has weak-password checks enabled (requires at least one account).</summary>
+      NoAccountWeakPasswordCheck = 0b0000_0100_0000,
    }
 }

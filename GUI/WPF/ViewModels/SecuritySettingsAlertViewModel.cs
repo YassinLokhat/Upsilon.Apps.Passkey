@@ -131,6 +131,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                Strings.Msg_SecuritySettings_NoAccountDuplicateCheck);
          }
 
+         if (issues.HasFlag(SecuritySettingsIssue.NoAccountWeakPasswordCheck))
+         {
+            yield return new(
+               Strings.Label_SecuritySettings_NoAccountWeakPasswordCheck,
+               Strings.Msg_SecuritySettings_NoAccountWeakPasswordCheck);
+         }
+
          if (issues.HasFlag(SecuritySettingsIssue.NoAccountUpdateReminder))
          {
             yield return new(

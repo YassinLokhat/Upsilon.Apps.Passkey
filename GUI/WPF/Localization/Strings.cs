@@ -169,6 +169,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Label_AlertType => Get(nameof(Label_AlertType));
       public static string Label_AlertTypeColumn => Get(nameof(Label_AlertTypeColumn));
       public static string Label_WarnPasswordLeak => Get(nameof(Label_WarnPasswordLeak));
+      public static string Label_WarnWeakPassword => Get(nameof(Label_WarnWeakPassword));
       public static string Menu_AppSettings => Get(nameof(Menu_AppSettings));
       public static string Menu_Copy => Get(nameof(Menu_Copy));
       public static string Menu_DeleteUser => Get(nameof(Menu_DeleteUser));
@@ -264,6 +265,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_SecuritySettings_NoAccountLeakCheck => Get(nameof(Msg_SecuritySettings_NoAccountLeakCheck));
       public static string Label_SecuritySettings_NoAccountDuplicateCheck => Get(nameof(Label_SecuritySettings_NoAccountDuplicateCheck));
       public static string Msg_SecuritySettings_NoAccountDuplicateCheck => Get(nameof(Msg_SecuritySettings_NoAccountDuplicateCheck));
+      public static string Label_SecuritySettings_NoAccountWeakPasswordCheck => Get(nameof(Label_SecuritySettings_NoAccountWeakPasswordCheck));
+      public static string Msg_SecuritySettings_NoAccountWeakPasswordCheck => Get(nameof(Msg_SecuritySettings_NoAccountWeakPasswordCheck));
       public static string Label_SecuritySettings_NoAccountUpdateReminder => Get(nameof(Label_SecuritySettings_NoAccountUpdateReminder));
       public static string Msg_SecuritySettings_NoAccountUpdateReminder => Get(nameof(Msg_SecuritySettings_NoAccountUpdateReminder));
       public static string Label_SecuritySettings_IdleLoginDisabled => Get(nameof(Label_SecuritySettings_IdleLoginDisabled));
