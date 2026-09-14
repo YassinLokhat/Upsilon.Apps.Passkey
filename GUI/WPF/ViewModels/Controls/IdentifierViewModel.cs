@@ -17,9 +17,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public string Display => Glyph;
    }
 
-   internal sealed class IdentifierViewModel(IAccount account, IIdentifier identifier) : ObservableObject, IThemeAware, ILanguageAware
+   internal sealed class IdentifierViewModel(IAccount account, IIdentifier identifier, bool isNew = false) : ObservableObject, IThemeAware, ILanguageAware
    {
       private readonly IAccount _account = account;
+      private readonly bool _isNew = isNew;
+      private readonly IdentifierType _baselineType = identifier.Type;
+      private readonly string _baselineValue = identifier.Value ?? string.Empty;
       private IdentifierType _type = identifier.Type;
 
       /// <summary>
@@ -74,7 +77,30 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          _ => string.Empty,
       };
 
-      public Brush IdentifierBackground => _account.HasChanged(nameof(_account.Identifiers)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
+      /// <summary>
+      /// Dirty highlight for this row only. Collection-level
+      /// <c>HasChanged(Identifiers)</c> is true after any edit, so gray state
+      /// compares against the baseline captured at construction.
+      /// </summary>
+      public Brush IdentifierBackground
+      {
+         get
+         {
+            if (!_account.HasChanged(nameof(_account.Identifiers)))
+            {
+               return FieldStateBrushes.UnchangedBrush2;
+            }
+
+            if (_isNew
+               || Type != _baselineType
+               || !string.Equals(Identifier, _baselineValue, StringComparison.Ordinal))
+            {
+               return FieldStateBrushes.ChangedBrush;
+            }
+
+            return FieldStateBrushes.UnchangedBrush2;
+         }
+      }
 
       public IdentifierType Type
       {
@@ -132,7 +158,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public Identifier ToIdentifier() => new(Type, Identifier);
 
       public IdentifierViewModel(IAccount account, string value)
-         : this(account, new Identifier(IdentifierTypeDetector.Detect(value), value ?? string.Empty))
+         : this(account, new Identifier(IdentifierTypeDetector.Detect(value), value ?? string.Empty), isNew: true)
       {
       }
 

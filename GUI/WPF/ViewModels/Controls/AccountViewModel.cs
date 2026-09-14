@@ -288,6 +288,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
          Account.Identifiers = [.. Identifiers.Select(x => x.ToIdentifier())];
 
+         foreach (IdentifierViewModel identifier in Identifiers)
+         {
+            identifier.Refresh();
+         }
+
          _notify(string.Empty);
       }
 
