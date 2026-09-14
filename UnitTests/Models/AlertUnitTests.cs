@@ -344,5 +344,48 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * Overlapping RefreshAlerts must not leave CoreAlerts empty: the last
+       * completed generation publishes, and superseded scans must not wipe it.
+      */
+      public void Case10_OverlappingRefreshAlerts_KeepsLatestDuplicatedResult()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         database.User!.Settings.AlertsToNotify = new AlertKindList([AlertKinds.DuplicatedPasswords]);
+
+         IService service = database.User.AddService("RaceService");
+         IAccount a = service.AddAccount("A", UnitTestsHelper.Ids("a@test"), "shared-secret");
+         IAccount b = service.AddAccount("B", UnitTestsHelper.Ids("b@test"), "shared-secret");
+         a.Options = AccountOption.WarnIfDuplicatedPassword;
+         b.Options = AccountOption.WarnIfDuplicatedPassword;
+
+         IAlert[] alerts = UnitTestsHelper.WaitForAlertKind(
+            database,
+            AlertKinds.DuplicatedPasswords,
+            () =>
+            {
+               database.RefreshAlerts();
+               database.RefreshAlerts();
+               database.RefreshAlerts();
+            });
+
+         IAccountsAlert duplicate = alerts.OfType<IAccountsAlert>()
+            .Single(w => w.Kind == AlertKinds.DuplicatedPasswords);
+         _ = duplicate.Accounts.Should().BeEquivalentTo([a, b]);
+
+         // A quiet follow-up scan must still see the same snapshot in CoreAlerts.
+         _ = UnitTestsHelper.WaitForAlerts(database, database.RefreshAlerts);
+         _ = database.CoreAlerts[AlertKinds.DuplicatedPasswords]
+            .OfType<IAccountsAlert>()
+            .Single()
+            .Accounts.Should().BeEquivalentTo([a, b]);
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

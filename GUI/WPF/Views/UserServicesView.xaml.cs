@@ -62,25 +62,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
          Loaded += _userServicesView_Loaded;
          Closing += _window_Closing;
-
-         IAlert[] notified = _notifiedAlerts();
-         if (notified.Length != 0)
-         {
-            _updateAlertsMenu(notified);
-         }
       }
 
       private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
       {
-         _ = Dispatcher.BeginInvoke(() =>
-         {
-            if (_isClosing || !IsLoaded)
-            {
-               return;
-            }
-
-            _updateAlertsMenu(_notifiedAlerts());
-         });
+         // May fire before Loaded (login scan often finishes first). Defer via
+         // the dispatcher; _refreshAlertsMenuFromSession no-ops until Loaded,
+         // and Loaded itself re-reads the broker so early events are not lost.
+         _ = Dispatcher.BeginInvoke(() => _refreshAlertsMenuFromSession());
       }
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
@@ -110,6 +99,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private void _userServicesView_Loaded(object sender, RoutedEventArgs e)
       {
          this.PostLoadSetup();
+
+         // Login may complete the alert scan before IsLoaded; apply whatever
+         // the broker already holds so the menu is not stuck empty until Save.
+         _refreshAlertsMenuFromSession();
 
          if ((_database.User?.Settings.AlertsToNotify.Count ?? 0) == 0)
          {

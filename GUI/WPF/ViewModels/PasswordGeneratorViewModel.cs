@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -46,7 +47,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public string GeneratedPassword
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               // Pasted or edited text must not call sync PasswordLeaked on the
+               // UI thread; schedule an async check and paint from cached state.
+               _scheduleLeakCheck();
+            }
+         }
       } = string.Empty;
 
       public bool IncludeNumerics
@@ -109,6 +118,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = string.Empty;
 
+      public Brush PasswordBackground
+         => SecretFieldBrushes.Background(isDirty: false, isNotifiedLeak: _isLeaked);
+
       public static Visibility InsertVisibility => AppServices.Session.User is not null ? Visibility.Visible : Visibility.Collapsed;
 
       public ICommand RegenerateCommand { get; }
@@ -136,6 +148,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       // instead of overwriting the result of the request that came after it.
       private int _generation;
 
+      // Separate from _generation: paste/edit leak checks must not cancel an
+      // in-flight regenerate, and a slow leak answer must not paint a newer paste.
+      private int _leakCheck;
+      private bool _isLeaked;
+
       internal void GeneratePassword()
       {
          GeneratedPassword = string.Empty;
@@ -161,6 +178,40 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          catch (OperationCanceledException ex)
          {
             Log.Error(ex, "Failed to generate a password");
+         }
+      }
+
+      private void _scheduleLeakCheck()
+      {
+         _isLeaked = false;
+         OnPropertyChanged(nameof(PasswordBackground));
+         _ = _refreshLeakAsync(Interlocked.Increment(ref _leakCheck));
+      }
+
+      private async Task _refreshLeakAsync(int stamp)
+      {
+         if (!CheckIfLeaked || string.IsNullOrEmpty(GeneratedPassword))
+         {
+            return;
+         }
+
+         string password = GeneratedPassword;
+
+         try
+         {
+            bool leaked = await AppServices.PasswordFactory
+               .PasswordLeakedAsync(password)
+               .ConfigureAwait(true);
+
+            if (stamp == Volatile.Read(ref _leakCheck))
+            {
+               _isLeaked = leaked;
+               OnPropertyChanged(nameof(PasswordBackground));
+            }
+         }
+         catch (OperationCanceledException)
+         {
+            // Fail-open UI: leave the field unmarked rather than flash danger.
          }
       }
 

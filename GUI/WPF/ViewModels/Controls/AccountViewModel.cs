@@ -88,6 +88,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             {
                Account.Password = value;
                _notify(nameof(Password));
+               AppServices.Session.Database?.RefreshAlerts();
             }
          }
       }
