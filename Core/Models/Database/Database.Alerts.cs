@@ -96,9 +96,21 @@ namespace Upsilon.Apps.Passkey.Core.Models
                }
             }
 
+            // Events fire outside the lock; discard if a newer scan superseded us
+            // between the write and publish (otherwise a stale completion wins).
+            if (generation != Volatile.Read(ref _alertScanGeneration))
+            {
+               return;
+            }
+
             foreach (KeyValuePair<string, IReadOnlyList<IAlert>> pair in snapshot)
             {
                CoreAlertsChanged?.Invoke(this, new AlertsChangedEventArgs(pair.Key, pair.Value));
+            }
+
+            if (generation != Volatile.Read(ref _alertScanGeneration))
+            {
+               return;
             }
 
             CoreAlertsScanCompleted?.Invoke(this, EventArgs.Empty);
