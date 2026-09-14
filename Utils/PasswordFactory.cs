@@ -387,7 +387,14 @@ namespace Upsilon.Apps.Passkey.Utils
             yield break;
          }
 
-         StringBuilder stringBuilder = new(length);
+         List<string> alphabetElements = [];
+         System.Globalization.TextElementEnumerator enumerator = System.Globalization.StringInfo.GetTextElementEnumerator(alphabet);
+         while (enumerator.MoveNext())
+         {
+            alphabetElements.Add(enumerator.GetTextElement());
+         }
+
+         StringBuilder stringBuilder = new(length * 2);
 
          for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++)
          {
@@ -395,7 +402,7 @@ namespace Upsilon.Apps.Passkey.Utils
 
             for (int i = 0; i < length; i++)
             {
-               _ = stringBuilder.Append(alphabet[RandomNumberGenerator.GetInt32(alphabet.Length)]);
+               _ = stringBuilder.Append(alphabetElements[RandomNumberGenerator.GetInt32(alphabetElements.Count)]);
             }
 
             yield return stringBuilder.ToString();

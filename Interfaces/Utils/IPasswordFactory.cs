@@ -20,6 +20,8 @@
       /// <summary>
       /// Generate a random password.
       /// </summary>
+      /// <param name="length">Number of distinct elements in the final password.</param>
+      /// <param name="alphabet">Allowed characters. Multi-byte characters and emojis (surrogate pairs) are preserved as single distinct elements.</param>
       /// <param name="checkIfLeaked">
       /// When <see langword="true"/>, reject candidates found in the leak corpora
       /// (up to a small retry budget; may return empty if every attempt is leaked
