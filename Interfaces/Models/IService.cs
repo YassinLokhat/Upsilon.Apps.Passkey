@@ -10,7 +10,7 @@
 
       string Notes { get; set; }
 
-      IEnumerable<IAccount> Accounts { get; }
+      IEnumerable<IAccount> Accounts { get; set; }
 
       IAccount AddAccount(string label, IEnumerable<IIdentifier> identifiers, string password);
 

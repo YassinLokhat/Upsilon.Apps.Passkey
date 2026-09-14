@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
@@ -35,6 +35,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public ICommand DeleteAccountCommand { get; }
       public ICommand OpenUrlCommand { get; }
       public ICommand ViewActivitiesCommand { get; }
+      public ICommand MoveAccountUpCommand { get; }
+      public ICommand MoveAccountDownCommand { get; }
 
       public Brush ServiceNameBackground => Service.HasChanged(nameof(ServiceName)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string ServiceName
@@ -96,6 +98,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          DeleteAccountCommand = new RelayCommand(_deleteAccount);
          OpenUrlCommand = new RelayCommand(_openUrl);
          ViewActivitiesCommand = new RelayCommand(_viewActivities);
+         MoveAccountUpCommand = new RelayCommand(_moveAccountUp);
+         MoveAccountDownCommand = new RelayCommand(_moveAccountDown);
       }
 
       public void OnLanguageChanged()
@@ -277,6 +281,52 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                return view;
             },
             configure: view => view.ViewModel.SearchCriteria = itemId);
+      }
+
+      private void _moveAccountUp()
+      {
+         if (SelectedAccount is null)
+         {
+            return;
+         }
+
+         int index = Accounts.IndexOf(SelectedAccount);
+         if (MoveAccount(index, index - 1))
+         {
+            SelectedAccount = Accounts[index - 1];
+         }
+      }
+
+      private void _moveAccountDown()
+      {
+         if (SelectedAccount is null)
+         {
+            return;
+         }
+
+         int index = Accounts.IndexOf(SelectedAccount);
+         if (MoveAccount(index, index + 1))
+         {
+            SelectedAccount = Accounts[index + 1];
+         }
+      }
+
+      public bool MoveAccount(int oldIndex, int newIndex)
+      {
+         if (oldIndex < 0
+            || newIndex < 0
+            || newIndex >= Accounts.Count)
+         {
+            return false;
+         }
+
+         (Accounts[newIndex], Accounts[oldIndex]) = (Accounts[oldIndex], Accounts[newIndex]);
+
+         Service.Accounts = [.. Accounts.Select(x => x.Account)];
+
+         _notify("Account");
+
+         return true;
       }
 
       public override string ToString() => $"{(Service.HasChanged() ? "* " : string.Empty)}{Service}";

@@ -98,12 +98,22 @@
                <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
                </Grid.ColumnDefinitions>
                <Button Grid.Column="0"
                        Command="{Binding AddAccountCommand}"
                        ToolTip="{loc:Loc Tooltip_AddAccount}"
                        Content="+"/>
                <Button Grid.Column="1"
+                          Content="🠉"
+                          ToolTip="{loc:Loc Tooltip_MoveUp}"
+                          Command="{Binding MoveAccountUpCommand}"/>
+               <Button Grid.Column="2"
+                          Command="{Binding MoveAccountDownCommand}"
+                          ToolTip="{loc:Loc Tooltip_MoveDown}"
+                          Content="🠋"/>
+               <Button Grid.Column="3"
                        Command="{Binding DeleteAccountCommand}"
                        ToolTip="{loc:Loc Tooltip_DeleteAccount}"
                        Content="✕"/>

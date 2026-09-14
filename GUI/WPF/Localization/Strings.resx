@@ -981,6 +981,12 @@ You will not be alerted about:
   <data name="FieldName_Url" xml:space="preserve">
     <value>url</value>
   </data>
+  <data name="FieldName_Services" xml:space="preserve">
+    <value>services</value>
+  </data>
+  <data name="FieldName_Accounts" xml:space="preserve">
+    <value>accounts</value>
+  </data>
   <data name="FieldName_LogoutTimeout" xml:space="preserve">
     <value>logout timeout</value>
   </data>

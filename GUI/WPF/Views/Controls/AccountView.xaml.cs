@@ -82,25 +82,34 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
+         bool sameAccount = ReferenceEquals(_viewModel, dataContext) && dataContext.Identifiers.Count > 0;
          DataContext = _viewModel = dataContext;
 
-         _viewModel.Identifiers.Clear();
+         // Keep existing IdentifierViewModels (and their per-row baselines) when
+         // re-selecting the same account after switching away.
+         if (!sameAccount)
+         {
+            _viewModel.Identifiers.Clear();
 
-         if (!_viewModel.Account.Identifiers.Any())
-         {
-            _viewModel.AddIdentifier(string.Empty);
-         }
-         else
-         {
-            _viewModel.Identifiers = [.. _viewModel.Account.Identifiers.Select(x => new IdentifierViewModel(_viewModel.Account, x))];
-            foreach (IdentifierViewModel identifier in _viewModel.Identifiers)
+            if (!_viewModel.Account.Identifiers.Any())
             {
-               _viewModel.AddIdentifier(identifier);
+               _viewModel.AddIdentifier(string.Empty);
+            }
+            else
+            {
+               _viewModel.Identifiers = [.. _viewModel.Account.Identifiers.Select(x => new IdentifierViewModel(_viewModel.Account, x))];
+               foreach (IdentifierViewModel identifier in _viewModel.Identifiers)
+               {
+                  _viewModel.AddIdentifier(identifier);
+               }
             }
          }
 
          _identifiers_LB.ItemsSource = _viewModel.Identifiers;
-         _identifiers_LB.SelectedIndex = 0;
+         if (_identifiers_LB.SelectedIndex < 0 && _viewModel.Identifiers.Count > 0)
+         {
+            _identifiers_LB.SelectedIndex = 0;
+         }
 
          _password_VPB.Password = _viewModel.Password;
          _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
