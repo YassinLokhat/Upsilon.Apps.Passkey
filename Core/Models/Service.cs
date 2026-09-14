@@ -18,7 +18,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
       IDatabase IItem.Database => Host.AsDatabase;
 
       IUser IService.User => Host.Touch(User);
-      IEnumerable<IAccount> IService.Accounts => [.. Host.Touch(Accounts)];
+      //IEnumerable<IAccount> IService.Accounts => [.. Host.Touch(Accounts)];
+      IEnumerable<IAccount> IService.Accounts
+      {
+         get => Host.Touch(Accounts);
+         set => Accounts = Host.AutoSave.UpdateValue(ItemId,
+            fieldName: nameof(Accounts),
+            needsReview: false,
+            oldValue: Accounts,
+            newValue: _toAccountList(value),
+            readableValue: $"({string.Join(", ", value.Select(x => x.ToString()))})");
+      }
 
       string IService.ServiceName
       {
@@ -202,5 +212,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private static List<Identifier> _toIdentifierList(IEnumerable<IIdentifier> identifiers)
          => [.. identifiers.Select(x => x as Identifier ?? new Identifier(x.Type, x.Value))];
+
+      private static List<Account> _toAccountList(IEnumerable<IAccount> accounts)
+         => [.. accounts.Where(x => x is Account).Select(x => (Account)x)];
    }
 }

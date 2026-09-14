@@ -333,6 +333,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string FieldName_Options => Get(nameof(FieldName_Options));
       public static string FieldName_ServiceName => Get(nameof(FieldName_ServiceName));
       public static string FieldName_Url => Get(nameof(FieldName_Url));
+      public static string FieldName_Services => Get(nameof(FieldName_Services));
+      public static string FieldName_Accounts => Get(nameof(FieldName_Accounts));
       public static string FieldName_LogoutTimeout => Get(nameof(FieldName_LogoutTimeout));
       public static string FieldName_CleaningClipboardTimeout => Get(nameof(FieldName_CleaningClipboardTimeout));
       public static string FieldName_ShowPasswordDelay => Get(nameof(FieldName_ShowPasswordDelay));

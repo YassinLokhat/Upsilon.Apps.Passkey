@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -287,11 +287,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
 
          Account.Identifiers = [.. Identifiers.Select(x => x.ToIdentifier())];
-
-         foreach (IdentifierViewModel? identifier in Identifiers.Except([sender]).Cast<IdentifierViewModel?>())
-         {
-            identifier?.Refresh();
-         }
 
          _notify(string.Empty);
       }

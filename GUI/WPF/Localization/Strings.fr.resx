@@ -981,6 +981,12 @@ Vous ne serez pas prévenu pour :
   <data name="FieldName_Url" xml:space="preserve">
     <value>url</value>
   </data>
+  <data name="FieldName_Services" xml:space="preserve">
+    <value>services</value>
+  </data>
+  <data name="FieldName_Accounts" xml:space="preserve">
+    <value>comptes</value>
+  </data>
   <data name="FieldName_LogoutTimeout" xml:space="preserve">
     <value>délais de session</value>
   </data>

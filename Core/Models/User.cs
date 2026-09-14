@@ -18,7 +18,16 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       IDatabase IItem.Database => Host.AsDatabase;
 
-      IEnumerable<IService> IUser.Services => [.. Host.Touch(Services)];
+      IEnumerable<IService> IUser.Services
+      {
+         get => Host.Touch(Services);
+         set => Services = Host.AutoSave.UpdateValue(ItemId,
+            fieldName: nameof(Services),
+            needsReview: false,
+            oldValue: Services,
+            newValue: _toServiceList(value),
+            readableValue: $"({string.Join(", ", value.Select(x => x.ServiceName))})");
+      }
 
       string IUser.Username
       {
@@ -352,5 +361,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public bool HasChanged() => Host.HasPendingChanges(ItemId) || Services.Any(x => x.HasChanged());
 
       public void Dispose() => _timer?.Dispose();
+
+      private static List<Service> _toServiceList(IEnumerable<IService> services)
+         => [.. services.Where(x => x is Service).Select(x => (Service)x)];
    }
 }

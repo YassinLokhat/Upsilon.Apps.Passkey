@@ -11,7 +11,7 @@
 
       ISettings Settings { get; set; }
 
-      IEnumerable<IService> Services { get; }
+      IEnumerable<IService> Services { get; set; }
 
       IService AddService(string serviceName);
 

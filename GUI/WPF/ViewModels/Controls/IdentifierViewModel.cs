@@ -74,7 +74,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          _ => string.Empty,
       };
 
-      public Brush IdentifierBackground => _account.HasChanged("Identifiers") ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
+      public Brush IdentifierBackground => _account.HasChanged(nameof(_account.Identifiers)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
 
       public IdentifierType Type
       {
