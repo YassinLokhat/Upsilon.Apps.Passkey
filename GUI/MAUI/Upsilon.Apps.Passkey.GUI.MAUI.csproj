@@ -77,4 +77,8 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Core\Upsilon.Apps.Passkey.Core.csproj" />
+	  <ProjectReference Include="..\..\Utils\Upsilon.Apps.Passkey.Utils.csproj" />
+	</ItemGroup>
 </Project>
