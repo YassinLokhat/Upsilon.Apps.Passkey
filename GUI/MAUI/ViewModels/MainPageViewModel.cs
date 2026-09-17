@@ -12,5 +12,11 @@
          get;
          set;
       } = AppTitle;
+
+      public string CredentialsLabel { get; set; } = "Username : ";
+
+      public string ActualCredential { get; set; } = string.Empty;
+
+      public bool DatabaseOpened { get; set; }
    }
 }
