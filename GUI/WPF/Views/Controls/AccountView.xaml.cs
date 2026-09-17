@@ -4,6 +4,7 @@ using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
+using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
@@ -144,65 +145,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          _passwords_LB.ItemsSource = _viewModel?.Passwords;
       }
 
-      private void _identifier_DeleteClicked(object? sender, EventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _viewModel is null)
-         {
-            return;
-         }
-
-         int index = _identifiers_LB.SelectedIndex;
-
-         if (_viewModel.RemoveIdentifier((IdentifierViewModel)_identifiers_LB.SelectedItem))
-         {
-            _identifiers_LB.SelectedIndex = index < _viewModel.Identifiers.Count ? index : _viewModel.Identifiers.Count - 1;
-         }
-      }
-
-      private void _identifier_UpClicked(object? sender, EventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _viewModel is null)
-         {
-            return;
-         }
-
-         int newIndex = _identifiers_LB.SelectedIndex - 1;
-
-         if (_viewModel.MoveIdentifier(_identifiers_LB.SelectedIndex, newIndex))
-         {
-            _identifiers_LB.SelectedIndex = newIndex;
-         }
-      }
-
-      private void _identifier_DownClicked(object? sender, EventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _viewModel is null)
-         {
-            return;
-         }
-
-         int newIndex = _identifiers_LB.SelectedIndex + 1;
-
-         if (_viewModel.MoveIdentifier(_identifiers_LB.SelectedIndex, newIndex))
-         {
-            _identifiers_LB.SelectedIndex = newIndex;
-         }
-      }
-
-      private void _addButton_Click(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy())
-         {
-            return;
-         }
-
-         _viewModel?.AddIdentifier(string.Empty);
-         _identifiers_LB.SelectedIndex = _identifiers_LB.Items.Count - 1;
-      }
-
       private void _value_TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
       {
          NumericTextBoxHelper.PreviewTextInput(sender, e);
@@ -262,35 +204,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
       }
 
-      private void _copyIdentifier_Clicked(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy())
-         {
-            return;
-         }
-
-         string? identifier = GetIdentifier();
-
-         if (identifier is null)
-         {
-            return;
-         }
-
-         AppServices.Clipboard.SetText(identifier, ClipboardManager.AutoClearAfter);
-      }
-
-      private void _showQrCodeIdentifier_Clicked(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy())
-         {
-            return;
-         }
-
-         QrCodeView.ShowQrCode(Window.GetWindow(this),
-            ((IdentifierViewModel)_identifiers_LB.SelectedItem).Identifier,
-            AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
-      }
-
       private void _copyPassword_Clicked(object sender, RoutedEventArgs e)
       {
          if (this.GetIsBusy()
@@ -316,52 +229,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
       }
 
-      private void _copyPasswords_Clicked(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy()
-            || sender is not Button button)
-         {
-            return;
-         }
-
-         AppServices.Clipboard.SetText(((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password,
-            ClipboardManager.AutoClearAfter);
-      }
-
-      private void _showQrCodePasswords_Clicked(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy()
-            || sender is not Button button)
-         {
-            return;
-         }
-
-         QrCodeView.ShowQrCode(Window.GetWindow(this),
-            ((PasswordViewModel)((ContentPresenter)button.TemplatedParent).Content).Password,
-            AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
-      }
-
-      private void _viewActivities_Button_Click(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _viewModel is null)
-         {
-            return;
-         }
-
-         string itemId = _viewModel.Account.ItemId;
-
-         _ = AppServices.Dialogs.ShowSingleton(
-            factory: () =>
-            {
-               UserActivitiesView view = new(needsReviewFilter: false);
-               view.ViewModel.ClearFilters();
-               view.ViewModel.SearchCriteria = itemId;
-               return view;
-            },
-            configure: view => view.ViewModel.SearchCriteria = itemId);
-      }
-
       private void _identifiers_LB_PreviewGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
       {
          // Focusing a TextBox/ComboBox inside a row does not always select that ListBoxItem;
@@ -382,18 +249,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         Interfaces.Models.IIdentifier? identifier = InsertIdentifierView.InsertIdentifierDialog(
-            AccountViewModel.IdentifierAutoCompleteList ?? [],
-            viewModel.ToIdentifier());
-
-         if (identifier is null
-            || string.IsNullOrEmpty(identifier.Value))
-         {
-            return;
-         }
-
-         viewModel.Type = identifier.Type;
-         viewModel.Identifier = identifier.Value;
+         InsertIdentifierViewModel.ShowInsertIdentifierView(viewModel);
       }
    }
 }

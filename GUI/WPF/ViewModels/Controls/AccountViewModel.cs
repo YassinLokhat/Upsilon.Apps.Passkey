@@ -304,7 +304,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          _identifierViewModel_PropertyChanged(null, new("Identifier"));
       }
 
-      public void AddIdentifier(string identifier)
+      public IdentifierViewModel AddIdentifier(string identifier)
       {
          IdentifierViewModel identifierViewModel = new(Account, identifier);
          identifierViewModel.PropertyChanged += _identifierViewModel_PropertyChanged;
@@ -312,6 +312,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          Identifiers.Add(identifierViewModel);
 
          _identifierViewModel_PropertyChanged(null, new("Identifier"));
+
+         return identifierViewModel;
       }
 
       public bool RemoveIdentifier(IdentifierViewModel identifierViewModel)
@@ -346,8 +348,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       private void _addIdentifier()
       {
-         AddIdentifier(string.Empty);
-         SelectedIdentifier = Identifiers.LastOrDefault();
+         SelectedIdentifier = AddIdentifier(string.Empty);
+         InsertIdentifierViewModel.ShowInsertIdentifierView(SelectedIdentifier);
       }
 
       private void _moveIdentifierUp()
