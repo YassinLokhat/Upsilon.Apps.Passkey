@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI.ViewModels
 {
@@ -6,9 +8,6 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.ViewModels
    {
       public static string AppTitle => Helper.AppInfo.Title;
 
-      /// <summary>
-      /// Window title, optionally including the login idle countdown suffix.
-      /// </summary>
       public string WindowTitle
       {
          get;
@@ -19,15 +18,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.ViewModels
          }
       } = AppTitle;
 
-      public string CredentialsLabel
-      {
-         get;
-         set
-         {
-            field = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CredentialsLabel)));
-         }
-      } = "Username : ";
+      public string CredentialsLabel => !DatabaseOpened ? "Username :" : "Password :";
 
       public string ActualCredential
       {
@@ -46,6 +37,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.ViewModels
          {
             field = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DatabaseOpened)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CredentialsLabel)));
          }
       }
 
@@ -53,6 +45,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.ViewModels
       public Command ResetCredential { get; set; }
 
       public event PropertyChangedEventHandler? PropertyChanged;
+
+      private IDatabase? _database;
+      private IUser? _user;
 
       public MainPageViewModel()
       {
@@ -62,14 +57,39 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.ViewModels
 
       private void _credentialCompleted()
       {
+         if (!DatabaseOpened)
+         {
+            _openDatabase();
+            DatabaseOpened = true;
+         }
+         else
+         {
+            _login();
+         }
+
          ActualCredential = string.Empty;
-         DatabaseOpened = true;
       }
 
       private void _resetCredential()
       {
-         ActualCredential = string.Empty;
+         _database?.Close();
+
+         _user = null;
+         _database = null;
+
          DatabaseOpened = false;
+         ActualCredential = string.Empty;
+      }
+
+      private void _openDatabase()
+      {
+         _database?.Close();
+         //_database = Database.Open()
+      }
+
+      private void _login()
+      {
+         _user = _database?.Login(ActualCredential);
       }
    }
 }
