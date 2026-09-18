@@ -7,7 +7,6 @@
              x:DataType="viewmodels:MainPageViewModel"
              BindingContext="viewmodels:MainPageViewModel"
              Title="{Binding WindowTitle}">
-
    <ScrollView>
       <VerticalStackLayout
             Padding="30,0"
@@ -17,6 +16,7 @@
          <FlexLayout Direction="Row"
                      HorizontalOptions="Fill">
             <Label Text="{Binding CredentialsLabel}"
+                  MinimumWidthRequest="150"
                   Style="{StaticResource SubHeadline}"
                   SemanticProperties.HeadingLevel="Level2" />
             <Entry Keyboard="Default"
