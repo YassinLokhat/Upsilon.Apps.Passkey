@@ -49,6 +49,27 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.ViewModels
          }
       }
 
+      public Command CredentialCompleted { get; set; }
+      public Command ResetCredential { get; set; }
+
       public event PropertyChangedEventHandler? PropertyChanged;
+
+      public MainPageViewModel()
+      {
+         CredentialCompleted = new Command(_credentialCompleted);
+         ResetCredential = new Command(_resetCredential);
+      }
+
+      private void _credentialCompleted()
+      {
+         ActualCredential = string.Empty;
+         DatabaseOpened = true;
+      }
+
+      private void _resetCredential()
+      {
+         ActualCredential = string.Empty;
+         DatabaseOpened = false;
+      }
    }
 }
