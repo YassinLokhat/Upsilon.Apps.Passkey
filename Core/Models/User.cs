@@ -314,6 +314,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
                      CredentialChanged = true;
                      Passkeys = change.NewValue.DeserializeTo<IEnumerable<IProtectedSecret>>(Host.SerializationCenter);
                      break;
+                  case nameof(Services):
+                     Services = change.NewValue.DeserializeTo<List<Service>>(Host.SerializationCenter);
+                     foreach (Service service in Services)
+                     {
+                        service.User = this;
+                     }
+                     break;
                   case nameof(Settings.LogoutTimeout):
                      Settings.LogoutTimeout = change.NewValue.DeserializeTo<int>(Host.SerializationCenter);
                      break;

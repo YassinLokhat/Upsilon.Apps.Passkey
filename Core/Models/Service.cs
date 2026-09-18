@@ -185,6 +185,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
                   case nameof(Notes):
                      Notes = change.NewValue.DeserializeTo<string>(Host.SerializationCenter);
                      break;
+                  case nameof(Accounts):
+                     Accounts = change.NewValue.DeserializeTo<List<Account>>(Host.SerializationCenter);
+                     foreach (Account account in Accounts)
+                     {
+                        account.Service = this;
+                     }
+                     break;
                   default:
                      throw new InvalidDataException("FieldName not valid");
                }
