@@ -261,10 +261,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             _username_TB.SelectionStart = _username_TB.Text.Length;
             _username_TB.SelectionLength = 0;
 
-            // Same as typing into the username box: keep the idle auto-reset
-            // armed so a CLI-prefilled username does not linger forever.
-            _armIdleTimer();
             _ = _submitUsernameAsync().ConfigureAwait(true);
+            _armIdleTimer();
          }
       }
 
