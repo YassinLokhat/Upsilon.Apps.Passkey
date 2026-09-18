@@ -1,6 +1,8 @@
-﻿namespace Upsilon.Apps.Passkey.GUI.MAUI.ViewModels
+﻿using System.ComponentModel;
+
+namespace Upsilon.Apps.Passkey.GUI.MAUI.ViewModels
 {
-   internal sealed class MainPageViewModel
+   internal sealed class MainPageViewModel : INotifyPropertyChanged
    {
       public static string AppTitle => Helper.AppInfo.Title;
 
@@ -10,13 +12,43 @@
       public string WindowTitle
       {
          get;
-         set;
+         set
+         {
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WindowTitle)));
+         }
       } = AppTitle;
 
-      public string CredentialsLabel { get; set; } = "Username : ";
+      public string CredentialsLabel
+      {
+         get;
+         set
+         {
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CredentialsLabel)));
+         }
+      } = "Username : ";
 
-      public string ActualCredential { get; set; } = string.Empty;
+      public string ActualCredential
+      {
+         get;
+         set
+         {
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ActualCredential)));
+         }
+      } = string.Empty;
 
-      public bool DatabaseOpened { get; set; }
+      public bool DatabaseOpened
+      {
+         get;
+         set
+         {
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DatabaseOpened)));
+         }
+      }
+
+      public event PropertyChangedEventHandler? PropertyChanged;
    }
 }
