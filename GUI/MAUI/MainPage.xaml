@@ -26,9 +26,9 @@
                   HorizontalOptions="Fill"
                   Text="{Binding ActualCredential, Mode=TwoWay}"
                   IsPassword="{Binding DatabaseOpened}"
-                  Completed="_credential_Entry_Completed"/>
+                  ReturnCommand="{Binding CredentialCompleted}"/>
             <Button Text="✕"
-                  Clicked="_resetCredentials_Button_Clicked"/>
+                  Command="{Binding ResetCredential}"/>
          </FlexLayout>
          
          <Button Text="Open database" 
