@@ -8,7 +8,7 @@
              Title="{Binding Title}"
              BackgroundColor="#80000000">
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Save" Order="Primary" Clicked="Save_Clicked"/>
+        <ToolbarItem Text="Save" Order="Primary" Clicked="Save_Clicked" />
         <ToolbarItem Text="Import" Order="Primary" Clicked="Import_Clicked"/>
         <ToolbarItem Text="Export" Order="Primary" Clicked="Export_Clicked"/>
         <ToolbarItem Text="Delete User" Order="Secondary" Clicked="DeleteUser_Clicked"/>
