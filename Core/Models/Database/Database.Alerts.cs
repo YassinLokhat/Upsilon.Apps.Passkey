@@ -11,7 +11,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       // Open and Save each queue a scan; a slow leak check from an earlier queue
       // must not overwrite results from a newer one once it finally finishes.
       private int _alertScanGeneration;
-      private readonly object _alertScanGate = new();
+      private readonly Lock _alertScanGate = new();
 
       private readonly Dictionary<string, IReadOnlyList<IAlert>> _coreAlerts = new(StringComparer.Ordinal);
 

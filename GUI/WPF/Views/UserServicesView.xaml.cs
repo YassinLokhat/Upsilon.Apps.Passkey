@@ -85,7 +85,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
           => this.DatabaseClosed(_isClosing);
 
-      public static bool ShowUser(Window? owner = null)
+      public static bool ShowUser()
       {
          using UserServicesView view = new();
 

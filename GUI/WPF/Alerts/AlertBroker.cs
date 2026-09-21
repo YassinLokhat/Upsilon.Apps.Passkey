@@ -1,4 +1,4 @@
-using System.Windows.Media;
+﻿using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
@@ -14,7 +14,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
    /// </summary>
    internal sealed class AlertBroker : IDisposable
    {
-      private readonly object _gate = new();
+      private readonly Lock _gate = new();
       private readonly Dictionary<string, IReadOnlyList<IAlert>> _byKind = new(StringComparer.Ordinal);
       private IDatabase? _database;
       private bool _disposed;

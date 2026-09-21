@@ -476,7 +476,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          Hide();
          _resetCredentials();
 
-         bool stayOpen = UserServicesView.ShowUser(this);
+         bool stayOpen = UserServicesView.ShowUser();
 
          // ShowUser is modal: EndSession may have applied the app language/theme
          // while this window was still hidden under the dialog, so Loc bindings
