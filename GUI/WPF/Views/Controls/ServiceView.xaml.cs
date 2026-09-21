@@ -1,9 +1,6 @@
-﻿using System.Diagnostics;
-using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
@@ -87,50 +84,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          _account_AV.SetDataContext(_accounts_LB.SelectedItem as AccountViewModel);
       }
 
-      private void _addAccount_Button_Click(object sender, System.Windows.RoutedEventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _viewModel is null)
-         {
-            return;
-         }
-
-         _accounts_LB.SelectedItem = _viewModel.AddAccount();
-      }
-
-      private void _deleteAccount_Button_Click(object sender, System.Windows.RoutedEventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _viewModel is null
-            || _accounts_LB.SelectedItem is not AccountViewModel accountViewModel
-            || AppServices.Dialogs.Confirm(Strings.Format(nameof(Strings.Msg_DeleteAccount), accountViewModel.AccountDisplay), Strings.Title_DeleteAccount) != MessageBoxResult.Yes)
-         {
-            return;
-         }
-
-         _accounts_LB.SelectedIndex = _viewModel.DeleteAccount(accountViewModel);
-      }
-
-      private void _openUrl_Button_Click(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _viewModel is null
-            || string.IsNullOrWhiteSpace(_viewModel.Url))
-         {
-            return;
-         }
-
-         using Process process = new()
-         {
-            StartInfo = new ProcessStartInfo(_viewModel.Url)
-            {
-               UseShellExecute = true,
-            },
-         };
-
-         _ = process.Start();
-      }
-
       public bool SelectAccount(string itemId)
       {
          AccountViewModel? account = _viewModel?.Accounts.FirstOrDefault(x => x.Account.ItemId == itemId);
@@ -144,27 +97,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          _accounts_LB.ScrollIntoView(account);
 
          return true;
-      }
-
-      private void _viewActivities_Button_Click(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _viewModel is null)
-         {
-            return;
-         }
-
-         string itemId = _viewModel.Service.ItemId;
-
-         _ = AppServices.Dialogs.ShowSingleton(
-            factory: () =>
-            {
-               UserActivitiesView view = new(needsReviewFilter: false);
-               view.ViewModel.ClearFilters();
-               view.ViewModel.SearchCriteria = itemId;
-               return view;
-            },
-            configure: view => view.ViewModel.SearchCriteria = itemId);
       }
    }
 }
