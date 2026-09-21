@@ -207,8 +207,18 @@
                    Grid.Row="3"
                    Grid.Column="0"
                    Grid.ColumnSpan="3">
-            <StackPanel>
-               <StackPanel Orientation="Horizontal">
+            <Grid>
+               <Grid.RowDefinitions>
+                  <RowDefinition Height="*"/>
+                  <RowDefinition Height="*"/>
+               </Grid.RowDefinitions>
+               <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="*"/>
+               </Grid.ColumnDefinitions>
+               <StackPanel Grid.Row="0"
+                           Grid.Column="0"
+                           Orientation="Horizontal">
                   <CheckBox IsChecked="{Binding RemindPasswordUpdate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Content="{loc:Loc Label_RemindPasswordUpdate}"/>
                   <TextBox Width="25"
@@ -219,15 +229,19 @@
                            Text="{Binding RemindPasswordUpdateDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                   <Label Margin="0" Content="{loc:Loc Label_Months}"/>
                </StackPanel>
-               <StackPanel Orientation="Horizontal">
-                  <CheckBox IsChecked="{Binding WarnPasswordLeak, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Content="{loc:Loc Label_WarnPasswordLeak}"/>
-                  <CheckBox IsChecked="{Binding WarnIfDuplicatedPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Content="{loc:Loc Label_WarnDuplicatedPassword}"/>
-               </StackPanel>
-               <CheckBox IsChecked="{Binding WarnIfWeakPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Content="{loc:Loc Label_WarnWeakPassword}"/>
-            </StackPanel>
+               <CheckBox Grid.Row="0"
+                           Grid.Column="1"
+                           IsChecked="{Binding WarnPasswordLeak, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                           Content="{loc:Loc Label_WarnPasswordLeak}"/>
+               <CheckBox Grid.Row="1"
+                           Grid.Column="0"
+                           IsChecked="{Binding WarnIfDuplicatedPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                           Content="{loc:Loc Label_WarnDuplicatedPassword}"/>
+               <CheckBox Grid.Row="1"
+                           Grid.Column="1"
+                           IsChecked="{Binding WarnIfWeakPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                           Content="{loc:Loc Label_WarnWeakPassword}"/>
+            </Grid>
          </GroupBox>
       </Grid>
    </GroupBox>
