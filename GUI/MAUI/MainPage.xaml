@@ -4,13 +4,11 @@
              x:Class="MAUI.MainPage"
              NavigationPage.HasNavigationBar="False">
 
-    
-
     <Grid RowDefinitions="Auto, *">
         <Button Text="Ouvrir une base" 
-        Clicked="_openDatabase_MenuItem_Click" 
-        WidthRequest="250" 
-        HorizontalOptions="Start"/>
+                Clicked="_openDatabase_MenuItem_Click" 
+                WidthRequest="250" 
+                HorizontalOptions="Start"/>
 
         <ScrollView Grid.Row="1" HorizontalOptions="Fill">
 
@@ -30,54 +28,46 @@
                        HorizontalOptions="Center" 
                        TextColor="{StaticResource Secondary}"/>
 
-                <FlexLayout Direction="Column" 
-                    AlignItems="Stretch" 
-                    JustifyContent="Start"
-                    HorizontalOptions="Fill">
+                <VerticalStackLayout Spacing="20" Padding="20" HorizontalOptions="Fill">
 
-                    <VerticalStackLayout Spacing="20" Padding="20" VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="400">
+                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="15">
 
-                        <Grid ColumnDefinitions="Auto, *" ColumnSpacing="15">
-
-                            <Label Grid.Column="0" 
+                        <Label Grid.Column="0" 
                                Text="{Binding CredentialsLabel}" 
                                FontAttributes="Bold" 
                                VerticalOptions="Center" 
                                WidthRequest="90"/>
 
-                            <Border Grid.Column="1" StrokeThickness="1" StrokeShape="RoundRectangle 8">
-                                <Entry x:Name="_credentialEntry" 
+                        <!-- Style de bordure épuré sans interférence de gestes -->
+                        <Border Grid.Column="1" StrokeThickness="1" StrokeShape="RoundRectangle 8">
+                            <Entry x:Name="_credentialEntry" 
                                    Placeholder="Saisir votre identifiant..." 
                                    HorizontalTextAlignment="Start"
                                    Completed="_onEntryCompleted"
-                                   ClearButtonVisibility="{OnPlatform Android=WhileEditing, Default=Never}">
-                                    <Entry.GestureRecognizers>
-                                        <PointerGestureRecognizer />
-                                    </Entry.GestureRecognizers>
-                                </Entry>
-                            </Border>
-                        </Grid>
+                                   IsEnabled="True"
+                                   IsReadOnly="False"
+                                   ClearButtonVisibility="WhileEditing" />
+                        </Border>
+                    </Grid>
 
-                        <Button x:Name="_loginButton"
-                        Text="Suivant"
-                        Clicked="_onLoginButtonClicked"
-                        HeightRequest="45"
-                        CornerRadius="8" />
+                    <Button x:Name="_loginButton"
+                            Text="Suivant"
+                            Clicked="_onLoginButtonClicked"
+                            HeightRequest="45"
+                            CornerRadius="8" />
 
-                        <Button x:Name="_generatePasswordButton"
-                        Text="Générer"
-                        Clicked="_generatePassword_MenuItem_Click"
-                        HeightRequest="45"
-                        CornerRadius="8"/>
+                    <Button x:Name="_generatePasswordButton"
+                            Text="Générer"
+                            Clicked="_generatePassword_MenuItem_Click"
+                            HeightRequest="45"
+                            CornerRadius="8"/>
 
-                    </VerticalStackLayout>
-
-                </FlexLayout>
+                </VerticalStackLayout>
 
                 <Button Text="Nouvel Utilisateur" 
                         Clicked="_newUser_MenuItem_Click" 
                         WidthRequest="250" 
-                        BackgroundColor="Transparent"
+                        BackgroundColor="White"
                         TextColor="{StaticResource Primary}"
                         BorderColor="{StaticResource Primary}"
                         BorderWidth="1" 
