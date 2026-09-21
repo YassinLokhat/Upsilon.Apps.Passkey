@@ -11,12 +11,25 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.ViewModels
 {
     internal partial class MainViewModel : ObservableObject
     {
+
+        public static string AppTitle
+        {
+            get
+            {
+                string name = AppInfo.Current.Name;
+                // AppInfo.Current.Version retourne un objet Version (ex: 1.0.0.0)
+                string version = AppInfo.Current.Version.ToString(3);
+
+                return $"{name} v{version}";
+            }
+        }
         public static readonly ICryptographyCenter CryptographyCenter = new CryptographyCenter();
         public static readonly ISerializationCenter SerializationCenter = new JsonSerializationCenter();
         public static readonly IPasswordFactory PasswordFactory = new PasswordFactory();
         public static readonly IClipboardManager ClipboardManager = new OSSpecificClipboardManager();
 
         public static IDatabase? Database = null;
+        public static IUser User => Database?.User ?? throw new InvalidOperationException("Cannot access User because the database is not initialized.");
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(DatabaseLabel))] 
