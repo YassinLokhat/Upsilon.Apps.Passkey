@@ -40,8 +40,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             .OfType<IPasskeyLeakedAlert>()
             .Any(w => w.PasskeyIndexes.Contains(Index));
 
+      /// <summary>
+      /// True when this onion layer is reported leaked and
+      /// <see cref="AlertKinds.PasskeyLeaked"/> is in the user's notify mask.
+      /// </summary>
+      public bool PasskeyWeak
+         => AppServices.Session.Alerts
+            .GetNotifiedAlerts(AlertKinds.WeakAccountPassword)
+            .OfType<IPasskeyLeakedAlert>()
+            .Any(w => w.PasskeyIndexes.Contains(Index));
+
       public Brush PasswordBackground
-         => SecretFieldBrushes.Background(isDirty: false, isNotifiedLeak: PasskeyLeaked);
+         => SecretFieldBrushes.Background(isDirty: false, isNotifiedWeak: PasskeyWeak, isNotifiedLeak: PasskeyLeaked);
 
       public ICommand UpCommand { get; }
       public ICommand DownCommand { get; }

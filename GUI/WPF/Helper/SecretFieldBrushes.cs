@@ -1,4 +1,4 @@
-using System.Windows.Media;
+﻿using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
@@ -9,11 +9,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// </summary>
    internal static class SecretFieldBrushes
    {
-      public static Brush Background(bool isDirty, bool isNotifiedLeak)
+      public static Brush Background(bool isDirty, bool isNotifiedWeak, bool isNotifiedLeak)
          => isDirty
             ? FieldStateBrushes.ChangedBrush
             : isNotifiedLeak
                ? SemanticBrushes.Danger
-               : FieldStateBrushes.UnchangedBrush2;
+               : isNotifiedWeak
+                  ? SemanticBrushes.Warning
+                  : FieldStateBrushes.UnchangedBrush2;
    }
 }

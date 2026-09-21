@@ -77,6 +77,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public Brush PasswordBackground
          => SecretFieldBrushes.Background(
             isDirty: Account.HasChanged(nameof(Password)),
+            isNotifiedWeak: PasswordWeak,
             isNotifiedLeak: PasswordLeaked);
 
       public string Password
@@ -221,6 +222,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       }
 
       public bool PasswordLeaked
+         => Account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
+               && AppServices.Session.Alerts
+                  .GetNotifiedAlerts(AlertKinds.PasswordLeaked)
+                  .OfType<IAccountsAlert>()
+                  .Any(x => x.Accounts.Contains(Account));
+
+      public bool PasswordWeak
          => Account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
                && AppServices.Session.Alerts
                   .GetNotifiedAlerts(AlertKinds.PasswordLeaked)
