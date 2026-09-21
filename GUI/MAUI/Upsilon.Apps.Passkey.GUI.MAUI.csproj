@@ -12,6 +12,8 @@
 		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
 		<!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
 
+		<AndroidFastDeployment Condition="'$(Configuration)'=='Debug'">false</AndroidFastDeployment>
+
 		<OutputType>Exe</OutputType>
 		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -64,7 +66,7 @@
 	</ItemGroup>
 
 	
-
+	
 	
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="14.2.0" />
