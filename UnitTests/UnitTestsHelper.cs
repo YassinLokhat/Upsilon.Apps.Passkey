@@ -10,7 +10,6 @@ using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
-using Upsilon.Apps.Passkey.Interfaces.Events;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 using Upsilon.Apps.Passkey.UnitTests.Fakes;
@@ -360,42 +359,27 @@ namespace Upsilon.Apps.Passkey.UnitTests
       }
 
       /// <summary>
-      /// Subscribes to <see cref="IDatabase.CoreAlertsChanged"/> and
-      /// <see cref="IDatabase.CoreAlertsScanCompleted"/>, then runs
+      /// Subscribes to <see cref="IDatabase.CoreAlertsScanCompleted"/>, then runs
       /// <paramref name="trigger"/> (typically <see cref="IDatabase.Save"/>) and
-      /// waits until an alert of <paramref name="kind"/> is reported.
+      /// waits until a scan completes with a non-empty alert of <paramref name="kind"/>.
+      /// Completing only on scan completion (not on <see cref="IDatabase.CoreAlertsChanged"/>)
+      /// avoids racing ahead of paired completion handlers such as
+      /// <c>AlertBroker.NotifiedAlertsChanged</c>.
       /// </summary>
       public static IAlert[] WaitForAlertKind(IDatabase database, string kind, Action trigger, TimeSpan? timeout = null)
       {
          timeout ??= TimeSpan.FromSeconds(15);
          TaskCompletionSource<IAlert[]> tcs = new();
 
-         void TryCompleteFromKind(IReadOnlyList<IAlert> reported)
-         {
-            if (reported.Count > 0)
-            {
-               _ = tcs.TrySetResult([.. reported]);
-            }
-         }
-
-         void KindHandler(object? sender, AlertsChangedEventArgs e)
-         {
-            if (string.Equals(e.Kind, kind, StringComparison.Ordinal))
-            {
-               TryCompleteFromKind(e.Alerts);
-            }
-         }
-
          void ScanCompleted(object? sender, EventArgs e)
          {
             if (database.CoreAlerts.TryGetValue(kind, out IReadOnlyList<IAlert>? current)
                && current.Count > 0)
             {
-               TryCompleteFromKind(current);
+               _ = tcs.TrySetResult([.. current]);
             }
          }
 
-         database.CoreAlertsChanged += KindHandler;
          database.CoreAlertsScanCompleted += ScanCompleted;
 
          try
@@ -414,7 +398,6 @@ namespace Upsilon.Apps.Passkey.UnitTests
          }
          finally
          {
-            database.CoreAlertsChanged -= KindHandler;
             database.CoreAlertsScanCompleted -= ScanCompleted;
          }
       }
