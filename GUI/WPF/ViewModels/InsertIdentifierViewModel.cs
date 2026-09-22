@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -46,6 +47,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       }
 
       public IIdentifier ToIdentifier() => new Identifier(Type, Identifier.Trim());
+
+      public static void ShowInsertIdentifierView(IdentifierViewModel viewModel)
+      {
+         IIdentifier? identifier = InsertIdentifierView.InsertIdentifierDialog(
+            AccountViewModel.IdentifierAutoCompleteList ?? [],
+            viewModel.ToIdentifier());
+
+         if (identifier is null
+            || string.IsNullOrEmpty(identifier.Value))
+         {
+            return;
+         }
+
+         viewModel.Type = identifier.Type;
+         viewModel.Identifier = identifier.Value;
+      }
 
       private void _refreshIdentifiers()
       {

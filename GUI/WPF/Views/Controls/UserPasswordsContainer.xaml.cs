@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 {
@@ -61,10 +62,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
       }
 
-      private void _passwordItem_DeleteClicked(object? sender, EventArgs e)
+      private void _passwordItem_DeleteRequested(object? sender, EventArgs e)
       {
          if (this.GetIsBusy()
-            || sender is not UserPasswordItem passwordItem
+            || _findItem(sender) is not UserPasswordItem passwordItem
             || _passwords.Count == 1)
          {
             return;
@@ -82,10 +83,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
       }
 
-      private void _passwordItem_UpClicked(object? sender, EventArgs e)
+      private void _passwordItem_UpRequested(object? sender, EventArgs e)
       {
          if (this.GetIsBusy()
-            || sender is not UserPasswordItem passwordItem
+            || _findItem(sender) is not UserPasswordItem passwordItem
             || passwordItem.ViewModel.Index == 0)
          {
             return;
@@ -94,10 +95,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          _movePassword(passwordItem, passwordItem.ViewModel.Index - 1);
       }
 
-      private void _passwordItem_DownClicked(object? sender, EventArgs e)
+      private void _passwordItem_DownRequested(object? sender, EventArgs e)
       {
          if (this.GetIsBusy()
-            || sender is not UserPasswordItem passwordItem
+            || _findItem(sender) is not UserPasswordItem passwordItem
             || passwordItem.ViewModel.Index == _passwords.Count - 1)
          {
             return;
@@ -121,9 +122,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       private void _addPassword(string password)
       {
          UserPasswordItem passwordItem = new(new() { Index = _passwords.Count, InitialPassword = password });
-         passwordItem.UpClicked += _passwordItem_UpClicked;
-         passwordItem.DownClicked += _passwordItem_DownClicked;
-         passwordItem.DeleteClicked += _passwordItem_DeleteClicked;
+         passwordItem.ViewModel.UpRequested += _passwordItem_UpRequested;
+         passwordItem.ViewModel.DownRequested += _passwordItem_DownRequested;
+         passwordItem.ViewModel.DeleteRequested += _passwordItem_DeleteRequested;
 
          _passwords.Add(passwordItem);
          _ = _stackPanel.Children.Add(passwordItem);
@@ -131,6 +132,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          passwordItem.Focus();
       }
+
+      private UserPasswordItem? _findItem(object? sender)
+         => sender is UserPasswordItemViewModel viewModel
+            ? _passwords.FirstOrDefault(x => ReferenceEquals(x.ViewModel, viewModel))
+            : null;
 
       private void _movePassword(UserPasswordItem passwordItem, int index)
       {

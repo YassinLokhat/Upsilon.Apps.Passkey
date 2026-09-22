@@ -6,6 +6,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -119,7 +120,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       } = string.Empty;
 
       public Brush PasswordBackground
-         => SecretFieldBrushes.Background(isDirty: false, isNotifiedLeak: _isLeaked);
+         => SecretFieldBrushes.Background(isDirty: false, isNotifiedWeak: SecretQuality.IsWeak(GeneratedPassword), isNotifiedLeak: _isLeaked);
 
       public static Visibility InsertVisibility => AppServices.Session.User is not null ? Visibility.Visible : Visibility.Collapsed;
 

@@ -112,7 +112,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
       private const string HISTORY_FORMAT = "CanIncludeInClipboardHistory";
       private const string CLOUD_FORMAT = "CanUploadToCloudClipboard";
 
-      private static readonly object _autoClearLock = new();
+      private static readonly Lock _autoClearLock = new();
       private static DispatcherTimer? _autoClearTimer;
       private static string? _trackedContent;
 

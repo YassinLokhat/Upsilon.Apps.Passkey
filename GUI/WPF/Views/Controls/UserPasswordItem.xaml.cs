@@ -1,5 +1,4 @@
 ﻿using System.Windows.Controls;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
@@ -21,10 +20,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          set => _password_VPB.Password = value;
       }
 
-      public event EventHandler? UpClicked;
-      public event EventHandler? DownClicked;
-      public event EventHandler? DeleteClicked;
-
       internal UserPasswordItem(UserPasswordItemViewModel viewModel)
       {
          InitializeComponent();
@@ -41,35 +36,5 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       }
 
       public void Clear() => _password_VPB.Clear();
-
-      private void _upButton_Click(object sender, System.Windows.RoutedEventArgs e)
-      {
-         if (this.GetIsBusy())
-         {
-            return;
-         }
-
-         UpClicked?.Invoke(this, EventArgs.Empty);
-      }
-
-      private void _downButton_Click(object sender, System.Windows.RoutedEventArgs e)
-      {
-         if (this.GetIsBusy())
-         {
-            return;
-         }
-
-         DownClicked?.Invoke(this, EventArgs.Empty);
-      }
-
-      private void _deleteButton_Click(object sender, System.Windows.RoutedEventArgs e)
-      {
-         if (this.GetIsBusy())
-         {
-            return;
-         }
-
-         DeleteClicked?.Invoke(this, EventArgs.Empty);
-      }
    }
 }

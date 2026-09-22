@@ -261,10 +261,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             _username_TB.SelectionStart = _username_TB.Text.Length;
             _username_TB.SelectionLength = 0;
 
-            // Same as typing into the username box: keep the idle auto-reset
-            // armed so a CLI-prefilled username does not linger forever.
-            _armIdleTimer();
             _ = _submitUsernameAsync().ConfigureAwait(true);
+            _armIdleTimer();
          }
       }
 
@@ -478,7 +476,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          Hide();
          _resetCredentials();
 
-         bool stayOpen = UserServicesView.ShowUser(this);
+         bool stayOpen = UserServicesView.ShowUser();
 
          // ShowUser is modal: EndSession may have applied the app language/theme
          // while this window was still hidden under the dialog, so Loc bindings

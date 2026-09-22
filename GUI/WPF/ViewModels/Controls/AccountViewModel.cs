@@ -77,6 +77,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public Brush PasswordBackground
          => SecretFieldBrushes.Background(
             isDirty: Account.HasChanged(nameof(Password)),
+            isNotifiedWeak: PasswordWeak,
             isNotifiedLeak: PasswordLeaked);
 
       public string Password
@@ -227,6 +228,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                   .OfType<IAccountsAlert>()
                   .Any(x => x.Accounts.Contains(Account));
 
+      public bool PasswordWeak
+         => Account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
+               && AppServices.Session.Alerts
+                  .GetNotifiedAlerts(AlertKinds.PasswordLeaked)
+                  .OfType<IAccountsAlert>()
+                  .Any(x => x.Accounts.Contains(Account));
+
       public static IIdentifier[] IdentifierAutoCompleteList => AppServices.Session.User?.Services
          .SelectMany(x => x.Accounts)
          .SelectMany(x => x.Identifiers)
@@ -304,7 +312,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          _identifierViewModel_PropertyChanged(null, new("Identifier"));
       }
 
-      public void AddIdentifier(string identifier)
+      public IdentifierViewModel AddIdentifier(string identifier)
       {
          IdentifierViewModel identifierViewModel = new(Account, identifier);
          identifierViewModel.PropertyChanged += _identifierViewModel_PropertyChanged;
@@ -312,6 +320,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          Identifiers.Add(identifierViewModel);
 
          _identifierViewModel_PropertyChanged(null, new("Identifier"));
+
+         return identifierViewModel;
       }
 
       public bool RemoveIdentifier(IdentifierViewModel identifierViewModel)
@@ -346,8 +356,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       private void _addIdentifier()
       {
-         AddIdentifier(string.Empty);
-         SelectedIdentifier = Identifiers.LastOrDefault();
+         SelectedIdentifier = AddIdentifier(string.Empty);
+         InsertIdentifierViewModel.ShowInsertIdentifierView(SelectedIdentifier);
       }
 
       private void _moveIdentifierUp()
