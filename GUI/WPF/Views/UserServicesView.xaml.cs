@@ -24,6 +24,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private bool _isClosing;
       private bool _forceClose;
       private bool _exitPromptActive;
+      /// <summary>
+      /// Set when <see cref="NotifiedAlertsChanged"/> arrives before
+      /// <see cref="FrameworkElement.IsLoaded"/> so Loaded can apply the broker.
+      /// </summary>
+      private bool _alertsMenuDirty;
 
       private static ISessionService _session => AppServices.Session;
       private static IDialogService _dialogs => AppServices.Dialogs;
@@ -67,9 +72,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
       {
          // May fire before Loaded (login scan often finishes first). Defer via
-         // the dispatcher; _refreshAlertsMenuFromSession no-ops until Loaded,
-         // and Loaded itself re-reads the broker so early events are not lost.
-         _ = Dispatcher.BeginInvoke(() => _refreshAlertsMenuFromSession());
+         // the dispatcher; if still not loaded, mark dirty so Loaded applies.
+         _ = Dispatcher.BeginInvoke(() =>
+         {
+            if (_isClosing)
+            {
+               return;
+            }
+
+            if (!IsLoaded)
+            {
+               _alertsMenuDirty = true;
+               return;
+            }
+
+            _refreshAlertsMenuFromSession();
+         });
       }
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
@@ -100,8 +118,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       {
          this.PostLoadSetup();
 
-         // Login may complete the alert scan before IsLoaded; apply whatever
-         // the broker already holds so the menu is not stuck empty until Save.
+         // Early NotifiedAlertsChanged only sets the dirty flag; always apply
+         // the broker here so the menu is not stuck empty until Save.
+         if (_alertsMenuDirty)
+         {
+            _alertsMenuDirty = false;
+         }
+
          _refreshAlertsMenuFromSession();
 
          if ((_database.User?.Settings.AlertsToNotify.Count ?? 0) == 0)
@@ -309,11 +332,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _refreshAlertsMenuFromSession()
       {
-         if (_isClosing || !IsLoaded)
+         if (_isClosing)
          {
             return;
          }
 
+         if (!IsLoaded)
+         {
+            _alertsMenuDirty = true;
+            return;
+         }
+
+         _alertsMenuDirty = false;
          _updateAlertsMenu(_notifiedAlerts());
       }
 

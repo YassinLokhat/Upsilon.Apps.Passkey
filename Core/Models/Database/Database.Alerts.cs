@@ -42,86 +42,129 @@ namespace Upsilon.Apps.Passkey.Core.Models
             return;
          }
 
+         // True once this generation has published kinds+ScanCompleted together.
+         // If we fail before any publish, finally still signals completion so the
+         // UI is never left waiting on a scan that died quietly.
+         bool published = false;
          try
          {
-            IAlert[] activityAlerts = _lookAtActivityAlerts();
-            IAlert[] passwordUpdateReminderAlerts = _lookAtPasswordUpdateReminderAlerts();
+            // Phase 1 (local): publish without waiting on leak I/O so the menu
+            // can show duplicates / vault / activity immediately after login.
+            Dictionary<string, IReadOnlyList<IAlert>> localSnapshot = new(StringComparer.Ordinal)
+            {
+               [AlertKinds.ActivityReview] = _lookAtActivityAlerts(),
+               [AlertKinds.PasswordUpdateReminder] = _lookAtPasswordUpdateReminderAlerts(),
+               [AlertKinds.DuplicatedPasswords] = _lookAtDuplicatedPasswordsAlerts(),
+               [AlertKinds.VaultSecuritySettings] = _lookAtSecuritySettingsAlerts(),
+               [AlertKinds.InsufficientPasskeys] = _lookAtInsufficientPasskeysAlerts(),
+               [AlertKinds.WeakPasskey] = _lookAtWeakPasskeyAlerts(),
+               [AlertKinds.WeakAccountPassword] = _lookAtWeakAccountPasswordAlerts(),
+               [AlertKinds.PasskeyReusedAsAccountPassword] = _lookAtPasskeyReuseAlerts(),
+            };
+
+            if (!_tryCommitAndPublish(generation, localSnapshot))
+            {
+               return;
+            }
+
+            published = true;
+
+            // Phase 2 (network / local filter): patch leak kinds only; keep
+            // prior leak entries visible until this phase commits.
             (IAlert[] passwordLeakedAlerts, Account[] leakedAccounts) =
                await _lookAtPasswordLeakedAlertsAsync().ConfigureAwait(false);
-            IAlert[] duplicatedPasswordsAlerts = _lookAtDuplicatedPasswordsAlerts();
-            IAlert[] securitySettingsAlerts = _lookAtSecuritySettingsAlerts();
-            IAlert[] insufficientPasskeysAlerts = _lookAtInsufficientPasskeysAlerts();
-            IAlert[] weakPasskeyAlerts = _lookAtWeakPasskeyAlerts();
             IAlert[] passkeyLeakedAlerts =
                await _lookAtPasskeyLeakedAlertsAsync().ConfigureAwait(false);
-            IAlert[] weakAccountPasswordAlerts = _lookAtWeakAccountPasswordAlerts();
-            IAlert[] passkeyReuseAlerts = _lookAtPasskeyReuseAlerts();
 
-            Dictionary<string, IReadOnlyList<IAlert>> snapshot;
-            lock (_alertScanGate)
-            {
-               if (generation != _alertScanGeneration)
-               {
-                  return;
-               }
-
-               foreach (Account account in User.Services.SelectMany(static x => x.Accounts))
-               {
-                  account.PasswordLeaked = false;
-               }
-
-               foreach (Account account in leakedAccounts)
-               {
-                  account.PasswordLeaked = true;
-               }
-
-               snapshot = new Dictionary<string, IReadOnlyList<IAlert>>(StringComparer.Ordinal)
-               {
-                  [AlertKinds.ActivityReview] = activityAlerts,
-                  [AlertKinds.PasswordUpdateReminder] = passwordUpdateReminderAlerts,
-                  [AlertKinds.PasswordLeaked] = passwordLeakedAlerts,
-                  [AlertKinds.DuplicatedPasswords] = duplicatedPasswordsAlerts,
-                  [AlertKinds.VaultSecuritySettings] = securitySettingsAlerts,
-                  [AlertKinds.InsufficientPasskeys] = insufficientPasskeysAlerts,
-                  [AlertKinds.WeakPasskey] = weakPasskeyAlerts,
-                  [AlertKinds.PasskeyLeaked] = passkeyLeakedAlerts,
-                  [AlertKinds.WeakAccountPassword] = weakAccountPasswordAlerts,
-                  [AlertKinds.PasskeyReusedAsAccountPassword] = passkeyReuseAlerts,
-               };
-
-               _coreAlerts.Clear();
-               foreach (KeyValuePair<string, IReadOnlyList<IAlert>> pair in snapshot)
-               {
-                  _coreAlerts[pair.Key] = pair.Value;
-               }
-            }
-
-            // Events fire outside the lock; discard if a newer scan superseded us
-            // between the write and publish (otherwise a stale completion wins).
-            if (generation != Volatile.Read(ref _alertScanGeneration))
+            User? user = User;
+            if (user is null)
             {
                return;
             }
 
-            foreach (KeyValuePair<string, IReadOnlyList<IAlert>> pair in snapshot)
+            Dictionary<string, IReadOnlyList<IAlert>> leakSnapshot = new(StringComparer.Ordinal)
             {
-               CoreAlertsChanged?.Invoke(this, new AlertsChangedEventArgs(pair.Key, pair.Value));
-            }
+               [AlertKinds.PasswordLeaked] = passwordLeakedAlerts,
+               [AlertKinds.PasskeyLeaked] = passkeyLeakedAlerts,
+            };
 
-            if (generation != Volatile.Read(ref _alertScanGeneration))
+            if (_tryCommitAndPublish(generation, leakSnapshot, () =>
+                {
+                   foreach (Account account in user.Services.SelectMany(static x => x.Accounts))
+                   {
+                      account.PasswordLeaked = false;
+                   }
+
+                   foreach (Account account in leakedAccounts)
+                   {
+                      account.PasswordLeaked = true;
+                   }
+                }))
             {
-               return;
+               published = true;
             }
-
-            CoreAlertsScanCompleted?.Invoke(this, EventArgs.Empty);
          }
-         catch (NullValueException ex)
+#pragma warning disable CA1031 // Alert scan must not tear down the session
+         catch (Exception ex)
          {
-            // The alert scan runs on a background task and must never crash the
-            // session; a failure only means alerts are not refreshed this round,
-            // so we trace it for diagnostics rather than swallowing it silently.
             System.Diagnostics.Trace.TraceWarning($"Alert scan failed: {ex}");
          }
+#pragma warning restore CA1031
+         finally
+         {
+            if (!published
+               && generation == Volatile.Read(ref _alertScanGeneration)
+               && User is not null)
+            {
+               CoreAlertsScanCompleted?.Invoke(this, EventArgs.Empty);
+            }
+         }
+      }
+
+      /// <summary>
+      /// Commits <paramref name="patch"/> into <see cref="_coreAlerts"/> when
+      /// <paramref name="generation"/> is still current, then raises kind events
+      /// and <see cref="CoreAlertsScanCompleted"/> as one unit (no abort between
+      /// them). Returns false if a newer scan already superseded this generation.
+      /// </summary>
+      private bool _tryCommitAndPublish(
+         int generation,
+         Dictionary<string, IReadOnlyList<IAlert>> patch,
+         Action? mutateAccountsUnderLock = null)
+      {
+         Dictionary<string, IReadOnlyList<IAlert>> toPublish;
+         lock (_alertScanGate)
+         {
+            if (generation != _alertScanGeneration)
+            {
+               return false;
+            }
+
+            mutateAccountsUnderLock?.Invoke();
+
+            foreach (KeyValuePair<string, IReadOnlyList<IAlert>> pair in patch)
+            {
+               _coreAlerts[pair.Key] = pair.Value;
+            }
+
+            toPublish = new Dictionary<string, IReadOnlyList<IAlert>>(patch, StringComparer.Ordinal);
+         }
+
+         // Discard before any event if superseded after the write; otherwise a
+         // stale snapshot could overwrite a newer publish in the broker.
+         if (generation != Volatile.Read(ref _alertScanGeneration))
+         {
+            return false;
+         }
+
+         foreach (KeyValuePair<string, IReadOnlyList<IAlert>> pair in toPublish)
+         {
+            CoreAlertsChanged?.Invoke(this, new AlertsChangedEventArgs(pair.Key, pair.Value));
+         }
+
+         // Always paired with the kind batch above — never return between them.
+         CoreAlertsScanCompleted?.Invoke(this, EventArgs.Empty);
+         return true;
       }
 
       private IAlert[] _lookAtActivityAlerts()

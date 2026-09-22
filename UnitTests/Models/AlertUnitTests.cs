@@ -387,5 +387,134 @@ namespace Upsilon.Apps.Passkey.UnitTests.Models
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * Local kinds publish on the first CoreAlertsScanCompleted before a
+       * blocked leak check finishes; leaks arrive on a later completion.
+      */
+      public void Case11_LocalAlertsPublishBeforeLeakPhaseCompletes()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         FakePasswordFactory factory = new()
+         {
+            LeakGate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously),
+         };
+         factory.MarkLeaked("pwned-password");
+
+         IDatabase database = Database.Create(UnitTestsHelper.CryptographyCenter,
+            UnitTestsHelper.SerializationCenter,
+            factory,
+            UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
+            databaseFile,
+            username,
+            passkeys);
+
+         database.User!.Settings.AlertsToNotify = new AlertKindList(
+         [
+            AlertKinds.DuplicatedPasswords,
+            AlertKinds.PasswordLeaked,
+         ]);
+
+         IService service = database.User.AddService("TwoPhase");
+         IAccount a = service.AddAccount("A", UnitTestsHelper.Ids("a@test"), "pwned-password");
+         IAccount b = service.AddAccount("B", UnitTestsHelper.Ids("b@test"), "pwned-password");
+         a.Options = AccountOption.WarnIfDuplicatedPassword | AccountOption.WarnIfPasswordLeaked;
+         b.Options = AccountOption.WarnIfDuplicatedPassword | AccountOption.WarnIfPasswordLeaked;
+
+         TaskCompletionSource localDone = new(TaskCreationOptions.RunContinuationsAsynchronously);
+         void OnLocalScan(object? sender, EventArgs e)
+         {
+            if (database.CoreAlerts.TryGetValue(AlertKinds.DuplicatedPasswords, out IReadOnlyList<IAlert>? dups)
+               && dups.Count > 0)
+            {
+               _ = localDone.TrySetResult();
+            }
+         }
+
+         database.CoreAlertsScanCompleted += OnLocalScan;
+         try
+         {
+            database.RefreshAlerts();
+
+            _ = localDone.Task.Wait(TimeSpan.FromSeconds(15))
+               .Should().BeTrue("local phase should complete without waiting on leak I/O");
+
+            _ = database.CoreAlerts[AlertKinds.DuplicatedPasswords].Should().NotBeEmpty();
+            _ = database.CoreAlerts.ContainsKey(AlertKinds.PasswordLeaked).Should().BeFalse();
+
+            IAlert[] leaked = UnitTestsHelper.WaitForAlertKind(
+               database,
+               AlertKinds.PasswordLeaked,
+               () => factory.LeakGate!.TrySetResult(true));
+
+            _ = leaked.OfType<IAccountsAlert>().Single().Accounts.Should().BeEquivalentTo([a, b]);
+         }
+         finally
+         {
+            database.CoreAlertsScanCompleted -= OnLocalScan;
+            _ = factory.LeakGate!.TrySetResult(true);
+         }
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * A non-NullValueException during the leak phase must not prevent the
+       * local phase from publishing, and CoreAlertsScanCompleted must still fire.
+      */
+      public void Case12_LeakPhaseException_StillPublishesLocalAlertsAndCompletes()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         FakePasswordFactory factory = new() { ThrowOnLeakCheck = true };
+
+         IDatabase database = Database.Create(UnitTestsHelper.CryptographyCenter,
+            UnitTestsHelper.SerializationCenter,
+            factory,
+            UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
+            databaseFile,
+            username,
+            passkeys);
+
+         database.User!.Settings.AlertsToNotify = new AlertKindList([AlertKinds.DuplicatedPasswords]);
+
+         IService service = database.User.AddService("ThrowService");
+         IAccount a = service.AddAccount("A", UnitTestsHelper.Ids("a@test"), "shared-secret");
+         IAccount b = service.AddAccount("B", UnitTestsHelper.Ids("b@test"), "shared-secret");
+         a.Options = AccountOption.WarnIfDuplicatedPassword | AccountOption.WarnIfPasswordLeaked;
+         b.Options = AccountOption.WarnIfDuplicatedPassword | AccountOption.WarnIfPasswordLeaked;
+
+         int completions = 0;
+         void OnCompleted(object? sender, EventArgs e) => Interlocked.Increment(ref completions);
+         database.CoreAlertsScanCompleted += OnCompleted;
+
+         try
+         {
+            IAlert[] alerts = UnitTestsHelper.WaitForAlertKind(
+               database,
+               AlertKinds.DuplicatedPasswords,
+               database.RefreshAlerts);
+
+            _ = alerts.OfType<IAccountsAlert>().Single().Accounts.Should().BeEquivalentTo([a, b]);
+            _ = completions.Should().BeGreaterThan(0);
+         }
+         finally
+         {
+            database.CoreAlertsScanCompleted -= OnCompleted;
+         }
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

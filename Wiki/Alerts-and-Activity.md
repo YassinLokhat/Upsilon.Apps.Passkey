@@ -43,7 +43,14 @@ Payloads never include the secret plaintext — only indexes / issue flags / rel
 
 Core raises `CoreAlertsChanged` once per kind with an unfiltered snapshot (`AlertsChangedEventArgs.Kind` / `Alerts`), plus `CoreAlertsScanCompleted`. Prefer `IDatabase.CoreAlerts` for the latest Core map.
 
-The WPF `AlertBroker` also publishes host alerts and applies `AlertsToNotify`. Menu colors come from `IAlert.Severity` (`AlertBroker.BrushFor`), not hard-coded kinds. When `AlertsToNotify` is empty, the WPF client shows a **MessageBox**.
+Each scan runs in **two phases** so local posture is never blocked on network I/O:
+
+1. **Local phase** — Activity, password-update reminders, duplicates, vault security, passkey quality / reuse, weak account passwords. Commits those kinds and raises `CoreAlertsChanged` + `CoreAlertsScanCompleted` as one unit (no abort between kind events and completion).
+2. **Leak phase** — `PasswordLeaked` / `PasskeyLeaked` via `IPasswordFactory.PasswordLeakedAsync`. Patches only those kinds (and `Account.PasswordLeaked` flags), then raises the same event pair again.
+
+If a newer `RefreshAlerts` / Save supersedes a scan **before** it starts publishing, that generation is discarded. Once a generation begins publishing a batch, completion is always paired with that batch. Unexpected exceptions in the background scan are traced and still surface a completion when nothing was published yet, so clients are never left waiting indefinitely.
+
+The WPF `AlertBroker` also publishes host alerts and applies `AlertsToNotify`. It stores per-kind updates on `CoreAlertsChanged` and raises `NotifiedAlertsChanged` on `CoreAlertsScanCompleted` (after refreshing host posture). Menu colors come from `IAlert.Severity` (`AlertBroker.BrushFor`), not hard-coded kinds. When `AlertsToNotify` is empty, the WPF client shows a **MessageBox**.
 
 Duplicate and password-update reminder alerts are local. Leak / passkey-leak checks use `IPasswordFactory.PasswordLeakedAsync` (HIBP → XposedOrNot → optional local `.pkbf`). Fail-open when unreachable. See [[Security]].
 
