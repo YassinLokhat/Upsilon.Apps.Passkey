@@ -46,9 +46,17 @@
         "utils": "[2.0.0,3.0.0)"
       }
     },
-    "unitTests": {
-      "id": "UnitTests",
-      "project": "UnitTests/UnitTests.csproj",
+    "unitTestsMultiplateform": {
+      "id": "UnitTests.Multiplateform",
+      "project": "UnitTests/Multiplateform/UnitTests.Multiplateform.csproj",
+      "version": "1.0.0",
+      "kind": "test",
+      "ship": false,
+      "dependencies": {}
+    },
+    "unitTestsWindows": {
+      "id": "UnitTests.Windows",
+      "project": "UnitTests/Windows/UnitTests.Windows.csproj",
       "version": "1.0.0",
       "kind": "test",
       "ship": false,

@@ -32,13 +32,13 @@ Interfaces/     Public contracts (IDatabase, IUser, crypto, clipboard, IProtecte
 Utils/          Default crypto, JSON, password factory, SecretMemoryProtector / ProtectedSecret, LeakFilter (.pkbf). Zero NuGet (BCL only).
 Core/           Vault implementation (Interfaces only — no ProjectReference to Utils). Zero NuGet packages (BCL only).
 GUI/WPF/        Windows desktop client (MVVM + a small AppServices locator); composes Utils defaults.
-UnitTests/      Core/Utils tests + ViewModel tests (Windows TFM; references the WPF project).
+UnitTests/      Multiplateform (net10.0: Core/Utils) + Windows (net10.0-windows: WPF ViewModels).
 ```
 
 | Solution | Projects |
 | -------- | -------- |
-| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, WPF GUI, UnitTests |
-| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, and Core only (no WPF, no tests) |
+| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, WPF GUI, both test projects |
+| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, Core, Multiplateform tests |
 
 Core talks to the OS for clipboard only through an injected port
 (`IClipboardManager` must be OS-specific). In-memory secret wrapping goes through
@@ -636,15 +636,16 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 
 ### Automated
 
-*   **Core / Utils**: `UnitTests` covers crypto, vault lifecycle, import/export, persistence,
-    and related models. Run with `dotnet test` on the Windows solution.
-*   **GUI ViewModels**: the same `UnitTests` project also references the WPF app
-    and exercises ViewModels (`UnitTests/Gui/`) through a replaceable
-    `AppServices` seam and fakes (session, dialogs, clipboard). Import/export tests
-    compare localized activity lines via `UnitTestsHelper.FormatImportFailed` /
-    `FormatExportFailed` (same path as the WPF Activities grid). No UI automation
-    (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, and themed confirmation
-    dialogs (`ThemedMessageBoxView` via `DialogService`) stay out of the automated suite.
+*   **Core / Utils**: `UnitTests/Multiplateform` (`net10.0`) covers crypto, vault
+    lifecycle, import/export, persistence, and related models. Activity checks use
+    structured `ExpectedActivity` fields (not localized UI strings). Runs on both
+    Windows and Linux solutions.
+*   **GUI ViewModels**: `UnitTests/Windows` references the WPF app and exercises
+    ViewModels (`UnitTests/Windows/Gui/`) through a replaceable `AppServices` seam
+    and fakes. Localized activity rendering is covered there (`ActivityAssertHelper`).
+    No UI automation (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, and themed
+    confirmation dialogs (`ThemedMessageBoxView` via `DialogService`) stay out of the
+    automated suite.
 *   **Coverage**: `coverage.runsettings` measures **Core only** (Utils is a
     separate assembly and is not in that gate). Windows CI fails the build if
     line coverage drops below **90%**. `run_code_coverage.bat` and Windows CI
@@ -652,7 +653,8 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 
 ```bash
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
-dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Gui"
+dotnet test Upsilon.Apps.Passkey.Linux.slnx
+dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Windows.Gui"
 ```
 
 ### Manual smoke (GUI)
@@ -676,7 +678,7 @@ GitHub Actions on `master` and pull requests:
 | Workflow | What it does |
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core); `dotnet test` with no test projects |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Multiplateform tests); `dotnet test` runs Multiplateform |
 | `.github/workflows/codeql.yml` | CodeQL on every push (any branch) and weekly; Release build of production projects (tests excluded); SARIF filtered for `bin`/`obj`/`*.g.cs` |
 | `.github/workflows/release.yml` | On per-component tags (`wpf-v*.*.*`, …; legacy `v*` = WPF): sync check, build/test, `scripts/Sync-Versions.ps1`, GitHub Release (nupkg or WPF zip + SHA-256 + dependency notes) |
 

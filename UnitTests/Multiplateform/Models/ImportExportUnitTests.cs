@@ -1,0 +1,636 @@
+using FluentAssertions;
+using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.Interfaces;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.UnitTests.Multiplateform;
+
+namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Models
+{
+   [TestClass]
+   public sealed class ImportExportUnitTests
+   {
+      [TestMethod]
+      public void Case01_Import_MissingFile()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("missing_import.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         expectedActivities.Push(ExpectedActivity.ImportFailed(username, ImportExportError.ImportFileNotAccessible));
+
+         // Then
+         database.User.Services.Should().BeEmpty();
+
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      public void Case02_Import_WrongExtension()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"{username}/import.txt", createIfNotExists: true);
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         expectedActivities.Push(ExpectedActivity.ImportFailed(username, ImportExportError.ExtensionFileNotSupported));
+
+         // Then
+         database.User.Services.Should().BeEmpty();
+
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      public void Case03_Import_NoData()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"import_noData.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         expectedActivities.Push(ExpectedActivity.ImportFailed(username, ImportExportError.NoDataToImport));
+
+         // Then
+         database.User.Services.Should().BeEmpty();
+
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      public void Case04_Import_ServiceAlreadyExists()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"import.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+         database.User.AddService("Service1");
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.DatabaseSaved(username));
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         expectedActivities.Push(ExpectedActivity.ImportFailed(username, ImportExportError.ServiceAlreadyExists));
+
+         // Then
+         database.User.Services.Count().Should().Be(1);
+         database.User.Services.ElementAt(0).Url.Should().BeNull();
+
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      public void Case05_ImportBlankService()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"import_blankService.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         expectedActivities.Push(ExpectedActivity.ImportFailed(username, ImportExportError.BlankService));
+
+         // Then
+         database.User.Services.Should().BeEmpty();
+
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      public void Case06_ImportCSV_OK()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.csv");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         _pushSampleImportItemActivities(expectedActivities, username);
+         expectedActivities.Push(ExpectedActivity.ImportSucceeded(username));
+         expectedActivities.Push(ExpectedActivity.DatabaseSaved(username));
+
+         // Then
+         database.User.Services.Count().Should().Be(2);
+
+         database.User.Services.ElementAt(0).ServiceName.Should().Be("Service0");
+         database.User.Services.ElementAt(0).Url.OriginalString.Should().Be("http://service0.xyz");
+         database.User.Services.ElementAt(0).Notes.Should().Be("Service0's notes");
+
+         database.User.Services.ElementAt(0).Accounts.Count().Should().Be(2);
+
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Label.Should().Be("Account0");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids("account0@service0.xyz", "account0_backup@service0.xyz"));
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Password.Should().Be("0000");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Notes.Should().Be("Service0's Account0's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).PasswordUpdateReminderDelay.Should().Be(3);
+
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Label.Should().Be("Account1");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids("account1@service0.xyz", "account1_backup@service0.xyz"));
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Password.Should().Be("1111");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Notes.Should().Be("Service0's Account1's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
+
+         database.User.Services.ElementAt(1).ServiceName.Should().Be("Service1");
+         database.User.Services.ElementAt(1).Url.OriginalString.Should().Be("http://service1.xyz");
+         database.User.Services.ElementAt(1).Notes.Should().Be("Service1's notes");
+
+         database.User.Services.ElementAt(1).Accounts.Count().Should().Be(2);
+
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Label.Should().Be("Account0");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids("account0@service1.xyz", "account0_backup@service1.xyz"));
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Password.Should().Be("AAAA");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Notes.Should().Be("Service1's Account0's notes");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).PasswordUpdateReminderDelay.Should().Be(3);
+
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Label.Should().Be("Account1");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids("account1@service1.xyz", "account1_backup@service1.xyz"));
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Password.Should().Be("BBBB");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Notes.Should().Be("Service1's Account1's notes");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
+
+         // When
+         database.ExportToFile(exportFile);
+         expectedActivities.Push(ExpectedActivity.ExportStarted(username, exportFile));
+         expectedActivities.Push(ExpectedActivity.ExportSucceeded(username));
+
+         // Then
+         File.ReadAllText(importFile).Replace("\r", "").Should().Be(File.ReadAllText(exportFile).Replace("\r", ""));
+
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      public void Case07_ImportCSV_MissingHeader()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"import_MissingHeader.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         expectedActivities.Push(ExpectedActivity.ImportFailed(username, ImportExportError.CSVHeadersDontMatch));
+
+         // Then
+         database.User.Services.Should().BeEmpty();
+
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      public void Case08_ImportCSV_MissingColumn()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"import_MissingColumn.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         expectedActivities.Push(ExpectedActivity.ImportFailed(username, ImportExportError.IncorrectCSVFormat));
+
+         // Then
+         database.User.Services.Should().BeEmpty();
+
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      public void Case09_ImportJson_OK()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.json");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         _pushSampleImportItemActivities(expectedActivities, username);
+         expectedActivities.Push(ExpectedActivity.ImportSucceeded(username));
+         expectedActivities.Push(ExpectedActivity.DatabaseSaved(username));
+
+         // Then
+         database.User.Settings.LogoutTimeout.Should().Be(9);
+         database.User.Settings.CleaningClipboardTimeout.Should().Be(99);
+         database.User.Settings.ShowPasswordDelay.Should().Be(999);
+         database.User.Settings.NumberOfOldPasswordToKeep.Should().Be(9);
+         database.User.Settings.NumberOfMonthActivitiesToKeep.Should().Be(9);
+         database.User.Settings.AlertsToNotify.ToArray().Should().BeEquivalentTo(
+         [
+            AlertKinds.PasswordUpdateReminder,
+            AlertKinds.DuplicatedPasswords,
+            AlertKinds.PasswordLeaked,
+         ]);
+
+         database.User.Services.Count().Should().Be(2);
+
+         database.User.Services.ElementAt(0).ServiceName.Should().Be("Service0");
+         database.User.Services.ElementAt(0).Url.OriginalString.Should().Be("http://service0.xyz");
+         database.User.Services.ElementAt(0).Notes.Should().Be("Service0's notes");
+
+         database.User.Services.ElementAt(0).Accounts.Count().Should().Be(2);
+
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Label.Should().Be("Account0");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids("account0@service0.xyz", "account0_backup@service0.xyz"));
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Password.Should().Be("0000");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Notes.Should().Be("Service0's Account0's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(0).PasswordUpdateReminderDelay.Should().Be(3);
+
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Label.Should().Be("Account1");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids("account1@service0.xyz", "account1_backup@service0.xyz"));
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Password.Should().Be("1111");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Notes.Should().Be("Service0's Account1's notes");
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(0).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
+
+         database.User.Services.ElementAt(1).ServiceName.Should().Be("Service1");
+         database.User.Services.ElementAt(1).Url.OriginalString.Should().Be("http://service1.xyz");
+         database.User.Services.ElementAt(1).Notes.Should().Be("Service1's notes");
+
+         database.User.Services.ElementAt(1).Accounts.Count().Should().Be(2);
+
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Label.Should().Be("Account0");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids("account0@service1.xyz", "account0_backup@service1.xyz"));
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Password.Should().Be("AAAA");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Notes.Should().Be("Service1's Account0's notes");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(0).PasswordUpdateReminderDelay.Should().Be(3);
+
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Label.Should().Be("Account1");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids("account1@service1.xyz", "account1_backup@service1.xyz"));
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Password.Should().Be("BBBB");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Notes.Should().Be("Service1's Account1's notes");
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).Options.Should().Be(AccountOption.None);
+         database.User.Services.ElementAt(1).Accounts.ElementAt(1).PasswordUpdateReminderDelay.Should().Be(3);
+
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      public void Case10_ImportJson_WrongFormat()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"import_WrongFormat.json");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         // When
+         database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         expectedActivities.Push(ExpectedActivity.ImportFailed(username, ImportExportError.ImportFileDeserializationFailed));
+
+         // Then
+         database.User.Services.Should().BeEmpty();
+
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+
+      [TestMethod]
+      public void Case11_Export_FileAlreadyExists()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"import.json");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export.json", createIfNotExists: true);
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+         database.ImportFromFile(importFile);
+
+         // When
+         database.ExportToFile(exportFile);
+
+         expectedActivities.Push(ExpectedActivity.DatabaseSaved(username));
+         expectedActivities.Push(ExpectedActivity.ExportStarted(username, exportFile));
+         expectedActivities.Push(ExpectedActivity.ExportFailed(username, ImportExportError.ExportFileAlreadyExists));
+
+         // Then
+         File.Exists(exportFile).Should().BeTrue();
+
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+
+      [TestMethod]
+      public void Case12_Export_FileExtensionNotHandled()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"import.json");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export.txt");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+         database.ImportFromFile(importFile);
+
+         // When
+         database.ExportToFile(exportFile);
+
+         expectedActivities.Push(ExpectedActivity.DatabaseSaved(username));
+         expectedActivities.Push(ExpectedActivity.ExportStarted(username, exportFile));
+         expectedActivities.Push(ExpectedActivity.ExportFailed(username, ImportExportError.ExtensionFileNotSupported));
+
+         // Then
+         File.Exists(exportFile).Should().BeFalse();
+
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Data exported to JSON can be re-imported into a fresh database and yields
+       * an equivalent set of services and accounts (a structural round-trip). A
+       * plain file comparison is not usable here because the JSON carries the
+       * per-item ItemId and password timestamps, which are regenerated on import.
+      */
+      public void Case13_ImportExportJson_RoundTrip()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string roundTripUsername = $"{username}_roundtrip";
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.json");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export_roundtrip.json");
+
+         UnitTestsHelper.ClearTestEnvironment();
+         UnitTestsHelper.ClearTestEnvironment(roundTripUsername);
+
+         IDatabase source = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         // When (import into the source database, then export it back to JSON)
+         source.ImportFromFile(importFile).Should().Be(ImportExportError.None);
+         source.ExportToFile(exportFile).Should().Be(ImportExportError.None);
+
+         // Then (the exported file can be re-imported into a fresh database)
+         IDatabase roundTripped = UnitTestsHelper.CreateTestDatabase(passkeys, roundTripUsername);
+         roundTripped.ImportFromFile(exportFile).Should().Be(ImportExportError.None);
+
+         // Then (both databases hold an equivalent set of services and accounts)
+         _project(source).Should().BeEquivalentTo(_project(roundTripped));
+
+         // Finally
+         source.Close();
+         roundTripped.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+         UnitTestsHelper.ClearTestEnvironment(roundTripUsername);
+      }
+
+      [TestMethod]
+      /*
+       * ImportFromFileAsync and ExportToFileAsync drive the same pipeline as the
+       * synchronous methods.
+      */
+      public async Task Case15_ImportExportAsync_RoundTrip()
+      {
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.json");
+         string exportFile = UnitTestsHelper.GetTestFilePath($"{username}/export_async.json");
+
+         UnitTestsHelper.ClearTestEnvironment();
+
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         _ = (await database.ImportFromFileAsync(importFile)).Should().Be(ImportExportError.None);
+         _ = (await database.ExportToFileAsync(exportFile)).Should().Be(ImportExportError.None);
+         _ = File.Exists(exportFile).Should().BeTrue();
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * CSV import must seed password history so PasswordExpired works when a
+       * reminder delay is set (import only carries the current password).
+      */
+      public void Case14_ImportCSV_SeedsPasswordHistoryForExpiry()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         ImportExportError imported = database.ImportFromFile(importFile);
+         _ = imported.Should().Be(ImportExportError.None);
+
+         foreach (IAccount account in database.User!.Services.SelectMany(s => s.Accounts))
+         {
+            account.Passwords.Should().ContainSingle(
+               "CSV import supplies only the current password; history must still be seeded");
+            account.Passwords.Values.Single().Should().Be(account.Password);
+
+            Account concrete = (Account)account;
+            concrete.PasswordUpdateReminderDelay.Should().Be(3);
+            Action evaluateExpiry = () => _ = concrete.PasswordExpired;
+            evaluateExpiry.Should().NotThrow();
+            concrete.PasswordExpired.Should().BeFalse("just-imported passwords are not expired");
+         }
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * CSV import detects phone-looking values as PhoneNumber via IdentifierTypeDetector.
+      */
+      public void Case16_ImportCSV_DetectsPhoneNumber()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"{UnitTestsHelper.GetUsername()}/import_phone.csv", createIfNotExists: true);
+         const string phone = "+33 6 12 34 56 78";
+         File.WriteAllText(importFile,
+            "ServiceName\tServiceUrl\tServiceNotes\tAccountLabel\tIdentifiers\tPassword\tAccountNotes\tAccountOptions\tPasswordUpdateReminderDelay\n" +
+            $"\"PhoneService\"\t\"http://phone.test\"\t\"\"\t\"PhoneAccount\"\t\"{phone}\"\t\"secret\"\t\"\"\t\"None\"\t0\n");
+
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         ImportExportError imported = database.ImportFromFile(importFile);
+         _ = imported.Should().Be(ImportExportError.None);
+
+         IAccount account = database.User!.Services.Single().Accounts.Single();
+         account.Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids(phone));
+         account.Identifiers.Single().Type.Should().Be(IdentifierType.PhoneNumber);
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      // Sample import.csv / import.json item chain (password ItemUpdated needsReview:false).
+      private static void _pushSampleImportItemActivities(Stack<ExpectedActivity> expectedActivities, string username)
+      {
+         expectedActivities.Push(ExpectedActivity.ItemAdded(false, username: username, fieldValue: "Service0"));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: "Service0", fieldName: nameof(IService.Url), fieldValue: "http://service0.xyz"));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: "Service0", fieldName: nameof(IService.Notes), fieldValue: "Service0's notes"));
+
+         _pushImportedAccount(expectedActivities, "Service0", "Account0 (account0@service0.xyz, account0_backup@service0.xyz)", "Service0's Account0's notes");
+         _pushImportedAccount(expectedActivities, "Service0", "Account1 (account1@service0.xyz, account1_backup@service0.xyz)", "Service0's Account1's notes");
+
+         expectedActivities.Push(ExpectedActivity.ItemAdded(false, username: username, fieldValue: "Service1"));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: "Service1", fieldName: nameof(IService.Url), fieldValue: "http://service1.xyz"));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: "Service1", fieldName: nameof(IService.Notes), fieldValue: "Service1's notes"));
+
+         _pushImportedAccount(expectedActivities, "Service1", "Account0 (account0@service1.xyz, account0_backup@service1.xyz)", "Service1's Account0's notes");
+         _pushImportedAccount(expectedActivities, "Service1", "Account1 (account1@service1.xyz, account1_backup@service1.xyz)", "Service1's Account1's notes");
+      }
+
+      private static void _pushImportedAccount(Stack<ExpectedActivity> expectedActivities, string serviceName, string accountName, string notes)
+      {
+         expectedActivities.Push(ExpectedActivity.ItemAdded(false, serviceName: serviceName, fieldValue: accountName));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: accountName, parentName: serviceName, fieldName: nameof(IAccount.Password), fieldValue: string.Empty));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: accountName, parentName: serviceName, fieldName: nameof(IAccount.Notes), fieldValue: notes));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: accountName, parentName: serviceName, fieldName: nameof(IAccount.Options), fieldValue: AccountOption.None.ToString()));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: accountName, parentName: serviceName, fieldName: nameof(IAccount.PasswordUpdateReminderDelay), fieldValue: "3"));
+      }
+
+      // Projects a database's services/accounts onto the persisted fields only,
+      // excluding the regenerated ItemId and password timestamps, so two imports
+      // of the same data compare as equivalent.
+      private static object _project(IDatabase database)
+         => database.User.Services.Select(service => new
+         {
+            service.ServiceName,
+            Url = service.Url?.OriginalString,
+            service.Notes,
+            Accounts = service.Accounts.Select(account => new
+            {
+               account.Label,
+               Identifiers = account.Identifiers.ToArray(),
+               account.Password,
+               account.Notes,
+               account.Options,
+               account.PasswordUpdateReminderDelay,
+            }).ToArray(),
+         }).ToArray();
+   }
+}
