@@ -10,12 +10,13 @@ Upsilon.Apps.Passkey is four layers and two solution files. The only **OS-specif
 | `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `SecretMemoryProtector` / `ProtectedSecret`, and `LeakFilter/` (`.pkbf` Bloom file, builder, config). **Zero NuGet packages** (BCL only). |
 | `Core/` | Vault implementation: onion encryption, `.pku` I/O, alerts, import/export. **Zero NuGet packages** (BCL only). Depends on Interfaces only. Vault-internal helpers stay under `Core/Utils/` (`QrCode`, file lock, activity, import/export). |
 | `GUI/WPF/` | Windows desktop client (MVVM + a small `AppServices` locator). Composes Utils defaults and supplies `IClipboardManager`. |
-| `UnitTests/` | Core/Utils tests plus ViewModel tests through the `AppServices` seam. |
+| `UnitTests/Multiplateform/` | OS-independent Core/Utils tests (`net10.0`). |
+| `UnitTests/Windows/` | WPF ViewModel / localization tests (`net10.0-windows`; references WPF + Multiplateform). |
 
 | Solution | Projects |
 | -------- | -------- |
-| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, WPF GUI, UnitTests |
-| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, and Core only (no WPF, no tests: the test project targets `net10.0-windows`) |
+| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, WPF GUI, both test projects |
+| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, Core, Multiplateform tests |
 
 The WPF app supplies `IClipboardManager` and `ISecretMemoryProtector`, and hosts dialogs, session, and navigation behind `AppServices` so ViewModels stay unit-testable without a window.
 

@@ -21,7 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="UnitTests" />
+    <InternalsVisibleTo Include="UnitTests.Multiplateform" />
+    <InternalsVisibleTo Include="UnitTests.Windows" />
   </ItemGroup>
 
   <!-- Zero-dependency: fail the build if any PackageReference appears. See CONTRIBUTING.md. -->

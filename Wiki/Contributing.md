@@ -15,12 +15,13 @@ This page mirrors [`CONTRIBUTING.md`](https://github.com/YassinLokhat/Upsilon.Ap
 ```bash
 dotnet build Upsilon.Apps.Passkey.Windows.slnx
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
+dotnet test Upsilon.Apps.Passkey.Linux.slnx
 ```
 
 GUI ViewModel tests:
 
 ```bash
-dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Gui"
+dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Windows.Gui"
 ```
 
 ## Zero-dependency policy (Core, Utils, and Interfaces)
