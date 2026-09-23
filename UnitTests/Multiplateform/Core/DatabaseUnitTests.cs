@@ -7,7 +7,7 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 using Upsilon.Apps.Passkey.UnitTests.Multiplateform.Fakes;
 
-namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Models
+namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
 {
    [TestClass]
    public sealed class DatabaseUnitTests

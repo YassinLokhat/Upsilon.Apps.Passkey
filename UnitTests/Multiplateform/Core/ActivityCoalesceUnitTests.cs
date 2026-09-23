@@ -3,7 +3,7 @@ using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
-namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Models
+namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
 {
    [TestClass]
    public sealed class ActivityCoalesceUnitTests
