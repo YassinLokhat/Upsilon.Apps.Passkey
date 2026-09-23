@@ -2,7 +2,7 @@ using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
-namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Models
+namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
 {
    [TestClass]
    public sealed class ActivityUnitTests
