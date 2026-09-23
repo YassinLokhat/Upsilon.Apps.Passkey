@@ -1,0 +1,870 @@
+﻿using FluentAssertions;
+using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.Interfaces;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.UnitTests.Multiplateform.Fakes;
+
+namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
+{
+   [TestClass]
+   public sealed class DatabaseUnitTests
+   {
+      [TestMethod]
+      /*
+       * Database.Create creates an empty database file,
+       * Then Database.Dispose releases correctly the database file,
+       * Then Database.Open loads correctly the database file,
+       * Then Database.Delete deletes correctly the database file.
+      */
+      public void Case01_DatabaseCreationOpenDelete()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         UnitTestsHelper.ClearTestEnvironment();
+
+         // When
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         expectedActivities.Push(ExpectedActivity.DatabaseCreated(databaseCreated.User.ToString()));
+
+         // Then
+         _ = databaseCreated.DatabaseFile.Should().Be(databaseFile);
+         _ = File.Exists(databaseCreated.DatabaseFile).Should().BeTrue();
+
+         _ = databaseCreated.User.Should().NotBeNull();
+         _ = databaseCreated.User.Username.Should().Be(username);
+
+         _ = databaseCreated.User.Settings.LogoutTimeout.Should().Be(0);
+         _ = databaseCreated.User.Settings.CleaningClipboardTimeout.Should().Be(0);
+
+         // When
+         databaseCreated.Close();
+         expectedActivities.Push(ExpectedActivity.UserLoggedOut(username));
+         expectedActivities.Push(ExpectedActivity.DatabaseClosed(username));
+
+         // Then
+         _ = databaseCreated.User.Should().BeNull();
+         _ = File.Exists(databaseFile).Should().BeTrue();
+
+         // When
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         expectedActivities.Push(ExpectedActivity.DatabaseOpened(databaseLoaded.User.ToString()));
+         expectedActivities.Push(ExpectedActivity.UserLoggedIn(databaseLoaded.User.ToString()));
+
+         // Then
+         _ = databaseLoaded.Should().NotBeNull();
+         _ = databaseLoaded.DatabaseFile.Should().Be(databaseFile);
+         _ = File.Exists(databaseLoaded.DatabaseFile).Should().BeTrue();
+
+         _ = databaseLoaded.User.Should().NotBeNull();
+         _ = databaseLoaded.User.Username.Should().Be(username);
+
+         _ = databaseLoaded.User.Settings.LogoutTimeout.Should().Be(0);
+         _ = databaseLoaded.User.Settings.CleaningClipboardTimeout.Should().Be(0);
+
+         UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
+
+         // When
+         databaseLoaded.Delete();
+
+         // Then
+         _ = databaseCreated.User.Should().BeNull();
+         _ = File.Exists(databaseFile).Should().BeFalse();
+
+         // Finally
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Database.Create throws an error if the database file already exists.
+      */
+      public void Case02_DatabaseCreationButAlreadyExists()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase();
+         databaseCreated.Close();
+         IOException exception = null;
+         IDatabase newDatabase = null;
+
+         // When
+         Action act = new(() =>
+         {
+            try
+            {
+               newDatabase = UnitTestsHelper.CreateTestDatabase();
+            }
+            catch (IOException ex)
+            {
+               exception = ex;
+               throw;
+            }
+         });
+
+         // Then
+         _ = act.Should().Throw<IOException>();
+         _ = newDatabase.Should().BeNull();
+         _ = exception.Should().NotBeNull();
+         _ = exception.Message.Should().Be($"'{UnitTestsHelper.ComputeDatabaseFilePath()}' database file already exists");
+
+         // Finally
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Database.Open throws an error if the database file is already opened,
+       * Then Database.Open works again after Database.Dispose released the database file.
+      */
+      public void Case03_DatabaseOpenButAlreadyOpened()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         IOException exception = null;
+         IDatabase databaseLoaded = null;
+
+         // When
+         Action act = new(() =>
+         {
+            try
+            {
+               databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+            }
+            catch (IOException ex)
+            {
+               exception = ex;
+               throw;
+            }
+         });
+
+         // Then
+         _ = act.Should().Throw<IOException>();
+         _ = databaseLoaded.Should().BeNull();
+         _ = exception.Should().NotBeNull();
+
+         // When
+         databaseCreated.Close();
+         exception = null;
+         act = new(() =>
+         {
+            try
+            {
+               databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+            }
+            catch (IOException ex)
+            {
+               exception = ex;
+               throw;
+            }
+         });
+
+         // Then
+         _ = act.Should().NotThrow<IOException>();
+         _ = exception.Should().BeNull();
+         _ = databaseLoaded.Should().NotBeNull();
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Database.Login don't return any User if wrong passkeys is provided.
+      */
+      public void Case04_DatabaseOpenButWrongPasskeysProvided()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string[] wrongPasskeys = [.. passkeys];
+         int wrongKeyIndex = UnitTestsHelper.GetRandomInt(passkeys.Length);
+         wrongPasskeys[wrongKeyIndex] = UnitTestsHelper.GetRandomString();
+         Stack<ExpectedActivity> expectedActivities = new();
+         Stack<ExpectedActivity> expectedLogAlerts = new();
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         // When
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(wrongPasskeys, out _);
+         expectedActivities.Push(ExpectedActivity.DatabaseOpened(username));
+         for (int i = wrongKeyIndex; i < wrongPasskeys.Length; i++)
+         {
+            ExpectedActivity failed = ExpectedActivity.LoginFailed(username, $"{wrongKeyIndex + 1}");
+            expectedActivities.Push(failed);
+            expectedLogAlerts.Push(failed);
+         }
+
+         // Then
+         _ = databaseLoaded.User.Should().BeNull();
+
+         // When
+         databaseLoaded.Close();
+         expectedActivities.Push(ExpectedActivity.DatabaseClosed(username));
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         expectedActivities.Push(ExpectedActivity.DatabaseOpened(username));
+         expectedActivities.Push(ExpectedActivity.UserLoggedIn(username));
+
+         // Then
+         UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogAlerts]);
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Database autmatically closes when timeout reached and Database.DatabaseClosed event rized with the correct eventarg.
+      */
+      public void Case05_DatabaseAutoLogout()
+      {
+         // Given
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         bool closedDueToTimeout = false;
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase database = Database.Create(UnitTestsHelper.CryptographyCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.FastPasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
+            databaseFile,
+            username,
+            passkeys);
+
+         database.DatabaseClosed += (s, e) => { closedDueToTimeout = e.LoginTimeoutReached; };
+
+         database.User.Settings.LogoutTimeout = 1;
+         database.Save();
+         DateTime start = DateTime.Now;
+
+         // When
+         for (int i = 0; !closedDueToTimeout && i < 300; i++)
+         {
+            Thread.Sleep(500);
+         }
+
+         // Then
+         _ = closedDueToTimeout.Should().BeTrue();
+
+         // When
+         database = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then
+         _ = database.Activities.FirstOrDefault(x => x.Username == username
+            && x.EventType == ActivityEventType.LoginSessionTimeoutReached
+            && x.NeedsReview).Should().NotBeNull();
+
+         // Finally
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * A database created and closed normally opens without any tampering alert,
+       * Then stripping the activity-log signature is detected on the next login.
+      */
+      public void Case06_ActivityLogTamperingIsDetected()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         // When (untampered)
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (no tampering detected)
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
+
+         // When (tampered: the sealed signature is stripped from the log)
+         databaseLoaded.Close();
+         UnitTestsHelper.TamperActivityLogSignature(databaseFile);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (tampering detected and flagged for review)
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered
+            && x.NeedsReview).Should().BeTrue();
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Truncating (rolling back) the sealed portion of the activity log is
+       * detected on the next login: the stored list becomes shorter than the
+       * count it claims to have sealed.
+      */
+      public void Case07_ActivityLogTruncationIsDetected()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         // When (untampered)
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (no tampering detected)
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
+
+         // When (tampered: one sealed entry is removed from the log)
+         databaseLoaded.Close();
+         UnitTestsHelper.TamperActivityLogTruncate(databaseFile);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (tampering detected and flagged for review)
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered
+            && x.NeedsReview).Should().BeTrue();
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Substituting the log's public key is detected on the next login: the
+       * private key anchoring verification (held in the tamper-proof database)
+       * no longer matches the public key stored in the log.
+      */
+      public void Case08_ActivityLogKeySubstitutionIsDetected()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         // When (untampered)
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (no tampering detected)
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
+
+         // When (tampered: the log's public key is swapped for an attacker's)
+         databaseLoaded.Close();
+         UnitTestsHelper.TamperActivityLogPublicKey(databaseFile);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (tampering detected and flagged for review)
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered
+            && x.NeedsReview).Should().BeTrue();
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Reordering the sealed entries is detected on the next login: the
+       * signature no longer matches the canonical content it was computed over,
+       * even though nothing was added or removed.
+      */
+      public void Case09_ActivityLogReorderingIsDetected()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         // When (untampered)
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (no tampering detected)
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered).Should().BeFalse();
+
+         // When (tampered: two sealed entries are swapped)
+         databaseLoaded.Close();
+         UnitTestsHelper.TamperActivityLogReorder(databaseFile);
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+
+         // Then (tampering detected and flagged for review)
+         _ = databaseLoaded.Activities.Any(x => x.Username == username
+            && x.EventType == ActivityEventType.ActivityLogTampered
+            && x.NeedsReview).Should().BeTrue();
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * The asynchronous entry points drive the very same pipeline as their
+       * synchronous twins: CreateAsync then SaveAsync persist an update, and
+       * OpenAsync followed by one LoginAsync per passkey reads it back.
+      */
+      public async Task Case10_AsynchronousEntryPointsRoundTrip()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+
+         // When
+         IDatabase databaseCreated = await Database.CreateAsync(UnitTestsHelper.CryptographyCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.FastPasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
+            databaseFile,
+            username,
+            passkeys);
+
+         databaseCreated.User.Settings.AlertsToNotify = new AlertKindList([]);
+         databaseCreated.User.Settings.NumberOfOldPasswordToKeep = 7;
+
+         await databaseCreated.SaveAsync();
+         databaseCreated.Close();
+
+         IDatabase databaseLoaded = await Database.OpenAsync(UnitTestsHelper.CryptographyCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.FastPasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
+            databaseFile,
+            username);
+
+         IUser? user = null;
+
+         foreach (string passkey in passkeys)
+         {
+            user = await databaseLoaded.LoginAsync(passkey);
+         }
+
+         // Then
+         _ = user.Should().NotBeNull();
+         _ = user.Username.Should().Be(username);
+         _ = user.Settings.NumberOfOldPasswordToKeep.Should().Be(7);
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Only the last LoginAsync call, once every passkey has been provided in
+       * order, returns the user: the progressive stack behaves exactly as the
+       * synchronous Login does.
+      */
+      public async Task Case11_AsynchronousLoginIsProgressive()
+      {
+         // Given
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray(3);
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         IDatabase databaseLoaded = await Database.OpenAsync(UnitTestsHelper.CryptographyCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.FastPasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
+            databaseFile,
+            username);
+
+         // When / Then
+         for (int i = 0; i < passkeys.Length - 1; i++)
+         {
+            _ = (await databaseLoaded.LoginAsync(passkeys[i])).Should().BeNull();
+         }
+
+         _ = (await databaseLoaded.LoginAsync(passkeys[^1])).Should().NotBeNull();
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Concurrent field edits (autosave + activity mutations) racing with
+       * explicit Flush calls must not throw and must leave a consistent
+       * recovery state after a final Flush + reopen with merge.
+      */
+      public void Case12_ConcurrentEditsAndFlush_DoNotCorruptAutosaveOrActivity()
+      {
+         // Given
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray(1);
+         UnitTestsHelper.ClearTestEnvironment();
+
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Database databaseCore = (Database)database;
+         IUser user = database.User!;
+         user.Settings.AlertsToNotify = new AlertKindList([]);
+
+         IService service = user.AddService("ConcurrentService");
+         IAccount account = service.AddAccount(UnitTestsHelper.Ids("id@test.te"), "initial-password");
+         database.Save();
+
+         const int editorCount = 3;
+         const int editsPerEditor = 40;
+         using Barrier start = new(editorCount + 1);
+         Exception? failure = null;
+
+         Thread[] editors = [.. Enumerable.Range(0, editorCount).Select(editorIndex => new Thread(() =>
+         {
+            try
+            {
+               start.SignalAndWait();
+
+               for (int n = 0; n < editsPerEditor; n++)
+               {
+                  account.Notes = $"notes-{editorIndex}-{n}";
+                  account.Label = $"label-{editorIndex}-{n}";
+               }
+            }
+            catch (Exception ex)
+            {
+               _ = Interlocked.CompareExchange(ref failure, ex, null);
+            }
+         }))];
+
+         Thread flusher = new(() =>
+         {
+            try
+            {
+               start.SignalAndWait();
+
+               for (int n = 0; n < editsPerEditor; n++)
+               {
+                  databaseCore.AutoSave.Flush();
+                  databaseCore.ActivityCenter.Flush();
+                  _ = database.HasChanged(string.Empty);
+                  _ = database.Activities;
+               }
+            }
+            catch (Exception ex)
+            {
+               _ = Interlocked.CompareExchange(ref failure, ex, null);
+            }
+         });
+
+         // When
+         foreach (Thread editor in editors)
+         {
+            editor.Start();
+         }
+
+         flusher.Start();
+
+         foreach (Thread editor in editors)
+         {
+            editor.Join();
+         }
+
+         flusher.Join();
+
+         // Then � no torn-enumeration / collection-modified exceptions
+         _ = failure.Should().BeNull(failure?.ToString());
+         _ = database.HasChanged(string.Empty).Should().BeTrue();
+
+         databaseCore.AutoSave.Flush();
+         databaseCore.ActivityCenter.Flush();
+         database.Close();
+
+         IDatabase reopened = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
+         IAccount reopenedAccount = reopened.User!.Services.Single().Accounts.Single();
+
+         _ = reopenedAccount.Notes.Should().StartWith("notes-");
+         _ = reopenedAccount.Label.Should().StartWith("label-");
+         _ = reopened.Activities.Should().NotBeEmpty();
+
+         // Finally
+         reopened.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Database.Open refuses a file whose unencrypted KDF header was weakened
+       * below the accepted floor, and releases the file lock so a later open
+       * of a restored header can succeed.
+      */
+      public void Case13_DatabaseOpenRejectsWeakKdfHeader()
+      {
+         // Given
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         UnitTestsHelper.TamperKdfHeaderIterations(databaseFile, iterations: 1);
+
+         // When / Then
+         Action openWeak = () => UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         openWeak.Should().Throw<InsufficientKdfParametersException>()
+            .WithMessage("*iterations*");
+
+         // Restore a sufficient work factor (still wrong for the ciphertext, but
+         // enough to pass the floor) and confirm the lock was released.
+         UnitTestsHelper.TamperKdfHeaderIterations(databaseFile, iterations: 1_000_000);
+
+         IDatabase databaseLoaded = null;
+         Action openRestored = () => databaseLoaded = Database.Open(UnitTestsHelper.CryptographyCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.FastPasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
+            databaseFile,
+            UnitTestsHelper.GetUsername());
+         openRestored.Should().NotThrow();
+         databaseLoaded.Should().NotBeNull();
+
+         // Finally
+         databaseLoaded!.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Login with the correct passkeys against a corrupted database entry must
+       * throw CorruptedSourceException (not return null as WrongPassword does).
+      */
+      public void Case14_LoginWithCorruptedDatabaseThrows()
+      {
+         // Given
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         databaseCreated.Close();
+
+         UnitTestsHelper.TamperDatabaseEntryCorrupt(databaseFile);
+
+         IDatabase databaseLoaded = Database.Open(UnitTestsHelper.CryptographyCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.FastPasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
+            databaseFile,
+            UnitTestsHelper.GetUsername());
+
+         // When / Then � wrong passkey stays soft (null); corruption must throw.
+         Action loginCorrupt = () =>
+         {
+            foreach (string passkey in passkeys)
+            {
+               _ = databaseLoaded.Login(passkey);
+            }
+         };
+         loginCorrupt.Should().Throw<CorruptedSourceException>();
+         databaseLoaded.User.Should().BeNull();
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Create rejects a missing dependency rather than building a half-initialized vault.
+      */
+      public void Case15_CreateRejectsNullDependencies()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         Action missingCrypto = () => Database.Create(null!,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.FastPasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
+            databaseFile,
+            "user",
+            ["a"]);
+         missingCrypto.Should().Throw<ArgumentNullException>();
+
+         Action missingPasskeys = () => Database.Create(UnitTestsHelper.CryptographyCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.FastPasswordFactory,
+            UnitTestsHelper.ClipboardManager,
+            UnitTestsHelper.SecretMemoryProtector,
+            databaseFile,
+            "user",
+            null!);
+         missingPasskeys.Should().Throw<ArgumentNullException>();
+
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Delete / Import / Export require a logged-in user; after Close they throw.
+      */
+      public void Case16_MutatingApisRequireLoggedInUser()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase();
+         database.Close();
+
+         Action delete = () => database.Delete();
+         delete.Should().Throw<NullValueException>();
+
+         Action import = () => database.ImportFromFile("missing.json");
+         import.Should().Throw<NullValueException>();
+
+         Action export = () => database.ExportToFile("out.json");
+         export.Should().Throw<NullValueException>();
+
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * CleaningClipboardTimeout fires the clipboard scrub with the stored passwords.
+      */
+      public void Case17_ClipboardTimeoutScrubsPasswords()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         FakeClipboardManager clipboard = new();
+
+         IDatabase database = Database.Create(UnitTestsHelper.CryptographyCenter,
+            UnitTestsHelper.SerializationCenter,
+            UnitTestsHelper.FastPasswordFactory,
+            clipboard,
+            UnitTestsHelper.SecretMemoryProtector,
+            databaseFile,
+            username,
+            passkeys);
+
+         IService service = database.User!.AddService("ClipService");
+         _ = service.AddAccount("Account", UnitTestsHelper.Ids("id@test"), "clipboard-secret");
+
+         User user = (User)database.User;
+         user.Settings.CleaningClipboardTimeout = 1;
+         user.ResetTimer();
+         _ = user.Settings.CleaningClipboardTimeout.Should().Be(1);
+
+         DateTime deadline = DateTime.UtcNow.AddSeconds(20);
+         while (clipboard.RemoveAllOccurrenceCallCount == 0 && DateTime.UtcNow < deadline)
+         {
+            Thread.Sleep(200);
+         }
+
+         _ = clipboard.RemoveAllOccurrenceCallCount.Should().BeGreaterThan(0);
+         _ = clipboard.LastRemoveList.Should().Contain("clipboard-secret");
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * SessionLeftTime is LogoutTimeout in minutes, converted to seconds.
+      */
+      public void Case18_SessionLeftTimeTracksLogoutTimeout()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase();
+
+         database.User!.Settings.LogoutTimeout = 5;
+         ((User)database.User).ResetTimer();
+
+         _ = database.SessionLeftTime.Should().Be(5 * 60);
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Clearing NeedsReview and saving must survive logout / login: the flag lives
+       * in the encrypted activity payload, not only in the in-memory objects.
+      */
+      public void Case19_NeedsReviewCleared_PersistsAcrossReopen()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string[] wrongPasskeys = [.. passkeys];
+         wrongPasskeys[0] = UnitTestsHelper.GetRandomString();
+
+         IDatabase created = UnitTestsHelper.CreateTestDatabase(passkeys);
+         created.Close();
+
+         IDatabase failed = UnitTestsHelper.OpenTestDatabase(wrongPasskeys, out _);
+         _ = failed.User.Should().BeNull();
+         failed.Close();
+
+         IDatabase database = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         IActivity[] failedLogins = [.. database.Activities!
+            .Where(x => x.EventType == ActivityEventType.LoginFailed)];
+         _ = failedLogins.Should().NotBeEmpty();
+         _ = failedLogins.Should().OnlyContain(x => x.NeedsReview);
+
+         foreach (IActivity activity in failedLogins)
+         {
+            activity.NeedsReview = false;
+         }
+
+         database.Save();
+         database.Close();
+
+         IDatabase reopened = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         _ = reopened.Activities!
+            .Where(x => x.EventType == ActivityEventType.LoginFailed)
+            .Should().OnlyContain(x => !x.NeedsReview);
+
+         reopened.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+   }
+}

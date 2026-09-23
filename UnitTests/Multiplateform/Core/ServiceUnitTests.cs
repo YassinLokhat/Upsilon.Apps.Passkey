@@ -1,0 +1,298 @@
+using FluentAssertions;
+using Upsilon.Apps.Passkey.Interfaces;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
+
+namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
+{
+   [TestClass]
+   public sealed class ServiceUnitTests
+   {
+      [TestMethod]
+      /*
+       * User.AddService adds the new service,
+       * Then updating the service and saving will save the update in the database file and delete the autosave file,
+       * Then Database.Open loads correctly the updated database file with the updated service.
+      */
+      public void Case01_AddServiceUpdateSaved()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         string oldServiceName = "Service_" + UnitTestsHelper.GetUsername();
+         string newServiceName = "new_" + oldServiceName;
+         Uri url = new($"http://{username}.test");
+         string notes = UnitTestsHelper.GetRandomString();
+         Stack<ExpectedActivity> expectedActivities = new();
+         Stack<ExpectedActivity> expectedLogAlerts = new();
+
+         // When
+         IService service = databaseCreated.User.AddService(oldServiceName);
+         expectedActivities.Push(ExpectedActivity.ItemAdded(false, username: username, fieldValue: service.ToString()));
+
+         // Then
+         databaseCreated.User.HasChanged().Should().BeTrue();
+         service.HasChanged().Should().BeFalse();
+         _ = databaseCreated.User.Services.Count().Should().Be(1);
+
+         // When
+         string serviceNameBeforeRename = service.ToString();
+         service.ServiceName = newServiceName;
+         service.ServiceName = newServiceName;
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(true, serviceName: serviceNameBeforeRename, fieldName: nameof(service.ServiceName), fieldValue: newServiceName));
+         expectedLogAlerts.Push(ExpectedActivity.ItemUpdated(true, serviceName: serviceNameBeforeRename, fieldName: nameof(service.ServiceName), fieldValue: newServiceName));
+         service.Url = url;
+         service.Url = url;
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: service.ToString(), fieldName: nameof(service.Url), fieldValue: url.OriginalString));
+         service.Notes = notes;
+         service.Notes = notes;
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: service.ToString(), fieldName: nameof(service.Notes), fieldValue: notes));
+
+         // Then
+         databaseCreated.User.HasChanged().Should().BeTrue();
+         service.HasChanged().Should().BeTrue();
+         service.HasChanged(nameof(service.ServiceName)).Should().BeTrue();
+         service.HasChanged(nameof(service.Url)).Should().BeTrue();
+         service.HasChanged(nameof(service.Notes)).Should().BeTrue();
+
+         // When
+         databaseCreated.Save();
+         expectedActivities.Push(ExpectedActivity.DatabaseSaved(username));
+         databaseCreated.Close();
+         expectedActivities.Push(ExpectedActivity.UserLoggedOut(username));
+         expectedActivities.Push(ExpectedActivity.DatabaseClosed(username));
+
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         expectedActivities.Push(ExpectedActivity.DatabaseOpened(username));
+         expectedActivities.Push(ExpectedActivity.UserLoggedIn(username));
+
+         // Then
+         _ = databaseLoaded.User.Services.Count().Should().Be(1);
+
+         // When
+         IService serviceLoaded = databaseLoaded.User.Services.First();
+
+         // Then
+         _ = serviceLoaded.ServiceName.Should().Be(newServiceName);
+         _ = serviceLoaded.Url.Should().Be(url);
+         _ = serviceLoaded.Notes.Should().Be(notes);
+
+         UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogAlerts]);
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * User.AddService adds the new service,
+       * Then updating the service without saving will create the autosave file,
+       * Then Database.Open with AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile loads correctly the updated database file with the updated service.
+      */
+      public void Case02_AddServiceUpdateAutoSave()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         string oldServiceName = "Service_" + UnitTestsHelper.GetUsername();
+         string newServiceName = "new_" + oldServiceName;
+         Uri url = new($"http://{username}.test");
+         string notes = UnitTestsHelper.GetRandomString();
+         Stack<ExpectedActivity> expectedActivities = new();
+         Stack<ExpectedActivity> expectedLogAlerts = new();
+
+         // When
+         IService service = databaseCreated.User.AddService(oldServiceName);
+         expectedActivities.Push(ExpectedActivity.ItemAdded(false, username: username, fieldValue: service.ToString()));
+
+         // Then
+         _ = databaseCreated.User.Services.Count().Should().Be(1);
+
+         // When
+         string serviceNameBeforeRename = service.ToString();
+         service.ServiceName = newServiceName;
+         service.ServiceName = newServiceName;
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(true, serviceName: serviceNameBeforeRename, fieldName: nameof(service.ServiceName), fieldValue: newServiceName));
+         expectedLogAlerts.Push(ExpectedActivity.ItemUpdated(true, serviceName: serviceNameBeforeRename, fieldName: nameof(service.ServiceName), fieldValue: newServiceName));
+         service.Url = url;
+         service.Url = url;
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: service.ToString(), fieldName: nameof(service.Url), fieldValue: url.OriginalString));
+         service.Notes = notes;
+         service.Notes = notes;
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: service.ToString(), fieldName: nameof(service.Notes), fieldValue: notes));
+
+         databaseCreated.Close();
+         expectedActivities.Push(ExpectedActivity.UserLoggedOut(username, withoutSaving: true));
+         expectedLogAlerts.Push(ExpectedActivity.UserLoggedOut(username, withoutSaving: true));
+         expectedActivities.Push(ExpectedActivity.DatabaseClosed(username));
+
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
+         expectedActivities.Push(ExpectedActivity.DatabaseOpened(username));
+         expectedActivities.Push(ExpectedActivity.UserLoggedIn(username));
+         expectedActivities.Push(ExpectedActivity.AutosaveMerged(username, ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile));
+         expectedLogAlerts.Push(ExpectedActivity.AutosaveMerged(username, ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile));
+
+         // Then
+         _ = databaseLoaded.User.Services.Count().Should().Be(1);
+
+         // When
+         IService serviceLoaded = databaseLoaded.User.Services.First();
+
+         // Then
+         _ = serviceLoaded.ServiceName.Should().Be(newServiceName);
+         _ = serviceLoaded.Url.Should().Be(url);
+         _ = serviceLoaded.Notes.Should().Be(notes);
+
+         UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogAlerts]);
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * User.DeleteService deletes the service,
+       * Then Database.Open loads correctly the updated database file with the updated service.
+      */
+      public void Case03_DeleteServiceUpdateSaved()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         string serviceName = "Service_" + UnitTestsHelper.GetUsername();
+         _ = databaseCreated.User.AddService(serviceName);
+         databaseCreated.Save();
+         databaseCreated.Close();
+         Stack<ExpectedActivity> expectedActivities = new();
+         Stack<ExpectedActivity> expectedLogAlerts = new();
+
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         IService serviceLoaded = databaseLoaded.User.Services.First();
+
+         // When
+         databaseLoaded.User.DeleteService(serviceLoaded);
+         expectedActivities.Push(ExpectedActivity.ItemDeleted(true, username: username, fieldValue: serviceName));
+         expectedLogAlerts.Push(ExpectedActivity.ItemDeleted(true, username: username, fieldValue: serviceName));
+
+         // Then
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
+
+         // When
+         databaseLoaded.Save();
+         expectedActivities.Push(ExpectedActivity.DatabaseSaved(username));
+         databaseLoaded.Close();
+         expectedActivities.Push(ExpectedActivity.UserLoggedOut(username));
+         expectedActivities.Push(ExpectedActivity.DatabaseClosed(username));
+
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         expectedActivities.Push(ExpectedActivity.DatabaseOpened(username));
+         expectedActivities.Push(ExpectedActivity.UserLoggedIn(username));
+
+         // Then
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
+
+         UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogAlerts]);
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * User.DeleteService adeletes the service,
+       * Then Database.Open with AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile loads correctly the updated database file with the updated service.
+      */
+      public void Case04_DeleteServiceUpdateAutoSave()
+      {
+         // Given
+         UnitTestsHelper.ClearTestEnvironment();
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase databaseCreated = UnitTestsHelper.CreateTestDatabase(passkeys);
+         string serviceName = "Service_" + UnitTestsHelper.GetUsername();
+         _ = databaseCreated.User.AddService(serviceName);
+         databaseCreated.Close();
+         Stack<ExpectedActivity> expectedActivities = new();
+         Stack<ExpectedActivity> expectedLogAlerts = new();
+
+         IDatabase databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
+         IService serviceLoaded = databaseLoaded.User.Services.First();
+
+         // When
+         databaseLoaded.User.DeleteService(serviceLoaded);
+         expectedActivities.Push(ExpectedActivity.ItemDeleted(true, username: username, fieldValue: serviceName));
+         expectedLogAlerts.Push(ExpectedActivity.ItemDeleted(true, username: username, fieldValue: serviceName));
+
+         // Then
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
+
+         // When
+         databaseLoaded.Close();
+         expectedActivities.Push(ExpectedActivity.UserLoggedOut(username, withoutSaving: true));
+         expectedLogAlerts.Push(ExpectedActivity.UserLoggedOut(username, withoutSaving: true));
+         expectedActivities.Push(ExpectedActivity.DatabaseClosed(username));
+
+         databaseLoaded = UnitTestsHelper.OpenTestDatabase(passkeys, out _, AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile);
+         expectedActivities.Push(ExpectedActivity.DatabaseOpened(username));
+         expectedActivities.Push(ExpectedActivity.UserLoggedIn(username));
+         expectedActivities.Push(ExpectedActivity.AutosaveMerged(username, ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile));
+         expectedLogAlerts.Push(ExpectedActivity.AutosaveMerged(username, ActivityEventType.MergeAndSaveThenRemoveAutoSaveFile));
+
+         // Then
+         _ = databaseLoaded.User.Services.Count().Should().Be(0);
+
+         UnitTestsHelper.LastActivitiesShouldMatch(databaseLoaded, [.. expectedActivities]);
+         UnitTestsHelper.LastActivityAlertsShouldMatch(databaseLoaded, [.. expectedLogAlerts]);
+
+         // Finally
+         databaseLoaded.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * The four AddAccount overloads all create an account, and a null Url
+       * round-trips as "no url" rather than throwing.
+      */
+      public void Case05_AddAccountOverloadsAndNullUrl()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase();
+         IService service = database.User!.AddService("OverloadService");
+
+         IAccount withLabel = service.AddAccount("Labeled", UnitTestsHelper.Ids("id-1"));
+         IAccount withPassword = service.AddAccount(UnitTestsHelper.Ids("id-2"), "secret");
+         IAccount identifiersOnly = service.AddAccount(UnitTestsHelper.Ids("id-3"));
+
+         _ = withLabel.Label.Should().Be("Labeled");
+         _ = withLabel.Password.Should().BeEmpty();
+         _ = withPassword.Label.Should().BeEmpty();
+         _ = withPassword.Password.Should().Be("secret");
+         _ = identifiersOnly.Identifiers.Should().BeEquivalentTo(UnitTestsHelper.Ids("id-3"));
+         _ = service.Accounts.Should().HaveCount(3);
+
+         service.Url = null;
+         _ = service.Url.Should().BeNull();
+
+         service.DeleteAccount(withLabel);
+         Action deleteUnknown = () => service.DeleteAccount(withLabel);
+         deleteUnknown.Should().Throw<KeyNotFoundException>();
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+   }
+}

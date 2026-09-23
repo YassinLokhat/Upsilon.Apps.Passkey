@@ -18,19 +18,20 @@ focused change and enough context for review.
 | `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `SecretMemoryProtector` / `ProtectedSecret`, `LeakFilter/` (`.pkbf` Bloom). Same zero-NuGet policy as Core. |
 | `Core/` | Vault implementation (Interfaces only — no ProjectReference to Utils): onion encryption, `.pku` I/O, alerts, import/export. `Database` is a partial class; internal hosts (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) keep ActivityCenter / AutoSave / User from digging into Database members. |
 | `GUI/WPF/` | Windows desktop client (WPF, .NET 10 Windows TFM). |
-| `UnitTests/` | Core/Utils tests plus ViewModel tests through the `AppServices` seam. |
+| `UnitTests/Multiplateform/` | Core/Utils tests (`net10.0`; Linux + Windows CI). |
+| `UnitTests/Windows/` | ViewModel tests through the `AppServices` seam (`net10.0-windows`). |
 
 Two solution files exist on purpose:
 
-- `Upsilon.Apps.Passkey.Windows.slnx` — Interfaces, Utils, Core, WPF GUI, and tests.
-- `Upsilon.Apps.Passkey.Linux.slnx` — Interfaces, Utils, and Core only (no WPF, no tests:
-  the test project targets `net10.0-windows`).
+- `Upsilon.Apps.Passkey.Windows.slnx` — Interfaces, Utils, Core, WPF GUI, and both test projects.
+- `Upsilon.Apps.Passkey.Linux.slnx` — Interfaces, Utils, Core, and Multiplateform tests (no WPF).
 
 ## Build and test
 
 ```bash
 dotnet build Upsilon.Apps.Passkey.Windows.slnx
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
+dotnet test Upsilon.Apps.Passkey.Linux.slnx
 ```
 
 Windows CI also enforces **90% line coverage of `Upsilon.Apps.Passkey.Core`**.
@@ -42,7 +43,7 @@ in the PR. Coverage reports from `run_code_coverage.bat` / Windows CI land in
 GUI ViewModel tests can be filtered with:
 
 ```bash
-dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Gui"
+dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Windows.Gui"
 ```
 
 There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global
@@ -57,7 +58,7 @@ limited to the .NET BCL.
 Allowed:
 
 - In-solution `ProjectReference`s.
-- Packages in `UnitTests` (MSTest, FluentAssertions 7.x).
+- Packages in the test projects (MSTest, FluentAssertions 7.x).
 - GitHub Actions / CodeQL on the CI runners (not referenced by the libraries).
 
 The WPF project currently has no NuGet packages either; keep it that way unless
