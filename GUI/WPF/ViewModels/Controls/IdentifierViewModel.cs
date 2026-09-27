@@ -86,19 +86,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       {
          get
          {
-            if (!_account.HasChanged(nameof(_account.Identifiers)))
-            {
-               return FieldStateBrushes.UnchangedBrush2;
-            }
-
-            if (_isNew
+            return !_account.HasChanged(nameof(_account.Identifiers))
+               ? FieldStateBrushes.UnchangedBrush2
+               : _isNew
                || Type != _baselineType
-               || !string.Equals(Identifier, _baselineValue, StringComparison.Ordinal))
-            {
-               return FieldStateBrushes.ChangedBrush;
-            }
-
-            return FieldStateBrushes.UnchangedBrush2;
+               || !string.Equals(Identifier, _baselineValue, StringComparison.Ordinal)
+               ? FieldStateBrushes.ChangedBrush
+               : FieldStateBrushes.UnchangedBrush2;
          }
       }
 

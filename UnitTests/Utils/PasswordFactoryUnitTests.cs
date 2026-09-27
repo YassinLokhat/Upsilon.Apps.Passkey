@@ -575,7 +575,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
       {
          // Given: an alphabet with a multi-byte emoji (e.g. 🐶 is 2 chars in UTF-16)
          string alphabet = "A🐶B";
-         
+
          // When
          string password = UnitTestsHelper.PasswordFactory.GeneratePassword(10, alphabet, checkIfLeaked: false);
 
@@ -583,14 +583,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Utils
          // The password should consist of exactly 10 logical text elements.
          System.Globalization.StringInfo si = new(password);
          _ = si.LengthInTextElements.Should().Be(10);
-         
+
          List<string> passwordElements = [];
          System.Globalization.TextElementEnumerator enumerator = System.Globalization.StringInfo.GetTextElementEnumerator(password);
          while (enumerator.MoveNext())
          {
             passwordElements.Add(enumerator.GetTextElement());
          }
-         
+
          // It should only contain elements present in the alphabet
          List<string> allowed = ["A", "🐶", "B"];
          _ = passwordElements.Should().OnlyContain(e => allowed.Contains(e));

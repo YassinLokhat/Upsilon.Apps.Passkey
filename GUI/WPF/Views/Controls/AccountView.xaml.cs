@@ -94,7 +94,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
             if (!_viewModel.Account.Identifiers.Any())
             {
-               _viewModel.AddIdentifier(string.Empty);
+               _ = _viewModel.AddIdentifier(string.Empty);
             }
             else
             {
