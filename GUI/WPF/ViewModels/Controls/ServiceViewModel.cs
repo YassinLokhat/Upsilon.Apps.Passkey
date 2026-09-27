@@ -153,37 +153,33 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             : Accounts.FirstOrDefault();
       }
 
-      public AccountViewModel AddAccount()
+      public AccountViewModel? AddAccount()
       {
-         AccountViewModel? accountViewModel = Accounts.FirstOrDefault(_isNewAccountPlaceholder)
-            ?? _accountViewModelsById.Values.FirstOrDefault(_isNewAccountPlaceholder);
+         IIdentifier? identifier = InsertIdentifierView.InsertIdentifierDialog(AccountViewModel.IdentifierAutoCompleteList ?? []);
 
-         if (accountViewModel is null)
+         if (identifier is null)
          {
-            IAccount account = Service.AddAccount(
-            [
-               new Identifier(
-                  IdentifierType.Username,
-                  Strings.Msg_NewAccountPrefix + DateTime.Now.Ticks),
-            ]);
-            _syncAccountViewModels();
-            accountViewModel = _accountViewModelsById[account.ItemId];
-
-            if (!Accounts.Contains(accountViewModel))
-            {
-               Accounts.Insert(0, accountViewModel);
-            }
-
-            _notify(string.Empty);
-            AppServices.Session.Database?.RefreshAlerts();
+            return null;
          }
+
+         IAccount account = Service.AddAccount(
+         [
+            new Identifier(identifier),
+         ]);
+
+         _syncAccountViewModels();
+         AccountViewModel accountViewModel = _accountViewModelsById[account.ItemId];
+
+         if (!Accounts.Contains(accountViewModel))
+         {
+            Accounts.Insert(0, accountViewModel);
+         }
+
+         _notify(string.Empty);
+         AppServices.Session.Database?.RefreshAlerts();
 
          return accountViewModel;
       }
-
-      private static bool _isNewAccountPlaceholder(AccountViewModel account)
-         => account.Identifiers.Any(id =>
-            Strings.IsPlaceholderName(id.Identifier, nameof(Strings.Msg_NewAccountPrefix)));
 
       public int DeleteAccount(AccountViewModel accountViewModel)
       {
@@ -234,7 +230,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       }
 
       private void _addAccount()
-         => SelectedAccount = AddAccount();
+      {
+         AccountViewModel? accountViewModel = AddAccount();
+
+         if (accountViewModel is not null)
+         {
+            SelectedAccount = accountViewModel;
+         }
+      }
 
       private void _deleteAccount()
       {

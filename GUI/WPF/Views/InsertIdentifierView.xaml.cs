@@ -17,11 +17,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private readonly InsertIdentifierViewModel _viewModel;
       private IIdentifier? _selectedIdentifier;
 
-      private InsertIdentifierView(IEnumerable<IIdentifier> identifiers, IIdentifier identifier)
+      private InsertIdentifierView(IEnumerable<IIdentifier> identifiers, IIdentifier? identifier)
       {
          InitializeComponent();
 
          DataContext = _viewModel = new(identifiers, identifier);
+         IdentifierType identifierType = identifier?.Type ?? (IdentifierType)0xFF;
 
          foreach (object? child in _identifierTypes_SP.Children)
          {
@@ -30,7 +31,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                IdentifierType type = Enum.GetValues<IdentifierType>().FirstOrDefault(x => Enum.GetName(x) == $"{button.Tag}");
                string glyph = $"{button.Tag}" != "All" ? IdentifierViewModel.TypeGlyphs[type] : IdentifierViewModel.AllTypeGlyph;
                button.Content = $"{glyph} {button.Content}";
-               button.IsChecked = identifier.Type == type;
+               button.IsChecked = $"{button.Tag}" == "All" || identifierType == type;
             }
          }
 
@@ -40,7 +41,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
-      internal static IIdentifier? InsertIdentifierDialog(IEnumerable<IIdentifier> identifiers, IIdentifier identifier)
+      internal static IIdentifier? InsertIdentifierDialog(IEnumerable<IIdentifier> identifiers, IIdentifier? identifier = null)
       {
          InsertIdentifierView insertIdentifierView = new(identifiers, identifier);
          _ = AppServices.Dialogs.ShowDialog(insertIdentifierView);

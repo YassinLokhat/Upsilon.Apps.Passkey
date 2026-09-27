@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Resources;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
@@ -213,7 +213,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_ImportSuccess => Get(nameof(Msg_ImportSuccess));
       public static string Msg_InsufficientKdf => Get(nameof(Msg_InsufficientKdf));
       public static string Msg_ItemNotFound => Get(nameof(Msg_ItemNotFound));
-      public static string Msg_NewAccountPrefix => Get(nameof(Msg_NewAccountPrefix));
       public static string Msg_NewServicePrefix => Get(nameof(Msg_NewServicePrefix));
       public static string Msg_NoDatabaseLoaded => Get(nameof(Msg_NoDatabaseLoaded));
       public static string Msg_NoOfflineLeakDatabase => Get(nameof(Msg_NoOfflineLeakDatabase));
