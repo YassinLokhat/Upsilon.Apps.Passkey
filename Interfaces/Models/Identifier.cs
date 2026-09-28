@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.Interfaces.Enums;
+﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.Interfaces.Models
 {
@@ -9,6 +9,12 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
    {
       public Identifier()
       {
+      }
+
+      public Identifier(IIdentifier identifier)
+      {
+         Type = identifier?.Type ?? IdentifierType.Username;
+         Value = identifier?.Value ?? string.Empty;
       }
 
       public Identifier(IdentifierType type, string value)

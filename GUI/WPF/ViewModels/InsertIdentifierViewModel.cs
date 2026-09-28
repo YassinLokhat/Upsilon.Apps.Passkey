@@ -39,11 +39,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       }
 
-      public InsertIdentifierViewModel(IEnumerable<IIdentifier> identifiers, IIdentifier identifier)
+      public InsertIdentifierViewModel(IEnumerable<IIdentifier> identifiers, IIdentifier? identifier)
       {
          _identifiers = identifiers;
-         Identifier = identifier.Value;
-         Type = identifier.Type;
+         Identifier = identifier?.Value ?? string.Empty;
+         Type = identifier?.Type ?? IdentifierType.Username;
       }
 
       public IIdentifier ToIdentifier() => new Identifier(Type, Identifier.Trim());

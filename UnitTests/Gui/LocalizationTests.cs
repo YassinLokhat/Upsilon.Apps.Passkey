@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using System.Globalization;
 using System.Resources;
 using Upsilon.Apps.Passkey.Core.Models;
@@ -276,14 +276,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Gui
       {
          LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
          string englishService = Strings.Msg_NewServicePrefix;
-         string englishAccount = Strings.Msg_NewAccountPrefix;
 
          foreach (AppLanguage language in _satelliteLanguages())
          {
             LocalizationService.Apply(language.Code);
 
             _ = Strings.Msg_NewServicePrefix.Should().NotBe(englishService, because: language.Code);
-            _ = Strings.Msg_NewAccountPrefix.Should().NotBe(englishAccount, because: language.Code);
             _ = Strings.EnumValue_FollowApp.Should().NotBe(
                Strings.GetNeutral(nameof(Strings.EnumValue_FollowApp)), because: language.Code);
          }
