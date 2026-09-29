@@ -47,7 +47,13 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             ? MemoryMappedFileAccess.ReadWrite
             : MemoryMappedFileAccess.Read;
 
-         _file = new FileStream(path, FileMode.Open, fileAccess, FileShare.Read);
+         // Writable opens must be exclusive: on Windows FileShare.Read already
+         // denies a second ReadWrite handle, but on Unix any non-None share maps
+         // to flock(LOCK_SH), so two FileShare.Read opens would both succeed and
+         // Update could mutate bits under a live query mapping. FileShare.None →
+         // LOCK_EX (same idea as the vault .pku.lock). Read-only Open stays shared.
+         FileShare share = writable ? FileShare.None : FileShare.Read;
+         _file = new FileStream(path, FileMode.Open, fileAccess, share);
          MemoryMappedFile? mmf = null;
          MemoryMappedViewAccessor? accessor = null;
          try
