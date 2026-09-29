@@ -14,7 +14,7 @@ That is the **login idle timeout** (`LoginIdleTimeoutSeconds` in `config.json`, 
 
 ## Can I sync the vault with Dropbox / OneDrive / git?
 
-The app does not sync. You can copy the `.pku` as a backup. Two machines must not write it at the same time: during a session the handle is held with `FileShare.Read | FileShare.Delete` (readers allowed; writers denied; `Delete` enables atomic replace). Conflict copies (`file (1).pku`) are not merged. This is not a multi-master database.
+The app does not sync. You can copy the `.pku` as a backup. Two machines must not write it at the same time: during a session the handle is held with `FileShare.Read | FileShare.Delete` plus a sibling `.pku.lock` (readers allowed; writers denied; `Delete` enables atomic replace). Conflict copies (`file (1).pku`) are not merged. This is not a multi-master database.
 
 ## Is the CSV export really CSV?
 

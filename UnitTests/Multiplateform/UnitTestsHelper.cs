@@ -356,29 +356,30 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform
          return (int)value;
       }
 
+      // Alert scans publish twice (local phase, then leak phase). Completing on
+      // the first CoreAlertsScanCompleted can observe stale PasswordLeaked rows
+      // or a VaultSecuritySettings snapshot from an earlier in-flight generation
+      // (especially under Linux CI scheduling). Wait until completions go quiet.
+      private static readonly TimeSpan _alertScanSettle = TimeSpan.FromMilliseconds(250);
+      private static readonly TimeSpan _alertScanSinglePublishGrace = TimeSpan.FromMilliseconds(750);
+
       /// <summary>
       /// Subscribes to <see cref="IDatabase.CoreAlertsScanCompleted"/>, then runs
       /// <paramref name="trigger"/> (typically <see cref="IDatabase.Save"/>) and
-      /// waits until a scan completes with a non-empty alert of <paramref name="kind"/>.
-      /// Completing only on scan completion (not on <see cref="IDatabase.CoreAlertsChanged"/>)
-      /// avoids racing ahead of paired completion handlers such as
-      /// <c>AlertBroker.NotifiedAlertsChanged</c>.
+      /// waits until the post-trigger scan wave settles with a non-empty alert of
+      /// <paramref name="kind"/>. Completing only after quiescence (not on the
+      /// first phase-1 pulse) avoids racing ahead of the leak phase and of paired
+      /// handlers such as <c>AlertBroker.NotifiedAlertsChanged</c>.
       /// </summary>
       public static IAlert[] WaitForAlertKind(IDatabase database, string kind, Action trigger, TimeSpan? timeout = null)
       {
          timeout ??= TimeSpan.FromSeconds(15);
-         TaskCompletionSource<IAlert[]> tcs = new();
+         DateTime deadline = DateTime.UtcNow + timeout.Value;
 
-         void ScanCompleted(object? sender, EventArgs e)
-         {
-            if (database.CoreAlerts.TryGetValue(kind, out IReadOnlyList<IAlert>? current)
-               && current.Count > 0)
-            {
-               _ = tcs.TrySetResult([.. current]);
-            }
-         }
+         using ManualResetEventSlim pulse = new(false);
+         void OnCompleted(object? sender, EventArgs e) => pulse.Set();
 
-         database.CoreAlertsScanCompleted += ScanCompleted;
+         database.CoreAlertsScanCompleted += OnCompleted;
 
          try
          {
@@ -387,48 +388,102 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform
             // timeouts are 0) before the test mutates settings/accounts.
             trigger();
 
-            if (!tcs.Task.Wait(timeout.Value))
+            while (DateTime.UtcNow < deadline)
             {
-               throw new TimeoutException($"Timed out waiting for alert kind '{kind}'.");
+               _waitForAlertScanQuiescence(pulse, deadline);
+
+               if (database.CoreAlerts.TryGetValue(kind, out IReadOnlyList<IAlert>? current)
+                  && current.Count > 0)
+               {
+                  return [.. current];
+               }
             }
 
-            return tcs.Task.Result;
+            throw new TimeoutException($"Timed out waiting for alert kind '{kind}'.");
          }
          finally
          {
-            database.CoreAlertsScanCompleted -= ScanCompleted;
+            database.CoreAlertsScanCompleted -= OnCompleted;
          }
       }
 
       /// <summary>
       /// Subscribes to <see cref="IDatabase.CoreAlertsScanCompleted"/> then runs
-      /// <paramref name="trigger"/> and waits for the next scan to finish,
-      /// returning a flattened <see cref="IDatabase.CoreAlerts"/> snapshot.
+      /// <paramref name="trigger"/> and waits until the post-trigger scan wave
+      /// (local + leak phases) settles, returning a flattened
+      /// <see cref="IDatabase.CoreAlerts"/> snapshot.
       /// </summary>
       public static IAlert[] WaitForAlerts(IDatabase database, Action trigger, TimeSpan? timeout = null)
       {
          timeout ??= TimeSpan.FromSeconds(15);
-         TaskCompletionSource<IAlert[]> tcs = new();
+         DateTime deadline = DateTime.UtcNow + timeout.Value;
 
-         void Handler(object? sender, EventArgs e)
-            => _ = tcs.TrySetResult(FlattenCoreAlerts(database));
+         using ManualResetEventSlim pulse = new(false);
+         void OnCompleted(object? sender, EventArgs e) => pulse.Set();
 
-         database.CoreAlertsScanCompleted += Handler;
+         database.CoreAlertsScanCompleted += OnCompleted;
 
          try
          {
             trigger();
-
-            if (!tcs.Task.Wait(timeout.Value))
-            {
-               throw new TimeoutException("Timed out waiting for a Core alert scan.");
-            }
-
-            return tcs.Task.Result;
+            _waitForAlertScanQuiescence(pulse, deadline);
+            return FlattenCoreAlerts(database);
          }
          finally
          {
-            database.CoreAlertsScanCompleted -= Handler;
+            database.CoreAlertsScanCompleted -= OnCompleted;
+         }
+      }
+
+      private static void _waitForAlertScanQuiescence(ManualResetEventSlim pulse, DateTime deadline)
+      {
+         int pulses = 0;
+         DateTime? singlePublishQuietSince = null;
+
+         while (DateTime.UtcNow < deadline)
+         {
+            int remainingMs = (int)Math.Ceiling((deadline - DateTime.UtcNow).TotalMilliseconds);
+            if (remainingMs <= 0)
+            {
+               break;
+            }
+
+            int waitMs = Math.Min(remainingMs, (int)_alertScanSettle.TotalMilliseconds);
+            if (pulse.Wait(waitMs))
+            {
+               do
+               {
+                  pulses++;
+                  singlePublishQuietSince = null;
+                  pulse.Reset();
+               }
+               while (pulse.Wait(0));
+
+               continue;
+            }
+
+            if (pulses == 0)
+            {
+               continue;
+            }
+
+            // Two publishes (phase 1 + leak) is the common path — settle after both.
+            if (pulses >= 2)
+            {
+               return;
+            }
+
+            // Some scans only raise ScanCompleted once (e.g. superseded leak phase).
+            singlePublishQuietSince ??= DateTime.UtcNow;
+            if (DateTime.UtcNow - singlePublishQuietSince.Value >= _alertScanSinglePublishGrace)
+            {
+               return;
+            }
+         }
+
+         if (pulses == 0)
+         {
+            throw new TimeoutException("Timed out waiting for a Core alert scan.");
          }
       }
 

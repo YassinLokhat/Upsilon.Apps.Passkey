@@ -120,9 +120,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
             using FileLocker locker = _createLocker(path, FileMode.CreateNew);
             locker.Save(new Payload { Value = "held" }, "entry");
 
+            // Product contract: a second session cannot open the same vault for
+            // writing (sibling .pku.lock with FileShare.None — required on Linux
+            // where .pku FileShare.Read|Delete alone does not block writers).
             Action secondOpen = () =>
             {
-               using FileStream _ = new(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+               using FileLocker _ = _createLocker(path, FileMode.Open);
             };
 
             _ = secondOpen.Should().Throw<IOException>();
