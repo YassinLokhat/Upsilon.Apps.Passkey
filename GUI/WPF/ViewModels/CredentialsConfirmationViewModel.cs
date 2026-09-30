@@ -14,7 +14,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          get;
          private set => SetProperty(ref field, value);
-      } = Strings.Format(isNew ? nameof(Strings.Title_NewCredentialsConfirmation) : nameof(Strings.Title_OldCredentialsConfirmation), AppInfo.Title);
+      } = isNew ? Strings.Title_NewCredentialsConfirmation : Strings.Title_OldCredentialsConfirmation;
 
       public bool IsAwaitingPasskeys
       {

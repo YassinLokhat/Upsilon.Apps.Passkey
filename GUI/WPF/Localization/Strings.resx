@@ -408,10 +408,10 @@
     <value>{0} - Password Generator</value>
   </data>
   <data name="Title_OldCredentialsConfirmation" xml:space="preserve">
-    <value>{0} - Please enter your old credentials</value>
+    <value>Please enter your old credentials</value>
   </data>
   <data name="Title_NewCredentialsConfirmation" xml:space="preserve">
-    <value>{0} - Please confirm your new credentials</value>
+    <value>Please confirm your new credentials</value>
   </data>
   <data name="Title_Activities" xml:space="preserve">
     <value>{0} - Activities</value>
