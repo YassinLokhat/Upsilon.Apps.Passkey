@@ -76,12 +76,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
             IAlert[] passkeyLeakedAlerts =
                await _lookAtPasskeyLeakedAlertsAsync().ConfigureAwait(false);
 
-            User? user = User;
-            if (user is null)
-            {
-               return;
-            }
-
             Dictionary<string, IReadOnlyList<IAlert>> leakSnapshot = new(StringComparer.Ordinal)
             {
                [AlertKinds.PasswordLeaked] = passwordLeakedAlerts,
@@ -90,7 +84,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
             if (_tryCommitAndPublish(generation, leakSnapshot, () =>
                 {
-                   foreach (Account account in user.Services.SelectMany(static x => x.Accounts))
+                   foreach (Account account in User.Services.SelectMany(static x => x.Accounts))
                    {
                       account.PasswordLeaked = false;
                    }
@@ -113,8 +107,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          finally
          {
             if (!published
-               && generation == Volatile.Read(ref _alertScanGeneration)
-               && User is not null)
+               && generation == Volatile.Read(ref _alertScanGeneration))
             {
                CoreAlertsScanCompleted?.Invoke(this, EventArgs.Empty);
             }
