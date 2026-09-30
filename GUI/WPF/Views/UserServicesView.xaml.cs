@@ -490,13 +490,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                case IInsufficientPasskeysAlert:
                   count++;
                   break;
-               case IWeakPasskeyAlert weak:
+               case IWeakPasskeyAlert:
                   count++;
                   break;
-               case IPasskeyLeakedAlert leaked:
+               case IPasskeyLeakedAlert:
                   count++;
                   break;
-               case IPasskeyReuseAlert reuse:
+               case IPasskeyReuseAlert:
                   count++;
                   break;
             }
