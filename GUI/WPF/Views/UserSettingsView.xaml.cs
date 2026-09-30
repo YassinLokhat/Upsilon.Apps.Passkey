@@ -65,7 +65,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _database?.DatabaseClosed -= _database_DatabaseClosed;
       }
 
-      public static void ShowUserSettings(Window? owner = null)
+      public static void ShowUserSettings()
       {
          _ = AppServices.Dialogs.ShowDialog(new UserSettingsView());
       }

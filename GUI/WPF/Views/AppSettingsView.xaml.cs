@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
@@ -46,7 +46,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          base.OnClosed(e);
       }
 
-      public static void ShowAppSettings(Window? owner = null)
+      public static void ShowAppSettings()
       {
          _ = AppServices.Dialogs.ShowDialog(new AppSettingsView());
       }

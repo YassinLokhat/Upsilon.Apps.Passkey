@@ -160,7 +160,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         string? password = PasswordGenerator.ShowGeneratePasswordDialog(this);
+         string? password = PasswordGenerator.ShowGeneratePasswordDialog();
 
          if (password is null)
          {
@@ -528,7 +528,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         UserSettingsView.ShowUserSettings(this);
+         UserSettingsView.ShowUserSettings();
          _viewModel.RefreshFilters();
       }
 
