@@ -318,6 +318,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Title_OfflineLeakUpdateInProgress => Get(nameof(Title_OfflineLeakUpdateInProgress));
       public static string Title_OpenDatabase => Get(nameof(Title_OpenDatabase));
       public static string Title_PasswordGenerator => Get(nameof(Title_PasswordGenerator));
+      public static string Title_CredentialsConfirmation => Get(nameof(Title_CredentialsConfirmation));
       public static string Title_QrCode => Get(nameof(Title_QrCode));
       public static string Title_Success => Get(nameof(Title_Success));
       public static string Title_UpdateOfflineLeakDatabase => Get(nameof(Title_UpdateOfflineLeakDatabase));

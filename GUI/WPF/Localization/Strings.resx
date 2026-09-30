@@ -407,6 +407,9 @@
   <data name="Title_PasswordGenerator" xml:space="preserve">
     <value>{0} - Password Generator</value>
   </data>
+  <data name="Title_CredentialsConfirmation" xml:space="preserve">
+    <value>{0} - Please confirm your credentials</value>
+  </data>
   <data name="Title_Activities" xml:space="preserve">
     <value>{0} - Activities</value>
   </data>
