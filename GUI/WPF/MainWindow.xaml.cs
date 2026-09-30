@@ -356,7 +356,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             _mainViewModel.DatabaseFile = Path.GetFullPath($"{Path.Join(AppInfo.AppSettings.DefaultDatabaseDirectory, filename + ".pku")}");
          }
 
-         _setBusy(Strings.Msg_OpeningDatabase);
+         _setBusy();
 
          try
          {
@@ -424,7 +424,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
-         _setBusy(Strings.Msg_CheckingPasskey);
+         _setBusy();
          try
          {
             // Materialize the managed copy while SecureString is still alive.
@@ -519,13 +519,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _ = ThemeService.Apply(AppInfo.AppSettings.Theme, forceRefresh: true);
       }
 
-      private void _setBusy(string message)
+      private void _setBusy()
       {
          // Open/Login must not race with the idle reset: pause the timer for the
          // whole await, then let the caller restart it if the attempt failed.
          _stopIdleTimer();
          _isBusy = true;
-         _mainViewModel.BusyMessage = message;
          _mainViewModel.IsBusy = true;
          this.SetIsBusy(true);
       }

@@ -193,7 +193,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_AutosaveDetected => Get(nameof(Msg_AutosaveDetected));
       public static string Msg_BuildFailed => Get(nameof(Msg_BuildFailed));
       public static string Msg_BuildOfflineLeakDatabase => Get(nameof(Msg_BuildOfflineLeakDatabase));
-      public static string Msg_CheckingPasskey => Get(nameof(Msg_CheckingPasskey));
       public static string Msg_ConfigFileError => Get(nameof(Msg_ConfigFileError));
       public static string Msg_CorruptedDatabase => Get(nameof(Msg_CorruptedDatabase));
       public static string Msg_CredentialsUpdated => Get(nameof(Msg_CredentialsUpdated));
@@ -231,7 +230,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_OfflineLeakUpdateComplete => Get(nameof(Msg_OfflineLeakUpdateComplete));
       public static string Msg_OfflineLeakUpdateExitPrompt => Get(nameof(Msg_OfflineLeakUpdateExitPrompt));
       public static string Msg_OfflineLeakUpdateProgress => Get(nameof(Msg_OfflineLeakUpdateProgress));
-      public static string Msg_OpeningDatabase => Get(nameof(Msg_OpeningDatabase));
       public static string Msg_UpdateOfflineLeakDatabase => Get(nameof(Msg_UpdateOfflineLeakDatabase));
       public static string Msg_SaveBeforeContinue => Get(nameof(Msg_SaveBeforeContinue));
       public static string Msg_ServiceId => Get(nameof(Msg_ServiceId));

@@ -595,12 +595,6 @@ More details in the activities.</value>
     <value>The item '{0}' was not found.
 It has been deleted.</value>
   </data>
-  <data name="Msg_OpeningDatabase" xml:space="preserve">
-    <value>Opening the database...</value>
-  </data>
-  <data name="Msg_CheckingPasskey" xml:space="preserve">
-    <value>Checking the passkey...</value>
-  </data>
   <data name="Msg_InsufficientKdf" xml:space="preserve">
     <value>This database file uses key-stretching parameters below the accepted security floor and cannot be opened.</value>
   </data>
