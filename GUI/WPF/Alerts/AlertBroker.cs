@@ -134,7 +134,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
             issues |= HostSecurityIssue.IdleLoginDisabled;
          }
 
-         if (!AppServices.PasswordFactory.HasLocalFilter)
+         if (!AppServices.PasswordFactory.HasLocalFilter
+            && !AppServices.OfflineLeakFilterUpdate.IsBusy)
          {
             issues |= HostSecurityIssue.OfflineLeakFilterUnavailable;
          }
