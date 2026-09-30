@@ -40,6 +40,7 @@ jobs:
       with:
         languages: csharp
         build-mode: manual
+        queries: security-and-quality
 
     - name: Restore dependencies
       run: dotnet restore Upsilon.Apps.Passkey.Windows.slnx
