@@ -98,12 +98,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
                published = true;
             }
          }
-#pragma warning disable CA1031 // Alert scan must not tear down the session
-         catch (Exception ex)
-         {
-            System.Diagnostics.Trace.TraceWarning($"Alert scan failed: {ex}");
-         }
-#pragma warning restore CA1031
          finally
          {
             if (!published
