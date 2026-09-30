@@ -407,9 +407,6 @@
   <data name="Title_PasswordGenerator" xml:space="preserve">
     <value>{0} - Générateur de mot de passe</value>
   </data>
-  <data name="Title_CredentialsConfirmation" xml:space="preserve">
-    <value>{0} - Veuillez confirmer vos identifiants</value>
-  </data>
   <data name="Title_OldCredentialsConfirmation" xml:space="preserve">
     <value>{0} - Veuillez entrer vos anciens identifiants</value>
   </data>

@@ -278,6 +278,17 @@ login:
   configurable delay (`ISettings.CleaningClipboardTimeout`). The WPF paste
   hotkeys (Ctrl+Shift+L / Ctrl+Shift+P) go through the same clipboard path
   before synthesizing Ctrl+V.
+- **Credential confirmation (WPF host)**: before creating a vault, or before
+  saving a change to username / ordered master passkeys, the WPF client
+  prompts the user to re-type those credentials (`CredentialsConfirmationView`).
+  On an update that changes credentials, the flow is **old credentials first**,
+  then **new credentials**. Closing the dialog cancels the save. This is a
+  **host-side intentionality / anti-mistype control**, not a cryptographic
+  step-up: Core still exposes writable `IUser.Username` / `IUser.Passkeys`, and
+  an already-unlocked session can reveal the current passkeys in User settings.
+  Physical access to an unlocked session remains out of scope (see Threat
+  Model). Delete vault and plaintext export do **not** currently require the
+  same confirmation.
 
 ### Password hygiene features
 
