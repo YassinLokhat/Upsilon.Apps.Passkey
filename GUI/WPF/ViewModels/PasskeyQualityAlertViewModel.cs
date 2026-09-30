@@ -1,4 +1,4 @@
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -99,16 +99,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                Strings.Format(nameof(Strings.Msg_PasskeyQuality_PasskeyLeaked), indexes)));
          }
 
-         foreach (IPasskeyReuseAlert warning in AppServices.Session.Alerts
+         foreach (string accounts in AppServices.Session.Alerts
             .GetNotifiedAlerts(AlertKinds.PasskeyReusedAsAccountPassword)
-            .OfType<IPasskeyReuseAlert>())
+            .OfType<IPasskeyReuseAlert>()
+            .Select(x => string.Join(", ", x.Accounts.Select(a => $"{a.Service} / {a}"))))
          {
-            string accounts = string.Join(
-               ", ",
-               warning.Accounts.Select(a => $"{a.Service} / {a}"));
-            items.Add(new(
-               Strings.Label_NotifyPasskeyReusedAsAccountPassword,
-               Strings.Format(nameof(Strings.Msg_PasskeyQuality_PasskeyReused), accounts)));
+            items.Add(new(Strings.Label_NotifyPasskeyReusedAsAccountPassword,
+               Strings.Format(nameof(Strings.Msg_PasskeyQuality_PasskeyReused),
+               accounts)));
          }
 
          return [.. items];
