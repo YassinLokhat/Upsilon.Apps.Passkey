@@ -17,7 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          DataContext = _viewModel = new CredentialsConfirmationViewModel(credentials, isNew);
 
-         _username_TB.Focus();
+         _ = _username_TB.Focus();
 
          _username_TB.KeyUp += _username_TB_KeyUp;
          _password_PB.KeyUp += _password_PB_KeyUp;
@@ -44,7 +44,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                return;
             }
 
-            _password_PB.Focus();
+            _ = _password_PB.Focus();
             _clearInputs();
          }
          else if (e.Key == System.Windows.Input.Key.Escape)
@@ -86,7 +86,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private void _clearCredentials()
       {
          _viewModel.ClearCredentials();
-         _username_TB.Focus();
+         _ = _username_TB.Focus();
          _clearInputs();
       }
    }

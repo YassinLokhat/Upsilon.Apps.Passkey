@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+﻿using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels

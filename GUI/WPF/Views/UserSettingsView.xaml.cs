@@ -144,7 +144,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (_database?.User is null)
          {
-            if (!CredentialsConfirmationView.ShowConfirmationDialog(credentials: [_viewModel.Username, .._passwordsContainer.Passkeys], isNew: true))
+            if (!CredentialsConfirmationView.ShowConfirmationDialog(credentials: [_viewModel.Username, .. _passwordsContainer.Passkeys], isNew: true))
             {
                return;
             }
