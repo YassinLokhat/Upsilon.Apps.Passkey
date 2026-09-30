@@ -48,7 +48,8 @@ jobs:
     # excluding UnitTests keeps test code out of the database
     - name: Build Release
       run: |
-        dotnet sln Upsilon.Apps.Passkey.Windows.slnx remove UnitTests/UnitTests.csproj
+        dotnet sln Upsilon.Apps.Passkey.Windows.slnx remove UnitTests/Multiplateform/UnitTests.Multiplateform.csproj
+        dotnet sln Upsilon.Apps.Passkey.Windows.slnx remove UnitTests/Windows/UnitTests.Windows.csproj
         dotnet build Upsilon.Apps.Passkey.Windows.slnx --no-restore --configuration Release
 
     # With build-mode: manual, CodeQL traces the compiler and includes generated

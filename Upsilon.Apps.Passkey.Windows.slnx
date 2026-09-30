@@ -1,7 +1,12 @@
 <Solution>
-  <Project Path="Core/Upsilon.Apps.Passkey.Core.csproj" />
+  <Folder Name="/Multiplateform/">
+    <Project Path="Interfaces/Upsilon.Apps.Passkey.Interfaces.csproj" />
+    <Project Path="Utils/Upsilon.Apps.Passkey.Utils.csproj" />
+    <Project Path="Core/Upsilon.Apps.Passkey.Core.csproj" />
+  </Folder>
+  <Folder Name="/UnitTests/">
+    <Project Path="UnitTests/Multiplateform/UnitTests.Multiplateform.csproj" />
+    <Project Path="UnitTests/Windows/UnitTests.Windows.csproj" />
+  </Folder>
   <Project Path="GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj" />
-  <Project Path="Interfaces/Upsilon.Apps.Passkey.Interfaces.csproj" />
-  <Project Path="UnitTests/UnitTests.csproj" />
-  <Project Path="Utils/Upsilon.Apps.Passkey.Utils.csproj" />
 </Solution>

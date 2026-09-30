@@ -203,6 +203,8 @@ login:
   The `.pku` handle is held open for the whole session
   (`FileShare.Read | FileShare.Delete`) outside the brief atomic-replace window
   above; other processes may still open the file for reading, but not for writing.
+  A sibling `<vault>.pku.lock` opened with `FileShare.None` enforces that
+  single-writer rule on Linux as well (Unix share modes are advisory).
   `FileShare.Delete` is required so the atomic replace can swap the sibling temp
   file into place.
 

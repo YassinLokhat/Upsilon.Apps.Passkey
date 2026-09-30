@@ -4,7 +4,7 @@
   so no third-party coverage package is required. Output is Cobertura XML, which
   is consumable by any coverage viewer.
 
-  Wired via UnitTests.csproj RunSettingsFilePath (VS Test Explorer and
+  Wired via UnitTests.*.csproj RunSettingsFilePath (VS Test Explorer and
   `dotnet test` when no settings file is passed on the command line).
   CI / run_code_coverage.bat also pass settings / results-directory
   explicitly.

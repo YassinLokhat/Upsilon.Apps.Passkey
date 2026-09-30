@@ -14,6 +14,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
    {
       internal string FilePath { get; private set; }
       private FileStream? _stream;
+      /// <summary>
+      /// Sibling exclusive handle (<c>*.pku.lock</c>). Windows <see cref="FileShare"/>
+      /// already blocks a second ReadWrite open of the .pku; on Linux those share
+      /// flags are advisory, so this lock file enforces the single-writer session.
+      /// </summary>
+      private FileStream? _sessionLock;
       private readonly ICryptographyCenter _cryptographicCenter;
       private readonly ISerializationCenter _serializationCenter;
 
@@ -30,7 +36,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // processes open the file for reading (backups, antivirus, inspection)
       // while denying concurrent writers. FileShare.Delete lets the atomic
       // replace succeed even when a reader still holds a handle that allowed
-      // deletion (common on Windows with scanners).
+      // deletion (common on Windows with scanners). A sibling .pku.lock with
+      // FileShare.None enforces that single-writer contract on Linux as well.
       private const FileShare SHARE_MODE = FileShare.Read | FileShare.Delete;
 
       // Windows antivirus / search indexers often open a just-closed .pku for
@@ -47,8 +54,24 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          _cryptographicCenter = cryptographicCenter;
          _serializationCenter = serializationCenter;
 
-         _stream = new FileStream(FilePath, fileMode, FileAccess.ReadWrite, SHARE_MODE);
+         // Acquire the exclusive session lock before opening the archive so two
+         // concurrent Open attempts cannot both pass the .pku share check on Linux.
+         _sessionLock = _openSessionLock(FilePath);
+         try
+         {
+            _stream = new FileStream(FilePath, fileMode, FileAccess.ReadWrite, SHARE_MODE);
+         }
+         catch
+         {
+            _releaseSessionLock();
+            throw;
+         }
       }
+
+      private static string _sessionLockPath(string filePath) => $"{filePath}.lock";
+
+      private static FileStream _openSessionLock(string filePath)
+         => new(_sessionLockPath(filePath), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
 
       private FileStream _stream2 => _stream
          ?? throw new ObjectDisposedException(nameof(FileLocker));
@@ -77,12 +100,16 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          lock (_gate)
          {
+            string path = FilePath;
             _releaseStream();
+            _releaseSessionLock();
 
-            if (File.Exists(FilePath))
+            if (File.Exists(path))
             {
-               File.Delete(FilePath);
+               File.Delete(path);
             }
+
+            _tryDeleteSessionLockFile(path);
          }
       }
 
@@ -115,7 +142,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          lock (_gate)
          {
+            string path = FilePath;
             _releaseStream();
+            _releaseSessionLock();
+            _tryDeleteSessionLockFile(path);
             FilePath = string.Empty;
          }
       }
@@ -129,6 +159,41 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
          _stream.Dispose();
          _stream = null;
+      }
+
+      private void _releaseSessionLock()
+      {
+         if (_sessionLock is null)
+         {
+            return;
+         }
+
+         _sessionLock.Dispose();
+         _sessionLock = null;
+      }
+
+      private static void _tryDeleteSessionLockFile(string filePath)
+      {
+         if (string.IsNullOrEmpty(filePath))
+         {
+            return;
+         }
+
+         string lockPath = _sessionLockPath(filePath);
+         try
+         {
+            if (File.Exists(lockPath))
+            {
+               File.Delete(lockPath);
+            }
+         }
+         catch (Exception ex)
+            when (ex is IOException
+            or UnauthorizedAccessException
+            or DirectoryNotFoundException)
+         {
+            System.Diagnostics.Trace.TraceWarning($"Failed to delete session lock '{lockPath}': {ex.Message}");
+         }
       }
 
       private ZipArchive _openArchive(ZipArchiveMode mode)
