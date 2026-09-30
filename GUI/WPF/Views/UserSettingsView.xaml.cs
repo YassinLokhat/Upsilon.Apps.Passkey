@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -144,6 +144,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (_database?.User is null)
          {
+            if (!CredentialsConfirmationView.ShowConfirmationDialog(credentials: [_viewModel.Username, .._passwordsContainer.Passkeys], isNew: true))
+            {
+               return;
+            }
+
             if (AppServices.Dialogs.Confirm(Strings.Format(nameof(Strings.Msg_UseDefaultLocation), newDatabaseFile), Strings.Title_UseDefaultLocation, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             {
                string? picked = AppServices.Dialogs.PickSaveFile(
@@ -180,6 +185,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                oldPasskeys: _database.User.Passkeys,
                newFilename,
                newPasskeys: _passwordsContainer.Passkeys);
+
+            if (credentialsChanged
+               && (!CredentialsConfirmationView.ShowConfirmationDialog(credentials: [_database.User.Username, .. _database.User.Passkeys], isNew: false)
+                  || !CredentialsConfirmationView.ShowConfirmationDialog(credentials: [_viewModel.Username, .. _passwordsContainer.Passkeys], isNew: true)))
+            {
+               return;
+            }
          }
 
          if (_database.User is not null)

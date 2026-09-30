@@ -10,11 +10,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    {
       private readonly CredentialsConfirmationViewModel _viewModel;
 
-      private CredentialsConfirmationView(IEnumerable<string> credentials)
+      private CredentialsConfirmationView(IEnumerable<string> credentials, bool isNew)
       {
          InitializeComponent();
 
-         DataContext = _viewModel = new CredentialsConfirmationViewModel(credentials);
+         DataContext = _viewModel = new CredentialsConfirmationViewModel(credentials, isNew);
 
          _username_TB.Focus();
 
@@ -22,10 +22,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _password_PB.KeyUp += _password_PB_KeyUp;
       }
 
-      public static bool ShowConfirmationDialog(IEnumerable<string> credentials)
-      {
-         return new CredentialsConfirmationView(credentials).ShowDialog() ?? false;
-      }
+      public static bool ShowConfirmationDialog(IEnumerable<string> credentials, bool isNew)
+         => new CredentialsConfirmationView(credentials, isNew).ShowDialog() ?? false;
 
       private void _username_TB_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
       {

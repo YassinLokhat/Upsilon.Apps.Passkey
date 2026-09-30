@@ -8,13 +8,13 @@ using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal class CredentialsConfirmationViewModel(IEnumerable<string> credentials) : ObservableObject, ILanguageAware
+   internal class CredentialsConfirmationViewModel(IEnumerable<string> credentials, bool isNew) : ObservableObject, ILanguageAware
    {
       public string Title
       {
          get;
          private set => SetProperty(ref field, value);
-      } = Strings.Format(nameof(Strings.Title_CredentialsConfirmation), AppInfo.Title);
+      } = Strings.Format(isNew ? nameof(Strings.Title_NewCredentialsConfirmation) : nameof(Strings.Title_OldCredentialsConfirmation), AppInfo.Title);
 
       public bool IsAwaitingPasskeys
       {
