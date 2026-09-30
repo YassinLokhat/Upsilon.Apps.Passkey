@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
@@ -20,6 +21,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          _username_TB.KeyUp += _username_TB_KeyUp;
          _password_PB.KeyUp += _password_PB_KeyUp;
+
+         Loaded += (s, e) => this.PostLoadSetup();
       }
 
       public static bool ShowConfirmationDialog(IEnumerable<string> credentials, bool isNew)
