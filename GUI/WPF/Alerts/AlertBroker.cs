@@ -72,7 +72,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
          };
 
       public static AlertSeverity MaxSeverity(IEnumerable<IAlert> alerts)
-         => alerts.Max(x => x.Severity);
+      {
+         IAlert[] alertsArray = [.. alerts];
+         return alertsArray.Length != 0 ? alertsArray.Max(x => x.Severity) : AlertSeverity.Info;
+      }
 
       public static Brush BrushFor(IEnumerable<IAlert> alerts)
          => BrushFor(MaxSeverity(alerts));
