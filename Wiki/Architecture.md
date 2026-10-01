@@ -25,6 +25,7 @@ The WPF app supplies `IClipboardManager` and `ISecretMemoryProtector`, and hosts
 ```mermaid
 flowchart LR
   IDatabase --> IUser
+  IDatabase --> IEditHistory
   IUser --> ISettings
   IUser --> IService
   IService --> IAccount
@@ -173,10 +174,21 @@ classDiagram
             +string Theme
         }
 
+        class IEditHistory {
+            <<interface>>
+            +bool CanUndo
+            +bool CanRedo
+            +Undo(void) void
+            +Redo(void) void
+            +Clear(void) void
+            +EventHandler HistoryChanged
+        }
+
         class IDatabase {
             <<interface>>
             +string DatabaseFile
             +IUser? User
+            +IEditHistory EditHistory
             +int? SessionLeftTime
             +IEnumerable~IActivity~ Activities
             +IReadOnlyDictionary CoreAlerts
@@ -239,6 +251,7 @@ classDiagram
     IService "0" --> "*" IAccount : Accounts
     IUser "0" --> "*" IService : Services
     IDatabase --> IUser : User
+    IDatabase --> IEditHistory : EditHistory
     IDatabase "0" --> "*" IAlert : CoreAlerts
     IDatabase "0" --> "*" IActivity : Activities
     IDatabase --> ISerializationCenter : SerializationCenter

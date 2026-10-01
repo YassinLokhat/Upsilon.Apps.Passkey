@@ -17,6 +17,7 @@ independently; see [SECURITY.md](SECURITY.md) and [`versions.json`](versions.jso
 *   **Activity log**: tamper-evident audit trail of vault events
 *   **Alerts**: activity review, password reminders / duplicates / leaks, vault & host security posture, passkey quality (count, strength, leak, reuse)
 *   **Autosave**: unsaved edits are kept in the `.pku` ZIP and merged on the next login
+*   **Undo / Redo**: session-scoped edit history (Ctrl+Shift+Z / Ctrl+Shift+Y in the WPF vault window); cleared on logout
 *   **Password generation**: CSPRNG over a configurable alphabet
 *   **Leak detection**: opt-in Have I Been Pwned checks, then XposedOrNot failover, then an optional local HIBP Bloom filter (k-anonymity / offline; see [SECURITY.md](SECURITY.md))
 *   **Import / Export**: plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited)
@@ -194,10 +195,21 @@ classDiagram
             +string Theme
         }
 
+        class IEditHistory {
+            <<interface>>
+            +bool CanUndo
+            +bool CanRedo
+            +Undo(void) void
+            +Redo(void) void
+            +Clear(void) void
+            +EventHandler HistoryChanged
+        }
+
         class IDatabase {
             <<interface>>
             +string DatabaseFile
             +IUser? User
+            +IEditHistory EditHistory
             +int? SessionLeftTime
             +IEnumerable~IActivity~ Activities
             +IReadOnlyDictionary CoreAlerts
@@ -359,6 +371,7 @@ classDiagram
     IDatabase --> IClipboardManager : ClipboardManager
     IDatabase --> ISecretMemoryProtector : SecretMemoryProtector
     IDatabase --> IUser : User
+    IDatabase --> IEditHistory : EditHistory
     ISecretMemoryProtector --> IProtectedSecret : Protect
     IDatabase "0" --> "*" IAlert : CoreAlerts
     IDatabase "0" --> "*" IActivity : Activities

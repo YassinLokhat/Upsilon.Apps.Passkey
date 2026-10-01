@@ -238,6 +238,14 @@ login:
   `database` / `autosave` entries — in-memory wrapping is not a second at-rest
   scheme. Core depends only on the Interfaces ports; hosts may substitute another
   protector without changing Core.
+- **Session undo/redo (`IEditHistory`)**: vault field edits, adds, and deletes
+  are recorded in a process-memory stack (capped) for Undo/Redo within the same
+  unlocked session. Entries reuse the same JSON shape as autosave `Change`
+  payloads, so password and account blobs may be retained as plaintext strings
+  in RAM until logout (same Reveal-into-JSON path as autosave). The stack is
+  never written to the `.pku`, is cleared on `Close` / auto-logout, and must not
+  surface Old/New values in UI labels, logs, or activity `FieldValue`. Master
+  username and passkeys are excluded from the stack. See also "Known Limitations".
 - `IDatabase.Login` takes a plain `string` passkey (there is no `SecureString`
   overload on the Core API). The WPF GUI keeps the typed secret in
   `PasswordBox.SecurePassword` and bridges it through
@@ -355,6 +363,11 @@ These are conscious trade-offs, documented for transparency:
   while the database is unlocked — especially during display, clipboard copy,
   QR encoding, or a save — may recover secrets. This is consistent with the
   "compromised host" out-of-scope item.
+- **Undo/redo stack in RAM**: while a vault is unlocked, the session edit
+  history can retain prior field values and full add/delete payloads (including
+  passwords) as JSON strings, in addition to live `IProtectedSecret` fields and
+  autosave. The stack is capped, session-only, and cleared on close; it is not
+  a durable audit or recovery log.
 - **On-screen QR codes**: identifiers and passwords can be shown as a QR code
   (generated in-process, no network). That puts the secret on the display until
   the window closes or the configured `ShowPasswordDelay` elapses. Anyone who
