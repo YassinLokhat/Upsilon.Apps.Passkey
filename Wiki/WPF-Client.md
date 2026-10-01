@@ -14,7 +14,11 @@ UI strings live in `GUI/WPF/Localization/`:
 * `Strings.fr.resx` — French
 * `LocalizationService.Supported` — combo-box registry (`System` + shipped cultures)
 * `{loc:Loc KeyName}` in XAML (live binding via `TranslationSource`); `Strings.KeyName` / `Strings.Format(...)` in C#
-* `LocalizationService.Apply` refreshes open windows implementing `ILanguageAware` (titles, combos, computed labels) — **no restart required**
+* `LocalizationService.Apply` refreshes open windows via `LanguageAwareNotify` / `ILanguageAware` (titles, combos, computed labels) — **no restart required**
+
+**Live-refresh contract:** every dialog `Window` implements `ILanguageAware` and, in `OnLanguageChanged`, forwards to its DataContext (`this.ForwardToDataContext()` or the typed ViewModel) before rebuilding any code-behind snapshots (combo `ItemsSource`, progress text, immersive title). Static XAML text should use `{loc:Loc …}` so it does not depend on that walk. `LanguageAwareNotify` isolates failures so one window cannot skip the others.
+
+**Session vs app language:** while a vault session is open, UI culture must follow `ApplyEffective(app, user.Settings.Language)`. Never call `LocalizationService.Apply(appLanguage)` alone over an active session (that ignores the user override and leaves the combo on `fr` while labels stay English). `MainWindow._restoreAppPreferences` and post-settings re-apply use `ApplyEffective` / `ApplySessionLanguage` for that reason.
 
 Language is an **app** setting (`config.json`, property `Language`: `System`, `en`, `fr`, …) under **App Settings** (`Ctrl+,`). Default is `System`. Each vault user can **override** it under **User settings** (`ISettings.Language`). Empty user language = follow the app. `System` follows the OS UI language when a satellite ships, otherwise English. On login the client applies the effective language; on logout it reverts to the app language. Open windows update immediately via `ILanguageAware`.
 

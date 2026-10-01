@@ -1,6 +1,7 @@
 ﻿using System.Security;
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
@@ -8,7 +9,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for CredentialsConfirmationView.xaml
    /// </summary>
-   internal sealed partial class CredentialsConfirmationView : Window
+   internal sealed partial class CredentialsConfirmationView : Window, ILanguageAware
    {
       private readonly CredentialsConfirmationViewModel _viewModel;
 
@@ -30,6 +31,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             _viewModel.ReleaseExpectedCredentials();
          };
       }
+
+      public void OnLanguageChanged()
+         => this.ForwardToDataContext();
 
       public static bool ShowConfirmationDialog(IEnumerable<string> credentials, bool isNew)
          => new CredentialsConfirmationView(credentials, isNew).ShowDialog() ?? false;

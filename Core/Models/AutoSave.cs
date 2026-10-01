@@ -149,8 +149,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
                Host.CancelPendingItemUpdatedActivity(itemId, fieldName);
             }
 
+            Host.NotifyEditHistory(currentChange, ChangeMergeKind.Cancelled, readableValue, needsReview);
             return;
          }
+
+         Host.NotifyEditHistory(currentChange, ChangeMergeKind.Recorded, readableValue, needsReview);
 
          Host.ResolveActivityNames(itemId, action, out string? username, out string? serviceName, out string? accountName, out string? parentName);
 
@@ -167,6 +170,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview);
       }
 
+      /// <summary>
+      /// Records an autosave + activity row after Undo/Redo already mutated the graph.
+      /// </summary>
+      internal void RecordReplay(Change change, string readableValue, bool needsReview)
+         => _addChange(change.ItemId,
+            change.FieldName,
+            change.OldValue,
+            change.NewValue,
+            readableValue,
+            needsReview,
+            change.ActionType);
+
       // Caller must hold _gate.
       private ChangeMergeResult _mergeChanges(string changeKey, Change currentChange)
       {
@@ -180,7 +195,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          _ = Changes[changeKey].Remove(lastUpdate);
-         currentChange.OldValue = lastUpdate.OldValue;
+
+         // AddAccount seeds Password with an empty OldValue + string NewValue.
+         // A later dictionary commit must keep its own OldValue baseline so Undo
+         // can restore the previous Passwords map.
+         bool inheritOldValue = currentChange.FieldName != nameof(Account.Password)
+            || !EditHistory.IsEmptyPasswordSeedOldValue(lastUpdate.OldValue)
+            || EditHistory.IsEmptyPasswordSeedOldValue(currentChange.OldValue);
+
+         if (inheritOldValue)
+         {
+            currentChange.OldValue = lastUpdate.OldValue;
+         }
 
          if (currentChange.OldValue != currentChange.NewValue)
          {

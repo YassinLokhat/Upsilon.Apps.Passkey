@@ -17,7 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserSettingsView.xaml
    /// </summary>
-   internal sealed partial class UserSettingsView : Window, IThemeAware
+   internal sealed partial class UserSettingsView : Window, IThemeAware, ILanguageAware
    {
       private readonly UserSettingsViewModel _viewModel;
       private bool _isClosing;
@@ -52,6 +52,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Loaded += (s, e) => this.PostLoadSetup();
          Closed += _window_Closed;
       }
+
+      public void OnLanguageChanged()
+         => this.ForwardToDataContext();
 
       public void OnThemeChanged()
          => _passwordsContainer.OnThemeChanged();

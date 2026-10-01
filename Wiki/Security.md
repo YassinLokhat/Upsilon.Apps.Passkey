@@ -56,6 +56,8 @@ Once unlocked, account passwords, password history, master passkeys, and the RSA
 
 The session key never leaves RAM and dies with the process; a dump of the wrapped blobs after exit is worthless. Persistence still stores plaintext JSON **inside** the onion-encrypted `database` / `autosave` entries — in-memory wrapping is not a second at-rest scheme. Core depends only on the Interfaces ports; hosts may substitute another `ISecretMemoryProtector` without changing Core.
 
+Session **Undo/Redo** (`IEditHistory`) keeps a capped in-memory stack of autosave-shaped JSON deltas (may include password/account blobs as plaintext strings) until `Close` / auto-logout. It is never written to the `.pku`. Username and master passkeys are excluded. UI/activity must not surface Old/New values.
+
 `IDatabase.Login` takes a plain `string` passkey (no `SecureString` overload on Core). The WPF GUI zeroes the BSTR around that call — [[WPF Client]].
 
 Derived AES keys, per-layer UTF-8 password bytes, GCM plaintext buffers, and `ProtectedSecret` unwrap buffers are wiped with `CryptographicOperations.ZeroMemory` after use.

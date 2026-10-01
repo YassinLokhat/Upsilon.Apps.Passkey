@@ -185,6 +185,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Menu_Regenerate => Get(nameof(Menu_Regenerate));
       public static string Menu_ResetToDefault => Get(nameof(Menu_ResetToDefault));
       public static string Menu_Save => Get(nameof(Menu_Save));
+      public static string Menu_Undo => Get(nameof(Menu_Undo));
+      public static string Menu_Redo => Get(nameof(Menu_Redo));
       public static string Menu_ShowActivities => Get(nameof(Menu_ShowActivities));
       public static string Menu_UserSettings => Get(nameof(Menu_UserSettings));
       public static string Menu_ViewActivities => Get(nameof(Menu_ViewActivities));

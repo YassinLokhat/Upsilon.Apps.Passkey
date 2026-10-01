@@ -124,6 +124,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       }
 
       /// <summary>
+      /// Re-reads service/account fields after an external model change (Undo/Redo).
+      /// </summary>
+      public void SyncFromModel()
+      {
+         _syncAccountViewModels();
+
+         foreach (AccountViewModel account in _accountViewModelsById.Values)
+         {
+            account.SyncFromModel();
+         }
+
+         _notify(string.Empty);
+      }
+
+      /// <summary>
       /// Applies list filters to visible accounts. With a concrete type filter, an empty match stays empty;
       /// with All, a service-level text hit with no account match still shows every account.
       /// </summary>

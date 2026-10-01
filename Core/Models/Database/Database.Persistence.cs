@@ -138,6 +138,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
          // from operating on the disposed FileLocker.
          User?.StopTimer();
 
+         // Drop undo/redo secret-bearing JSON with the session (never persisted).
+         EditHistory.Clear();
+
          AutoSave.Dispose();
          ActivityCenter.Dispose();
 

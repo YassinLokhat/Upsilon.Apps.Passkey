@@ -42,6 +42,7 @@ The WPF project currently has no NuGet packages either; keep it that way unless 
 2. Register `new("xx", "Native name")` in `LocalizationService.Shipped` (keep `System` as the follow-OS preference at the top of `Supported`).
 3. Run `dotnet test … --filter "FullyQualifiedName~LocalizationTests"` (or the full GUI filter). Tests verify satellite key parity and localized enum/activity strings.
 4. Prefer `{loc:Loc Key}` in XAML and `Strings.Key` / `Strings.Format` in C#.
+5. Every new dialog `Window` must implement `ILanguageAware` and forward to its DataContext in `OnLanguageChanged` (see **Live-refresh contract** in [[WPF Client]]). Titles and combo snapshots will not update otherwise.
 
 Key prefixes, and why each `ActivityEventType` has both `EnumValue_ActivityEventType_*` (short filter label) and `Activity_*` (full Message sentence), are documented under **Localization** in [[WPF Client]].
 

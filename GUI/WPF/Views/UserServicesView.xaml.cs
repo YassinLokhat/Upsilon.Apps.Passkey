@@ -17,7 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserServicesView.xaml
    /// </summary>
-   internal sealed partial class UserServicesView : Window, IDisposable
+   internal sealed partial class UserServicesView : Window, IDisposable, ILanguageAware
    {
       private readonly UserServicesViewModel _viewModel;
       private readonly IDatabase _database;
@@ -102,6 +102,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
           => this.DatabaseClosed(_isClosing);
+
+      public void OnLanguageChanged()
+         => this.ForwardToDataContext();
 
       public static bool ShowUser()
       {

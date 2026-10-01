@@ -9,9 +9,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Themed replacement for <see cref="MessageBox"/> that follows application
    /// light/dark resources instead of the native Win32 dialog chrome.
+   /// Title and body are caller-supplied snapshots; button labels refresh via
+   /// <see cref="ILanguageAware"/> if the UI culture changes while open.
    /// </summary>
-   internal sealed partial class ThemedMessageBoxView : Window
+   internal sealed partial class ThemedMessageBoxView : Window, ILanguageAware
    {
+      private MessageBoxButton _buttons = MessageBoxButton.OK;
+
       public MessageBoxResult Result { get; private set; } = MessageBoxResult.None;
 
       private ThemedMessageBoxView()
@@ -31,6 +35,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          {
             Owner = owner,
             Title = title,
+            _buttons = buttons,
          };
 
          if (owner is null)
@@ -44,6 +49,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = dialog.ShowDialog();
          return dialog.Result;
       }
+
+      public void OnLanguageChanged()
+         => _configureButtons(_buttons);
 
       private void _configureIcon(MessageBoxImage image)
       {

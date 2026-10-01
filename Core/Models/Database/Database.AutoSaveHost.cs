@@ -3,7 +3,7 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.Core.Models
 {
-   public sealed partial class Database : IAutoSaveHost
+   public sealed partial class Database : IAutoSaveHost, IEditHistoryHost
    {
       ISerializationCenter IAutoSaveHost.SerializationCenter => SerializationCenter;
 
@@ -78,5 +78,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       void IAutoSaveHost.SaveAutoSave(AutoSave autoSave)
          => FileLocker.Save(autoSave, AutoSaveFileEntry, Passkeys);
+
+      void IAutoSaveHost.NotifyEditHistory(Change change, ChangeMergeKind mergeKind, string readableValue, bool needsReview)
+         => EditHistory.Record(change, mergeKind, readableValue, needsReview);
+
+      void IEditHistoryHost.ApplyChange(Change change) => User?.Apply(change);
+
+      void IEditHistoryHost.RecordReplay(Change change, string readableValue, bool needsReview)
+         => AutoSave.RecordReplay(change, readableValue, needsReview);
    }
 }

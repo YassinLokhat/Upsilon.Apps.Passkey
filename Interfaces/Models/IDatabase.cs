@@ -13,6 +13,11 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
 
       IUser? User { get; }
 
+      /// <summary>
+      /// In-session undo/redo for vault edits. Cleared on <see cref="Close"/>.
+      /// </summary>
+      IEditHistory EditHistory { get; }
+
       /// <summary>Seconds remaining before auto-logout; <see langword="null"/> when logged out.</summary>
       int? SessionLeftTime { get; }
 
