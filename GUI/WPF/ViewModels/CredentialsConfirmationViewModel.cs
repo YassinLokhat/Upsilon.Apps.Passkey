@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          get;
          private set => SetProperty(ref field, value);
-      } = isNew ? Strings.Title_NewCredentialsConfirmation : Strings.Title_OldCredentialsConfirmation;
+      } = isNew ? Strings.Title_NewCredentialsConfirmation : Strings.Title_ActualCredentialsConfirmation;
 
       public bool IsAwaitingPasskeys
       {
@@ -47,7 +47,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnLanguageChanged()
       {
-         Title = _isNew ? Strings.Title_NewCredentialsConfirmation : Strings.Title_OldCredentialsConfirmation;
+         Title = _isNew ? Strings.Title_NewCredentialsConfirmation : Strings.Title_ActualCredentialsConfirmation;
          OnPropertyChanged(nameof(CredentialsLabel));
       }
 
