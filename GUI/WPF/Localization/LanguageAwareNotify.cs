@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 
@@ -40,6 +40,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             }
          }
          catch (Exception ex)
+            when (ex is NotSupportedException
+            or InvalidOperationException)
          {
             Log.Error(ex, $"Language refresh failed for {window.GetType().Name}");
          }
