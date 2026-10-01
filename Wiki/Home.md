@@ -23,7 +23,7 @@ A **local-only** password manager written in C# on **.NET 10**. There is no serv
 | ---- | --------- |
 | At rest | AES-256-GCM onion over ordered passkeys; sticky KDF header in the ZIP |
 | In memory | Account passwords, passkeys, and the RSA private key held as `IProtectedSecret` via injected `ISecretMemoryProtector` (default: Utils `ProtectedSecret`) |
-| Session | Configurable auto-logout, clipboard auto-clear (including Windows clipboard history) |
+| Session | Configurable auto-logout, clipboard auto-clear (including Windows clipboard history); WPF re-confirms credentials before create / username-or-passkey save |
 | Login | Progressive passkeys **without rollback** (online brute-force friction) |
 | Generation | CSPRNG over a configurable alphabet |
 | Leak checks | Opt-in Have I Been Pwned, then XposedOrNot failover, then an optional local HIBP Bloom filter (`.pkbf`; k-anonymity / offline) |

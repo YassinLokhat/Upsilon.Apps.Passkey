@@ -88,7 +88,7 @@ Saving **User settings** that change the username or ordered master passkeys (or
 | **Update** when username or passkeys changed | Re-type the **old** credentials, then the **new** ones |
 | **Update** settings only (timeouts, language, theme, alerts, …) | No credentials dialog |
 
-Entry is progressive (username, then each passkey). A mismatch clears the visible fields and keeps waiting; **Escape** resets the typed sequence so the user can start over (it does **not** cancel the dialog — close the window / X to abort and skip the save). Failures are silent (no “wrong factor” toast). After a successful credentials change, the client clears the on-screen secrets and ends the session so the next open uses the new onion.
+Entry is progressive (username, then each passkey), **without rollback** — same idea as login. A mistype is appended to the in-dialog stack and cannot be undone by typing the remaining correct factors; **Escape** resets the typed sequence so the user can start over (it does **not** cancel the dialog — close the window / X to abort and skip the save). Failures are silent (no “wrong factor” toast). After a successful credentials change, the client clears the on-screen secrets and ends the session so the next open uses the new onion.
 
 This is **intentionality / anti-mistype**, not cryptographic re-auth of an unlocked session: User settings may already show the current passkeys, and Core does not enforce the prompt. Vault **Delete** and plaintext **Export** do not use this dialog today. See [[Security]].
 
@@ -189,13 +189,15 @@ The WPF client uses a Yes / No / Cancel prompt and maps it as follows:
 
 After changes that touch login, clipboard, or hotkeys, verify on Windows:
 
-1. Create a new vault (multi-passkey) and reopen it with the same ordered passkeys.
+1. Create a new vault (multi-passkey): confirm the **new** credentials dialog, then reopen with the same ordered passkeys.
 2. Mistype a passkey, then close/reopen and log in correctly (progressive login, no rollback).
 3. On the login window, confirm the title countdown and that idle reset clears credentials after `LoginIdleTimeoutSeconds`; set **0** in App Settings and confirm the timer stays off.
-4. Copy an account password; confirm the clipboard clears after the configured timeout.
-5. Idle until auto-logout; confirm the session closes and the vault file is released.
-6. Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
-7. Show a password as a QR code and confirm the window closes after the configured delay.
-8. Close while an offline leak-database build/update is running: Yes / No / Cancel (finish after vault lock, cancel, or stay open).
+4. Change username or a master passkey in **User settings**: confirm **old** then **new** credentials; cancel (close dialog) must skip the save; after a successful change the session ends.
+5. Change only non-credential settings (timeouts / theme / alerts): no credentials dialog.
+6. Copy an account password; confirm the clipboard clears after the configured timeout.
+7. Idle until auto-logout; confirm the session closes and the vault file is released.
+8. Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
+9. Show a password as a QR code and confirm the window closes after the configured delay.
+10. Close while an offline leak-database build/update is running: Yes / No / Cancel (finish after vault lock, cancel, or stay open).
 
-There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay out of the automated suite — [[Testing and CI]].
+There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, themed confirmation dialogs (`ThemedMessageBoxView`), and `CredentialsConfirmationView` stay out of the automated suite — [[Testing and CI]]. ViewModel coverage for the confirmation sequence lives in `CredentialsConfirmationViewModelTests`.

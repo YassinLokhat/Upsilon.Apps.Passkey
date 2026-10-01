@@ -5,6 +5,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
    internal class CredentialsConfirmationViewModel(IEnumerable<string> credentials, bool isNew) : ObservableObject, ILanguageAware
    {
+      private readonly bool _isNew = isNew;
+      private readonly IEnumerable<string> _realCredentials = credentials;
+      private readonly List<string> _credentials = [];
+
       public string Title
       {
          get;
@@ -29,13 +33,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public System.Windows.Visibility UsernameVisibility => IsAwaitingPasskeys ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
       public System.Windows.Visibility PasswordVisibility => IsAwaitingPasskeys ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
 
-      private readonly IEnumerable<string> _realCredentials = credentials;
-
-      private readonly List<string> _credentials = [];
-
       public void OnLanguageChanged()
       {
-         OnPropertyChanged(nameof(Title));
+         Title = _isNew ? Strings.Title_NewCredentialsConfirmation : Strings.Title_OldCredentialsConfirmation;
          OnPropertyChanged(nameof(CredentialsLabel));
       }
 
@@ -45,6 +45,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          IsAwaitingPasskeys = false;
       }
 
+      /// <summary>
+      /// Appends the next typed factor and compares the whole sequence so far.
+      /// Like progressive login, a mistype poisons the in-dialog stack until
+      /// <see cref="ClearCredentials"/> (Escape); later correct factors cannot recover it.
+      /// </summary>
       public bool ValidateCredentials(string credential)
       {
          _credentials.Add(credential);

@@ -282,7 +282,9 @@ login:
   saving a change to username / ordered master passkeys, the WPF client
   prompts the user to re-type those credentials (`CredentialsConfirmationView`).
   On an update that changes credentials, the flow is **old credentials first**,
-  then **new credentials**. Closing the dialog cancels the save. This is a
+  then **new credentials**. Entry is progressive (username, then each passkey)
+  **without rollback**, like login: a mistype poisons the in-dialog sequence until
+  Escape resets it. Closing the dialog cancels the save. This is a
   **host-side intentionality / anti-mistype control**, not a cryptographic
   step-up: Core still exposes writable `IUser.Username` / `IUser.Passkeys`, and
   an already-unlocked session can reveal the current passkeys in User settings.

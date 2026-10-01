@@ -50,6 +50,8 @@ Opening by username alone (empty path, type username then Enter) resolves `{Defa
 
 The username is part of the onion's implicit first layer (`GetHash(username)`). Changing it changes the ciphertext layout on the next `Save`. It is not a secret factor by itself. Hosts that name files from the username hash (the WPF client) may also need to rename the file — Core will not do that for you.
 
+In the WPF client, saving a username or master-passkey change asks you to re-type the **old** credentials, then the **new** ones, before the save. Creating a vault asks for the **new** credentials once. Closing that dialog cancels the save. This is anti-mistype / intentionality, not a second login; the session is already unlocked. See [[WPF Client]] and [[Security]].
+
 ## Import failed because the service already exists. Can I merge?
 
 No. Import refuses the whole file if any service name collides or is blank. Rename or delete the existing service, or edit the import file. See [[Import Export]].
