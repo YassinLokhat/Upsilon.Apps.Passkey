@@ -104,7 +104,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (this.GetIsBusy()
             || _database?.User is null
             || AppServices.Dialogs.Confirm(Strings.Msg_DeleteUserConfirm1, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes
-            || AppServices.Dialogs.Confirm(Strings.Msg_DeleteUserConfirm2, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            || AppServices.Dialogs.Confirm(Strings.Msg_DeleteUserConfirm2, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) != MessageBoxResult.Yes
+            || !_confirmStoredCredentials())
          {
             return;
          }
@@ -187,7 +188,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                newPasskeys: _passwordsContainer.Passkeys);
 
             if (credentialsChanged
-               && (!CredentialsConfirmationView.ShowConfirmationDialog(credentials: [_database.User.Username, .. _database.User.Passkeys], isNew: false)
+               && (!_confirmStoredCredentials()
                   || !CredentialsConfirmationView.ShowConfirmationDialog(credentials: [_viewModel.Username, .. _passwordsContainer.Passkeys], isNew: true)))
             {
                return;
@@ -314,6 +315,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          return oldFileName != newFilename || AppServices.Serialization.AreDifferent(oldPasskeys, newPasskeys);
       }
 
+      /// <summary>
+      /// Re-type the vault's current username + ordered passkeys (old credentials).
+      /// Used before credential updates, delete, and plaintext export.
+      /// </summary>
+      private bool _confirmStoredCredentials()
+      {
+         IUser? user = _database?.User;
+         return user is not null
+            && CredentialsConfirmationView.ShowConfirmationDialog(
+               credentials: [user.Username, .. user.Passkeys],
+               isNew: false);
+      }
+
       private static async Task<bool> _savePendingChangesAsync(IDatabase database, string title)
       {
          if (!database.User!.HasChanged())
@@ -384,7 +398,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true))
+         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true)
+            || !_confirmStoredCredentials())
          {
             return;
          }
@@ -411,7 +426,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true))
+         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true)
+            || !_confirmStoredCredentials())
          {
             return;
          }

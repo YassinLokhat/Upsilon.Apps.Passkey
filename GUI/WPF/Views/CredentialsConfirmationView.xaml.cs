@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Security;
+using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
@@ -23,6 +24,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _password_PB.KeyUp += _password_PB_KeyUp;
 
          Loaded += (s, e) => this.PostLoadSetup();
+         Closed += (s, e) =>
+         {
+            _clearInputs();
+            _viewModel.ReleaseExpectedCredentials();
+         };
       }
 
       public static bool ShowConfirmationDialog(IEnumerable<string> credentials, bool isNew)
@@ -38,7 +44,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (e.Key == System.Windows.Input.Key.Enter
             && !string.IsNullOrWhiteSpace(_username_TB.Text))
          {
-            if (_viewModel.ValidateCredentials(_username_TB.Text))
+            string username = _username_TB.Text;
+            _username_TB.Text = string.Empty;
+
+            if (_viewModel.ValidateCredentials(username))
             {
                DialogResult = true;
                return;
@@ -49,6 +58,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
          else if (e.Key == System.Windows.Input.Key.Escape)
          {
+            // Escape resets a poisoned / in-progress sequence; it does not close the dialog.
             _clearCredentials();
          }
       }
@@ -60,10 +70,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (e.Key == System.Windows.Input.Key.Enter
-            && !string.IsNullOrWhiteSpace(_password_PB.Password))
+         if (e.Key == System.Windows.Input.Key.Enter)
          {
-            if (_viewModel.ValidateCredentials(_password_PB.Password))
+            // PasswordBox.SecurePassword returns a new SecureString the caller must dispose.
+            using SecureString securePassword = _password_PB.SecurePassword;
+            if (securePassword.Length == 0)
+            {
+               return;
+            }
+
+            // UseAsString zeroes the unmanaged BSTR; Clear erases the PasswordBox buffer.
+            bool complete = securePassword.UseAsString(_viewModel.ValidateCredentials);
+            _password_PB.Clear();
+
+            if (complete)
             {
                DialogResult = true;
                return;
@@ -73,6 +93,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
          else if (e.Key == System.Windows.Input.Key.Escape)
          {
+            // Escape resets a poisoned / in-progress sequence; it does not close the dialog.
             _clearCredentials();
          }
       }
@@ -80,11 +101,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private void _clearInputs()
       {
          _username_TB.Text = string.Empty;
-         _password_PB.Password = string.Empty;
+         _password_PB.Clear();
       }
 
       private void _clearCredentials()
       {
+         // Intentional restart after poison (login parity); cancel is close / X only.
          _viewModel.ClearCredentials();
          _ = _username_TB.Focus();
          _clearInputs();

@@ -1,5 +1,9 @@
 # FAQ
 
+## Why does a typo on the credentials confirmation dialog force Escape?
+
+Same deliberate rule as progressive login: a mistype **poisons** the in-dialog sequence until Escape resets it. Typing the remaining correct factors will not recover. That is intentional friction / consistency with login, not a dialog bug. Close the window / X to cancel the whole action. See [[WPF Client]] and [[Security]].
+
 ## Why does a typo force me to restart login?
 
 Each `Login` call appends a stretched passkey to the in-memory onion. A wrong value is never undone, so later correct keys still fail until you `Close` and `Open` again. That is deliberate online brute-force friction on top of PBKDF2, not a bug. The WPF client uses Escape to drop the half-open session. See [[Security]] and [[Usage Cookbook]].
@@ -50,7 +54,7 @@ Opening by username alone (empty path, type username then Enter) resolves `{Defa
 
 The username is part of the onion's implicit first layer (`GetHash(username)`). Changing it changes the ciphertext layout on the next `Save`. It is not a secret factor by itself. Hosts that name files from the username hash (the WPF client) may also need to rename the file — Core will not do that for you.
 
-In the WPF client, saving a username or master-passkey change asks you to re-type the **old** credentials, then the **new** ones, before the save. Creating a vault asks for the **new** credentials once. Closing that dialog cancels the save. This is anti-mistype / intentionality, not a second login; the session is already unlocked. See [[WPF Client]] and [[Security]].
+In the WPF client, saving a username or master-passkey change asks you to re-type the **old** credentials, then the **new** ones, before the save. Creating a vault asks for the **new** credentials once. Vault **Delete** and plaintext **Export** ask for the **old** credentials (after the usual Yes confirmations / save-pending). Closing that dialog cancels the action. Entry is progressive **without rollback**, like login: a mistype intentionally poisons the sequence until you press Escape to restart (not a bug). This is anti-mistype / intentionality, not a second login; the session is already unlocked. See [[WPF Client]] and [[Security]].
 
 ## Import failed because the service already exists. Can I merge?
 

@@ -22,10 +22,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
       {
          CredentialsConfirmationViewModel vm = new(["alice", "one"], isNew: false);
 
+         // Intentional: a mistype poisons the sequence until Escape (login parity — not a bug).
          vm.ValidateCredentials("bob").Should().BeFalse();
          vm.IsAwaitingPasskeys.Should().BeTrue();
 
-         // Later correct factors cannot recover a poisoned sequence (same idea as progressive login).
+         // Later correct factors cannot recover a poisoned sequence (deliberate no-rollback).
          vm.ValidateCredentials("one").Should().BeFalse();
 
          vm.ClearCredentials();
@@ -46,6 +47,16 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          vm.IsAwaitingPasskeys.Should().BeFalse();
          vm.ValidateCredentials("alice").Should().BeFalse();
          vm.ValidateCredentials("one").Should().BeTrue();
+      }
+
+      [TestMethod]
+      public void ReleaseExpectedCredentials_RejectsFurtherValidation()
+      {
+         CredentialsConfirmationViewModel vm = new(["alice", "one"], isNew: false);
+
+         vm.ReleaseExpectedCredentials();
+         vm.ValidateCredentials("alice").Should().BeFalse();
+         vm.ValidateCredentials("one").Should().BeFalse();
       }
    }
 }

@@ -614,9 +614,12 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     inactivity; the title bar shows the countdown while armed.
 *   **Credential confirmation**: creating a vault, or saving a username /
     ordered-passkey change in User settings, opens `CredentialsConfirmationView`
-    (re-type **new** on create; **old then new** on update). Closing the dialog
-    cancels the save. Host-side intentionality / anti-mistype only — see
-    [SECURITY.md](SECURITY.md) and [Wiki/WPF-Client.md](Wiki/WPF-Client.md).
+    (re-type **new** on create; **old then new** on update). Vault **Delete** and
+    plaintext **Export** require **old** credentials. Progressive entry without
+    rollback (intentional poison until Escape, like login — not a dialog bug).
+    Closing the dialog cancels the action. Host-side intentionality /
+    anti-mistype only — see [SECURITY.md](SECURITY.md) and
+    [Wiki/WPF-Client.md](Wiki/WPF-Client.md).
 *   **Shortcuts**: `Ctrl+O` open, `Ctrl+N` new user, `Ctrl+,` App Settings,
     `Ctrl+P` password generator. While the services window is open,
     **Ctrl+Shift+L** pastes the selected identifier and **Ctrl+Shift+P** pastes
@@ -673,11 +676,13 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 3.  Change username or a master passkey in User settings: confirm **old** then
     **new** credentials; closing the dialog must skip the save; session ends after a successful change.
 4.  Change only non-credential settings: no credentials dialog.
-5.  Copy an account password; confirm the clipboard clears after the configured timeout.
-6.  Idle until auto-logout; confirm the session closes and the vault file is released.
-7.  Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
-8.  Show a password as a QR code and confirm the window closes after the configured delay.
-9.  Close while an offline leak-database build/update is running: Yes / No / Cancel
+5.  Export JSON or CSV: confirm **old** credentials (cancel skips export), then pick the file.
+6.  Delete vault: after the two Yes dialogs, confirm **old** credentials (cancel skips delete).
+7.  Copy an account password; confirm the clipboard clears after the configured timeout.
+8.  Idle until auto-logout; confirm the session closes and the vault file is released.
+9.  Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
+10. Show a password as a QR code and confirm the window closes after the configured delay.
+11. Close while an offline leak-database build/update is running: Yes / No / Cancel
     (finish after vault lock, cancel, or stay open).
 
 **CI**

@@ -3,11 +3,23 @@ using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
+   /// <summary>
+   /// Progressive credential re-entry for create / update / delete / export.
+   /// Mistakes intentionally poison the in-dialog sequence until Escape resets it
+   /// (same no-rollback rule as progressive login — not a UX defect).
+   /// </summary>
    internal class CredentialsConfirmationViewModel(IEnumerable<string> credentials, bool isNew) : ObservableObject, ILanguageAware
    {
       private readonly bool _isNew = isNew;
-      private readonly IEnumerable<string> _realCredentials = credentials;
-      private readonly List<string> _credentials = [];
+      private string[]? _expected = [.. credentials];
+      private int _acceptedCount;
+
+      /// <summary>
+      /// Set on the first mismatched factor. Deliberate: further correct factors
+      /// cannot recover until <see cref="ClearCredentials"/> (Escape), mirroring
+      /// progressive login's no-rollback onion stack.
+      /// </summary>
+      private bool _poisoned;
 
       public string Title
       {
@@ -39,23 +51,61 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          OnPropertyChanged(nameof(CredentialsLabel));
       }
 
+      /// <summary>
+      /// Clears the poison flag and accepted count so the user can restart the
+      /// full sequence. Bound to Escape in the view — not a cancel of the dialog.
+      /// </summary>
       public void ClearCredentials()
       {
-         _credentials.Clear();
+         _acceptedCount = 0;
+         _poisoned = false;
          IsAwaitingPasskeys = false;
       }
 
       /// <summary>
-      /// Appends the next typed factor and compares the whole sequence so far.
-      /// Like progressive login, a mistype poisons the in-dialog stack until
-      /// <see cref="ClearCredentials"/> (Escape); later correct factors cannot recover it.
+      /// Drops references to expected credential strings after the dialog closes.
+      /// </summary>
+      public void ReleaseExpectedCredentials()
+      {
+         if (_expected is null)
+         {
+            return;
+         }
+
+         Array.Clear(_expected);
+         _expected = null;
+         ClearCredentials();
+      }
+
+      /// <summary>
+      /// Accepts the next typed factor against the expected sequence.
+      /// A mismatch intentionally poisons the dialog until
+      /// <see cref="ClearCredentials"/> (Escape); later correct factors cannot
+      /// recover it. Same progressive no-rollback rule as login — not a bug.
+      /// Typed factors are not retained — only the accepted count / poison flag.
       /// </summary>
       public bool ValidateCredentials(string credential)
       {
-         _credentials.Add(credential);
-         IsAwaitingPasskeys = true;
+         string[]? expected = _expected;
+         if (expected is null || _poisoned)
+         {
+            IsAwaitingPasskeys = true;
+            return false;
+         }
 
-         return _credentials.SequenceEqual(_realCredentials);
+         int index = _acceptedCount;
+         if (index >= expected.Length
+            || !string.Equals(credential, expected[index], StringComparison.Ordinal))
+         {
+            // Intentional poison (login parity): do not pop or retry this step quietly.
+            _poisoned = true;
+            IsAwaitingPasskeys = true;
+            return false;
+         }
+
+         _acceptedCount++;
+         IsAwaitingPasskeys = true;
+         return _acceptedCount == expected.Length;
       }
    }
 }
