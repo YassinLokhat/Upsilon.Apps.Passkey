@@ -43,5 +43,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
       void DeleteAutoSaveEntry();
 
       void SaveAutoSave(AutoSave autoSave);
+
+      /// <summary>
+      /// Notifies the session edit history after a change is merged (or cancelled).
+      /// </summary>
+      void NotifyEditHistory(Change change, ChangeMergeKind mergeKind, string readableValue, bool needsReview);
    }
 }

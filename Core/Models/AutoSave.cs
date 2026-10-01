@@ -149,8 +149,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
                Host.CancelPendingItemUpdatedActivity(itemId, fieldName);
             }
 
+            Host.NotifyEditHistory(currentChange, ChangeMergeKind.Cancelled, readableValue, needsReview);
             return;
          }
+
+         Host.NotifyEditHistory(currentChange, ChangeMergeKind.Recorded, readableValue, needsReview);
 
          Host.ResolveActivityNames(itemId, action, out string? username, out string? serviceName, out string? accountName, out string? parentName);
 
@@ -166,6 +169,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
             eventType: action,
             needsReview);
       }
+
+      /// <summary>
+      /// Records an autosave + activity row after Undo/Redo already mutated the graph.
+      /// </summary>
+      internal void RecordReplay(Change change, string readableValue, bool needsReview)
+         => _addChange(change.ItemId,
+            change.FieldName,
+            change.OldValue,
+            change.NewValue,
+            readableValue,
+            needsReview,
+            change.ActionType);
 
       // Caller must hold _gate.
       private ChangeMergeResult _mergeChanges(string changeKey, Change currentChange)

@@ -18,6 +18,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public string DatabaseFile { get; set; }
 
       IUser? IDatabase.User => User;
+      IEditHistory IDatabase.EditHistory => EditHistory;
       int? IDatabase.SessionLeftTime => User?.SessionLeftTime;
 
       IEnumerable<IActivity>? IDatabase.Activities => Get(ActivityCenter.GetActivitiesOrdered());
@@ -27,6 +28,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public IPasswordFactory PasswordFactory { get; private set; }
       public IClipboardManager ClipboardManager { get; private set; }
       public ISecretMemoryProtector SecretMemoryProtector { get; private set; }
+      internal EditHistory EditHistory { get; private set; }
 
       public event EventHandler<AutoSaveDetectedEventArgs>? AutoSaveDetected;
       public event EventHandler? DatabaseSaved;
@@ -186,6 +188,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Username = username;
 
          AutoSave = new()
+         {
+            Host = this,
+         };
+
+         EditHistory = new()
          {
             Host = this,
          };
