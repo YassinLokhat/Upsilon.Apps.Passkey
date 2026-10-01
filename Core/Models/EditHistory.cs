@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
@@ -270,16 +270,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          // AddAccount seeds Password with empty OldValue + JSON string NewValue.
          // Real commits serialize the Passwords dictionary as an object ({...}).
-         if (change.ActionType == ActivityEventType.ItemUpdated
-            && change.FieldName == nameof(Account.Password)
-            && _isEmptyPasswordSeedOldValue(change.OldValue)
-            && change.NewValue.Length > 0
-            && change.NewValue[0] == '"')
-         {
-            return false;
-         }
-
-         return change.ActionType is ActivityEventType.ItemUpdated
+         return (change.ActionType != ActivityEventType.ItemUpdated
+            || change.FieldName != nameof(Account.Password)
+            || !_isEmptyPasswordSeedOldValue(change.OldValue)
+            || change.NewValue.Length == 0
+            || change.NewValue[0] != '"') && change.ActionType is ActivityEventType.ItemUpdated
             or ActivityEventType.ItemAdded
             or ActivityEventType.ItemDeleted;
       }
