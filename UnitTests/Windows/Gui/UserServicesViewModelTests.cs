@@ -188,7 +188,34 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
       }
 
       [TestMethod]
-      public void Case10_SecuritySettingsAlertViewModel_OnLanguageChanged_RebuildsTitle()
+      public void Case10_UndoRedoCommands_TrackEditHistoryCanExecute()
+      {
+         using UserServicesViewModel vm = new("Test");
+         vm.RefreshFilters();
+
+         _ = vm.UndoCommand.CanExecute(null).Should().BeFalse();
+         _ = vm.RedoCommand.CanExecute(null).Should().BeFalse();
+
+         _ = _database!.User!.AddService("Undoable Service");
+         RelayCommand.RaiseCanExecuteChanged();
+
+         _ = vm.UndoCommand.CanExecute(null).Should().BeTrue();
+         _ = vm.RedoCommand.CanExecute(null).Should().BeFalse();
+
+         vm.UndoCommand.Execute(null);
+
+         _ = _database.User.Services.Should().BeEmpty();
+         _ = vm.UndoCommand.CanExecute(null).Should().BeFalse();
+         _ = vm.RedoCommand.CanExecute(null).Should().BeTrue();
+
+         vm.RedoCommand.Execute(null);
+
+         _ = _database.User.Services.Should().ContainSingle(s => s.ServiceName == "Undoable Service");
+         _ = vm.RedoCommand.CanExecute(null).Should().BeFalse();
+      }
+
+      [TestMethod]
+      public void Case11_SecuritySettingsAlertViewModel_OnLanguageChanged_RebuildsTitle()
       {
          using SecuritySettingsAlertViewModel vm = new();
          LocalizationService.Apply(LocalizationService.DefaultLanguageCode, forceRefresh: true);
