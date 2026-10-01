@@ -14,6 +14,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
    {
       internal const int MaxDepth = 50;
 
+      // Serializes stack mutations across concurrent UI/editor threads.
+      // Never hold across Host.ApplyChange / RecordReplay (those re-enter Record).
+      private readonly Lock _gate = new();
       private readonly Stack<HistoryEntry> _undo = new();
       private readonly Stack<HistoryEntry> _redo = new();
       private bool _suppressRecording;
@@ -24,49 +27,113 @@ namespace Upsilon.Apps.Passkey.Core.Models
          set;
       }
 
-      public bool CanUndo => _undo.Count > 0;
+      public bool CanUndo
+      {
+         get
+         {
+            lock (_gate)
+            {
+               return _undo.Count > 0;
+            }
+         }
+      }
 
-      public bool CanRedo => _redo.Count > 0;
+      public bool CanRedo
+      {
+         get
+         {
+            lock (_gate)
+            {
+               return _redo.Count > 0;
+            }
+         }
+      }
 
       public event EventHandler? HistoryChanged;
 
       public void Undo()
       {
-         if (_undo.Count == 0)
+         HistoryEntry entry;
+
+         lock (_gate)
          {
-            return;
+            if (_undo.Count == 0)
+            {
+               return;
+            }
+
+            entry = _undo.Pop();
+            _suppressRecording = true;
          }
 
-         HistoryEntry entry = _undo.Pop();
-         _apply(entry, undo: true);
-         _redo.Push(entry);
+         try
+         {
+            _apply(entry, undo: true);
+         }
+         finally
+         {
+            lock (_gate)
+            {
+               _suppressRecording = false;
+               _redo.Push(entry);
+            }
+         }
+
          HistoryChanged?.Invoke(this, EventArgs.Empty);
       }
 
       public void Redo()
       {
-         if (_redo.Count == 0)
+         HistoryEntry entry;
+
+         lock (_gate)
          {
-            return;
+            if (_redo.Count == 0)
+            {
+               return;
+            }
+
+            entry = _redo.Pop();
+            _suppressRecording = true;
          }
 
-         HistoryEntry entry = _redo.Pop();
-         _apply(entry, undo: false);
-         _undo.Push(entry);
+         try
+         {
+            _apply(entry, undo: false);
+         }
+         finally
+         {
+            lock (_gate)
+            {
+               _suppressRecording = false;
+               _undo.Push(entry);
+            }
+         }
+
          HistoryChanged?.Invoke(this, EventArgs.Empty);
       }
 
       public void Clear()
       {
-         if (_undo.Count == 0
-            && _redo.Count == 0)
+         bool raised;
+
+         lock (_gate)
          {
-            return;
+            if (_undo.Count == 0
+               && _redo.Count == 0)
+            {
+               return;
+            }
+
+            _undo.Clear();
+            _redo.Clear();
+            raised = true;
          }
 
-         _undo.Clear();
-         _redo.Clear();
-         HistoryChanged?.Invoke(this, EventArgs.Empty);
+         if (raised)
+         {
+            HistoryChanged?.Invoke(this, EventArgs.Empty);
+         }
       }
 
       /// <summary>
@@ -75,42 +142,48 @@ namespace Upsilon.Apps.Passkey.Core.Models
       /// </summary>
       internal void Record(Change change, ChangeMergeKind mergeKind, string readableValue, bool needsReview)
       {
-         if (_suppressRecording
-            || !_isUndoable(change))
-         {
-            return;
-         }
+         bool raised = false;
 
-         if (mergeKind == ChangeMergeKind.Cancelled)
+         lock (_gate)
          {
-            _dropMatchingUndo(change);
-            _redo.Clear();
-            HistoryChanged?.Invoke(this, EventArgs.Empty);
-            return;
-         }
-
-         if (mergeKind != ChangeMergeKind.Recorded)
-         {
-            return;
-         }
-
-         if (change.ActionType == ActivityEventType.ItemUpdated
-            && _undo.Count > 0)
-         {
-            HistoryEntry top = _undo.Peek();
-
-            if (top.ActionType == ActivityEventType.ItemUpdated
-               && top.ItemId == change.ItemId
-               && top.FieldName == change.FieldName)
+            if (_suppressRecording
+               || !_isUndoable(change))
             {
-               _ = _undo.Pop();
+               return;
+            }
+
+            if (mergeKind == ChangeMergeKind.Cancelled)
+            {
+               _dropMatchingUndo(change);
+               _redo.Clear();
+               raised = true;
+            }
+            else if (mergeKind == ChangeMergeKind.Recorded)
+            {
+               if (change.ActionType == ActivityEventType.ItemUpdated
+                  && _undo.Count > 0)
+               {
+                  HistoryEntry top = _undo.Peek();
+
+                  if (top.ActionType == ActivityEventType.ItemUpdated
+                     && top.ItemId == change.ItemId
+                     && top.FieldName == change.FieldName)
+                  {
+                     _ = _undo.Pop();
+                  }
+               }
+
+               _undo.Push(HistoryEntry.FromChange(change, readableValue, needsReview));
+               _redo.Clear();
+               _trimToMaxDepth();
+               raised = true;
             }
          }
 
-         _undo.Push(HistoryEntry.FromChange(change, readableValue, needsReview));
-         _redo.Clear();
-         _trimToMaxDepth();
-         HistoryChanged?.Invoke(this, EventArgs.Empty);
+         if (raised)
+         {
+            HistoryChanged?.Invoke(this, EventArgs.Empty);
+         }
       }
 
       private void _apply(HistoryEntry entry, bool undo)
@@ -118,29 +191,21 @@ namespace Upsilon.Apps.Passkey.Core.Models
          Change change = entry.ToApplyChange(undo);
          string readableValue = _readableForReplay(change, entry);
 
-         _suppressRecording = true;
-
-         try
+         // Delete must record activity while the item is still in the graph
+         // so ResolveActivityNames can see it; then Apply removes it.
+         if (change.ActionType == ActivityEventType.ItemDeleted)
          {
-            // Delete must record activity while the item is still in the graph
-            // so ResolveActivityNames can see it; then Apply removes it.
-            if (change.ActionType == ActivityEventType.ItemDeleted)
-            {
-               Host.RecordReplay(change, readableValue, entry.NeedsReview);
-               Host.ApplyChange(change);
-            }
-            else
-            {
-               Host.ApplyChange(change);
-               Host.RecordReplay(change, readableValue, entry.NeedsReview);
-            }
+            Host.RecordReplay(change, readableValue, entry.NeedsReview);
+            Host.ApplyChange(change);
          }
-         finally
+         else
          {
-            _suppressRecording = false;
+            Host.ApplyChange(change);
+            Host.RecordReplay(change, readableValue, entry.NeedsReview);
          }
       }
 
+      // Caller must hold _gate.
       private void _dropMatchingUndo(Change change)
       {
          if (_undo.Count == 0
@@ -159,6 +224,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
       }
 
+      // Caller must hold _gate.
       private void _trimToMaxDepth()
       {
          if (_undo.Count <= MaxDepth)
@@ -202,13 +268,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
             return false;
          }
 
-         // Initial password seed on AddAccount uses empty OldValue + string NewValue;
-         // the ItemAdded blob already carries the account.
+         // AddAccount seeds Password with empty OldValue + JSON string NewValue.
+         // Real commits serialize the Passwords dictionary as an object ({...}).
          if (change.ActionType == ActivityEventType.ItemUpdated
             && change.FieldName == nameof(Account.Password)
-            && (change.OldValue is null
-               || change.OldValue.Length == 0
-               || change.OldValue is "\"\"" or "null" or "{}"))
+            && _isEmptyPasswordSeedOldValue(change.OldValue)
+            && change.NewValue.Length > 0
+            && change.NewValue[0] == '"')
          {
             return false;
          }
@@ -217,6 +283,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
             or ActivityEventType.ItemAdded
             or ActivityEventType.ItemDeleted;
       }
+
+      internal static bool IsEmptyPasswordSeedOldValue(string? oldValue)
+         => _isEmptyPasswordSeedOldValue(oldValue);
+
+      private static bool _isEmptyPasswordSeedOldValue(string? oldValue)
+         => oldValue is null
+            || oldValue.Length == 0
+            || oldValue is "\"\"" or "null" or "{}";
 
       private sealed class HistoryEntry
       {

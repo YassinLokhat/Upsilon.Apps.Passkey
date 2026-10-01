@@ -195,7 +195,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          _ = Changes[changeKey].Remove(lastUpdate);
-         currentChange.OldValue = lastUpdate.OldValue;
+
+         // AddAccount seeds Password with an empty OldValue + string NewValue.
+         // A later dictionary commit must keep its own OldValue baseline so Undo
+         // can restore the previous Passwords map.
+         bool inheritOldValue = currentChange.FieldName != nameof(Account.Password)
+            || !EditHistory.IsEmptyPasswordSeedOldValue(lastUpdate.OldValue)
+            || EditHistory.IsEmptyPasswordSeedOldValue(currentChange.OldValue);
+
+         if (inheritOldValue)
+         {
+            currentChange.OldValue = lastUpdate.OldValue;
+         }
 
          if (currentChange.OldValue != currentChange.NewValue)
          {
