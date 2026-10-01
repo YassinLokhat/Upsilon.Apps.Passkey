@@ -83,6 +83,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
+         // Identifiers.Count == 0 forces a rebuild (e.g. after Undo/Redo SyncFromModel).
          bool sameAccount = ReferenceEquals(_viewModel, dataContext) && dataContext.Identifiers.Count > 0;
          DataContext = _viewModel = dataContext;
 

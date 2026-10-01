@@ -20,6 +20,8 @@
         MinWidth="1300">
    <Window.InputBindings>
       <KeyBinding Key="S" Modifiers="Control" Command="{Binding SaveCommand}"/>
+      <KeyBinding Key="Z" Modifiers="Control+Shift" Command="{Binding UndoCommand}"/>
+      <KeyBinding Key="Y" Modifiers="Control+Shift" Command="{Binding RedoCommand}"/>
       <KeyBinding Key="OemComma" Modifiers="Control+Shift" Command="{Binding UserSettingsCommand}"/>
       <KeyBinding Key="P" Modifiers="Control" Command="{Binding GeneratePasswordCommand}"/>
       <KeyBinding Key="A" Modifiers="Control+Shift" Command="{Binding ShowActivitiesCommand}"/>
@@ -47,6 +49,14 @@
                    DockPanel.Dock="Left"
                    Command="{Binding SaveCommand}"
                    InputGestureText="Ctrl+S"/>
+         <MenuItem Header="{loc:Loc Menu_Undo}"
+                   DockPanel.Dock="Left"
+                   Command="{Binding UndoCommand}"
+                   InputGestureText="Ctrl+Shift+Z"/>
+         <MenuItem Header="{loc:Loc Menu_Redo}"
+                   DockPanel.Dock="Left"
+                   Command="{Binding RedoCommand}"
+                   InputGestureText="Ctrl+Shift+Y"/>
          <MenuItem Header="{loc:Loc Menu_UserSettings}"
                    DockPanel.Dock="Left"
                    Command="{Binding UserSettingsCommand}"

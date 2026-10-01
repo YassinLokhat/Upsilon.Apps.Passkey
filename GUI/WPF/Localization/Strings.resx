@@ -120,6 +120,12 @@
   <data name="Menu_Save" xml:space="preserve">
     <value>_Save</value>
   </data>
+  <data name="Menu_Undo" xml:space="preserve">
+    <value>_Undo</value>
+  </data>
+  <data name="Menu_Redo" xml:space="preserve">
+    <value>_Redo</value>
+  </data>
   <data name="Menu_ResetToDefault" xml:space="preserve">
     <value>_Reset to default</value>
   </data>

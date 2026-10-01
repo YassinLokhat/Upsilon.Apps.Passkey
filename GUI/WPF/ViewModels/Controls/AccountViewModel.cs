@@ -253,6 +253,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          AppServices.Session.Alerts.NotifiedAlertsChanged -= _onAlertsChanged;
       }
 
+      /// <summary>
+      /// Re-reads account fields after an external model change (Undo/Redo).
+      /// Clears identifier VMs so <c>AccountView</c> rebuilds rows from the model.
+      /// </summary>
+      public void SyncFromModel()
+      {
+         foreach (IdentifierViewModel identifier in Identifiers)
+         {
+            identifier.PropertyChanged -= _identifierViewModel_PropertyChanged;
+         }
+
+         Identifiers.Clear();
+         OnPropertyChanged(string.Empty);
+      }
+
       public void OnLanguageChanged()
       {
          OnPropertyChanged(nameof(AccountId));

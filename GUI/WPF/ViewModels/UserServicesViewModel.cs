@@ -213,6 +213,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       private readonly Dictionary<string, ServiceViewModel> _serviceViewModelsById = new(StringComparer.Ordinal);
 
       public ICommand SaveCommand { get; }
+      public ICommand UndoCommand { get; }
+      public ICommand RedoCommand { get; }
       public ICommand UserSettingsCommand { get; }
       public ICommand GeneratePasswordCommand { get; }
       public ICommand ShowActivitiesCommand { get; }
@@ -270,7 +272,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          Title = _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
 
          SaveCommand = new RelayCommand(() => SaveRequested?.Invoke(this, EventArgs.Empty));
+         UndoCommand = new RelayCommand(_undo, () => AppServices.Session.Database?.EditHistory.CanUndo == true);
+         RedoCommand = new RelayCommand(_redo, () => AppServices.Session.Database?.EditHistory.CanRedo == true);
          UserSettingsCommand = new RelayCommand(_openUserSettings);
+
+         if (AppServices.Session.Database is { } database)
+         {
+            database.EditHistory.HistoryChanged += _onEditHistoryChanged;
+         }
          GeneratePasswordCommand = new RelayCommand(() => GeneratePasswordRequested?.Invoke(this, EventArgs.Empty));
          ShowActivitiesCommand = new RelayCommand(_showActivities);
          AppSettingsCommand = new RelayCommand(_openAppSettings);
@@ -367,6 +376,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          // Drop UI listeners so EndSession's app language/theme Apply cannot
          // refresh a closing UserServicesView (alerts menu reorder would throw).
+         if (AppServices.Session.Database is { } database)
+         {
+            database.EditHistory.HistoryChanged -= _onEditHistoryChanged;
+         }
+
          LanguageRefreshed = null;
          ThemeRefreshed = null;
          FiltersRefreshed = null;
@@ -502,6 +516,52 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                }
             });
       }
+
+      private void _undo()
+      {
+         AppServices.Session.Database?.EditHistory.Undo();
+         _reloadAfterHistory();
+      }
+
+      private void _redo()
+      {
+         AppServices.Session.Database?.EditHistory.Redo();
+         _reloadAfterHistory();
+      }
+
+      private void _reloadAfterHistory()
+      {
+         string? selectedServiceId = SelectedService?.Service.ItemId;
+         string? selectedAccountId = SelectedService?.SelectedAccount?.Account.ItemId;
+
+         // Force AccountView to rebuild identifier rows / password box from the model.
+         foreach (ServiceViewModel service in _serviceViewModelsById.Values)
+         {
+            service.SyncFromModel();
+         }
+
+         RefreshFilters();
+
+         if (selectedServiceId is not null)
+         {
+            SelectedService = Services.FirstOrDefault(x => x.Service.ItemId == selectedServiceId)
+               ?? SelectedService;
+         }
+
+         if (SelectedService is not null
+            && selectedAccountId is not null)
+         {
+            SelectedService.SelectedAccount = SelectedService.Accounts
+               .FirstOrDefault(x => x.Account.ItemId == selectedAccountId)
+               ?? SelectedService.SelectedAccount;
+         }
+
+         AppServices.Session.Database?.RefreshAlerts();
+         RelayCommand.RaiseCanExecuteChanged();
+      }
+
+      private void _onEditHistoryChanged(object? sender, EventArgs e)
+         => RelayCommand.RaiseCanExecuteChanged();
 
       private void _addService()
          => SelectedService = AddService();

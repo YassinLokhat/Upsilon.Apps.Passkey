@@ -120,6 +120,12 @@
   <data name="Menu_Save" xml:space="preserve">
     <value>_Enregistrer</value>
   </data>
+  <data name="Menu_Undo" xml:space="preserve">
+    <value>_Annuler</value>
+  </data>
+  <data name="Menu_Redo" xml:space="preserve">
+    <value>_Rétablir</value>
+  </data>
   <data name="Menu_ResetToDefault" xml:space="preserve">
     <value>_Réinitialiser</value>
   </data>
