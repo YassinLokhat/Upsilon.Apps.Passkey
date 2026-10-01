@@ -70,6 +70,7 @@ Combined with the expensive PBKDF2 stretch on every attempt, an interactive gues
 
 * **Auto-logout** after `ISettings.LogoutTimeout` minutes of inactivity; the file handle is released.
 * **Clipboard cleaning** after `CleaningClipboardTimeout` seconds, including OS clipboard history via `IClipboardManager`. Paste hotkeys use the same path.
+* **Credential confirmation (WPF)**: create vault, or save a username/passkey change, asks the user to re-type credentials (`CredentialsConfirmationView`). Updates that change credentials require **old then new**. Vault **Delete** and plaintext **Export** require **old** credentials. Progressive entry **without rollback**, deliberately matching login: a mistype **intentionally poisons** the in-dialog sequence until Escape (not a dialog bug). Closing the dialog cancels the action. Passkey input uses `SecurePassword` / `UseAsString` like login. Host-side intentionality / anti-mistype — not a crypto step-up; Core still allows writing `IUser.Username` / `IUser.Passkeys` without it. Details: [[WPF Client]].
 
 ## Password hygiene
 

@@ -407,6 +407,12 @@
   <data name="Title_PasswordGenerator" xml:space="preserve">
     <value>{0} - Générateur de mot de passe</value>
   </data>
+  <data name="Title_OldCredentialsConfirmation" xml:space="preserve">
+    <value>Veuillez entrer vos anciens identifiants</value>
+  </data>
+  <data name="Title_NewCredentialsConfirmation" xml:space="preserve">
+    <value>Veuillez confirmer vos nouveaux identifiants</value>
+  </data>
   <data name="Title_Activities" xml:space="preserve">
     <value>{0} - Activités</value>
   </data>
@@ -588,12 +594,6 @@ Plus de détails dans les activités.</value>
   <data name="Msg_ItemNotFound" xml:space="preserve">
     <value>L''élément '{0}' est introuvable.
 Il a été supprimé.</value>
-  </data>
-  <data name="Msg_OpeningDatabase" xml:space="preserve">
-    <value>Ouverture de la base de données...</value>
-  </data>
-  <data name="Msg_CheckingPasskey" xml:space="preserve">
-    <value>Vérification de la clé d'accès...</value>
   </data>
   <data name="Msg_InsufficientKdf" xml:space="preserve">
     <value>Ce fichier utilise des paramètres de dérivation de clé insuffisants et ne peut pas être ouvert.</value>

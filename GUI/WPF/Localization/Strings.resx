@@ -407,6 +407,12 @@
   <data name="Title_PasswordGenerator" xml:space="preserve">
     <value>{0} - Password Generator</value>
   </data>
+  <data name="Title_OldCredentialsConfirmation" xml:space="preserve">
+    <value>Please enter your old credentials</value>
+  </data>
+  <data name="Title_NewCredentialsConfirmation" xml:space="preserve">
+    <value>Please confirm your new credentials</value>
+  </data>
   <data name="Title_Activities" xml:space="preserve">
     <value>{0} - Activities</value>
   </data>
@@ -588,12 +594,6 @@ More details in the activities.</value>
   <data name="Msg_ItemNotFound" xml:space="preserve">
     <value>The item '{0}' was not found.
 It has been deleted.</value>
-  </data>
-  <data name="Msg_OpeningDatabase" xml:space="preserve">
-    <value>Opening the database...</value>
-  </data>
-  <data name="Msg_CheckingPasskey" xml:space="preserve">
-    <value>Checking the passkey...</value>
   </data>
   <data name="Msg_InsufficientKdf" xml:space="preserve">
     <value>This database file uses key-stretching parameters below the accepted security floor and cannot be opened.</value>

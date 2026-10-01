@@ -224,8 +224,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         QrCodeView.ShowQrCode(Window.GetWindow(this),
-            _password_VPB.Password,
+         QrCodeView.ShowQrCode(_password_VPB.Password,
             AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
       }
 

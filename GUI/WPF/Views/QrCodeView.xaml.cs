@@ -49,7 +49,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          DialogResult = true;
       }
 
-      public static void ShowQrCode(Window? owner, string qrCode, int delay)
+      public static void ShowQrCode(string qrCode, int delay)
       {
          if (!string.IsNullOrEmpty(qrCode))
          {

@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          CopyCommand = new RelayCommand(() =>
             AppServices.Clipboard.SetText(Password, ClipboardManager.AutoClearAfter));
          ShowQrCodeCommand = new RelayCommand(() =>
-            QrCodeView.ShowQrCode(null, Password, AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0));
+            QrCodeView.ShowQrCode(Password, AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0));
       }
 
       public void Clear()

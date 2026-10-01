@@ -19,6 +19,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          _ = user.ItemId;
       }
 
+      /// <summary>
+      /// Indicate if the given service meets the given conditions.
+      /// </summary>
       /// <param name="identifierTypeFilter">
       /// Restricts matching accounts by identifier kind; use <see cref="IdentifierViewModel.AllIdentifierType"/> for any type.
       /// </param>
@@ -68,6 +71,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          return filterSearch && changedItemsOnlySearch;
       }
 
+      /// <summary>
+      /// Indicate if the given account meets the given conditions.
+      /// </summary>
       /// <param name="identifierTypeFilter">
       /// Restricts which identifiers participate in the match; use <see cref="IdentifierViewModel.AllIdentifierType"/> for any type.
       /// When a concrete type is set and the account has no identifiers of that type, the account is excluded.

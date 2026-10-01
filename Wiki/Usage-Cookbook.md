@@ -193,3 +193,5 @@ using IDatabase database = Database.Open(crypto, json, passwords, clipboard, sec
 `IUser.Passkeys` and `IUser.Username` are writable. Changing them changes the onion key material on the next `Save`. After a username change, the WPF client also stores the file under a different `GetHash(username)` name for new vaults — if you host Core yourself, you must decide whether to rename the `.pku` path (`IDatabase.DatabaseFile`).
 
 Treat passkey rotation like any other secret change: the user must remember the new ordered set, and there is no server-side recovery.
+
+**WPF host:** before creating a vault, or before saving a username/passkey change, the client opens `CredentialsConfirmationView` (re-type **new** credentials on create; **old then new** on update). Vault **Delete** and plaintext **Export** require re-typing the **old** credentials. Progressive entry **without rollback** (intentional poison until Escape, same rule as login — not a dialog bug). That is intentionality / anti-mistype only — Core does not enforce it. Details: [[WPF Client]] and [[Security]].

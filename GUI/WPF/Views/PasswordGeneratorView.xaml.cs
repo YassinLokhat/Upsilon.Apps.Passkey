@@ -26,7 +26,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
-      public static string? ShowGeneratePasswordDialog(Window? owner = null)
+      public static string? ShowGeneratePasswordDialog()
       {
          PasswordGenerator passwordGenerator = new();
          return AppServices.Dialogs.ShowDialog(passwordGenerator) ?? false

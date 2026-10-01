@@ -612,6 +612,14 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     the half-open session (required: there is no passkey rollback). App Settings
     `LoginIdleTimeoutSeconds` (default 5; `0` = off) clears credentials on login-window
     inactivity; the title bar shows the countdown while armed.
+*   **Credential confirmation**: creating a vault, or saving a username /
+    ordered-passkey change in User settings, opens `CredentialsConfirmationView`
+    (re-type **new** on create; **old then new** on update). Vault **Delete** and
+    plaintext **Export** require **old** credentials. Progressive entry without
+    rollback (intentional poison until Escape, like login — not a dialog bug).
+    Closing the dialog cancels the action. Host-side intentionality /
+    anti-mistype only — see [SECURITY.md](SECURITY.md) and
+    [Wiki/WPF-Client.md](Wiki/WPF-Client.md).
 *   **Shortcuts**: `Ctrl+O` open, `Ctrl+N` new user, `Ctrl+,` App Settings,
     `Ctrl+P` password generator. While the services window is open,
     **Ctrl+Shift+L** pastes the selected identifier and **Ctrl+Shift+P** pastes
@@ -643,9 +651,10 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 *   **GUI ViewModels**: `UnitTests/Windows` references the WPF app and exercises
     ViewModels (`UnitTests/Windows/Gui/`) through a replaceable `AppServices` seam
     and fakes. Localized activity rendering is covered there (`ActivityAssertHelper`).
-    No UI automation (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, and themed
-    confirmation dialogs (`ThemedMessageBoxView` via `DialogService`) stay out of the
-    automated suite.
+    No UI automation (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, themed
+    confirmation dialogs (`ThemedMessageBoxView` via `DialogService`), and
+    `CredentialsConfirmationView` stay out of the automated suite. ViewModel
+    coverage for the confirmation sequence is in `CredentialsConfirmationViewModelTests`.
 *   **Coverage**: `coverage.runsettings` measures **Core only** (Utils is a
     separate assembly and is not in that gate). Windows CI fails the build if
     line coverage drops below **90%**. `run_code_coverage.bat` and Windows CI
@@ -661,13 +670,19 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitT
 
 After changes that touch login, clipboard, or hotkeys, verify on Windows:
 
-1.  Create a new vault (multi-passkey) and reopen it with the same ordered passkeys.
+1.  Create a new vault (multi-passkey): complete the **new** credentials
+    confirmation dialog, then reopen with the same ordered passkeys.
 2.  Mistype a passkey, then close/reopen and log in correctly (progressive login, no rollback).
-3.  Copy an account password; confirm the clipboard clears after the configured timeout.
-4.  Idle until auto-logout; confirm the session closes and the vault file is released.
-5.  Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
-6.  Show a password as a QR code and confirm the window closes after the configured delay.
-7.  Close while an offline leak-database build/update is running: Yes / No / Cancel
+3.  Change username or a master passkey in User settings: confirm **old** then
+    **new** credentials; closing the dialog must skip the save; session ends after a successful change.
+4.  Change only non-credential settings: no credentials dialog.
+5.  Export JSON or CSV: confirm **old** credentials (cancel skips export), then pick the file.
+6.  Delete vault: after the two Yes dialogs, confirm **old** credentials (cancel skips delete).
+7.  Copy an account password; confirm the clipboard clears after the configured timeout.
+8.  Idle until auto-logout; confirm the session closes and the vault file is released.
+9.  Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
+10. Show a password as a QR code and confirm the window closes after the configured delay.
+11. Close while an offline leak-database build/update is running: Yes / No / Cancel
     (finish after vault lock, cancel, or stay open).
 
 **CI**

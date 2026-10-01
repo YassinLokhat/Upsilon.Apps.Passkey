@@ -57,12 +57,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       }
 
-      public string BusyMessage
-      {
-         get;
-         set => SetProperty(ref field, value);
-      } = string.Empty;
-
       /// <summary>
       /// True from a successful <c>Open</c> until the user is fully logged in or
       /// the attempt is cancelled. While set, menus and shortcuts stay disabled
@@ -107,11 +101,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          OnPropertyChanged(nameof(DatabaseLabel));
          OnPropertyChanged(nameof(CredentialsLabel));
-         if (!string.IsNullOrEmpty(BusyMessage))
-         {
-            // Busy text was captured in the previous culture; leave message empty-safe.
-            OnPropertyChanged(nameof(BusyMessage));
-         }
       }
 
       private void _openDatabase()

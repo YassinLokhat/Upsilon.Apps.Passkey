@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -65,7 +65,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _database?.DatabaseClosed -= _database_DatabaseClosed;
       }
 
-      public static void ShowUserSettings(Window? owner = null)
+      public static void ShowUserSettings()
       {
          _ = AppServices.Dialogs.ShowDialog(new UserSettingsView());
       }
@@ -104,7 +104,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          if (this.GetIsBusy()
             || _database?.User is null
             || AppServices.Dialogs.Confirm(Strings.Msg_DeleteUserConfirm1, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes
-            || AppServices.Dialogs.Confirm(Strings.Msg_DeleteUserConfirm2, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            || AppServices.Dialogs.Confirm(Strings.Msg_DeleteUserConfirm2, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) != MessageBoxResult.Yes
+            || !_confirmStoredCredentials())
          {
             return;
          }
@@ -144,6 +145,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (_database?.User is null)
          {
+            if (!CredentialsConfirmationView.ShowConfirmationDialog(credentials: [_viewModel.Username, .. _passwordsContainer.Passkeys], isNew: true))
+            {
+               return;
+            }
+
             if (AppServices.Dialogs.Confirm(Strings.Format(nameof(Strings.Msg_UseDefaultLocation), newDatabaseFile), Strings.Title_UseDefaultLocation, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             {
                string? picked = AppServices.Dialogs.PickSaveFile(
@@ -180,6 +186,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                oldPasskeys: _database.User.Passkeys,
                newFilename,
                newPasskeys: _passwordsContainer.Passkeys);
+
+            if (credentialsChanged
+               && (!_confirmStoredCredentials()
+                  || !CredentialsConfirmationView.ShowConfirmationDialog(credentials: [_viewModel.Username, .. _passwordsContainer.Passkeys], isNew: true)))
+            {
+               return;
+            }
          }
 
          if (_database.User is not null)
@@ -302,6 +315,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          return oldFileName != newFilename || AppServices.Serialization.AreDifferent(oldPasskeys, newPasskeys);
       }
 
+      /// <summary>
+      /// Re-type the vault's current username + ordered passkeys (old credentials).
+      /// Used before credential updates, delete, and plaintext export.
+      /// </summary>
+      private bool _confirmStoredCredentials()
+      {
+         IUser? user = _database?.User;
+         return user is not null
+            && CredentialsConfirmationView.ShowConfirmationDialog(
+               credentials: [user.Username, .. user.Passkeys],
+               isNew: false);
+      }
+
       private static async Task<bool> _savePendingChangesAsync(IDatabase database, string title)
       {
          if (!database.User!.HasChanged())
@@ -372,7 +398,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true))
+         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true)
+            || !_confirmStoredCredentials())
          {
             return;
          }
@@ -399,7 +426,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true))
+         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true)
+            || !_confirmStoredCredentials())
          {
             return;
          }

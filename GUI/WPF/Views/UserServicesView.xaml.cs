@@ -160,7 +160,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         string? password = PasswordGenerator.ShowGeneratePasswordDialog(this);
+         string? password = PasswordGenerator.ShowGeneratePasswordDialog();
 
          if (password is null)
          {
@@ -490,13 +490,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                case IInsufficientPasskeysAlert:
                   count++;
                   break;
-               case IWeakPasskeyAlert weak:
+               case IWeakPasskeyAlert:
                   count++;
                   break;
-               case IPasskeyLeakedAlert leaked:
+               case IPasskeyLeakedAlert:
                   count++;
                   break;
-               case IPasskeyReuseAlert reuse:
+               case IPasskeyReuseAlert:
                   count++;
                   break;
             }
@@ -528,7 +528,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         UserSettingsView.ShowUserSettings(this);
+         UserSettingsView.ShowUserSettings();
          _viewModel.RefreshFilters();
       }
 
