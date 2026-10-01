@@ -118,21 +118,34 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
       private static Window? _resolveOwner()
       {
-         Window? application = Application.Current?.MainWindow;
-         if (application is null)
+         Application? app = Application.Current;
+         if (app is null)
          {
             return null;
          }
 
-         foreach (Window window in Application.Current!.Windows)
+         Window? active = null;
+         Window? topVisible = null;
+
+         foreach (Window window in app.Windows)
          {
+            if (!window.IsLoaded || !window.IsVisible)
+            {
+               continue;
+            }
+
             if (window.IsActive)
             {
-               return window;
+               active = window;
+               break;
             }
+
+            // Prefer the most recently opened visible window over a hidden
+            // MainWindow (vault session keeps MainWindow Hidden under ShowUser).
+            topVisible = window;
          }
 
-         return application;
+         return active ?? topVisible ?? app.MainWindow;
       }
    }
 }

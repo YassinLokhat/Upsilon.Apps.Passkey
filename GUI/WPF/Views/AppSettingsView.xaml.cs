@@ -40,8 +40,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       public void OnLanguageChanged()
       {
-         // ViewModel refreshes Title/status via DataContext notify; rebuild
-         // progress strings that live only in this code-behind.
+         this.ForwardToDataContext();
+         // Progress / busy strings live only in this code-behind.
          _syncBusyFromService();
          _applyProgressFromService();
       }

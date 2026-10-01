@@ -469,12 +469,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       private void _openUserSettings()
       {
          UserSettingsView.ShowUserSettings();
+         // Re-assert effective culture/theme after the modal: nested dialogs and
+         // MainWindow restore paths can briefly apply the app preference alone.
+         AppServices.Session.ApplySessionLanguage();
+         AppServices.Session.ApplySessionTheme();
          RefreshFilters();
       }
 
       private void _openAppSettings()
       {
          AppSettingsView.ShowAppSettings();
+         AppServices.Session.ApplySessionLanguage();
+         AppServices.Session.ApplySessionTheme();
          RefreshFilters();
       }
 
@@ -619,6 +625,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       private void _refreshWindowTitle()
       {
+         // Rebuild the base from CurrentUICulture every tick so a culture change
+         // that missed OnLanguageChanged cannot leave a stale-language title for
+         // up to one timer interval (500 ms).
+         _defaultTitle = Strings.Format(
+            nameof(Strings.Title_UserServices),
+            AppInfo.Title,
+            _userDisplayName);
+
          string title = _defaultTitle;
 
          if (AppServices.Session.Database?.User is { } user)

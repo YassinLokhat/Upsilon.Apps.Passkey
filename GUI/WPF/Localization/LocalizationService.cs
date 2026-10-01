@@ -48,8 +48,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
 
       /// <summary>
       /// Raised on the UI thread after <see cref="Apply"/> changes the culture.
-      /// Prefer implementing <see cref="ILanguageAware"/> on open windows / DataContexts;
-      /// this event is for tests and rare non-visual listeners.
+      /// Prefer implementing <see cref="ILanguageAware"/> on open <see cref="Window"/>
+      /// subclasses (see <see cref="LanguageAwareNotify"/>); this event is for
+      /// tests and rare non-visual listeners.
       /// </summary>
       public static event EventHandler? LanguageChanged;
 
@@ -108,8 +109,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       /// <summary>
       /// Applies <see cref="ResolveEffectiveLanguageCode"/> then the resolved culture.
       /// </summary>
-      public static bool ApplyEffective(string? appLanguage, string? userLanguageOverride)
-         => Apply(ResolveEffectiveLanguageCode(appLanguage, userLanguageOverride));
+      public static bool ApplyEffective(
+         string? appLanguage,
+         string? userLanguageOverride,
+         bool forceRefresh = false)
+         => Apply(ResolveEffectiveLanguageCode(appLanguage, userLanguageOverride), forceRefresh);
 
       /// <summary>
       /// Picks the OS UI language when we ship it; otherwise English.
@@ -161,15 +165,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
          {
             foreach (Window window in app.Windows.Cast<Window>().ToArray())
             {
-               if (window is ILanguageAware windowAware)
-               {
-                  windowAware.OnLanguageChanged();
-               }
-
-               if (window.DataContext is ILanguageAware dataContextAware)
-               {
-                  dataContextAware.OnLanguageChanged();
-               }
+               LanguageAwareNotify.Notify(window);
             }
          }
 

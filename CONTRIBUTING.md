@@ -73,6 +73,9 @@ a Windows-only capability cannot be done with the BCL.
 3. Run `dotnet test … --filter "FullyQualifiedName~LocalizationTests"` (or the full
    GUI filter). Tests verify satellite key parity and localized enum/activity strings.
 4. Prefer `{loc:Loc Key}` in XAML and `Strings.Key` / `Strings.Format` in C#.
+5. Every new dialog `Window` must implement `ILanguageAware` and forward to its
+   DataContext in `OnLanguageChanged` (see **Live-refresh contract** in
+   `Wiki/WPF-Client.md`). Titles and combo snapshots will not update otherwise.
 
 Key prefixes, and why each `ActivityEventType` has both
 `EnumValue_ActivityEventType_*` (short filter label) and `Activity_*` (full

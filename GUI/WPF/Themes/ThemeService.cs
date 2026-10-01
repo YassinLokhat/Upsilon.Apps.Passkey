@@ -114,8 +114,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
       /// <summary>
       /// Applies <see cref="ResolveEffectivePreference"/> then paints that appearance.
       /// </summary>
-      public static bool ApplyEffective(string? appTheme, string? userThemeOverride)
-         => Apply(ResolveEffectivePreference(appTheme, userThemeOverride));
+      public static bool ApplyEffective(
+         string? appTheme,
+         string? userThemeOverride,
+         bool forceRefresh = false)
+         => Apply(ResolveEffectivePreference(appTheme, userThemeOverride), forceRefresh);
 
       /// <summary>
       /// Swaps the color dictionary, syncs code-behind brushes, and updates

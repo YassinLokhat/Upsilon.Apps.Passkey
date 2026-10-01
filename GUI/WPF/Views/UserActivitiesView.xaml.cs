@@ -30,7 +30,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       }
 
       public void OnLanguageChanged()
-         => _bindEventTypeCombo();
+      {
+         this.ForwardToDataContext();
+         _bindEventTypeCombo();
+      }
 
       private void _bindEventTypeCombo()
       {

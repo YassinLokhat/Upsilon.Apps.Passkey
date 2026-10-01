@@ -8,6 +8,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
    /// <summary>
    /// Window titles are ViewModel snapshots (not <c>{loc:Loc}</c>); each
    /// <see cref="ILanguageAware.OnLanguageChanged"/> must rebuild them.
+   /// Open-window delivery is covered by <see cref="LanguageAwareNotifyTests"/>.
    /// </summary>
    [TestClass]
    [DoNotParallelize]

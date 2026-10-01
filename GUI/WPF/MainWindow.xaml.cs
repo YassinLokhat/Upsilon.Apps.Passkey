@@ -515,8 +515,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       {
          // forceRefresh: EndSession may already have switched culture/theme while
          // MainWindow was hidden under the modal; Loc bindings still need a nudge.
-         _ = LocalizationService.Apply(AppInfo.AppSettings.Language, forceRefresh: true);
-         _ = ThemeService.Apply(AppInfo.AppSettings.Theme, forceRefresh: true);
+         // While a vault session is still attached (stale DatabaseClosed BeginInvoke
+         // racing a new login, or an unexpected restore mid-session), honour the
+         // user's language/theme override — never stomp it with app-only Apply.
+         IUser? user = AppServices.Session.User;
+         _ = LocalizationService.ApplyEffective(
+            AppInfo.AppSettings.Language,
+            user?.Settings.Language,
+            forceRefresh: true);
+         _ = ThemeService.ApplyEffective(
+            AppInfo.AppSettings.Theme,
+            user?.Settings.Theme,
+            forceRefresh: true);
       }
 
       private void _setBusy()
@@ -589,6 +599,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
                return;
             }
 
+            // A deferred close must not tear down a newer login that started
+            // before this callback ran (nested ShowDialog pumps can delay it).
+            if (!ReferenceEquals(sender, _session.Database)
+               && _session.Database is not null)
+            {
+               return;
+            }
+
             _resetCredentials();
             // The database already closed itself; only clear the session reference.
             _endSession(closeDatabase: false);
@@ -649,6 +667,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
       public void OnLanguageChanged()
       {
+         this.ForwardToDataContext();
+
          if (_idleTimer.IsEnabled)
          {
             _refreshIdleTitle();

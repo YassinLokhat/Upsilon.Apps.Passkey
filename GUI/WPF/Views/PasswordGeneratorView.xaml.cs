@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
@@ -10,7 +11,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for PasswordGenerator.xaml
    /// </summary>
-   internal sealed partial class PasswordGenerator : Window
+   internal sealed partial class PasswordGenerator : Window, ILanguageAware
    {
       private readonly PasswordGeneratorViewModel _viewModel;
 
@@ -25,6 +26,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          Loaded += (s, e) => this.PostLoadSetup();
       }
+
+      public void OnLanguageChanged()
+         => this.ForwardToDataContext();
 
       public static string? ShowGeneratePasswordDialog()
       {

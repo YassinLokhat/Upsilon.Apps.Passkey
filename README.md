@@ -614,7 +614,7 @@ re-download.
 The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 (`AppServices`) instead of a DI container, so ViewModels stay unit-testable.
 
-*   **Localization**: English + French; app default in `config.json` is `System` (follow OS UI language when a satellite ships), per-user override in User settings. Activity and enum labels are localized at display time (`ActivityViewModel`, `EnumDisplayHelper`).
+*   **Localization**: English + French; app default in `config.json` is `System` (follow OS UI language when a satellite ships), per-user override in User settings. Activity and enum labels are localized at display time (`ActivityViewModel`, `EnumDisplayHelper`). Open windows refresh live via `{loc:Loc}` plus the Window `ILanguageAware` contract (see [Wiki/WPF-Client.md](Wiki/WPF-Client.md#localization)).
 *   **Import / export UI**: User settings menu — Import (`.json` / `.csv`, comma- or tab-delimited) and Export → JSON / CSV (tab-separated). Success and failure dialogs are generic; the localized reason appears in the Activities grid.
 *   **Vault files**: new users go under **App Settings → Default database directory**
     (`DefaultDatabaseDirectory`, default `<exe>/raw`) as `{GetHash(username)}.pku`,
