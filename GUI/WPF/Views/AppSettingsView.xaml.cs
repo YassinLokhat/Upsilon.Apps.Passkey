@@ -15,7 +15,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for AppSettingsView.xaml
    /// </summary>
-   internal sealed partial class AppSettingsView : Window
+   internal sealed partial class AppSettingsView : Window, ILanguageAware
    {
       private readonly AppSettingsViewModel _viewModel;
 
@@ -36,6 +36,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          };
 
          Unloaded += (s, e) => _unsubscribeUpdateService();
+      }
+
+      public void OnLanguageChanged()
+      {
+         // ViewModel refreshes Title/status via DataContext notify; rebuild
+         // progress strings that live only in this code-behind.
+         _syncBusyFromService();
+         _applyProgressFromService();
       }
 
       protected override void OnClosed(EventArgs e)

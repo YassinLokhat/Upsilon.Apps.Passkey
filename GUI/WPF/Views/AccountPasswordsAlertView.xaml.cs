@@ -28,7 +28,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       }
 
       public void OnLanguageChanged()
-         => _bindAlertKindCombo();
+      {
+         _viewModel.OnLanguageChanged();
+         _bindAlertKindCombo();
+      }
 
       private void _bindAlertKindCombo()
       {

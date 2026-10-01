@@ -318,7 +318,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             return;
          }
 
-         Title = _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
+         _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
+         _refreshWindowTitle();
          UserId = Strings.Format(nameof(Strings.Msg_UserId), AppServices.Session.User?.ItemId);
          OnPropertyChanged(nameof(TypeLabel));
 
@@ -554,6 +555,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       }
 
       private void _onTitleTimerElapsed(object? sender, EventArgs e)
+         => _refreshWindowTitle();
+
+      private void _refreshWindowTitle()
       {
          string title = _defaultTitle;
 

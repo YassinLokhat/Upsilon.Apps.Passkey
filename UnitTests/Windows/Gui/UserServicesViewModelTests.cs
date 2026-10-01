@@ -1,5 +1,7 @@
 using FluentAssertions;
 using System.Windows.Threading;
+using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
@@ -156,6 +158,54 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          _ = vm.Type.Should().Be(IdentifierViewModel.AllIdentifierType);
          _ = vm.IdentifierFilter.Should().BeEmpty();
          _ = vm.TypeLabel.Should().Be(Strings.IdentifierType_All);
+      }
+
+      [TestMethod]
+      public void Case09_OnLanguageChanged_RebuildsSessionLeftTimeTitle()
+      {
+         _database!.User!.Settings.LogoutTimeout = 5;
+         ((User)_database.User).ResetTimer();
+
+         using UserServicesViewModel vm = new("TestUser");
+         LocalizationService.Apply(LocalizationService.DefaultLanguageCode, forceRefresh: true);
+         vm.OnLanguageChanged();
+
+         string englishSuffix = Strings.Format(nameof(Strings.Msg_SessionLeftTime), 5, 0);
+         string englishTitle = vm.Title;
+         _ = englishTitle.Should().Contain(englishSuffix);
+
+         AppLanguage satellite = LocalizationService.Shipped.First(l =>
+            !string.Equals(l.Code, LocalizationService.DefaultLanguageCode, StringComparison.OrdinalIgnoreCase));
+         LocalizationService.Apply(satellite.Code, forceRefresh: true);
+         vm.OnLanguageChanged();
+
+         string localizedSuffix = Strings.Format(nameof(Strings.Msg_SessionLeftTime), 5, 0);
+         _ = localizedSuffix.Should().NotBe(englishSuffix);
+         _ = vm.Title.Should().Contain(localizedSuffix);
+         _ = vm.Title.Should().NotBe(englishTitle);
+
+         LocalizationService.Apply(LocalizationService.DefaultLanguageCode, forceRefresh: true);
+      }
+
+      [TestMethod]
+      public void Case10_SecuritySettingsAlertViewModel_OnLanguageChanged_RebuildsTitle()
+      {
+         using SecuritySettingsAlertViewModel vm = new();
+         LocalizationService.Apply(LocalizationService.DefaultLanguageCode, forceRefresh: true);
+         vm.OnLanguageChanged();
+         string englishTitle = vm.Title;
+
+         AppLanguage satellite = LocalizationService.Shipped.First(l =>
+            !string.Equals(l.Code, LocalizationService.DefaultLanguageCode, StringComparison.OrdinalIgnoreCase));
+         LocalizationService.Apply(satellite.Code, forceRefresh: true);
+         vm.OnLanguageChanged();
+
+         _ = vm.Title.Should().NotBe(englishTitle, because: satellite.Code);
+         _ = vm.Title.Should().Be(
+            Strings.Format(nameof(Strings.Title_SecuritySettingsAlertsWindow), AppInfo.Title),
+            because: satellite.Code);
+
+         LocalizationService.Apply(LocalizationService.DefaultLanguageCode, forceRefresh: true);
       }
    }
 }

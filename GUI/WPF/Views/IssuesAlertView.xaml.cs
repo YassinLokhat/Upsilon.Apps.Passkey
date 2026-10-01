@@ -1,5 +1,6 @@
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
@@ -7,7 +8,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Shared issues list alert (passkey quality, security settings, …) with a parameterized footer.
    /// </summary>
-   internal partial class IssuesAlertView : Window, IDisposable
+   internal partial class IssuesAlertView : Window, IDisposable, ILanguageAware
    {
       private readonly IDisposable _viewModel;
       private bool _disposed;
@@ -32,6 +33,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             case SecuritySettingsAlertViewModel security:
                security.CloseRequested += (_, _) => Close();
                break;
+         }
+      }
+
+      public void OnLanguageChanged()
+      {
+         if (_viewModel is ILanguageAware languageAware)
+         {
+            languageAware.OnLanguageChanged();
          }
       }
 

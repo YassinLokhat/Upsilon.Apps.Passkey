@@ -19,7 +19,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
    /// <summary>
    /// Interaction logic for MainWindow.xaml
    /// </summary>
-   internal sealed partial class MainWindow : Window
+   internal sealed partial class MainWindow : Window, ILanguageAware
    {
       private readonly MainViewModel _mainViewModel;
       private readonly DispatcherTimer _idleTimer;
@@ -645,6 +645,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       private void _refreshIdleTitle()
       {
          _mainViewModel.WindowTitle = MainViewModel.AppTitle + Strings.Format(nameof(Strings.Title_IdleResetCredentialTimeout), _idleSecondsRemaining);
+      }
+
+      public void OnLanguageChanged()
+      {
+         if (_idleTimer.IsEnabled)
+         {
+            _refreshIdleTitle();
+         }
+         else
+         {
+            _mainViewModel.WindowTitle = MainViewModel.AppTitle;
+         }
       }
    }
 }
