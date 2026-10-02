@@ -2,79 +2,48 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MAUI.MainPage"
-             NavigationPage.HasNavigationBar="False">
+             Title="{Binding AppTitle}">
 
-    <Grid RowDefinitions="Auto, *">
-        <Button Text="Ouvrir une base" 
-                Clicked="_openDatabase_MenuItem_Click" 
-                WidthRequest="250" 
-                HorizontalOptions="Start"/>
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Open database" Clicked="_openDatabase_MenuItem_Click"/>
+        <ToolbarItem Text="New User" Clicked="_newUser_MenuItem_Click"/>
+        <ToolbarItem Text="Generate password" Clicked="_generatePassword_MenuItem_Click"/>
+        <ToolbarItem Text="Reset" Clicked="_reset_Clicked"/>
+    </ContentPage.ToolbarItems>
 
-        <ScrollView Grid.Row="1" HorizontalOptions="Fill">
+    <VerticalStackLayout Padding="16" Spacing="12">
+        <Label Text="{Binding DatabaseLabel}" LineBreakMode="TailTruncation"/>
 
-            <VerticalStackLayout Padding="30" 
-                                 Spacing="25" 
-                                 VerticalOptions="Center"
-                                 HorizontalOptions="Center"
-                                 MaximumWidthRequest="450"
-                                 WidthRequest="450">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+            <Label Grid.Column="0"
+                   MinimumWidthRequest="70"
+                   VerticalOptions="Center"
+                   Text="{Binding CredentialsLabel}"/>
 
-                <Label Text="Bienvenue dans Passkey Manager" FontSize="24" HorizontalOptions="Center"/>
+            <Entry x:Name="_username_TB"
+                   Grid.Column="1"
+                   IsVisible="True"
+                   Keyboard="Plain"
+                   ReturnType="Done"
+                   IsTextPredictionEnabled="False"
+                   IsSpellCheckEnabled="False"
+                   Completed="_credential_Completed"
+                   TextChanged="_credential_TextChanged"/>
 
-                <Image Source="passkeylogo.png" HorizontalOptions="Center" />
+            <Entry x:Name="_password_PB"
+                   Grid.Column="1"
+                   IsVisible="False"
+                   IsPassword="True"
+                   Keyboard="Plain"
+                   ReturnType="Done"
+                   IsTextPredictionEnabled="False"
+                   IsSpellCheckEnabled="False"
+                   Completed="_credential_Completed"
+                   TextChanged="_credential_TextChanged"/>
+        </Grid>
 
-                <Label Text="{Binding DatabaseLabel}" 
-                       FontSize="14" 
-                       HorizontalOptions="Center" 
-                       TextColor="{StaticResource Secondary}"/>
+        <Button x:Name="_validate_BTN" Text="Valider" Clicked="_validate_Clicked"/>
 
-                <VerticalStackLayout Spacing="20" Padding="20" HorizontalOptions="Fill">
-
-                    <Grid ColumnDefinitions="Auto, *" ColumnSpacing="15">
-
-                        <Label Grid.Column="0" 
-                               Text="{Binding CredentialsLabel}" 
-                               FontAttributes="Bold" 
-                               VerticalOptions="Center" 
-                               WidthRequest="90"/>
-
-                        <!-- Style de bordure épuré sans interférence de gestes -->
-                        <Border Grid.Column="1" StrokeThickness="1" StrokeShape="RoundRectangle 8">
-                            <Entry x:Name="_credentialEntry" 
-                                   Placeholder="Saisir votre identifiant..." 
-                                   HorizontalTextAlignment="Start"
-                                   Completed="_onEntryCompleted"
-                                   IsEnabled="True"
-                                   IsReadOnly="False"
-                                   ClearButtonVisibility="WhileEditing" />
-                        </Border>
-                    </Grid>
-
-                    <Button x:Name="_loginButton"
-                            Text="Suivant"
-                            Clicked="_onLoginButtonClicked"
-                            HeightRequest="45"
-                            CornerRadius="8" />
-
-                    <Button x:Name="_generatePasswordButton"
-                            Text="Générer"
-                            Clicked="_generatePassword_MenuItem_Click"
-                            HeightRequest="45"
-                            CornerRadius="8"/>
-
-                </VerticalStackLayout>
-
-                <Button Text="Nouvel Utilisateur" 
-                        Clicked="_newUser_MenuItem_Click" 
-                        WidthRequest="250" 
-                        BackgroundColor="White"
-                        TextColor="{StaticResource Primary}"
-                        BorderColor="{StaticResource Primary}"
-                        BorderWidth="1" 
-                        HorizontalOptions="Center"/>
-
-            </VerticalStackLayout>
-        </ScrollView>
-
-    </Grid>
+        <ActivityIndicator x:Name="_busy" IsRunning="False" IsVisible="False"/>
+    </VerticalStackLayout>
 </ContentPage>
