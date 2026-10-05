@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MAUI.MainPage"
+             Title="{Binding AppTitle}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Open database" Clicked="_openDatabase_MenuItem_Click"/>
+        <ToolbarItem Text="New User" Clicked="_newUser_MenuItem_Click"/>
+        <ToolbarItem Text="Generate password" Clicked="_generatePassword_MenuItem_Click"/>
+        <ToolbarItem Text="Reset" Clicked="_reset_Clicked"/>
+    </ContentPage.ToolbarItems>
+
+    <VerticalStackLayout Padding="16" Spacing="12">
+        <Label Text="{Binding DatabaseLabel}" LineBreakMode="TailTruncation"/>
+
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+            <Label Grid.Column="0"
+                   MinimumWidthRequest="70"
+                   VerticalOptions="Center"
+                   Text="{Binding CredentialsLabel}"/>
+
+            <Entry x:Name="_username_TB"
+                   Grid.Column="1"
+                   IsVisible="True"
+                   Keyboard="Plain"
+                   ReturnType="Done"
+                   IsTextPredictionEnabled="False"
+                   IsSpellCheckEnabled="False"
+                   Completed="_credential_Completed"
+                   TextChanged="_credential_TextChanged"/>
+
+            <Entry x:Name="_password_PB"
+                   Grid.Column="1"
+                   IsVisible="False"
+                   IsPassword="True"
+                   Keyboard="Plain"
+                   ReturnType="Done"
+                   IsTextPredictionEnabled="False"
+                   IsSpellCheckEnabled="False"
+                   Completed="_credential_Completed"
+                   TextChanged="_credential_TextChanged"/>
+        </Grid>
+
+        <Button x:Name="_validate_BTN" Text="Valider" Clicked="_validate_Clicked"/>
+
+        <ActivityIndicator x:Name="_busy" IsRunning="False" IsVisible="False"/>
+    </VerticalStackLayout>
+</ContentPage>
