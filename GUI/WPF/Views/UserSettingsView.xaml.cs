@@ -70,6 +70,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       public static void ShowUserSettings()
       {
+         if (!_confirmStoredCredentials())
+         {
+            return;
+         }
+
          _ = AppServices.Dialogs.ShowDialog(new UserSettingsView());
       }
 
@@ -322,9 +327,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       /// Re-type the vault's current username + ordered passkeys (old credentials).
       /// Used before credential updates, delete, and plaintext export.
       /// </summary>
-      private bool _confirmStoredCredentials()
+      private static bool _confirmStoredCredentials()
       {
-         IUser? user = _database?.User;
+         IUser? user = _session.Database?.User;
          return user is not null
             && CredentialsConfirmationView.ShowConfirmationDialog(
                credentials: [user.Username, .. user.Passkeys],
@@ -401,8 +406,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true)
-            || !_confirmStoredCredentials())
+         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true))
          {
             return;
          }
@@ -429,8 +433,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true)
-            || !_confirmStoredCredentials())
+         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true))
          {
             return;
          }
