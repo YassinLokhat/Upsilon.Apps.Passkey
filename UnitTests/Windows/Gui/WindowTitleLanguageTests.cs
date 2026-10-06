@@ -117,7 +117,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
 
          CredentialsConfirmationViewModel credentialsOld = new(["u"], isNew: false);
          credentialsOld.OnLanguageChanged();
-         _ = credentialsOld.Title.Should().Be(Strings.Title_OldCredentialsConfirmation);
+         _ = credentialsOld.Title.Should().Be(Strings.Title_ActualCredentialsConfirmation);
       }
    }
 }

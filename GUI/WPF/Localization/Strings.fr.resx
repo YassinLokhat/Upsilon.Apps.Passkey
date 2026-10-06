@@ -413,8 +413,8 @@
   <data name="Title_PasswordGenerator" xml:space="preserve">
     <value>{0} - Générateur de mot de passe</value>
   </data>
-  <data name="Title_OldCredentialsConfirmation" xml:space="preserve">
-    <value>Veuillez entrer vos anciens identifiants</value>
+  <data name="Title_ActualCredentialsConfirmation" xml:space="preserve">
+    <value>Veuillez entrer vos identifiants actuels</value>
   </data>
   <data name="Title_NewCredentialsConfirmation" xml:space="preserve">
     <value>Veuillez confirmer vos nouveaux identifiants</value>
