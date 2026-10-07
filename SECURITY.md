@@ -309,7 +309,10 @@ login:
   prompts the user to re-type those credentials (`CredentialsConfirmationView`).
   On an update that changes credentials, the flow is **old credentials first**,
   then **new credentials**. The same **old credentials** prompt also runs before
-  vault **Delete** and plaintext **Export** (JSON/CSV). Entry is progressive
+  vault **Delete** and before opening **User Settings** (where plaintext Export
+  lives). Export itself does **not** re-prompt for credentials (they are already
+  visible in that view) but shows an explicit **plaintext warning** before
+  writing JSON/CSV. Entry is progressive
   (username, then each passkey) **without rollback**, deliberately matching
   progressive login: a mistype **intentionally poisons** the in-dialog sequence
   until Escape resets it (later correct factors cannot recover it — not a UX
@@ -399,10 +402,12 @@ These are conscious trade-offs, documented for transparency:
   KDF later, pluggably, should the policy ever be relaxed.
 - **Import/Export files**: CSV and JSON files produced by the Export feature (and
   consumed by Import) are **unencrypted plaintext** by design, for
-  interoperability. The `.csv` path uses JSON-encoded cells and covers
-  services/accounts only; import accepts comma- or tab-delimited rows, while
-  export writes tab-separated rows. `.json` also carries user settings.
-  Users are responsible for protecting or deleting these files.
+  interoperability with other tools — **not** a substitute for backing up the
+  encrypted `.pku`. The WPF client warns before writing an export. The `.csv`
+  path uses JSON-encoded cells and covers services/accounts only; import accepts
+  comma- or tab-delimited rows, while export writes tab-separated rows. `.json`
+  also carries user settings. Users are responsible for protecting or deleting
+  these files.
 - **Leak check fails open**: if both Have I Been Pwned and XposedOrNot are
   unreachable (timeout, HTTP error, offline host) **and** no offline Bloom
   filter is attached (the `.pkbf` is absent, or disabled through

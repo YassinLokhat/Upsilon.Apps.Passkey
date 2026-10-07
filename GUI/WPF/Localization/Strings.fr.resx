@@ -580,6 +580,16 @@ Plus de détails dans les activités.</value>
     <value>L''export s''est terminé avec succès.
 Plus de détails dans les activités.</value>
   </data>
+  <data name="Msg_ExportPlaintextWarning" xml:space="preserve">
+    <value>Le fichier d'export contiendra des identifiants et mots de passe en clair afin que d'autres outils puissent les importer.
+
+Ce n'est pas une sauvegarde chiffrée — copiez le fichier .pku pour une sauvegarde sécurisée.
+
+Continuer ?</value>
+  </data>
+  <data name="Title_ExportPlaintextWarning" xml:space="preserve">
+    <value>Export en clair</value>
+  </data>
   <data name="Msg_ExportFailed" xml:space="preserve">
     <value>Échec de l''export.
 Plus de détails dans les activités.</value>

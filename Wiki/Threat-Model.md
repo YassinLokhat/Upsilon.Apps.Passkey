@@ -16,8 +16,8 @@ Authoritative list: [`SECURITY.md`](https://github.com/YassinLokhat/Upsilon.Apps
 
 * A compromised host (malware, keylogger, memory scraper, or an attacker with code execution on the machine while the database is unlocked)
 * The security of the operating system, its clipboard, and its swap/hibernation files
-* Physical access to an unlocked, logged-in session (the WPF **credential confirmation** dialog before create / username-or-passkey save / Delete / plaintext Export is intentionality / anti-mistype only — not a cryptographic step-up; Core still allows writing `IUser.Username` / `IUser.Passkeys` without it — see [[Security]] / [[WPF Client]])
-* Plaintext files the user deliberately produces via **Import/Export**
+* Physical access to an unlocked, logged-in session (the WPF **credential confirmation** dialog before create / username-or-passkey save / Delete / opening User Settings is intentionality / anti-mistype only — not a cryptographic step-up; Core still allows writing `IUser.Username` / `IUser.Passkeys` without it — see [[Security]] / [[WPF Client]])
+* Plaintext files the user deliberately produces via **Import/Export** (WPF warns before export; backup remains the `.pku`)
 
 ## Scenario: stolen `.pku` on a USB stick
 

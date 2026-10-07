@@ -580,6 +580,16 @@ More details in the activities.</value>
     <value>Export data has been completed successfully.
 More details in the activities.</value>
   </data>
+  <data name="Msg_ExportPlaintextWarning" xml:space="preserve">
+    <value>The export file will contain identifiers and passwords in cleartext so other tools can import them.
+
+This is not an encrypted backup — copy the .pku vault file if you need a secure backup.
+
+Continue?</value>
+  </data>
+  <data name="Title_ExportPlaintextWarning" xml:space="preserve">
+    <value>Plaintext export</value>
+  </data>
   <data name="Msg_ExportFailed" xml:space="preserve">
     <value>Export data failed.
 More details in the activities.</value>

@@ -92,7 +92,8 @@ Saving **User settings** that change the username or ordered master passkeys (or
 | **Update** when username or passkeys changed | Re-type the **old** credentials, then the **new** ones |
 | **Update** settings only (timeouts, language, theme, alerts, …) | No credentials dialog |
 | **Delete** vault | After the two Yes confirmations, re-type the **old** credentials |
-| **Export** JSON / CSV | After save-pending (if dirty), re-type the **old** credentials, then pick the file |
+| **Open User settings** (vault loaded) | Re-type the **old** credentials (gate for settings + export UI) |
+| **Export** JSON / CSV | After save-pending (if dirty), confirm the **plaintext warning**, then pick the file (no second credentials prompt) |
 
 Entry is progressive (username, then each passkey) **without rollback** — the same **deliberate** rule as progressive login, not a dialog bug. A mistype **intentionally poisons** the in-dialog sequence; typing the remaining correct factors cannot recover it. **Escape** clears the poison and restarts the sequence (it does **not** cancel the dialog — close the window / X to abort and skip the action). Failures are silent (no “wrong factor” toast). Passkey fields use `SecurePassword` / `UseAsString` (unmanaged BSTR wiped) like login; the ViewModel keeps only an accepted-count / poison flag, not typed secrets. After a successful credentials change, the client clears the on-screen secrets and ends the session so the next open uses the new onion.
 
@@ -100,7 +101,7 @@ This is **intentionality / anti-mistype**, not cryptographic re-auth of an unloc
 
 ## User settings — import and export
 
-While logged in, **User settings** offers **Import** (`.json` or `.csv`) and **Export → JSON / CSV**. Unsaved edits are saved first after confirmation (`Msg_SaveBeforeContinue`). **Export** then requires re-typing the vault's **old** credentials before the save-file picker. Success and failure dialogs are generic (`Msg_ImportSuccess` / `Msg_ImportFailed`, etc.); the localized reason appears in the Activities grid (`ImportingDataFailed` / `ExportingDataFailed`). JSON export/import includes settings; CSV is services/accounts only (import accepts comma- or tab-delimited rows; export is tab-separated — see [[Import Export]]).
+While logged in, **User settings** offers **Import** (`.json` or `.csv`) and **Export → JSON / CSV**. Opening User settings already required credentials. Unsaved edits are saved first after confirmation (`Msg_SaveBeforeContinue`). **Export** then shows a **plaintext warning** (interop is cleartext; backup = `.pku`) before the save-file picker — no second credentials prompt. Success and failure dialogs are generic (`Msg_ImportSuccess` / `Msg_ImportFailed`, etc.); the localized reason appears in the Activities grid (`ImportingDataFailed` / `ExportingDataFailed`). JSON export/import includes settings; CSV is services/accounts only (import accepts comma- or tab-delimited rows; export is tab-separated — see [[Import Export]]).
 
 ## Dialogs
 
@@ -200,7 +201,7 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 3. On the login window, confirm the title countdown and that idle reset clears credentials after `LoginIdleTimeoutSeconds`; set **0** in App Settings and confirm the timer stays off.
 4. Change username or a master passkey in **User settings**: confirm **old** then **new** credentials; cancel (close dialog) must skip the save; after a successful change the session ends.
 5. Change only non-credential settings (timeouts / theme / alerts): no credentials dialog.
-6. **Export** JSON or CSV: after save-pending, confirm **old** credentials (cancel skips export); then pick the file.
+6. **Export** JSON or CSV: after save-pending, confirm the plaintext warning (cancel skips export); then pick the file.
 7. **Delete** vault: after the two Yes dialogs, confirm **old** credentials (cancel skips delete).
 8. Copy an account password; confirm the clipboard clears after the configured timeout.
 9. Idle until auto-logout; confirm the session closes and the vault file is released.

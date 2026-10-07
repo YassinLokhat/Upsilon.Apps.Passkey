@@ -2,7 +2,7 @@
 
 `ImportFromFile` / `ExportToFile` (and their `Async` twins) are routed by **file extension**. Only `.json` and `.csv` are supported; any other extension fails and is recorded on the activity log.
 
-Import requires a logged-in user. Export and import files are **unencrypted plaintext** — see [[Security]] known limitations. Protect or delete them after use.
+Import requires a logged-in user. Export and import files are **unencrypted plaintext** for interoperability — see [[Security]] known limitations. Prefer copying the encrypted `.pku` for backup. The WPF client confirms credentials when opening User Settings and shows a **plaintext warning** before each export write. Protect or delete export files after use.
 
 ## What each format carries
 

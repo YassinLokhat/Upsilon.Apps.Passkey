@@ -325,7 +325,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       /// <summary>
       /// Re-type the vault's current username + ordered passkeys (old credentials).
-      /// Used before credential updates, delete, and plaintext export.
+      /// Used before opening User Settings (when a vault is loaded), credential
+      /// updates, and delete — not again at the Export click (credentials are
+      /// already visible in this view).
       /// </summary>
       private static bool _confirmStoredCredentials()
       {
@@ -335,6 +337,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                credentials: [user.Username, .. user.Passkeys],
                isNew: false);
       }
+
+      /// <summary>
+      /// Explicit consent that the chosen export path will contain passwords in
+      /// cleartext. Interop format by design; backup should copy the <c>.pku</c>.
+      /// </summary>
+      private static bool _confirmPlaintextExport()
+         => AppServices.Dialogs.Confirm(
+               Strings.Msg_ExportPlaintextWarning,
+               Strings.Title_ExportPlaintextWarning,
+               MessageBoxButton.YesNo,
+               MessageBoxImage.Warning)
+            == MessageBoxResult.Yes;
 
       private static async Task<bool> _savePendingChangesAsync(IDatabase database, string title)
       {
@@ -411,6 +425,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
+         if (!_confirmPlaintextExport())
+         {
+            return;
+         }
+
          string? fileName = AppServices.Dialogs.PickSaveFile(
             Strings.Filter_Json,
             Strings.Title_ExportJson,
@@ -434,6 +453,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true))
+         {
+            return;
+         }
+
+         if (!_confirmPlaintextExport())
          {
             return;
          }
