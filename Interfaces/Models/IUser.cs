@@ -16,5 +16,12 @@
       IService AddService(string serviceName);
 
       void DeleteService(IService service);
+
+      /// <summary>
+      /// Records a secret that was placed on the clipboard so the session
+      /// clipboard-clean tick can scrub history for that value only, without
+      /// revealing every stored account password.
+      /// </summary>
+      void RememberClipboardSecret(string text);
    }
 }

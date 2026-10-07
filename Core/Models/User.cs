@@ -99,7 +99,26 @@ namespace Upsilon.Apps.Passkey.Core.Models
          _ = Services.Remove(Host.AutoSave.DeleteValue(ItemId, readableValue: serviceToRemove.ToString(), needsReview: true, value: serviceToRemove));
       }
 
+      void IUser.RememberClipboardSecret(string text)
+         => RememberClipboardSecret(text);
+
       #endregion
+
+      /// <summary>
+      /// Tracks a value that was copied to the clipboard for a later history scrub.
+      /// </summary>
+      internal void RememberClipboardSecret(string text)
+      {
+         if (string.IsNullOrEmpty(text))
+         {
+            return;
+         }
+
+         lock (_recentClipboardSecretsGate)
+         {
+            _recentClipboardSecrets.Add(text);
+         }
+      }
 
       internal IUserHost Host
       {
@@ -156,6 +175,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
       // a second scrub while one is still enumerating history.
       private int _clipboardScrubRunning;
 
+      // Secrets actually placed on the clipboard this session (not the full vault).
+      private readonly List<string> _recentClipboardSecrets = [];
+      private readonly Lock _recentClipboardSecretsGate = new();
+
       public User()
       {
          _timer.Elapsed += _timer_Elapsed;
@@ -203,21 +226,21 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
                if (_clipboardLeftTime == 0)
                {
-                  // Capture secrets and the clipboard manager inside the gate, then
-                  // scrub outside the lock so we never block the timer on WinRT I/O.
-                  clipboardScrubList =
-                  [
-                     .. Services
-                        .SelectMany(x => x.Accounts)
-                        .SelectMany(x => x.Passwords.Values.Select(y => y.Reveal())),
-                  ];
+                  // Scrub only secrets that were actually copied — not every
+                  // stored password (avoids a periodic full-vault Reveal).
+                  lock (_recentClipboardSecretsGate)
+                  {
+                     clipboardScrubList = [.. _recentClipboardSecrets];
+                     _recentClipboardSecrets.Clear();
+                  }
+
                   clipboardManager = Host.ClipboardManager;
                   _clipboardLeftTime = Settings.CleaningClipboardTimeout;
                }
             }
          }
 
-         if (clipboardScrubList is not null && clipboardManager is not null)
+         if (clipboardScrubList is { Count: > 0 } && clipboardManager is not null)
          {
             _ = _scrubClipboardHistoryAsync(clipboardManager, clipboardScrubList);
          }
@@ -268,6 +291,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
             _timer.Stop();
             _timer.Elapsed -= _timer_Elapsed;
             _timer.Dispose();
+         }
+
+         lock (_recentClipboardSecretsGate)
+         {
+            _recentClipboardSecrets.Clear();
          }
       }
 

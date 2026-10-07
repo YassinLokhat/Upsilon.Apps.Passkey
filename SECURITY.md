@@ -296,8 +296,11 @@ login:
   database file handle is released.
 - **Clipboard cleaning**: copied passwords are removed from the clipboard (and
   clipboard history, via the OS-specific `IClipboardManager`) after a
-  configurable delay (`ISettings.CleaningClipboardTimeout`). The WPF paste
-  hotkeys (Ctrl+Shift+L / Ctrl+Shift+P) go through the same clipboard path
+  configurable delay (`ISettings.CleaningClipboardTimeout`). History scrub
+  targets only secrets registered through `IUser.RememberClipboardSecret`
+  (WPF records auto-cleared copies); it does not reveal every stored password
+  on each tick. The WPF paste hotkeys (Ctrl+Shift+L / Ctrl+Shift+P) go through
+  the same clipboard path
   before synthesizing Ctrl+V.
 - **Service URL open (WPF host)**: opening a service URL uses the OS shell
   (`UseShellExecute`). Only **absolute `http` and `https`** URIs are allowed

@@ -767,7 +767,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
 
       [TestMethod]
       /*
-       * CleaningClipboardTimeout fires the clipboard scrub with the stored passwords.
+       * CleaningClipboardTimeout scrubs only secrets registered via
+       * RememberClipboardSecret (recently copied), not the full vault.
       */
       public void Case17_ClipboardTimeoutScrubsPasswords()
       {
@@ -788,9 +789,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
 
          IService service = database.User!.AddService("ClipService");
          _ = service.AddAccount("Account", UnitTestsHelper.Ids("id@test"), "clipboard-secret");
+         _ = service.AddAccount("Other", UnitTestsHelper.Ids("other@test"), "never-copied-secret");
 
          User user = (User)database.User;
          user.Settings.CleaningClipboardTimeout = 1;
+         database.User.RememberClipboardSecret("clipboard-secret");
          user.ResetTimer();
          _ = user.Settings.CleaningClipboardTimeout.Should().Be(1);
 
@@ -802,6 +805,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
 
          _ = clipboard.RemoveAllOccurrenceCallCount.Should().BeGreaterThan(0);
          _ = clipboard.LastRemoveList.Should().Contain("clipboard-secret");
+         _ = clipboard.LastRemoveList.Should().NotContain("never-copied-secret");
 
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
