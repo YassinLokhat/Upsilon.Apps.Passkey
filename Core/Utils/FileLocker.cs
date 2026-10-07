@@ -465,8 +465,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // never a torn ZipArchive.Update. The handle is reacquired immediately
       // afterwards; the unlocked window is only the replace itself. On Windows
       // that window races with AV/indexers, so the move is retried; if it still
-      // cannot replace, we fall back to an in-place rewrite under a reacquired
-      // handle (still truncates correctly via SetLength).
+      // cannot replace, Save fails and the temp sibling is left for recovery
+      // (no in-place rewrite of the live .pku).
       private void _commitArchiveAtomically(ReadOnlySpan<byte> archiveBytes)
       {
          string directory = Path.GetDirectoryName(FilePath) is { Length: > 0 } dir
@@ -478,6 +478,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             $"{Path.GetFileName(FilePath)}.{Guid.NewGuid():N}.tmp");
 
          byte[] payload = archiveBytes.ToArray();
+         bool keepTempForRecovery = false;
 
          try
          {
@@ -505,19 +506,29 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             }
             else
             {
-               // Move kept failing (typically a transient scanner lock). Prefer
-               // a successful in-place commit over failing the whole Save: the
-               // temp file still holds a complete archive if we crash mid-write.
-               System.Diagnostics.Trace.TraceWarning(
-                  $"Atomic replace of '{path}' failed after retries; falling back to in-place rewrite.");
+               keepTempForRecovery = true;
 
-               _stream = _openExistingWithRetries(path);
-               _rewriteInPlace(payload);
+               try
+               {
+                  _stream = _openExistingWithRetries(path);
+               }
+               catch (Exception ex)
+                  when (ex is IOException
+                  or UnauthorizedAccessException
+                  or SecurityException)
+               {
+                  System.Diagnostics.Trace.TraceWarning(
+                     $"Could not reopen '{path}' after failed atomic replace: {ex}");
+               }
+
+               throw new IOException(
+                  $"Could not atomically replace '{path}' after retries. A complete archive was left at '{tempPath}'.");
             }
          }
          finally
          {
-            if (tempPath.Length != 0
+            if (!keepTempForRecovery
+               && tempPath.Length != 0
                && File.Exists(tempPath))
             {
                try
@@ -538,15 +549,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                }
             }
          }
-      }
-
-      private void _rewriteInPlace(ReadOnlySpan<byte> archiveBytes)
-      {
-         FileStream stream = _stream2;
-         stream.Position = 0;
-         stream.Write(archiveBytes);
-         stream.SetLength(archiveBytes.Length);
-         stream.Flush(flushToDisk: true);
       }
 
       private static bool _tryReplaceWithRetries(string tempPath, string path)

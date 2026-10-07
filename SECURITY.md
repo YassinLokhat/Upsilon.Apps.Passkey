@@ -80,8 +80,8 @@ What to expect:
 
 All cryptography is implemented in `Utils/CryptographyCenter.cs` on top of
 `System.Security.Cryptography` (the .NET BCL). **The project has a strict
-zero-external-dependency policy for the `Core`, `Utils`, and `Interfaces`
-libraries**: no third-party cryptographic package is used, which keeps the
+zero-external-dependency policy for the `Core`, `Utils`, `Interfaces`, and
+WPF GUI projects**: no third-party cryptographic package is used, which keeps the
 security-critical supply-chain attack surface minimal.
 
 ### Master passkeys (multi-factor "onion")
@@ -120,9 +120,10 @@ security-critical supply-chain attack surface minimal.
   **600,000** (PBKDF2-HMAC-SHA-256) or **210,000** (PBKDF2-HMAC-SHA-512) — the
   OWASP Password Storage Cheat Sheet baselines — and at most **5,000,000**;
   output length between **32** and **128** bytes inclusive; and a Base64 salt
-  of at least 16 bytes. Parameters outside that range raise
+  of **16–64** bytes inclusive. Parameters outside that range raise
   `InsufficientKdfParametersException` and the file is refused (the ceiling
-  blocks a forged header from demanding unbounded PBKDF2 work or allocation).
+  blocks a forged header from demanding unbounded PBKDF2 work, allocation, or
+  an oversized salt).
   New databases still use the stronger default of 1,000,000 PBKDF2-HMAC-SHA-512
   iterations.
 
@@ -202,7 +203,9 @@ login:
   either the previous intact archive or the new one — never a torn
   `ZipArchiveMode.Update` rewrite, and never trailing garbage when the archive
   shrinks. The session handle is released only for that replace and reacquired
-  immediately afterwards.
+  immediately afterwards. If `File.Move` still fails after retries (for example
+  a sustained AV lock), Save **fails** and a complete sibling `.tmp` archive is
+  left for recovery — the live `.pku` is not rewritten in place.
 - **Deferred persistence**: while a user is logged in, autosave and activity-log
   ZIP rewrites are coalesced with a short debounce (~500 ms) so a burst of field
   edits becomes a single disk write. Pending work is flushed on explicit `Save`
@@ -265,9 +268,12 @@ login:
   `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of
   the `Login` call. The short-lived managed `string` passed to Core remains
   subject to the usual .NET GC limitations documented under "Known Limitations".
-- Derived AES keys, per-layer UTF-8 password bytes, GCM plaintext buffers, and
-  `ProtectedSecret` unwrap buffers are wiped with
-  `CryptographicOperations.ZeroMemory` after use.
+- Owned sensitive buffers are wiped with `CryptographicOperations.ZeroMemory`
+  after use: derived AES keys, per-layer UTF-8 password bytes used as HKDF IKM,
+  PBKDF2 password/salt/output buffers in `GetSlowHash`, abandoned onion
+  interlayer plaintext (and encrypt-side ciphertext scratch buffers), and
+  `ProtectedSecret` unwrap buffers. Final decrypted UTF-8 `string` results and
+  other managed password strings are not wiped (see Known Limitations).
 
 ### Progressive login without rollback (online brute-force friction)
 
@@ -295,9 +301,15 @@ login:
   database file handle is released.
 - **Clipboard cleaning**: copied passwords are removed from the clipboard (and
   clipboard history, via the OS-specific `IClipboardManager`) after a
-  configurable delay (`ISettings.CleaningClipboardTimeout`). The WPF paste
-  hotkeys (Ctrl+Shift+L / Ctrl+Shift+P) go through the same clipboard path
+  configurable delay (`ISettings.CleaningClipboardTimeout`). History scrub
+  targets only secrets registered through `IUser.RememberClipboardSecret`
+  (WPF records auto-cleared copies); it does not reveal every stored password
+  on each tick. The WPF paste hotkeys (Ctrl+Shift+L / Ctrl+Shift+P) go through
+  the same clipboard path
   before synthesizing Ctrl+V.
+- **Service URL storage (Core)**: `IService.Url` refuses absolute URIs that are
+  not `http`/`https` (same allowlist as import/`ServiceUrlHelper`). Relative
+  values may still be stored while typing; shell open re-validates.
 - **Service URL open (WPF host)**: opening a service URL uses the OS shell
   (`UseShellExecute`). Only **absolute `http` and `https`** URIs are allowed
   (`ServiceUrlHelper`). `https` opens directly; `http` requires an explicit
@@ -348,8 +360,12 @@ login:
   user. These remote calls are the **only** outbound network traffic; the
   feature is opt-in per account. Failed remote checks are **not** cached: only
   successful answers are kept in process (HIBP ranges by 5-character prefix,
-  XON yes/no by 10-character prefix; both bounded, never persisted). Requests
-  time out after a few seconds. The GUI and the alert scan use the
+  XON yes/no by 10-character prefix; both bounded, never persisted). Empty HIBP
+  range bodies (HTTP 200 with no suffixes) are **not** cached and are treated
+  like an unreachable provider so a truncated or forged empty response cannot
+  pin "not leaked". A full Bloom build that inserts **zero** hashes is refused
+  (no empty `.pkbf` published). Requests time out after a few seconds. The GUI
+  and the alert scan use the
   asynchronous API so the UI thread is not blocked while waiting on the
   network. The UI does **not** surface a separate "could not verify" state: a
   transient failure is expected to succeed on a later attempt, and a lasting
@@ -375,6 +391,10 @@ login:
 
 These are conscious trade-offs, documented for transparency:
 
+- **Atomic ZIP replace under file locks**: on Windows, antivirus or indexers can
+  hold the `.pku` briefly during the unlocked replace window. Retries usually
+  succeed; if they do not, Save fails rather than rewriting the live file in
+  place. A complete sibling `.tmp` may remain for manual recovery.
 - **Secrets in managed memory**: long-lived fields hold `IProtectedSecret`
   ciphertext (default Utils `ProtectedSecret`), not plaintext, which shrinks the
   window compared to keeping passwords as `string` for the whole session.
@@ -396,7 +416,7 @@ These are conscious trade-offs, documented for transparency:
 - **Password stretching algorithm**: the project uses PBKDF2 rather than a
   memory-hard KDF such as Argon2id, because Argon2 is not part of the .NET base
   class library and the project maintains a zero-external-dependency policy for
-  Core, Utils, and Interfaces. To compensate, it uses PBKDF2-HMAC-SHA-512 (more hostile to
+  Core, Utils, Interfaces, and the WPF GUI. To compensate, it uses PBKDF2-HMAC-SHA-512 (more hostile to
   GPU/ASIC parallelism than SHA-256) with 1,000,000 iterations. The sticky KDF
   header (see "Crypto-agility") keeps the door open to adopting a memory-hard
   KDF later, pluggably, should the policy ever be relaxed.
@@ -407,7 +427,10 @@ These are conscious trade-offs, documented for transparency:
   path uses JSON-encoded cells and covers services/accounts only; import accepts
   comma- or tab-delimited rows, while export writes tab-separated rows. `.json`
   also carries user settings. Users are responsible for protecting or deleting
-  these files.
+  these files. JSON import **refuses** settings that would set
+  `LogoutTimeout`, `CleaningClipboardTimeout`, or `ShowPasswordDelay` to `0`
+  (`ImportExportError.SecurityTimeoutsDisabled`); those controls may still be
+  disabled deliberately in the UI, where security alerts surface the risk.
 - **Leak check fails open**: if both Have I Been Pwned and XposedOrNot are
   unreachable (timeout, HTTP error, offline host) **and** no offline Bloom
   filter is attached (the `.pkbf` is absent, or disabled through
@@ -423,6 +446,19 @@ These are conscious trade-offs, documented for transparency:
   cannot usefully act on while offline. The two remote corpora are not
   identical, so a password known only to one provider may be missed when that
   provider is the one that is down.
+- **Leak API response authenticity**: successful HTTP bodies from HIBP and
+  XposedOrNot are not authenticated beyond TLS. A network MITM that returns
+  HTTP 200 with empty or forged content could under-report leaks. Empty HIBP
+  ranges are not cached and fall through to XON/Bloom; a full Bloom build with
+  zero inserted hashes is refused. Residual risk of a convincing forged
+  non-empty "clean" answer remains accepted for this local-only tool (no
+  certificate pinning).
+- **Unsigned offline Bloom (`.pkbf`)**: the filter file beside the executable
+  has no cryptographic authenticity (format checks only). Whoever can replace
+  it on disk can induce false negatives (Bloom miss ⇒ not leaked). That
+  overlaps host compromise / local write access, which is out of scope for vault
+  confidentiality; it is documented so operators do not treat `.pkbf` as a
+  signed corpus.
 - **Offline Bloom filter size / freshness**: building the full HIBP-derived
   `.pkbf` downloads every range (~1M prefixes), takes hours, and yields a file
   on the order of ~2.4 GiB. It is a snapshot: new breaches appear in the live

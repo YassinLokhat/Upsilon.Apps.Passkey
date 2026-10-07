@@ -24,7 +24,8 @@ IDatabase database = await Database.CreateAsync(
 
 IUser user = database.User!;
 
-string alphabet = passwords.Alphabetic + passwords.Numeric + passwords.SpecialChars;
+string alphabet = passwords.UpperAlphabetic + passwords.LowerAlphabetic
+   + passwords.Numeric + passwords.SpecialChars;
 string secret = await passwords.GeneratePasswordAsync(24, alphabet, checkIfLeaked: true);
 if (string.IsNullOrEmpty(secret))
 {
@@ -194,4 +195,4 @@ using IDatabase database = Database.Open(crypto, json, passwords, clipboard, sec
 
 Treat passkey rotation like any other secret change: the user must remember the new ordered set, and there is no server-side recovery.
 
-**WPF host:** before creating a vault, or before saving a username/passkey change, the client opens `CredentialsConfirmationView` (re-type **new** credentials on create; **old then new** on update). Vault **Delete** and plaintext **Export** require re-typing the **old** credentials. Progressive entry **without rollback** (intentional poison until Escape, same rule as login — not a dialog bug). That is intentionality / anti-mistype only — Core does not enforce it. Details: [[WPF Client]] and [[Security]].
+**WPF host:** before creating a vault, or before saving a username/passkey change, the client opens `CredentialsConfirmationView` (re-type **new** credentials on create; **old then new** on update). Vault **Delete** and opening **User Settings** require re-typing the **old** credentials. **Export** shows a plaintext warning only (no second credentials prompt). Progressive entry **without rollback** (intentional poison until Escape, same rule as login — not a dialog bug). That is intentionality / anti-mistype only — Core does not enforce it. Details: [[WPF Client]] and [[Security]].

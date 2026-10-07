@@ -49,7 +49,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: service.ToString(), fieldName: nameof(service.Url), fieldValue: url.OriginalString));
          service.Notes = notes;
          service.Notes = notes;
-         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: service.ToString(), fieldName: nameof(service.Notes), fieldValue: notes));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: service.ToString(), fieldName: nameof(service.Notes), fieldValue: string.Empty));
 
          // Then
          databaseCreated.User.HasChanged().Should().BeTrue();
@@ -126,7 +126,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: service.ToString(), fieldName: nameof(service.Url), fieldValue: url.OriginalString));
          service.Notes = notes;
          service.Notes = notes;
-         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: service.ToString(), fieldName: nameof(service.Notes), fieldValue: notes));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: service.ToString(), fieldName: nameof(service.Notes), fieldValue: string.Empty));
 
          databaseCreated.Close();
          expectedActivities.Push(ExpectedActivity.UserLoggedOut(username, withoutSaving: true));
@@ -285,6 +285,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          _ = service.Accounts.Should().HaveCount(3);
 
          service.Url = null;
+         _ = service.Url.Should().BeNull();
+
+         service.Url = new Uri("file:///C:/secrets.txt");
          _ = service.Url.Should().BeNull();
 
          service.DeleteAccount(withLabel);

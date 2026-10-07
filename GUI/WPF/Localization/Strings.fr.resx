@@ -741,7 +741,7 @@ L'ouvrir peut exposer la requête sur le réseau. Ouvrir quand même ?</value>
     <value>Effacement idle à la connexion désactivé</value>
   </data>
   <data name="Msg_SecuritySettings_IdleLoginDisabled" xml:space="preserve">
-    <value>Les identifiants saisis à l'écran de connexion ne sont pas effacés après inactivité.</value>
+    <value>Les identifiants saisis à l'écran de connexion ne sont pas effacés après inactivité. Préférez un délai idle de connexion non nul dans les paramètres de l'application.</value>
   </data>
   <data name="Label_SecuritySettings_OfflineLeakFilterUnavailable" xml:space="preserve">
     <value>Filtre de fuites hors ligne indisponible</value>
@@ -1093,6 +1093,9 @@ L'ouvrir peut exposer la requête sur le réseau. Ouvrir quand même ?</value>
   </data>
   <data name="EnumValue_ImportExportError_ExportFileAlreadyExists" xml:space="preserve">
     <value>le fichier d'export existe déjà</value>
+  </data>
+  <data name="EnumValue_ImportExportError_SecurityTimeoutsDisabled" xml:space="preserve">
+    <value>les paramètres importés désactiveraient les délais de sécurité de session</value>
   </data>
   <data name="Label_OfflineLeakDatabase" xml:space="preserve">
     <value>Base de fuites hors ligne</value>

@@ -6,7 +6,7 @@ This page mirrors [`CONTRIBUTING.md`](https://github.com/YassinLokhat/Upsilon.Ap
 
 ## Before you start
 
-* Keep Core, Utils, and Interfaces free of third-party NuGet packages.
+* Keep Core, Utils, Interfaces, and the WPF GUI free of third-party NuGet packages.
 * Prefer a small PR over a mixed refactor + feature + docs dump.
 * When changing Core internals, respect the host surfaces (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) documented in [[Architecture]] — do not reintroduce reverse dependencies from ActivityCenter / AutoSave / User into `Database` members.
 
@@ -24,17 +24,15 @@ GUI ViewModel tests:
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Windows.Gui"
 ```
 
-## Zero-dependency policy (Core, Utils, and Interfaces)
+## Zero-dependency policy (Core, Utils, Interfaces, and WPF)
 
-`Core`, `Utils`, and `Interfaces` must not take a `PackageReference`. An MSBuild target fails the build if one appears. That keeps the vault's supply-chain surface limited to the .NET BCL.
+`Core`, `Utils`, `Interfaces`, and the WPF GUI must not take a `PackageReference`. An MSBuild target fails the build if one appears. That keeps the vault's supply-chain surface limited to the .NET BCL.
 
 Allowed:
 
 * In-solution `ProjectReference`s
 * Packages in `UnitTests` (MSTest, FluentAssertions 7.x)
 * GitHub Actions / CodeQL on the CI runners (not referenced by the libraries)
-
-The WPF project currently has no NuGet packages either; keep it that way unless a Windows-only capability cannot be done with the BCL.
 
 ## Adding a UI language
 

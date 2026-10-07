@@ -339,6 +339,17 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
                cancellationToken).ConfigureAwait(false);
          }
 
+         // An empty corpus after a full ingest is treated as a hard failure: a
+         // MITM that returned empty ranges would otherwise produce a Bloom that
+         // always misses (definitive "not leaked" when remotes are down).
+         if (insertedCount == 0)
+         {
+            _deleteQuietly(tempPath);
+            _deleteQuietly(tempStatePath);
+            throw new InvalidDataException(
+               "HIBP Bloom build completed with zero inserted hashes; refusing to publish an empty filter.");
+         }
+
          _deleteQuietly(outputPath);
          File.Move(tempPath, outputPath);
          _deleteQuietly(GetRangeStatePath(outputPath));

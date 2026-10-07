@@ -29,10 +29,12 @@ namespace Upsilon.Apps.Passkey.Utils
       private const int MIN_SLOW_HASH_SALT_SIZE = 16;
 
       // Ceilings for parameters read from an unencrypted header. A forged .pku
-      // with Iterations near int.MaxValue or a huge OutputLength can otherwise
-      // pin the CPU or allocate excessively before the passphrase is rejected.
+      // with Iterations near int.MaxValue, a huge OutputLength, or an oversized
+      // salt can otherwise pin the CPU or allocate excessively before the
+      // passphrase is rejected.
       private const int MAX_SLOW_HASH_ITERATIONS = 5_000_000;
       private const int MAX_SLOW_HASH_OUTPUT_LENGTH = 128;
+      private const int MAX_SLOW_HASH_SALT_SIZE = 64;
 
       public KdfParameters DefaultSlowHashParameters => new()
       {
@@ -102,21 +104,52 @@ namespace Upsilon.Apps.Passkey.Utils
             throw new InsufficientKdfParametersException(
                $"KDF salt length '{salt.Length}' is below the minimum of {MIN_SLOW_HASH_SALT_SIZE} bytes.");
          }
+
+         if (salt.Length > MAX_SLOW_HASH_SALT_SIZE)
+         {
+            throw new InsufficientKdfParametersException(
+               $"KDF salt length '{salt.Length}' exceeds the maximum of {MAX_SLOW_HASH_SALT_SIZE} bytes.");
+         }
       }
 
       public string GetSlowHash(string source, KdfParameters parameters)
       {
          EnsureSufficientSlowHashParameters(parameters);
 
-         byte[] salt = Convert.FromBase64String(parameters.Salt);
-         byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
-            Encoding.UTF8.GetBytes(source),
-            salt,
-            parameters.Iterations,
-            _toHashAlgorithmName(parameters.Algorithm),
-            parameters.OutputLength);
+         byte[]? passwordBytes = null;
+         byte[]? salt = null;
+         byte[]? hash = null;
 
-         return Convert.ToBase64String(hash);
+         try
+         {
+            salt = Convert.FromBase64String(parameters.Salt);
+            passwordBytes = Encoding.UTF8.GetBytes(source);
+            hash = Rfc2898DeriveBytes.Pbkdf2(
+               passwordBytes,
+               salt,
+               parameters.Iterations,
+               _toHashAlgorithmName(parameters.Algorithm),
+               parameters.OutputLength);
+
+            return Convert.ToBase64String(hash);
+         }
+         finally
+         {
+            if (passwordBytes is not null)
+            {
+               CryptographicOperations.ZeroMemory(passwordBytes);
+            }
+
+            if (salt is not null)
+            {
+               CryptographicOperations.ZeroMemory(salt);
+            }
+
+            if (hash is not null)
+            {
+               CryptographicOperations.ZeroMemory(hash);
+            }
+         }
       }
 
       private static HashAlgorithmName _toHashAlgorithmName(KdfAlgorithm algorithm) => algorithm switch
@@ -143,16 +176,27 @@ namespace Upsilon.Apps.Passkey.Utils
          // next by ~4/3.
          byte[] result = Encoding.UTF8.GetBytes(source);
 
-         for (int i = passwordList.Length - 1; i >= 0; i--)
+         try
          {
-            result = _encryptGcmLayerBytes(result, passwordList[i]);
+            for (int i = passwordList.Length - 1; i >= 0; i--)
+            {
+               byte[] next = _encryptGcmLayerBytes(result, passwordList[i]);
+               CryptographicOperations.ZeroMemory(result);
+               result = next;
+            }
+
+            // A final layer keyed with a fixed, public value lets decryption tell
+            // "corrupted or foreign data" apart from "valid data, wrong passkey".
+            byte[] outer = _encryptGcmLayerBytes(result, GetHash(string.Empty));
+            CryptographicOperations.ZeroMemory(result);
+            result = outer;
+
+            return Convert.ToBase64String(result);
          }
-
-         // A final layer keyed with a fixed, public value lets decryption tell
-         // "corrupted or foreign data" apart from "valid data, wrong passkey".
-         result = _encryptGcmLayerBytes(result, GetHash(string.Empty));
-
-         return Convert.ToBase64String(result);
+         finally
+         {
+            CryptographicOperations.ZeroMemory(result);
+         }
       }
 
       public string DecryptSymmetrically(string source, IEnumerable<string> passwords)
@@ -176,19 +220,28 @@ namespace Upsilon.Apps.Passkey.Utils
             throw new CorruptedSourceException();
          }
 
-         for (int i = 0; i < passwordList.Length; i++)
+         try
          {
-            try
+            for (int i = 0; i < passwordList.Length; i++)
             {
-               result = _decryptGcmLayerBytes(result, passwordList[i]);
+               try
+               {
+                  byte[] next = _decryptGcmLayerBytes(result, passwordList[i]);
+                  CryptographicOperations.ZeroMemory(result);
+                  result = next;
+               }
+               catch (CryptographicException)
+               {
+                  throw new WrongPasswordException(i);
+               }
             }
-            catch (CryptographicException)
-            {
-               throw new WrongPasswordException(i);
-            }
-         }
 
-         return Encoding.UTF8.GetString(result);
+            return Encoding.UTF8.GetString(result);
+         }
+         finally
+         {
+            CryptographicOperations.ZeroMemory(result);
+         }
       }
 
       public void GenerateRandomKeys(out string publicKey, out string privateKey)
@@ -319,6 +372,8 @@ namespace Upsilon.Apps.Passkey.Utils
          finally
          {
             CryptographicOperations.ZeroMemory(key);
+            CryptographicOperations.ZeroMemory(cipherBytes);
+            CryptographicOperations.ZeroMemory(tag);
          }
       }
 

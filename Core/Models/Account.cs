@@ -93,7 +93,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: false,
             oldValue: Notes,
             newValue: value,
-            readableValue: value);
+            readableValue: string.Empty);
       }
 
       int IAccount.PasswordUpdateReminderDelay

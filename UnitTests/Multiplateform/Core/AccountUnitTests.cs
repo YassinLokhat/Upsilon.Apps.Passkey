@@ -69,7 +69,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          expectedLogAlerts.Push(ExpectedActivity.ItemUpdated(true, accountName: account.ToString(), parentName: service.ToString(), fieldName: nameof(account.Password), fieldValue: string.Empty));
          account.Notes = notes;
          account.Notes = notes;
-         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: account.ToString(), parentName: service.ToString(), fieldName: nameof(account.Notes), fieldValue: notes));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: account.ToString(), parentName: service.ToString(), fieldName: nameof(account.Notes), fieldValue: string.Empty));
          account.PasswordUpdateReminderDelay = passwordUpdateReminderDelay;
          expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: account.ToString(), parentName: service.ToString(), fieldName: nameof(account.PasswordUpdateReminderDelay), fieldValue: $"{passwordUpdateReminderDelay}"));
          account.Options = options;
@@ -178,7 +178,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          expectedLogAlerts.Push(ExpectedActivity.ItemUpdated(true, accountName: account.ToString(), parentName: service.ToString(), fieldName: nameof(account.Password), fieldValue: string.Empty));
          account.Notes = notes;
          account.Notes = notes;
-         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: account.ToString(), parentName: service.ToString(), fieldName: nameof(account.Notes), fieldValue: notes));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: account.ToString(), parentName: service.ToString(), fieldName: nameof(account.Notes), fieldValue: string.Empty));
          account.PasswordUpdateReminderDelay = passwordUpdateReminderDelay;
          expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: account.ToString(), parentName: service.ToString(), fieldName: nameof(account.PasswordUpdateReminderDelay), fieldValue: $"{passwordUpdateReminderDelay}"));
          account.Options = options;

@@ -592,14 +592,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
       {
          expectedActivities.Push(ExpectedActivity.ItemAdded(false, username: username, fieldValue: "Service0"));
          expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: "Service0", fieldName: nameof(IService.Url), fieldValue: "http://service0.xyz"));
-         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: "Service0", fieldName: nameof(IService.Notes), fieldValue: "Service0's notes"));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: "Service0", fieldName: nameof(IService.Notes), fieldValue: string.Empty));
 
          _pushImportedAccount(expectedActivities, "Service0", "Account0 (account0@service0.xyz, account0_backup@service0.xyz)", "Service0's Account0's notes");
          _pushImportedAccount(expectedActivities, "Service0", "Account1 (account1@service0.xyz, account1_backup@service0.xyz)", "Service0's Account1's notes");
 
          expectedActivities.Push(ExpectedActivity.ItemAdded(false, username: username, fieldValue: "Service1"));
          expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: "Service1", fieldName: nameof(IService.Url), fieldValue: "http://service1.xyz"));
-         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: "Service1", fieldName: nameof(IService.Notes), fieldValue: "Service1's notes"));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, serviceName: "Service1", fieldName: nameof(IService.Notes), fieldValue: string.Empty));
 
          _pushImportedAccount(expectedActivities, "Service1", "Account0 (account0@service1.xyz, account0_backup@service1.xyz)", "Service1's Account0's notes");
          _pushImportedAccount(expectedActivities, "Service1", "Account1 (account1@service1.xyz, account1_backup@service1.xyz)", "Service1's Account1's notes");
@@ -633,11 +633,50 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          UnitTestsHelper.ClearTestEnvironment();
       }
 
+      [TestMethod]
+      public void Case_ImportJson_RejectsDisabledSecurityTimeouts()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"{username}/disabled_timeouts.json", createIfNotExists: true);
+         File.WriteAllText(importFile, """
+            {
+              "Settings": {
+                "LogoutTimeout": 0,
+                "CleaningClipboardTimeout": 99,
+                "ShowPasswordDelay": 999,
+                "NumberOfOldPasswordToKeep": 9,
+                "NumberOfMonthActivitiesToKeep": 9,
+                "AlertsToNotify": ["PasswordUpdateReminder"]
+              },
+              "Services": []
+            }
+            """);
+
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         int logoutBefore = database.User.Settings.LogoutTimeout;
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         ImportExportError imported = database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         expectedActivities.Push(ExpectedActivity.ImportFailed(username, ImportExportError.SecurityTimeoutsDisabled));
+
+         _ = imported.Should().Be(ImportExportError.SecurityTimeoutsDisabled);
+         database.User.Settings.LogoutTimeout.Should().Be(logoutBefore);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
       private static void _pushImportedAccount(Stack<ExpectedActivity> expectedActivities, string serviceName, string accountName, string notes)
       {
          expectedActivities.Push(ExpectedActivity.ItemAdded(false, serviceName: serviceName, fieldValue: accountName));
          expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: accountName, parentName: serviceName, fieldName: nameof(IAccount.Password), fieldValue: string.Empty));
-         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: accountName, parentName: serviceName, fieldName: nameof(IAccount.Notes), fieldValue: notes));
+         expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: accountName, parentName: serviceName, fieldName: nameof(IAccount.Notes), fieldValue: string.Empty));
          expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: accountName, parentName: serviceName, fieldName: nameof(IAccount.Options), fieldValue: AccountOption.None.ToString()));
          expectedActivities.Push(ExpectedActivity.ItemUpdated(false, accountName: accountName, parentName: serviceName, fieldName: nameof(IAccount.PasswordUpdateReminderDelay), fieldValue: "3"));
       }

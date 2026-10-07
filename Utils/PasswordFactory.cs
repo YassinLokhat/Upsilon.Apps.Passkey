@@ -247,6 +247,14 @@ namespace Upsilon.Apps.Passkey.Utils
 
             using StreamReader reader = new(response.Content.ReadAsStream());
             HashSet<string> parsed = _parseAndCacheHibp(prefix, reader.ReadToEnd());
+            if (parsed.Count == 0)
+            {
+               // Empty 200 bodies are treated as unreachable, not "not leaked".
+               System.Diagnostics.Trace.TraceWarning(
+                  "HIBP leak check returned an empty range; trying XposedOrNot.");
+               return null;
+            }
+
             return parsed.Contains(hash[HIBP_PREFIX_LENGTH..]);
          }
          catch (Exception ex)
@@ -283,6 +291,13 @@ namespace Upsilon.Apps.Passkey.Utils
 
             string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             HashSet<string> parsed = _parseAndCacheHibp(prefix, body);
+            if (parsed.Count == 0)
+            {
+               System.Diagnostics.Trace.TraceWarning(
+                  "HIBP leak check returned an empty range; trying XposedOrNot.");
+               return null;
+            }
+
             return parsed.Contains(hash[HIBP_PREFIX_LENGTH..]);
          }
          catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -418,6 +433,13 @@ namespace Upsilon.Apps.Passkey.Utils
       private HashSet<string> _parseAndCacheHibp(string prefix, string body)
       {
          HashSet<string> suffixes = _parseSuffixes(body);
+
+         // Do not cache empty ranges: a MITM or truncated HTTP 200 would otherwise
+         // pin "not leaked" for the rest of the process lifetime.
+         if (suffixes.Count == 0)
+         {
+            return suffixes;
+         }
 
          if (_hibpRangeCache.Count >= MAX_CACHED_RANGES)
          {

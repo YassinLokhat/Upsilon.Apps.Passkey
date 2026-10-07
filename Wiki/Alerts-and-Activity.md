@@ -11,18 +11,18 @@ Severity values are `AlertSeverity` (`Info` / `Warning` / `Critical`).
 | `ActivityReview` | Core | Max over rows: `Critical` (login-failed / tamper / session-timeout / **export**), `Warning` (`ItemUpdated` / `ItemDeleted`, …), `Info` (import / `ItemAdded` / autosave-merge) | Activities with `NeedsReview` |
 | `PasswordUpdateReminder` | Core | `Critical` | Current password older than `IAccount.PasswordUpdateReminderDelay` months (`0` = never) |
 | `DuplicatedPasswords` | Core | `Warning` | Same secret on ≥2 accounts, and **at least one** has `AccountOption.WarnIfDuplicatedPassword` |
-| `PasswordLeaked` | Core (+ `IPasswordFactory`) | `Critical` | Opt-in leak check found the password in a corpus |
+| `PasswordLeaked` | Core (+ `IPasswordFactory`) | `Critical` | Opt-in leak check found the password in a corpus (`AccountOption.WarnIfPasswordLeaked`) |
+| `WeakAccountPassword` | Core | `Warning` | Account password fails `SecretQuality`, and the account has `AccountOption.WarnIfWeakPassword` |
 | `VaultSecuritySettings` | Core | `Warning` | Protective **vault** settings off — see `SecuritySettingsIssue` below |
 | `InsufficientPasskeys` | Core | `Critical` if ≤1 layer; else `Warning` | Fewer than `AlertKinds.RecommendedPasskeyCount` (2) onion passkeys |
 | `WeakPasskey` | Core | `Critical` | A passkey fails `SecretQuality` (length / classes / trivial / matches username) |
 | `PasskeyLeaked` | Core (+ `IPasswordFactory`) | `Critical` | A passkey is found in a leak corpus |
-| `WeakAccountPassword` | Core | `Warning` | An account password fails `SecretQuality` |
 | `PasskeyReusedAsAccountPassword` | Core | `Critical` | A passkey equals an account password |
 | `HostSecuritySettings` | Host (GUI) | `Warning` | App-level posture — see `HostSecurityIssue` |
 
 ### Vault security issues (`SecuritySettingsIssue`)
 
-`AutoLogoutDisabled`, `ClipboardCleaningDisabled`, `QrAutoCloseDisabled`, `NoAccountLeakCheck` / `NoAccountDuplicateCheck` / `NoAccountUpdateReminder` (each when **no** account has that opt-in; requires ≥1 account).
+`AutoLogoutDisabled`, `ClipboardCleaningDisabled`, `QrAutoCloseDisabled`, `NoAccountLeakCheck` / `NoAccountDuplicateCheck` / `NoAccountWeakPasswordCheck` / `NoAccountUpdateReminder` (each when **no** account has that opt-in; requires ≥1 account).
 
 ### Host security issues (`HostSecurityIssue`)
 
@@ -61,7 +61,7 @@ Duplicate and password-update reminder alerts are local. Leak / passkey-leak che
 | `DateTime` | When the event was recorded |
 | `ItemId` | Related item, or empty for vault-level events |
 | `Username` / `ServiceName` / `AccountName` | Scope of the event (user, service, or account) |
-| `FieldName` / `FieldValue` | Changed field and new value, or error context (e.g. `ImportExportError` + enum member name). Never contains `ProtectedSecret` plaintext; `ToString()` on secrets is `***`. |
+| `FieldName` / `FieldValue` | Changed field and new value, or error context (e.g. `ImportExportError` + enum member name). Never contains `ProtectedSecret` plaintext (`ToString()` on secrets is `***`), and **Notes** values are omitted from `FieldValue` the same way as passwords (field name is still audited). |
 | `ParentName` | Parent item name for account-level updates |
 | `EventType` | `ActivityEventType` |
 | `NeedsReview` | Drives `ActivityReview`. Clearing it (the Activities grid checkbox) is written back into the log on the next sealed persist (Save or logout). |

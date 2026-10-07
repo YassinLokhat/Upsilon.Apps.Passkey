@@ -198,6 +198,29 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
 
       [TestMethod]
       /*
+       * An empty HIBP 200 body must not be cached as "not leaked"; the check
+       * should fall through to XposedOrNot on every attempt.
+      */
+      public void Case09b_PasswordLeaked_DoesNotCacheEmptyHibpRange()
+      {
+         RoutingHandler handler = new(
+            hibp: _ => (HttpStatusCode.OK, string.Empty),
+            xon: _ => (HttpStatusCode.NotFound, null));
+         PasswordFactory factory = _factoryFor(handler);
+
+         bool first = factory.PasswordLeaked("any-password");
+         bool second = factory.PasswordLeaked("any-password");
+
+         _ = first.Should().BeFalse();
+         _ = second.Should().BeFalse();
+         _ = factory.CachedRangeCount.Should().Be(0);
+         // Empty HIBP is never cached, so both calls hit HIBP; XON 404 is cached.
+         _ = handler.HibpRequestCount.Should().Be(2);
+         _ = handler.XonRequestCount.Should().Be(1);
+      }
+
+      [TestMethod]
+      /*
        * A non-success HTTP response must not be cached, otherwise a transient
        * outage would pin "not leaked" for the rest of the process. When HIBP
        * and XON both fail, each PasswordLeaked call asks both providers once.

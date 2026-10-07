@@ -18,7 +18,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       IDatabase IItem.Database => Host.AsDatabase;
 
       IUser IService.User => Host.Touch(User);
-      //IEnumerable<IAccount> IService.Accounts => [.. Host.Touch(Accounts)];
+
       IEnumerable<IAccount> IService.Accounts
       {
          get => Host.Touch(Accounts);
@@ -43,13 +43,28 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       Uri? IService.Url
       {
-         get => !string.IsNullOrWhiteSpace(Url) ? new Uri(Host.Touch(Url)) : null;
-         set => Url = Host.AutoSave.UpdateValue(ItemId,
-            fieldName: nameof(Url),
-            needsReview: false,
-            oldValue: Url,
-            newValue: value?.OriginalString ?? string.Empty,
-            readableValue: value?.OriginalString ?? string.Empty);
+         get
+         {
+            string raw = Host.Touch(Url);
+            return string.IsNullOrWhiteSpace(raw) ? null : Uri.TryCreate(raw, UriKind.RelativeOrAbsolute, out Uri? uri) ? uri : null;
+         }
+         set
+         {
+            // Absolute non-http(s) schemes are refused in Core (not only WPF open).
+            // Relative values remain allowed while the user is still typing.
+            string stored = string.Empty;
+            if (value is not null)
+            {
+               stored = value.IsAbsoluteUri && !ServiceUrlHelper.IsAllowedScheme(value) ? string.Empty : value.OriginalString;
+            }
+
+            Url = Host.AutoSave.UpdateValue(ItemId,
+               fieldName: nameof(Url),
+               needsReview: false,
+               oldValue: Url,
+               newValue: stored,
+               readableValue: stored);
+         }
       }
 
       string IService.Notes
@@ -60,7 +75,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: false,
             oldValue: Notes,
             newValue: value,
-            readableValue: value);
+            readableValue: string.Empty);
       }
 
       public IAccount AddAccount(string label, IEnumerable<IIdentifier> identifiers, string password)
@@ -76,14 +91,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          Accounts.Add(Host.AutoSave.AddValue(ItemId, readableValue: account.ToString(), needsReview: false, account));
 
+         Dictionary<DateTime, IProtectedSecret> oldPasswords = [];
+         if (!string.IsNullOrEmpty(password))
+         {
+            account.Passwords[DateTime.Now] = Host.SecretMemoryProtector.Protect(password);
+         }
+
+         // Seed autosave with the Passwords dictionary shape (not a plaintext string).
          _ = Host.AutoSave.UpdateValue(account.ItemId,
             fieldName: nameof(account.Password),
             needsReview: true,
-            oldValue: string.Empty,
-            newValue: account.Password,
+            oldValue: oldPasswords,
+            newValue: account.Passwords,
             readableValue: string.Empty);
-
-         account.Passwords[DateTime.Now] = Host.SecretMemoryProtector.Protect(account.Password);
 
          return account;
       }
@@ -151,6 +171,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          // CSV/import paths often supply a current password with an empty history
          // dictionary. Seed one dated entry so PasswordExpired and retention work.
+         Dictionary<DateTime, IProtectedSecret> oldPasswords = [];
          if (account.Passwords.Count == 0
             && !string.IsNullOrEmpty(password))
          {
@@ -162,8 +183,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
          _ = Host.AutoSave.UpdateValue(account.ItemId,
             fieldName: nameof(account.Password),
             needsReview: false,
-            oldValue: string.Empty,
-            newValue: account.Password,
+            oldValue: oldPasswords,
+            newValue: account.Passwords,
             readableValue: string.Empty);
 
          return account;

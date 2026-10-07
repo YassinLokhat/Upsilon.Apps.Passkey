@@ -367,6 +367,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string EnumValue_ImportExportError_ServiceAlreadyExists => Get(nameof(EnumValue_ImportExportError_ServiceAlreadyExists));
       public static string EnumValue_ImportExportError_BlankService => Get(nameof(EnumValue_ImportExportError_BlankService));
       public static string EnumValue_ImportExportError_ExportFileAlreadyExists => Get(nameof(EnumValue_ImportExportError_ExportFileAlreadyExists));
+      public static string EnumValue_ImportExportError_SecurityTimeoutsDisabled => Get(nameof(EnumValue_ImportExportError_SecurityTimeoutsDisabled));
       public static string Tooltip_OfflineLeakDatabase => Get(nameof(Tooltip_OfflineLeakDatabase));
       public static string Tooltip_AutoUpdateOfflineLeakDatabase => Get(nameof(Tooltip_AutoUpdateOfflineLeakDatabase));
       public static string Tooltip_AddAccount => Get(nameof(Tooltip_AddAccount));

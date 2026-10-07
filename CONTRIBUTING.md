@@ -7,7 +7,7 @@ focused change and enough context for review.
 
 - **Security issues** must not be filed as public GitHub issues. Follow
   [SECURITY.md](SECURITY.md) instead.
-- Keep Core, Utils, and Interfaces free of third-party NuGet packages (see below).
+- Keep Core, Utils, Interfaces, and the WPF GUI free of third-party NuGet packages (see below).
 - Prefer a small PR over a mixed refactor + feature + docs dump.
 
 ## Repository layout
@@ -34,7 +34,7 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
 dotnet test Upsilon.Apps.Passkey.Linux.slnx
 ```
 
-Windows CI also enforces **90% line coverage of `Upsilon.Apps.Passkey.Core`**.
+Windows and Linux CI enforce **90% line coverage of `Upsilon.Apps.Passkey.Core`**.
 Coverage is scoped in `coverage.runsettings` to the Core assembly; Utils and the
 WPF assembly are excluded. Do not lower that gate without an explicit discussion
 in the PR. Coverage reports from `run_code_coverage.bat` / Windows CI land in
@@ -49,20 +49,17 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitT
 There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global
 hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay in the [manual smoke list](README.md#manual-smoke-gui).
 
-## Zero-dependency policy (Core, Utils, and Interfaces)
+## Zero-dependency policy (Core, Utils, Interfaces, and WPF)
 
-`Core`, `Utils`, and `Interfaces` must not take a `PackageReference`. An MSBuild target
-fails the build if one appears. That keeps the vault's supply-chain surface
-limited to the .NET BCL.
+`Core`, `Utils`, `Interfaces`, and the WPF GUI must not take a `PackageReference`.
+An MSBuild target fails the build if one appears. That keeps the vault's
+supply-chain surface limited to the .NET BCL.
 
 Allowed:
 
 - In-solution `ProjectReference`s.
 - Packages in the test projects (MSTest, FluentAssertions 7.x).
 - GitHub Actions / CodeQL on the CI runners (not referenced by the libraries).
-
-The WPF project currently has no NuGet packages either; keep it that way unless
-a Windows-only capability cannot be done with the BCL.
 
 Workflow `uses:` entries are **pinned to full commit SHAs** (with a `# vX.Y.Z`
 comment). Dependabot is enabled for the `github-actions` ecosystem only
@@ -144,14 +141,14 @@ git push origin utils-v1.1.0 core-v1.1.0 wpf-v1.1.0
 Do **not** bump or tag a package whose public surface did not change (for example
 leave `interfaces` at `1.0.0` if Interfaces is unchanged).
 
-GitHub Releases are produced by `.github/workflows/release.yml`. Each tag creates
-one Release with dependency notes from `versions.json`. Libraries upload a
-`.nupkg` (+ `.sha256`); the WPF client uploads
-`Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64.zip` (+ `.sha256`).
+There is currently **no** automated `release.yml` workflow in this repository.
+Publish GitHub Releases manually after tagging (attach `.nupkg` / `.sha256` for
+libraries and `Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64.zip` (+ `.sha256`)
+for the WPF client, with dependency notes from `versions.json` as needed).
 
-Use a prerelease suffix (`wpf-v1.1.0-rc.1`) to mark the GitHub Release as a
-prerelease. Legacy tags `v*.*.*` still map to the WPF client. Do not retag an
-existing version.
+Use a prerelease suffix (`wpf-v1.1.0-rc.1`) when marking a GitHub Release as a
+prerelease. Prefer component tags (`interfaces-v*`, `utils-v*`, `core-v*`,
+`wpf-v*`). Do not retag an existing version.
 
 CI runs `.\scripts\Sync-Versions.ps1 -Check` so `versions.json`, `.csproj`, and
 docs stay aligned.

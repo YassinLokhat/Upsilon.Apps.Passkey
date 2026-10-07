@@ -95,19 +95,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
          index++;
          if (info.Length > index)
          {
-            Username = info[index];
+            Username = _unescapePipes(info[index]);
          }
 
          index++;
          if (info.Length > index)
          {
-            ServiceName = info[index];
+            ServiceName = _unescapePipes(info[index]);
          }
 
          index++;
          if (info.Length > index)
          {
-            AccountName = info[index];
+            AccountName = _unescapePipes(info[index]);
          }
 
          index++;
@@ -126,31 +126,32 @@ namespace Upsilon.Apps.Passkey.Core.Models
          index++;
          if (info.Length > index)
          {
-            ParentName = !string.IsNullOrEmpty(info[index]) ? info[index] : null;
+            string? parent = _unescapePipes(info[index]);
+            ParentName = !string.IsNullOrEmpty(parent) ? parent : null;
          }
 
          index++;
          if (info.Length > index)
          {
-            FieldName = !string.IsNullOrEmpty(info[index]) ? info[index] : null;
+            string? fieldName = _unescapePipes(info[index]);
+            FieldName = !string.IsNullOrEmpty(fieldName) ? fieldName : null;
          }
 
          index++;
          if (info.Length > index)
          {
-            info = info[index..];
-            FieldValue = string.Join('|', info);
+            // FieldValue is the last column; re-join only if a legacy unescaped
+            // payload still contains raw pipes (escaped values are a single cell).
+            string fieldValue = _unescapePipes(string.Join('|', info[index..])) ?? string.Empty;
 
-            if (string.IsNullOrEmpty(FieldValue))
-            {
-               FieldValue = null;
-            }
+            FieldValue = string.IsNullOrEmpty(fieldValue) ? null : fieldValue;
          }
       }
 
       /// <summary>
-      /// Persistence wire format: ticks|itemId|username|serviceName|accountName|fieldName|fieldValue|parentName|eventType|needsReview with
-      /// <c>|</c> escaped as <c>\|</c> inside data. Numeric <see cref="EventType"/>
+      /// Persistence wire format:
+      /// ticks|itemId|username|serviceName|accountName|eventType|needsReview|parentName|fieldName|fieldValue
+      /// with <c>|</c> escaped as <c>\|</c> inside data. Numeric <see cref="EventType"/>
       /// values are a contract — do not renumber the enum.
       /// </summary>
       public override string ToString()
@@ -162,7 +163,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             $"|{(int)EventType}" +
             $"|{(NeedsReview ? "1" : "")}" +
             $"|{_escapePipes(ParentName)}" +
-            $"|{FieldName}" +
+            $"|{_escapePipes(FieldName)}" +
             $"|{_escapePipes(FieldValue)}";
 
       private static string[] _splitUnescapePipes(string source)
@@ -170,6 +171,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       private static string? _escapePipes(string? source)
          => source?.Replace("|", "\\|", StringComparison.InvariantCulture);
+
+      private static string? _unescapePipes(string? source)
+         => source?.Replace("\\|", "|", StringComparison.InvariantCulture);
 
       [GeneratedRegex(@"(?<!\\)\|")]
       private static partial Regex SplitUnescapePipes();

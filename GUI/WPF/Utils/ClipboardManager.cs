@@ -45,6 +45,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
 
          if (autoClearAfter is { } delay && delay > TimeSpan.Zero)
          {
+            // Session scrub tracks only values we auto-clear (passwords /
+            // identifiers), not ad-hoc copies without a timeout.
+            AppServices.Session.User?.RememberClipboardSecret(text);
             _scheduleAutoClear(text, delay);
          }
       }

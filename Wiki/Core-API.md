@@ -80,7 +80,9 @@ IAccount account = mail.AddAccount(
    generated);
 account.Notes = "2FA on hardware key";
 account.PasswordUpdateReminderDelay = 6; // months; 0 = never
-account.Options = AccountOption.WarnIfPasswordLeaked | AccountOption.WarnIfDuplicatedPassword;
+account.Options = AccountOption.WarnIfPasswordLeaked
+   | AccountOption.WarnIfDuplicatedPassword
+   | AccountOption.WarnIfWeakPassword;
 ```
 
 `IAccount.Passwords` is dated history. Length is capped by `ISettings.NumberOfOldPasswordToKeep`. `IAccount.Identifiers` are **typed** (`IIdentifier`: `IdentifierType` + `Value`) — username, email, phone, passkey label, or authenticator-app label — not bare strings.
@@ -119,7 +121,7 @@ Fast hash, slow hash (PBKDF2), onion encrypt/decrypt, RSA-4096 PEM keygen, hybri
 
 ### `IPasswordFactory`
 
-CSPRNG over `Alphabetic`, `Numeric`, and `SpecialChars`. When `checkIfLeaked` is true, generation retries at most **five** candidates against the leak corpora and then gives up (returns empty) rather than hammering the remote service.
+CSPRNG over `UpperAlphabetic`, `LowerAlphabetic`, `Numeric`, and `SpecialChars`. `HasLocalFilter` reports whether an offline Bloom filter is attached. When `checkIfLeaked` is true, generation retries at most **five** candidates against the leak corpora and then gives up (returns empty) rather than hammering the remote service.
 
 Leak detection order: Have I Been Pwned range API first (`api.pwnedpasswords.com` — first 5 characters of NTLM with `?mode=ntlm`), then XposedOrNot (`passwords.xposedornot.com` — first 10 characters of raw Keccak-512, not NIST SHA-3), then an optional machine-local HIBP Bloom filter (`.pkbf`) when enabled and present. The password itself never leaves the device for the remote calls. If HIBP answers definitively, XON and Bloom are not contacted. If both remotes are unreachable and a Bloom filter is attached: a **miss** is definitive "not leaked"; a **hit** is treated as leaked (~1 % false positives possible). If no filter is attached, the check **fails open** (reports "not leaked"). Failed remote checks are not cached; only successful answers are kept in process (never persisted).
 

@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             serviceName: null,
             accountName: null,
             fieldName: nameof(filePath),
-            fieldValue: filePath,
+            fieldValue: Path.GetFileName(filePath),
             parentName: null,
             eventType: ActivityEventType.ImportingDataStarted,
             needsReview: true);
@@ -119,7 +119,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             serviceName: null,
             accountName: null,
             fieldName: nameof(filePath),
-            fieldValue: filePath,
+            fieldValue: Path.GetFileName(filePath),
             parentName: null,
             eventType: ActivityEventType.ExportingDataStarted,
             needsReview: true);

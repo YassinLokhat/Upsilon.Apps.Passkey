@@ -43,7 +43,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform
             FieldValue: withoutSaving ? "1" : string.Empty);
 
       public static ExpectedActivity ImportStarted(string username, string filePath)
-         => new(ActivityEventType.ImportingDataStarted, true, Username: username, FieldName: "filePath", FieldValue: filePath);
+         => new(ActivityEventType.ImportingDataStarted, true, Username: username, FieldName: "filePath", FieldValue: Path.GetFileName(filePath));
 
       public static ExpectedActivity ImportSucceeded(string username)
          => new(ActivityEventType.ImportingDataSucceeded, true, Username: username);
@@ -52,7 +52,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform
          => new(ActivityEventType.ImportingDataFailed, true, Username: username, FieldName: nameof(ImportExportError), FieldValue: error.ToString());
 
       public static ExpectedActivity ExportStarted(string username, string filePath)
-         => new(ActivityEventType.ExportingDataStarted, true, Username: username, FieldName: "filePath", FieldValue: filePath);
+         => new(ActivityEventType.ExportingDataStarted, true, Username: username, FieldName: "filePath", FieldValue: Path.GetFileName(filePath));
 
       public static ExpectedActivity ExportSucceeded(string username)
          => new(ActivityEventType.ExportingDataSucceeded, true, Username: username);

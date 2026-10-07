@@ -435,12 +435,23 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
          ensureTooLongOutput.Should().Throw<InsufficientKdfParametersException>()
             .WithMessage("*output length*exceed*");
 
+         KdfParameters tooLongSalt = new()
+         {
+            Algorithm = defaults.Algorithm,
+            Iterations = defaults.Iterations,
+            OutputLength = defaults.OutputLength,
+            Salt = Convert.ToBase64String(new byte[65]),
+         };
+         Action ensureTooLongSalt = () => crypto.EnsureSufficientSlowHashParameters(tooLongSalt);
+         ensureTooLongSalt.Should().Throw<InsufficientKdfParametersException>()
+            .WithMessage("*salt length*exceed*");
+
          KdfParameters atCeiling = new()
          {
             Algorithm = defaults.Algorithm,
             Iterations = 5_000_000,
             OutputLength = 128,
-            Salt = defaults.Salt,
+            Salt = Convert.ToBase64String(new byte[64]),
          };
          Action ensureAtCeiling = () => crypto.EnsureSufficientSlowHashParameters(atCeiling);
          ensureAtCeiling.Should().NotThrow();
