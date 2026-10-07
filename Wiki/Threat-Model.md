@@ -54,6 +54,10 @@ They still cannot read `database` / `autosave` without the passkeys.
 
 Out of scope. The default `ProtectedSecret` (via injected `ISecretMemoryProtector`) shrinks the window (ciphertext in RAM, `***` in logs) but `Reveal()` still produces a `string` for display, copy, QR, and save. Clipboard and screen are OS surfaces. Auto-logout and clipboard timeouts reduce *casual* exposure; they do not stop a scraper with equal privilege to the process.
 
+## Scenario: imported service URL opens via the Windows shell
+
+In scope for the open action. A crafted import could set `file:`, UNC, or a custom protocol and the user might click “open URL”. The client allowlists **absolute `http`/`https` only** before `UseShellExecute`; `http` requires an extra confirmation. Other schemes never reach the shell.
+
 ## Scenario: user exports JSON "for backup" to a cloud folder
 
 Out of scope by design. Export is plaintext for interoperability. The user is responsible for protecting or deleting those files. Prefer copying the encrypted `.pku` if the goal is backup — and never let two machines write it at once (`FileShare.Read | FileShare.Delete` plus `.pku.lock` during a session is not multi-master sync).

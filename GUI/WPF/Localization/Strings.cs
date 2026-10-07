@@ -247,6 +247,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_ShowPasskeyQualityAlerts => Get(nameof(Msg_ShowPasskeyQualityAlerts));
       public static string Msg_ShowAlerts => Get(nameof(Msg_ShowAlerts));
       public static string Msg_NoAlertsToNotify => Get(nameof(Msg_NoAlertsToNotify));
+      public static string Msg_OpenHttpUrlConfirm => Get(nameof(Msg_OpenHttpUrlConfirm));
+      public static string Msg_UrlSchemeNotAllowed => Get(nameof(Msg_UrlSchemeNotAllowed));
       public static string Title_NoAlertsToNotify => Get(nameof(Title_NoAlertsToNotify));
       public static string Title_SecuritySettingsAlerts => Get(nameof(Title_SecuritySettingsAlerts));
       public static string Title_SecuritySettingsAlertsWindow => Get(nameof(Title_SecuritySettingsAlertsWindow));
@@ -297,6 +299,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Title_ConfirmationRequired => Get(nameof(Title_ConfirmationRequired));
       public static string Title_CorruptedDatabase => Get(nameof(Title_CorruptedDatabase));
       public static string Title_DeleteAccount => Get(nameof(Title_DeleteAccount));
+      public static string Title_OpenUrl => Get(nameof(Title_OpenUrl));
       public static string Title_DeleteOfflineLeakDatabase => Get(nameof(Title_DeleteOfflineLeakDatabase));
       public static string Title_IdleResetCredentialTimeout => Get(nameof(Title_IdleResetCredentialTimeout));
       public static string Title_DeleteService => Get(nameof(Title_DeleteService));

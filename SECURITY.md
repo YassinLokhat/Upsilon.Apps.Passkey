@@ -286,6 +286,12 @@ login:
   configurable delay (`ISettings.CleaningClipboardTimeout`). The WPF paste
   hotkeys (Ctrl+Shift+L / Ctrl+Shift+P) go through the same clipboard path
   before synthesizing Ctrl+V.
+- **Service URL open (WPF host)**: opening a service URL uses the OS shell
+  (`UseShellExecute`). Only **absolute `http` and `https`** URIs are allowed
+  (`ServiceUrlHelper`). `https` opens directly; `http` requires an explicit
+  confirmation dialog. Local paths, UNC paths, and custom schemes are refused
+  so an imported or typed value cannot invoke an unexpected protocol handler.
+  Import stores only the same allowlisted schemes (others become `null`).
 - **Credential confirmation (WPF host)**: before creating a vault, or before
   saving a change to username / ordered master passkeys, the WPF client
   prompts the user to re-type those credentials (`CredentialsConfirmationView`).

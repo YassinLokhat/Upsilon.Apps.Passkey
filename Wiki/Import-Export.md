@@ -119,4 +119,4 @@ Core records failures as `ImportingDataFailed` / `ExportingDataFailed` activitie
 | Broken CSV cells | `IncorrectCSVFormat` | the CSV format is incorrect |
 | Export destination already exists | `ExportFileAlreadyExists` | export file already exists |
 
-URL handling on import: a service URL is kept only if `Uri.IsWellFormedUriString` accepts it; otherwise `Url` is `null`.
+URL handling on import: a service URL is kept only if it is an **absolute `http` or `https`** URI (`ServiceUrlHelper`); otherwise `Url` is `null`. Relative paths, `file:`, UNC, and custom schemes are dropped. The WPF client uses the same allowlist when opening a URL in the browser (`https` direct; `http` after confirmation).

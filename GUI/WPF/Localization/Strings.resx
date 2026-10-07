@@ -482,6 +482,9 @@
   <data name="Title_DeleteAccount" xml:space="preserve">
     <value>Delete Account</value>
   </data>
+  <data name="Title_OpenUrl" xml:space="preserve">
+    <value>Open URL</value>
+  </data>
   <data name="Title_ItemNotFound" xml:space="preserve">
     <value>Item not found</value>
   </data>
@@ -647,6 +650,16 @@ You will not be alerted about:
 • Activities to review
 • Expired, duplicated, or leaked passwords
 • Insecure security settings</value>
+  </data>
+  <data name="Msg_OpenHttpUrlConfirm" xml:space="preserve">
+    <value>This URL uses HTTP (not encrypted):
+
+{0}
+
+Opening it may expose the request on the network. Open anyway?</value>
+  </data>
+  <data name="Msg_UrlSchemeNotAllowed" xml:space="preserve">
+    <value>Only absolute HTTP and HTTPS URLs can be opened. Local paths, UNC paths, and custom protocols are not allowed.</value>
   </data>
   <data name="Title_NoAlertsToNotify" xml:space="preserve">
     <value>Alert notifications disabled</value>

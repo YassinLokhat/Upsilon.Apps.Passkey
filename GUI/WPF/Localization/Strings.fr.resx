@@ -482,6 +482,9 @@
   <data name="Title_DeleteAccount" xml:space="preserve">
     <value>Supprimer le compte</value>
   </data>
+  <data name="Title_OpenUrl" xml:space="preserve">
+    <value>Ouvrir l'URL</value>
+  </data>
   <data name="Title_ItemNotFound" xml:space="preserve">
     <value>Élément introuvable</value>
   </data>
@@ -647,6 +650,16 @@ Vous ne serez pas prévenu pour :
 • Les activités à revoir
 • Les mots de passe expirés, dupliqués ou divulgués
 • Les paramètres de sécurité trop permissifs</value>
+  </data>
+  <data name="Msg_OpenHttpUrlConfirm" xml:space="preserve">
+    <value>Cette URL utilise HTTP (non chiffré) :
+
+{0}
+
+L'ouvrir peut exposer la requête sur le réseau. Ouvrir quand même ?</value>
+  </data>
+  <data name="Msg_UrlSchemeNotAllowed" xml:space="preserve">
+    <value>Seules les URL HTTP et HTTPS absolues peuvent être ouvertes. Les chemins locaux, UNC et protocoles personnalisés sont refusés.</value>
   </data>
   <data name="Title_NoAlertsToNotify" xml:space="preserve">
     <value>Notifications d'alertes désactivées</value>
