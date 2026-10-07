@@ -46,12 +46,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
          get
          {
             string raw = Host.Touch(Url);
-            if (string.IsNullOrWhiteSpace(raw))
-            {
-               return null;
-            }
-
-            return Uri.TryCreate(raw, UriKind.RelativeOrAbsolute, out Uri? uri) ? uri : null;
+            return string.IsNullOrWhiteSpace(raw) ? null : Uri.TryCreate(raw, UriKind.RelativeOrAbsolute, out Uri? uri) ? uri : null;
          }
          set
          {
@@ -60,14 +55,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             string stored = string.Empty;
             if (value is not null)
             {
-               if (value.IsAbsoluteUri && !ServiceUrlHelper.IsAllowedScheme(value))
-               {
-                  stored = string.Empty;
-               }
-               else
-               {
-                  stored = value.OriginalString;
-               }
+               stored = value.IsAbsoluteUri && !ServiceUrlHelper.IsAllowedScheme(value) ? string.Empty : value.OriginalString;
             }
 
             Url = Host.AutoSave.UpdateValue(ItemId,
