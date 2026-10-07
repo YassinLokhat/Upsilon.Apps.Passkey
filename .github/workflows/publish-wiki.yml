@@ -20,6 +20,7 @@ jobs:
         env:
           # Fine-grained PAT with Contents: Read and write on this repo
           # (the wiki is a separate git remote that GITHUB_TOKEN cannot push to).
+          # Injected via http.extraheader only — never embedded in the remote URL.
           WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
         run: |
           set -euo pipefail
@@ -29,7 +30,9 @@ jobs:
             exit 1
           fi
 
-          git clone --depth 1 "https://x-access-token:${WIKI_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" wiki-clone
+          AUTH_HEADER="AUTHORIZATION: basic $(printf 'x-access-token:%s' "${WIKI_TOKEN}" | base64 -w 0)"
+          git -c http.extraheader="${AUTH_HEADER}" clone --depth 1 \
+            "https://github.com/${GITHUB_REPOSITORY}.wiki.git" wiki-clone
           rsync -a --delete --exclude='.git' Wiki/ wiki-clone/
           cd wiki-clone
           git config user.name "github-actions[bot]"
@@ -41,4 +44,4 @@ jobs:
           fi
           SHORT_SHA="${GITHUB_SHA:0:7}"
           git commit -m "Update Wiki from ${SHORT_SHA}"
-          git push
+          git -c http.extraheader="${AUTH_HEADER}" push

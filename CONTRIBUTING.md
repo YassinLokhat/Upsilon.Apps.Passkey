@@ -49,20 +49,17 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitT
 There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global
 hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay in the [manual smoke list](README.md#manual-smoke-gui).
 
-## Zero-dependency policy (Core, Utils, and Interfaces)
+## Zero-dependency policy (Core, Utils, Interfaces, and WPF)
 
-`Core`, `Utils`, and `Interfaces` must not take a `PackageReference`. An MSBuild target
-fails the build if one appears. That keeps the vault's supply-chain surface
-limited to the .NET BCL.
+`Core`, `Utils`, `Interfaces`, and the WPF GUI must not take a `PackageReference`.
+An MSBuild target fails the build if one appears. That keeps the vault's
+supply-chain surface limited to the .NET BCL.
 
 Allowed:
 
 - In-solution `ProjectReference`s.
 - Packages in the test projects (MSTest, FluentAssertions 7.x).
 - GitHub Actions / CodeQL on the CI runners (not referenced by the libraries).
-
-The WPF project currently has no NuGet packages either; keep it that way unless
-a Windows-only capability cannot be done with the BCL.
 
 Workflow `uses:` entries are **pinned to full commit SHAs** (with a `# vX.Y.Z`
 comment). Dependabot is enabled for the `github-actions` ecosystem only

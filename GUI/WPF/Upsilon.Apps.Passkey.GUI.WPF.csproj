@@ -36,4 +36,9 @@
     <InternalsVisibleTo Include="UnitTests.Windows" />
   </ItemGroup>
 
+  <!-- Zero-dependency: fail the build if any PackageReference appears. See CONTRIBUTING.md. -->
+  <Target Name="EnforceZeroExternalDependencies" BeforeTargets="Build;Pack">
+    <Error Condition="'@(PackageReference)' != ''" Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(PackageReference))." />
+  </Target>
+
 </Project>
