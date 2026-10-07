@@ -307,6 +307,9 @@ login:
   on each tick. The WPF paste hotkeys (Ctrl+Shift+L / Ctrl+Shift+P) go through
   the same clipboard path
   before synthesizing Ctrl+V.
+- **Service URL storage (Core)**: `IService.Url` refuses absolute URIs that are
+  not `http`/`https` (same allowlist as import/`ServiceUrlHelper`). Relative
+  values may still be stored while typing; shell open re-validates.
 - **Service URL open (WPF host)**: opening a service URL uses the OS shell
   (`UseShellExecute`). Only **absolute `http` and `https`** URIs are allowed
   (`ServiceUrlHelper`). `https` opens directly; `http` requires an explicit

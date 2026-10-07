@@ -162,7 +162,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             $"|{(int)EventType}" +
             $"|{(NeedsReview ? "1" : "")}" +
             $"|{_escapePipes(ParentName)}" +
-            $"|{FieldName}" +
+            $"|{_escapePipes(FieldName)}" +
             $"|{_escapePipes(FieldValue)}";
 
       private static string[] _splitUnescapePipes(string source)

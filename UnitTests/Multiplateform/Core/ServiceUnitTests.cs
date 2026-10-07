@@ -287,6 +287,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          service.Url = null;
          _ = service.Url.Should().BeNull();
 
+         service.Url = new Uri("file:///C:/secrets.txt");
+         _ = service.Url.Should().BeNull();
+
          service.DeleteAccount(withLabel);
          Action deleteUnknown = () => service.DeleteAccount(withLabel);
          deleteUnknown.Should().Throw<KeyNotFoundException>();

@@ -43,13 +43,40 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       Uri? IService.Url
       {
-         get => !string.IsNullOrWhiteSpace(Url) ? new Uri(Host.Touch(Url)) : null;
-         set => Url = Host.AutoSave.UpdateValue(ItemId,
-            fieldName: nameof(Url),
-            needsReview: false,
-            oldValue: Url,
-            newValue: value?.OriginalString ?? string.Empty,
-            readableValue: value?.OriginalString ?? string.Empty);
+         get
+         {
+            string raw = Host.Touch(Url);
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+               return null;
+            }
+
+            return Uri.TryCreate(raw, UriKind.RelativeOrAbsolute, out Uri? uri) ? uri : null;
+         }
+         set
+         {
+            // Absolute non-http(s) schemes are refused in Core (not only WPF open).
+            // Relative values remain allowed while the user is still typing.
+            string stored = string.Empty;
+            if (value is not null)
+            {
+               if (value.IsAbsoluteUri && !ServiceUrlHelper.IsAllowedScheme(value))
+               {
+                  stored = string.Empty;
+               }
+               else
+               {
+                  stored = value.OriginalString;
+               }
+            }
+
+            Url = Host.AutoSave.UpdateValue(ItemId,
+               fieldName: nameof(Url),
+               needsReview: false,
+               oldValue: Url,
+               newValue: stored,
+               readableValue: stored);
+         }
       }
 
       string IService.Notes
