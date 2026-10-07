@@ -349,8 +349,12 @@ login:
   user. These remote calls are the **only** outbound network traffic; the
   feature is opt-in per account. Failed remote checks are **not** cached: only
   successful answers are kept in process (HIBP ranges by 5-character prefix,
-  XON yes/no by 10-character prefix; both bounded, never persisted). Requests
-  time out after a few seconds. The GUI and the alert scan use the
+  XON yes/no by 10-character prefix; both bounded, never persisted). Empty HIBP
+  range bodies (HTTP 200 with no suffixes) are **not** cached and are treated
+  like an unreachable provider so a truncated or forged empty response cannot
+  pin "not leaked". A full Bloom build that inserts **zero** hashes is refused
+  (no empty `.pkbf` published). Requests time out after a few seconds. The GUI
+  and the alert scan use the
   asynchronous API so the UI thread is not blocked while waiting on the
   network. The UI does **not** surface a separate "could not verify" state: a
   transient failure is expected to succeed on a later attempt, and a lasting
@@ -427,6 +431,19 @@ These are conscious trade-offs, documented for transparency:
   cannot usefully act on while offline. The two remote corpora are not
   identical, so a password known only to one provider may be missed when that
   provider is the one that is down.
+- **Leak API response authenticity**: successful HTTP bodies from HIBP and
+  XposedOrNot are not authenticated beyond TLS. A network MITM that returns
+  HTTP 200 with empty or forged content could under-report leaks. Empty HIBP
+  ranges are not cached and fall through to XON/Bloom; a full Bloom build with
+  zero inserted hashes is refused. Residual risk of a convincing forged
+  non-empty "clean" answer remains accepted for this local-only tool (no
+  certificate pinning).
+- **Unsigned offline Bloom (`.pkbf`)**: the filter file beside the executable
+  has no cryptographic authenticity (format checks only). Whoever can replace
+  it on disk can induce false negatives (Bloom miss ⇒ not leaked). That
+  overlaps host compromise / local write access, which is out of scope for vault
+  confidentiality; it is documented so operators do not treat `.pkbf` as a
+  signed corpus.
 - **Offline Bloom filter size / freshness**: building the full HIBP-derived
   `.pkbf` downloads every range (~1M prefixes), takes hours, and yields a file
   on the order of ~2.4 GiB. It is a snapshot: new breaches appear in the live
