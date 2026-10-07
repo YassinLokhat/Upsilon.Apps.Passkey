@@ -266,9 +266,12 @@ login:
   `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of
   the `Login` call. The short-lived managed `string` passed to Core remains
   subject to the usual .NET GC limitations documented under "Known Limitations".
-- Derived AES keys, per-layer UTF-8 password bytes, GCM plaintext buffers, and
-  `ProtectedSecret` unwrap buffers are wiped with
-  `CryptographicOperations.ZeroMemory` after use.
+- Owned sensitive buffers are wiped with `CryptographicOperations.ZeroMemory`
+  after use: derived AES keys, per-layer UTF-8 password bytes used as HKDF IKM,
+  PBKDF2 password/salt/output buffers in `GetSlowHash`, abandoned onion
+  interlayer plaintext (and encrypt-side ciphertext scratch buffers), and
+  `ProtectedSecret` unwrap buffers. Final decrypted UTF-8 `string` results and
+  other managed password strings are not wiped (see Known Limitations).
 
 ### Progressive login without rollback (online brute-force friction)
 

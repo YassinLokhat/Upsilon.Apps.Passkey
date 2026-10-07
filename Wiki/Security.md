@@ -60,7 +60,7 @@ Session **Undo/Redo** (`IEditHistory`) keeps a capped in-memory stack of autosav
 
 `IDatabase.Login` takes a plain `string` passkey (no `SecureString` overload on Core). The WPF GUI zeroes the BSTR around that call — [[WPF Client]].
 
-Derived AES keys, per-layer UTF-8 password bytes, GCM plaintext buffers, and `ProtectedSecret` unwrap buffers are wiped with `CryptographicOperations.ZeroMemory` after use.
+Owned sensitive buffers are wiped with `CryptographicOperations.ZeroMemory` after use: derived AES keys, per-layer UTF-8 HKDF IKM bytes, PBKDF2 buffers in `GetSlowHash`, abandoned onion interlayer plaintext, encrypt-side ciphertext scratch buffers, and `ProtectedSecret` unwrap buffers. Final decrypted UTF-8 strings and other managed password strings are not wiped (see Known limitations).
 
 ## Progressive login without rollback
 
