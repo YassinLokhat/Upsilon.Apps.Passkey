@@ -24,9 +24,14 @@ The WPF app supplies `IClipboardManager` and `ISecretMemoryProtector`, and hosts
 
 ```mermaid
 flowchart LR
+  IUser --> IItem
+  IService --> IItem
+  IAccount --> IItem
+  IItem --> IDatabase
   IDatabase --> IUser
   IDatabase --> IEditHistory
   IUser --> ISettings
+  ISettings --> AlertKindList
   IUser --> IService
   IService --> IAccount
   IAccount --> IIdentifier
@@ -37,6 +42,7 @@ flowchart LR
   IDatabase --> IPasswordFactory
   IDatabase --> IClipboardManager
   IDatabase --> ISecretMemoryProtector
+  ISecretMemoryProtector --> IProtectedSecret
 ```
 
 `IUser`, `IService`, and `IAccount` implement `IItem` (stable `ItemId`, `HasChanged()`, back-reference to `IDatabase`). Account logins are typed `IIdentifier` values (`IdentifierType` + `Value`), not bare strings. `IDatabase` implements `IDisposable`: `Dispose()` closes the session the same way as `Close()`.
@@ -173,6 +179,7 @@ classDiagram
             +int NumberOfOldPasswordToKeep
             +int NumberOfMonthActivitiesToKeep
             +AlertKindList AlertsToNotify
+            +FollowAppCode string$
             +string Language
             +string Theme
         }
@@ -184,7 +191,7 @@ classDiagram
             +Undo(void) void
             +Redo(void) void
             +Clear(void) void
-            +EventHandler HistoryChanged
+            +EventHandler? HistoryChanged
         }
 
         class IDatabase {
@@ -193,20 +200,20 @@ classDiagram
             +IUser? User
             +IEditHistory EditHistory
             +int? SessionLeftTime
-            +IEnumerable~IActivity~ Activities
-            +IReadOnlyDictionary CoreAlerts
+            +IEnumerable~IActivity~? Activities
+            +IReadOnlyDictionary~string, IReadOnlyList~IAlert~~ CoreAlerts
             +ISerializationCenter SerializationCenter
             +ICryptographyCenter CryptographyCenter
             +IPasswordFactory PasswordFactory
             +IClipboardManager ClipboardManager
             +ISecretMemoryProtector SecretMemoryProtector
-            +EventHandler~AlertsChangedEventArgs~ CoreAlertsChanged
-            +EventHandler CoreAlertsScanCompleted
-            +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
-            +EventHandler DatabaseSaved
-            +EventHandler~LogoutEventArgs~ DatabaseClosed
+            +EventHandler~AlertsChangedEventArgs~? CoreAlertsChanged
+            +EventHandler? CoreAlertsScanCompleted
+            +EventHandler~AutoSaveDetectedEventArgs~? AutoSaveDetected
+            +EventHandler? DatabaseSaved
+            +EventHandler~LogoutEventArgs~? DatabaseClosed
             +Login(in passkey string) IUser?
-            +LoginAsync(in passkey string, in cancellationToken CancellationToken) Task~IUser~
+            +LoginAsync(in passkey string, in cancellationToken CancellationToken) Task~IUser?~
             +Save(void) void
             +SaveAsync(in cancellationToken CancellationToken) Task
             +RefreshAlerts(void) void
@@ -249,20 +256,21 @@ classDiagram
     IDatabase ..|> IDisposable
     IItem --> IDatabase : Database
     IAccount --> IService : Service
-    IAccount "0" --> "*" IIdentifier : Identifiers
+    IAccount "0..*" --> "*" IIdentifier : Identifiers
     IService --> IUser : User
     IUser --> ISettings : Settings
-    IService "0" --> "*" IAccount : Accounts
-    IUser "0" --> "*" IService : Services
+    IService "0..*" --> "*" IAccount : Accounts
+    IUser "0..*" --> "*" IService : Services
     IDatabase --> IUser : User
     IDatabase --> IEditHistory : EditHistory
-    IDatabase "0" --> "*" IAlert : CoreAlerts
-    IDatabase "0" --> "*" IActivity : Activities
+    IDatabase "0..*" --> "*" IAlert : CoreAlerts
+    IDatabase "0..*" --> "*" IActivity : Activities
     IDatabase --> ISerializationCenter : SerializationCenter
     IDatabase --> ICryptographyCenter : CryptographyCenter
     IDatabase --> IPasswordFactory : PasswordFactory
     IDatabase --> IClipboardManager : ClipboardManager
     IDatabase --> ISecretMemoryProtector : SecretMemoryProtector
+    ISecretMemoryProtector ..> IProtectedSecret : Protect
 ```
 
 Event-arg types (`AlertsChangedEventArgs`, `AutoSaveDetectedEventArgs`, `LogoutEventArgs`) and enums (`IdentifierType`, `AccountOption`, …) live under `Interfaces.Events` / `Interfaces.Enums` — see the fuller diagram in the repository `README.md`.

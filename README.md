@@ -63,329 +63,549 @@ the clipboard implementation, the secret protector, and hosts dialogs, session, 
 ### Class diagram
 ```mermaid
 classDiagram
-    direction LR
-
-    %% Main Interfaces
-
-    namespace Upsilon.Apps.Passkey.Interfaces.Utils {
-        class ISerializationCenter {
-            <<interface>>
-            +Serialize(in toSerialize T) string
-            +Deserialize(in toDeserialize string) T
-        }
-
-        class IClipboardManager {
-            <<interface>>
-            +SetText(in text string, in autoClearAfter TimeSpan?) void
-            +SetText(in text string, in autoClearAfter int) void
-            +RemoveAllOccurrenceAsync(in removeList IEnumerable~string~, in cancellationToken CancellationToken) Task~int~
-        }
-
-        class IPasswordFactory {
-            <<interface>>
-            +bool HasLocalFilter
-            +string UpperAlphabetic
-            +string LowerAlphabetic
-            +string Numeric
-            +string SpecialChars
-
-            +GeneratePassword(in length int, in alphabet string, in checkIfLeaked bool) string
-            +GeneratePasswordAsync(in length int, in alphabet string, in checkIfLeaked bool, in cancellationToken CancellationToken) Task~string~
-            +PasswordLeaked(in password string) bool
-            +PasswordLeakedAsync(in password string, in cancellationToken CancellationToken) Task~bool~
-        }
-
-        class ISecretMemoryProtector {
-            <<interface>>
-            +Protect(in secret string?) IProtectedSecret
-        }
-
-        class IProtectedSecret {
-            <<interface>>
-            +Reveal(void) string
-        }
-
-        class ICryptographyCenter {
-            <<interface>>
-            +int HashLength
-            +KdfParameters DefaultSlowHashParameters
-            +GetHash(in source string) string
-            +GetSlowHash(in source string, in parameters KdfParameters) string
-            +EnsureSufficientSlowHashParameters(in parameters KdfParameters) void
-            +EncryptSymmetrically(in source string, in passwords IEnumerable~string~) string
-            +DecryptSymmetrically(in source string, in passwords IEnumerable~string~) string
-            +GenerateRandomKeys(out publicKey string, out privateKey string) void
-            +EncryptAsymmetrically(in source string, in key string) string
-            +DecryptAsymmetrically(in source string, in key string) string
-            +GetPublicKey(in privateKey string) string
-            +Sign(in source string, in privateKey string) string
-            +Verify(in source string, in signature string, in publicKey string) bool
-        }
-
-        class KdfParameters {
-            +KdfAlgorithm Algorithm
-            +int Iterations
-            +int OutputLength
-            +string Salt
-        }
+  direction LR
+  class EventArgs
+  class IReadOnlyList
+  class JsonConverter
+  class IDisposable
+  class EventHandler
+  class IEquatable
+  class Exception
+  namespace Upsilon.Apps.Passkey.Interfaces.Enums {
+    class AccountOption {
+        <<Flags>>
+        None
+        WarnIfPasswordLeaked
+        WarnIfDuplicatedPassword
+        WarnIfWeakPassword
     }
-
-    namespace Upsilon.Apps.Passkey.Interfaces.Models {
-        class IItem {
-            <<interface>>
-            +string ItemId
-            +IDatabase Database
-            +HasChanged(void) bool
-        }
-
-        class IIdentifier {
-            <<interface>>
-            +IdentifierType Type
-            +string Value
-        }
-
-        class Identifier {
-            +IdentifierType Type
-            +string Value
-        }
-
-        class IAccount {
-            <<interface>>
-            +IService Service
-            +string Label
-            +string Notes
-            +IEnumerable~IIdentifier~ Identifiers
-            +string Password
-            +Dictionary~DateTime_string~ Passwords
-            +int PasswordUpdateReminderDelay
-            +AccountOption Options
-        }
-
-        class IService {
-            <<interface>>
-            +IUser User
-            +string ServiceName
-            +Uri? Url
-            +string Notes
-            +IEnumerable~IAccount~ Accounts
-            +AddAccount(in label string, in identifiers IEnumerable~IIdentifier~, in password string) IAccount
-            +AddAccount(in label string, in identifiers IEnumerable~IIdentifier~) IAccount
-            +AddAccount(in identifiers IEnumerable~IIdentifier~, in password string) IAccount
-            +AddAccount(in identifiers IEnumerable~IIdentifier~) IAccount
-            +DeleteAccount(in account IAccount) void
-        }
-
-        class IUser {
-            <<interface>>
-            +string Username
-            +IEnumerable~string~ Passkeys
-            +ISettings Settings
-            +IEnumerable~IService~ Services
-            +AddService(in serviceName string) IService
-            +DeleteService(in service IService) void
-            +RememberClipboardSecret(in text string) void
-        }
-
-        class ISettings {
-            <<interface>>
-            +int LogoutTimeout
-            +int CleaningClipboardTimeout
-            +int ShowPasswordDelay
-            +int NumberOfOldPasswordToKeep
-            +int NumberOfMonthActivitiesToKeep
-            +AlertKindList AlertsToNotify
-            +string Language
-            +string Theme
-        }
-
-        class IEditHistory {
-            <<interface>>
-            +bool CanUndo
-            +bool CanRedo
-            +Undo(void) void
-            +Redo(void) void
-            +Clear(void) void
-            +EventHandler HistoryChanged
-        }
-
-        class IDatabase {
-            <<interface>>
-            +string DatabaseFile
-            +IUser? User
-            +IEditHistory EditHistory
-            +int? SessionLeftTime
-            +IEnumerable~IActivity~ Activities
-            +IReadOnlyDictionary CoreAlerts
-            +ISerializationCenter SerializationCenter
-            +ICryptographyCenter CryptographyCenter
-            +IPasswordFactory PasswordFactory
-            +IClipboardManager ClipboardManager
-            +ISecretMemoryProtector SecretMemoryProtector
-            +EventHandler~AlertsChangedEventArgs~ CoreAlertsChanged
-            +EventHandler CoreAlertsScanCompleted
-            +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
-            +EventHandler DatabaseSaved
-            +EventHandler~LogoutEventArgs~ DatabaseClosed
-            +Login(in passkey string) IUser?
-            +LoginAsync(in passkey string, in cancellationToken CancellationToken) Task~IUser~
-            +Save(void) void
-            +SaveAsync(in cancellationToken CancellationToken) Task
-            +RefreshAlerts(void) void
-            +Delete(void) void
-            +Close(void) void
-            +HasChanged(in itemId string) bool
-            +HasChanged(in itemId string, in fieldName string) bool
-            +ImportFromFile(in filePath string) ImportExportError
-            +ImportFromFileAsync(in filePath string, in cancellationToken CancellationToken) Task~ImportExportError~
-            +ExportToFile(in filePath string) ImportExportError
-            +ExportToFileAsync(in filePath string, in cancellationToken CancellationToken) Task~ImportExportError~
-        }
-
-        class IActivity {
-            <<interface>>
-            +DateTime DateTime
-            +string ItemId
-            +string? Username
-            +string? ServiceName
-            +string? AccountName
-            +string? FieldName
-            +string? FieldValue
-            +string? ParentName
-            +ActivityEventType EventType
-            +bool NeedsReview
-        }
-
-        class IAlert {
-            <<interface>>
-            +string Source
-            +string Kind
-            +AlertSeverity Severity
-        }
+    class ActivityEventType {
+        None
+        MergeAndSaveThenRemoveAutoSaveFile
+        MergeWithoutSavingAndKeepAutoSaveFile
+        DontMergeAndRemoveAutoSaveFile
+        DontMergeAndKeepAutoSaveFile
+        DatabaseCreated
+        DatabaseOpened
+        DatabaseSaved
+        DatabaseClosed
+        LoginSessionTimeoutReached
+        LoginFailed
+        UserLoggedIn
+        UserLoggedOut
+        ImportingDataStarted
+        ImportingDataSucceeded
+        ImportingDataFailed
+        ExportingDataStarted
+        ExportingDataSucceeded
+        ExportingDataFailed
+        ItemUpdated
+        ItemAdded
+        ItemDeleted
+        ActivityLogTampered
     }
-    
-    %% Enums
-    namespace Upsilon.Apps.Passkey.Interfaces.Enums {
-        class IdentifierType {
-            <<enumeration>>
-            Username
-            Email
-            PhoneNumber
-            Passkey
-            AuthenticatorApp
-        }
-
-        class AccountOption {
-            <<enumeration>>
-            <<flags>>
-            None
-            WarnIfPasswordLeaked
-            WarnIfDuplicatedPassword
-            WarnIfWeakPassword
-        }
-        
-        class AlertSeverity {
-            <<enumeration>>
-            Info
-            Warning
-            Critical
-        }
-        
-        class AutoSaveMergeBehavior {
-            <<enumeration>>
-            Undefined
-            MergeAndSaveThenRemoveAutoSaveFile
-            MergeWithoutSavingAndKeepAutoSaveFile
-            DontMergeAndRemoveAutoSaveFile
-            DontMergeAndKeepAutoSaveFile
-        }
-
-        class KdfAlgorithm {
-            <<enumeration>>
-            Pbkdf2HmacSha256
-            Pbkdf2HmacSha512
-        }
-
-        class ActivityEventType {
-            <<enumeration>>
-            None
-            MergeAndSaveThenRemoveAutoSaveFile
-            MergeWithoutSavingAndKeepAutoSaveFile
-            DontMergeAndRemoveAutoSaveFile
-            DontMergeAndKeepAutoSaveFile
-            DatabaseCreated
-            DatabaseOpened
-            DatabaseSaved
-            DatabaseClosed
-            LoginSessionTimeoutReached
-            LoginFailed
-            UserLoggedIn
-            UserLoggedOut
-            ImportingDataStarted
-            ImportingDataSucceeded
-            ImportingDataFailed
-            ExportingDataStarted
-            ExportingDataSucceeded
-            ExportingDataFailed
-            ItemUpdated
-            ItemAdded
-            ItemDeleted
-            ActivityLogTampered
-        }
+    class AlertSeverity {
+        Info
+        Warning
+        Critical
     }
-    
-    %% Event Args Classes
-    namespace Upsilon.Apps.Passkey.Interfaces.Events {
-        class AutoSaveDetectedEventArgs {
-            +AutoSaveMergeBehavior MergeBehavior
-        }
-        
-        class AlertsChangedEventArgs {
-            +string Kind
-            +IReadOnlyList~IAlert~ Alerts
-        }
-        
-        class LogoutEventArgs {
-            +bool LoginTimeoutReached
-        }
+    class AutoSaveMergeBehavior {
+        Undefined
+        MergeAndSaveThenRemoveAutoSaveFile
+        MergeWithoutSavingAndKeepAutoSaveFile
+        DontMergeAndRemoveAutoSaveFile
+        DontMergeAndKeepAutoSaveFile
     }
+    class HostSecurityIssue {
+        <<Flags>>
+        None
+        IdleLoginDisabled
+        OfflineLeakFilterUnavailable
+    }
+    class IdentifierType {
+        Username
+        Email
+        PhoneNumber
+        Passkey
+        AuthenticatorApp
+    }
+    class ImportExportError {
+        None
+        ImportFileNotAccessible
+        ImportFileTooLarge
+        ExtensionFileNotSupported
+        CSVHeadersDontMatch
+        IncorrectCSVFormat
+        NoDataToImport
+        ImportFileDeserializationFailed
+        ServiceAlreadyExists
+        BlankService
+        ExportFileAlreadyExists
+        SecurityTimeoutsDisabled
+    }
+    class KdfAlgorithm {
+        Pbkdf2HmacSha256
+        Pbkdf2HmacSha512
+    }
+    class SecretQualityIssue {
+        <<Flags>>
+        None
+        TooShort
+        LowDiversity
+        MatchesUsername
+        TrivialPattern
+    }
+    class SecuritySettingsIssue {
+        <<Flags>>
+        None
+        AutoLogoutDisabled
+        ClipboardCleaningDisabled
+        QrAutoCloseDisabled
+        NoAccountLeakCheck
+        NoAccountDuplicateCheck
+        NoAccountUpdateReminder
+        NoAccountWeakPasswordCheck
+    }
+  }
+  namespace Upsilon.Apps.Passkey.Interfaces.Events {
+    class AlertsChangedEventArgs {
+        + Kind : string
+        + Alerts : IReadOnlyList~IAlert~
+    }
+    class AutoSaveDetectedEventArgs {
+        + MergeBehavior : AutoSaveMergeBehavior
+    }
+    class LogoutEventArgs {
+        + LoginTimeoutReached : bool
+    }
+  }
+  namespace Upsilon.Apps.Passkey.Interfaces.Models {
+    class AlertKindList {
+        + Default : AlertKindList$
+        + Count : int
+        + this int : string
+        + GetEnumerator() IEnumerator~string~
+        + ToArray() string[]
+        + Contains(kind : string) bool
+        + ToString() string
+    }
+    class AlertKindListJsonConverter {
+        + Read(reader : Utf8JsonReader, typeToConvert : Type, options : JsonSerializerOptions) AlertKindList
+        + Write(writer : Utf8JsonWriter, value : AlertKindList, options : JsonSerializerOptions) void
+    }
+    class AlertKinds {
+        + SourceCore : string
+        + SourceHost : string
+        + ActivityReview : string
+        + PasswordUpdateReminder : string
+        + DuplicatedPasswords : string
+        + PasswordLeaked : string
+        + VaultSecuritySettings : string
+        + InsufficientPasskeys : string
+        + WeakPasskey : string
+        + PasskeyLeaked : string
+        + WeakAccountPassword : string
+        + PasskeyReusedAsAccountPassword : string
+        + HostSecuritySettings : string
+        + RecommendedPasskeyCount : int
+        + AllCore : string[]$
+        + AllHost : string[]$
+        + DefaultNotify : string[]$
+    }
+    class IAccount {
+        + Service : IService
+        + Label : string
+        + Notes : string
+        + Identifiers : IEnumerable~IIdentifier~
+        + Password : string
+        + Passwords : Dictionary~DateTime, string~
+        + PasswordUpdateReminderDelay : int
+        + Options : AccountOption
+    }
+    class IAccountsAlert {
+        + Accounts : IEnumerable~IAccount~
+    }
+    class IPasswordUpdateReminderAlert
+    class IDuplicatedPasswordsAlert
+    class IPasswordLeakedAlert
+    class IWeakAccountPasswordAlert
+    class IPasskeyReuseAlert
+    class IActivity {
+        + DateTime : DateTime
+        + ItemId : string
+        + Username : string?
+        + ServiceName : string?
+        + AccountName : string?
+        + FieldName : string?
+        + FieldValue : string?
+        + ParentName : string?
+        + EventType : ActivityEventType
+        + NeedsReview : bool
+    }
+    class IActivityReviewAlert {
+        + Activities : IEnumerable~IActivity~
+    }
+    class IAlert {
+        + Source : string
+        + Kind : string
+        + Severity : AlertSeverity
+    }
+    class IDatabase {
+        + DatabaseFile : string
+        + User : IUser?
+        + EditHistory : IEditHistory
+        + SessionLeftTime : int?
+        + Activities : IEnumerable~IActivity~?
+        + SerializationCenter : ISerializationCenter
+        + CryptographyCenter : ICryptographyCenter
+        + PasswordFactory : IPasswordFactory
+        + ClipboardManager : IClipboardManager
+        + SecretMemoryProtector : ISecretMemoryProtector
+        + CoreAlerts : IReadOnlyDictionary~string, IReadOnlyList~IAlert~~
+        + CoreAlertsChanged : EventHandler~AlertsChangedEventArgs~?
+        + CoreAlertsScanCompleted : EventHandler?
+        + AutoSaveDetected : EventHandler~AutoSaveDetectedEventArgs~?
+        + DatabaseSaved : EventHandler?
+        + DatabaseClosed : EventHandler~LogoutEventArgs~?
+        + Login(passkey : string)* IUser?
+        + LoginAsync(passkey : string, cancellationToken : CancellationToken)* Task~IUser?~
+        + Save()* void
+        + SaveAsync(cancellationToken : CancellationToken)* Task
+        + RefreshAlerts()* void
+        + Delete()* void
+        + Close()* void
+        + HasChanged(itemId : string)* bool
+        + HasChanged(itemId : string, fieldName : string)* bool
+        + ImportFromFile(filePath : string)* ImportExportError
+        + ImportFromFileAsync(filePath : string, cancellationToken : CancellationToken)* Task~ImportExportError~
+        + ExportToFile(filePath : string)* ImportExportError
+        + ExportToFileAsync(filePath : string, cancellationToken : CancellationToken)* Task~ImportExportError~
+    }
+    class IEditHistory {
+        + CanUndo : bool
+        + CanRedo : bool
+        + HistoryChanged : EventHandler?
+        + Undo()* void
+        + Redo()* void
+        + Clear()* void
+    }
+    class IHostSecuritySettingsAlert {
+        + Issues : HostSecurityIssue
+    }
+    class IIdentifier {
+        + Type : IdentifierType
+        + Value : string
+    }
+    class IItem {
+        + ItemId : string
+        + Database : IDatabase
+        + HasChanged()* bool
+    }
+    class IInsufficientPasskeysAlert {
+        + Count : int
+        + RecommendedMinimum : int
+    }
+    class IWeakPasskeyAlert {
+        + PasskeyIndexes : IReadOnlyList~int~
+        + Issues : SecretQualityIssue
+    }
+    class IPasskeyLeakedAlert {
+        + PasskeyIndexes : IReadOnlyList~int~
+    }
+    class IService {
+        + User : IUser
+        + ServiceName : string
+        + Url : Uri?
+        + Notes : string
+        + Accounts : IEnumerable~IAccount~
+        + AddAccount(label : string, identifiers : IEnumerable~IIdentifier~, password : string)* IAccount
+        + AddAccount(label : string, identifiers : IEnumerable~IIdentifier~)* IAccount
+        + AddAccount(identifiers : IEnumerable~IIdentifier~, password : string)* IAccount
+        + AddAccount(identifiers : IEnumerable~IIdentifier~)* IAccount
+        + DeleteAccount(account : IAccount)* void
+    }
+    class ISettings {
+        + LogoutTimeout : int
+        + CleaningClipboardTimeout : int
+        + ShowPasswordDelay : int
+        + NumberOfOldPasswordToKeep : int
+        + NumberOfMonthActivitiesToKeep : int
+        + AlertsToNotify : AlertKindList
+        + FollowAppCode string$
+        + Language : string
+        + Theme : string
+    }
+    class IUser {
+        + Username : string
+        + Passkeys : IEnumerable~string~
+        + Settings : ISettings
+        + Services : IEnumerable~IService~
+        + AddService(serviceName : string)* IService
+        + DeleteService(service : IService)* void
+        + RememberClipboardSecret(text : string)* void
+    }
+    class IVaultSecuritySettingsAlert {
+        + Issues : SecuritySettingsIssue
+    }
+    class Identifier {
+        + Type : IdentifierType
+        + Value : string
+        + Equals(other : Identifier?) bool
+        + Equals(obj : object?) bool
+        + GetHashCode() int
+        + ToString() string
+    }
+  }
+  namespace Upsilon.Apps.Passkey.Interfaces.Utils {
+    class CorruptedSourceException
+    class InsufficientKdfParametersException
+    class IncompleteOnionException
+    class WrongPasswordException {
+        + PasswordLevel : int
+    }
+    class NullValueException {
+        + Name : string
+    }
+    class IClipboardManager {
+        + SetText(text : string, autoClearAfter : TimeSpan?)* void
+        + SetText(text : string, autoClearAfter : int)* void
+        + RemoveAllOccurrenceAsync(removeList : IEnumerable~string~, cancellationToken : CancellationToken)* Task~int~
+    }
+    class ICryptographyCenter {
+        + DefaultSlowHashParameters : KdfParameters
+        + HashLength : int
+        + GetHash(source : string)* string
+        + GetSlowHash(source : string, parameters : KdfParameters)* string
+        + EnsureSufficientSlowHashParameters(parameters : KdfParameters)* void
+        + EncryptSymmetrically(source : string, passwords : IEnumerable~string~)* string
+        + DecryptSymmetrically(source : string, passwords : IEnumerable~string~)* string
+        + GenerateRandomKeys(out publicKey string, out privateKey string)* void
+        + EncryptAsymmetrically(source : string, key : string)* string
+        + DecryptAsymmetrically(source : string, key : string)* string
+        + GetPublicKey(privateKey : string)* string
+        + Sign(source : string, privateKey : string)* string
+        + Verify(source : string, signature : string, publicKey : string)* bool
+    }
+    class IPasswordFactory {
+        + HasLocalFilter : bool
+        + UpperAlphabetic : string
+        + LowerAlphabetic : string
+        + Numeric : string
+        + SpecialChars : string
+        + GeneratePassword(length : int, alphabet : string, checkIfLeaked : bool)* string
+        + GeneratePasswordAsync(length : int, alphabet : string, checkIfLeaked : bool, cancellationToken : CancellationToken)* Task~string~
+        + PasswordLeaked(password : string)* bool
+        + PasswordLeakedAsync(password : string, cancellationToken : CancellationToken)* Task~bool~
+    }
+    class IProtectedSecret {
+        + Reveal()* string
+    }
+    class ISecretMemoryProtector {
+        + Protect(secret : string?)* IProtectedSecret
+    }
+    class ISerializationCenter {
+        + Serialize(toSerialize : T)* string
+        + Deserialize(toDeserialize : string)* T
+    }
+    class IdentifierTypeDetector {
+        <<static>>
+        + Detect(value : string?)$ IdentifierType
+    }
+    class ItemExtensions {
+        <<static>>
+        + HasChanged(item : IItem, fieldName : string)$ bool
+    }
+    class KdfParameters {
+        + Algorithm : KdfAlgorithm
+        + Iterations : int
+        + OutputLength : int
+        + Salt : string
+    }
+    class PlaintextSecret {
+        + Wrap(secret : string?)$ IProtectedSecret
+        + Reveal() string
+        + ToString() string
+    }
+    class SecretQuality {
+        <<static>>
+        + MinimumLength : int$
+        + MinimumCharacterClasses : int$
+        + Evaluate(secret : string, username : string?)$ SecretQualityIssue
+        + IsWeak(secret : string, username : string?)$ bool
+    }
+  }
+  <<enumeration>> AccountOption
+  <<enumeration>> ActivityEventType
+  <<enumeration>> AlertSeverity
+  <<enumeration>> AutoSaveMergeBehavior
+  <<enumeration>> HostSecurityIssue
+  <<enumeration>> IdentifierType
+  <<enumeration>> ImportExportError
+  <<enumeration>> KdfAlgorithm
+  <<enumeration>> SecretQualityIssue
+  <<enumeration>> SecuritySettingsIssue
+  <<interface>> IAccount
+  <<interface>> IAccountsAlert
+  <<interface>> IPasswordUpdateReminderAlert
+  <<interface>> IDuplicatedPasswordsAlert
+  <<interface>> IPasswordLeakedAlert
+  <<interface>> IWeakAccountPasswordAlert
+  <<interface>> IPasskeyReuseAlert
+  <<interface>> IActivity
+  <<interface>> IActivityReviewAlert
+  <<interface>> IAlert
+  <<interface>> IDatabase
+  <<interface>> IEditHistory
+  <<interface>> IHostSecuritySettingsAlert
+  <<interface>> IIdentifier
+  <<interface>> IItem
+  <<interface>> IInsufficientPasskeysAlert
+  <<interface>> IWeakPasskeyAlert
+  <<interface>> IPasskeyLeakedAlert
+  <<interface>> IService
+  <<interface>> ISettings
+  <<interface>> IUser
+  <<interface>> IVaultSecuritySettingsAlert
+  <<interface>> IClipboardManager
+  <<interface>> ICryptographyCenter
+  <<interface>> IPasswordFactory
+  <<interface>> IProtectedSecret
+  <<interface>> ISecretMemoryProtector
+  <<interface>> ISerializationCenter
+  <<external>> EventArgs
+  <<external>> IReadOnlyList
+  <<external>> JsonConverter
+  <<external>> IDisposable
+  <<external>> EventHandler
+  <<external>> IEquatable
+  <<external>> Exception
 
-    %% Inheritance Relations
-    IUser --|> IItem
-    IService --|> IItem
-    IAccount --|> IItem
-    Identifier ..|> IIdentifier
-    IDatabase ..|> IDisposable
-    
-    %% Link Relations
-    IItem --> IDatabase : Database
-    IAccount --> IService : Service
-    IAccount "0" --> "*" IIdentifier : Identifiers
-    IIdentifier --> IdentifierType : Type
-    IAccount --> AccountOption : Options
-    IActivity --> ActivityEventType : EventType
-    ICryptographyCenter --> KdfParameters : DefaultSlowHashParameters
-    KdfParameters --> KdfAlgorithm : Algorithm
-    IService "0" --> "*" IAccount : Accounts
-    IService --> IUser : User
-    IUser "0" --> "*" IService : Services
-    IUser --> ISettings : Settings
-    ISettings --> AlertKindList : AlertsToNotify
-    IDatabase --> ISerializationCenter : SerializationCenter
-    IDatabase --> ICryptographyCenter : CryptographyCenter
-    IDatabase --> IPasswordFactory : PasswordFactory
-    IDatabase --> IClipboardManager : ClipboardManager
-    IDatabase --> ISecretMemoryProtector : SecretMemoryProtector
-    IDatabase --> IUser : User
-    IDatabase --> IEditHistory : EditHistory
-    ISecretMemoryProtector --> IProtectedSecret : Protect
-    IDatabase "0" --> "*" IAlert : CoreAlerts
-    IDatabase "0" --> "*" IActivity : Activities
-    IDatabase --> AlertsChangedEventArgs : CoreAlertsChanged
-    IDatabase --> AutoSaveDetectedEventArgs : AutoSaveDetected
-    IDatabase --> LogoutEventArgs : DatabaseClosed
-    IAlert --> AlertSeverity : Severity
-    AutoSaveDetectedEventArgs --> AutoSaveMergeBehavior : MergeBehavior
-    AlertsChangedEventArgs "0" --> "*" IAlert : Alerts
+  style AccountOption fill:#2563eb1f,stroke:#2563eb80
+  style ActivityEventType fill:#2563eb1f,stroke:#2563eb80
+  style AlertSeverity fill:#2563eb1f,stroke:#2563eb80
+  style AutoSaveMergeBehavior fill:#2563eb1f,stroke:#2563eb80
+  style HostSecurityIssue fill:#2563eb1f,stroke:#2563eb80
+  style IdentifierType fill:#2563eb1f,stroke:#2563eb80
+  style ImportExportError fill:#2563eb1f,stroke:#2563eb80
+  style KdfAlgorithm fill:#2563eb1f,stroke:#2563eb80
+  style SecretQualityIssue fill:#2563eb1f,stroke:#2563eb80
+  style SecuritySettingsIssue fill:#2563eb1f,stroke:#2563eb80
+  style AlertsChangedEventArgs fill:#16a34a1f,stroke:#16a34a80
+  style AutoSaveDetectedEventArgs fill:#16a34a1f,stroke:#16a34a80
+  style LogoutEventArgs fill:#16a34a1f,stroke:#16a34a80
+  style AlertKindList fill:#d977061f,stroke:#d9770680
+  style AlertKindListJsonConverter fill:#d977061f,stroke:#d9770680
+  style AlertKinds fill:#d977061f,stroke:#d9770680
+  style IAccount fill:#d977061f,stroke:#d9770680
+  style IAccountsAlert fill:#d977061f,stroke:#d9770680
+  style IPasswordUpdateReminderAlert fill:#d977061f,stroke:#d9770680
+  style IDuplicatedPasswordsAlert fill:#d977061f,stroke:#d9770680
+  style IPasswordLeakedAlert fill:#d977061f,stroke:#d9770680
+  style IWeakAccountPasswordAlert fill:#d977061f,stroke:#d9770680
+  style IPasskeyReuseAlert fill:#d977061f,stroke:#d9770680
+  style IActivity fill:#d977061f,stroke:#d9770680
+  style IActivityReviewAlert fill:#d977061f,stroke:#d9770680
+  style IAlert fill:#d977061f,stroke:#d9770680
+  style IDatabase fill:#d977061f,stroke:#d9770680
+  style IEditHistory fill:#d977061f,stroke:#d9770680
+  style IHostSecuritySettingsAlert fill:#d977061f,stroke:#d9770680
+  style IIdentifier fill:#d977061f,stroke:#d9770680
+  style IItem fill:#d977061f,stroke:#d9770680
+  style IInsufficientPasskeysAlert fill:#d977061f,stroke:#d9770680
+  style IWeakPasskeyAlert fill:#d977061f,stroke:#d9770680
+  style IPasskeyLeakedAlert fill:#d977061f,stroke:#d9770680
+  style IService fill:#d977061f,stroke:#d9770680
+  style ISettings fill:#d977061f,stroke:#d9770680
+  style IUser fill:#d977061f,stroke:#d9770680
+  style IVaultSecuritySettingsAlert fill:#d977061f,stroke:#d9770680
+  style Identifier fill:#d977061f,stroke:#d9770680
+  style CorruptedSourceException fill:#9333ea1f,stroke:#9333ea80
+  style InsufficientKdfParametersException fill:#9333ea1f,stroke:#9333ea80
+  style IncompleteOnionException fill:#9333ea1f,stroke:#9333ea80
+  style WrongPasswordException fill:#9333ea1f,stroke:#9333ea80
+  style NullValueException fill:#9333ea1f,stroke:#9333ea80
+  style IClipboardManager fill:#9333ea1f,stroke:#9333ea80
+  style ICryptographyCenter fill:#9333ea1f,stroke:#9333ea80
+  style IPasswordFactory fill:#9333ea1f,stroke:#9333ea80
+  style IProtectedSecret fill:#9333ea1f,stroke:#9333ea80
+  style ISecretMemoryProtector fill:#9333ea1f,stroke:#9333ea80
+  style ISerializationCenter fill:#9333ea1f,stroke:#9333ea80
+  style IdentifierTypeDetector fill:#9333ea1f,stroke:#9333ea80
+  style ItemExtensions fill:#9333ea1f,stroke:#9333ea80
+  style KdfParameters fill:#9333ea1f,stroke:#9333ea80
+  style PlaintextSecret fill:#9333ea1f,stroke:#9333ea80
+  style SecretQuality fill:#9333ea1f,stroke:#9333ea80
+
+  EventArgs <|-- AlertsChangedEventArgs
+  AlertsChangedEventArgs o--> "*" IAlert : Alerts
+  EventArgs <|-- AutoSaveDetectedEventArgs
+  AutoSaveDetectedEventArgs *--> "1" AutoSaveMergeBehavior : MergeBehavior
+  EventArgs <|-- LogoutEventArgs
+  IReadOnlyList <|-- AlertKindList
+  JsonConverter <|-- AlertKindListJsonConverter
+  IItem <|.. IAccount
+  IAccount o--> "1" IService : Service
+  IAccount o--> "*" IIdentifier : Identifiers
+  IAccount *--> "1" AccountOption : Options
+  IAlert <|.. IAccountsAlert
+  IAccountsAlert o--> "*" IAccount : Accounts
+  IAccountsAlert <|.. IPasswordUpdateReminderAlert
+  IAccountsAlert <|.. IDuplicatedPasswordsAlert
+  IAccountsAlert <|.. IPasswordLeakedAlert
+  IAccountsAlert <|.. IWeakAccountPasswordAlert
+  IAccountsAlert <|.. IPasskeyReuseAlert
+  IActivity *--> "1" ActivityEventType : EventType
+  IAlert <|.. IActivityReviewAlert
+  IActivityReviewAlert o--> "*" IActivity : Activities
+  IAlert *--> "1" AlertSeverity : Severity
+  IDisposable <|-- IDatabase
+  IDatabase o--> "0..1" IUser : User
+  IDatabase o--> "1" IEditHistory : EditHistory
+  IDatabase o--> "*" IActivity : Activities
+  IDatabase o--> "1" ISerializationCenter : SerializationCenter
+  IDatabase o--> "1" ICryptographyCenter : CryptographyCenter
+  IDatabase o--> "1" IPasswordFactory : PasswordFactory
+  IDatabase o--> "1" IClipboardManager : ClipboardManager
+  IDatabase o--> "1" ISecretMemoryProtector : SecretMemoryProtector
+  IDatabase o--> "*" IAlert : CoreAlerts
+  IDatabase ..> AlertsChangedEventArgs : CoreAlertsChanged
+  IDatabase ..> AutoSaveDetectedEventArgs : AutoSaveDetected
+  IDatabase ..> LogoutEventArgs : DatabaseClosed
+  IAlert <|.. IHostSecuritySettingsAlert
+  IHostSecuritySettingsAlert *--> "1" HostSecurityIssue : Issues
+  IIdentifier *--> "1" IdentifierType : Type
+  IItem o--> "1" IDatabase : Database
+  IAlert <|.. IInsufficientPasskeysAlert
+  IAlert <|.. IWeakPasskeyAlert
+  IWeakPasskeyAlert *--> "1" SecretQualityIssue : Issues
+  IAlert <|.. IPasskeyLeakedAlert
+  IItem <|.. IService
+  IService o--> "1" IUser : User
+  IService o--> "*" IAccount : Accounts
+  ISettings o--> "1" AlertKindList : AlertsToNotify
+  IItem <|.. IUser
+  IUser o--> "1" ISettings : Settings
+  IUser o--> "*" IService : Services
+  IAlert <|.. IVaultSecuritySettingsAlert
+  IVaultSecuritySettingsAlert *--> "1" SecuritySettingsIssue : Issues
+  IIdentifier <|.. Identifier
+  IEquatable <|-- Identifier
+  Identifier *--> "1" IdentifierType : Type
+  Exception <|-- CorruptedSourceException
+  Exception <|-- InsufficientKdfParametersException
+  Exception <|-- IncompleteOnionException
+  Exception <|-- WrongPasswordException
+  Exception <|-- NullValueException
+  ICryptographyCenter o--> "1" KdfParameters : DefaultSlowHashParameters
+  KdfParameters *--> "1" KdfAlgorithm : Algorithm
+  IProtectedSecret <|.. PlaintextSecret
+  AlertKindListJsonConverter ..> AlertKindList : Read
+  IDatabase ..> ImportExportError : ImportFromFile
+  IService ..> IIdentifier : AddAccount
+  ISecretMemoryProtector ..> IProtectedSecret : Protect
+  IdentifierTypeDetector ..> IdentifierType : Detect
+  ItemExtensions ..> IItem : HasChanged
+  SecretQuality ..> SecretQualityIssue : Evaluate
 ```
 
 **Example Use Cases**
