@@ -408,7 +408,10 @@ These are conscious trade-offs, documented for transparency:
   path uses JSON-encoded cells and covers services/accounts only; import accepts
   comma- or tab-delimited rows, while export writes tab-separated rows. `.json`
   also carries user settings. Users are responsible for protecting or deleting
-  these files.
+  these files. JSON import **refuses** settings that would set
+  `LogoutTimeout`, `CleaningClipboardTimeout`, or `ShowPasswordDelay` to `0`
+  (`ImportExportError.SecurityTimeoutsDisabled`); those controls may still be
+  disabled deliberately in the UI, where security alerts surface the risk.
 - **Leak check fails open**: if both Have I Been Pwned and XposedOrNot are
   unreachable (timeout, HTTP error, offline host) **and** no offline Bloom
   filter is attached (the `.pkbf` is absent, or disabled through

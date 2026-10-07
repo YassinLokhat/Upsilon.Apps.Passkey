@@ -117,7 +117,10 @@ Core records failures as `ImportingDataFailed` / `ExportingDataFailed` activitie
 | Missing CSV header | `CSVHeadersDontMatch` | the CSV header does not match |
 | Broken JSON | `ImportFileDeserializationFailed` | import file deserialization failed |
 | Broken CSV cells | `IncorrectCSVFormat` | the CSV format is incorrect |
+| Settings would set `LogoutTimeout`, `CleaningClipboardTimeout`, or `ShowPasswordDelay` to `0` | `SecurityTimeoutsDisabled` | imported settings would disable session security timeouts |
 | Export destination already exists | `ExportFileAlreadyExists` | export file already exists |
+
+JSON import **refuses** settings that disable session exposure controls (`LogoutTimeout`, `CleaningClipboardTimeout`, or `ShowPasswordDelay` equal to `0`). Those values may still be set manually in the UI (with security alerts); crafted import files cannot apply them. When this error is returned, settings are not applied and services from the same file are not imported.
 
 URL handling on import: a service URL is kept only if it is an **absolute `http` or `https`** URI (`ServiceUrlHelper`); otherwise `Url` is `null`. Relative paths, `file:`, UNC, and custom schemes are dropped. The WPF client uses the same allowlist when opening a URL in the browser (`https` direct; `http` after confirmation).
 

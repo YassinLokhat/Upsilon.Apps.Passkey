@@ -1094,6 +1094,9 @@ Opening it may expose the request on the network. Open anyway?</value>
   <data name="EnumValue_ImportExportError_ExportFileAlreadyExists" xml:space="preserve">
     <value>export file already exists</value>
   </data>
+  <data name="EnumValue_ImportExportError_SecurityTimeoutsDisabled" xml:space="preserve">
+    <value>imported settings would disable session security timeouts</value>
+  </data>
   <data name="Label_OfflineLeakDatabase" xml:space="preserve">
     <value>Offline leak database</value>
   </data>

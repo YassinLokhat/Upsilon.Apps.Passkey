@@ -112,8 +112,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                service.Accounts.Add(account);
             }
          }
-         catch (Exception ex)
-            when (ex is IndexOutOfRangeException)
+         catch (Exception ex) when (
+            ex is IndexOutOfRangeException
+            or JsonException
+            or FormatException
+            or ArgumentException
+            or NullValueException)
          {
             return ImportExportError.IncorrectCSVFormat;
          }
@@ -161,6 +165,15 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private static ImportExportError _importSettings(IDatabase database, Settings settings)
       {
+         // Refuse imports that disable session exposure controls. Users may still
+         // set these to 0 in the UI (alerts fire); crafted JSON must not bypass that.
+         if (settings.LogoutTimeout == 0
+            || settings.CleaningClipboardTimeout == 0
+            || settings.ShowPasswordDelay == 0)
+         {
+            return ImportExportError.SecurityTimeoutsDisabled;
+         }
+
          if (database.User is not null)
          {
             settings.User = (User)database.User;

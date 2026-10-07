@@ -633,6 +633,45 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          UnitTestsHelper.ClearTestEnvironment();
       }
 
+      [TestMethod]
+      public void Case_ImportJson_RejectsDisabledSecurityTimeouts()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"{username}/disabled_timeouts.json", createIfNotExists: true);
+         File.WriteAllText(importFile, """
+            {
+              "Settings": {
+                "LogoutTimeout": 0,
+                "CleaningClipboardTimeout": 99,
+                "ShowPasswordDelay": 999,
+                "NumberOfOldPasswordToKeep": 9,
+                "NumberOfMonthActivitiesToKeep": 9,
+                "AlertsToNotify": ["PasswordUpdateReminder"]
+              },
+              "Services": []
+            }
+            """);
+
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         int logoutBefore = database.User.Settings.LogoutTimeout;
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         ImportExportError imported = database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         expectedActivities.Push(ExpectedActivity.ImportFailed(username, ImportExportError.SecurityTimeoutsDisabled));
+
+         _ = imported.Should().Be(ImportExportError.SecurityTimeoutsDisabled);
+         database.User.Settings.LogoutTimeout.Should().Be(logoutBefore);
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
       private static void _pushImportedAccount(Stack<ExpectedActivity> expectedActivities, string serviceName, string accountName, string notes)
       {
          expectedActivities.Push(ExpectedActivity.ItemAdded(false, serviceName: serviceName, fieldValue: accountName));

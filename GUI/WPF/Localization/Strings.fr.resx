@@ -1094,6 +1094,9 @@ L'ouvrir peut exposer la requête sur le réseau. Ouvrir quand même ?</value>
   <data name="EnumValue_ImportExportError_ExportFileAlreadyExists" xml:space="preserve">
     <value>le fichier d'export existe déjà</value>
   </data>
+  <data name="EnumValue_ImportExportError_SecurityTimeoutsDisabled" xml:space="preserve">
+    <value>les paramètres importés désactiveraient les délais de sécurité de session</value>
+  </data>
   <data name="Label_OfflineLeakDatabase" xml:space="preserve">
     <value>Base de fuites hors ligne</value>
   </data>
