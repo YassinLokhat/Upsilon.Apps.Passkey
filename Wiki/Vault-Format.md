@@ -40,20 +40,34 @@ AES-GCM is AEAD: tampering with ciphertext, nonce, or tag is detected and reject
 
 Stretching parameters are recorded in `header`. A database is always reopened — and rewritten — with the **exact parameters stored there**. There is no automatic upgrade to `DefaultSlowHashParameters` on save today.
 
-Open and every `GetSlowHash` call enforce a **KDF floor** via `EnsureSufficientSlowHashParameters`:
+Open and every `GetSlowHash` call enforce a **KDF floor and ceiling** via `EnsureSufficientSlowHashParameters`:
 
 * A known algorithm (`Pbkdf2HmacSha256` or `Pbkdf2HmacSha512`)
-* Iterations at least **600,000** (SHA-256) or **210,000** (SHA-512) — OWASP Password Storage Cheat Sheet baselines
-* Output length ≥ 32 bytes
+* Iterations at least **600,000** (SHA-256) or **210,000** (SHA-512) — OWASP Password Storage Cheat Sheet baselines — and at most **5,000,000**
+* Output length between **32** and **128** bytes inclusive
 * A Base64 salt of at least 16 bytes
 
-Parameters below the floor raise `InsufficientKdfParametersException` and the file is refused. New databases still use the stronger default of 1,000,000 PBKDF2-HMAC-SHA-512 iterations.
+Parameters outside that range raise `InsufficientKdfParametersException` and the file is refused. The ceiling prevents a forged `header` from imposing unbounded PBKDF2 cost. New databases still use the stronger default of 1,000,000 PBKDF2-HMAC-SHA-512 iterations.
 
 Lowering iterations in an *existing* file's header does not weaken already encrypted data (the wrong work factor simply yields the wrong key). What it *can* do is offer the user a **new** vault written under a trivial work factor — that is what the floor blocks.
 
 ## Activity log encryption
 
 Key pairs are **RSA-4096**, exported as PEM. The audit log uses a **hybrid** scheme: a random one-time AES key encrypts each record symmetrically, and that key is wrapped with **RSA-OAEP-SHA256**. Entries can be written even when the full symmetric passkey set is not available (for example a failed login). Integrity of that log is a separate story — see [[Alerts and Activity]] and [[Security]].
+
+## Resource budgets (untrusted input)
+
+Forged `.pku` / import files are local but untrusted. `ResourceBudgets` enforces:
+
+| Limit | Value |
+| ----- | ----- |
+| Archive size | 64 MiB |
+| Per-entry stored / decoded size | 64 MiB each |
+| ZIP entry count / names | at most 4; only `header`, `database`, `autosave`, `activity` |
+| Activity entries decrypted at login | 100,000 |
+| Import JSON/CSV file size | 64 MiB |
+
+GZip decompression uses a bounded copy; oversize or unexpected layout raises `CorruptedSourceException` (or `ImportFileTooLarge` for imports).
 
 ## Atomic writes and locking
 

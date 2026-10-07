@@ -4,6 +4,7 @@ namespace Upsilon.Apps.Passkey.Interfaces.Enums
    {
       None = 0,
       ImportFileNotAccessible,
+      ImportFileTooLarge,
       ExtensionFileNotSupported,
       CSVHeadersDontMatch,
       IncorrectCSVFormat,

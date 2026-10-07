@@ -34,7 +34,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          try
          {
-            importContent = File.ReadAllText(filePath);
+            FileInfo importInfo = new(filePath);
+            if (!importInfo.Exists)
+            {
+               errorLog = ImportExportError.ImportFileNotAccessible;
+            }
+            else if (importInfo.Length > ResourceBudgets.MaxImportFileBytes)
+            {
+               errorLog = ImportExportError.ImportFileTooLarge;
+            }
+            else
+            {
+               importContent = File.ReadAllText(filePath);
+            }
          }
          catch (Exception ex)
             when (ex is ArgumentException

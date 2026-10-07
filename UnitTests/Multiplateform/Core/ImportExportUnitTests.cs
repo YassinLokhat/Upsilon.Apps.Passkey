@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.Interfaces;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -602,6 +603,34 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
 
          _pushImportedAccount(expectedActivities, "Service1", "Account0 (account0@service1.xyz, account0_backup@service1.xyz)", "Service1's Account0's notes");
          _pushImportedAccount(expectedActivities, "Service1", "Account1 (account1@service1.xyz, account1_backup@service1.xyz)", "Service1's Account1's notes");
+      }
+
+      [TestMethod]
+      public void Case_Import_FileTooLarge()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath($"{username}/huge_import.json", createIfNotExists: true);
+         using (FileStream stream = new(importFile, FileMode.Create, FileAccess.Write))
+         {
+            stream.SetLength(ResourceBudgets.MaxImportFileBytes + 1);
+         }
+
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         database.ImportFromFile(importFile);
+
+         expectedActivities.Push(ExpectedActivity.ImportStarted(username, importFile));
+         expectedActivities.Push(ExpectedActivity.ImportFailed(username, ImportExportError.ImportFileTooLarge));
+
+         database.User.Services.Should().BeEmpty();
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
       }
 
       private static void _pushImportedAccount(Stack<ExpectedActivity> expectedActivities, string serviceName, string accountName, string notes)

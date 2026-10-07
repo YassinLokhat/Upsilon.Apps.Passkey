@@ -482,6 +482,9 @@
   <data name="Title_DeleteAccount" xml:space="preserve">
     <value>Supprimer le compte</value>
   </data>
+  <data name="Title_OpenUrl" xml:space="preserve">
+    <value>Ouvrir l'URL</value>
+  </data>
   <data name="Title_ItemNotFound" xml:space="preserve">
     <value>Élément introuvable</value>
   </data>
@@ -577,6 +580,16 @@ Plus de détails dans les activités.</value>
     <value>L''export s''est terminé avec succès.
 Plus de détails dans les activités.</value>
   </data>
+  <data name="Msg_ExportPlaintextWarning" xml:space="preserve">
+    <value>Le fichier d'export contiendra des identifiants et mots de passe en clair afin que d'autres outils puissent les importer.
+
+Ce n'est pas une sauvegarde chiffrée — copiez le fichier .pku pour une sauvegarde sécurisée.
+
+Continuer ?</value>
+  </data>
+  <data name="Title_ExportPlaintextWarning" xml:space="preserve">
+    <value>Export en clair</value>
+  </data>
   <data name="Msg_ExportFailed" xml:space="preserve">
     <value>Échec de l''export.
 Plus de détails dans les activités.</value>
@@ -647,6 +660,16 @@ Vous ne serez pas prévenu pour :
 • Les activités à revoir
 • Les mots de passe expirés, dupliqués ou divulgués
 • Les paramètres de sécurité trop permissifs</value>
+  </data>
+  <data name="Msg_OpenHttpUrlConfirm" xml:space="preserve">
+    <value>Cette URL utilise HTTP (non chiffré) :
+
+{0}
+
+L'ouvrir peut exposer la requête sur le réseau. Ouvrir quand même ?</value>
+  </data>
+  <data name="Msg_UrlSchemeNotAllowed" xml:space="preserve">
+    <value>Seules les URL HTTP et HTTPS absolues peuvent être ouvertes. Les chemins locaux, UNC et protocoles personnalisés sont refusés.</value>
   </data>
   <data name="Title_NoAlertsToNotify" xml:space="preserve">
     <value>Notifications d'alertes désactivées</value>
@@ -1043,6 +1066,9 @@ Vous ne serez pas prévenu pour :
   </data>
   <data name="EnumValue_ImportExportError_ImportFileNotAccessible" xml:space="preserve">
     <value>le fichier d'import n'est pas accessible</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ImportFileTooLarge" xml:space="preserve">
+    <value>le fichier d'import dépasse la taille maximale autorisée</value>
   </data>
   <data name="EnumValue_ImportExportError_ExtensionFileNotSupported" xml:space="preserve">
     <value>le type d'extention de fichier n'est pas supporté</value>

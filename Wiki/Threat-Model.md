@@ -16,8 +16,8 @@ Authoritative list: [`SECURITY.md`](https://github.com/YassinLokhat/Upsilon.Apps
 
 * A compromised host (malware, keylogger, memory scraper, or an attacker with code execution on the machine while the database is unlocked)
 * The security of the operating system, its clipboard, and its swap/hibernation files
-* Physical access to an unlocked, logged-in session (the WPF **credential confirmation** dialog before create / username-or-passkey save / Delete / plaintext Export is intentionality / anti-mistype only — not a cryptographic step-up; Core still allows writing `IUser.Username` / `IUser.Passkeys` without it — see [[Security]] / [[WPF Client]])
-* Plaintext files the user deliberately produces via **Import/Export**
+* Physical access to an unlocked, logged-in session (the WPF **credential confirmation** dialog before create / username-or-passkey save / Delete / opening User Settings is intentionality / anti-mistype only — not a cryptographic step-up; Core still allows writing `IUser.Username` / `IUser.Passkeys` without it — see [[Security]] / [[WPF Client]])
+* Plaintext files the user deliberately produces via **Import/Export** (WPF warns before export; backup remains the `.pku`)
 
 ## Scenario: stolen `.pku` on a USB stick
 
@@ -25,7 +25,9 @@ The attacker has the ZIP, not the passkeys.
 
 * They can read `header` (algorithm, iteration count, salt). That does not decrypt `database`.
 * They can read `activity` seal metadata and the RSA public key, but **not** a cleartext username from that envelope (usernames inside event payloads remain RSA-hybrid encrypted).
-* Offline guessing must pay **1,000,000 PBKDF2-HMAC-SHA-512 iterations per passkey** (or whatever the sticky header recorded, still bounded below by the KDF floor), then peel nested AES-256-GCM layers, starting from `GetHash(username)`.
+* Offline guessing must pay **1,000,000 PBKDF2-HMAC-SHA-512 iterations per passkey** (or whatever the sticky header recorded, still bounded by the KDF floor and ceiling), then peel nested AES-256-GCM layers, starting from `GetHash(username)`.
+* A forged `header` with extreme iterations or output length is refused before PBKDF2 runs (local DoS hardening).
+* A forged archive with a zip bomb, unexpected ZIP entries, or a huge activity list is refused by documented resource budgets before unbounded allocation.
 * Unique per-file salt prevents rainbow tables across vaults even when usernames and passkeys are reused.
 * AEAD rejects bit flips. The public outer layer distinguishes "not a vault" from "wrong password" without giving a decryption oracle on the real payload.
 
@@ -53,6 +55,10 @@ They still cannot read `database` / `autosave` without the passkeys.
 ## Scenario: vault unlocked, malware on the same PC
 
 Out of scope. The default `ProtectedSecret` (via injected `ISecretMemoryProtector`) shrinks the window (ciphertext in RAM, `***` in logs) but `Reveal()` still produces a `string` for display, copy, QR, and save. Clipboard and screen are OS surfaces. Auto-logout and clipboard timeouts reduce *casual* exposure; they do not stop a scraper with equal privilege to the process.
+
+## Scenario: imported service URL opens via the Windows shell
+
+In scope for the open action. A crafted import could set `file:`, UNC, or a custom protocol and the user might click “open URL”. The client allowlists **absolute `http`/`https` only** before `UseShellExecute`; `http` requires an extra confirmation. Other schemes never reach the shell.
 
 ## Scenario: user exports JSON "for backup" to a cloud folder
 

@@ -2,7 +2,7 @@
 
 `ImportFromFile` / `ExportToFile` (and their `Async` twins) are routed by **file extension**. Only `.json` and `.csv` are supported; any other extension fails and is recorded on the activity log.
 
-Import requires a logged-in user. Export and import files are **unencrypted plaintext** — see [[Security]] known limitations. Protect or delete them after use.
+Import requires a logged-in user. Export and import files are **unencrypted plaintext** for interoperability — see [[Security]] known limitations. Prefer copying the encrypted `.pku` for backup. The WPF client confirms credentials when opening User Settings and shows a **plaintext warning** before each export write. Protect or delete export files after use.
 
 ## What each format carries
 
@@ -119,4 +119,6 @@ Core records failures as `ImportingDataFailed` / `ExportingDataFailed` activitie
 | Broken CSV cells | `IncorrectCSVFormat` | the CSV format is incorrect |
 | Export destination already exists | `ExportFileAlreadyExists` | export file already exists |
 
-URL handling on import: a service URL is kept only if `Uri.IsWellFormedUriString` accepts it; otherwise `Url` is `null`.
+URL handling on import: a service URL is kept only if it is an **absolute `http` or `https`** URI (`ServiceUrlHelper`); otherwise `Url` is `null`. Relative paths, `file:`, UNC, and custom schemes are dropped. The WPF client uses the same allowlist when opening a URL in the browser (`https` direct; `http` after confirmation).
+
+Import files larger than **64 MiB** are refused with `ImportFileTooLarge` before the content is loaded into memory.

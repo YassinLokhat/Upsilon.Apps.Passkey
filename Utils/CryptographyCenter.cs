@@ -28,6 +28,12 @@ namespace Upsilon.Apps.Passkey.Utils
       private const int MIN_SLOW_HASH_OUTPUT_LENGTH = 32;
       private const int MIN_SLOW_HASH_SALT_SIZE = 16;
 
+      // Ceilings for parameters read from an unencrypted header. A forged .pku
+      // with Iterations near int.MaxValue or a huge OutputLength can otherwise
+      // pin the CPU or allocate excessively before the passphrase is rejected.
+      private const int MAX_SLOW_HASH_ITERATIONS = 5_000_000;
+      private const int MAX_SLOW_HASH_OUTPUT_LENGTH = 128;
+
       public KdfParameters DefaultSlowHashParameters => new()
       {
          // HMAC-SHA-512 relies on 64-bit arithmetic, which GPUs and ASICs run
@@ -63,10 +69,22 @@ namespace Upsilon.Apps.Passkey.Utils
                $"KDF iterations '{parameters.Iterations}' for '{parameters.Algorithm}' are below the minimum of {minIterations}.");
          }
 
+         if (parameters.Iterations > MAX_SLOW_HASH_ITERATIONS)
+         {
+            throw new InsufficientKdfParametersException(
+               $"KDF iterations '{parameters.Iterations}' exceed the maximum of {MAX_SLOW_HASH_ITERATIONS}.");
+         }
+
          if (parameters.OutputLength < MIN_SLOW_HASH_OUTPUT_LENGTH)
          {
             throw new InsufficientKdfParametersException(
                $"KDF output length '{parameters.OutputLength}' is below the minimum of {MIN_SLOW_HASH_OUTPUT_LENGTH} bytes.");
+         }
+
+         if (parameters.OutputLength > MAX_SLOW_HASH_OUTPUT_LENGTH)
+         {
+            throw new InsufficientKdfParametersException(
+               $"KDF output length '{parameters.OutputLength}' exceeds the maximum of {MAX_SLOW_HASH_OUTPUT_LENGTH} bytes.");
          }
 
          byte[] salt;

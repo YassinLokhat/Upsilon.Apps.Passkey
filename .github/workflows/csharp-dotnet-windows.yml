@@ -20,14 +20,31 @@ jobs:
     runs-on: windows-2025-vs2026
     
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
     - name: Setup .NET
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
       with:
         dotnet-version: 10.0.x
         
     - name: Restore dependencies
       run: dotnet restore Upsilon.Apps.Passkey.Windows.slnx
+
+    # Production Core/Utils/Interfaces have zero PackageReference; this audits
+    # test (and any other) NuGet graphs for known vulnerabilities (UPK-008).
+    - name: NuGet vulnerability audit
+      shell: pwsh
+      run: |
+        $output = dotnet list Upsilon.Apps.Passkey.Windows.slnx package --vulnerable --include-transitive 2>&1 | Out-String
+        $output | Tee-Object -FilePath nuget-vulnerable.txt | Out-Host
+        "## NuGet vulnerability audit" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        '```' | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        $output | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        '```' | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        # Match only the affirmative finding line; "no vulnerable packages" must not fail.
+        if ($output -match '(?i)has the following vulnerable packages') {
+          Write-Error "One or more NuGet packages have known vulnerabilities."
+          exit 1
+        }
 
     - name: Verify versions.json sync
       shell: pwsh
@@ -44,7 +61,7 @@ jobs:
 
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         name: test-results-windows
         path: _testResult/**/*.trx
@@ -52,7 +69,7 @@ jobs:
 
     - name: Upload coverage report
       if: always()
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         name: coverage-windows
         path: _testResult/**/*.cobertura.xml

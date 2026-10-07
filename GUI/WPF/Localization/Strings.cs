@@ -207,6 +207,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_DuplicatedPasswordAccounts => Get(nameof(Msg_DuplicatedPasswordAccounts));
       public static string Msg_ExportData => Get(nameof(Msg_ExportData));
       public static string Msg_ExportFailed => Get(nameof(Msg_ExportFailed));
+      public static string Msg_ExportPlaintextWarning => Get(nameof(Msg_ExportPlaintextWarning));
       public static string Msg_ExportSuccess => Get(nameof(Msg_ExportSuccess));
       public static string Msg_FiltersHeader => Get(nameof(Msg_FiltersHeader));
       public static string Msg_ImportData => Get(nameof(Msg_ImportData));
@@ -247,6 +248,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_ShowPasskeyQualityAlerts => Get(nameof(Msg_ShowPasskeyQualityAlerts));
       public static string Msg_ShowAlerts => Get(nameof(Msg_ShowAlerts));
       public static string Msg_NoAlertsToNotify => Get(nameof(Msg_NoAlertsToNotify));
+      public static string Msg_OpenHttpUrlConfirm => Get(nameof(Msg_OpenHttpUrlConfirm));
+      public static string Msg_UrlSchemeNotAllowed => Get(nameof(Msg_UrlSchemeNotAllowed));
       public static string Title_NoAlertsToNotify => Get(nameof(Title_NoAlertsToNotify));
       public static string Title_SecuritySettingsAlerts => Get(nameof(Title_SecuritySettingsAlerts));
       public static string Title_SecuritySettingsAlertsWindow => Get(nameof(Title_SecuritySettingsAlertsWindow));
@@ -297,6 +300,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Title_ConfirmationRequired => Get(nameof(Title_ConfirmationRequired));
       public static string Title_CorruptedDatabase => Get(nameof(Title_CorruptedDatabase));
       public static string Title_DeleteAccount => Get(nameof(Title_DeleteAccount));
+      public static string Title_OpenUrl => Get(nameof(Title_OpenUrl));
       public static string Title_DeleteOfflineLeakDatabase => Get(nameof(Title_DeleteOfflineLeakDatabase));
       public static string Title_IdleResetCredentialTimeout => Get(nameof(Title_IdleResetCredentialTimeout));
       public static string Title_DeleteService => Get(nameof(Title_DeleteService));
@@ -305,6 +309,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Title_ExportCsv => Get(nameof(Title_ExportCsv));
       public static string Title_ExportFailed => Get(nameof(Title_ExportFailed));
       public static string Title_ExportJson => Get(nameof(Title_ExportJson));
+      public static string Title_ExportPlaintextWarning => Get(nameof(Title_ExportPlaintextWarning));
       public static string Title_ExportSuccess => Get(nameof(Title_ExportSuccess));
       public static string Title_ImportData => Get(nameof(Title_ImportData));
       public static string Title_ImportFailed => Get(nameof(Title_ImportFailed));
@@ -353,6 +358,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string EnumValue_Theme_Dark => Get(nameof(EnumValue_Theme_Dark));
       public static string EnumValue_ImportExportError_None => Get(nameof(EnumValue_ImportExportError_None));
       public static string EnumValue_ImportExportError_ImportFileNotAccessible => Get(nameof(EnumValue_ImportExportError_ImportFileNotAccessible));
+      public static string EnumValue_ImportExportError_ImportFileTooLarge => Get(nameof(EnumValue_ImportExportError_ImportFileTooLarge));
       public static string EnumValue_ImportExportError_ExtensionFileNotSupported => Get(nameof(EnumValue_ImportExportError_ExtensionFileNotSupported));
       public static string EnumValue_ImportExportError_CSVHeadersDontMatch => Get(nameof(EnumValue_ImportExportError_CSVHeadersDontMatch));
       public static string EnumValue_ImportExportError_IncorrectCSVFormat => Get(nameof(EnumValue_ImportExportError_IncorrectCSVFormat));

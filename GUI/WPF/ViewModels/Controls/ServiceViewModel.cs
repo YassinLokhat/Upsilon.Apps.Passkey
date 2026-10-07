@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -58,11 +59,37 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          get => Service.Url?.OriginalString ?? string.Empty;
          set
          {
-            if (Service.Url?.OriginalString != value)
+            if (Service.Url?.OriginalString == value)
             {
-               Service.Url = new(value);
-               _notify(nameof(Url));
+               return;
             }
+
+            // Empty clears. Absolute non-http(s) schemes are refused. Incomplete
+            // relative values are kept so PropertyChanged typing still works;
+            // OpenUrl re-validates with the http(s) allowlist.
+            if (string.IsNullOrWhiteSpace(value))
+            {
+               Service.Url = null;
+            }
+            else if (Uri.TryCreate(value, UriKind.Absolute, out Uri? absolute))
+            {
+               if (!ServiceUrlHelper.IsAllowedScheme(absolute))
+               {
+                  return;
+               }
+
+               Service.Url = absolute;
+            }
+            else if (Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out Uri? partial))
+            {
+               Service.Url = partial;
+            }
+            else
+            {
+               return;
+            }
+
+            _notify(nameof(Url));
          }
       }
 
@@ -275,9 +302,37 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             return;
          }
 
+         switch (ServiceUrlHelper.ClassifyForOpen(Url))
+         {
+            case ServiceUrlHelper.OpenDisposition.Rejected:
+               AppServices.Dialogs.Error(Strings.Msg_UrlSchemeNotAllowed, Strings.Title_OpenUrl);
+               return;
+
+            case ServiceUrlHelper.OpenDisposition.RequiresHttpConfirmation:
+               if (AppServices.Dialogs.Confirm(
+                     Strings.Format(nameof(Strings.Msg_OpenHttpUrlConfirm), Url),
+                     Strings.Title_OpenUrl,
+                     MessageBoxButton.YesNo,
+                     MessageBoxImage.Warning)
+                  != MessageBoxResult.Yes)
+               {
+                  return;
+               }
+
+               break;
+
+            case ServiceUrlHelper.OpenDisposition.OpenDirect:
+               break;
+         }
+
+         if (!ServiceUrlHelper.TryCreateAllowedUri(Url, out Uri? uri) || uri is null)
+         {
+            return;
+         }
+
          using Process process = new()
          {
-            StartInfo = new ProcessStartInfo(Url)
+            StartInfo = new ProcessStartInfo(uri!.AbsoluteUri)
             {
                UseShellExecute = true,
             },

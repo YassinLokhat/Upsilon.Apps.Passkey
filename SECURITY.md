@@ -115,13 +115,16 @@ security-critical supply-chain attack surface minimal.
   header does not weaken already encrypted data (the wrong work factor simply
   yields the wrong key). What it *can* do is offer the user a **new** vault
   written under a trivial work factor. To block that, Open and every
-  `GetSlowHash` call enforce a **KDF floor** via
+  `GetSlowHash` call enforce a **KDF floor and ceiling** via
   `EnsureSufficientSlowHashParameters`: a known algorithm, iterations at least
   **600,000** (PBKDF2-HMAC-SHA-256) or **210,000** (PBKDF2-HMAC-SHA-512) — the
-  OWASP Password Storage Cheat Sheet baselines — output length ≥ 32 bytes, and a
-  Base64 salt of at least 16 bytes. Parameters below the floor raise
-  `InsufficientKdfParametersException` and the file is refused. New databases
-  still use the stronger default of 1,000,000 PBKDF2-HMAC-SHA-512 iterations.
+  OWASP Password Storage Cheat Sheet baselines — and at most **5,000,000**;
+  output length between **32** and **128** bytes inclusive; and a Base64 salt
+  of at least 16 bytes. Parameters outside that range raise
+  `InsufficientKdfParametersException` and the file is refused (the ceiling
+  blocks a forged header from demanding unbounded PBKDF2 work or allocation).
+  New databases still use the stronger default of 1,000,000 PBKDF2-HMAC-SHA-512
+  iterations.
 
 ### Symmetric encryption (data at rest)
 
@@ -173,7 +176,12 @@ login:
 ### Storage format (`.pku`)
 
 - A `.pku` file is a **ZIP archive** containing four entries: `header`,
-  `database`, `autosave`, and `activity`.
+  `database`, `autosave`, and `activity`. Unexpected entry names, more than
+  four entries, archives larger than **64 MiB**, or per-entry stored/decoded
+  payloads above **64 MiB** are refused (`CorruptedSourceException`) so a
+  forged file cannot zip-bomb the process. Activity decrypt also caps at
+  **100,000** entries. Plaintext import files are similarly capped at **64 MiB**
+  (`ImportFileTooLarge`).
 - The `header` entry holds the sticky `KdfParameters` (algorithm, iterations,
   output length, salt). It is not passkey-encrypted — only the shared
   JSON → GZip → Base64 pipeline applies — because those values must be readable
@@ -215,6 +223,10 @@ login:
   infrastructure against a Release build of the production projects (unit tests
   are omitted from that compilation). Generated `bin`/`obj`/`*.g.cs` findings
   are filtered from the uploaded SARIF.
+- CI also runs `dotnet list … package --vulnerable --include-transitive` on the
+  Windows and Linux solutions after restore. Production libraries take no NuGet
+  packages; the audit covers test (and any future) package graphs and fails the
+  job when known vulnerabilities are reported.
 
 ### Randomness
 
@@ -286,12 +298,21 @@ login:
   configurable delay (`ISettings.CleaningClipboardTimeout`). The WPF paste
   hotkeys (Ctrl+Shift+L / Ctrl+Shift+P) go through the same clipboard path
   before synthesizing Ctrl+V.
+- **Service URL open (WPF host)**: opening a service URL uses the OS shell
+  (`UseShellExecute`). Only **absolute `http` and `https`** URIs are allowed
+  (`ServiceUrlHelper`). `https` opens directly; `http` requires an explicit
+  confirmation dialog. Local paths, UNC paths, and custom schemes are refused
+  so an imported or typed value cannot invoke an unexpected protocol handler.
+  Import stores only the same allowlisted schemes (others become `null`).
 - **Credential confirmation (WPF host)**: before creating a vault, or before
   saving a change to username / ordered master passkeys, the WPF client
   prompts the user to re-type those credentials (`CredentialsConfirmationView`).
   On an update that changes credentials, the flow is **old credentials first**,
   then **new credentials**. The same **old credentials** prompt also runs before
-  vault **Delete** and plaintext **Export** (JSON/CSV). Entry is progressive
+  vault **Delete** and before opening **User Settings** (where plaintext Export
+  lives). Export itself does **not** re-prompt for credentials (they are already
+  visible in that view) but shows an explicit **plaintext warning** before
+  writing JSON/CSV. Entry is progressive
   (username, then each passkey) **without rollback**, deliberately matching
   progressive login: a mistype **intentionally poisons** the in-dialog sequence
   until Escape resets it (later correct factors cannot recover it — not a UX
@@ -381,10 +402,12 @@ These are conscious trade-offs, documented for transparency:
   KDF later, pluggably, should the policy ever be relaxed.
 - **Import/Export files**: CSV and JSON files produced by the Export feature (and
   consumed by Import) are **unencrypted plaintext** by design, for
-  interoperability. The `.csv` path uses JSON-encoded cells and covers
-  services/accounts only; import accepts comma- or tab-delimited rows, while
-  export writes tab-separated rows. `.json` also carries user settings.
-  Users are responsible for protecting or deleting these files.
+  interoperability with other tools — **not** a substitute for backing up the
+  encrypted `.pku`. The WPF client warns before writing an export. The `.csv`
+  path uses JSON-encoded cells and covers services/accounts only; import accepts
+  comma- or tab-delimited rows, while export writes tab-separated rows. `.json`
+  also carries user settings. Users are responsible for protecting or deleting
+  these files.
 - **Leak check fails open**: if both Have I Been Pwned and XposedOrNot are
   unreachable (timeout, HTTP error, offline host) **and** no offline Bloom
   filter is attached (the `.pkbf` is absent, or disabled through

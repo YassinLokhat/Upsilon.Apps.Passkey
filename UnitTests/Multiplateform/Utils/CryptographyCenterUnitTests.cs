@@ -400,5 +400,50 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
          ensureUnsupported.Should().Throw<InsufficientKdfParametersException>()
             .WithMessage("*Unsupported KDF algorithm*");
       }
+
+      [TestMethod]
+      /*
+       * Parameters above the supported KDF ceiling are rejected before PBKDF2
+       * so a forged header cannot pin the CPU or allocate excessively.
+      */
+      public void Case13_SlowHashKdfCeiling()
+      {
+         ICryptographyCenter crypto = UnitTestsHelper.CryptographyCenter;
+         KdfParameters defaults = crypto.DefaultSlowHashParameters;
+
+         KdfParameters tooManyIterations = new()
+         {
+            Algorithm = defaults.Algorithm,
+            Iterations = 5_000_001,
+            OutputLength = defaults.OutputLength,
+            Salt = defaults.Salt,
+         };
+         Action ensureTooManyIterations = () => crypto.EnsureSufficientSlowHashParameters(tooManyIterations);
+         ensureTooManyIterations.Should().Throw<InsufficientKdfParametersException>()
+            .WithMessage("*exceed*maximum*");
+         Action hashTooManyIterations = () => crypto.GetSlowHash("passkey", tooManyIterations);
+         hashTooManyIterations.Should().Throw<InsufficientKdfParametersException>();
+
+         KdfParameters tooLongOutput = new()
+         {
+            Algorithm = defaults.Algorithm,
+            Iterations = defaults.Iterations,
+            OutputLength = 129,
+            Salt = defaults.Salt,
+         };
+         Action ensureTooLongOutput = () => crypto.EnsureSufficientSlowHashParameters(tooLongOutput);
+         ensureTooLongOutput.Should().Throw<InsufficientKdfParametersException>()
+            .WithMessage("*output length*exceed*");
+
+         KdfParameters atCeiling = new()
+         {
+            Algorithm = defaults.Algorithm,
+            Iterations = 5_000_000,
+            OutputLength = 128,
+            Salt = defaults.Salt,
+         };
+         Action ensureAtCeiling = () => crypto.EnsureSufficientSlowHashParameters(atCeiling);
+         ensureAtCeiling.Should().NotThrow();
+      }
    }
 }

@@ -482,6 +482,9 @@
   <data name="Title_DeleteAccount" xml:space="preserve">
     <value>Delete Account</value>
   </data>
+  <data name="Title_OpenUrl" xml:space="preserve">
+    <value>Open URL</value>
+  </data>
   <data name="Title_ItemNotFound" xml:space="preserve">
     <value>Item not found</value>
   </data>
@@ -577,6 +580,16 @@ More details in the activities.</value>
     <value>Export data has been completed successfully.
 More details in the activities.</value>
   </data>
+  <data name="Msg_ExportPlaintextWarning" xml:space="preserve">
+    <value>The export file will contain identifiers and passwords in cleartext so other tools can import them.
+
+This is not an encrypted backup — copy the .pku vault file if you need a secure backup.
+
+Continue?</value>
+  </data>
+  <data name="Title_ExportPlaintextWarning" xml:space="preserve">
+    <value>Plaintext export</value>
+  </data>
   <data name="Msg_ExportFailed" xml:space="preserve">
     <value>Export data failed.
 More details in the activities.</value>
@@ -647,6 +660,16 @@ You will not be alerted about:
 • Activities to review
 • Expired, duplicated, or leaked passwords
 • Insecure security settings</value>
+  </data>
+  <data name="Msg_OpenHttpUrlConfirm" xml:space="preserve">
+    <value>This URL uses HTTP (not encrypted):
+
+{0}
+
+Opening it may expose the request on the network. Open anyway?</value>
+  </data>
+  <data name="Msg_UrlSchemeNotAllowed" xml:space="preserve">
+    <value>Only absolute HTTP and HTTPS URLs can be opened. Local paths, UNC paths, and custom protocols are not allowed.</value>
   </data>
   <data name="Title_NoAlertsToNotify" xml:space="preserve">
     <value>Alert notifications disabled</value>
@@ -1043,6 +1066,9 @@ You will not be alerted about:
   </data>
   <data name="EnumValue_ImportExportError_ImportFileNotAccessible" xml:space="preserve">
     <value>import file is not accessible</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ImportFileTooLarge" xml:space="preserve">
+    <value>import file exceeds the maximum allowed size</value>
   </data>
   <data name="EnumValue_ImportExportError_ExtensionFileNotSupported" xml:space="preserve">
     <value>file extension type is not supported</value>
