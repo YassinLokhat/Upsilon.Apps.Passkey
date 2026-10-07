@@ -40,7 +40,8 @@ jobs:
         '```' | Add-Content -Path $env:GITHUB_STEP_SUMMARY
         $output | Add-Content -Path $env:GITHUB_STEP_SUMMARY
         '```' | Add-Content -Path $env:GITHUB_STEP_SUMMARY
-        if ($output -match '(?i)has the following vulnerable packages|vulnerable packages') {
+        # Match only the affirmative finding line; "no vulnerable packages" must not fail.
+        if ($output -match '(?i)has the following vulnerable packages') {
           Write-Error "One or more NuGet packages have known vulnerabilities."
           exit 1
         }
