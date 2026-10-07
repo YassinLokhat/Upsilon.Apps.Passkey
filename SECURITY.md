@@ -203,7 +203,9 @@ login:
   either the previous intact archive or the new one — never a torn
   `ZipArchiveMode.Update` rewrite, and never trailing garbage when the archive
   shrinks. The session handle is released only for that replace and reacquired
-  immediately afterwards.
+  immediately afterwards. If `File.Move` still fails after retries (for example
+  a sustained AV lock), Save **fails** and a complete sibling `.tmp` archive is
+  left for recovery — the live `.pku` is not rewritten in place.
 - **Deferred persistence**: while a user is logged in, autosave and activity-log
   ZIP rewrites are coalesced with a short debounce (~500 ms) so a burst of field
   edits becomes a single disk write. Pending work is flushed on explicit `Save`
@@ -386,6 +388,10 @@ login:
 
 These are conscious trade-offs, documented for transparency:
 
+- **Atomic ZIP replace under file locks**: on Windows, antivirus or indexers can
+  hold the `.pku` briefly during the unlocked replace window. Retries usually
+  succeed; if they do not, Save fails rather than rewriting the live file in
+  place. A complete sibling `.tmp` may remain for manual recovery.
 - **Secrets in managed memory**: long-lived fields hold `IProtectedSecret`
   ciphertext (default Utils `ProtectedSecret`), not plaintext, which shrinks the
   window compared to keeping passwords as `string` for the whole session.
