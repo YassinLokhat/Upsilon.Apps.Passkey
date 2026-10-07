@@ -45,9 +45,9 @@ Open and every `GetSlowHash` call enforce a **KDF floor and ceiling** via `Ensur
 * A known algorithm (`Pbkdf2HmacSha256` or `Pbkdf2HmacSha512`)
 * Iterations at least **600,000** (SHA-256) or **210,000** (SHA-512) — OWASP Password Storage Cheat Sheet baselines — and at most **5,000,000**
 * Output length between **32** and **128** bytes inclusive
-* A Base64 salt of at least 16 bytes
+* A Base64 salt of **16–64** bytes inclusive
 
-Parameters outside that range raise `InsufficientKdfParametersException` and the file is refused. The ceiling prevents a forged `header` from imposing unbounded PBKDF2 cost. New databases still use the stronger default of 1,000,000 PBKDF2-HMAC-SHA-512 iterations.
+Parameters outside that range raise `InsufficientKdfParametersException` and the file is refused. The ceiling prevents a forged `header` from imposing unbounded PBKDF2 cost or an oversized salt. New databases still use the stronger default of 1,000,000 PBKDF2-HMAC-SHA-512 iterations.
 
 Lowering iterations in an *existing* file's header does not weaken already encrypted data (the wrong work factor simply yields the wrong key). What it *can* do is offer the user a **new** vault written under a trivial work factor — that is what the floor blocks.
 

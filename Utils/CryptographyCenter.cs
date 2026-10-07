@@ -29,10 +29,12 @@ namespace Upsilon.Apps.Passkey.Utils
       private const int MIN_SLOW_HASH_SALT_SIZE = 16;
 
       // Ceilings for parameters read from an unencrypted header. A forged .pku
-      // with Iterations near int.MaxValue or a huge OutputLength can otherwise
-      // pin the CPU or allocate excessively before the passphrase is rejected.
+      // with Iterations near int.MaxValue, a huge OutputLength, or an oversized
+      // salt can otherwise pin the CPU or allocate excessively before the
+      // passphrase is rejected.
       private const int MAX_SLOW_HASH_ITERATIONS = 5_000_000;
       private const int MAX_SLOW_HASH_OUTPUT_LENGTH = 128;
+      private const int MAX_SLOW_HASH_SALT_SIZE = 64;
 
       public KdfParameters DefaultSlowHashParameters => new()
       {
@@ -101,6 +103,12 @@ namespace Upsilon.Apps.Passkey.Utils
          {
             throw new InsufficientKdfParametersException(
                $"KDF salt length '{salt.Length}' is below the minimum of {MIN_SLOW_HASH_SALT_SIZE} bytes.");
+         }
+
+         if (salt.Length > MAX_SLOW_HASH_SALT_SIZE)
+         {
+            throw new InsufficientKdfParametersException(
+               $"KDF salt length '{salt.Length}' exceeds the maximum of {MAX_SLOW_HASH_SALT_SIZE} bytes.");
          }
       }
 

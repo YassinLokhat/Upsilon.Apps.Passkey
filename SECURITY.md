@@ -120,9 +120,10 @@ security-critical supply-chain attack surface minimal.
   **600,000** (PBKDF2-HMAC-SHA-256) or **210,000** (PBKDF2-HMAC-SHA-512) — the
   OWASP Password Storage Cheat Sheet baselines — and at most **5,000,000**;
   output length between **32** and **128** bytes inclusive; and a Base64 salt
-  of at least 16 bytes. Parameters outside that range raise
+  of **16–64** bytes inclusive. Parameters outside that range raise
   `InsufficientKdfParametersException` and the file is refused (the ceiling
-  blocks a forged header from demanding unbounded PBKDF2 work or allocation).
+  blocks a forged header from demanding unbounded PBKDF2 work, allocation, or
+  an oversized salt).
   New databases still use the stronger default of 1,000,000 PBKDF2-HMAC-SHA-512
   iterations.
 
