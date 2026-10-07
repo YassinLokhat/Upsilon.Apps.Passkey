@@ -1,0 +1,9 @@
+# Keep GitHub Actions pinned SHAs fresh without opening NuGet noise
+# (production libraries stay zero-PackageReference).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

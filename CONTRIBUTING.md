@@ -64,6 +64,11 @@ Allowed:
 The WPF project currently has no NuGet packages either; keep it that way unless
 a Windows-only capability cannot be done with the BCL.
 
+Workflow `uses:` entries are **pinned to full commit SHAs** (with a `# vX.Y.Z`
+comment). Dependabot is enabled for the `github-actions` ecosystem only
+(`.github/dependabot.yml`) so those pins can be refreshed without opening NuGet
+PRs against Core/Utils/Interfaces.
+
 ## Adding a UI language
 
 1. Copy `GUI/WPF/Localization/Strings.resx` → `Strings.xx.resx` and translate
