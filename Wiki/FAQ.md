@@ -10,7 +10,7 @@ Each `Login` call appends a stretched passkey to the in-memory onion. A wrong va
 
 ## Why does the login window clear my username after a few seconds?
 
-That is the **login idle timeout** (`LoginIdleTimeoutSeconds` in `config.json`, default 5). While you type on the login screen, a countdown appears in the title bar; when it reaches zero, credentials and any half-open session are cleared. Set it to **0** under **App Settings** (`Ctrl+,`) to disable. This is separate from the vault session auto-logout (`LogoutTimeout` minutes once logged in). See [[WPF Client]].
+That is the **login idle timeout** (`LoginIdleTimeoutSeconds` in `config.json`, default 5). While you type on the login screen, a countdown appears in the title bar; when it reaches zero, credentials and any half-open session are cleared. Setting it to **0** under **App Settings** (`Ctrl+,`) disables the idle clear (not recommended — half-typed factors can remain on screen indefinitely; a host security alert surfaces that risk). This is separate from the vault session auto-logout (`LogoutTimeout` minutes once logged in). See [[WPF Client]].
 
 ## Why is `Create` already logged in? Why can't I call `Login` after it?
 
@@ -54,7 +54,7 @@ Opening by username alone (empty path, type username then Enter) resolves `{Defa
 
 The username is part of the onion's implicit first layer (`GetHash(username)`). Changing it changes the ciphertext layout on the next `Save`. It is not a secret factor by itself. Hosts that name files from the username hash (the WPF client) may also need to rename the file — Core will not do that for you.
 
-In the WPF client, saving a username or master-passkey change asks you to re-type the **old** credentials, then the **new** ones, before the save. Creating a vault asks for the **new** credentials once. Vault **Delete** and plaintext **Export** ask for the **old** credentials (after the usual Yes confirmations / save-pending). Closing that dialog cancels the action. Entry is progressive **without rollback**, like login: a mistype intentionally poisons the sequence until you press Escape to restart (not a bug). This is anti-mistype / intentionality, not a second login; the session is already unlocked. See [[WPF Client]] and [[Security]].
+In the WPF client, saving a username or master-passkey change asks you to re-type the **old** credentials, then the **new** ones, before the save. Creating a vault asks for the **new** credentials once. Vault **Delete** and opening **User Settings** ask for the **old** credentials (after the usual Yes confirmations / save-pending). **Export** only shows a plaintext warning (no second credentials prompt). Closing that dialog cancels the action. Entry is progressive **without rollback**, like login: a mistype intentionally poisons the sequence until you press Escape to restart (not a bug). This is anti-mistype / intentionality, not a second login; the session is already unlocked. See [[WPF Client]] and [[Security]].
 
 ## Import failed because the service already exists. Can I merge?
 

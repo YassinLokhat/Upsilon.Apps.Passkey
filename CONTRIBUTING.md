@@ -144,12 +144,12 @@ git push origin utils-v1.1.0 core-v1.1.0 wpf-v1.1.0
 Do **not** bump or tag a package whose public surface did not change (for example
 leave `interfaces` at `1.0.0` if Interfaces is unchanged).
 
-GitHub Releases are produced by `.github/workflows/release.yml`. Each tag creates
-one Release with dependency notes from `versions.json`. Libraries upload a
-`.nupkg` (+ `.sha256`); the WPF client uploads
-`Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64.zip` (+ `.sha256`).
+There is currently **no** automated `release.yml` workflow in this repository.
+Publish GitHub Releases manually after tagging (attach `.nupkg` / `.sha256` for
+libraries and `Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64.zip` (+ `.sha256`)
+for the WPF client, with dependency notes from `versions.json` as needed).
 
-Use a prerelease suffix (`wpf-v1.1.0-rc.1`) to mark the GitHub Release as a
+Use a prerelease suffix (`wpf-v1.1.0-rc.1`) when marking a GitHub Release as a
 prerelease. Legacy tags `v*.*.*` still map to the WPF client. Do not retag an
 existing version.
 

@@ -741,7 +741,7 @@ L'ouvrir peut exposer la requête sur le réseau. Ouvrir quand même ?</value>
     <value>Effacement idle à la connexion désactivé</value>
   </data>
   <data name="Msg_SecuritySettings_IdleLoginDisabled" xml:space="preserve">
-    <value>Les identifiants saisis à l'écran de connexion ne sont pas effacés après inactivité.</value>
+    <value>Les identifiants saisis à l'écran de connexion ne sont pas effacés après inactivité. Préférez un délai idle de connexion non nul dans les paramètres de l'application.</value>
   </data>
   <data name="Label_SecuritySettings_OfflineLeakFilterUnavailable" xml:space="preserve">
     <value>Filtre de fuites hors ligne indisponible</value>

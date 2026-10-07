@@ -741,7 +741,7 @@ Opening it may expose the request on the network. Open anyway?</value>
     <value>Login idle clear disabled</value>
   </data>
   <data name="Msg_SecuritySettings_IdleLoginDisabled" xml:space="preserve">
-    <value>Typed credentials on the login window are not cleared after inactivity.</value>
+    <value>Typed credentials on the login window are not cleared after inactivity. Prefer a non-zero Login idle timeout in App Settings.</value>
   </data>
   <data name="Label_SecuritySettings_OfflineLeakFilterUnavailable" xml:space="preserve">
     <value>Offline leak filter unavailable</value>

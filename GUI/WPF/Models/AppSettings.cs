@@ -24,7 +24,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Models
 
       /// <summary>
       /// Seconds of inactivity on the login window before credentials and any
-      /// half-open session are cleared. <c>0</c> disables the idle reset.
+      /// half-open session are cleared. <c>0</c> disables the idle reset (not
+      /// recommended; raises <c>IdleLoginDisabled</c>).
       /// </summary>
       public int LoginIdleTimeoutSeconds { get; set; } = 5;
 

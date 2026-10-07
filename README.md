@@ -623,12 +623,13 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     command-line path when the vault is elsewhere.
 *   **Login**: username, then each passkey in order. Escape cancels and closes
     the half-open session (required: there is no passkey rollback). App Settings
-    `LoginIdleTimeoutSeconds` (default 5; `0` = off) clears credentials on login-window
-    inactivity; the title bar shows the countdown while armed.
+    `LoginIdleTimeoutSeconds` (default 5; `0` = off, not recommended) clears
+    credentials on login-window inactivity; the title bar shows the countdown while armed.
 *   **Credential confirmation**: creating a vault, or saving a username /
     ordered-passkey change in User settings, opens `CredentialsConfirmationView`
     (re-type **new** on create; **old then new** on update). Vault **Delete** and
-    plaintext **Export** require **old** credentials. Progressive entry without
+    opening **User Settings** require **old** credentials. **Export** shows a
+    plaintext warning only (no second credentials prompt). Progressive entry without
     rollback (intentional poison until Escape, like login — not a dialog bug).
     Closing the dialog cancels the action. Host-side intentionality /
     anti-mistype only — see [SECURITY.md](SECURITY.md) and
@@ -689,7 +690,7 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 3.  Change username or a master passkey in User settings: confirm **old** then
     **new** credentials; closing the dialog must skip the save; session ends after a successful change.
 4.  Change only non-credential settings: no credentials dialog.
-5.  Export JSON or CSV: confirm **old** credentials (cancel skips export), then pick the file.
+5.  Export JSON or CSV: confirm the **plaintext warning**, then pick the file (no second credentials prompt).
 6.  Delete vault: after the two Yes dialogs, confirm **old** credentials (cancel skips delete).
 7.  Copy an account password; confirm the clipboard clears after the configured timeout.
 8.  Idle until auto-logout; confirm the session closes and the vault file is released.
