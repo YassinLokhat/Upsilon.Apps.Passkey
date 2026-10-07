@@ -55,7 +55,7 @@ the clipboard implementation, the secret protector, and hosts dialogs, session, 
 *   **At rest**: AES-256-GCM onion (HKDF-SHA256 per layer) over ordered passkeys; the activity log uses RSA-4096 hybrid encryption plus a login-time seal. See [SECURITY.md](SECURITY.md).
 *   **In memory**: account passwords, passkeys, and the RSA private key are held as `IProtectedSecret` via an injected `ISecretMemoryProtector` (default: Utils `ProtectedSecret`, process-wide AES-GCM) and only revealed just in time.
 *   **Session**: configurable auto-logout, clipboard auto-clear (including Windows clipboard history), and progressive login without rollback.
-*   **Supply chain**: Core, Utils, and Interfaces refuse any third-party NuGet package at build time. GitHub CodeQL scans production code on CI.
+*   **Supply chain**: Core, Utils, Interfaces, and the WPF GUI refuse any third-party NuGet package at build time. GitHub CodeQL scans production code on CI.
 
 **Models**
 ----------
@@ -83,7 +83,9 @@ classDiagram
 
         class IPasswordFactory {
             <<interface>>
-            +string Alphabetic
+            +bool HasLocalFilter
+            +string UpperAlphabetic
+            +string LowerAlphabetic
             +string Numeric
             +string SpecialChars
 
@@ -181,6 +183,7 @@ classDiagram
             +IEnumerable~IService~ Services
             +AddService(in serviceName string) IService
             +DeleteService(in service IService) void
+            +RememberClipboardSecret(in text string) void
         }
 
         class ISettings {
@@ -218,6 +221,7 @@ classDiagram
             +IPasswordFactory PasswordFactory
             +IClipboardManager ClipboardManager
             +ISecretMemoryProtector SecretMemoryProtector
+            +EventHandler~AlertsChangedEventArgs~ CoreAlertsChanged
             +EventHandler CoreAlertsScanCompleted
             +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
             +EventHandler DatabaseSaved
@@ -276,6 +280,7 @@ classDiagram
             None
             WarnIfPasswordLeaked
             WarnIfDuplicatedPassword
+            WarnIfWeakPassword
         }
         
         class AlertSeverity {
@@ -670,9 +675,9 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     `CredentialsConfirmationView` stay out of the automated suite. ViewModel
     coverage for the confirmation sequence is in `CredentialsConfirmationViewModelTests`.
 *   **Coverage**: `coverage.runsettings` measures **Core only** (Utils is a
-    separate assembly and is not in that gate). Windows CI fails the build if
-    line coverage drops below **90%**. `run_code_coverage.bat` and Windows CI
-    write reports under `_testResult/` (gitignored).
+    separate assembly and is not in that gate). Windows and Linux CI fail the
+    build if line coverage drops below **90%**. `run_code_coverage.bat` and
+    Windows CI write reports under `_testResult/` (gitignored).
 
 ```bash
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
@@ -707,14 +712,15 @@ GitHub Actions on `master` and pull requests:
 | Workflow | What it does |
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Multiplateform tests); `dotnet test` runs Multiplateform |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Multiplateform tests); `dotnet test` runs Multiplateform with the **90% Core line-coverage gate** |
 | `.github/workflows/codeql.yml` | CodeQL on every push (any branch) and weekly; Release build of production projects (tests excluded); SARIF filtered for `bin`/`obj`/`*.g.cs` |
-| `.github/workflows/release.yml` | On per-component tags (`wpf-v*.*.*`, …; legacy `v*` = WPF): sync check, build/test, `scripts/Sync-Versions.ps1`, GitHub Release (nupkg or WPF zip + SHA-256 + dependency notes) |
+| `.github/workflows/publish-wiki.yml` | On `Wiki/**` changes to `master`: publish the `Wiki/` folder to the GitHub Wiki |
 
-Edit [`versions.json`](versions.json), run `.\scripts\Sync-Versions.ps1 -SyncOnly`, then push tags such as `wpf-v1.1.0`. See [CONTRIBUTING.md](CONTRIBUTING.md#cutting-a-release).
+There is currently **no** automated `release.yml`. After tagging, publish GitHub Releases manually. See [CONTRIBUTING.md](CONTRIBUTING.md#cutting-a-release).
 
-Dependabot is configured for the **.NET SDK** only (`dotnet-sdk` ecosystem). Test
-NuGet packages (MSTest, FluentAssertions) are not auto-bumped.
+Dependabot is configured for the **`github-actions`** ecosystem only (pinned
+workflow SHAs). Test NuGet packages (MSTest, FluentAssertions) are not
+auto-bumped.
 
 **Getting Started**
 -------------------

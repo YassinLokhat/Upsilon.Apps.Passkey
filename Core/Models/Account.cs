@@ -93,7 +93,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: false,
             oldValue: Notes,
             newValue: value,
-            // Same as Password: audit the field change without storing freeform content.
             readableValue: string.Empty);
       }
 

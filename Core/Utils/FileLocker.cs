@@ -506,8 +506,6 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             }
             else
             {
-               // Prefer failing Save over rewriting the live .pku in place
-               // (crash mid-rewrite could tear the primary archive).
                keepTempForRecovery = true;
 
                try

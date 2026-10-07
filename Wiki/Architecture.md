@@ -63,7 +63,9 @@ classDiagram
 
         class IPasswordFactory {
             <<interface>>
-            +string Alphabetic
+            +bool HasLocalFilter
+            +string UpperAlphabetic
+            +string LowerAlphabetic
             +string Numeric
             +string SpecialChars
             +GeneratePassword(in length int, in alphabet string, in checkIfLeaked bool) string
@@ -160,6 +162,7 @@ classDiagram
             +IEnumerable~IService~ Services
             +AddService(in serviceName string) IService
             +DeleteService(in service IService) void
+            +RememberClipboardSecret(in text string) void
         }
 
         class ISettings {
@@ -197,6 +200,7 @@ classDiagram
             +IPasswordFactory PasswordFactory
             +IClipboardManager ClipboardManager
             +ISecretMemoryProtector SecretMemoryProtector
+            +EventHandler~AlertsChangedEventArgs~ CoreAlertsChanged
             +EventHandler CoreAlertsScanCompleted
             +EventHandler~AutoSaveDetectedEventArgs~ AutoSaveDetected
             +EventHandler DatabaseSaved
@@ -210,10 +214,10 @@ classDiagram
             +Close(void) void
             +HasChanged(in itemId string) bool
             +HasChanged(in itemId string, in fieldName string) bool
-            +ImportFromFile(in filePath string) bool
-            +ImportFromFileAsync(in filePath string, in cancellationToken CancellationToken) Task~bool~
-            +ExportToFile(in filePath string) bool
-            +ExportToFileAsync(in filePath string, in cancellationToken CancellationToken) Task~bool~
+            +ImportFromFile(in filePath string) ImportExportError
+            +ImportFromFileAsync(in filePath string, in cancellationToken CancellationToken) Task~ImportExportError~
+            +ExportToFile(in filePath string) ImportExportError
+            +ExportToFileAsync(in filePath string, in cancellationToken CancellationToken) Task~ImportExportError~
         }
 
         class IActivity {
@@ -269,4 +273,4 @@ Event-arg types (`AlertsChangedEventArgs`, `AutoSaveDetectedEventArgs`, `LogoutE
 * **Internal host surfaces.** `Database` is a partial class. Narrow internal hosts (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) keep `ActivityCenter`, `AutoSave`, and `User` from digging into `Database` members (CodeQL `cs/coupled-types`). Public API stays on `IDatabase` / `IUser`.
 * **Sticky KDF header** in the `.pku`. Reopen always uses the parameters stored in the file. There is no automatic upgrade to `DefaultSlowHashParameters` on save today. That header is the hook for a future work-factor or algorithm migration. See [[Vault Format]].
 * **Deferred ZIP writes** (~500 ms debounce) while logged in. Pre-login audit events (open, failed login) still write immediately so the trail survives a crash before the session starts.
-* **Zero-dependency Core, Utils, and Interfaces.** An MSBuild target fails the build if a third-party `PackageReference` appears. Supply-chain surface is the .NET BCL plus CI (CodeQL on GitHub runners). See [[Contributing]].
+* **Zero-dependency Core, Utils, Interfaces, and WPF.** An MSBuild target fails the build if a third-party `PackageReference` appears. Supply-chain surface is the .NET BCL plus CI (CodeQL on GitHub runners). See [[Contributing]].

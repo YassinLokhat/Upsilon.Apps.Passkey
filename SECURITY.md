@@ -416,7 +416,7 @@ These are conscious trade-offs, documented for transparency:
 - **Password stretching algorithm**: the project uses PBKDF2 rather than a
   memory-hard KDF such as Argon2id, because Argon2 is not part of the .NET base
   class library and the project maintains a zero-external-dependency policy for
-  Core, Utils, and Interfaces. To compensate, it uses PBKDF2-HMAC-SHA-512 (more hostile to
+  Core, Utils, Interfaces, and the WPF GUI. To compensate, it uses PBKDF2-HMAC-SHA-512 (more hostile to
   GPU/ASIC parallelism than SHA-256) with 1,000,000 iterations. The sticky KDF
   header (see "Crypto-agility") keeps the door open to adopting a memory-hard
   KDF later, pluggably, should the policy ever be relaxed.

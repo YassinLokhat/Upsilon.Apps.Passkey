@@ -175,7 +175,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
       // a second scrub while one is still enumerating history.
       private int _clipboardScrubRunning;
 
-      // Secrets actually placed on the clipboard this session (not the full vault).
       private readonly List<string> _recentClipboardSecrets = [];
       private readonly Lock _recentClipboardSecretsGate = new();
 
@@ -226,8 +225,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
                if (_clipboardLeftTime == 0)
                {
-                  // Scrub only secrets that were actually copied — not every
-                  // stored password (avoids a periodic full-vault Reveal).
                   lock (_recentClipboardSecretsGate)
                   {
                      clipboardScrubList = [.. _recentClipboardSecrets];

@@ -24,7 +24,8 @@ IDatabase database = await Database.CreateAsync(
 
 IUser user = database.User!;
 
-string alphabet = passwords.Alphabetic + passwords.Numeric + passwords.SpecialChars;
+string alphabet = passwords.UpperAlphabetic + passwords.LowerAlphabetic
+   + passwords.Numeric + passwords.SpecialChars;
 string secret = await passwords.GeneratePasswordAsync(24, alphabet, checkIfLeaked: true);
 if (string.IsNullOrEmpty(secret))
 {

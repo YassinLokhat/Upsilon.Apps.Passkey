@@ -67,13 +67,13 @@ Forged `.pku` / import files are local but untrusted. `ResourceBudgets` enforces
 | Activity entries decrypted at login | 100,000 |
 | Import JSON/CSV file size | 64 MiB |
 
-GZip decompression uses a bounded copy; oversize or unexpected layout raises `CorruptedSourceException` (or `ImportFileTooLarge` for imports).
+GZip decompression uses a bounded copy; oversize or unexpected vault layout raises `CorruptedSourceException`. Plaintext import files above the size cap return `ImportExportError.ImportFileTooLarge` (not an exception).
 
 ## Atomic writes and locking
 
 * File access is serialized through a re-entrant lock (`FileLocker`) so a save cannot collide with the session-timeout timer.
 * Each entry update builds a complete replacement archive in memory, writes it to a sibling temp file (flushed with write-through), then `File.Move(overwrite)` swaps it onto the `.pku` path. Readers see either the previous intact archive or the new one — never a torn `ZipArchiveMode.Update` rewrite, and never trailing garbage when the archive shrinks. If the move still fails after retries, Save fails and the complete `.tmp` sibling is kept for recovery (no in-place rewrite of the live `.pku`).
-* The session handle is released only for that replace and reacquired immediately afterwards. Outside that window the handle stays open with `FileShare.Read | FileShare.Delete`: other processes may read the file, but not write it. A sibling `<vault>.pku.lock` (`FileShare.None`) enforces the single-writer rule on Linux as well. `Delete` is required so the atomic `File.Replace` / move can swap the sibling temp file into place.
+* The session handle is released only for that replace and reacquired immediately afterwards. Outside that window the handle stays open with `FileShare.Read | FileShare.Delete`: other processes may read the file, but not write it. A sibling `<vault>.pku.lock` (`FileShare.None`) enforces the single-writer rule on Linux as well. `Delete` is required so the atomic `File.Move(overwrite)` can swap the sibling temp file into place.
 
 ### Deferred persistence
 

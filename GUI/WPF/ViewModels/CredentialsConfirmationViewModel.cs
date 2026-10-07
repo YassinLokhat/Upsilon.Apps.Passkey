@@ -4,7 +4,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
    /// <summary>
-   /// Progressive credential re-entry for create / update / delete / export.
+   /// Progressive credential re-entry for create / update / delete / open User Settings.
    /// Mistakes intentionally poison the in-dialog sequence until Escape resets it
    /// (same no-rollback rule as progressive login — not a UX defect).
    /// </summary>
@@ -15,9 +15,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       private int _acceptedCount;
 
       /// <summary>
-      /// Set on the first mismatched factor. Deliberate: further correct factors
-      /// cannot recover until <see cref="ClearCredentials"/> (Escape), mirroring
-      /// progressive login's no-rollback onion stack.
+      /// Set on the first mismatched factor until <see cref="ClearCredentials"/> (Escape).
       /// </summary>
       private bool _poisoned;
 
@@ -52,8 +50,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       }
 
       /// <summary>
-      /// Clears the poison flag and accepted count so the user can restart the
-      /// full sequence. Bound to Escape in the view — not a cancel of the dialog.
+      /// Clears poison and accepted count so the sequence can restart (Escape — not dialog cancel).
       /// </summary>
       public void ClearCredentials()
       {
@@ -78,11 +75,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       }
 
       /// <summary>
-      /// Accepts the next typed factor against the expected sequence.
-      /// A mismatch intentionally poisons the dialog until
-      /// <see cref="ClearCredentials"/> (Escape); later correct factors cannot
-      /// recover it. Same progressive no-rollback rule as login — not a bug.
-      /// Typed factors are not retained — only the accepted count / poison flag.
+      /// Accepts the next typed factor. A mismatch poisons until Escape; typed factors are not retained.
       /// </summary>
       public bool ValidateCredentials(string credential)
       {
@@ -97,7 +90,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          if (index >= expected.Length
             || !string.Equals(credential, expected[index], StringComparison.Ordinal))
          {
-            // Intentional poison (login parity): do not pop or retry this step quietly.
             _poisoned = true;
             IsAwaitingPasskeys = true;
             return false;

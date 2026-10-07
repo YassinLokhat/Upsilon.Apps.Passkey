@@ -40,7 +40,7 @@ Non-security bugs: public [GitHub issues](https://github.com/YassinLokhat/Upsilo
 
 ## Supply chain
 
-All cryptography is implemented in `Utils/CryptographyCenter.cs` on the .NET BCL. **Core, Utils, and Interfaces refuse any third-party NuGet package at build time.** GitHub CodeQL scans a Release build of production projects (tests excluded) on every push (any branch) and weekly. CodeQL is not a NuGet dependency of those libraries.
+All cryptography is implemented in `Utils/CryptographyCenter.cs` on the .NET BCL. **Core, Utils, Interfaces, and the WPF GUI refuse any third-party NuGet package at build time.** GitHub CodeQL scans a Release build of production projects (tests excluded) on every push (any branch) and weekly. CodeQL is not a NuGet dependency of those libraries.
 
 All security-relevant randomness uses `System.Security.Cryptography.RandomNumberGenerator` (keys, salts, nonces, generated passwords via `GetInt32`). `System.Random` is never used for secrets.
 
@@ -71,7 +71,8 @@ Combined with the expensive PBKDF2 stretch on every attempt, an interactive gues
 ## Session protection
 
 * **Auto-logout** after `ISettings.LogoutTimeout` minutes of inactivity; the file handle is released.
-* **Clipboard cleaning** after `CleaningClipboardTimeout` seconds, including OS clipboard history via `IClipboardManager`. Paste hotkeys use the same path.
+* **Clipboard cleaning** after `CleaningClipboardTimeout` seconds, including OS clipboard history via `IClipboardManager`. History scrub targets only secrets registered through `IUser.RememberClipboardSecret` (WPF records auto-cleared copies); it does not reveal every stored password on each tick. Paste hotkeys use the same clipboard path.
+* **Service URL storage (Core)**: absolute URIs that are not `http`/`https` are refused (`ServiceUrlHelper`). Relative values may still be stored while typing; shell open re-validates.
 * **Credential confirmation (WPF)**: create vault, or save a username/passkey change, asks the user to re-type credentials (`CredentialsConfirmationView`). Updates that change credentials require **old then new**. Vault **Delete** and opening **User Settings** require **old** credentials. **Export** does **not** re-prompt for credentials (they were already confirmed to open User Settings) but shows an explicit **plaintext warning** before writing JSON/CSV. Progressive entry **without rollback**, deliberately matching login: a mistype **intentionally poisons** the in-dialog sequence until Escape (not a dialog bug). Closing the dialog cancels the action. Passkey input uses `SecurePassword` / `UseAsString` like login. Host-side intentionality / anti-mistype — not a crypto step-up; Core still allows writing `IUser.Username` / `IUser.Passkeys` without it. Details: [[WPF Client]].
 
 ## Password hygiene
@@ -88,8 +89,8 @@ These are conscious trade-offs:
 
 * **Secrets in managed memory.** `Reveal()` still returns a .NET `string`, which is immutable and cannot be reliably zeroed before GC. An attacker who can read process memory or the OS swap file while the database is unlocked — especially during display, clipboard copy, QR encoding, or a save — may recover secrets. Consistent with "compromised host" out of scope.
 * **On-screen QR codes.** The secret is on the display until the window closes or `ShowPasswordDelay` elapses.
-* **PBKDF2 rather than Argon2id.** Argon2 is not in the BCL; Core, Utils, and Interfaces stay zero-dependency. Compensation: PBKDF2-HMAC-SHA-512 with 1,000,000 iterations. The sticky KDF header keeps the door open to a memory-hard KDF later if the policy is ever relaxed.
-* **Import/export files** are plaintext by design for interoperability.
+* **PBKDF2 rather than Argon2id.** Argon2 is not in the BCL; Core, Utils, Interfaces, and WPF stay zero-dependency. Compensation: PBKDF2-HMAC-SHA-512 with 1,000,000 iterations. The sticky KDF header keeps the door open to a memory-hard KDF later if the policy is ever relaxed.
+* **Import/export files** are plaintext by design for interoperability. JSON import **refuses** settings that would set `LogoutTimeout`, `CleaningClipboardTimeout`, or `ShowPasswordDelay` to `0` (`ImportExportError.SecurityTimeoutsDisabled`); those controls may still be disabled deliberately in the UI.
 * **Leak check fails open** when both remotes are unreachable **and** no offline Bloom filter is attached (absent or disabled via `LeakFilterConfig`). Residual risk without a local filter: a prolonged outage of *both* providers while a breached password stays unmarked. The two remote corpora are not identical, so a password known only to the provider that is down may be missed. When a filter *is* attached, Bloom hits may include ~1 % false positives.
 * **Leak API response authenticity.** Successful HTTP 200 bodies are not authenticated beyond TLS. Empty HIBP ranges are not cached (fall through); a full Bloom build with zero hashes is refused. Residual MITM risk for forged non-empty "clean" answers remains (documented in repository `SECURITY.md`).
 * **Unsigned offline Bloom (`.pkbf`).** Format checks only — no HMAC/signature. Local file replacement can induce false negatives; overlaps host compromise.

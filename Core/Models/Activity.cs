@@ -149,8 +149,9 @@ namespace Upsilon.Apps.Passkey.Core.Models
       }
 
       /// <summary>
-      /// Persistence wire format: ticks|itemId|username|serviceName|accountName|fieldName|fieldValue|parentName|eventType|needsReview with
-      /// <c>|</c> escaped as <c>\|</c> inside data. Numeric <see cref="EventType"/>
+      /// Persistence wire format:
+      /// ticks|itemId|username|serviceName|accountName|eventType|needsReview|parentName|fieldName|fieldValue
+      /// with <c>|</c> escaped as <c>\|</c> inside data. Numeric <see cref="EventType"/>
       /// values are a contract — do not renumber the enum.
       /// </summary>
       public override string ToString()

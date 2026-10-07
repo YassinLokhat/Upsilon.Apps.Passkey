@@ -18,7 +18,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
       IDatabase IItem.Database => Host.AsDatabase;
 
       IUser IService.User => Host.Touch(User);
-      //IEnumerable<IAccount> IService.Accounts => [.. Host.Touch(Accounts)];
+
       IEnumerable<IAccount> IService.Accounts
       {
          get => Host.Touch(Accounts);
@@ -75,7 +75,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: false,
             oldValue: Notes,
             newValue: value,
-            // Same as Password: audit the field change without storing freeform content.
             readableValue: string.Empty);
       }
 
