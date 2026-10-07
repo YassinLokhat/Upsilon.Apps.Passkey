@@ -39,3 +39,5 @@ build
 .tools/
 # Local package / client publish output (scripts/Sync-Versions.ps1)
 _artifacts/
+# Encrypted vaults (generate fixtures in tests; do not commit sample .pku files)
+*.pku
