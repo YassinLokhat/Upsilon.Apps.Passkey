@@ -332,7 +332,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
          using Process process = new()
          {
-            StartInfo = new ProcessStartInfo(uri.AbsoluteUri)
+            StartInfo = new ProcessStartInfo(uri!.AbsoluteUri)
             {
                UseShellExecute = true,
             },

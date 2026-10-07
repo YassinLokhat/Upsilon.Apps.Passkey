@@ -2,6 +2,7 @@ using FluentAssertions;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
 {
@@ -16,11 +17,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
          try
          {
             using FileLocker locker = _createLocker(path, FileMode.CreateNew);
-            locker.Save(new Payload { Value = "hello" }, "entry");
+            locker.Save(new Payload { Value = "hello" }, "header");
 
-            Payload loaded = locker.Open<Payload>("entry");
+            Payload loaded = locker.Open<Payload>("header");
             _ = loaded.Value.Should().Be("hello");
-            _ = locker.Exists("entry").Should().BeTrue();
+            _ = locker.Exists("header").Should().BeTrue();
          }
          finally
          {
@@ -39,11 +40,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
             using (FileLocker locker = _createLocker(path, FileMode.CreateNew))
             {
                // Random bytes compress poorly, so the on-disk archive actually grows.
-               locker.Save(new Payload { Value = Convert.ToBase64String(RandomNumberGenerator.GetBytes(24_000)) }, "entry");
+               locker.Save(new Payload { Value = Convert.ToBase64String(RandomNumberGenerator.GetBytes(24_000)) }, "header");
                largeSize = new FileInfo(path).Length;
                _ = largeSize.Should().BeGreaterThan(8_000);
 
-               locker.Save(new Payload { Value = "x" }, "entry");
+               locker.Save(new Payload { Value = "x" }, "header");
             }
 
             long smallSize = new FileInfo(path).Length;
@@ -54,11 +55,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
             // on-disk length must match a freshly built archive of the small payload.
             using (ZipArchive archive = ZipFile.OpenRead(path))
             {
-               _ = archive.Entries.Should().ContainSingle(e => e.FullName == "entry");
+               _ = archive.Entries.Should().ContainSingle(e => e.FullName == "header");
             }
 
             using FileLocker verify = _createLocker(path, FileMode.Open);
-            Payload loaded = verify.Open<Payload>("entry");
+            Payload loaded = verify.Open<Payload>("header");
             _ = loaded.Value.Should().Be("x");
          }
          finally
@@ -75,12 +76,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
          try
          {
             using FileLocker locker = _createLocker(path, FileMode.CreateNew);
-            locker.Save(new Payload { Value = "one" }, "a");
-            locker.Save(new Payload { Value = "two" }, "b");
-            locker.Save(new Payload { Value = "ONE" }, "a");
+            locker.Save(new Payload { Value = "one" }, "header");
+            locker.Save(new Payload { Value = "two" }, "database");
+            locker.Save(new Payload { Value = "ONE" }, "header");
 
-            _ = locker.Open<Payload>("a").Value.Should().Be("ONE");
-            _ = locker.Open<Payload>("b").Value.Should().Be("two");
+            _ = locker.Open<Payload>("header").Value.Should().Be("ONE");
+            _ = locker.Open<Payload>("database").Value.Should().Be("two");
          }
          finally
          {
@@ -96,13 +97,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
          try
          {
             using FileLocker locker = _createLocker(path, FileMode.CreateNew);
-            locker.Save(new Payload { Value = "keep" }, "keep");
-            locker.Save(new Payload { Value = "drop" }, "drop");
+            locker.Save(new Payload { Value = "header" }, "header");
+            locker.Save(new Payload { Value = "autosave" }, "autosave");
 
-            locker.Delete("drop");
+            locker.Delete("autosave");
 
-            _ = locker.Exists("drop").Should().BeFalse();
-            _ = locker.Open<Payload>("keep").Value.Should().Be("keep");
+            _ = locker.Exists("autosave").Should().BeFalse();
+            _ = locker.Open<Payload>("header").Value.Should().Be("header");
          }
          finally
          {
@@ -118,7 +119,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
          try
          {
             using FileLocker locker = _createLocker(path, FileMode.CreateNew);
-            locker.Save(new Payload { Value = "held" }, "entry");
+            locker.Save(new Payload { Value = "held" }, "header");
 
             // Product contract: a second session cannot open the same vault for
             // writing (sibling .pku.lock with FileShare.None — required on Linux
@@ -145,9 +146,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
          try
          {
             using FileLocker locker = _createLocker(path, FileMode.CreateNew);
-            locker.Save(new Payload { Value = "secret" }, "vault", passkeys);
+            locker.Save(new Payload { Value = "secret" }, "database", passkeys);
 
-            Payload loaded = locker.Open<Payload>("vault", passkeys);
+            Payload loaded = locker.Open<Payload>("database", passkeys);
             _ = loaded.Value.Should().Be("secret");
          }
          finally
@@ -165,8 +166,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
          try
          {
             using FileLocker locker = _createLocker(path, FileMode.CreateNew);
-            locker.Save(new Payload { Value = "clean" }, "entry");
-            locker.Save(new Payload { Value = "cleaner" }, "entry");
+            locker.Save(new Payload { Value = "clean" }, "header");
+            locker.Save(new Payload { Value = "cleaner" }, "header");
 
             string[] leftovers = Directory.GetFiles(directory, "*.tmp");
             _ = leftovers.Should().BeEmpty();
@@ -188,13 +189,92 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
 
             for (int i = 0; i < 40; i++)
             {
-               locker.Save(new Payload { Value = $"v{i}" }, "entry");
-               locker.Save(new Payload { Value = $"side-{i}" }, "side");
+               locker.Save(new Payload { Value = $"v{i}" }, "header");
+               locker.Save(new Payload { Value = $"act-{i}" }, "activity");
             }
 
-            _ = locker.Open<Payload>("entry").Value.Should().Be("v39");
-            _ = locker.Open<Payload>("side").Value.Should().Be("side-39");
+            _ = locker.Open<Payload>("header").Value.Should().Be("v39");
+            _ = locker.Open<Payload>("activity").Value.Should().Be("act-39");
             _ = Directory.GetFiles(Path.GetDirectoryName(path)!, "*.tmp").Should().BeEmpty();
+         }
+         finally
+         {
+            _cleanup(path);
+         }
+      }
+
+      [TestMethod]
+      public void Case09_DisallowedEntryName_IsRejectedOnSave()
+      {
+         string path = _preparePath();
+
+         try
+         {
+            using FileLocker locker = _createLocker(path, FileMode.CreateNew);
+            Action save = () => locker.Save(new Payload { Value = "x" }, "evil");
+            _ = save.Should().Throw<ArgumentException>();
+         }
+         finally
+         {
+            _cleanup(path);
+         }
+      }
+
+      [TestMethod]
+      public void Case10_GzipBombEntry_ThrowsCorruptedSource()
+      {
+         string path = _preparePath();
+
+         try
+         {
+            // Highly compressible payload: small on disk, huge when inflated past the ceiling.
+            byte[] zeros = new byte[ResourceBudgets.MaxEntryDecodedBytes + 1];
+            string bomb;
+            using (MemoryStream raw = new(zeros))
+            using (MemoryStream compressed = new())
+            {
+               using (GZipStream gzip = new(compressed, CompressionLevel.SmallestSize, leaveOpen: true))
+               {
+                  raw.CopyTo(gzip);
+               }
+
+               bomb = Convert.ToBase64String(compressed.ToArray());
+            }
+
+            using (ZipArchive archive = ZipFile.Open(path, ZipArchiveMode.Create))
+            {
+               ZipArchiveEntry entry = archive.CreateEntry("header");
+               using StreamWriter writer = new(entry.Open());
+               writer.Write(bomb);
+            }
+
+            using FileLocker locker = _createLocker(path, FileMode.Open);
+            Action open = () => locker.Open<Payload>("header");
+            _ = open.Should().Throw<CorruptedSourceException>();
+         }
+         finally
+         {
+            _cleanup(path);
+         }
+      }
+
+      [TestMethod]
+      public void Case11_UnexpectedZipEntry_ThrowsCorruptedSource()
+      {
+         string path = _preparePath();
+
+         try
+         {
+            using (ZipArchive archive = ZipFile.Open(path, ZipArchiveMode.Create))
+            {
+               ZipArchiveEntry entry = archive.CreateEntry("not-a-vault-entry");
+               using StreamWriter writer = new(entry.Open());
+               writer.Write("x");
+            }
+
+            using FileLocker locker = _createLocker(path, FileMode.Open);
+            Action open = () => locker.Open<Payload>("header");
+            _ = open.Should().Throw<CorruptedSourceException>();
          }
          finally
          {

@@ -5,10 +5,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
    /// <c>http</c>/<c>https</c> only. Rejects <c>file:</c>, UNC, relative, and
    /// custom schemes (CWE-939 / untrusted ShellExecute).
    /// </summary>
-   internal static class ServiceUrlHelper
+   public static class ServiceUrlHelper
    {
       /// <summary>How a stored URL should be handled before <c>Process.Start</c>.</summary>
-      internal enum OpenDisposition
+      public enum OpenDisposition
       {
          /// <summary>Empty, malformed, or disallowed scheme — do not open.</summary>
          Rejected,
@@ -24,7 +24,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       /// Parses an absolute http(s) URI for storage/import. Empty/whitespace
       /// yields <see langword="null"/> and returns <see langword="true"/>.
       /// </summary>
-      internal static bool TryCreateAllowedUri(string? value, out Uri? uri)
+      public static bool TryCreateAllowedUri(string? value, out Uri? uri)
       {
          uri = null;
 
@@ -47,7 +47,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       /// Classifies a URL for shell open: HTTPS opens directly, HTTP needs
       /// confirmation, anything else is rejected.
       /// </summary>
-      internal static OpenDisposition ClassifyForOpen(string? value)
+      public static OpenDisposition ClassifyForOpen(string? value)
       {
          if (!TryCreateAllowedUri(value, out Uri? uri) || uri is null)
          {
@@ -63,8 +63,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       /// Returns <see langword="true"/> when <paramref name="uri"/> is absolute
       /// http or https (case-insensitive scheme).
       /// </summary>
-      internal static bool IsAllowedScheme(Uri uri)
-         => uri.IsAbsoluteUri && _isAllowedScheme(uri);
+      public static bool IsAllowedScheme(Uri uri)
+      {
+         ArgumentNullException.ThrowIfNull(uri);
+         return uri.IsAbsoluteUri && _isAllowedScheme(uri);
+      }
 
       private static bool _isAllowedScheme(Uri uri)
          => uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)

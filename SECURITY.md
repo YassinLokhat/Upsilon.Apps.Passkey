@@ -176,7 +176,12 @@ login:
 ### Storage format (`.pku`)
 
 - A `.pku` file is a **ZIP archive** containing four entries: `header`,
-  `database`, `autosave`, and `activity`.
+  `database`, `autosave`, and `activity`. Unexpected entry names, more than
+  four entries, archives larger than **64 MiB**, or per-entry stored/decoded
+  payloads above **64 MiB** are refused (`CorruptedSourceException`) so a
+  forged file cannot zip-bomb the process. Activity decrypt also caps at
+  **100,000** entries. Plaintext import files are similarly capped at **64 MiB**
+  (`ImportFileTooLarge`).
 - The `header` entry holds the sticky `KdfParameters` (algorithm, iterations,
   output length, salt). It is not passkey-encrypted — only the shared
   JSON → GZip → Base64 pipeline applies — because those values must be readable

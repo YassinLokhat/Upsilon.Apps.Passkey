@@ -120,3 +120,5 @@ Core records failures as `ImportingDataFailed` / `ExportingDataFailed` activitie
 | Export destination already exists | `ExportFileAlreadyExists` | export file already exists |
 
 URL handling on import: a service URL is kept only if it is an **absolute `http` or `https`** URI (`ServiceUrlHelper`); otherwise `Url` is `null`. Relative paths, `file:`, UNC, and custom schemes are dropped. The WPF client uses the same allowlist when opening a URL in the browser (`https` direct; `http` after confirmation).
+
+Import files larger than **64 MiB** are refused with `ImportFileTooLarge` before the content is loaded into memory.

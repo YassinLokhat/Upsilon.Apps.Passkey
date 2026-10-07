@@ -356,6 +356,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string EnumValue_Theme_Dark => Get(nameof(EnumValue_Theme_Dark));
       public static string EnumValue_ImportExportError_None => Get(nameof(EnumValue_ImportExportError_None));
       public static string EnumValue_ImportExportError_ImportFileNotAccessible => Get(nameof(EnumValue_ImportExportError_ImportFileNotAccessible));
+      public static string EnumValue_ImportExportError_ImportFileTooLarge => Get(nameof(EnumValue_ImportExportError_ImportFileTooLarge));
       public static string EnumValue_ImportExportError_ExtensionFileNotSupported => Get(nameof(EnumValue_ImportExportError_ExtensionFileNotSupported));
       public static string EnumValue_ImportExportError_CSVHeadersDontMatch => Get(nameof(EnumValue_ImportExportError_CSVHeadersDontMatch));
       public static string EnumValue_ImportExportError_IncorrectCSVFormat => Get(nameof(EnumValue_ImportExportError_IncorrectCSVFormat));

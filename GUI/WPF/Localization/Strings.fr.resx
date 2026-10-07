@@ -1057,6 +1057,9 @@ L'ouvrir peut exposer la requête sur le réseau. Ouvrir quand même ?</value>
   <data name="EnumValue_ImportExportError_ImportFileNotAccessible" xml:space="preserve">
     <value>le fichier d'import n'est pas accessible</value>
   </data>
+  <data name="EnumValue_ImportExportError_ImportFileTooLarge" xml:space="preserve">
+    <value>le fichier d'import dépasse la taille maximale autorisée</value>
+  </data>
   <data name="EnumValue_ImportExportError_ExtensionFileNotSupported" xml:space="preserve">
     <value>le type d'extention de fichier n'est pas supporté</value>
   </data>

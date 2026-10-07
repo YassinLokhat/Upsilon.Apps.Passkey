@@ -55,6 +55,20 @@ Lowering iterations in an *existing* file's header does not weaken already encry
 
 Key pairs are **RSA-4096**, exported as PEM. The audit log uses a **hybrid** scheme: a random one-time AES key encrypts each record symmetrically, and that key is wrapped with **RSA-OAEP-SHA256**. Entries can be written even when the full symmetric passkey set is not available (for example a failed login). Integrity of that log is a separate story — see [[Alerts and Activity]] and [[Security]].
 
+## Resource budgets (untrusted input)
+
+Forged `.pku` / import files are local but untrusted. `ResourceBudgets` enforces:
+
+| Limit | Value |
+| ----- | ----- |
+| Archive size | 64 MiB |
+| Per-entry stored / decoded size | 64 MiB each |
+| ZIP entry count / names | at most 4; only `header`, `database`, `autosave`, `activity` |
+| Activity entries decrypted at login | 100,000 |
+| Import JSON/CSV file size | 64 MiB |
+
+GZip decompression uses a bounded copy; oversize or unexpected layout raises `CorruptedSourceException` (or `ImportFileTooLarge` for imports).
+
 ## Atomic writes and locking
 
 * File access is serialized through a re-entrant lock (`FileLocker`) so a save cannot collide with the session-timeout timer.

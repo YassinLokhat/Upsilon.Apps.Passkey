@@ -1057,6 +1057,9 @@ Opening it may expose the request on the network. Open anyway?</value>
   <data name="EnumValue_ImportExportError_ImportFileNotAccessible" xml:space="preserve">
     <value>import file is not accessible</value>
   </data>
+  <data name="EnumValue_ImportExportError_ImportFileTooLarge" xml:space="preserve">
+    <value>import file exceeds the maximum allowed size</value>
+  </data>
   <data name="EnumValue_ImportExportError_ExtensionFileNotSupported" xml:space="preserve">
     <value>file extension type is not supported</value>
   </data>

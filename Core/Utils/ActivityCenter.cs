@@ -196,6 +196,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             encryptedSnapshot = [.. ActivityList];
          }
 
+         if (encryptedSnapshot.Length > ResourceBudgets.MaxActivityEntries)
+         {
+            throw new CorruptedSourceException(
+               $"Activity log has {encryptedSnapshot.Length} entries; at most {ResourceBudgets.MaxActivityEntries} are allowed.");
+         }
+
          // Preserve ActivityList order (newest-first). AsOrdered keeps that
          // sequence across parallel decrypts; sorting by DateTime alone was
          // unstable when several entries shared the same tick.

@@ -198,8 +198,60 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       private ZipArchive _openArchive(ZipArchiveMode mode)
       {
+         _ensureArchiveSizeWithinBudget();
          _stream2.Position = 0;
-         return new ZipArchive(_stream2, mode, leaveOpen: true, Encoding.UTF8);
+         ZipArchive archive = new(_stream2, mode, leaveOpen: true, Encoding.UTF8);
+         if (mode == ZipArchiveMode.Read
+            && _stream2.Length > 0)
+         {
+            _ensureZipEntriesWithinBudget(archive);
+         }
+
+         return archive;
+      }
+
+      private void _ensureArchiveSizeWithinBudget()
+      {
+         if (_stream2.Length > ResourceBudgets.MaxArchiveBytes)
+         {
+            throw new CorruptedSourceException(
+               $"Vault archive exceeds the maximum of {ResourceBudgets.MaxArchiveBytes} bytes.");
+         }
+      }
+
+      private static void _ensureZipEntriesWithinBudget(ZipArchive archive)
+      {
+         if (archive.Entries.Count > ResourceBudgets.MaxZipEntries)
+         {
+            throw new CorruptedSourceException(
+               $"Vault archive has {archive.Entries.Count} entries; at most {ResourceBudgets.MaxZipEntries} are allowed.");
+         }
+
+         foreach (ZipArchiveEntry entry in archive.Entries)
+         {
+            if (!ResourceBudgets.IsAllowedZipEntryName(entry.FullName))
+            {
+               throw new CorruptedSourceException(
+                  $"Vault archive contains unexpected entry '{entry.FullName}'.");
+            }
+
+            if (entry.CompressedLength > ResourceBudgets.MaxEntryStoredBytes
+               || entry.Length > ResourceBudgets.MaxEntryStoredBytes)
+            {
+               throw new CorruptedSourceException(
+                  $"Vault entry '{entry.FullName}' exceeds the maximum stored size.");
+            }
+         }
+      }
+
+      private static void _ensureAllowedEntryName(string fileEntry)
+      {
+         if (!ResourceBudgets.IsAllowedZipEntryName(fileEntry))
+         {
+            throw new ArgumentException(
+               $"ZIP entry name '{fileEntry}' is not an allowed vault entry.",
+               nameof(fileEntry));
+         }
       }
 
       private bool _entryExists(string fileEntry)
@@ -234,6 +286,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             or FormatException
             or ObjectDisposedException
             or IOException
+            or InvalidDataException
             or DecoderFallbackException)
          {
             throw new CorruptedSourceException("Compressed payload could not be decoded.", ex);
@@ -244,27 +297,46 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // keyed reads need to distinguish "onion not finished yet" from corruption.
       private static string _decompressStringCore(string compressedText)
       {
+         if (compressedText.Length > ResourceBudgets.MaxEntryStoredBytes)
+         {
+            throw new InvalidDataException(
+               $"Compressed payload exceeds the maximum of {ResourceBudgets.MaxEntryStoredBytes} bytes.");
+         }
+
          byte[] bytes = Convert.FromBase64String(compressedText);
+         if (bytes.LongLength > ResourceBudgets.MaxEntryStoredBytes)
+         {
+            throw new InvalidDataException(
+               $"Decoded payload exceeds the maximum of {ResourceBudgets.MaxEntryStoredBytes} bytes.");
+         }
+
          using MemoryStream msi = new(bytes);
          using MemoryStream mso = new();
-         using (GZipStream gs = new(msi, CompressionMode.Decompress))
+         try
          {
-            gs.CopyTo(mso);
+            using GZipStream gs = new(msi, CompressionMode.Decompress);
+            ResourceBudgets.CopyBounded(gs, mso, ResourceBudgets.MaxEntryDecodedBytes);
          }
+         catch (InvalidDataException ex) when (ex.Message.Contains("exceeds the maximum", StringComparison.Ordinal))
+         {
+            // Size ceiling from CopyBounded — not a progressive-login soft miss.
+            throw new CorruptedSourceException("Decompressed payload exceeds size limits.", ex);
+         }
+
          return Encoding.UTF8.GetString(mso.ToArray());
       }
 
       private string _readContent(string fileEntry, string[] passkeys)
       {
+         _ensureAllowedEntryName(fileEntry);
+
          using ZipArchive archive = _openArchive(ZipArchiveMode.Read);
 
          ZipArchiveEntry zipEntry = archive.GetEntry(fileEntry)
             ?? throw new FileNotFoundException($"The file entry '{fileEntry}' not found in the archive {FilePath}.", $"{FilePath}/{fileEntry}");
 
          using Stream stream = zipEntry.Open();
-         using StreamReader reader = new(stream, Encoding.UTF8);
-
-         string content = reader.ReadToEnd();
+         string content = ResourceBudgets.ReadUtf8Bounded(stream, ResourceBudgets.MaxEntryStoredBytes);
 
          // Inverse of write: decrypt (when keyed) then decompress. Compression
          // runs on plaintext so GZip actually shrinks JSON; ciphertext would not.
@@ -287,18 +359,23 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             or FormatException
             or ObjectDisposedException
             or IOException
+            or InvalidDataException
             or DecoderFallbackException)
          {
             // Layers peeled cleanly but the payload is not valid gzip yet: either
             // more passkeys are required (progressive login) or the inner bytes
             // are junk. Login treats this as a soft miss; outer AEAD failures
             // already surfaced as CorruptedSourceException / WrongPasswordException.
+            // Oversized decoded payloads throw CorruptedSourceException from
+            // _decompressStringCore and are not converted here.
             throw new IncompleteOnionException("Decrypted payload is not a finished vault entry yet.", ex);
          }
       }
 
       private void _writeContent(string content, string fileEntry, string[] passkeys)
       {
+         _ensureAllowedEntryName(fileEntry);
+
          // Compress-then-encrypt: GZip the JSON first, then (optionally) wrap
          // the compressed payload in the symmetric onion. Encrypting first
          // would leave GZip with high-entropy input and almost no size gain.
@@ -312,6 +389,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          // leave trailing garbage when the archive shrinks, and a crash mid-
          // rewrite can leave a half-updated .pku with no intact predecessor.
          byte[] updated = _buildArchive(fileEntry, payload);
+         if (updated.LongLength > ResourceBudgets.MaxArchiveBytes)
+         {
+            throw new CorruptedSourceException(
+               $"Vault archive would exceed the maximum of {ResourceBudgets.MaxArchiveBytes} bytes.");
+         }
+
          _commitArchiveAtomically(updated);
       }
 
@@ -343,10 +426,16 @@ namespace Upsilon.Apps.Passkey.Core.Utils
                      continue;
                   }
 
+                  if (!ResourceBudgets.IsAllowedZipEntryName(entry.FullName))
+                  {
+                     throw new CorruptedSourceException(
+                        $"Vault archive contains unexpected entry '{entry.FullName}'.");
+                  }
+
                   ZipArchiveEntry copy = outArchive.CreateEntry(entry.FullName);
                   using Stream source = entry.Open();
                   using Stream destination = copy.Open();
-                  source.CopyTo(destination);
+                  ResourceBudgets.CopyBounded(source, destination, ResourceBudgets.MaxEntryStoredBytes);
                }
             }
 
