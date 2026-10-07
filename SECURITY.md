@@ -80,8 +80,8 @@ What to expect:
 
 All cryptography is implemented in `Utils/CryptographyCenter.cs` on top of
 `System.Security.Cryptography` (the .NET BCL). **The project has a strict
-zero-external-dependency policy for the `Core`, `Utils`, and `Interfaces`
-libraries**: no third-party cryptographic package is used, which keeps the
+zero-external-dependency policy for the `Core`, `Utils`, `Interfaces`, and
+WPF GUI projects**: no third-party cryptographic package is used, which keeps the
 security-critical supply-chain attack surface minimal.
 
 ### Master passkeys (multi-factor "onion")
