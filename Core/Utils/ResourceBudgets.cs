@@ -51,12 +51,17 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       /// <summary>
       /// Reads a stream into a UTF-8 string with a hard byte ceiling.
+      /// Uses <see cref="StreamReader"/> so a leading UTF-8 BOM (written by
+      /// <c>Encoding.UTF8</c> <see cref="StreamWriter"/>) is stripped — raw
+      /// <c>GetString</c> would leave U+FEFF and break Base64 payloads.
       /// </summary>
       internal static string ReadUtf8Bounded(Stream input, long limit)
       {
          using MemoryStream buffer = new();
          CopyBounded(input, buffer, limit);
-         return Encoding.UTF8.GetString(buffer.ToArray());
+         buffer.Position = 0;
+         using StreamReader reader = new(buffer, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true);
+         return reader.ReadToEnd();
       }
    }
 }

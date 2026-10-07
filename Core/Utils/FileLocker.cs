@@ -449,11 +449,13 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          return output.ToArray();
       }
 
+      private static readonly Encoding _utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
       private static void _writeZipEntry(ZipArchive archive, string fileEntry, string payload)
       {
          ZipArchiveEntry entry = archive.CreateEntry(fileEntry);
          using Stream stream = entry.Open();
-         using StreamWriter writer = new(stream, Encoding.UTF8);
+         using StreamWriter writer = new(stream, _utf8NoBom);
          writer.Write(payload);
       }
 
