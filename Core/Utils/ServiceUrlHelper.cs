@@ -1,4 +1,4 @@
-namespace Upsilon.Apps.Passkey.Core.Utils
+﻿namespace Upsilon.Apps.Passkey.Core.Utils
 {
    /// <summary>
    /// Allowlist for service URLs opened via the OS shell: absolute
@@ -49,12 +49,9 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       /// </summary>
       public static OpenDisposition ClassifyForOpen(string? value)
       {
-         if (!TryCreateAllowedUri(value, out Uri? uri) || uri is null)
-         {
-            return OpenDisposition.Rejected;
-         }
-
-         return uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+         return !TryCreateAllowedUri(value, out Uri? uri) || uri is null
+            ? OpenDisposition.Rejected
+            : uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
             ? OpenDisposition.OpenDirect
             : OpenDisposition.RequiresHttpConfirmation;
       }
