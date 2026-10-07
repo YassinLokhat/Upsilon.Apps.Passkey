@@ -240,7 +240,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
             }
          }
 
-         if (clipboardScrubList is { Count: > 0 } && clipboardManager is not null)
+         if (clipboardScrubList is { Length: > 0 } && clipboardManager is not null)
          {
             _ = _scrubClipboardHistoryAsync(clipboardManager, clipboardScrubList);
          }

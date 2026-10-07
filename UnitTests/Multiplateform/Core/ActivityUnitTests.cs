@@ -14,7 +14,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
       */
       public void Case01_SerializationRoundTrip_EscapesPipes()
       {
-         Activity original = new(0xABCDEF012345, "Aitem", "an username", "a service name", "an account name", "a|field|name", "a field value", "a parent name", ActivityEventType.ItemUpdated, needsReview: true);
+         Activity original = new(0xABCDEF012345, "Aitem", "an|username", "a|service|name", "an|account|name", "a|field|name", "a|field|value", "a|parent|name", ActivityEventType.ItemUpdated, needsReview: true);
 
          Activity restored = new(original.ToString());
 
@@ -29,7 +29,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          _ = restored.EventType.Should().Be(original.EventType);
          _ = restored.NeedsReview.Should().BeTrue();
 
-         Activity cleared = new(0xABCDEF012345, "Aitem", "an username", "a service name", "an account name", "a|field|name", "a field value", "a parent name", ActivityEventType.ItemUpdated, needsReview: false);
+         Activity cleared = new(0xABCDEF012345, "Aitem", "an|username", "a|service|name", "an|account|name", "a|field|name", "a|field|value", "a|parent|name", ActivityEventType.ItemUpdated, needsReview: false);
          Activity restoredCleared = new(cleared.ToString());
          _ = restoredCleared.NeedsReview.Should().BeFalse();
       }

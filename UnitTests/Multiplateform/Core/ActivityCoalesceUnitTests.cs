@@ -68,7 +68,9 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          _ = afterSeal.Should().HaveCount(itemUpdatedAfterSave + 1);
          _ = afterSeal.Count(x => x.FieldName == nameof(account.Notes))
             .Should().Be(notesBeforePostSealEdit + 1);
-         _ = afterSeal[0].FieldValue.Should().Be(account.Notes);
+         _ = afterSeal[0].FieldName.Should().Be(nameof(account.Notes));
+         _ = afterSeal[0].FieldValue.Should().BeEmpty();
+         _ = account.Notes.Should().Be("N123");
 
          string password1 = UnitTestsHelper.GetRandomString();
          string password2 = UnitTestsHelper.GetRandomString();
@@ -112,8 +114,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
                && x.FieldName == nameof(account.Notes))];
 
          _ = notesActivities.Should().HaveCount(notesBefore + 1);
-         _ = notesActivities[0].FieldValue.Should().Be("I'd like to test that");
-         _ = notesActivities.Should().NotContain(x => x.FieldValue == "I");
+         _ = notesActivities[0].FieldValue.Should().BeEmpty();
+         _ = account.Notes.Should().Be("I'd like to test that");
 
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
