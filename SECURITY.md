@@ -115,13 +115,16 @@ security-critical supply-chain attack surface minimal.
   header does not weaken already encrypted data (the wrong work factor simply
   yields the wrong key). What it *can* do is offer the user a **new** vault
   written under a trivial work factor. To block that, Open and every
-  `GetSlowHash` call enforce a **KDF floor** via
+  `GetSlowHash` call enforce a **KDF floor and ceiling** via
   `EnsureSufficientSlowHashParameters`: a known algorithm, iterations at least
   **600,000** (PBKDF2-HMAC-SHA-256) or **210,000** (PBKDF2-HMAC-SHA-512) — the
-  OWASP Password Storage Cheat Sheet baselines — output length ≥ 32 bytes, and a
-  Base64 salt of at least 16 bytes. Parameters below the floor raise
-  `InsufficientKdfParametersException` and the file is refused. New databases
-  still use the stronger default of 1,000,000 PBKDF2-HMAC-SHA-512 iterations.
+  OWASP Password Storage Cheat Sheet baselines — and at most **5,000,000**;
+  output length between **32** and **128** bytes inclusive; and a Base64 salt
+  of at least 16 bytes. Parameters outside that range raise
+  `InsufficientKdfParametersException` and the file is refused (the ceiling
+  blocks a forged header from demanding unbounded PBKDF2 work or allocation).
+  New databases still use the stronger default of 1,000,000 PBKDF2-HMAC-SHA-512
+  iterations.
 
 ### Symmetric encryption (data at rest)
 

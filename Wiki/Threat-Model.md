@@ -25,7 +25,8 @@ The attacker has the ZIP, not the passkeys.
 
 * They can read `header` (algorithm, iteration count, salt). That does not decrypt `database`.
 * They can read `activity` seal metadata and the RSA public key, but **not** a cleartext username from that envelope (usernames inside event payloads remain RSA-hybrid encrypted).
-* Offline guessing must pay **1,000,000 PBKDF2-HMAC-SHA-512 iterations per passkey** (or whatever the sticky header recorded, still bounded below by the KDF floor), then peel nested AES-256-GCM layers, starting from `GetHash(username)`.
+* Offline guessing must pay **1,000,000 PBKDF2-HMAC-SHA-512 iterations per passkey** (or whatever the sticky header recorded, still bounded by the KDF floor and ceiling), then peel nested AES-256-GCM layers, starting from `GetHash(username)`.
+* A forged `header` with extreme iterations or output length is refused before PBKDF2 runs (local DoS hardening).
 * Unique per-file salt prevents rainbow tables across vaults even when usernames and passkeys are reused.
 * AEAD rejects bit flips. The public outer layer distinguishes "not a vault" from "wrong password" without giving a decryption oracle on the real payload.
 
