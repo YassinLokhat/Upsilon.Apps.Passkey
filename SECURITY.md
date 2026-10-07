@@ -223,6 +223,10 @@ login:
   infrastructure against a Release build of the production projects (unit tests
   are omitted from that compilation). Generated `bin`/`obj`/`*.g.cs` findings
   are filtered from the uploaded SARIF.
+- CI also runs `dotnet list … package --vulnerable --include-transitive` on the
+  Windows and Linux solutions after restore. Production libraries take no NuGet
+  packages; the audit covers test (and any future) package graphs and fails the
+  job when known vulnerabilities are reported.
 
 ### Randomness
 

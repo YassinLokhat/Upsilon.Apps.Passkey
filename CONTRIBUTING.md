@@ -69,6 +69,10 @@ comment). Dependabot is enabled for the `github-actions` ecosystem only
 (`.github/dependabot.yml`) so those pins can be refreshed without opening NuGet
 PRs against Core/Utils/Interfaces.
 
+Windows and Linux CI run `dotnet list <sln> package --vulnerable --include-transitive`
+after restore and fail if vulnerable packages are reported (test projects are the
+usual surface).
+
 ## Adding a UI language
 
 1. Copy `GUI/WPF/Localization/Strings.resx` → `Strings.xx.resx` and translate
