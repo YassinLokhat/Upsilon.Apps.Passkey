@@ -39,7 +39,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
 
          _ = midTyping.Should().HaveCount(itemUpdatedBeforeEdits + 2);
          _ = midTyping.Should().ContainSingle(x => x.FieldName == nameof(account.Label) && x.FieldValue == account.Label);
-         _ = midTyping.Should().ContainSingle(x => x.FieldName == nameof(account.Notes) && x.FieldValue == account.Notes);
+         _ = midTyping.Should().ContainSingle(x => x.FieldName == nameof(account.Notes) && x.FieldValue == string.Empty);
 
          account.Label = originalLabel;
 

@@ -61,7 +61,7 @@ Duplicate and password-update reminder alerts are local. Leak / passkey-leak che
 | `DateTime` | When the event was recorded |
 | `ItemId` | Related item, or empty for vault-level events |
 | `Username` / `ServiceName` / `AccountName` | Scope of the event (user, service, or account) |
-| `FieldName` / `FieldValue` | Changed field and new value, or error context (e.g. `ImportExportError` + enum member name). Never contains `ProtectedSecret` plaintext; `ToString()` on secrets is `***`. |
+| `FieldName` / `FieldValue` | Changed field and new value, or error context (e.g. `ImportExportError` + enum member name). Never contains `ProtectedSecret` plaintext (`ToString()` on secrets is `***`), and **Notes** values are omitted from `FieldValue` the same way as passwords (field name is still audited). |
 | `ParentName` | Parent item name for account-level updates |
 | `EventType` | `ActivityEventType` |
 | `NeedsReview` | Drives `ActivityReview`. Clearing it (the Activities grid checkbox) is written back into the log on the next sealed persist (Save or logout). |

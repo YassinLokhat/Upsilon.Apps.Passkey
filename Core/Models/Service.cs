@@ -60,7 +60,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
             needsReview: false,
             oldValue: Notes,
             newValue: value,
-            readableValue: value);
+            // Same as Password: audit the field change without storing freeform content.
+            readableValue: string.Empty);
       }
 
       public IAccount AddAccount(string label, IEnumerable<IIdentifier> identifiers, string password)
@@ -76,14 +77,19 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          Accounts.Add(Host.AutoSave.AddValue(ItemId, readableValue: account.ToString(), needsReview: false, account));
 
+         Dictionary<DateTime, IProtectedSecret> oldPasswords = [];
+         if (!string.IsNullOrEmpty(password))
+         {
+            account.Passwords[DateTime.Now] = Host.SecretMemoryProtector.Protect(password);
+         }
+
+         // Seed autosave with the Passwords dictionary shape (not a plaintext string).
          _ = Host.AutoSave.UpdateValue(account.ItemId,
             fieldName: nameof(account.Password),
             needsReview: true,
-            oldValue: string.Empty,
-            newValue: account.Password,
+            oldValue: oldPasswords,
+            newValue: account.Passwords,
             readableValue: string.Empty);
-
-         account.Passwords[DateTime.Now] = Host.SecretMemoryProtector.Protect(account.Password);
 
          return account;
       }
@@ -151,6 +157,7 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          // CSV/import paths often supply a current password with an empty history
          // dictionary. Seed one dated entry so PasswordExpired and retention work.
+         Dictionary<DateTime, IProtectedSecret> oldPasswords = [];
          if (account.Passwords.Count == 0
             && !string.IsNullOrEmpty(password))
          {
@@ -162,8 +169,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
          _ = Host.AutoSave.UpdateValue(account.ItemId,
             fieldName: nameof(account.Password),
             needsReview: false,
-            oldValue: string.Empty,
-            newValue: account.Password,
+            oldValue: oldPasswords,
+            newValue: account.Passwords,
             readableValue: string.Empty);
 
          return account;
