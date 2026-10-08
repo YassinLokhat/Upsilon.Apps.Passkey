@@ -1,0 +1,22 @@
+<Project>
+
+  <!--
+    Zero-dependency gate for Core / Utils / Interfaces / WPF.
+    Opt in with <EnforceZeroExternalDependencies>true</EnforceZeroExternalDependencies>.
+    See CONTRIBUTING.md.
+  -->
+  <Target Name="EnforceZeroExternalDependencies"
+          BeforeTargets="Build;Pack"
+          Condition="'$(EnforceZeroExternalDependencies)' == 'true'">
+    <!--
+      The .NET SDK injects Microsoft.NET.ILLink.Tasks as a PackageReference when
+      PublishSingleFile / trim / AOT paths run. That is toolchain, not an app dependency.
+    -->
+    <ItemGroup>
+      <_DisallowedPackageReference Include="@(PackageReference)" Exclude="Microsoft.NET.ILLink.Tasks" />
+    </ItemGroup>
+    <Error Condition="'@(_DisallowedPackageReference)' != ''"
+           Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(_DisallowedPackageReference))." />
+  </Target>
+
+</Project>

@@ -26,13 +26,14 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitT
 
 ## Zero-dependency policy (Core, Utils, Interfaces, and WPF)
 
-`Core`, `Utils`, `Interfaces`, and the WPF GUI must not take a `PackageReference`. An MSBuild target fails the build if one appears. That keeps the vault's supply-chain surface limited to the .NET BCL.
+`Core`, `Utils`, `Interfaces`, and the WPF GUI must not take a third-party `PackageReference`. Projects opt in with `<EnforceZeroExternalDependencies>true</EnforceZeroExternalDependencies>`; `Directory.Build.targets` fails the build if a disallowed package appears. That keeps the vault's supply-chain surface limited to the .NET BCL.
 
 Allowed:
 
 * In-solution `ProjectReference`s
 * Packages in `UnitTests` (MSTest, FluentAssertions 7.x)
 * GitHub Actions / CodeQL on the CI runners (not referenced by the libraries)
+* SDK toolchain packages injected by the .NET SDK during publish (today: `Microsoft.NET.ILLink.Tasks` for `PublishSingleFile` / trim / AOT), allowlisted in `Directory.Build.targets`
 
 ## Adding a UI language
 

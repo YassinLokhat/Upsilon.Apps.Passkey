@@ -6,6 +6,8 @@
     <Version>2.0.0</Version>
     <AssemblyVersion>2.0.0</AssemblyVersion>
     <FileVersion>2.0.0</FileVersion>
+    <!-- Enforced by Directory.Build.targets. See CONTRIBUTING.md. -->
+    <EnforceZeroExternalDependencies>true</EnforceZeroExternalDependencies>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -24,10 +26,5 @@
     <InternalsVisibleTo Include="UnitTests.Multiplateform" />
     <InternalsVisibleTo Include="UnitTests.Windows" />
   </ItemGroup>
-
-  <!-- Zero-dependency: fail the build if any PackageReference appears. See CONTRIBUTING.md. -->
-  <Target Name="EnforceZeroExternalDependencies" BeforeTargets="Build;Pack">
-    <Error Condition="'@(PackageReference)' != ''" Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(PackageReference))." />
-  </Target>
 
 </Project>
