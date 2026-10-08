@@ -352,7 +352,8 @@ login:
   the device. If **both** remote providers are unreachable and an offline HIBP
   Bloom filter (`.pkbf`) is enabled and present, that filter is consulted last:
   a **miss** means not leaked (no false negatives); a **hit** is treated as
-  leaked (conservative — ~1 % false positives possible). The filter file is
+  leaked (conservative — false positives possible at the filter's build-time
+  target rate; default **Balanced** ~1 %). The filter file is
   `<exe>/pwned-ntlm.pkbf` (fixed path in the WPF host — not stored in
   `config.json`); a sidecar `<filter>.pkbf.ranges` holds per-range
   ETags for incremental updates. If no offline filter is attached, the check
@@ -375,7 +376,10 @@ login:
   **application-scoped** (shared by all vaults on the machine): enabling or
   disabling it never deletes the `.pkbf`; only an explicit delete (App Settings
   or `LeakFilterConfig.TryDeleteFilterFile`) removes it, along with its
-  sidecar. `LeakFilterConfig.AutoUpdateFrequency` (WPF:
+  sidecar. Quality preset (`LeakFilterConfig.FalsePositiveRate`, WPF:
+  `LocalLeakDatabaseQuality` — `Balanced` / `Strict` / `Paranoid`) is applied
+  only on a full build or rebuild; incremental updates keep the on-disk sizing.
+  `LeakFilterConfig.AutoUpdateFrequency` (WPF:
   `LocalLeakDatabaseAutoUpdateFrequency`, default **7** days; **0** = off)
   tells the WPF host to refresh an **existing** `.pkbf` in the background at
   startup when offline use is also enabled, the `.ranges` sidecar is present,
@@ -438,8 +442,9 @@ These are conscious trade-offs, documented for transparency:
   the check reports "not leaked" and the UI stays quiet. Failures are not
   cached, so a later successful reach of either API can still raise a leak
   alert. When an offline filter *is* attached, a Bloom **miss** is definitive
-  "not leaked"; a Bloom **hit** is treated as leaked and may include ~1 % false
-  positives (no false negatives). The residual risk without a local filter is a
+  "not leaked"; a Bloom **hit** is treated as leaked and may include false
+  positives at the build-time quality target (default ~1 %; no false negatives).
+  The residual risk without a local filter is a
   **prolonged** outage of *both* providers during which a password that *is* in
   a breach corpus remains unmarked until a check finally completes; that is
   accepted rather than adding an "unknown / unverified" UI state that the user
@@ -461,19 +466,22 @@ These are conscious trade-offs, documented for transparency:
   signed corpus.
 - **Offline Bloom filter size / freshness**: building the full HIBP-derived
   `.pkbf` downloads every range (~1M prefixes), takes hours, and yields a file
-  on the order of ~2.4 GiB. It is a snapshot: new breaches appear in the live
-  APIs first; update when you want the local file to catch up. An update is
-  incremental — ranges are revalidated concurrently with `If-None-Match`
-  against the ETags in the `.pkbf.ranges` sidecar (default parallelism 64) and
-  only changed ranges are downloaded and folded in — so freshness costs minutes
-  rather than another full build. A non-zero `AutoUpdateFrequency` can run that
-  incremental refresh at WPF startup when a `.pkbf` and sidecar already exist
-  and `BuiltUtc` is older than the configured number of days; it never starts a
-  first full build automatically, and a missing sidecar skips the refresh while
-  keeping the filter. The sidecar is a cache, never a source of truth: it is
-  bound to one committed state of one filter file and is rejected whenever that
-  no longer matches, because skipping a range whose bits are absent would mean
-  reporting a leaked password as clean.
+  whose size depends on the quality preset (~2.4 GiB Balanced / ~3.5 GiB Strict
+  / ~4.7 GiB Paranoid). Changing quality requires an explicit full rebuild;
+  `HibpBloomBuildMode.Update` never changes bit-array sizing. It is a snapshot:
+  new breaches appear in the live APIs first; update when you want the local
+  file to catch up. An update is incremental — ranges are revalidated
+  concurrently with `If-None-Match` against the ETags in the `.pkbf.ranges`
+  sidecar (default parallelism 64) and only changed ranges are downloaded and
+  folded in — so freshness costs minutes rather than another full build. A
+  non-zero `AutoUpdateFrequency` can run that incremental refresh at WPF
+  startup when a `.pkbf` and sidecar already exist and `BuiltUtc` is older than
+  the configured number of days; it never starts a first full build
+  automatically, and a missing sidecar skips the refresh while keeping the
+  filter. The sidecar is a cache, never a source of truth: it is bound to one
+  committed state of one filter file and is rejected whenever that no longer
+  matches, because skipping a range whose bits are absent would mean reporting
+  a leaked password as clean.
 - **Unsealed activity-log tail**: the activity log is tamper-evident only for the
   portion sealed at the last login (see "Activity-log integrity"). Entries added
   since then — including events written while no one is logged in, such as failed
