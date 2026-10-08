@@ -12,7 +12,7 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="290" Width="740">
+        Height="340" Width="740">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -103,6 +103,19 @@
                             IsChecked="{Binding OfflineLeakFilterEnabled, Mode=TwoWay}"
                             IsEnabled="{Binding OfflineLeakFilterIdle}"
                             Click="_offlineLeakFilterEnabled_Click"/>
+                  <Grid ToolTip="{loc:Loc Tooltip_LeakFilterQuality}">
+                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                     </Grid.ColumnDefinitions>
+                     <Label Grid.Column="0"
+                            Content="{loc:Loc Label_LeakFilterQuality}"/>
+                     <ComboBox Grid.Column="1"
+                               ItemsSource="{Binding LeakFilterQualityOptions}"
+                               SelectedItem="{Binding SelectedLeakFilterQuality, Mode=TwoWay}"
+                               DisplayMemberPath="DisplayName"
+                               IsEnabled="{Binding OfflineLeakFilterIdle}"/>
+                  </Grid>
                   <StackPanel Orientation="Horizontal">
                     <Label Content="{loc:Loc Label_AutoUpdateOfflineLeakDatabase}"/>
                     <TextBox Width="40"

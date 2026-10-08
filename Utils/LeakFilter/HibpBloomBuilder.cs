@@ -18,10 +18,12 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 
       /// <summary>
       /// Revalidate every range of an existing filter and fold in what changed.
-      /// Requires a usable <c>.ranges</c> sidecar with recorded ETags; otherwise
-      /// the existing filter is kept and the run is reported as skipped (use
-      /// <see cref="Rebuild"/> to restore incremental updates). Falls back to a
-      /// full build only when the <c>.pkbf</c> itself cannot be refreshed in place.
+      /// Keeps the on-disk bit-array sizing (a different FPR requires
+      /// <see cref="Rebuild"/>). Requires a usable <c>.ranges</c> sidecar with
+      /// recorded ETags; otherwise the existing filter is kept and the run is
+      /// reported as skipped. Never downloads the corpus from scratch: a missing
+      /// filter throws <see cref="FileNotFoundException"/>; a corrupt / unusable
+      /// <c>.pkbf</c> throws <see cref="HibpBloomCorruptException"/>.
       /// </summary>
       Update,
 
@@ -87,7 +89,8 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 
       /// <summary>
       /// Refreshes the filter at <paramref name="outputPath"/> in place, downloading
-      /// only the ranges that changed since the last run.
+      /// only the ranges that changed since the last run. Never rebuilds from
+      /// scratch; see <see cref="HibpBloomBuildMode.Update"/>.
       /// </summary>
       public static Task<HibpBloomBuildResult> UpdateAsync(
          string outputPath,
@@ -145,20 +148,20 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             return skipped;
          }
 
-         if (mode == HibpBloomBuildMode.Update && File.Exists(outputPath))
+         if (mode == HibpBloomBuildMode.Update)
          {
-            HibpBloomBuildResult? refreshed = await _tryRefreshInPlaceAsync(
+            // Update never falls through to a multi-hour scratch build — not for
+            // a missing file, a missing sidecar, a preset mismatch, or corruption.
+            // Callers that need a new corpus use Rebuild / BuildIfMissing.
+            return !File.Exists(outputPath)
+               ? throw new FileNotFoundException(
+                  $"Cannot update Bloom filter: '{outputPath}' does not exist. Use Build or Rebuild.",
+                  outputPath)
+               : await _tryRefreshInPlaceAsync(
                outputPath,
-               capacity,
-               falsePositiveRate,
                maxDegreeOfParallelism,
                progress,
                cancellationToken).ConfigureAwait(false);
-
-            if (refreshed is not null)
-            {
-               return refreshed.Value;
-            }
          }
 
          return await _buildFromScratchAsync(
@@ -177,19 +180,17 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          => HibpRangeStateStore.PathFor(filterPath);
 
       /// <summary>
-      /// Refreshes an existing filter in place, or returns <see langword="null"/>
-      /// when it cannot be reused — a corrupt file, or sizing that no longer matches
-      /// the requested capacity, both of which need a full build.
+      /// Refreshes an existing filter in place using its on-disk sizing. A missing
+      /// sidecar skips the refresh and keeps the filter. A corrupt / unusable
+      /// <c>.pkbf</c> throws <see cref="HibpBloomCorruptException"/> — never
+      /// rebuilds.
       /// </summary>
-      private static async Task<HibpBloomBuildResult?> _tryRefreshInPlaceAsync(
+      private static async Task<HibpBloomBuildResult> _tryRefreshInPlaceAsync(
          string outputPath,
-         ulong capacity,
-         double falsePositiveRate,
          int maxDegreeOfParallelism,
          IProgress<HibpBloomBuildProgress>? progress,
          CancellationToken cancellationToken)
       {
-         (ulong bitCount, int hashFunctions) = BloomSizing.For(capacity, falsePositiveRate);
          string statePath = GetRangeStatePath(outputPath);
 
          // Open inside this using so ownership never leaves via return (CA2000 /
@@ -199,18 +200,11 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          {
             using HibpBloomFile filter = HibpBloomFile.OpenForUpdate(outputPath);
 
-            // A bit array sized for other parameters cannot absorb these hashes:
-            // the positions would not match what a later query computes.
-            if (!_sizingMatches(filter, capacity, bitCount, hashFunctions))
-            {
-               return null;
-            }
-
             // Without a usable sidecar there are no ETags to revalidate against.
             // Creating an empty one and ingesting would re-download every range
             // (~1M requests) while the .pkbf itself is still valid for lookups —
             // that must never happen on Update (especially auto-update at startup).
-            // Callers that need a fresh corpus should use Rebuild.
+            // Callers that need a fresh corpus or a different FPR should use Rebuild.
             using HibpRangeStateStore? store = HibpRangeStateStore.TryOpen(statePath, TotalPrefixes, filter);
             if (store is null || store.IngestedPrefixes == 0)
             {
@@ -258,8 +252,11 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          }
          catch (InvalidDataException ex)
          {
-            System.Diagnostics.Trace.TraceWarning($"Bloom filter at '{outputPath}' is unusable and will be rebuilt: {ex}");
-            return null;
+            System.Diagnostics.Trace.TraceWarning(
+               $"Bloom filter at '{outputPath}' is unusable; Update will not rebuild: {ex}");
+            throw new HibpBloomCorruptException(
+               $"Bloom filter at '{outputPath}' is corrupt or unusable. Use Rebuild to replace it.",
+               ex);
          }
       }
 

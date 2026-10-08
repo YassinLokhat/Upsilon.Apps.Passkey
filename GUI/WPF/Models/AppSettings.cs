@@ -50,6 +50,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Models
          set => LeakFilterConfig.AutoUpdateFrequency = value;
       }
 
+      /// <summary>
+      /// Bloom quality preset (<c>Balanced</c>, <c>Strict</c>, <c>Paranoid</c>).
+      /// Applied on the next full build / rebuild; incremental updates keep the
+      /// on-disk filter sizing.
+      /// </summary>
+      public string LocalLeakDatabaseQuality
+      {
+         get => LeakFilterQuality.CodeFromRate(LeakFilterConfig.FalsePositiveRate);
+         set => LeakFilterConfig.FalsePositiveRate = LeakFilterQuality.RateFromCode(value);
+      }
+
       internal readonly LeakFilterConfig LeakFilterConfig = new(Path.GetFullPath(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "pwned-ntlm.pkbf")));
 
       private static readonly JsonSerializerOptions _options = new() { WriteIndented = true, };

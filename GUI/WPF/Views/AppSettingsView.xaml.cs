@@ -198,27 +198,53 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
+         // Push the combo selection before sizing / build so LeakFilterConfig
+         // matches what the user sees (Save may not have been clicked yet).
+         AppInfo.AppSettings.LocalLeakDatabaseQuality = _viewModel.SelectedLeakFilterQuality.Code;
+         double falsePositiveRate = AppInfo.AppSettings.LeakFilterConfig.FalsePositiveRate;
+         double approxGiB = LeakFilterQuality.ApproximateSizeGiB(falsePositiveRate);
+
          // An existing database is refreshed range by range against the ETags of
-         // the last run, never rebuilt: only what changed comes back down.
-         // Without the .ranges sidecar there are no ETags — Update would skip —
-         // so fall back to Rebuild to restore incremental updates.
+         // the last run when the on-disk sizing still matches the selected quality.
+         // Without the .ranges sidecar — or when quality changed — use Rebuild.
          string filterPath = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
          bool hasFilter = File.Exists(filterPath);
          bool hasSidecar = hasFilter && File.Exists(HibpBloomBuilder.GetRangeStatePath(filterPath));
-         HibpBloomBuildMode mode = !hasFilter
-            ? HibpBloomBuildMode.BuildIfMissing
-            : hasSidecar
-               ? HibpBloomBuildMode.Update
-               : HibpBloomBuildMode.Rebuild;
+         bool sizingMatches = hasFilter
+            && LeakFilterQuality.FileSizingMatches(
+               filterPath,
+               BloomSizing.DefaultCapacity,
+               falsePositiveRate);
 
-         if (AppServices.Dialogs.Confirm(
-               mode == HibpBloomBuildMode.Update
-                  ? Strings.Msg_UpdateOfflineLeakDatabase
-                  : Strings.Msg_BuildOfflineLeakDatabase,
-               mode == HibpBloomBuildMode.Update
-                  ? Strings.Title_UpdateOfflineLeakDatabase
-                  : Strings.Title_BuildOfflineLeakDatabase)
-            != MessageBoxResult.Yes)
+         HibpBloomBuildMode mode;
+         string confirmMessage;
+         string confirmTitle;
+         if (!hasFilter)
+         {
+            mode = HibpBloomBuildMode.BuildIfMissing;
+            confirmMessage = Strings.Format(nameof(Strings.Msg_BuildOfflineLeakDatabase), approxGiB);
+            confirmTitle = Strings.Title_BuildOfflineLeakDatabase;
+         }
+         else if (hasSidecar && sizingMatches)
+         {
+            mode = HibpBloomBuildMode.Update;
+            confirmMessage = Strings.Msg_UpdateOfflineLeakDatabase;
+            confirmTitle = Strings.Title_UpdateOfflineLeakDatabase;
+         }
+         else if (!sizingMatches)
+         {
+            mode = HibpBloomBuildMode.Rebuild;
+            confirmMessage = Strings.Format(nameof(Strings.Msg_RebuildOfflineLeakDatabaseQuality), approxGiB);
+            confirmTitle = Strings.Title_RebuildOfflineLeakDatabaseQuality;
+         }
+         else
+         {
+            mode = HibpBloomBuildMode.Rebuild;
+            confirmMessage = Strings.Format(nameof(Strings.Msg_BuildOfflineLeakDatabase), approxGiB);
+            confirmTitle = Strings.Title_BuildOfflineLeakDatabase;
+         }
+
+         if (AppServices.Dialogs.Confirm(confirmMessage, confirmTitle) != MessageBoxResult.Yes)
          {
             return;
          }
@@ -244,13 +270,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             AppInfo.AppSettings.LeakFilterConfig.Enabled = true;
             _viewModel.OfflineLeakFilterEnabled = true;
 
-            // After a successful first full build, turn auto-update on by default
-            // so later startups refresh the corpus without another multi-GiB download.
+            // After a successful first full build / quality rebuild, turn auto-update
+            // on by default so later startups refresh without another multi-GiB download.
             if (!result.Value.Skipped && !result.Value.IsRefresh)
             {
                AppInfo.AppSettings.LeakFilterConfig.AutoUpdateFrequency
                   = _viewModel.OfflineLeakFilterAutoUpdateFrequency
                   = 7;
+               AppInfo.AppSettings.LocalLeakDatabaseQuality = _viewModel.SelectedLeakFilterQuality.Code;
                AppInfo.AppSettings.Save(AppInfo.ConfigFile);
             }
 
@@ -264,10 +291,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          // surface as a warning instead of tearing down the app.
          catch (Exception ex)
             when (ex is ArgumentException
+            or HibpBloomCorruptException
             or HttpRequestException
             or IOException
+            or InvalidDataException
             or UnauthorizedAccessException)
          {
+            // HibpBloomCorruptException: Update refuses to scratch-rebuild;
+            // tell the user to use Rebuild after the confirm dialog.
             AppServices.Dialogs.Warn(
                Strings.Format(nameof(Strings.Msg_OfflineLeakBuildFailed), ex.Message),
                Strings.Title_BuildFailed);

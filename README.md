@@ -784,14 +784,18 @@ remote providers fail) instead of blocking a thread on the network.
 When HIBP and XposedOrNot are both unreachable, Passkey can fall back to a
 local Bloom filter built from the HIBP NTLM corpus:
 
-*   File: `<exe>/pwned-ntlm.pkbf` (~2.4 GiB for the default sizing) — path fixed
-    in the WPF host (not stored in `config.json`)
+*   File: `<exe>/pwned-ntlm.pkbf` (size depends on quality: ~2.4 GiB Balanced,
+    ~3.5 GiB Strict, ~4.7 GiB Paranoid) — path fixed in the WPF host (not stored
+    in `config.json`)
 *   Sidecar: `<filter>.pkbf.ranges` (~32 MiB), one fixed-width record per hash-range prefix holding the `ETag` already folded into the filter
-*   Config in `config.json`: `LocalLeakDatabaseEnabled` and
-    `LocalLeakDatabaseAutoUpdateFrequency` (days; default **7**; **0** = off) —
-    backed by `LeakFilterConfig` — **application-level**, shared by all vault
-    users (not stored in the `.pku`)
+*   Config in `config.json`: `LocalLeakDatabaseEnabled`,
+    `LocalLeakDatabaseQuality` (`Balanced` / `Strict` / `Paranoid`; default
+    **Balanced**), and `LocalLeakDatabaseAutoUpdateFrequency` (days; default
+    **7**; **0** = off) — backed by `LeakFilterConfig` — **application-level**,
+    shared by all vault users (not stored in the `.pku`)
 *   Order: HIBP → XposedOrNot → Bloom (if enabled and present) → fail-open
+*   Quality (target false-positive rate) applies only on a full build or rebuild;
+    incremental updates keep the on-disk bit-array sizing
 *   Disable never deletes the file; only **Delete offline database** in **App Settings** (or deleting the `.pkbf` manually) removes it — the sidecar goes with it
 *   Build / update / enable / delete from **App Settings** (`Ctrl+,`, section **Offline leak database**), or from your own host through `HibpBloomBuilder.RunAsync`
 *   **Auto-update** (`LocalLeakDatabaseAutoUpdateFrequency`): at WPF startup, if
@@ -800,7 +804,8 @@ local Bloom filter built from the HIBP NTLM corpus:
     an incremental refresh runs in the background. A missing file never triggers
     an automatic first build. A missing sidecar skips the refresh and keeps the
     existing `.pkbf` (use **Rebuild** in App Settings to restore incremental
-    updates).
+    updates). A corrupt `.pkbf` throws `HibpBloomCorruptException` (logged and
+    skipped — never a silent scratch rebuild; use **Rebuild** to replace it).
 
 A full build downloads every HIBP range (~1 048 576 prefixes) and can take several
 hours. That is tens of GiB over the wire — brotli/gzip roughly halves the ~78 GB
@@ -808,15 +813,16 @@ of raw hex — so the build checkpoints every 4 096 prefixes into the `.building
 pair: an interrupted run resumes from the last checkpoint instead of restarting
 the corpus.
 
-An update never rebuilds. `HibpBloomBuildMode.Update` replays every range with
-`If-None-Match` against the sidecar's ETags — unchanged ranges answer `304` with
-no body — and folds only the changed ones into the existing bit array. Requests
-run concurrently (default parallelism **64**, pooled HTTP/2 connections) so a
-refresh is dominated by round trips rather than bytes: every prefix is
-revalidated, but only a few tens of MiB come down. This works because Bloom
-filters are closed under union and the HIBP corpus only ever grows, so inserting
-into the filter already on disk is equivalent to rebuilding it from the whole
-corpus.
+An update never rebuilds and never changes Bloom sizing (a different quality
+preset needs an explicit `Rebuild`). `HibpBloomBuildMode.Update` replays every
+range with `If-None-Match` against the sidecar's ETags — unchanged ranges answer
+`304` with no body — and folds only the changed ones into the existing bit
+array. Requests run concurrently (default parallelism **64**, pooled HTTP/2
+connections) so a refresh is dominated by round trips rather than bytes: every
+prefix is revalidated, but only a few tens of MiB come down. This works because
+Bloom filters are closed under union and the HIBP corpus only ever grows, so
+inserting into the filter already on disk is equivalent to rebuilding it from
+the whole corpus.
 
 Two invariants keep that shortcut safe:
 
@@ -830,8 +836,10 @@ Two invariants keep that shortcut safe:
 
 A rejected or missing sidecar on **Update** / auto-update skips the download and
 keeps the existing `.pkbf` (use **Rebuild** when you need a fresh corpus and a
-new sidecar). A rejected sidecar on a deliberate rebuild costs a full
-re-download.
+new sidecar). A corrupt `.pkbf` on Update throws `HibpBloomCorruptException`
+instead of starting a silent full rebuild — auto-update logs and skips; use
+**Rebuild** in App Settings to replace the file. A rejected sidecar on a
+deliberate rebuild costs a full re-download.
 
 **WPF client (Windows)**
 ------------------------

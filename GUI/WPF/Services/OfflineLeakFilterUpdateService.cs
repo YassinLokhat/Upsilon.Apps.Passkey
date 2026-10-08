@@ -231,10 +231,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
             }
             catch (Exception ex)
                when (ex is ArgumentException
+               or HibpBloomCorruptException
                or HttpRequestException
                or IOException
+               or InvalidDataException
                or UnauthorizedAccessException)
             {
+               // Corrupt .pkbf throws HibpBloomCorruptException:
+               // skip + log — never rebuild multi-GiB from auto-update.
                Log.Error(ex, "Offline leak filter: auto-update failed");
             }
          });
@@ -293,10 +297,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
          try
          {
-            string filterPath = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
+            LeakFilterConfig config = AppInfo.AppSettings.LeakFilterConfig;
             HibpBloomBuildResult result = await HibpBloomBuilder.RunAsync(
-               filterPath,
+               config.FilterPath,
                mode,
+               BloomSizing.DefaultCapacity,
+               config.FalsePositiveRate,
                progress: combined,
                cancellationToken: linkedCts.Token).ConfigureAwait(false);
 
