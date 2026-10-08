@@ -36,9 +36,13 @@
       /// </summary>
       public static string CodeFromRate(double falsePositiveRate)
       {
-         return falsePositiveRate == StrictRate
+         return _floatingPointEquals(falsePositiveRate, StrictRate)
             ? StrictCode
-            : falsePositiveRate == ParanoidRate ? ParanoidCode : falsePositiveRate == BalancedRate ? BalancedCode : BalancedCode;
+            : _floatingPointEquals(falsePositiveRate, ParanoidRate)
+               ? ParanoidCode
+               : _floatingPointEquals(falsePositiveRate, BalancedRate)
+                  ? BalancedCode
+                  : BalancedCode;
       }
 
       /// <summary>
@@ -87,5 +91,10 @@
       {
          return HibpBloomFile.TryReadSizing(path, out ulong fileCapacity, out ulong fileBitCount, out int fileHashFunctions) && SizingMatches(capacity, falsePositiveRate, fileCapacity, fileBitCount, fileHashFunctions);
       }
+
+      private const double EPSILON = 0.000001;
+
+      private static bool _floatingPointEquals(double x, double y)
+         => Math.Abs(x - y) < EPSILON;
    }
 }
