@@ -1112,6 +1112,21 @@ L'ouvrir peut exposer la requête sur le réseau. Ouvrir quand même ?</value>
   <data name="Tooltip_AutoUpdateOfflineLeakDatabase" xml:space="preserve">
     <value>Défini la fréquence à laquelle la base hors ligne déjà présente est rafraîchie depuis HIBP au démarrage. Une première construction n'est jamais lancée automatiquement (trop lourde).</value>
   </data>
+  <data name="Label_LeakFilterQuality" xml:space="preserve">
+    <value>Qualité du filtre</value>
+  </data>
+  <data name="Tooltip_LeakFilterQuality" xml:space="preserve">
+    <value>Taux de faux positifs cible du filtre de Bloom hors ligne. Appliqué uniquement lors d'une construction ou reconstruction complète (plusieurs heures ; disque plus grand pour les presets plus stricts). Les mises à jour en arrière-plan conservent le dimensionnement actuel du fichier.</value>
+  </data>
+  <data name="Label_LeakFilterQuality_Balanced" xml:space="preserve">
+    <value>Équilibré (~1 % de faux positifs, ~{0:0.0} Gio)</value>
+  </data>
+  <data name="Label_LeakFilterQuality_Strict" xml:space="preserve">
+    <value>Strict (~0,1 % de faux positifs, ~{0:0.0} Gio)</value>
+  </data>
+  <data name="Label_LeakFilterQuality_Paranoid" xml:space="preserve">
+    <value>Paranoïaque (~0,01 % de faux positifs, ~{0:0.0} Gio)</value>
+  </data>
   <data name="Label_BuildUpdate" xml:space="preserve">
     <value>Construire / Mettre à jour</value>
   </data>
@@ -1128,9 +1143,16 @@ Chaque plage de hachages est revalidée et seules celles qui ont changé sont t�
   <data name="Title_BuildOfflineLeakDatabase" xml:space="preserve">
     <value>Construire la base de fuites hors ligne</value>
   </data>
+  <data name="Title_RebuildOfflineLeakDatabaseQuality" xml:space="preserve">
+    <value>Reconstruire la base de fuites hors ligne</value>
+  </data>
   <data name="Msg_BuildOfflineLeakDatabase" xml:space="preserve">
-    <value>Télécharger le corpus de mots de passe HIBP et construire un filtre de Bloom local (~2,4 Gio sur le disque) ?
+    <value>Télécharger le corpus de mots de passe HIBP et construire un filtre de Bloom local (~{0:0.0} Gio sur le disque) ?
 La construction initiale télécharge tout le corpus (plusieurs dizaines de Gio) et peut prendre plusieurs heures. Elle peut être interrompue puis reprise, et les mises à jour suivantes ne récupèrent que ce qui a changé. Le fichier est partagé par tous les utilisateurs du coffre sur cette machine.</value>
+  </data>
+  <data name="Msg_RebuildOfflineLeakDatabaseQuality" xml:space="preserve">
+    <value>Reconstruire le filtre de Bloom hors ligne à la qualité sélectionnée (~{0:0.0} Gio sur le disque) ?
+Cela télécharge à nouveau tout le corpus HIBP (plusieurs dizaines de Gio) et peut prendre plusieurs heures. Les mises à jour en arrière-plan ne peuvent pas changer la qualité du filtre — seule une reconstruction complète le peut. Le fichier est partagé par tous les utilisateurs du coffre sur cette machine.</value>
   </data>
   <data name="Msg_OfflineLeakBuildStarting" xml:space="preserve">
     <value>Démarrage…</value>

@@ -293,10 +293,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
          try
          {
-            string filterPath = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
+            LeakFilterConfig config = AppInfo.AppSettings.LeakFilterConfig;
             HibpBloomBuildResult result = await HibpBloomBuilder.RunAsync(
-               filterPath,
+               config.FilterPath,
                mode,
+               BloomSizing.DefaultCapacity,
+               config.FalsePositiveRate,
                progress: combined,
                cancellationToken: linkedCts.Token).ConfigureAwait(false);
 

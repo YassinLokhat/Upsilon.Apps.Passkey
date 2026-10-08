@@ -1112,6 +1112,21 @@ Opening it may expose the request on the network. Open anyway?</value>
   <data name="Tooltip_AutoUpdateOfflineLeakDatabase" xml:space="preserve">
     <value>Sets the existing offline database refreshing frequency from HIBP at startup every. A first build is never started automatically (too large).</value>
   </data>
+  <data name="Label_LeakFilterQuality" xml:space="preserve">
+    <value>Filter quality</value>
+  </data>
+  <data name="Tooltip_LeakFilterQuality" xml:space="preserve">
+    <value>Target false-positive rate for the offline Bloom filter. Applied only on a full build or rebuild (hours; larger disk for stricter presets). Background updates keep the current file sizing.</value>
+  </data>
+  <data name="Label_LeakFilterQuality_Balanced" xml:space="preserve">
+    <value>Balanced (~1% false positives, ~{0:0.0} GiB)</value>
+  </data>
+  <data name="Label_LeakFilterQuality_Strict" xml:space="preserve">
+    <value>Strict (~0.1% false positives, ~{0:0.0} GiB)</value>
+  </data>
+  <data name="Label_LeakFilterQuality_Paranoid" xml:space="preserve">
+    <value>Paranoid (~0.01% false positives, ~{0:0.0} GiB)</value>
+  </data>
   <data name="Label_BuildUpdate" xml:space="preserve">
     <value>Build / Update</value>
   </data>
@@ -1128,9 +1143,16 @@ Every hash range is revalidated and only the ones that changed are downloaded, s
   <data name="Title_BuildOfflineLeakDatabase" xml:space="preserve">
     <value>Build offline leak database</value>
   </data>
+  <data name="Title_RebuildOfflineLeakDatabaseQuality" xml:space="preserve">
+    <value>Rebuild offline leak database</value>
+  </data>
   <data name="Msg_BuildOfflineLeakDatabase" xml:space="preserve">
-    <value>Download the HIBP password corpus and build a local Bloom filter (~2.4 GiB on disk)?
+    <value>Download the HIBP password corpus and build a local Bloom filter (~{0:0.0} GiB on disk)?
 The first build downloads the whole corpus (tens of GiB) and can take several hours. It can be interrupted and resumed, and later updates only fetch what changed. The file is shared by all vault users on this machine.</value>
+  </data>
+  <data name="Msg_RebuildOfflineLeakDatabaseQuality" xml:space="preserve">
+    <value>Rebuild the offline Bloom filter at the selected quality (~{0:0.0} GiB on disk)?
+This downloads the whole HIBP corpus again (tens of GiB) and can take several hours. Background updates cannot change filter quality — only a full rebuild can. The file is shared by all vault users on this machine.</value>
   </data>
   <data name="Msg_OfflineLeakBuildStarting" xml:space="preserve">
     <value>Starting…</value>

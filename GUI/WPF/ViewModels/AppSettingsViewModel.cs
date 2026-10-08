@@ -5,6 +5,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -109,8 +110,38 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public int OfflineLeakFilterAutoUpdateFrequency
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (value < 0)
+            {
+               value = 0;
+            }
+
+            _ = SetProperty(ref field, value);
+            AppInfo.AppSettings.LocalLeakDatabaseAutoUpdateFrequency = field;
+         }
       }
+
+      public IReadOnlyList<LeakFilterQualityOption> LeakFilterQualityOptions
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      } = _qualityOptions();
+
+      public LeakFilterQualityOption SelectedLeakFilterQuality
+      {
+         get;
+         set
+         {
+            if (value is null)
+            {
+               return;
+            }
+
+            _ = SetProperty(ref field, value);
+            AppInfo.AppSettings.LocalLeakDatabaseQuality = field.Code;
+         }
+      } = _qualityOptionOrDefault(AppInfo.AppSettings.LocalLeakDatabaseQuality);
 
       /// <summary>
       /// Auto-update is only meaningful while the offline filter is enabled and idle.
@@ -161,6 +192,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          Title = Strings.Format(nameof(Strings.Title_AppSettings), AppInfo.Title);
          Languages = LocalizationService.Supported;
          Themes = ThemeService.Supported;
+         string qualityCode = SelectedLeakFilterQuality.Code;
+         LeakFilterQualityOptions = _qualityOptions();
+         SelectedLeakFilterQuality = _qualityOptionOrDefault(qualityCode);
          OnPropertyChanged(nameof(OfflineLeakFilterBuildButtonText));
          SelectedLanguage = LocalizationService.GetLanguageOrDefault(languageCode);
          SelectedTheme = ThemeService.GetOptionOrDefault(themeCode);
@@ -194,6 +228,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          SelectedLanguage = LocalizationService.GetLanguageOrDefault(AppInfo.AppSettings.Language);
          SelectedTheme = ThemeService.GetOptionOrDefault(AppInfo.AppSettings.Theme);
          LoginIdleTimeoutSeconds = AppInfo.AppSettings.LoginIdleTimeoutSeconds;
+         LeakFilterQualityOptions = _qualityOptions();
+         SelectedLeakFilterQuality = _qualityOptionOrDefault(AppInfo.AppSettings.LocalLeakDatabaseQuality);
          RefreshOfflineLeakFilterStatus();
 
          _ = Save();
@@ -203,6 +239,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          OfflineLeakFilterEnabled = AppInfo.AppSettings.LeakFilterConfig.Enabled;
          OfflineLeakFilterAutoUpdateFrequency = AppInfo.AppSettings.LeakFilterConfig.AutoUpdateFrequency;
+         SelectedLeakFilterQuality = _qualityOptionOrDefault(AppInfo.AppSettings.LocalLeakDatabaseQuality);
 
          string path = AppInfo.AppSettings.LeakFilterConfig.FilterPath;
 
@@ -226,6 +263,33 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          OfflineLeakFilterStatus = AppInfo.AppSettings.LeakFilterConfig.Enabled
             ? Strings.Format(nameof(Strings.Msg_OfflineLeakFilePresent), sizeGiB, updated)
             : Strings.Format(nameof(Strings.Msg_OfflineLeakFilePresentDisabled), sizeGiB, updated);
+      }
+
+      private static IReadOnlyList<LeakFilterQualityOption> _qualityOptions()
+         =>
+         [
+            new(
+               LeakFilterQuality.BalancedCode,
+               Strings.Format(
+                  nameof(Strings.Label_LeakFilterQuality_Balanced),
+                  LeakFilterQuality.ApproximateSizeGiB(LeakFilterQuality.BalancedRate))),
+            new(
+               LeakFilterQuality.StrictCode,
+               Strings.Format(
+                  nameof(Strings.Label_LeakFilterQuality_Strict),
+                  LeakFilterQuality.ApproximateSizeGiB(LeakFilterQuality.StrictRate))),
+            new(
+               LeakFilterQuality.ParanoidCode,
+               Strings.Format(
+                  nameof(Strings.Label_LeakFilterQuality_Paranoid),
+                  LeakFilterQuality.ApproximateSizeGiB(LeakFilterQuality.ParanoidRate))),
+         ];
+
+      private static LeakFilterQualityOption _qualityOptionOrDefault(string? code)
+      {
+         string resolved = LeakFilterQuality.CodeFromRate(LeakFilterQuality.RateFromCode(code));
+         return _qualityOptions().First(o =>
+            string.Equals(o.Code, resolved, StringComparison.OrdinalIgnoreCase));
       }
    }
 }

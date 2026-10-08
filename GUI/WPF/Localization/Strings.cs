@@ -163,6 +163,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Label_Url => Get(nameof(Label_Url));
       public static string Label_UseOfflineBloomFilter => Get(nameof(Label_UseOfflineBloomFilter));
       public static string Label_AutoUpdateOfflineLeakDatabase => Get(nameof(Label_AutoUpdateOfflineLeakDatabase));
+      public static string Label_LeakFilterQuality => Get(nameof(Label_LeakFilterQuality));
+      public static string Label_LeakFilterQuality_Balanced => Get(nameof(Label_LeakFilterQuality_Balanced));
+      public static string Label_LeakFilterQuality_Strict => Get(nameof(Label_LeakFilterQuality_Strict));
+      public static string Label_LeakFilterQuality_Paranoid => Get(nameof(Label_LeakFilterQuality_Paranoid));
       public static string Label_Username => Get(nameof(Label_Username));
       public static string Label_WarnDuplicatedPassword => Get(nameof(Label_WarnDuplicatedPassword));
       public static string Label_Alerts => Get(nameof(Label_Alerts));
@@ -195,6 +199,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_AutosaveDetected => Get(nameof(Msg_AutosaveDetected));
       public static string Msg_BuildFailed => Get(nameof(Msg_BuildFailed));
       public static string Msg_BuildOfflineLeakDatabase => Get(nameof(Msg_BuildOfflineLeakDatabase));
+      public static string Msg_RebuildOfflineLeakDatabaseQuality => Get(nameof(Msg_RebuildOfflineLeakDatabaseQuality));
       public static string Msg_ConfigFileError => Get(nameof(Msg_ConfigFileError));
       public static string Msg_CorruptedDatabase => Get(nameof(Msg_CorruptedDatabase));
       public static string Msg_CredentialsUpdated => Get(nameof(Msg_CredentialsUpdated));
@@ -296,6 +301,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Title_BrowseDatabaseDirectory => Get(nameof(Title_BrowseDatabaseDirectory));
       public static string Title_BuildFailed => Get(nameof(Title_BuildFailed));
       public static string Title_BuildOfflineLeakDatabase => Get(nameof(Title_BuildOfflineLeakDatabase));
+      public static string Title_RebuildOfflineLeakDatabaseQuality => Get(nameof(Title_RebuildOfflineLeakDatabaseQuality));
       public static string Title_ConfigFileError => Get(nameof(Title_ConfigFileError));
       public static string Title_ConfirmationRequired => Get(nameof(Title_ConfirmationRequired));
       public static string Title_CorruptedDatabase => Get(nameof(Title_CorruptedDatabase));
@@ -370,6 +376,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string EnumValue_ImportExportError_SecurityTimeoutsDisabled => Get(nameof(EnumValue_ImportExportError_SecurityTimeoutsDisabled));
       public static string Tooltip_OfflineLeakDatabase => Get(nameof(Tooltip_OfflineLeakDatabase));
       public static string Tooltip_AutoUpdateOfflineLeakDatabase => Get(nameof(Tooltip_AutoUpdateOfflineLeakDatabase));
+      public static string Tooltip_LeakFilterQuality => Get(nameof(Tooltip_LeakFilterQuality));
       public static string Tooltip_AddAccount => Get(nameof(Tooltip_AddAccount));
       public static string Tooltip_AddIdentifier => Get(nameof(Tooltip_AddIdentifier));
       public static string Tooltip_AddPassword => Get(nameof(Tooltip_AddPassword));
