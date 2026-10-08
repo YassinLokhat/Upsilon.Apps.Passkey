@@ -21,8 +21,9 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       /// Keeps the on-disk bit-array sizing (a different FPR requires
       /// <see cref="Rebuild"/>). Requires a usable <c>.ranges</c> sidecar with
       /// recorded ETags; otherwise the existing filter is kept and the run is
-      /// reported as skipped. Falls back to a full build only when the
-      /// <c>.pkbf</c> itself is corrupt / unusable.
+      /// reported as skipped. Never downloads the corpus from scratch: a missing
+      /// filter throws <see cref="FileNotFoundException"/>; a corrupt / unusable
+      /// <c>.pkbf</c> throws <see cref="HibpBloomCorruptException"/>.
       /// </summary>
       Update,
 
@@ -88,7 +89,8 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 
       /// <summary>
       /// Refreshes the filter at <paramref name="outputPath"/> in place, downloading
-      /// only the ranges that changed since the last run.
+      /// only the ranges that changed since the last run. Never rebuilds from
+      /// scratch; see <see cref="HibpBloomBuildMode.Update"/>.
       /// </summary>
       public static Task<HibpBloomBuildResult> UpdateAsync(
          string outputPath,
@@ -146,23 +148,20 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             return skipped;
          }
 
-         if (mode == HibpBloomBuildMode.Update && File.Exists(outputPath))
+         if (mode == HibpBloomBuildMode.Update)
          {
-            // Update always keeps the on-disk bit-array sizing. A caller that
-            // wants a different FPR must use Rebuild — never fall through to a
-            // multi-hour scratch build from a preset mismatch or missing sidecar.
-            HibpBloomBuildResult? refreshed = await _tryRefreshInPlaceAsync(
+            // Update never falls through to a multi-hour scratch build — not for
+            // a missing file, a missing sidecar, a preset mismatch, or corruption.
+            // Callers that need a new corpus use Rebuild / BuildIfMissing.
+            return !File.Exists(outputPath)
+               ? throw new FileNotFoundException(
+                  $"Cannot update Bloom filter: '{outputPath}' does not exist. Use Build or Rebuild.",
+                  outputPath)
+               : await _tryRefreshInPlaceAsync(
                outputPath,
                maxDegreeOfParallelism,
                progress,
                cancellationToken).ConfigureAwait(false);
-
-            if (refreshed is not null)
-            {
-               return refreshed.Value;
-            }
-
-            // Corrupt / unusable .pkbf: fall through to a full rebuild below.
          }
 
          return await _buildFromScratchAsync(
@@ -181,11 +180,12 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          => HibpRangeStateStore.PathFor(filterPath);
 
       /// <summary>
-      /// Refreshes an existing filter in place using its on-disk sizing, or returns
-      /// <see langword="null"/> when the file is corrupt / unusable (caller may
-      /// rebuild). A missing sidecar skips the refresh and keeps the filter.
+      /// Refreshes an existing filter in place using its on-disk sizing. A missing
+      /// sidecar skips the refresh and keeps the filter. A corrupt / unusable
+      /// <c>.pkbf</c> throws <see cref="HibpBloomCorruptException"/> — never
+      /// rebuilds.
       /// </summary>
-      private static async Task<HibpBloomBuildResult?> _tryRefreshInPlaceAsync(
+      private static async Task<HibpBloomBuildResult> _tryRefreshInPlaceAsync(
          string outputPath,
          int maxDegreeOfParallelism,
          IProgress<HibpBloomBuildProgress>? progress,
@@ -252,8 +252,11 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          }
          catch (InvalidDataException ex)
          {
-            System.Diagnostics.Trace.TraceWarning($"Bloom filter at '{outputPath}' is unusable and will be rebuilt: {ex}");
-            return null;
+            System.Diagnostics.Trace.TraceWarning(
+               $"Bloom filter at '{outputPath}' is unusable; Update will not rebuild: {ex}");
+            throw new HibpBloomCorruptException(
+               $"Bloom filter at '{outputPath}' is corrupt or unusable. Use Rebuild to replace it.",
+               ex);
          }
       }
 

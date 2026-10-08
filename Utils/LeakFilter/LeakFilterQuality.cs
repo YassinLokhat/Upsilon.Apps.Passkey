@@ -31,18 +31,16 @@
       }
 
       /// <summary>
-      /// Maps a false-positive rate to the nearest known quality code. Values that
-      /// are not an exact preset fall back to <see cref="BalancedCode"/>.
+      /// Maps a false-positive rate to a known quality code. Only exact preset
+      /// rates (<see cref="StrictRate"/>, <see cref="ParanoidRate"/>) match;
+      /// anything else — including <see cref="BalancedRate"/> — resolves to
+      /// <see cref="BalancedCode"/>.
       /// </summary>
       public static string CodeFromRate(double falsePositiveRate)
       {
          return _floatingPointEquals(falsePositiveRate, StrictRate)
             ? StrictCode
-            : _floatingPointEquals(falsePositiveRate, ParanoidRate)
-               ? ParanoidCode
-               : _floatingPointEquals(falsePositiveRate, BalancedRate)
-                  ? BalancedCode
-                  : BalancedCode;
+            : _floatingPointEquals(falsePositiveRate, ParanoidRate) ? ParanoidCode : BalancedCode;
       }
 
       /// <summary>

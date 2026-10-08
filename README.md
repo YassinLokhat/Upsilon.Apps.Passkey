@@ -804,7 +804,8 @@ local Bloom filter built from the HIBP NTLM corpus:
     an incremental refresh runs in the background. A missing file never triggers
     an automatic first build. A missing sidecar skips the refresh and keeps the
     existing `.pkbf` (use **Rebuild** in App Settings to restore incremental
-    updates).
+    updates). A corrupt `.pkbf` throws `HibpBloomCorruptException` (logged and
+    skipped — never a silent scratch rebuild; use **Rebuild** to replace it).
 
 A full build downloads every HIBP range (~1 048 576 prefixes) and can take several
 hours. That is tens of GiB over the wire — brotli/gzip roughly halves the ~78 GB
@@ -835,8 +836,10 @@ Two invariants keep that shortcut safe:
 
 A rejected or missing sidecar on **Update** / auto-update skips the download and
 keeps the existing `.pkbf` (use **Rebuild** when you need a fresh corpus and a
-new sidecar). A rejected sidecar on a deliberate rebuild costs a full
-re-download.
+new sidecar). A corrupt `.pkbf` on Update throws `HibpBloomCorruptException`
+instead of starting a silent full rebuild — auto-update logs and skips; use
+**Rebuild** in App Settings to replace the file. A rejected sidecar on a
+deliberate rebuild costs a full re-download.
 
 **WPF client (Windows)**
 ------------------------

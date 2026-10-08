@@ -384,8 +384,10 @@ login:
   tells the WPF host to refresh an **existing** `.pkbf` in the background at
   startup when offline use is also enabled, the `.ranges` sidecar is present,
   and the filter header `BuiltUtc` is older than that interval; a missing file
-  never triggers an automatic first build, and a missing sidecar skips the
-  refresh while keeping the filter. If the WPF UI continues a mid-close
+  never triggers an automatic first build, a missing sidecar skips the
+  refresh while keeping the filter, and a corrupt / unusable `.pkbf` throws
+  `HibpBloomCorruptException` (logged and skipped — never a silent scratch
+  rebuild). If the WPF UI continues a mid-close
   refresh in the background, the vault session (and owned clipboard) is ended
   first. Application logs still live under `%LocalAppData%\Passkey\logs` —
   that path is unrelated to the Bloom filter.
@@ -478,10 +480,12 @@ These are conscious trade-offs, documented for transparency:
   startup when a `.pkbf` and sidecar already exist and `BuiltUtc` is older than
   the configured number of days; it never starts a first full build
   automatically, and a missing sidecar skips the refresh while keeping the
-  filter. The sidecar is a cache, never a source of truth: it is bound to one
-  committed state of one filter file and is rejected whenever that no longer
-  matches, because skipping a range whose bits are absent would mean reporting
-  a leaked password as clean.
+  filter. A corrupt / unusable `.pkbf` on Update throws
+  `HibpBloomCorruptException` (auto-update logs and skips; App Settings surfaces
+  the error) — only an explicit **Rebuild** replaces the file. The sidecar is a
+  cache, never a source of truth: it is bound to one committed state of one
+  filter file and is rejected whenever that no longer matches, because skipping
+  a range whose bits are absent would mean reporting a leaked password as clean.
 - **Unsealed activity-log tail**: the activity log is tamper-evident only for the
   portion sealed at the last login (see "Activity-log integrity"). Entries added
   since then — including events written while no one is logged in, such as failed

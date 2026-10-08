@@ -291,10 +291,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          // surface as a warning instead of tearing down the app.
          catch (Exception ex)
             when (ex is ArgumentException
+            or HibpBloomCorruptException
             or HttpRequestException
             or IOException
+            or InvalidDataException
             or UnauthorizedAccessException)
          {
+            // HibpBloomCorruptException: Update refuses to scratch-rebuild;
+            // tell the user to use Rebuild after the confirm dialog.
             AppServices.Dialogs.Warn(
                Strings.Format(nameof(Strings.Msg_OfflineLeakBuildFailed), ex.Message),
                Strings.Title_BuildFailed);

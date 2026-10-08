@@ -146,5 +146,117 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
             BloomTestHelper.DeleteQuietly(path);
          }
       }
+
+      [TestMethod]
+      /*
+       * A corrupt .pkbf must not fall through to a multi-GiB scratch rebuild on
+       * Update (auto-update / accidental Update). Hosts use Rebuild explicitly.
+       * InvalidDataException is sealed on modern .NET, so HibpBloomCorruptException
+       * wraps it as InnerException; WPF catch filters list the type explicitly.
+       */
+      public async Task Case08_Update_WithCorruptPkbf_ThrowsAndDoesNotRebuild()
+      {
+         string path = BloomTestHelper.TempPkbfPath();
+         string statePath = HibpRangeStateStore.PathFor(path);
+         try
+         {
+            BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
+            await File.WriteAllBytesAsync(path, [0x00, 0x01, 0x02, 0x03]).ConfigureAwait(false);
+            long lengthBefore = new FileInfo(path).Length;
+
+            Func<Task> refresh = () => HibpBloomBuilder.RunAsync(
+               path,
+               HibpBloomBuildMode.Update,
+               capacity: 1_000,
+               falsePositiveRate: LeakFilterQuality.ParanoidRate,
+               maxDegreeOfParallelism: 1);
+
+            _ = (await refresh.Should()
+               .ThrowAsync<HibpBloomCorruptException>()
+               .ConfigureAwait(false))
+               .WithInnerExceptionExactly<InvalidDataException>();
+            _ = File.Exists(path).Should().BeTrue();
+            _ = new FileInfo(path).Length.Should().Be(lengthBefore);
+            _ = File.Exists(path + ".building").Should().BeFalse();
+            _ = File.Exists(HibpRangeStateStore.PathFor(path + ".building")).Should().BeFalse();
+         }
+         finally
+         {
+            BloomTestHelper.DeleteQuietly(statePath);
+            BloomTestHelper.DeleteQuietly(HibpRangeStateStore.PathFor(path + ".building"));
+            BloomTestHelper.DeleteQuietly(path + ".building");
+            BloomTestHelper.DeleteQuietly(path);
+         }
+      }
+
+      [TestMethod]
+      public async Task Case09_Update_WithMissingPkbf_ThrowsFileNotFound()
+      {
+         string path = BloomTestHelper.TempPkbfPath();
+         BloomTestHelper.DeleteQuietly(path);
+
+         Func<Task> refresh = () => HibpBloomBuilder.RunAsync(
+            path,
+            HibpBloomBuildMode.Update,
+            capacity: 1_000,
+            falsePositiveRate: LeakFilterQuality.BalancedRate,
+            maxDegreeOfParallelism: 1);
+
+         _ = await refresh.Should().ThrowAsync<FileNotFoundException>().ConfigureAwait(false);
+         _ = File.Exists(path + ".building").Should().BeFalse();
+      }
+
+      [TestMethod]
+      /*
+       * An empty but valid .ranges sidecar (IngestedPrefixes == 0) used to be
+       * treated like "start ingesting" and would pull ~1M ranges. Update must
+       * skip and keep the existing .pkbf — same soft path as a missing sidecar.
+       */
+      public async Task Case10_Update_WithEmptySidecar_SkipsAndDoesNotRebuild()
+      {
+         string path = BloomTestHelper.TempPkbfPath();
+         string statePath = HibpRangeStateStore.PathFor(path);
+         try
+         {
+            BloomTestHelper.WriteBloomContaining(path, BloomTestHelper.LeakedPassword);
+            using (HibpBloomFile filter = HibpBloomFile.OpenForUpdate(path))
+            {
+               using HibpRangeStateStore store = HibpRangeStateStore.CreateNew(
+                  statePath,
+                  HibpBloomBuilder.TotalPrefixes,
+                  filter);
+               _ = store.IngestedPrefixes.Should().Be(0);
+            }
+
+            long lengthBefore = new FileInfo(path).Length;
+
+            HibpBloomBuildResult result = await HibpBloomBuilder
+               .RunAsync(
+                  path,
+                  HibpBloomBuildMode.Update,
+                  capacity: 1_000,
+                  falsePositiveRate: LeakFilterQuality.StrictRate,
+                  maxDegreeOfParallelism: 1)
+               .ConfigureAwait(false);
+
+            _ = result.Skipped.Should().BeTrue();
+            _ = result.IsRefresh.Should().BeTrue();
+            _ = result.DownloadedBytes.Should().Be(0);
+            _ = result.ChangedPrefixes.Should().Be(0);
+            _ = File.Exists(path).Should().BeTrue();
+            _ = new FileInfo(path).Length.Should().Be(lengthBefore);
+            _ = File.Exists(path + ".building").Should().BeFalse();
+            _ = LeakFilterQuality
+               .FileSizingMatches(path, capacity: 1_000, LeakFilterQuality.BalancedRate)
+               .Should().BeTrue();
+         }
+         finally
+         {
+            BloomTestHelper.DeleteQuietly(statePath);
+            BloomTestHelper.DeleteQuietly(HibpRangeStateStore.PathFor(path + ".building"));
+            BloomTestHelper.DeleteQuietly(path + ".building");
+            BloomTestHelper.DeleteQuietly(path);
+         }
+      }
    }
 }
