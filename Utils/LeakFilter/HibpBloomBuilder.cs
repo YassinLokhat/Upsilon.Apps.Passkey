@@ -18,10 +18,11 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 
       /// <summary>
       /// Revalidate every range of an existing filter and fold in what changed.
-      /// Requires a usable <c>.ranges</c> sidecar with recorded ETags; otherwise
-      /// the existing filter is kept and the run is reported as skipped (use
-      /// <see cref="Rebuild"/> to restore incremental updates). Falls back to a
-      /// full build only when the <c>.pkbf</c> itself cannot be refreshed in place.
+      /// Keeps the on-disk bit-array sizing (a different FPR requires
+      /// <see cref="Rebuild"/>). Requires a usable <c>.ranges</c> sidecar with
+      /// recorded ETags; otherwise the existing filter is kept and the run is
+      /// reported as skipped. Falls back to a full build only when the
+      /// <c>.pkbf</c> itself is corrupt / unusable.
       /// </summary>
       Update,
 
@@ -147,10 +148,11 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
 
          if (mode == HibpBloomBuildMode.Update && File.Exists(outputPath))
          {
+            // Update always keeps the on-disk bit-array sizing. A caller that
+            // wants a different FPR must use Rebuild — never fall through to a
+            // multi-hour scratch build from a preset mismatch or missing sidecar.
             HibpBloomBuildResult? refreshed = await _tryRefreshInPlaceAsync(
                outputPath,
-               capacity,
-               falsePositiveRate,
                maxDegreeOfParallelism,
                progress,
                cancellationToken).ConfigureAwait(false);
@@ -159,6 +161,8 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
             {
                return refreshed.Value;
             }
+
+            // Corrupt / unusable .pkbf: fall through to a full rebuild below.
          }
 
          return await _buildFromScratchAsync(
@@ -177,19 +181,16 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          => HibpRangeStateStore.PathFor(filterPath);
 
       /// <summary>
-      /// Refreshes an existing filter in place, or returns <see langword="null"/>
-      /// when it cannot be reused — a corrupt file, or sizing that no longer matches
-      /// the requested capacity, both of which need a full build.
+      /// Refreshes an existing filter in place using its on-disk sizing, or returns
+      /// <see langword="null"/> when the file is corrupt / unusable (caller may
+      /// rebuild). A missing sidecar skips the refresh and keeps the filter.
       /// </summary>
       private static async Task<HibpBloomBuildResult?> _tryRefreshInPlaceAsync(
          string outputPath,
-         ulong capacity,
-         double falsePositiveRate,
          int maxDegreeOfParallelism,
          IProgress<HibpBloomBuildProgress>? progress,
          CancellationToken cancellationToken)
       {
-         (ulong bitCount, int hashFunctions) = BloomSizing.For(capacity, falsePositiveRate);
          string statePath = GetRangeStatePath(outputPath);
 
          // Open inside this using so ownership never leaves via return (CA2000 /
@@ -199,18 +200,11 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
          {
             using HibpBloomFile filter = HibpBloomFile.OpenForUpdate(outputPath);
 
-            // A bit array sized for other parameters cannot absorb these hashes:
-            // the positions would not match what a later query computes.
-            if (!_sizingMatches(filter, capacity, bitCount, hashFunctions))
-            {
-               return null;
-            }
-
             // Without a usable sidecar there are no ETags to revalidate against.
             // Creating an empty one and ingesting would re-download every range
             // (~1M requests) while the .pkbf itself is still valid for lookups —
             // that must never happen on Update (especially auto-update at startup).
-            // Callers that need a fresh corpus should use Rebuild.
+            // Callers that need a fresh corpus or a different FPR should use Rebuild.
             using HibpRangeStateStore? store = HibpRangeStateStore.TryOpen(statePath, TotalPrefixes, filter);
             if (store is null || store.IngestedPrefixes == 0)
             {

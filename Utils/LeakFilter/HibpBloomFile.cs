@@ -130,7 +130,44 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       /// </summary>
       internal static bool TryReadBuiltUtc(string path, out DateTime builtUtc)
       {
-         builtUtc = default;
+         if (!_tryReadHeader(path, out Header header))
+         {
+            builtUtc = default;
+            return false;
+         }
+
+         builtUtc = header.BuiltUtc;
+         return true;
+      }
+
+      /// <summary>
+      /// Reads capacity / bit-count / hash-function count from the <c>.pkbf</c>
+      /// header without mapping the bit array.
+      /// </summary>
+      internal static bool TryReadSizing(
+         string path,
+         out ulong capacity,
+         out ulong bitCount,
+         out int hashFunctions)
+      {
+         capacity = 0;
+         bitCount = 0;
+         hashFunctions = 0;
+
+         if (!_tryReadHeader(path, out Header header))
+         {
+            return false;
+         }
+
+         capacity = header.Capacity;
+         bitCount = header.BitCount;
+         hashFunctions = header.HashFunctions;
+         return true;
+      }
+
+      private static bool _tryReadHeader(string path, out Header header)
+      {
+         header = default;
 
          if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
          {
@@ -145,7 +182,7 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
                return false;
             }
 
-            builtUtc = _readHeader(file).BuiltUtc;
+            header = _readHeader(file);
             return true;
          }
          catch (Exception ex)

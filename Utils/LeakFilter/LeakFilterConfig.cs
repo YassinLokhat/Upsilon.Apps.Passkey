@@ -26,6 +26,12 @@ namespace Upsilon.Apps.Passkey.Utils.LeakFilter
       public int AutoUpdateFrequency { get; set; } = 7;
 
       /// <summary>
+      /// Target false-positive rate used for the next full build / rebuild.
+      /// Incremental updates keep the on-disk filter sizing unchanged.
+      /// </summary>
+      public double FalsePositiveRate { get; set; } = BloomSizing.DefaultFalsePositiveRate;
+
+      /// <summary>
       /// Opens the configured filter when enabled and present; otherwise returns <see langword="null"/>.
       /// </summary>
       public ILocalLeakFilter? TryOpenConfiguredFilter()
