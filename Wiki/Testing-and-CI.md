@@ -10,7 +10,7 @@ Three test projects:
 | `UnitTests/Presentation/` | `net10.0` | Shared Presentation ports, services and ViewModels used by both hosts, including localized activity messages (`ActivityViewModelMessageTests`). Runs in the Windows, Linux and MAUI Windows workflows. |
 | `UnitTests/Windows/` | `net10.0-windows` | WPF host code only: theme service, `{loc:Loc}` extension, language delivery to open windows. |
 
-There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay on the [[WPF Client]] manual smoke list.
+There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, keyboard shortcuts, and themed confirmation dialogs (`ThemedMessageBoxView`) stay on the [[WPF Client]] manual smoke list.
 
 ### Activity log assertions
 

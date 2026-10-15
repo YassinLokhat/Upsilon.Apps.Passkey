@@ -2,7 +2,7 @@
 
 The Windows desktop app lives in `GUI/WPF`. It is MVVM with a small service locator (`AppServices`) instead of a DI container, so ViewModels stay unit-testable. The project currently has no NuGet packages either; keep it that way unless a Windows-only capability cannot be done with the BCL.
 
-**MVVM conventions:** ViewModels inherit `ObservableObject` (`SetProperty` / `OnPropertyChanged`) and expose `RelayCommand` for user actions. Prefer `{Binding}` / `ItemsSource="{Binding …}"` over code-behind assignments. Keep code-behind for focus, list selection, and secret lifecycle (`VisiblePasswordBox`, `SetDataContext`). Marshal worker-thread callbacks with the shared Presentation `UiThread.Post` / `UiThread.Send`. Session, alerts and clipboard (`IClipboardService`) come from the shared Presentation `AppServices`. Busy UI uses bindable `IsBusy` on shells (e.g. `MainViewModel`) plus `WindowHelper.SetIsBusy` wait-cursor for modal save/import flows. Field dirty/unchanged brushes live in `FieldStateBrushes` (synced from the active theme).
+**MVVM conventions:** feature ViewModels live in the shared `GUI/Presentation` project and the MAUI client binds the same ones (`MainViewModel` and `VisiblePasswordBoxViewModel` stay WPF-only). They inherit `ObservableObject` (`SetProperty` / `OnPropertyChanged`) and expose `RelayCommand` for user actions. Prefer `{Binding}` / `ItemsSource="{Binding …}"` over code-behind assignments. Keep code-behind for focus, list selection, and secret lifecycle (`VisiblePasswordBox`, `SetDataContext`). Marshal worker-thread callbacks with the shared Presentation `UiThread.Post` / `UiThread.Send`. Session, alerts and clipboard (`IClipboardService`) come from the shared Presentation `AppServices`. Busy UI uses bindable `IsBusy` on shells (e.g. `MainViewModel`) plus `WindowHelper.SetIsBusy` wait-cursor for modal save/import flows. Field dirty/unchanged brushes live in `FieldStateBrushes` (synced from the active theme).
 
 Target framework: `net10.0-windows10.0.18362.0`. Light and dark WPF resource dictionaries, with Windows immersive title bars matching the active appearance.
 
@@ -169,7 +169,7 @@ The GUI keeps the typed secret in `PasswordBox.SecurePassword` and bridges it th
 | `Ctrl+Shift+L` | While the services window is open: copy the selected **identifier** to the clipboard |
 | `Ctrl+Shift+P` | Copy the selected **password** to the clipboard |
 
-These hotkeys copy via `IClipboardManager` only; they do not paste into the focused field. The clipboard still auto-clears after `ISettings.CleaningClipboardTimeout`, and Windows clipboard history is scrubbed through `RemoveAllOccurrenceAsync`.
+These shortcuts are window key bindings, not global hotkeys: they copy via `IClipboardManager` only and never paste into another application. The MAUI Windows client has the same shortcuts in its vault menu. Copies carry the formats that keep them out of Windows clipboard history, the cloud clipboard and clipboard monitors; the clipboard still auto-clears after `ISettings.CleaningClipboardTimeout`, and older history entries are scrubbed through `RemoveAllOccurrenceAsync`.
 
 ## QR codes
 
@@ -198,7 +198,7 @@ The WPF client uses a Yes / No / Cancel prompt and maps it as follows:
 
 ## Manual smoke (GUI)
 
-After changes that touch login, clipboard, or hotkeys, verify on Windows:
+After changes that touch login, clipboard, or keyboard shortcuts, verify on Windows:
 
 1. Create a new vault (multi-passkey): confirm the **new** credentials dialog, then reopen with the same ordered passkeys.
 2. Mistype a passkey, then close/reopen and log in correctly (progressive login, no rollback).
@@ -209,8 +209,8 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 7. **Delete** vault: after the two Yes dialogs, confirm **old** credentials (cancel skips delete).
 8. Copy an account password; confirm the clipboard clears after the configured timeout.
 9. Idle until auto-logout; confirm the session closes and the vault file is released.
-10. Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
+10. In the services window, press Ctrl+Shift+L / Ctrl+Shift+P: the selected identifier / password is copied (never pasted) and cleared after the timeout.
 11. Show a password as a QR code and confirm the window closes after the configured delay.
 12. Close while an offline leak-database build/update is running: Yes / No / Cancel (finish after vault lock, cancel, or stay open).
 
-There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, themed confirmation dialogs (`ThemedMessageBoxView`), and `CredentialsConfirmationView` stay out of the automated suite — [[Testing and CI]]. ViewModel coverage for the confirmation sequence lives in `CredentialsConfirmationViewModelTests`.
+There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, keyboard shortcuts, themed confirmation dialogs (`ThemedMessageBoxView`), and `CredentialsConfirmationView` stay out of the automated suite — [[Testing and CI]]. ViewModel coverage for the confirmation sequence lives in `CredentialsConfirmationViewModelTests`.

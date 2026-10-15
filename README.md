@@ -17,17 +17,17 @@ independently; see [SECURITY.md](SECURITY.md) and [`versions.json`](versions.jso
 *   **Activity log**: tamper-evident audit trail of vault events
 *   **Alerts**: activity review, password reminders / duplicates / leaks, vault & host security posture, passkey quality (count, strength, leak, reuse)
 *   **Autosave**: unsaved edits are kept in the `.pku` ZIP and merged on the next login
-*   **Undo / Redo**: session-scoped edit history (Ctrl+Shift+Z / Ctrl+Shift+Y in the WPF vault window); cleared on logout
+*   **Undo / Redo**: session-scoped edit history (Ctrl+Shift+Z / Ctrl+Shift+Y in the vault window on Windows); cleared on logout
 *   **Password generation**: CSPRNG over a configurable alphabet
 *   **Leak detection**: opt-in Have I Been Pwned checks, then XposedOrNot failover, then an optional local HIBP Bloom filter (k-anonymity / offline; see [SECURITY.md](SECURITY.md))
 *   **Import / Export**: plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited)
-*   **WPF client** (Windows): System / Light / Dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
-*   **MAUI client** (preview; Windows + Android): same vault files and shared ViewModels; Android adds SAF documents with conflict copies, a background lock and screenshot blocking, and has no offline `.pkbf` or global hotkeys (see [Wiki/MAUI-Client.md](Wiki/MAUI-Client.md)). WPF stays supported alongside it.
+*   **WPF client** (Windows): System / Light / Dark theme, QR codes, copy shortcuts (Ctrl+Shift+L / Ctrl+Shift+P), auto-logout, clipboard cleaning
+*   **MAUI client** (preview; Windows + Android): same vault files, shared ViewModels and the same features as WPF, with modal pages instead of extra windows. Android adds SAF documents with conflict copies, a background lock and screenshot blocking, and has no offline `.pkbf` or keyboard shortcuts (see [Wiki/MAUI-Client.md](Wiki/MAUI-Client.md) and [Wiki/MAUI-Parity-Checklist.md](Wiki/MAUI-Parity-Checklist.md)). WPF stays supported alongside it.
 
 **Architecture**
 ----------------
 
-Four layers, two solution files:
+Four layers, three solution files:
 
 ```
 Interfaces/     Public contracts (IDatabase, IUser, crypto, clipboard, IProtectedSecret, ISecretMemoryProtector, …)
@@ -49,9 +49,9 @@ Core talks to the OS for clipboard only through an injected port
 (`IClipboardManager` must be OS-specific). In-memory secret wrapping goes through
 `ISecretMemoryProtector` (Utils ships `SecretMemoryProtector`). File I/O uses the BCL in Core.
 Opt-in HTTP leak checks and the optional offline HIBP Bloom filter live in Utils
-(`PasswordFactory`, `Utils/LeakFilter/`). The WPF app supplies
-the clipboard implementation, the secret protector, and hosts dialogs, session, and navigation behind
-`AppServices` so ViewModels stay testable without a window.
+(`PasswordFactory`, `Utils/LeakFilter/`). Each client (WPF, MAUI) supplies
+the clipboard implementation and its platform ports; dialogs, session, and navigation sit behind the
+shared Presentation `AppServices` locator so ViewModels stay testable without a window.
 
 **Security**
 ------------
@@ -906,7 +906,7 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     Localized activity rendering is covered there (`ActivityViewModelMessageTests`).
     `UnitTests/Windows` keeps the WPF host tests (theme, `{loc:Loc}` extension,
     language delivery to open windows).
-    No UI automation (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, themed
+    No UI automation (FlaUI / WinAppDriver): login `PasswordBox`, keyboard shortcuts, themed
     confirmation dialogs (`ThemedMessageBoxView` via `DialogService`), and
     `CredentialsConfirmationView` stay out of the automated suite. ViewModel
     coverage for the confirmation sequence is in `CredentialsConfirmationViewModelTests`.
@@ -923,7 +923,7 @@ dotnet test UnitTests/Presentation/UnitTests.Presentation.csproj
 
 ### Manual smoke (GUI)
 
-After changes that touch login, clipboard, or hotkeys, verify on Windows:
+After changes that touch login, clipboard, or keyboard shortcuts, verify on Windows:
 
 1.  Create a new vault (multi-passkey): complete the **new** credentials
     confirmation dialog, then reopen with the same ordered passkeys.
@@ -935,7 +935,7 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 6.  Delete vault: after the two Yes dialogs, confirm **old** credentials (cancel skips delete).
 7.  Copy an account password; confirm the clipboard clears after the configured timeout.
 8.  Idle until auto-logout; confirm the session closes and the vault file is released.
-9.  Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
+9.  In the vault, press Ctrl+Shift+L / Ctrl+Shift+P: the selected identifier / password is copied (never pasted) and cleared after the timeout.
 10. Show a password as a QR code and confirm the window closes after the configured delay.
 11. Close while an offline leak-database build/update is running: Yes / No / Cancel
     (finish after vault lock, cancel, or stay open).
@@ -972,7 +972,8 @@ To build from source:
 
 1.  Clone the repository: `git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git`
 2.  Windows (GUI + tests): `dotnet build Upsilon.Apps.Passkey.Windows.slnx` then `dotnet run --project GUI/WPF`
-3.  Linux (Interfaces + Utils + Core): `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
+3.  Linux (Interfaces + Utils + Core + Presentation, with their tests): `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
+4.  MAUI preview (Windows + Android): workloads and build commands in [Wiki/MAUI-Client.md](Wiki/MAUI-Client.md#build)
 
 Requires the .NET 10 SDK. The WPF app targets `net10.0-windows10.0.18362.0`.
 

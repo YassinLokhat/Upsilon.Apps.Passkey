@@ -54,7 +54,7 @@ Shared rules live in `.editorconfig` and `Directory.Build.props`:
 * Private fields and private methods: `_camelCase`
 * Private `const` fields: `SCREAMING_SNAKE`
 * Interfaces: `I…` prefix
-* WPF ViewModels: inherit `ObservableObject`; use `RelayCommand`; ask the user via the shared async `IDialogService`; host windows via `IWindowDialogService`
+* ViewModels live in `GUI/Presentation`: inherit its `ObservableObject`; use `RelayCommand` / `AsyncRelayCommand`; ask the user via the async `IDialogService`; open views via `INavigationService`. Hosts keep only view glue (WPF windows through `IWindowDialogService`, MAUI pages)
 * Helpers: `ItemExtensions` (Interfaces), `SerializationHelpers` (Core)
 
 Match the surrounding file. Do not reformat unrelated code.
@@ -63,6 +63,7 @@ Match the surrounding file. Do not reformat unrelated code.
 
 * Tests for Core/Utils behaviour you change (crypto, vault lifecycle, import/export, alerts, persistence)
 * ViewModel tests in `UnitTests/Presentation` when you change shared GUI logic behind `AppServices`
+* User-visible features in both clients: the logic in `GUI/Presentation`, a view in WPF and in MAUI; a gap that remains goes in [[MAUI Parity Checklist]]
 * README / SECURITY.md / wiki updates when you change a public contract, a threat-model assumption, or a user-visible security behaviour
 * No secrets: vault files, exported JSON/CSV, logs, or credentials
 

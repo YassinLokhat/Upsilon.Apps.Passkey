@@ -23,12 +23,13 @@ A **local-only** password manager written in C# on **.NET 10**. There is no serv
 | ---- | --------- |
 | At rest | AES-256-GCM onion over ordered passkeys; sticky KDF header in the ZIP |
 | In memory | Account passwords, passkeys, and the RSA private key held as `IProtectedSecret` via injected `ISecretMemoryProtector` (default: Utils `ProtectedSecret`) |
-| Session | Configurable auto-logout, clipboard auto-clear (including Windows clipboard history); WPF re-confirms credentials before create / username-or-passkey save |
+| Session | Configurable auto-logout, clipboard auto-clear (including Windows clipboard history); both clients re-confirm credentials before create / username-or-passkey save |
 | Login | Progressive passkeys **without rollback** (online brute-force friction) |
 | Generation | CSPRNG over a configurable alphabet |
 | Leak checks | Opt-in Have I Been Pwned, then XposedOrNot failover, then an optional local HIBP Bloom filter (`.pkbf`; k-anonymity / offline) |
 | Import / export | Plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited) |
-| Windows client | System / Light / Dark theme, QR codes, global paste hotkeys, autosave merge on next login, App Settings for vault folder, login idle timeout, and offline leak DB (scheduled auto-update of an existing `.pkbf`, default every 7 days) |
+| WPF client (Windows) | System / Light / Dark theme, QR codes, copy shortcuts (Ctrl+Shift+L / Ctrl+Shift+P), autosave merge on next login, App Settings for vault folder, login idle timeout, and offline leak DB (scheduled auto-update of an existing `.pkbf`, default every 7 days) |
+| MAUI client (preview) | Same features on Windows and Android over the same vault files; Android opens `.pku` documents through the system picker (conflict copies, background lock, screenshot blocking) and has no offline `.pkbf` |
 
 ## Start here
 
@@ -40,6 +41,7 @@ A **local-only** password manager written in C# on **.NET 10**. There is no serv
 | Move data in or out | [[Import Export]] |
 | How `.pku` and cryptography work | [[Vault Format]] and [[Security]] |
 | GUI shortcuts, QR, clipboard | [[WPF Client]] |
+| Build or run the MAUI preview (Windows, Android) | [[MAUI Client]] and [[MAUI Parity Checklist]] |
 | Alerts and the audit trail | [[Alerts and Activity]] |
 | Tests, coverage, GitHub Actions | [[Testing and CI]] |
 
