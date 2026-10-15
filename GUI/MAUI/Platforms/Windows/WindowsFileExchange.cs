@@ -17,7 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Windows
             picker.FileTypeFilter.Add(extension);
          }
 
-         _attach(picker);
+         AttachToMainWindow(picker);
          StorageFile? file = await picker.PickSingleFileAsync();
          cancellationToken.ThrowIfCancellationRequested();
          if (file is null)
@@ -38,7 +38,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Windows
          };
          picker.FileTypeChoices.Add(extension.TrimStart('.').ToUpperInvariant(), [extension]);
 
-         _attach(picker);
+         AttachToMainWindow(picker);
          StorageFile? file = await picker.PickSaveFileAsync();
          cancellationToken.ThrowIfCancellationRequested();
          if (file is null)
@@ -51,7 +51,8 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Windows
          return new ExchangeFile(stream, extension, file.Name);
       }
 
-      private static void _attach(object picker)
+      /// <summary>Unpackaged WinUI pickers need the owner window handle.</summary>
+      internal static void AttachToMainWindow(object picker)
       {
          if (Application.Current?.Windows is { Count: > 0 } windows && windows[0].Handler?.PlatformView is Microsoft.UI.Xaml.Window window)
          {
