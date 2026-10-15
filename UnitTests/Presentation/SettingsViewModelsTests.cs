@@ -1,9 +1,14 @@
 using FluentAssertions;
+using UnitTests.Presentation.Fakes;
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
 using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.UnitTests.Multiplateform;
 
 namespace UnitTests.Presentation
 {
@@ -12,7 +17,87 @@ namespace UnitTests.Presentation
    public sealed class SettingsViewModelsTests
    {
       [TestCleanup]
-      public void Cleanup() => AppServices.Reset();
+      public void Cleanup()
+      {
+         AppServices.Session.EndSession();
+         AppServices.Reset();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      public async Task ExportThenImport_GoesThroughFileExchangeStreams()
+      {
+         FakeFileExchange files = _startSession(out IDatabase source);
+         _ = source.User!.AddService("Exported service");
+         source.User.Settings.LogoutTimeout = 5;
+         source.User.Settings.CleaningClipboardTimeout = 10;
+         source.User.Settings.ShowPasswordDelay = 500;
+         source.Save();
+
+         using (UserSettingsViewModel vm = new())
+         {
+            await vm.ExportAsync(json: true);
+         }
+
+         files.WriteRequests.Should().ContainSingle().Which.Should().Be(".json");
+         string exported = files.Written!;
+         exported.Should().Contain("Exported service");
+
+         AppServices.Session.EndSession();
+         UnitTestsHelper.ClearTestEnvironment();
+         files = _startSession(out IDatabase target);
+         files.ReadContent = exported;
+         files.ReadExtension = ".JSON";
+
+         using (UserSettingsViewModel vm = new())
+         {
+            await vm.ImportAsync();
+         }
+
+         ((FakeDialogService)AppServices.Dialogs!).LastError.Should().BeNull();
+         target.User!.Services.Select(s => s.ServiceName).Should().Contain("Exported service");
+         files.LastReadStream!.CanRead.Should().BeFalse("the picked stream is disposed after import");
+      }
+
+      [TestMethod]
+      public async Task Export_DeclinedPlaintextWarning_NeverOpensADocument()
+      {
+         FakeFileExchange files = _startSession(out _);
+         ((FakeDialogService)AppServices.Dialogs!).ConfirmAnswer = DialogResult.No;
+
+         using UserSettingsViewModel vm = new();
+         await vm.ExportAsync(json: false);
+
+         files.WriteRequests.Should().BeEmpty();
+      }
+
+      [TestMethod]
+      public async Task Import_UnsupportedExtension_IsRejectedWithoutReading()
+      {
+         FakeFileExchange files = _startSession(out IDatabase database);
+         files.ReadContent = "[]";
+         files.ReadExtension = ".txt";
+
+         using UserSettingsViewModel vm = new();
+         await vm.ImportAsync();
+
+         database.User!.Services.Should().BeEmpty();
+         ((FakeDialogService)AppServices.Dialogs!).LastError.Should().Contain(EnumDisplayHelper.FormatFieldValue(nameof(ImportExportError), nameof(ImportExportError.ExtensionFileNotSupported)));
+      }
+
+      private static FakeFileExchange _startSession(out IDatabase database)
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         AppServices.Ui = new InlineUiDispatcher();
+         AppServices.Clipboard = new FakeClipboardService();
+         AppServices.PasswordFactory = UnitTestsHelper.FastPasswordFactory;
+         AppServices.Dialogs = new FakeDialogService { ConfirmAnswer = DialogResult.Yes };
+         FakeFileExchange files = new();
+         AppServices.Files = files;
+         database = UnitTestsHelper.CreateTestDatabase(UnitTestsHelper.GetRandomStringArray());
+         AppServices.Session.StartSession(database);
+         return files;
+      }
 
       [TestMethod]
       public void NormalizeUsername_TrimsAndHandlesNull()
@@ -81,6 +166,22 @@ namespace UnitTests.Presentation
       }
 
       [TestMethod]
+      public void PasskeyEntry_ReattachToNewControl_MovesTypedSecretAndWipesOldOne()
+      {
+         using PasskeyEntryViewModel entry = new(seed: null, storedIndex: null);
+         FakeSecretInput first = new();
+         FakeSecretInput second = new();
+         entry.Attach(first);
+         first.Value = "typed";
+
+         entry.Attach(second);
+
+         second.Value.Should().Be("typed");
+         first.Value.Should().BeEmpty();
+         entry.Reveal().Should().Be("typed");
+      }
+
+      [TestMethod]
       public void AppSettings_EditsApplyOnlyOnSave()
       {
          FakeSettingsStore store = new();
@@ -139,6 +240,45 @@ namespace UnitTests.Presentation
          public void Write(string secret) => Value = secret;
 
          public void Clear() => Value = string.Empty;
+      }
+
+      private sealed class FakeFileExchange : IFileExchange
+      {
+         public string ReadContent { get; set; } = string.Empty;
+
+         public string ReadExtension { get; set; } = ".json";
+
+         public MemoryStream? LastReadStream { get; private set; }
+
+         public List<string> WriteRequests { get; } = [];
+
+         public string? Written { get; private set; }
+
+         public Task<ExchangeFile?> OpenReadAsync(string title, IReadOnlyList<string> extensions, CancellationToken cancellationToken = default)
+         {
+            LastReadStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(ReadContent));
+            return Task.FromResult<ExchangeFile?>(new ExchangeFile(LastReadStream, ReadExtension, "picked" + ReadExtension));
+         }
+
+         public Task<ExchangeFile?> OpenWriteAsync(string title, string suggestedFileName, string extension, CancellationToken cancellationToken = default)
+         {
+            WriteRequests.Add(extension);
+            CapturingStream stream = new(text => Written = text);
+            return Task.FromResult<ExchangeFile?>(new ExchangeFile(stream, extension, suggestedFileName));
+         }
+
+         private sealed class CapturingStream(Action<string> onDispose) : MemoryStream
+         {
+            protected override void Dispose(bool disposing)
+            {
+               if (disposing)
+               {
+                  onDispose(System.Text.Encoding.UTF8.GetString(ToArray()));
+               }
+
+               base.Dispose(disposing);
+            }
+         }
       }
 
       private sealed class FakeSettingsStore : IAppSettingsStore

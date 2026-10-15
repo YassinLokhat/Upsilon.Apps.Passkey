@@ -708,6 +708,27 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
 
       [TestMethod]
       /*
+       * A non-seekable stream (SAF provider) cannot report its length: reading
+       * stops just past the import budget instead of buffering the whole stream.
+      */
+      public void Case20b_ImportFromStream_NonSeekableTooLarge_StopsReading()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         using EndlessStream input = new();
+         _ = database.ImportFromStream(input, ".json").Should().Be(ImportExportError.ImportFileTooLarge);
+         _ = input.BytesRead.Should().BeLessThan(ResourceBudgets.MaxImportFileBytes + (1024 * 1024));
+         _ = database.User!.Services.Should().BeEmpty();
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
        * Export into a read-only stream fails with an error code instead of
        * throwing, and argument validation rejects null streams / blank formats.
       */
@@ -736,6 +757,28 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          public override long Length => length;
       }
 
+      private sealed class EndlessStream : Stream
+      {
+         public long BytesRead { get; private set; }
+
+         public override bool CanRead => true;
+         public override bool CanSeek => false;
+         public override bool CanWrite => false;
+         public override long Length => throw new NotSupportedException();
+         public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+         public override int Read(byte[] buffer, int offset, int count)
+         {
+            Array.Fill(buffer, (byte)'a', offset, count);
+            BytesRead += count;
+            return count;
+         }
+
+         public override void Flush() { }
+         public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+         public override void SetLength(long value) => throw new NotSupportedException();
+         public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+      }
       // Sample import.csv / import.json item chain (password ItemUpdated needsReview:false).
       private static void _pushSampleImportItemActivities(Stack<ExpectedActivity> expectedActivities, string username)
       {

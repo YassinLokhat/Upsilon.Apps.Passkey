@@ -17,9 +17,11 @@ iOS / MacCatalyst are out of scope for v1.
 
 Tool dialogs (password generator, insert identifier, QR code, credentials confirmation) share their ViewModels with WPF (`GUI/Presentation/ViewModels/Tools`) and are modal pages opened through typed requests (`GeneratePasswordRequest`, `InsertIdentifierRequest`, `ShowQrCodeRequest`, `ConfirmCredentialsRequest`) registered on `MauiDialogService`. Credentials confirmation keeps only HMAC digests of the expected factors; the QR matrix is cleared on expiry or close.
 
+User and application settings share `UserSettingsViewModel`, `PasskeyListViewModel` and `AppSettingsViewModel` (`ViewModels/Settings`). The user settings page asks for the stored credentials before its ViewModel exists, and passkey rows reach the ViewModel only through `ISecretInput`, never a binding. JSON/CSV import and export go through `IFileExchange` streams: WinRT pickers on Windows, SAF documents without a persisted grant on Android, so plaintext never lands in app storage; imports from non-seekable streams stop at the 64 MiB budget. The offline `.pkbf` section (build, update, cancel, delete) only shows when `SupportsOfflineLeakFilter` is set; on Windows, closing the window cancels a running build and waits up to 15 s.
+
 The activity log and the five alert views (account passwords, duplicated passwords, passkey quality, security settings) also share their ViewModels (`ViewModels/Activities`, `ViewModels/Alerts`): filters, sort order and localized filter options live in the ViewModel, and MAUI pages are opened through `ActivitiesRequest` and the `*AlertRequest` types. Shared ViewModels implement `ILanguageRefreshable`; WPF's `ForwardToDataContext` forwards to it. MAUI activity filters have no date pickers yet.
 
-Parity progress: [[MAUI Parity Checklist]]. Today MAUI is a preview: login, the services and accounts editor (master-detail from 800 px wide, list then detail page on phones, swipe actions, Windows menu bar shortcuts, Android toolbar), tools, activities and alerts. Settings pages are not ported yet; it is not shipped (`ship: false`) until the checklist is green. WPF is kept alongside MAUI.
+Parity progress: [[MAUI Parity Checklist]]. Today MAUI is a preview: login, the services and accounts editor (master-detail from 800 px wide, list then detail page on phones, swipe actions, Windows menu bar shortcuts, Android toolbar), tools, activities and alerts, user and application settings. It is not shipped (`ship: false`) until the checklist is green. WPF is kept alongside MAUI.
 
 ## Android storage
 

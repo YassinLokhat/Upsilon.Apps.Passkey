@@ -275,6 +275,10 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings
       private static IDialogService _dialogs
          => AppServices.Dialogs ?? throw new InvalidOperationException("No dialog service registered.");
 
+      private static IFileExchange _files => AppServices.Files ?? new PathFileExchange(_dialogs);
+
+      private static readonly string[] _importExtensions = [".json", ".csv"];
+
       /// <summary>
       /// Re-type the vault's current username and ordered passkeys. Required
       /// before opening settings on an unlocked vault, changing credentials and deleting.
@@ -455,13 +459,20 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings
                return;
             }
 
-            string? fileName = await _dialogs.PickOpenFileAsync($"{Strings.Filter_Json}|{Strings.Filter_Csv}", Strings.Title_ImportData).ConfigureAwait(true);
-            if (string.IsNullOrEmpty(fileName))
+            ExchangeFile? file = await _files.OpenReadAsync(Strings.Title_ImportData, _importExtensions).ConfigureAwait(true);
+            if (file is null)
             {
                return;
             }
 
-            ImportExportError imported = await database.ImportFromFileAsync(fileName).ConfigureAwait(true);
+            ImportExportError imported;
+            await using (file.ConfigureAwait(true))
+            {
+               imported = _importExtensions.Contains(file.Extension, StringComparer.OrdinalIgnoreCase)
+                  ? await database.ImportFromStreamAsync(file.Stream, file.Extension).ConfigureAwait(true)
+                  : ImportExportError.ExtensionFileNotSupported;
+            }
+
             if (imported == ImportExportError.None)
             {
                await _dialogs.InfoAsync(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess).ConfigureAwait(true);
@@ -494,16 +505,22 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings
                return;
             }
 
-            string? fileName = await _dialogs.PickSaveFileAsync(
-               json ? Strings.Filter_Json : Strings.Filter_CsvExport,
+            string extension = json ? ".json" : ".csv";
+            ExchangeFile? file = await _files.OpenWriteAsync(
                json ? Strings.Title_ExportJson : Strings.Title_ExportCsv,
-               $"{database.User.ItemId}-{DateTime.Now:yyyyMMddHHmm}").ConfigureAwait(true);
-            if (string.IsNullOrEmpty(fileName))
+               $"{database.User.ItemId}-{DateTime.Now:yyyyMMddHHmm}{extension}",
+               extension).ConfigureAwait(true);
+            if (file is null)
             {
                return;
             }
 
-            ImportExportError exported = await database.ExportToFileAsync(fileName).ConfigureAwait(true);
+            ImportExportError exported;
+            await using (file.ConfigureAwait(true))
+            {
+               exported = await database.ExportToStreamAsync(file.Stream, extension).ConfigureAwait(true);
+            }
+
             if (exported == ImportExportError.None)
             {
                await _dialogs.InfoAsync(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess).ConfigureAwait(true);

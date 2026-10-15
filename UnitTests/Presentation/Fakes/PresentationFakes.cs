@@ -34,7 +34,13 @@ namespace UnitTests.Presentation.Fakes
 
       public Task WarnAsync(string text, string title, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-      public Task ErrorAsync(string text, string title, CancellationToken cancellationToken = default) => Task.CompletedTask;
+      public string? LastError { get; private set; }
+
+      public Task ErrorAsync(string text, string title, CancellationToken cancellationToken = default)
+      {
+         LastError = text;
+         return Task.CompletedTask;
+      }
 
       public Task<string?> PickBrowseFolderAsync(string title, string defaultPath, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
 

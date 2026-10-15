@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -26,6 +26,10 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
       private static TaskCompletionSource<(global::Android.Net.Uri Uri, string Name)?>? _pickTcs;
 
       private static TaskCompletionSource<(global::Android.Net.Uri Uri, string Name)?>? _createTcs;
+
+      private const int EXCHANGE_DOCUMENT_REQUEST = 0x504D;
+
+      private static TaskCompletionSource<global::Android.Net.Uri?>? _exchangeTcs;
 
       protected override void OnCreate(Bundle? savedInstanceState)
       {
@@ -76,9 +80,35 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          return _createTcs.Task;
       }
 
+      /// <summary>
+      /// Runs an open/create document intent for a one-shot import or export.
+      /// No persistable grant is taken: the URI is only valid for this operation.
+      /// </summary>
+      internal static Task<global::Android.Net.Uri?> StartExchangeDocumentAsync(Intent intent)
+      {
+         ArgumentNullException.ThrowIfNull(intent);
+         if (Platform.CurrentActivity is not MainActivity activity)
+         {
+            return Task.FromResult<global::Android.Net.Uri?>(null);
+         }
+
+         _exchangeTcs?.TrySetResult(null);
+         _exchangeTcs = new TaskCompletionSource<global::Android.Net.Uri?>();
+         activity.StartActivityForResult(intent, EXCHANGE_DOCUMENT_REQUEST);
+         return _exchangeTcs.Task;
+      }
+
       protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
       {
          base.OnActivityResult(requestCode, resultCode, data);
+
+         if (requestCode == EXCHANGE_DOCUMENT_REQUEST)
+         {
+            TaskCompletionSource<global::Android.Net.Uri?>? exchange = _exchangeTcs;
+            _exchangeTcs = null;
+            exchange?.TrySetResult(resultCode == Result.Ok ? data?.Data : null);
+            return;
+         }
 
          TaskCompletionSource<(global::Android.Net.Uri Uri, string Name)?>? tcs;
          switch (requestCode)

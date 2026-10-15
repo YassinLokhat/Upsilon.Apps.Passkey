@@ -1,10 +1,8 @@
-﻿using System.IO;
-using System.Net.Http;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.Utils;
 using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.Services
+namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
 {
    /// <summary>
    /// Serializes manual and automatic offline leak-filter builds/updates so only
@@ -16,6 +14,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       private readonly Lock _gate = new();
       private CancellationTokenSource? _cts;
       private int _busy;
+
+      private static AppSettings _settings
+         => (AppServices.Settings ?? throw new InvalidOperationException("No application settings store registered.")).Current;
 
       public bool IsBusy => Volatile.Read(ref _busy) != 0;
 
@@ -95,7 +96,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       public bool ContinueThroughExit { get; set; }
 
       /// <summary>
-      /// When true, MainWindow skips the exit prompt (vault window already handled Yes/No).
+      /// When true, the host skips its exit prompt (vault window already handled Yes/No).
       /// </summary>
       public bool SkipClosePrompt { get; set; }
 
@@ -161,7 +162,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       /// </summary>
       public void TryStartAutoUpdate()
       {
-         LeakFilterConfig config = AppInfo.AppSettings.LeakFilterConfig;
+         LeakFilterConfig config = _settings.LeakFilterConfig;
 
          if (!config.Enabled
             || config.AutoUpdateFrequency == 0
@@ -171,7 +172,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          }
 
          FileInfo info = new(config.FilterPath);
-         DateTime lastUpdateTime = AppInfo.AppSettings.LeakFilterConfig.TryGetBuiltUtc(out DateTime builtUtc)
+         DateTime lastUpdateTime = _settings.LeakFilterConfig.TryGetBuiltUtc(out DateTime builtUtc)
             ? builtUtc
             : info.LastWriteTimeUtc;
 
@@ -185,7 +186,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          // the UI closed.
          if (!File.Exists(HibpBloomBuilder.GetRangeStatePath(config.FilterPath)))
          {
-            Log.Info(
+            AppServices.Log.Info(
                "Offline leak filter: auto-update skipped (range sidecar missing); "
                + "keeping the existing .pkbf. Use Rebuild from settings to restore incremental updates.");
             return;
@@ -196,7 +197,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
             return;
          }
 
-         Log.Info("Offline leak filter: starting background auto-update.");
+         AppServices.Log.Info("Offline leak filter: starting background auto-update.");
 
          _ = Task.Run(async () =>
          {
@@ -214,11 +215,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
                if (result.Value.Skipped)
                {
-                  Log.Info("Offline leak filter: auto-update skipped (already up to date or nothing to do).");
+                  AppServices.Log.Info("Offline leak filter: auto-update skipped (already up to date or nothing to do).");
                }
                else
                {
-                  Log.Info(
+                  AppServices.Log.Info(
                      $"Offline leak filter: auto-update complete "
                      + $"({result.Value.ChangedPrefixes} ranges refreshed, "
                      + $"{result.Value.UnchangedPrefixes} unchanged, "
@@ -227,7 +228,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
             }
             catch (OperationCanceledException)
             {
-               Log.Info("Offline leak filter: auto-update cancelled.");
+               AppServices.Log.Info("Offline leak filter: auto-update cancelled.");
             }
             catch (Exception ex)
                when (ex is ArgumentException
@@ -239,7 +240,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
             {
                // Corrupt .pkbf throws HibpBloomCorruptException:
                // skip + log — never rebuild multi-GiB from auto-update.
-               Log.Error(ex, "Offline leak filter: auto-update failed");
+               AppServices.Log.Error("Offline leak filter: auto-update failed", ex);
             }
          });
       }
@@ -297,7 +298,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
          try
          {
-            LeakFilterConfig config = AppInfo.AppSettings.LeakFilterConfig;
+            LeakFilterConfig config = _settings.LeakFilterConfig;
             HibpBloomBuildResult result = await HibpBloomBuilder.RunAsync(
                config.FilterPath,
                mode,
@@ -322,7 +323,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          {
             if (AppServices.PasswordFactory is PasswordFactory factory)
             {
-               factory.ReloadLocalFilter(AppInfo.AppSettings.LeakFilterConfig);
+               factory.ReloadLocalFilter(_settings.LeakFilterConfig);
             }
 
             lock (_gate)

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:settings="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+             xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
+             xmlns:pl="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.Localization;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+             xmlns:pm="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.Models;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Pages.Settings.AppSettingsPage"
+             x:ClassModifier="internal"
+             x:DataType="settings:AppSettingsViewModel"
+             Title="{Binding Title}">
+   <ContentPage.ToolbarItems>
+      <ToolbarItem Text="{loc:Loc Menu_Save}" Command="{Binding SaveCommand}" Order="Primary" />
+      <ToolbarItem Text="{loc:Loc Button_Cancel}" Clicked="_onClose" Order="Primary" />
+      <ToolbarItem Text="{loc:Loc Menu_ResetToDefault}" Command="{Binding ResetCommand}" Order="Secondary" />
+   </ContentPage.ToolbarItems>
+
+   <ScrollView>
+      <VerticalStackLayout Padding="16" Spacing="10">
+         <VerticalStackLayout Spacing="6" IsVisible="{Binding SupportsFileSystemPaths}">
+            <Label Text="{loc:Loc Label_DefaultDatabaseDirectory}" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+               <Entry Text="{Binding DefaultDatabaseDirectory}" IsReadOnly="True" />
+               <Button Grid.Column="1" Text="{loc:Loc Label_Browse}" Command="{Binding BrowseCommand}" />
+            </Grid>
+         </VerticalStackLayout>
+
+         <Label Text="{loc:Loc Label_Language}" />
+         <Picker ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}" ItemDisplayBinding="{Binding NativeName, x:DataType=pl:AppLanguage}" IsEnabled="{Binding OfflineLeakFilterIdle}" />
+         <Label Text="{loc:Loc Label_Theme}" />
+         <Picker ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" ItemDisplayBinding="{Binding DisplayName, x:DataType=pm:AppThemeOption}" IsEnabled="{Binding OfflineLeakFilterIdle}" />
+
+         <Grid ColumnDefinitions="*,80,Auto" ColumnSpacing="8">
+            <Label Text="{loc:Loc Label_LoginIdleTimeout}" VerticalOptions="Center" />
+            <Entry Grid.Column="1" Keyboard="Numeric" Text="{Binding LoginIdleTimeoutSeconds}" IsEnabled="{Binding OfflineLeakFilterIdle}" />
+            <Label Grid.Column="2" Text="{loc:Loc Label_Seconds}" VerticalOptions="Center" />
+         </Grid>
+
+         <VerticalStackLayout Spacing="8" IsVisible="{Binding SupportsOfflineLeakFilter}" Margin="0,12,0,0">
+            <Label Text="{loc:Loc Label_OfflineLeakDatabase}" Style="{StaticResource SubHeadline}" ToolTipProperties.Text="{loc:Loc Tooltip_OfflineLeakDatabase}" />
+            <Label Text="{Binding OfflineLeakFilterStatus}" />
+
+            <Grid ColumnDefinitions="*,Auto">
+               <Label Text="{loc:Loc Label_UseOfflineBloomFilter}" VerticalOptions="Center" />
+               <Switch Grid.Column="1" IsToggled="{Binding OfflineLeakFilterEnabled}" IsEnabled="{Binding OfflineLeakFilterIdle}" Toggled="_onEnabledToggled" />
+            </Grid>
+
+            <Label Text="{loc:Loc Label_LeakFilterQuality}" ToolTipProperties.Text="{loc:Loc Tooltip_LeakFilterQuality}" />
+            <Picker ItemsSource="{Binding LeakFilterQualityOptions}" SelectedItem="{Binding SelectedLeakFilterQuality}" ItemDisplayBinding="{Binding DisplayName, x:DataType=pm:LeakFilterQualityOption}" IsEnabled="{Binding OfflineLeakFilterIdle}" />
+
+            <Grid ColumnDefinitions="*,80,Auto" ColumnSpacing="8">
+               <Label Text="{loc:Loc Label_AutoUpdateOfflineLeakDatabase}" VerticalOptions="Center" ToolTipProperties.Text="{loc:Loc Tooltip_AutoUpdateOfflineLeakDatabase}" />
+               <Entry Grid.Column="1" Keyboard="Numeric" Text="{Binding OfflineLeakFilterAutoUpdateFrequency}" IsEnabled="{Binding OfflineLeakFilterAutoUpdateEditable}" />
+               <Label Grid.Column="2" Text="{loc:Loc Label_Days}" VerticalOptions="Center" />
+            </Grid>
+
+            <HorizontalStackLayout Spacing="8">
+               <Button Text="{Binding OfflineLeakFilterBuildButtonText}" Command="{Binding BuildOfflineLeakFilterCommand}" />
+               <Button Text="{loc:Loc Label_DeleteOfflineDatabase}" Command="{Binding DeleteOfflineLeakFilterCommand}" />
+            </HorizontalStackLayout>
+            <ActivityIndicator IsRunning="{Binding OfflineLeakFilterBusy}" IsVisible="{Binding OfflineLeakFilterBusy}" HorizontalOptions="Start" />
+            <Label Text="{Binding OfflineLeakFilterProgress}" />
+         </VerticalStackLayout>
+      </VerticalStackLayout>
+   </ScrollView>
+</ContentPage>

@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+﻿using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 using Upsilon.Apps.Passkey.Utils;
 
@@ -38,6 +38,12 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
 
       public static IClipboardService? Clipboard { get; set; }
 
+      /// <summary>Defaults to the dialog path pickers when unset.</summary>
+      public static IFileExchange? Files { get; set; }
+
+      /// <summary>Single runner for manual and automatic <c>.pkbf</c> builds; idle on hosts without the offline filter.</summary>
+      public static OfflineLeakFilterUpdateService OfflineLeakFilterUpdate { get; set; } = new();
+
       public static ISessionService Session { get; set; } = new SessionService();
 
       public static ICryptographyCenter Cryptography { get; set; } = new CryptographyCenter();
@@ -65,6 +71,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
          Lifecycle = null;
          VaultSources = null;
          Clipboard = null;
+         Files = null;
+         OfflineLeakFilterUpdate = new OfflineLeakFilterUpdateService();
          Session = new SessionService();
          Cryptography = new CryptographyCenter();
          Serialization = new JsonSerializationCenter();

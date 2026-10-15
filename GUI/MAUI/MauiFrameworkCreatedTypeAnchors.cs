@@ -15,6 +15,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          static () => new Adapters.MauiThemePlatform(),
          static () => new Adapters.MauiUiTimerFactory(),
          static () => new Adapters.MauiClipboardService(),
+         static () => new Pages.Settings.PasskeyRowView(),
 #if WINDOWS
          static () => new Platforms.Windows.WindowsClipboardService(),
 #endif

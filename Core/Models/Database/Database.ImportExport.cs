@@ -212,8 +212,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
             else
             {
                using StreamReader reader = new(stream, leaveOpen: true);
-               importContent = reader.ReadToEnd();
-               if (Encoding.UTF8.GetByteCount(importContent) > ResourceBudgets.MaxImportFileBytes)
+               string? bounded = _readBounded(reader);
+               importContent = bounded ?? string.Empty;
+               if (bounded is null
+                   || Encoding.UTF8.GetByteCount(importContent) > ResourceBudgets.MaxImportFileBytes)
                {
                   errorLog = ImportExportError.ImportFileTooLarge;
                   importContent = string.Empty;
@@ -354,6 +356,26 @@ namespace Upsilon.Apps.Passkey.Core.Models
          }
 
          return errorLog;
+      }
+
+      /// <summary>Returns <see langword="null"/> once the text exceeds the import budget.</summary>
+      private static string? _readBounded(StreamReader reader)
+      {
+         // UTF-8 never encodes a char in fewer than one byte, so the char count bounds the byte count from below.
+         StringBuilder content = new();
+         char[] buffer = new char[81920];
+         int read;
+         while ((read = reader.Read(buffer, 0, buffer.Length)) > 0)
+         {
+            if (content.Length + read > ResourceBudgets.MaxImportFileBytes)
+            {
+               return null;
+            }
+
+            _ = content.Append(buffer, 0, read);
+         }
+
+         return content.ToString();
       }
 
       private static string _normalizeExtension(string formatExtension)
