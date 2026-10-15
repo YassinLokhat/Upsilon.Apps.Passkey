@@ -161,10 +161,11 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          IsBusy = true;
          StatusMessage = Strings.Login_Opening;
          IDatabase? database = null;
+         IVaultSource? source = null;
          try
          {
-            IVaultSource source = await AppServices.VaultSources.OpenPathAsync(location, cancellationToken).ConfigureAwait(true);
-            await source.CheckoutAsync(cancellationToken).ConfigureAwait(true);
+            source = await AppServices.VaultSources.OpenPathAsync(location, cancellationToken).ConfigureAwait(true);
+            VaultCheckoutResult checkout = await source.CheckoutAsync(cancellationToken).ConfigureAwait(true);
 
             database = await Core.Models.Database.OpenAsync(
                AppServices.Cryptography,
@@ -178,12 +179,18 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
 
             database.AutoSaveDetected += _onAutoSaveDetected;
             AppServices.Session.TrackVaultSource(database, source);
+            source = null;
             database.DatabaseClosed += _onDatabaseClosed;
             _database = database;
 
             OnPropertyChanged(nameof(DatabaseOpened));
             OnPropertyChanged(nameof(CredentialsLabel));
-            StatusMessage = Strings.Login_EnterPasskeys;
+            StatusMessage = checkout switch
+            {
+               VaultCheckoutResult.RecoveredLocalChanges => $"{Strings.Login_RecoveredLocalChanges} {Strings.Login_EnterPasskeys}",
+               VaultCheckoutResult.StaleCopyKeptAsConflict => $"{Strings.Login_StaleCopyKeptAsConflict} {Strings.Login_EnterPasskeys}",
+               _ => Strings.Login_EnterPasskeys,
+            };
          }
          catch (InsufficientKdfParametersException)
          {
@@ -200,6 +207,13 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          }
          finally
          {
+            // Not handed to the session (open failed): release it now. An
+            // untouched working copy is removed; recovered edits are kept.
+            if (source is not null)
+            {
+               await source.DisposeAsync().ConfigureAwait(true);
+            }
+
             IsBusy = false;
          }
       }

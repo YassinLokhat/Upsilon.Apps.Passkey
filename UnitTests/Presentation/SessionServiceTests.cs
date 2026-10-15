@@ -165,6 +165,82 @@ namespace UnitTests.Presentation
          _ = copy.Should().NotThrow();
       }
 
+      [TestMethod]
+      public async Task DeleteVault_DeletesSourceInsteadOfWritingBack()
+      {
+         using SessionService session = new();
+         List<VaultWriteBackEventArgs> reports = [];
+         session.WriteBackCompleted += (_, e) => reports.Add(e);
+
+         FakeVaultSource source = new(VaultWriteBackResult.Written);
+         IDatabase database = _createDatabase();
+         session.TrackVaultSource(database, source);
+         session.StartSession(database);
+
+         session.DeleteVault();
+         _ = (await session.FlushWriteBacksAsync(TimeSpan.FromSeconds(10))).Should().BeTrue();
+
+         _ = source.WriteCount.Should().Be(0);
+         _ = source.DeleteCount.Should().Be(1);
+         _ = source.Disposed.Should().BeTrue();
+         _ = reports.Should().BeEmpty();
+      }
+
+      [TestMethod]
+      public async Task DeleteVault_RefusedBySource_IsReported()
+      {
+         using SessionService session = new();
+         List<VaultWriteBackEventArgs> reports = [];
+         session.WriteBackCompleted += (_, e) => reports.Add(e);
+
+         FakeVaultSource source = new(VaultWriteBackResult.Written) { DeleteResult = false };
+         IDatabase database = _createDatabase();
+         session.TrackVaultSource(database, source);
+         session.StartSession(database);
+
+         session.DeleteVault();
+         _ = (await session.FlushWriteBacksAsync(TimeSpan.FromSeconds(10))).Should().BeTrue();
+
+         _ = reports.Should().ContainSingle().Which.Message.Should().Be(Strings.Login_VaultDeleteRefused);
+      }
+
+      [TestMethod]
+      public async Task FlushToSource_WritesBackWhileSessionStaysOpen()
+      {
+         using SessionService session = new();
+         _ = (await session.FlushToSourceAsync()).Should().BeNull();
+
+         FakeVaultSource source = new(VaultWriteBackResult.Written);
+         IDatabase database = _createDatabase();
+         session.TrackVaultSource(database, source);
+         session.StartSession(database);
+
+         _ = (await session.FlushToSourceAsync()).Should().Be(VaultWriteBackResult.Written);
+         _ = source.WriteCount.Should().Be(1);
+         _ = source.Disposed.Should().BeFalse();
+         _ = session.Database.Should().BeSameAs(database);
+
+         session.EndSession();
+         _ = (await session.FlushWriteBacksAsync(TimeSpan.FromSeconds(10))).Should().BeTrue();
+         _ = source.WriteCount.Should().Be(2);
+         _ = source.Disposed.Should().BeTrue();
+      }
+
+      [TestMethod]
+      public async Task WriteBack_SourceDamaged_ReportsDedicatedMessage()
+      {
+         using SessionService session = new();
+         List<VaultWriteBackEventArgs> reports = [];
+         session.WriteBackCompleted += (_, e) => reports.Add(e);
+
+         IDatabase database = _createDatabase();
+         session.TrackVaultSource(database, new FakeVaultSource(VaultWriteBackResult.SourceDamaged));
+         database.Close();
+         _ = (await session.FlushWriteBacksAsync(TimeSpan.FromSeconds(10))).Should().BeTrue();
+
+         _ = reports.Should().ContainSingle().Which.Message.Should().Be(Strings.Login_WriteBackSourceDamaged);
+      }
+
       private static IDatabase _createDatabase()
       {
          UnitTestsHelper.ClearTestEnvironment();
@@ -192,7 +268,23 @@ namespace UnitTests.Presentation
 
          public string DisplayName => "vault.pku";
 
-         public Task CheckoutAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+         public string Location => _secretPath;
+
+         public bool DeleteResult { get; init; } = true;
+
+         public int DeleteCount { get; private set; }
+
+         public Task<VaultCheckoutResult> CheckoutAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(VaultCheckoutResult.Fresh);
+
+         public Task<bool> DeleteAsync(CancellationToken cancellationToken = default)
+         {
+            DeleteCount++;
+            return Task.FromResult(DeleteResult);
+         }
+
+         public Task<bool> RenameAsync(string newFileName, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
 
          public async Task<VaultWriteBackResult> WriteBackAsync(CancellationToken cancellationToken = default)
          {

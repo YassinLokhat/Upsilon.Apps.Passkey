@@ -532,6 +532,21 @@ These are conscious trade-offs, documented for transparency:
   both / reload / overwrite choice is not implemented yet). Whole-file rollback
   remains a residual risk without a monotonic generation counter (out of scope
   for v1; see ADR-001).
+- **SAF write is not atomic**: SAF has no atomic replace, so write-back
+  truncates the document then copies. The written bytes are verified and the
+  pristine copy is restored on mismatch; if that restore also fails, the user
+  is told the source may be damaged and the local copy is kept. A change made
+  by another app between the final source check and the write cannot be
+  detected. Backgrounding flushes pending edits to the source while the
+  session stays open, but Android may still kill the process mid-write.
+- **Crash recovery on Android**: the private working directory is derived from
+  the document URI and keeps the source URI and pristine hash. On the next open,
+  edits left by an interrupted run are recovered only if the source still
+  matches the pristine hash; otherwise they are kept aside as a conflict copy
+  in app-private storage (no listing UI yet). These files are ciphertext but
+  can hold an older vault state.
+- **Vault file names**: a vault file is named after the unsalted hash of its
+  username, so file listings and cloud metadata reveal that hash.
 - **MAUI client status**: the MAUI client is a preview (login and a read-only
   session overview) and is not shipped or supported yet; WPF remains the
   supported Windows client.

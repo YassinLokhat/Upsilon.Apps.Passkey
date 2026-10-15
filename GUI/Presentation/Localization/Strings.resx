@@ -1337,6 +1337,18 @@ This affects all vault users. Disabling the option alone does not delete the fil
   <data name="Login_WriteBackFailed" xml:space="preserve">
     <value>Could not write the vault back to its source.</value>
   </data>
+  <data name="Login_WriteBackSourceDamaged" xml:space="preserve">
+    <value>Writing the vault back failed and the original could not be restored. Your copy was kept locally; reopen the vault to write it again.</value>
+  </data>
+  <data name="Login_VaultDeleteRefused" xml:space="preserve">
+    <value>The vault source changed elsewhere, so it was not deleted.</value>
+  </data>
+  <data name="Login_RecoveredLocalChanges" xml:space="preserve">
+    <value>Unsaved changes from an interrupted session were recovered.</value>
+  </data>
+  <data name="Login_StaleCopyKeptAsConflict" xml:space="preserve">
+    <value>Changes from an interrupted session conflict with the vault source; they were kept aside locally and the source was opened as is.</value>
+  </data>
   <data name="Login_WriteBackFailedWithReason" xml:space="preserve">
     <value>Could not write the vault back to its source: {0}</value>
   </data>

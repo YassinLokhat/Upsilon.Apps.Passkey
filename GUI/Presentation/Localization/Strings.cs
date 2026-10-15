@@ -415,6 +415,10 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Localization
       public static string Login_WriteBackConflict => Get(nameof(Login_WriteBackConflict));
       public static string Login_WriteBackFailed => Get(nameof(Login_WriteBackFailed));
       public static string Login_WriteBackFailedWithReason => Get(nameof(Login_WriteBackFailedWithReason));
+      public static string Login_WriteBackSourceDamaged => Get(nameof(Login_WriteBackSourceDamaged));
+      public static string Login_VaultDeleteRefused => Get(nameof(Login_VaultDeleteRefused));
+      public static string Login_RecoveredLocalChanges => Get(nameof(Login_RecoveredLocalChanges));
+      public static string Login_StaleCopyKeptAsConflict => Get(nameof(Login_StaleCopyKeptAsConflict));
       public static string Error_FileAccess => Get(nameof(Error_FileAccess));
       public static string Error_AccessDenied => Get(nameof(Error_AccessDenied));
       public static string Error_InvalidVault => Get(nameof(Error_InvalidVault));

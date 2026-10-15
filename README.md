@@ -275,6 +275,7 @@ classDiagram
         + Save()* void
         + SaveAsync(cancellationToken : CancellationToken)* Task
         + RefreshAlerts()* void
+        + FlushPendingChanges()* void
         + Delete()* void
         + Close()* void
         + HasChanged(itemId : string)* bool

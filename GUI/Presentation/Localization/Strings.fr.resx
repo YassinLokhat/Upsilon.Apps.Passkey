@@ -1337,6 +1337,18 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
   <data name="Login_WriteBackFailed" xml:space="preserve">
     <value>Impossible de réécrire le coffre dans sa source.</value>
   </data>
+  <data name="Login_WriteBackSourceDamaged" xml:space="preserve">
+    <value>La réécriture du coffre a échoué et l&apos;original n&apos;a pas pu être restauré. Votre copie a été conservée localement ; rouvrez le coffre pour la réécrire.</value>
+  </data>
+  <data name="Login_VaultDeleteRefused" xml:space="preserve">
+    <value>La source du coffre a été modifiée ailleurs ; elle n&apos;a donc pas été supprimée.</value>
+  </data>
+  <data name="Login_RecoveredLocalChanges" xml:space="preserve">
+    <value>Les modifications non enregistrées d&apos;une session interrompue ont été récupérées.</value>
+  </data>
+  <data name="Login_StaleCopyKeptAsConflict" xml:space="preserve">
+    <value>Les modifications d&apos;une session interrompue sont en conflit avec la source du coffre ; elles ont été conservées à part localement et la source a été ouverte telle quelle.</value>
+  </data>
   <data name="Login_WriteBackFailedWithReason" xml:space="preserve">
     <value>Impossible de réécrire le coffre dans sa source : {0}</value>
   </data>

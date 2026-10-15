@@ -221,6 +221,7 @@ classDiagram
             +Save(void) void
             +SaveAsync(in cancellationToken CancellationToken) Task
             +RefreshAlerts(void) void
+            +FlushPendingChanges(void) void
             +Delete(void) void
             +Close(void) void
             +HasChanged(in itemId string) bool
