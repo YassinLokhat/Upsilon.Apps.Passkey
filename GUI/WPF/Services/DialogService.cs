@@ -1,13 +1,82 @@
 ﻿using Microsoft.Win32;
 using System.IO;
 using System.Windows;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
-
+using SharedServices = Upsilon.Apps.Passkey.GUI.Presentation.Services.AppServices;
+using IDialogService = Upsilon.Apps.Passkey.GUI.Presentation.Services.IDialogService;
 namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 {
-   internal sealed class DialogService : IDialogService
+   /// <summary>
+   /// WPF dialogs are modal, so the async <see cref="IDialogService"/> members
+   /// complete synchronously once the window closes.
+   /// </summary>
+   internal sealed class DialogService : IWindowDialogService, IDialogService
    {
       private readonly Dictionary<Type, Window> _singletons = [];
+
+      public Task<DialogResult> ConfirmAsync(string text, string title, DialogButtons buttons = DialogButtons.YesNo, DialogIcon icon = DialogIcon.Question, CancellationToken cancellationToken = default)
+         => Task.FromResult(ToDialogResult(Confirm(text, title, ToButton(buttons), ToImage(icon))));
+
+      public Task InfoAsync(string text, string title, CancellationToken cancellationToken = default)
+      {
+         Info(text, title);
+         return Task.CompletedTask;
+      }
+
+      public Task WarnAsync(string text, string title, CancellationToken cancellationToken = default)
+      {
+         Warn(text, title);
+         return Task.CompletedTask;
+      }
+
+      public Task ErrorAsync(string text, string title, CancellationToken cancellationToken = default)
+      {
+         Error(text, title);
+         return Task.CompletedTask;
+      }
+
+      public Task<string?> PickBrowseFolderAsync(string title, string defaultPath, CancellationToken cancellationToken = default)
+         => Task.FromResult(PickBrowseFolder(title, defaultPath));
+
+      public Task<string?> PickOpenFileAsync(string filter, string title, CancellationToken cancellationToken = default)
+         => Task.FromResult(PickOpenFile(filter, title));
+
+      public Task<string?> PickSaveFileAsync(string filter, string title, string? defaultFileName = null, string? initialDirectory = null, CancellationToken cancellationToken = default)
+         => Task.FromResult(PickSaveFile(filter, title, defaultFileName, initialDirectory));
+
+      public Task<TResult?> ShowAsync<TResult>(IViewRequest<TResult> request, CancellationToken cancellationToken = default)
+      {
+         ArgumentNullException.ThrowIfNull(request);
+         SharedServices.Log.Warn($"No WPF view registered for {request.GetType().Name}.");
+         return Task.FromResult<TResult?>(default);
+      }
+
+      internal static MessageBoxButton ToButton(DialogButtons buttons) => buttons switch
+      {
+         DialogButtons.OK => MessageBoxButton.OK,
+         DialogButtons.OKCancel => MessageBoxButton.OKCancel,
+         DialogButtons.YesNoCancel => MessageBoxButton.YesNoCancel,
+         _ => MessageBoxButton.YesNo,
+      };
+
+      internal static MessageBoxImage ToImage(DialogIcon icon) => icon switch
+      {
+         DialogIcon.Information => MessageBoxImage.Information,
+         DialogIcon.Warning => MessageBoxImage.Warning,
+         DialogIcon.Error => MessageBoxImage.Error,
+         DialogIcon.Question => MessageBoxImage.Question,
+         _ => MessageBoxImage.None,
+      };
+
+      internal static DialogResult ToDialogResult(MessageBoxResult result) => result switch
+      {
+         MessageBoxResult.OK => DialogResult.OK,
+         MessageBoxResult.Cancel => DialogResult.Cancel,
+         MessageBoxResult.Yes => DialogResult.Yes,
+         MessageBoxResult.No => DialogResult.No,
+         _ => DialogResult.None,
+      };
 
       public bool? ShowDialog<TWindow>(TWindow window) where TWindow : Window
       {

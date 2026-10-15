@@ -108,7 +108,7 @@ While logged in, **User settings** offers **Import** (`.json` or `.csv`) and **E
 
 ## Dialogs
 
-All window / message / file picks go through `IDialogService` (`AppServices.Dialogs`): `ShowDialog`, `ShowSingleton`, `PickOpenFile` / `PickSaveFile`, and `Confirm` / `Info` / `Warn` / `Error`. Thin static `Show*` helpers on views may remain as wrappers that call `Dialogs.ShowDialog`. Themed prompts use `ThemedMessageBoxView` — not `System.Windows.MessageBox.Show`. Shared issue lists (passkey quality / security settings) use `IssuesAlertView` with a parameterized footer. `CredentialsConfirmationView` is currently shown via its own `ShowDialog()` helper (same modal pattern; not yet routed through `Dialogs.ShowDialog`).
+ViewModels ask the user through the shared async Presentation `IDialogService` (`AppServices.AsyncDialogs`: `ConfirmAsync`, `ErrorAsync`, `Pick*Async`, `ShowAsync(request)`). WPF window hosting and blocking prompts for code-behind that cannot await (for example `Closing` handlers) go through `IWindowDialogService` (`AppServices.Dialogs`): `ShowDialog`, `ShowSingleton`, `PickOpenFile` / `PickSaveFile`, and `Confirm` / `Info` / `Warn` / `Error`. The same `DialogService` instance backs both. Item navigation uses the shared `INavigationService` (`ItemNavigationEventArgs`). Thin static `Show*` helpers on views may remain as wrappers that call `Dialogs.ShowDialog`. Themed prompts use `ThemedMessageBoxView` — not `System.Windows.MessageBox.Show`. Shared issue lists (passkey quality / security settings) use `IssuesAlertView` with a parameterized footer. `CredentialsConfirmationView` is currently shown via its own `ShowDialog()` helper (same modal pattern; not yet routed through `Dialogs.ShowDialog`).
 
 ## Vault files and logs
 

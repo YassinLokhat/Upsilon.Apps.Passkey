@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -10,6 +11,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using AsyncRelayCommand = Upsilon.Apps.Passkey.GUI.Presentation.Helper.AsyncRelayCommand;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
@@ -288,7 +290,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          ClearFiltersCommand = new RelayCommand(ClearFilters);
          LogoutCommand = new RelayCommand(() => LogoutRequested?.Invoke(this, EventArgs.Empty));
          AddServiceCommand = new RelayCommand(_addService);
-         DeleteServiceCommand = new RelayCommand(_deleteService);
+         DeleteServiceCommand = new AsyncRelayCommand(_deleteServiceAsync);
          ShowActivityAlertsCommand = new RelayCommand(_showActivityAlerts);
          ShowDuplicatedPasswordAlertsCommand = new RelayCommand(() =>
             _ = AppServices.Dialogs.ShowSingleton(() => new DuplicatedPasswordsAlertView()));
@@ -580,12 +582,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       private void _addService()
          => SelectedService = AddService();
 
-      private void _deleteService()
+      private async Task _deleteServiceAsync()
       {
          if (SelectedService is not { } serviceViewModel
-            || AppServices.Dialogs.Confirm(
+            || await AppServices.AsyncDialogs.ConfirmAsync(
                Strings.Format(nameof(Strings.Msg_DeleteService), serviceViewModel.ServiceDisplay),
-               Strings.Title_DeleteService) != MessageBoxResult.Yes)
+               Strings.Title_DeleteService).ConfigureAwait(true) != DialogResult.Yes)
          {
             return;
          }

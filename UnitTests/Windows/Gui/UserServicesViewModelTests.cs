@@ -8,6 +8,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests.Multiplateform;
+using AsyncRelayCommand = Upsilon.Apps.Passkey.GUI.Presentation.Helper.AsyncRelayCommand;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
 {
@@ -95,6 +96,25 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          _ = vm.Services.Should().BeEmpty();
          _ = nextIndex.Should().Be(-1);
          _ = _database.User.Services.Should().NotContain(s => s.ItemId == service.ItemId);
+      }
+
+      [TestMethod]
+      public async Task Case04b_DeleteServiceCommand_AsksThroughSharedDialogs()
+      {
+         _ = _database!.User!.AddService("Keep On No");
+
+         using UserServicesViewModel vm = new("Test");
+         vm.RefreshFilters();
+         vm.SelectedService = vm.Services.Single();
+
+         GuiTestServices.Dialogs.ConfirmResult = System.Windows.MessageBoxResult.No;
+         await ((AsyncRelayCommand)vm.DeleteServiceCommand).ExecuteAsync(null);
+         _ = vm.Services.Should().ContainSingle();
+
+         GuiTestServices.Dialogs.ConfirmResult = System.Windows.MessageBoxResult.Yes;
+         await ((AsyncRelayCommand)vm.DeleteServiceCommand).ExecuteAsync(null);
+         _ = vm.Services.Should().BeEmpty();
+         _ = GuiTestServices.Dialogs.Confirms.Should().HaveCount(2);
       }
 
       [TestMethod]

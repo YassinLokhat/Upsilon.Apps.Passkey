@@ -3,10 +3,12 @@
 namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 {
    /// <summary>
-   /// Abstracts every window/message-box/file-dialog open call so view-models
-   /// can stay free of WPF dependencies and remain testable.
+   /// WPF-only window hosting and blocking message boxes. ViewModels use the
+   /// shared async <see cref="Presentation.Services.IDialogService"/>; the
+   /// blocking members remain for code-behind that cannot await, such as
+   /// <see cref="Window.Closing"/> handlers.
    /// </summary>
-   internal interface IDialogService
+   internal interface IWindowDialogService
    {
       /// <summary>
       /// Shows the supplied <paramref name="window"/> modally as a child of the

@@ -57,7 +57,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       }
    }
 
-   /// <summary>Passkey-quality issues alert; distinct type for <see cref="Services.IDialogService"/> singletons.</summary>
+   /// <summary>Passkey-quality issues alert; distinct type for <see cref="Services.IWindowDialogService"/> singletons.</summary>
    internal sealed class PasskeyQualityAlertView : IssuesAlertView
    {
       internal PasskeyQualityAlertView()
@@ -66,7 +66,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       }
    }
 
-   /// <summary>Security-settings issues alert; distinct type for <see cref="Services.IDialogService"/> singletons.</summary>
+   /// <summary>Security-settings issues alert; distinct type for <see cref="Services.IWindowDialogService"/> singletons.</summary>
    internal sealed class SecuritySettingsAlertView : IssuesAlertView
    {
       internal SecuritySettingsAlertView()
