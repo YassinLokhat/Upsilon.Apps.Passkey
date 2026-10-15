@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
@@ -250,7 +250,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             return;
          }
 
-         InsertIdentifierViewModel.ShowInsertIdentifierView(viewModel);
+         Views.InsertIdentifierView.ShowInsertIdentifierView(viewModel);
       }
    }
 }

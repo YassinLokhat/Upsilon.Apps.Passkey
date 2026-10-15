@@ -2,10 +2,10 @@
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using InsertIdentifierViewModel = Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools.InsertIdentifierViewModel;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -39,6 +39,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = _identifier_TB.Focus();
 
          Loaded += (s, e) => this.PostLoadSetup();
+      }
+
+public static void ShowInsertIdentifierView(IdentifierViewModel viewModel)
+      {
+         IIdentifier? identifier = InsertIdentifierDialog(
+            AccountViewModel.IdentifierAutoCompleteList ?? [],
+            viewModel.ToIdentifier());
+
+         if (identifier is null
+            || string.IsNullOrEmpty(identifier.Value))
+         {
+            return;
+         }
+
+         viewModel.Type = identifier.Type;
+         viewModel.Identifier = identifier.Value;
       }
 
       internal static IIdentifier? InsertIdentifierDialog(IEnumerable<IIdentifier> identifiers, IIdentifier? identifier = null)

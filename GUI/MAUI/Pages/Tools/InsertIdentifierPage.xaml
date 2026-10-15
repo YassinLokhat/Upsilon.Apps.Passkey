@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:tools="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+             xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Pages.Tools.InsertIdentifierPage"
+             x:ClassModifier="internal"
+             x:DataType="tools:InsertIdentifierViewModel"
+             Title="{loc:Loc Title_InsertIdentifier}">
+   <Grid Padding="24" RowSpacing="12" RowDefinitions="Auto,Auto,*,Auto">
+      <Entry Grid.Row="0"
+             Text="{Binding Identifier}"
+             IsTextPredictionEnabled="False"
+             IsSpellCheckEnabled="False"
+             Completed="_onCompleted" />
+
+      <Picker x:Name="TypePicker" Grid.Row="1" SelectedIndexChanged="_onTypeChanged" />
+
+      <CollectionView Grid.Row="2"
+                      ItemsSource="{Binding Identifiers}"
+                      SelectionMode="Single"
+                      SelectionChanged="_onSelected">
+         <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+               <Label Padding="0,8" Text="{Binding .}" />
+            </DataTemplate>
+         </CollectionView.ItemTemplate>
+      </CollectionView>
+
+      <Button Grid.Row="3" Text="{loc:Loc Button_Cancel}" Clicked="_onCancel" />
+   </Grid>
+</ContentPage>

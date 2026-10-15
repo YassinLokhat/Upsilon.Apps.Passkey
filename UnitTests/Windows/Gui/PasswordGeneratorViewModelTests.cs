@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using PasswordGeneratorViewModel = Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools.PasswordGeneratorViewModel;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
 {

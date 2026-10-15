@@ -37,6 +37,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
             Dialogs = new FakeDialogService();
             Navigation = new FakeNavigationService();
 
+            Upsilon.Apps.Passkey.GUI.Presentation.Services.AppServices.Info = new GUI.WPF.Adapters.WpfAppInfo();
             AppServices.Clipboard = new ClipboardServiceAdapter(Clipboard);
             AppServices.Session = Session;
             AppServices.Dialogs = Dialogs;
