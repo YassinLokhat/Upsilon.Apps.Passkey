@@ -1,4 +1,4 @@
-using System.Security;
+﻿using System.Security;
 using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 
 namespace Upsilon.Apps.Passkey.GUI.Presentation.Services

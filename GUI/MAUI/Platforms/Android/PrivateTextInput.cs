@@ -1,4 +1,4 @@
-using Android.Views;
+﻿using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
 using Microsoft.Maui.Handlers;
