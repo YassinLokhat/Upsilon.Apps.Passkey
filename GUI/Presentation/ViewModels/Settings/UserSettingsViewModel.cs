@@ -612,6 +612,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings
          IDatabase database;
          try
          {
+            // A document source only writes back what it checked out.
+            _ = await source.CheckoutAsync().ConfigureAwait(true);
             database = await Core.Models.Database.CreateAsync(
                AppServices.Cryptography,
                AppServices.Serialization,

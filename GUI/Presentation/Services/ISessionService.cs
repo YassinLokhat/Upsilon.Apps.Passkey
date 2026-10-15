@@ -58,6 +58,13 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
       Task<bool> FlushWriteBacksAsync(TimeSpan timeout);
 
       /// <summary>
+      /// Runs <paramref name="operation"/> after every queued write-back, rename
+      /// or delete. Checkouts go through here: a source reopened right after a
+      /// logout shares its private working directory with the closing session.
+      /// </summary>
+      Task<T> RunSourceOperationAsync<T>(Func<Task<T>> operation);
+
+      /// <summary>
       /// Writes pending Core changes to the working copy, then writes it back to
       /// the durable source while the session stays open (e.g. when the app is
       /// backgrounded). Runs in order with close write-backs. <c>null</c> when

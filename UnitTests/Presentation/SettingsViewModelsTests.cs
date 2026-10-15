@@ -122,6 +122,40 @@ namespace UnitTests.Presentation
          UnitTestsHelper.ClearTestEnvironment();
       }
 
+      [TestMethod]
+      /*
+       * Document hosts (Android SAF) only write back what they checked out, so
+       * the created document is checked out before Core writes the new vault.
+      */
+      public async Task NewUser_OnADocumentHost_IsCreatedInACheckedOutSource()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string root = Path.GetFullPath(UnitTestsHelper.ComputeDatabaseFileDirectory());
+         FakeDialogService dialogs = new() { ConfirmAnswer = DialogResult.Yes };
+         dialogs.ViewResults[typeof(ConfirmCredentialsRequest)] = true;
+         AppServices.Ui = new InlineUiDispatcher();
+         AppServices.Clipboard = new FakeClipboardService();
+         AppServices.PasswordFactory = UnitTestsHelper.FastPasswordFactory;
+         AppServices.Dialogs = dialogs;
+         AppServices.Capabilities = HostCapabilities.Mobile;
+         AppServices.Paths = new FakeAppPaths(root);
+         AppServices.Settings = new FakeSettingsStore();
+         FakeDocumentSource document = new(Path.Join(root, "document", "vault.pku"));
+         AppServices.VaultSources = new FakeDocumentSourceFactory(document);
+
+         using (UserSettingsViewModel vm = new() { Username = UnitTestsHelper.GetUsername() })
+         {
+            vm.Passkeys.Entries[0].Attach(new FakeSecretInput { Value = "first passkey" });
+            await vm.SaveAsync();
+         }
+
+         dialogs.LastError.Should().BeNull();
+         document.CheckedOutBeforeCreation.Should().BeTrue();
+         File.Exists(document.WorkingPath).Should().BeTrue();
+
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
       private static FakeFileExchange _startSession(out IDatabase database)
       {
          UnitTestsHelper.ClearTestEnvironment();
@@ -333,6 +367,46 @@ namespace UnitTests.Presentation
          public AppSettings CreateDefault() => CreateDefaultSettings();
 
          private static AppSettings CreateDefaultSettings() => new() { DefaultDatabaseDirectory = Path.GetTempPath() };
+      }
+
+      private sealed class FakeDocumentSourceFactory(FakeDocumentSource document) : IVaultSourceFactory
+      {
+         public Task<IVaultSource> OpenPathAsync(string path, CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
+
+         public Task<IVaultSource> CreatePathAsync(string path, CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
+
+         public Task<IVaultSource?> CreateInteractiveAsync(string suggestedFileName, CancellationToken cancellationToken = default)
+            => Task.FromResult<IVaultSource?>(document);
+      }
+
+      /// <summary>Like the SAF source, the private working directory only exists once checked out.</summary>
+      private sealed class FakeDocumentSource(string workingPath) : IVaultSource
+      {
+         public string WorkingPath { get; } = workingPath;
+
+         public string DisplayName => "vault.pku";
+
+         public string Location => "content://document";
+
+         public bool CheckedOutBeforeCreation { get; private set; }
+
+         public Task<VaultCheckoutResult> CheckoutAsync(CancellationToken cancellationToken = default)
+         {
+            CheckedOutBeforeCreation = !File.Exists(WorkingPath);
+            _ = Directory.CreateDirectory(Path.GetDirectoryName(WorkingPath)!);
+            return Task.FromResult(VaultCheckoutResult.Fresh);
+         }
+
+         public Task<VaultWriteBackResult> WriteBackAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(CheckedOutBeforeCreation ? VaultWriteBackResult.Written : VaultWriteBackResult.Failed);
+
+         public Task<bool> DeleteAsync(CancellationToken cancellationToken = default) => Task.FromResult(false);
+
+         public Task<bool> RenameAsync(string newFileName, CancellationToken cancellationToken = default) => Task.FromResult(false);
+
+         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
       }
    }
 }

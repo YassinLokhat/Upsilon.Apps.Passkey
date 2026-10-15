@@ -305,6 +305,16 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
             return false;
          }
       }
+
+      public async Task<T> RunSourceOperationAsync<T>(Func<Task<T>> operation)
+      {
+         ArgumentNullException.ThrowIfNull(operation);
+
+         T result = default!;
+         await _enqueue(async () => result = await operation().ConfigureAwait(false)).ConfigureAwait(false);
+         return result;
+      }
+
       public void ApplySessionLanguage()
          => _applySessionLanguage();
 
