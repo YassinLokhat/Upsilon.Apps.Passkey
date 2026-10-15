@@ -36,7 +36,7 @@ Core/           Vault implementation (Interfaces only — no ProjectReference to
 GUI/Presentation/ Shared ViewModels/ports (net10.0, zero NuGet) for WPF and MAUI.
 GUI/WPF/        Windows desktop client (MVVM + a small AppServices locator); composes Utils defaults.
 GUI/MAUI/       MAUI host (Windows unpackaged + Android); Microsoft.Maui allowlist only.
-UnitTests/      Multiplateform (Core/Utils) + Presentation + Windows (WPF ViewModels).
+UnitTests/      Multiplateform (Core/Utils) + Presentation (shared ViewModels) + Windows (WPF host).
 ```
 
 | Solution | Projects |
@@ -900,9 +900,12 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     lifecycle, import/export, persistence, and related models. Activity checks use
     structured `ExpectedActivity` fields (not localized UI strings). Runs on both
     Windows and Linux solutions.
-*   **GUI ViewModels**: `UnitTests/Windows` references the WPF app and exercises
-    ViewModels (`UnitTests/Windows/Gui/`) through a replaceable `AppServices` seam
-    and fakes. Localized activity rendering is covered there (`ActivityAssertHelper`).
+*   **GUI ViewModels**: `UnitTests/Presentation` (`net10.0`) exercises the
+    ViewModels and services shared by WPF and MAUI through a replaceable
+    `AppServices` seam and fakes, on Windows, Linux and the MAUI Windows workflow.
+    Localized activity rendering is covered there (`ActivityViewModelMessageTests`).
+    `UnitTests/Windows` keeps the WPF host tests (theme, `{loc:Loc}` extension,
+    language delivery to open windows).
     No UI automation (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, themed
     confirmation dialogs (`ThemedMessageBoxView` via `DialogService`), and
     `CredentialsConfirmationView` stay out of the automated suite. ViewModel
@@ -915,7 +918,7 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 ```bash
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
 dotnet test Upsilon.Apps.Passkey.Linux.slnx
-dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Windows.Gui"
+dotnet test UnitTests/Presentation/UnitTests.Presentation.csproj
 ```
 
 ### Manual smoke (GUI)

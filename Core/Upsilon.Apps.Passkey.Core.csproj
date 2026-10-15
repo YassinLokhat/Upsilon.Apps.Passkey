@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="UnitTests.Multiplateform" />
+    <InternalsVisibleTo Include="UnitTests.Presentation" />
     <InternalsVisibleTo Include="UnitTests.Windows" />
   </ItemGroup>
 

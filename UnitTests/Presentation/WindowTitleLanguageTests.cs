@@ -1,18 +1,18 @@
-﻿using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities;
+﻿using FluentAssertions;
+using UnitTests.Presentation.Fakes;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts;
-using FluentAssertions;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
-using PasswordGeneratorViewModel = Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools.PasswordGeneratorViewModel;
-using CredentialsConfirmationViewModel = Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools.CredentialsConfirmationViewModel;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools;
 
-namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
+namespace UnitTests.Presentation
 {
    /// <summary>
    /// Window titles are ViewModel snapshots (not <c>{loc:Loc}</c>); each
-   /// <see cref="ILanguageAware.OnLanguageChanged"/> must rebuild them.
-   /// Open-window delivery is covered by <see cref="LanguageAwareNotifyTests"/>.
+   /// <see cref="ILanguageRefreshable.OnLanguageChanged"/> must rebuild them.
+   /// Delivery to open WPF windows is covered by the WPF host tests.
    /// </summary>
    [TestClass]
    [DoNotParallelize]
@@ -25,7 +25,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
       [TestInitialize]
       public void Initialize()
       {
-         GuiTestServices.Install();
+         ViewModelTestServices.Install();
          LocalizationService.DetectSystemLanguageCode = static () => LocalizationService.DefaultLanguageCode;
          LocalizationService.Apply(LocalizationService.DefaultLanguageCode, forceRefresh: true);
       }
@@ -35,7 +35,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
       {
          LocalizationService.DetectSystemLanguageCode = static () => LocalizationService.DefaultLanguageCode;
          LocalizationService.Apply(LocalizationService.DefaultLanguageCode, forceRefresh: true);
-         GuiTestServices.Reset();
+         ViewModelTestServices.Reset();
       }
 
       [TestMethod]
@@ -93,27 +93,27 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          using SecuritySettingsAlertViewModel security = new();
          security.OnLanguageChanged();
          _ = security.Title.Should().Be(
-            Strings.Format(nameof(Strings.Title_SecuritySettingsAlertsWindow), AppInfo.Title));
+            Strings.Format(nameof(Strings.Title_SecuritySettingsAlertsWindow), AppServices.Info.Title));
 
          using PasskeyQualityAlertViewModel passkey = new();
          passkey.OnLanguageChanged();
          _ = passkey.Title.Should().Be(
-            Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppInfo.Title));
+            Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppServices.Info.Title));
 
          AppSettingsViewModel appSettings = new();
          appSettings.OnLanguageChanged();
          _ = appSettings.Title.Should().Be(
-            Strings.Format(nameof(Strings.Title_AppSettings), AppInfo.Title));
+            Strings.Format(nameof(Strings.Title_AppSettings), AppServices.Info.Title));
 
          UserActivitiesViewModel activities = new();
          activities.OnLanguageChanged();
          _ = activities.Title.Should().Be(
-            Strings.Format(nameof(Strings.Title_Activities), AppInfo.Title));
+            Strings.Format(nameof(Strings.Title_Activities), AppServices.Info.Title));
 
          PasswordGeneratorViewModel passwordGenerator = new();
          passwordGenerator.OnLanguageChanged();
          _ = passwordGenerator.Title.Should().Be(
-            Strings.Format(nameof(Strings.Title_PasswordGenerator), AppInfo.Title));
+            Strings.Format(nameof(Strings.Title_PasswordGenerator), AppServices.Info.Title));
 
          CredentialsConfirmationViewModel credentialsNew = new(["u"], isNew: true);
          credentialsNew.OnLanguageChanged();

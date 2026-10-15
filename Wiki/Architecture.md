@@ -13,8 +13,8 @@ Upsilon.Apps.Passkey is four layers and two solution files. The only **OS-specif
 | `GUI/WPF/` | Windows desktop client (MVVM + a small `AppServices` locator). Composes Utils defaults and supplies `IClipboardManager`. |
 | `GUI/MAUI/` | MAUI host (Windows unpackaged + Android). Allowlists `Microsoft.Maui.*` only. |
 | `UnitTests/Multiplateform/` | OS-independent Core/Utils tests (`net10.0`). |
-| `UnitTests/Presentation/` | Presentation ports / ViewModels (`net10.0`). |
-| `UnitTests/Windows/` | WPF ViewModel / localization tests (`net10.0-windows`; references WPF + Multiplateform). |
+| `UnitTests/Presentation/` | Presentation ports, services and shared ViewModels (`net10.0`). |
+| `UnitTests/Windows/` | WPF host tests: theme, `{loc:Loc}` extension, language delivery to open windows (`net10.0-windows`; references WPF + Multiplateform). |
 
 | Solution | Projects |
 | -------- | -------- |

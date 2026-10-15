@@ -1,19 +1,18 @@
-﻿using Upsilon.Apps.Passkey.GUI.Presentation.Alerts;
-using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities;
-using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts;
-using FluentAssertions;
-using System.Windows.Threading;
+﻿using FluentAssertions;
+using UnitTests.Presentation.Fakes;
 using Upsilon.Apps.Passkey.Core.Models;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.GUI.Presentation.Alerts;
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests.Multiplateform;
-using AsyncRelayCommand = Upsilon.Apps.Passkey.GUI.Presentation.Helper.AsyncRelayCommand;
 
-namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
+namespace UnitTests.Presentation
 {
    [TestClass]
    [DoNotParallelize]
@@ -26,21 +25,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
       [TestInitialize]
       public void Initialize()
       {
-         _ = Dispatcher.CurrentDispatcher;
-         GuiTestServices.Install();
+         ViewModelTestServices.Install();
 
          UnitTestsHelper.ClearTestEnvironment(TestUsername);
          string[] passkeys = UnitTestsHelper.GetRandomStringArray(2);
          _database = UnitTestsHelper.CreateTestDatabase(passkeys, TestUsername);
-         GuiTestServices.Session.StartSession(_database);
+         AppServices.Session.StartSession(_database);
       }
 
       [TestCleanup]
       public void Cleanup()
       {
-         GuiTestServices.Session.EndSession();
          _database = null;
-         GuiTestServices.Reset();
+         ViewModelTestServices.Reset();
          UnitTestsHelper.ClearTestEnvironment(TestUsername);
       }
 
@@ -110,14 +107,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          vm.RefreshFilters();
          vm.SelectedService = vm.Services.Single();
 
-         GuiTestServices.Dialogs.ConfirmResult = System.Windows.MessageBoxResult.No;
+         ViewModelTestServices.Dialogs.ConfirmAnswer = DialogResult.No;
          await ((AsyncRelayCommand)vm.DeleteServiceCommand).ExecuteAsync(null);
          _ = vm.Services.Should().ContainSingle();
 
-         GuiTestServices.Dialogs.ConfirmResult = System.Windows.MessageBoxResult.Yes;
+         ViewModelTestServices.Dialogs.ConfirmAnswer = DialogResult.Yes;
          await ((AsyncRelayCommand)vm.DeleteServiceCommand).ExecuteAsync(null);
          _ = vm.Services.Should().BeEmpty();
-         _ = GuiTestServices.Dialogs.Confirms.Should().HaveCount(2);
+         _ = ViewModelTestServices.Dialogs.ConfirmCount.Should().Be(2);
       }
 
       [TestMethod]
@@ -141,7 +138,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          _ = vm.AddService();
          _ = vm.Services.Should().NotBeEmpty();
 
-         GuiTestServices.Session.EndSession(closeDatabase: false);
+         AppServices.Session.EndSession(closeDatabase: false);
          _database?.Close();
          _database = null;
 
@@ -241,7 +238,6 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          _ = vm.RedoCommand.CanExecute(null).Should().BeFalse();
 
          _ = _database!.User!.AddService("Undoable Service");
-         RelayCommand.RaiseCanExecuteChanged();
 
          _ = vm.UndoCommand.CanExecute(null).Should().BeTrue();
          _ = vm.RedoCommand.CanExecute(null).Should().BeFalse();
@@ -273,7 +269,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
 
          _ = vm.Title.Should().NotBe(englishTitle, because: satellite.Code);
          _ = vm.Title.Should().Be(
-            Strings.Format(nameof(Strings.Title_SecuritySettingsAlertsWindow), AppInfo.Title),
+            Strings.Format(nameof(Strings.Title_SecuritySettingsAlertsWindow), AppServices.Info.Title),
             because: satellite.Code);
 
          LocalizationService.Apply(LocalizationService.DefaultLanguageCode, forceRefresh: true);

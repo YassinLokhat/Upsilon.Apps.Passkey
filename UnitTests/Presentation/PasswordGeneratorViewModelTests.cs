@@ -1,19 +1,19 @@
 ﻿using FluentAssertions;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
-using PasswordGeneratorViewModel = Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools.PasswordGeneratorViewModel;
+using UnitTests.Presentation.Fakes;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools;
 
-namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
+namespace UnitTests.Presentation
 {
    [TestClass]
    [DoNotParallelize]
    public sealed class PasswordGeneratorViewModelTests
    {
       [TestInitialize]
-      public void Initialize() => GuiTestServices.Install();
+      public void Initialize() => ViewModelTestServices.Install();
 
       [TestCleanup]
-      public void Cleanup() => GuiTestServices.Reset();
+      public void Cleanup() => ViewModelTestServices.Reset();
 
       [TestMethod]
       public void Case01_Alphabet_IncludesSelectedCharacterClasses()
@@ -74,11 +74,11 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          vm.GeneratePassword();
          string password = await WaitForPasswordAsync(vm, expectedLength: vm.PasswordLength).ConfigureAwait(false);
 
-         GuiTestServices.Clipboard.Clear();
+         ViewModelTestServices.Clipboard.Texts.Clear();
          vm.CopyCommand.Execute(null);
 
-         _ = GuiTestServices.Clipboard.LastText.Should().Be(password);
-         _ = GuiTestServices.Clipboard.Texts.Should().ContainSingle().Which.Should().Be(password);
+         _ = ViewModelTestServices.Clipboard.LastText.Should().Be(password);
+         _ = ViewModelTestServices.Clipboard.Texts.Should().ContainSingle().Which.Should().Be(password);
       }
 
       private static async Task<string> WaitForPasswordAsync(PasswordGeneratorViewModel vm, int expectedLength, int timeoutMs = 5000)
