@@ -1,4 +1,7 @@
 using Android.Content;
+using Android.Provider;
+using System.Security.Cryptography;
+using System.Text;
 using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
@@ -9,14 +12,27 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
    /// <summary>
    /// SAF-backed vault: private working copy + SHA-256 fingerprint for conflict detection.
    /// SAF offers no atomic replace, so write-back keeps a pristine copy of the
-   /// checked-out source, verifies the written bytes, and restores the pristine
+   /// last known source, verifies the written bytes, and restores the pristine
    /// copy when the write did not land intact.
+   /// <para>
+   /// The private directory is derived from the source URI so an interrupted
+   /// run is found again: <c>source.meta</c> binds it to its URI and pristine
+   /// hash, and <c>checkout.complete</c> is written last so a partial copy is
+   /// never mistaken for user edits.
+   /// </para>
    /// </summary>
    internal sealed class SafVaultSource : IVaultSource
    {
-      private readonly global::Android.Net.Uri _sourceUri;
-      private readonly string _workDir;
-      private readonly string _pristinePath;
+      private const string META_FILE = "source.meta";
+      private const string COMPLETE_MARKER = "checkout.complete";
+
+      private static readonly string _emptySha256 = Convert.ToHexString(SHA256.HashData([]));
+
+      private readonly string _vaultsRoot;
+      private readonly bool _isNew;
+      private string _workDir;
+      [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2213:Disposable fields should be disposed", Justification = "The same Java URI instance is shared with AndroidVaultSourceFactory's registry for the process lifetime.")]
+      private global::Android.Net.Uri _sourceUri;
       private string? _sourceSha256;
 
       /// <summary>
@@ -25,47 +41,85 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
       /// </summary>
       private bool _safeToDelete;
 
-      public SafVaultSource(global::Android.Net.Uri sourceUri, string displayName)
+      private SafVaultSource(global::Android.Net.Uri sourceUri, string displayName, bool isNew)
       {
          _sourceUri = sourceUri ?? throw new ArgumentNullException(nameof(sourceUri));
          DisplayName = displayName;
+         _isNew = isNew;
          // NoBackupFilesDir: excluded from backup / device transfer (see ADR-001).
          string root = AndroidApp.Context.NoBackupFilesDir?.AbsolutePath
             ?? FileSystem.AppDataDirectory;
-         _workDir = Path.Join(root, "vaults", Guid.NewGuid().ToString("N"));
-         _ = Directory.CreateDirectory(_workDir);
-         WorkingPath = Path.Join(_workDir, "vault.pku");
-         _pristinePath = Path.Join(_workDir, "pristine.pku");
+         _vaultsRoot = Path.Join(root, "vaults");
+         _workDir = Path.Join(_vaultsRoot, _directoryKey(sourceUri));
       }
 
-      public string WorkingPath { get; }
+      public string WorkingPath => Path.Join(_workDir, "vault.pku");
 
-      public string DisplayName { get; }
+      private string _pristinePath => Path.Join(_workDir, "pristine.pku");
 
-      /// <summary>Factory used by the Android host (also satisfies CA1812).</summary>
+      private string _snapshotPath => Path.Join(_workDir, "snapshot.pku");
+
+      public string DisplayName { get; private set; }
+
+      /// <summary>Full SAF URI: may reveal folder names, never log or display it.</summary>
+      public string Location => _sourceUri.ToString()!;
+
+      internal global::Android.Net.Uri SourceUri => _sourceUri;
+
+      /// <summary>Existing document picked by the user.</summary>
       internal static SafVaultSource Create(global::Android.Net.Uri uri, string displayName)
-         => new(uri, displayName);
+         => new(uri, displayName, isNew: false);
 
-      public async Task CheckoutAsync(CancellationToken cancellationToken = default)
+      /// <summary>Empty document just created by the user; Core creates the vault in the working path.</summary>
+      internal static SafVaultSource CreateNew(global::Android.Net.Uri uri, string displayName)
+         => new(uri, displayName, isNew: true);
+
+      public async Task<VaultCheckoutResult> CheckoutAsync(CancellationToken cancellationToken = default)
       {
-         ContentResolver resolver = _resolver();
-
-         Stream opened = resolver.OpenInputStream(_sourceUri)
-            ?? throw new IOException("Cannot open the vault source for reading.");
-
-         await using (opened.ConfigureAwait(false))
+         VaultCheckoutResult result = VaultCheckoutResult.Fresh;
+         if (!_isNew)
          {
-            FileStream output = new(WorkingPath, FileMode.Create, FileAccess.Write, FileShare.None);
-            await using (output.ConfigureAwait(false))
+            (VaultCheckoutResult recovered, string? pristineHash) = await _recoverAsync(cancellationToken).ConfigureAwait(false);
+            if (recovered == VaultCheckoutResult.RecoveredLocalChanges)
             {
-               await opened.CopyToAsync(output, cancellationToken).ConfigureAwait(false);
-               await output.FlushAsync(cancellationToken).ConfigureAwait(false);
+               _sourceSha256 = pristineHash;
+               _safeToDelete = false;
+               return recovered;
             }
+
+            result = recovered;
          }
 
-         File.Copy(WorkingPath, _pristinePath, overwrite: true);
-         _sourceSha256 = await _hashFileAsync(WorkingPath, cancellationToken).ConfigureAwait(false);
+         _resetWorkDir(keepConflicts: true);
+
+         if (_isNew)
+         {
+            _sourceSha256 = _emptySha256;
+            await File.WriteAllBytesAsync(_pristinePath, [], cancellationToken).ConfigureAwait(false);
+         }
+         else
+         {
+            Stream opened = _resolver().OpenInputStream(_sourceUri)
+               ?? throw new IOException("Cannot open the vault source for reading.");
+
+            await using (opened.ConfigureAwait(false))
+            {
+               FileStream output = new(WorkingPath, FileMode.Create, FileAccess.Write, FileShare.None);
+               await using (output.ConfigureAwait(false))
+               {
+                  await opened.CopyToAsync(output, cancellationToken).ConfigureAwait(false);
+                  await output.FlushAsync(cancellationToken).ConfigureAwait(false);
+               }
+            }
+
+            File.Copy(WorkingPath, _pristinePath, overwrite: true);
+            _sourceSha256 = await _hashFileAsync(WorkingPath, cancellationToken).ConfigureAwait(false);
+         }
+
+         await _writeMetaAsync(cancellationToken).ConfigureAwait(false);
+         await File.WriteAllBytesAsync(Path.Join(_workDir, COMPLETE_MARKER), [], cancellationToken).ConfigureAwait(false);
          _safeToDelete = true;
+         return result;
       }
 
       public async Task<VaultWriteBackResult> WriteBackAsync(CancellationToken cancellationToken = default)
@@ -79,8 +133,11 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
          bool overwriting = false;
          try
          {
-            string workingHash = await _hashFileAsync(WorkingPath, cancellationToken).ConfigureAwait(false);
-            if (string.Equals(workingHash, _sourceSha256, StringComparison.OrdinalIgnoreCase))
+            // Core may still hold the working copy open (flush while backgrounded)
+            // and replaces it atomically, so copy a consistent snapshot first.
+            _snapshot();
+            string snapshotHash = await _hashFileAsync(_snapshotPath, cancellationToken).ConfigureAwait(false);
+            if (string.Equals(snapshotHash, _sourceSha256, StringComparison.OrdinalIgnoreCase))
             {
                _safeToDelete = true;
                return VaultWriteBackResult.Skipped;
@@ -99,35 +156,146 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
 
             if (!string.Equals(remoteHash, _sourceSha256, StringComparison.OrdinalIgnoreCase))
             {
-               string conflictPath = Path.Join(_workDir, $"conflict-{DateTime.UtcNow:yyyyMMddHHmmss}.pku");
-               File.Copy(WorkingPath, conflictPath, overwrite: true);
+               _keepAsConflict(_snapshotPath);
                return VaultWriteBackResult.Conflict;
             }
 
             overwriting = true;
-            if (!await _tryWriteSourceAsync(WorkingPath, cancellationToken).ConfigureAwait(false)
-                || !string.Equals(await _hashSourceAsync(cancellationToken).ConfigureAwait(false), workingHash, StringComparison.OrdinalIgnoreCase))
+            if (!await _tryWriteSourceAsync(_snapshotPath, cancellationToken).ConfigureAwait(false)
+                || !string.Equals(await _hashSourceAsync(cancellationToken).ConfigureAwait(false), snapshotHash, StringComparison.OrdinalIgnoreCase))
             {
-               await _restorePristineAsync().ConfigureAwait(false);
-               return VaultWriteBackResult.Failed;
+               return await _restorePristineAsync().ConfigureAwait(false)
+                  ? VaultWriteBackResult.Failed
+                  : VaultWriteBackResult.SourceDamaged;
             }
 
             overwriting = false;
-            _sourceSha256 = workingHash;
-            File.Copy(WorkingPath, _pristinePath, overwrite: true);
-            _safeToDelete = true;
+            _sourceSha256 = snapshotHash;
+            File.Copy(_snapshotPath, _pristinePath, overwrite: true);
+            await _writeMetaAsync(cancellationToken).ConfigureAwait(false);
+            _safeToDelete = string.Equals(
+               await _hashFileAsync(WorkingPath, cancellationToken).ConfigureAwait(false),
+               snapshotHash,
+               StringComparison.OrdinalIgnoreCase);
             return VaultWriteBackResult.Written;
          }
          catch (Exception ex) when (ex is IOException or Java.Lang.Exception)
          {
             AppServices.Log.Error($"SAF write-back failed: {ErrorText.ForLog(ex)}");
-            if (overwriting)
+            if (overwriting && !await _restorePristineAsync().ConfigureAwait(false))
             {
-               await _restorePristineAsync().ConfigureAwait(false);
+               return VaultWriteBackResult.SourceDamaged;
             }
 
             return VaultWriteBackResult.Failed;
          }
+         finally
+         {
+            _tryDelete(_snapshotPath);
+         }
+      }
+
+      public async Task<bool> DeleteAsync(CancellationToken cancellationToken = default)
+      {
+         if (File.Exists(WorkingPath) || _sourceSha256 is null)
+         {
+            return false;
+         }
+
+         // A provider may hand the URI to another document after a sync
+         // replace: only delete the exact bytes this session checked out.
+         // An unreadable source (revoked grant, offline provider) may still
+         // exist: refuse rather than report a delete that did not happen.
+         string? remoteHash = await _hashSourceAsync(cancellationToken).ConfigureAwait(false);
+         if (!string.Equals(remoteHash, _sourceSha256, StringComparison.OrdinalIgnoreCase))
+         {
+            _safeToDelete = false;
+            return false;
+         }
+
+         try
+         {
+            if (!DocumentsContract.DeleteDocument(_resolver(), _sourceUri))
+            {
+               return false;
+            }
+         }
+         catch (Java.Lang.Exception ex)
+         {
+            AppServices.Log.Error($"SAF delete failed: {ErrorText.ForLog(ex)}");
+            return false;
+         }
+
+         AndroidVaultSourceFactory.Forget(_sourceUri);
+         _resetWorkDir(keepConflicts: false);
+         _safeToDelete = true;
+         return true;
+      }
+
+      /// <summary>
+      /// Only once everything reached the source (<see cref="_safeToDelete"/>)
+      /// and the source still holds those bytes, so no pending write targets
+      /// the old URI and no edit is stranded in the old private directory.
+      /// </summary>
+      public async Task<bool> RenameAsync(string newFileName, CancellationToken cancellationToken = default)
+      {
+         if (!PathVaultSource.IsPlainFileName(newFileName) || !_safeToDelete || _sourceSha256 is null)
+         {
+            return false;
+         }
+
+         try
+         {
+            string? remoteHash = await _hashSourceAsync(cancellationToken).ConfigureAwait(false);
+            if (!string.Equals(remoteHash, _sourceSha256, StringComparison.OrdinalIgnoreCase))
+            {
+               return false;
+            }
+
+            global::Android.Net.Uri? renamed = DocumentsContract.RenameDocument(_resolver(), _sourceUri, newFileName);
+            if (renamed is null)
+            {
+               return false;
+            }
+
+            // Grant on the new URI before releasing the old one, or the vault
+            // becomes unreachable after a restart.
+            AndroidVaultSourceFactory.TakePersistablePermission(renamed, write: true);
+            // Providers may adjust the name ("name (1)"); keep what they report.
+            string displayName = AndroidVaultSourceFactory.QueryDisplayName(renamed) ?? newFileName;
+            AndroidVaultSourceFactory.Forget(_sourceUri);
+            _sourceUri = renamed;
+            DisplayName = displayName;
+            AndroidVaultSourceFactory.RegisterSafUri(renamed, displayName);
+            _moveWorkDirTo(Path.Join(_vaultsRoot, _directoryKey(renamed)));
+            if (File.Exists(Path.Join(_workDir, META_FILE)))
+            {
+               await _writeMetaAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return true;
+         }
+         catch (Exception ex) when (ex is Java.Lang.Exception or InvalidOperationException or IOException)
+         {
+            AppServices.Log.Warn($"SAF rename refused: {ErrorText.ForLog(ex)}");
+            return false;
+         }
+      }
+
+      private void _moveWorkDirTo(string target)
+      {
+         if (Directory.Exists(target))
+         {
+            // Leftovers keyed to the new URI belong to an older document.
+            Directory.Delete(target, recursive: true);
+         }
+
+         if (Directory.Exists(_workDir))
+         {
+            Directory.Move(_workDir, target);
+         }
+
+         _workDir = target;
       }
 
       /// <summary>
@@ -136,12 +304,96 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
       /// </summary>
       public ValueTask DisposeAsync()
       {
-         if (_safeToDelete && Directory.Exists(_workDir))
+         if (_safeToDelete)
          {
-            Directory.Delete(_workDir, recursive: true);
+            _resetWorkDir(keepConflicts: true);
+            _tryDelete(Path.Join(_workDir, META_FILE));
+            _tryDeleteDirectoryIfEmpty(_workDir);
          }
 
          return ValueTask.CompletedTask;
+      }
+
+      private async Task<(VaultCheckoutResult Result, string? PristineHash)> _recoverAsync(CancellationToken cancellationToken)
+      {
+         string metaPath = Path.Join(_workDir, META_FILE);
+         if (!File.Exists(Path.Join(_workDir, COMPLETE_MARKER))
+             || !File.Exists(metaPath)
+             || !File.Exists(WorkingPath))
+         {
+            return (VaultCheckoutResult.Fresh, null);
+         }
+
+         string[] meta = await File.ReadAllLinesAsync(metaPath, cancellationToken).ConfigureAwait(false);
+         if (meta.Length < 2 || !string.Equals(meta[0], _sourceUri.ToString(), StringComparison.Ordinal))
+         {
+            // Bound to another URI: never write it back here, never drop it.
+            _keepAsConflict(WorkingPath);
+            return (VaultCheckoutResult.StaleCopyKeptAsConflict, null);
+         }
+
+         string pristineHash = meta[1];
+         string workingHash = await _hashFileAsync(WorkingPath, cancellationToken).ConfigureAwait(false);
+         if (string.Equals(workingHash, pristineHash, StringComparison.OrdinalIgnoreCase))
+         {
+            return (VaultCheckoutResult.Fresh, null);
+         }
+
+         string? remoteHash = await _hashSourceAsync(cancellationToken).ConfigureAwait(false);
+         if (string.Equals(remoteHash, pristineHash, StringComparison.OrdinalIgnoreCase))
+         {
+            return (VaultCheckoutResult.RecoveredLocalChanges, pristineHash);
+         }
+
+         _keepAsConflict(WorkingPath);
+         return (VaultCheckoutResult.StaleCopyKeptAsConflict, null);
+      }
+
+      private void _snapshot()
+      {
+         using FileStream input = new(WorkingPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+         using FileStream output = new(_snapshotPath, FileMode.Create, FileAccess.Write, FileShare.None);
+         input.CopyTo(output);
+         output.Flush(flushToDisk: true);
+      }
+
+      private void _keepAsConflict(string path)
+      {
+         string conflicts = Path.Join(_workDir, "conflicts");
+         _ = Directory.CreateDirectory(conflicts);
+         File.Copy(path, Path.Join(conflicts, $"conflict-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid():N}.pku"), overwrite: false);
+      }
+
+      private Task _writeMetaAsync(CancellationToken cancellationToken)
+         => File.WriteAllLinesAsync(Path.Join(_workDir, META_FILE), [_sourceUri.ToString()!, _sourceSha256!], cancellationToken);
+
+      private void _resetWorkDir(bool keepConflicts)
+      {
+         if (!Directory.Exists(_workDir))
+         {
+            _ = Directory.CreateDirectory(_workDir);
+            return;
+         }
+
+         // Working copy first: a crash mid-loop must not leave vault.pku
+         // without its checkout marker and metadata.
+         if (File.Exists(WorkingPath))
+         {
+            File.Delete(WorkingPath);
+         }
+
+         foreach (string file in Directory.EnumerateFiles(_workDir))
+         {
+            File.Delete(file);
+         }
+
+         string conflicts = Path.Join(_workDir, "conflicts");
+         if (!keepConflicts && Directory.Exists(conflicts))
+         {
+            Directory.Delete(conflicts, recursive: true);
+         }
+
+         _ = Directory.CreateDirectory(_workDir);
       }
 
       private async Task<bool> _tryWriteSourceAsync(string path, CancellationToken cancellationToken)
@@ -165,19 +417,26 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
          return true;
       }
 
-      private async Task _restorePristineAsync()
+      /// <returns><c>true</c> when the source again holds the pristine bytes.</returns>
+      private async Task<bool> _restorePristineAsync()
       {
          try
          {
-            if (File.Exists(_pristinePath))
+            if (File.Exists(_pristinePath)
+                && await _tryWriteSourceAsync(_pristinePath, CancellationToken.None).ConfigureAwait(false))
             {
-               _ = await _tryWriteSourceAsync(_pristinePath, CancellationToken.None).ConfigureAwait(false);
+               return string.Equals(
+                  await _hashSourceAsync(CancellationToken.None).ConfigureAwait(false),
+                  _sourceSha256,
+                  StringComparison.OrdinalIgnoreCase);
             }
          }
          catch (Exception ex) when (ex is IOException or Java.Lang.Exception)
          {
             AppServices.Log.Error($"SAF restore of the original vault failed: {ErrorText.ForLog(ex)}");
          }
+
+         return false;
       }
 
       private async Task<string?> _hashSourceAsync(CancellationToken cancellationToken)
@@ -194,13 +453,36 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
          }
       }
 
+      private static string _directoryKey(global::Android.Net.Uri uri)
+         => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(uri.ToString()!)))[..32];
+
+      private static void _tryDelete(string path)
+      {
+         try
+         {
+            File.Delete(path);
+         }
+         catch (IOException ex)
+         {
+            AppServices.Log.Warn($"Vault temporary file cleanup failed: {ErrorText.ForLog(ex)}");
+         }
+      }
+
+      private static void _tryDeleteDirectoryIfEmpty(string directory)
+      {
+         if (Directory.Exists(directory) && !Directory.EnumerateFileSystemEntries(directory).Any())
+         {
+            Directory.Delete(directory);
+         }
+      }
+
       private static ContentResolver _resolver()
          => AndroidApp.Context.ContentResolver
             ?? throw new InvalidOperationException("ContentResolver unavailable.");
 
       private static async Task<string> _hashFileAsync(string path, CancellationToken cancellationToken)
       {
-         FileStream stream = new(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+         FileStream stream = new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
          await using (stream.ConfigureAwait(false))
          {
             return await _hashStreamAsync(stream, cancellationToken).ConfigureAwait(false);
@@ -209,8 +491,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
 
       private static async Task<string> _hashStreamAsync(Stream stream, CancellationToken cancellationToken)
       {
-         using var sha = System.Security.Cryptography.SHA256.Create();
-         byte[] hash = await sha.ComputeHashAsync(stream, cancellationToken).ConfigureAwait(false);
+         byte[] hash = await SHA256.HashDataAsync(stream, cancellationToken).ConfigureAwait(false);
          return Convert.ToHexString(hash);
       }
    }

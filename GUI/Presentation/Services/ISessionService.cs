@@ -58,6 +58,20 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
       Task<bool> FlushWriteBacksAsync(TimeSpan timeout);
 
       /// <summary>
+      /// Writes pending Core changes to the working copy, then writes it back to
+      /// the durable source while the session stays open (e.g. when the app is
+      /// backgrounded). Runs in order with close write-backs. <c>null</c> when
+      /// no tracked database is open.
+      /// </summary>
+      Task<VaultWriteBackResult?> FlushToSourceAsync();
+
+      /// <summary>
+      /// Deletes the active vault: Core deletes the working copy and closes, then
+      /// the durable source is deleted instead of written back.
+      /// </summary>
+      void DeleteVault();
+
+      /// <summary>
       /// Applies the effective UI language for the current session (user override
       /// when logged in, otherwise the application language).
       /// </summary>

@@ -44,6 +44,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          // half-open login and the clipboard countdown in that case.
          AppServices.Clipboard?.ClearIfStillOwned();
          _lifecycle.NotifyEnteredBackground();
+         // Android may kill a backgrounded process: get pending edits to the
+         // durable source while the session stays open.
+         _ = AppServices.Session.FlushToSourceAsync();
 #endif
       }
 

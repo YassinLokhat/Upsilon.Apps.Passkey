@@ -57,6 +57,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void RefreshAlerts() => _queueAlertScan();
 
+      public void FlushPendingChanges()
+      {
+         if (User is null)
+         {
+            return;
+         }
+
+         AutoSave.Flush();
+         ActivityCenter.FlushPending();
+      }
+
       // Progressive onion login: each call appends a stretched passkey and never
       // rolls back on failure. A wrong attempt poisons the stack until Close/Open,
       // which is deliberate online brute-force friction (see SECURITY.md).

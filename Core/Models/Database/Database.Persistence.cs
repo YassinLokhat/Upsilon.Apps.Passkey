@@ -6,6 +6,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 {
    public sealed partial class Database
    {
+      private int _closed;
+
       private void _save(bool logSaveEvent, bool refreshAlerts = true)
       {
          _saveActivities(rebuildStringActivities: true);
@@ -85,6 +87,13 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal void Close(bool logCloseEvent, bool loginTimeoutReached)
       {
+         // Hosts may close from several paths (logout, idle timeout, Delete):
+         // only the first one flushes, tears down and raises DatabaseClosed.
+         if (Interlocked.Exchange(ref _closed, 1) != 0)
+         {
+            return;
+         }
+
          // A failed flush (I/O error, external replace) must still release the
          // file handle and the sibling .lock, otherwise the vault stays locked
          // until the process exits.

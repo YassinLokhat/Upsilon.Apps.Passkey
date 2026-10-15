@@ -31,6 +31,10 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui.Fakes
 
       public Task<bool> FlushWriteBacksAsync(TimeSpan timeout) => Task.FromResult(true);
 
+      public Task<VaultWriteBackResult?> FlushToSourceAsync() => Task.FromResult<VaultWriteBackResult?>(null);
+
+      public void DeleteVault() => Database?.Delete();
+
       public void StartSession(IDatabase database)
       {
          ArgumentNullException.ThrowIfNull(database);

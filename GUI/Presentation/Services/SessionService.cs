@@ -14,6 +14,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
       private readonly Lock _writeBackGate = new();
       private Task _writeBackTail = Task.CompletedTask;
       private readonly Func<bool> _isOfflineFilterBusy;
+      private readonly Dictionary<IDatabase, IVaultSource> _sources = new(ReferenceEqualityComparer.Instance);
+      private readonly HashSet<IDatabase> _deleting = new(ReferenceEqualityComparer.Instance);
       private IDatabase? _database;
       private IClipboardService? _clipboard;
       private bool _disposed;
@@ -52,15 +54,97 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
          ArgumentNullException.ThrowIfNull(database);
          ArgumentNullException.ThrowIfNull(source);
 
+         lock (_gate)
+         {
+            _sources[database] = source;
+         }
+
          // Core raises DatabaseClosed after the final flush and once the file
          // lock is released, so the working copy is complete at that point.
          void onClosed(object? sender, LogoutEventArgs e)
          {
             database.DatabaseClosed -= onClosed;
-            _queueWriteBack(source);
+            bool deleted;
+            lock (_gate)
+            {
+               _ = _sources.Remove(database);
+               deleted = _deleting.Remove(database);
+            }
+
+            _ = _enqueue(deleted
+               ? () => _deleteThenDisposeAsync(source)
+               : () => _writeBackThenDisposeAsync(source));
          }
 
          database.DatabaseClosed += onClosed;
+      }
+
+      public async Task<VaultWriteBackResult?> FlushToSourceAsync()
+      {
+         IDatabase? database;
+         IVaultSource? source = null;
+         lock (_gate)
+         {
+            database = _database;
+            if (database is not null)
+            {
+               _ = _sources.TryGetValue(database, out source);
+            }
+         }
+
+         if (database is null || source is null)
+         {
+            return null;
+         }
+
+         VaultWriteBackResult? result = null;
+         await _enqueue(async () =>
+         {
+            try
+            {
+               database.FlushPendingChanges();
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+               // Writing back the older file would claim the latest edits are saved.
+               AppServices.Log.Warn($"Flushing pending changes failed: {ErrorText.ForLog(ex)}");
+               result = VaultWriteBackResult.Failed;
+               _report(VaultWriteBackResult.Failed, ex);
+               return;
+            }
+
+            (VaultWriteBackResult written, Exception? failure) = await _tryWriteBackAsync(source).ConfigureAwait(false);
+            result = written;
+            _report(written, failure);
+         }).ConfigureAwait(false);
+
+         return result;
+      }
+
+      public void DeleteVault()
+      {
+         IDatabase database;
+         lock (_gate)
+         {
+            database = _database ?? throw new InvalidOperationException("No active session.");
+            _ = _deleting.Add(database);
+         }
+
+         try
+         {
+            database.Delete();
+         }
+         catch
+         {
+            lock (_gate)
+            {
+               _ = _deleting.Remove(database);
+            }
+
+            throw;
+         }
+
+         EndSession(closeDatabase: false);
       }
 
       public void StartSession(IDatabase database)
@@ -216,36 +300,70 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
       private void _onSecretCopied(object? sender, ClipboardSecretCopiedEventArgs e)
          => User?.RememberClipboardSecret(e.Text);
 
-      private void _queueWriteBack(IVaultSource source)
+      /// <summary>
+      /// One source operation at a time, in request order: a new session or a
+      /// flush must not race a previous write on the same durable source.
+      /// </summary>
+      private Task _enqueue(Func<Task> work)
       {
-         // One write-back at a time, in close order: a new session must not
-         // race the previous one on the same durable source.
          lock (_writeBackGate)
          {
-            _writeBackTail = _writeBackAfterAsync(_writeBackTail, source);
+            _writeBackTail = _runAfterAsync(_writeBackTail, work);
+            return _writeBackTail;
          }
       }
 
-      private async Task _writeBackAfterAsync(Task previous, IVaultSource source)
+      private static async Task _runAfterAsync(Task previous, Func<Task> work)
       {
-         await previous.ConfigureAwait(false);
+         // A faulted predecessor must not block every later write-back.
+         await previous.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+         await work().ConfigureAwait(false);
+      }
 
-         VaultWriteBackResult result;
-         Exception? failure = null;
+      private async Task _writeBackThenDisposeAsync(IVaultSource source)
+      {
+         (VaultWriteBackResult result, Exception? failure) = await _tryWriteBackAsync(source).ConfigureAwait(false);
+         await _disposeAsync(source).ConfigureAwait(false);
+         _report(result, failure);
+      }
+
+      private async Task _deleteThenDisposeAsync(IVaultSource source)
+      {
+         bool deleted;
          try
          {
-            result = await source.WriteBackAsync().ConfigureAwait(false);
+            deleted = await source.DeleteAsync().ConfigureAwait(false);
          }
-         catch (Exception ex) when (ex is IOException
-            or UnauthorizedAccessException
-            or InvalidOperationException
-            or NotSupportedException)
+         catch (Exception ex) when (_isSourceFailure(ex))
          {
-            AppServices.Log.Error($"Vault write-back failed: {ErrorText.ForLog(ex)}");
-            result = VaultWriteBackResult.Failed;
-            failure = ex;
+            AppServices.Log.Error($"Vault delete failed: {ErrorText.ForLog(ex)}");
+            deleted = false;
          }
 
+         await _disposeAsync(source).ConfigureAwait(false);
+         if (!deleted)
+         {
+            UiThread.Post(() => WriteBackCompleted?.Invoke(
+               this,
+               new VaultWriteBackEventArgs(VaultWriteBackResult.Failed, Strings.Login_VaultDeleteRefused)));
+         }
+      }
+
+      private static async Task<(VaultWriteBackResult Result, Exception? Failure)> _tryWriteBackAsync(IVaultSource source)
+      {
+         try
+         {
+            return (await source.WriteBackAsync().ConfigureAwait(false), null);
+         }
+         catch (Exception ex) when (_isSourceFailure(ex))
+         {
+            AppServices.Log.Error($"Vault write-back failed: {ErrorText.ForLog(ex)}");
+            return (VaultWriteBackResult.Failed, ex);
+         }
+      }
+
+      private static async Task _disposeAsync(IVaultSource source)
+      {
          try
          {
             await source.DisposeAsync().ConfigureAwait(false);
@@ -254,19 +372,32 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
          {
             AppServices.Log.Warn($"Vault working copy cleanup failed: {ErrorText.ForLog(ex)}");
          }
+      }
 
-         if (result is VaultWriteBackResult.Conflict or VaultWriteBackResult.Failed)
+      private static bool _isSourceFailure(Exception ex)
+         => ex is IOException
+            or UnauthorizedAccessException
+            or InvalidOperationException
+            or NotSupportedException;
+
+      private void _report(VaultWriteBackResult result, Exception? failure)
+      {
+         if (result is not (VaultWriteBackResult.Conflict or VaultWriteBackResult.Failed or VaultWriteBackResult.SourceDamaged))
          {
-            UiThread.Post(() =>
-            {
-               string message = result == VaultWriteBackResult.Conflict
-                  ? Strings.Login_WriteBackConflict
-                  : failure is null
-                     ? Strings.Login_WriteBackFailed
-                     : Strings.Format(nameof(Strings.Login_WriteBackFailedWithReason), ErrorText.Describe(failure));
-               WriteBackCompleted?.Invoke(this, new VaultWriteBackEventArgs(result, message));
-            });
+            return;
          }
+
+         UiThread.Post(() =>
+         {
+            string message = result switch
+            {
+               VaultWriteBackResult.Conflict => Strings.Login_WriteBackConflict,
+               VaultWriteBackResult.SourceDamaged => Strings.Login_WriteBackSourceDamaged,
+               _ when failure is null => Strings.Login_WriteBackFailed,
+               _ => Strings.Format(nameof(Strings.Login_WriteBackFailedWithReason), ErrorText.Describe(failure)),
+            };
+            WriteBackCompleted?.Invoke(this, new VaultWriteBackEventArgs(result, message));
+         });
       }
       private HostSecurityIssue _evaluateHostPosture()
       {

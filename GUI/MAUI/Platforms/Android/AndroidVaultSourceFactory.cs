@@ -1,5 +1,8 @@
 #if ANDROID
 using Android.Content;
+using Android.Database;
+using Android.Provider;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using AndroidApp = Android.App.Application;
@@ -25,6 +28,42 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
          lock (_gate)
          {
             _safUris[uri.ToString()!] = (uri, displayName);
+         }
+      }
+
+      /// <summary>Drops a deleted or renamed document and its persisted grant.</summary>
+      internal static void Forget(global::Android.Net.Uri uri)
+      {
+         ArgumentNullException.ThrowIfNull(uri);
+         lock (_gate)
+         {
+            _ = _safUris.Remove(uri.ToString()!);
+         }
+
+         try
+         {
+            AndroidApp.Context.ContentResolver?.ReleasePersistableUriPermission(
+               uri,
+               ActivityFlags.GrantReadUriPermission | ActivityFlags.GrantWriteUriPermission);
+         }
+         catch (Java.Lang.SecurityException)
+         {
+            // No persisted grant for this URI (already released or never taken).
+         }
+      }
+
+      internal static string? QueryDisplayName(global::Android.Net.Uri uri)
+      {
+         try
+         {
+            using ICursor? cursor = AndroidApp.Context.ContentResolver?.Query(
+               uri, [IOpenableColumns.DisplayName], null, null, null);
+            return cursor is not null && cursor.MoveToFirst() ? cursor.GetString(0) : null;
+         }
+         catch (Java.Lang.Exception ex)
+         {
+            AppServices.Log.Warn($"SAF display name query failed: {ErrorText.ForLog(ex)}");
+            return null;
          }
       }
 
@@ -64,6 +103,27 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
          return Task.FromResult<IVaultSource>(new PathVaultSource(full));
       }
 
+      public async Task<IVaultSource?> CreateInteractiveAsync(string suggestedFileName, CancellationToken cancellationToken = default)
+      {
+         (global::Android.Net.Uri Uri, string Name)? created = await MainActivity.CreateVaultDocumentAsync(suggestedFileName).ConfigureAwait(true);
+         if (created is not { } document)
+         {
+            return null;
+         }
+
+         // Some providers let the user pick an existing file: never build a
+         // new vault over existing bytes.
+         if (!_isEmpty(document.Uri))
+         {
+            Forget(document.Uri);
+            return null;
+         }
+
+         string name = QueryDisplayName(document.Uri) ?? document.Name;
+         RegisterSafUri(document.Uri, name);
+         return SafVaultSource.CreateNew(document.Uri, name);
+      }
+
       /// <summary>Take persistable read/write permission on a document URI.</summary>
       internal static void TakePersistablePermission(global::Android.Net.Uri uri, bool write)
       {
@@ -87,6 +147,12 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
          {
             // Provider may not support persistable grants; open still works for the session.
          }
+      }
+
+      private static bool _isEmpty(global::Android.Net.Uri uri)
+      {
+         using Stream? input = AndroidApp.Context.ContentResolver?.OpenInputStream(uri);
+         return input is not null && input.ReadByte() < 0;
       }
    }
 }

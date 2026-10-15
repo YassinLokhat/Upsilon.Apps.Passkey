@@ -97,6 +97,14 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       void RefreshAlerts();
 
       /// <summary>
+      /// Writes debounced autosave and activity entries to the vault file now,
+      /// without saving the user or sealing the activity log. Lets a host copy a
+      /// complete file (e.g. before the OS may kill a backgrounded app).
+      /// No-op when not logged in.
+      /// </summary>
+      void FlushPendingChanges();
+
+      /// <summary>
       /// Delete the vault file. Throws <see cref="NullValueException"/> if not logged in.
       /// </summary>
       void Delete();

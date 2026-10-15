@@ -21,7 +21,11 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
 
       private static readonly string[] _openDocumentMimeTypes = ["application/octet-stream", "*/*"];
 
+      private const int CREATE_DOCUMENT_REQUEST = 0x504C;
+
       private static TaskCompletionSource<(global::Android.Net.Uri Uri, string Name)?>? _pickTcs;
+
+      private static TaskCompletionSource<(global::Android.Net.Uri Uri, string Name)?>? _createTcs;
 
       protected override void OnCreate(Bundle? savedInstanceState)
       {
@@ -51,17 +55,45 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          return _pickTcs.Task;
       }
 
+      /// <summary>ACTION_CREATE_DOCUMENT for a new .pku (persistable read/write).</summary>
+      internal static Task<(global::Android.Net.Uri Uri, string Name)?> CreateVaultDocumentAsync(string suggestedFileName)
+      {
+         if (Platform.CurrentActivity is not MainActivity activity)
+         {
+            return Task.FromResult<(global::Android.Net.Uri, string)?>(null);
+         }
+
+         _createTcs?.TrySetResult(null);
+         _createTcs = new TaskCompletionSource<(global::Android.Net.Uri, string)?>();
+
+         using Intent intent = new(Intent.ActionCreateDocument);
+         intent.AddCategory(Intent.CategoryOpenable);
+         intent.SetType("application/octet-stream");
+         intent.PutExtra(Intent.ExtraTitle, suggestedFileName);
+         intent.AddFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.GrantWriteUriPermission | ActivityFlags.GrantPersistableUriPermission);
+
+         activity.StartActivityForResult(intent, CREATE_DOCUMENT_REQUEST);
+         return _createTcs.Task;
+      }
+
       protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
       {
          base.OnActivityResult(requestCode, resultCode, data);
 
-         if (requestCode != OPEN_DOCUMENT_REQUEST)
+         TaskCompletionSource<(global::Android.Net.Uri Uri, string Name)?>? tcs;
+         switch (requestCode)
          {
-            return;
+            case OPEN_DOCUMENT_REQUEST:
+               tcs = _pickTcs;
+               _pickTcs = null;
+               break;
+            case CREATE_DOCUMENT_REQUEST:
+               tcs = _createTcs;
+               _createTcs = null;
+               break;
+            default:
+               return;
          }
-
-         TaskCompletionSource<(global::Android.Net.Uri Uri, string Name)?>? tcs = _pickTcs;
-         _pickTcs = null;
 
          if (resultCode != Result.Ok || data?.Data is not { } uri)
          {
