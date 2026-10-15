@@ -11,7 +11,7 @@ protects data and how to report a problem.
 Each component is versioned **independently** and may evolve at its own pace.
 Security fixes are applied to the latest released version of each component only,
 so please always upgrade to the most recent release before reporting an issue.
-<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core`, `Upsilon.Apps.Passkey.Utils` and `Upsilon.Apps.Passkey.Interfaces` are on **2.0.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
+<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core`, `Upsilon.Apps.Passkey.Utils`, `Upsilon.Apps.Passkey.Interfaces` and `Upsilon.Apps.Passkey.GUI.MAUI` are on **2.0.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
 
 Versions and dependency ranges are maintained in [`versions.json`](versions.json).
 
@@ -22,6 +22,7 @@ Versions and dependency ranges are maintained in [`versions.json`](versions.json
 | `Upsilon.Apps.Passkey.Core`           | 2.0.x             | :white_check_mark: |
 | `Upsilon.Apps.Passkey.Utils`          | 2.0.x             | :white_check_mark: |
 | `Upsilon.Apps.Passkey.Interfaces`     | 2.0.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.GUI.MAUI`       | 2.0.x             | :white_check_mark: |
 <!-- END:versions-supported-table -->
 
 Any version older than the latest release of a given component is not supported.
@@ -75,14 +76,20 @@ What to expect:
 - Physical access to an unlocked, logged-in session.
 - Plaintext files the user deliberately produces via **Import/Export** (see
   "Known Limitations").
+- Third-party keyboards / autofill clouds on Android (hosts must disable
+  learning and autofill on secret fields).
+- Silent merge of divergent `.pku` copies synced between devices (conflict
+  detection is host-side; see ADR-001).
 
 ## Security Design
 
 All cryptography is implemented in `Utils/CryptographyCenter.cs` on top of
 `System.Security.Cryptography` (the .NET BCL). **The project has a strict
-zero-external-dependency policy for the `Core`, `Utils`, `Interfaces`, and
-WPF GUI projects**: no third-party cryptographic package is used, which keeps the
-security-critical supply-chain attack surface minimal.
+zero-external-dependency policy for the `Core`, `Utils`, `Interfaces`,
+`GUI/Presentation`, and WPF GUI projects**: no third-party cryptographic package
+is used, which keeps the security-critical supply-chain attack surface minimal.
+The MAUI host alone may reference `Microsoft.Maui.*` (locked + audited); see
+`CONTRIBUTING.md` and Wiki ADR-001.
 
 ### Master passkeys (multi-factor "onion")
 
@@ -266,8 +273,10 @@ login:
   `PasswordBox.SecurePassword` and bridges it through
   `SecureStringExtensions.UseAsString`: the unmanaged BSTR is zeroed in a
   `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of
-  the `Login` call. The short-lived managed `string` passed to Core remains
-  subject to the usual .NET GC limitations documented under "Known Limitations".
+  the `Login` call. The MAUI host has no `SecureString`/`BSTR` wipe path —
+  passkeys are read from the Entry, passed once, then cleared from the control.
+  The short-lived managed `string` passed to Core remains subject to the usual
+  .NET GC limitations documented under "Known Limitations".
 - Owned sensitive buffers are wiped with `CryptographicOperations.ZeroMemory`
   after use: derived AES keys, per-layer UTF-8 password bytes used as HKDF IKM,
   PBKDF2 password/salt/output buffers in `GetSlowHash`, abandoned onion
@@ -299,6 +308,9 @@ login:
 - **Auto-logout**: after a configurable inactivity timeout
   (`ISettings.LogoutTimeout`), the session is closed automatically and the
   database file handle is released.
+- **Session timers**: auto-logout and clipboard clear use **wall-clock deadlines**
+  in Core (`User`), so a suspended Android process does not freeze the countdown.
+  Hosts re-check on resume; backgrounding clears half-open login UI.
 - **Clipboard cleaning**: copied passwords are removed from the clipboard (and
   clipboard history, via the OS-specific `IClipboardManager`) after a
   configurable delay (`ISettings.CleaningClipboardTimeout`). History scrub
@@ -506,6 +518,19 @@ These are conscious trade-offs, documented for transparency:
   in edge cases, rough compressibility of the JSON. Absolute lengths are already
   visible for any AEAD ciphertext; this trade-off is accepted for the storage
   savings on structured data.
+- **MAUI / Android clipboard history**: Windows MAUI uses WinRT
+  `SetContentWithOptions(IsAllowedInHistory=false, IsRoamable=false)` and can
+  scrub history when the API allows. Android marks clips with
+  `EXTRA_IS_SENSITIVE` and clears the primary clip when still owned; there is
+  **no** history-scrub equivalent (documented no-op). Clear-if-owned only works
+  while the app is in the foreground on Android 10+.
+- **Offline Bloom on Android**: the `.pkbf` path is null on Android in v1;
+  online HIBP / XposedOrNot remain. Leak checks therefore fail open when both
+  providers are unreachable (same as a Windows host without a filter).
+- **Multi-device sync**: only one writer at a time. Android SAF write-back
+  re-hashes the source and never overwrites silently on conflict (keep both /
+  reload / overwrite). Whole-file rollback remains a residual risk without a
+  monotonic generation counter (out of scope for v1; see ADR-001).
 
 ## Reporting Non-Security Bugs
 

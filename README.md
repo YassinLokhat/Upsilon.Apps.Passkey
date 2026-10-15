@@ -32,14 +32,17 @@ Four layers, two solution files:
 Interfaces/     Public contracts (IDatabase, IUser, crypto, clipboard, IProtectedSecret, ISecretMemoryProtector, …)
 Utils/          Default crypto, JSON, password factory, SecretMemoryProtector / ProtectedSecret, LeakFilter (.pkbf). Zero NuGet (BCL only).
 Core/           Vault implementation (Interfaces only — no ProjectReference to Utils). Zero NuGet packages (BCL only).
+GUI/Presentation/ Shared ViewModels/ports (net10.0, zero NuGet) for WPF and MAUI.
 GUI/WPF/        Windows desktop client (MVVM + a small AppServices locator); composes Utils defaults.
-UnitTests/      Multiplateform (net10.0: Core/Utils) + Windows (net10.0-windows: WPF ViewModels).
+GUI/MAUI/       MAUI host (Windows unpackaged + Android); Microsoft.Maui allowlist only.
+UnitTests/      Multiplateform (Core/Utils) + Presentation + Windows (WPF ViewModels).
 ```
 
 | Solution | Projects |
 | -------- | -------- |
-| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, WPF GUI, both test projects |
-| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, Core, Multiplateform tests |
+| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, Presentation, WPF GUI, tests |
+| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, Core, Presentation, Multiplateform + Presentation tests |
+| `Upsilon.Apps.Passkey.MAUI.slnx` | Interfaces, Utils, Core, Presentation, MAUI host, Presentation tests |
 
 Core talks to the OS for clipboard only through an injected port
 (`IClipboardManager` must be OS-specific). In-memory secret wrapping goes through
@@ -940,8 +943,10 @@ GitHub Actions on `master` and pull requests:
 | Workflow | What it does |
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Multiplateform tests); `dotnet test` runs Multiplateform with the **90% Core line-coverage gate** |
-| `.github/workflows/codeql.yml` | CodeQL on every push (any branch) and weekly; Release build of production projects (tests excluded); SARIF filtered for `bin`/`obj`/`*.g.cs` |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Presentation + tests); `dotnet test` with the **90% Core line-coverage gate** |
+| `.github/workflows/csharp-dotnet-maui-windows.yml` | MAUI workloads, locked restore, Debug + Release build for `net10.0-windows10.0.19041.0` |
+| `.github/workflows/csharp-dotnet-maui-android.yml` | MAUI Android workload + JDK 17, locked restore, Debug + Release build for `net10.0-android` |
+| `.github/workflows/codeql.yml` | CodeQL on every push (any branch) and weekly; Release build of WPF + MAUI production projects (tests excluded); SARIF filtered for `bin`/`obj`/`*.g.cs` |
 | `.github/workflows/publish-wiki.yml` | On `Wiki/**` changes to `master`: publish the `Wiki/` folder to the GitHub Wiki |
 
 There is currently **no** automated `release.yml`. After tagging, publish GitHub Releases manually. See [CONTRIBUTING.md](CONTRIBUTING.md#cutting-a-release).

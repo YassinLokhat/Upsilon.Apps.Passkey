@@ -17,14 +17,18 @@ focused change and enough context for review.
 | `Interfaces/` | Public contracts (`IDatabase`, crypto, serialization, clipboard, `IProtectedSecret`, `ISecretMemoryProtector`). |
 | `Utils/` | Default implementations: `CryptographyCenter`, `JsonSerializationCenter`, `PasswordFactory`, `SecretMemoryProtector` / `ProtectedSecret`, `LeakFilter/` (`.pkbf` Bloom). Same zero-NuGet policy as Core. |
 | `Core/` | Vault implementation (Interfaces only — no ProjectReference to Utils): onion encryption, `.pku` I/O, alerts, import/export. `Database` is a partial class; internal hosts (`IActivityHost`, `IAutoSaveHost`, `IUserHost`) keep ActivityCenter / AutoSave / User from digging into Database members. |
+| `GUI/Presentation/` | Shared ViewModels/ports (`net10.0`, zero NuGet) for WPF and MAUI. |
 | `GUI/WPF/` | Windows desktop client (WPF, .NET 10 Windows TFM). |
+| `GUI/MAUI/` | MAUI host (`net10.0-android` + `net10.0-windows10.0.19041.0`); Microsoft.Maui allowlist only. |
 | `UnitTests/Multiplateform/` | Core/Utils tests (`net10.0`; Linux + Windows CI). |
-| `UnitTests/Windows/` | ViewModel tests through the `AppServices` seam (`net10.0-windows`). |
+| `UnitTests/Presentation/` | Presentation ports/ViewModels (`net10.0`; Linux + Windows). |
+| `UnitTests/Windows/` | WPF ViewModel tests through the `AppServices` seam (`net10.0-windows`). |
 
-Two solution files exist on purpose:
+Three solution files exist on purpose:
 
-- `Upsilon.Apps.Passkey.Windows.slnx` — Interfaces, Utils, Core, WPF GUI, and both test projects.
-- `Upsilon.Apps.Passkey.Linux.slnx` — Interfaces, Utils, Core, and Multiplateform tests (no WPF).
+- `Upsilon.Apps.Passkey.Windows.slnx` — Interfaces, Utils, Core, Presentation, WPF GUI, and Windows/Presentation/Multiplateform tests.
+- `Upsilon.Apps.Passkey.Linux.slnx` — Interfaces, Utils, Core, Presentation, Multiplateform + Presentation tests (no WPF/MAUI host).
+- `Upsilon.Apps.Passkey.MAUI.slnx` — Interfaces, Utils, Core, Presentation, MAUI host, Presentation tests.
 
 ## Build and test
 
@@ -49,13 +53,21 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitT
 There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global
 hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay in the [manual smoke list](README.md#manual-smoke-gui).
 
-## Zero-dependency policy (Core, Utils, Interfaces, and WPF)
+## Zero-dependency policy (Core, Utils, Interfaces, Presentation, and WPF)
 
-`Core`, `Utils`, `Interfaces`, and the WPF GUI must not take a third-party
-`PackageReference`. Projects opt in with
+`Core`, `Utils`, `Interfaces`, `GUI/Presentation`, and the WPF GUI must not take
+a third-party `PackageReference`. Projects opt in with
 `<EnforceZeroExternalDependencies>true</EnforceZeroExternalDependencies>`;
 `Directory.Build.targets` fails the build if a disallowed package appears.
 That keeps the vault's supply-chain surface limited to the .NET BCL.
+
+**MAUI host exception:** `GUI/MAUI` may set
+`<AllowedExternalPackagePrefixes>Microsoft.Maui.</AllowedExternalPackagePrefixes>`
+so only `Microsoft.Maui.*` direct packages (today: `Microsoft.Maui.Controls`)
+pass the gate. Transitive Windows App SDK / AndroidX packages are locked via
+`packages.lock.json` + `--locked-mode`, audited for vulnerabilities, and
+constrained by root `nuget.config` (nuget.org only, signature validation).
+See [[ADR-001-MAUI-Host-and-Multi-Device]].
 
 Allowed:
 
@@ -65,6 +77,7 @@ Allowed:
 - SDK toolchain packages injected by the .NET SDK during publish (today:
   `Microsoft.NET.ILLink.Tasks` for `PublishSingleFile` / trim / AOT). These are
   not app dependencies and are allowlisted in `Directory.Build.targets`.
+- On the MAUI host only: `Microsoft.Maui.*` per `AllowedExternalPackagePrefixes`.
 
 Workflow `uses:` entries are **pinned to full commit SHAs** (with a `# vX.Y.Z`
 comment). Dependabot is enabled for the `github-actions` ecosystem only

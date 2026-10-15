@@ -1,4 +1,7 @@
-﻿namespace Upsilon.Apps.Passkey.GUI.MAUI
+﻿using Upsilon.Apps.Passkey.GUI.MAUI.Adapters;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+
+namespace Upsilon.Apps.Passkey.GUI.MAUI
 {
    internal static class MauiProgram
    {
@@ -6,6 +9,23 @@
       {
          // Touch so CA1812 sees framework-created types as used (factories are never invoked).
          _ = MauiFrameworkCreatedTypeAnchors.Factories.Length;
+
+         AppServices.Ui = new MauiUiDispatcher();
+         AppServices.Timers = new MauiUiTimerFactory();
+         AppServices.Paths = new MauiAppPaths();
+         AppServices.Launcher = new MauiLauncher();
+         AppServices.Dialogs = new MauiDialogService();
+         AppServices.Theme = new MauiThemePlatform();
+#if WINDOWS
+         AppServices.Clipboard = new Platforms.Windows.WindowsClipboardService();
+         AppServices.VaultSources = new PathVaultSourceFactory();
+#elif ANDROID
+         AppServices.Clipboard = new Platforms.Android.AndroidClipboardService();
+         AppServices.VaultSources = new Platforms.Android.AndroidVaultSourceFactory();
+#else
+         AppServices.Clipboard = new MauiClipboardService();
+         AppServices.VaultSources = new PathVaultSourceFactory();
+#endif
 
          MauiAppBuilder builder = MauiApp.CreateBuilder();
          builder

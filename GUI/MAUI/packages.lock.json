@@ -122,7 +122,7 @@
       "Microsoft.Maui.Controls.Build.Tasks": {
         "type": "Transitive",
         "resolved": "10.0.20",
-        "contentHash": "8DbAwGgvgf3QPV1WCu6CabRDTZjtq7kd11sELwYhZ2ZFCdHtGTeLyvpMgnbAtMUwix4hnGyWH8fZKQJlVDBuYA==",
+        "contentHash": "vQsyfUHHSkh9O9lxOcJBDEUxtS+VphI3uxYOB73AZURcj5CpZ0DfLiPKG9SBrp2PkiIFbXPJ2ABbpzMvZVliRw==",
         "dependencies": {
           "Microsoft.Maui.Controls.Core": "10.0.20",
           "Microsoft.Maui.Controls.Xaml": "10.0.20"
@@ -193,7 +193,7 @@
       "Microsoft.Maui.Resizetizer": {
         "type": "Transitive",
         "resolved": "10.0.20",
-        "contentHash": "6MVR9wsKgfN25AuEL/KzDLd5x8TpuBrC0DRvlUq2Ddi0WdO1q0B9VsTePJF8mdDmdLybo4h/F5F59kfOTPzIXA=="
+        "contentHash": "lqGi/HjtGPvmzqSR+Ii3ZHdvZj811+sBAxyN+T3jrvKBKd13wdVh9vZEfjmTUE5KA6+6W+6iRk5h62CY8pVogg=="
       },
       "Xamarin.Android.Glide": {
         "type": "Transitive",
@@ -1228,6 +1228,13 @@
           "Upsilon.Apps.Passkey.Interfaces": "[2.0.0, )"
         }
       },
+      "upsilon.apps.passkey.gui.presentation": {
+        "type": "Project",
+        "dependencies": {
+          "Upsilon.Apps.Passkey.Core": "[2.0.0, )",
+          "Upsilon.Apps.Passkey.Utils": "[2.0.0, )"
+        }
+      },
       "upsilon.apps.passkey.interfaces": {
         "type": "Project"
       },
@@ -1361,7 +1368,7 @@
       "Microsoft.Maui.Controls.Build.Tasks": {
         "type": "Transitive",
         "resolved": "10.0.20",
-        "contentHash": "8DbAwGgvgf3QPV1WCu6CabRDTZjtq7kd11sELwYhZ2ZFCdHtGTeLyvpMgnbAtMUwix4hnGyWH8fZKQJlVDBuYA==",
+        "contentHash": "vQsyfUHHSkh9O9lxOcJBDEUxtS+VphI3uxYOB73AZURcj5CpZ0DfLiPKG9SBrp2PkiIFbXPJ2ABbpzMvZVliRw==",
         "dependencies": {
           "Microsoft.Maui.Controls.Core": "10.0.20",
           "Microsoft.Maui.Controls.Xaml": "10.0.20"
@@ -1439,7 +1446,7 @@
       "Microsoft.Maui.Resizetizer": {
         "type": "Transitive",
         "resolved": "10.0.20",
-        "contentHash": "6MVR9wsKgfN25AuEL/KzDLd5x8TpuBrC0DRvlUq2Ddi0WdO1q0B9VsTePJF8mdDmdLybo4h/F5F59kfOTPzIXA=="
+        "contentHash": "lqGi/HjtGPvmzqSR+Ii3ZHdvZj811+sBAxyN+T3jrvKBKd13wdVh9vZEfjmTUE5KA6+6W+6iRk5h62CY8pVogg=="
       },
       "Microsoft.Web.WebView2": {
         "type": "Transitive",
@@ -1464,6 +1471,13 @@
         "type": "Project",
         "dependencies": {
           "Upsilon.Apps.Passkey.Interfaces": "[2.0.0, )"
+        }
+      },
+      "upsilon.apps.passkey.gui.presentation": {
+        "type": "Project",
+        "dependencies": {
+          "Upsilon.Apps.Passkey.Core": "[2.0.0, )",
+          "Upsilon.Apps.Passkey.Utils": "[2.0.0, )"
         }
       },
       "upsilon.apps.passkey.interfaces": {

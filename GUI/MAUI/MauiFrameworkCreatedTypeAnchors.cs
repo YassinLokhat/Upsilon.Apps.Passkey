@@ -11,8 +11,19 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
       [
          static () => new App(),
          static () => new MainPage(),
-#if IOS || MACCATALYST
-         static () => new AppDelegate(),
+         static () => new Adapters.MauiDialogService(),
+         static () => new Adapters.MauiThemePlatform(),
+         static () => new Adapters.MauiUiTimerFactory(),
+         static () => new Adapters.MauiClipboardService(),
+#if WINDOWS
+         static () => new Platforms.Windows.WindowsClipboardService(),
+#endif
+#if ANDROID
+         static () => new Platforms.Android.AndroidClipboardService(),
+         static () => new Platforms.Android.AndroidVaultSourceFactory(),
+         static () => Platforms.Android.SafVaultSource.Create(
+            global::Android.Net.Uri.Parse("content://passkey/unused")!,
+            "unused"),
 #endif
       ];
    }

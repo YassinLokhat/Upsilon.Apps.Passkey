@@ -56,6 +56,13 @@ jobs:
     - name: Build Release (Android)
       run: dotnet build GUI/MAUI/Upsilon.Apps.Passkey.GUI.MAUI.csproj --no-restore --configuration Release -f net10.0-android
 
+    # Signed APK/AAB: keystore lives in a protected GitHub Environment (never in-repo).
+    # When ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS /
+    # ANDROID_KEY_PASSWORD are set on environment "android-release", uncomment a
+    # publish job that decodes the keystore and runs:
+    #   dotnet publish … -f net10.0-android -c Release
+    #     -p:AndroidKeyStore=true -p:AndroidSigningKeyStore=… etc.
+
 permissions:
   contents: read
   issues: write

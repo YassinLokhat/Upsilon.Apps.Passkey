@@ -1,5 +1,6 @@
 # Keep GitHub Actions pinned SHAs fresh without opening NuGet noise
-# (production libraries stay zero-PackageReference).
+# against Core/Utils/Interfaces/Presentation/WPF (zero-PackageReference).
+# MAUI host NuGet is tracked separately (allowlisted Microsoft.Maui.*).
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -7,6 +8,11 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+  - package-ecosystem: nuget
+    directory: /GUI/MAUI
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
     # CodeQL init/analyze/upload-sarif must run the same version.
     groups:
       codeql-action:
