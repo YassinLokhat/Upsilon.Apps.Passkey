@@ -1,4 +1,5 @@
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
 {
@@ -13,6 +14,8 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
       private CancellationTokenSource? _clearCts;
       private bool _disposed;
 
+      public event EventHandler<ClipboardSecretCopiedEventArgs>? SecretCopied;
+
       public void SetText(string text, TimeSpan? autoClearAfter = null)
       {
          if (string.IsNullOrEmpty(text))
@@ -24,6 +27,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
 
          if (autoClearAfter is { } delay && delay > TimeSpan.Zero)
          {
+            SecretCopied?.Invoke(this, new ClipboardSecretCopiedEventArgs(text));
             lock (_gate)
             {
                _tracked = text;
@@ -57,6 +61,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
       }
 
       public void ClearIfStillOwned()
+         => UiThread.Send(_clearIfStillOwnedOnUi);
+
+      private void _clearIfStillOwnedOnUi()
       {
          lock (_gate)
          {

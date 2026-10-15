@@ -71,6 +71,10 @@ namespace UnitTests.Presentation.Fakes
 
    internal sealed class FakeClipboardService : IClipboardService
    {
+      public event EventHandler<ClipboardSecretCopiedEventArgs>? SecretCopied;
+
+      public void RaiseSecretCopied(string text) => SecretCopied?.Invoke(this, new ClipboardSecretCopiedEventArgs(text));
+
       public void SetText(string text, TimeSpan? autoClearAfter = null)
       {
       }

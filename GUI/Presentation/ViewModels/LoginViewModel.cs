@@ -17,7 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
    /// Hosts read the secret from the control and pass it to <see cref="SubmitPasskeyAsync"/>.
    /// Must be driven from the UI thread.
    /// </summary>
-   internal sealed class LoginViewModel : ObservableObject
+   internal sealed class LoginViewModel : ObservableObject, IDisposable
    {
       private IDatabase? _database;
       private IUser? _user;
@@ -25,6 +25,27 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
       private string? _pickedVault;
       private string _pickedVaultName = string.Empty;
       private string _statusMessage = string.Empty;
+      private readonly ISessionService _session;
+      private bool _disposed;
+
+      public LoginViewModel()
+      {
+         _session = AppServices.Session;
+         _session.WriteBackCompleted += _onWriteBackCompleted;
+      }
+
+      public void Dispose()
+      {
+         if (_disposed)
+         {
+            return;
+         }
+
+         _disposed = true;
+         _session.WriteBackCompleted -= _onWriteBackCompleted;
+         LoggedIn = null;
+         SessionEnded = null;
+      }
 
       /// <summary>Raised on the UI thread once the last passkey unlocked the vault.</summary>
       public event EventHandler? LoggedIn;
@@ -156,7 +177,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
                cancellationToken).ConfigureAwait(true);
 
             database.AutoSaveDetected += _onAutoSaveDetected;
-            database.DatabaseClosed += (sender, e) => _onDatabaseClosed(database, source, e);
+            AppServices.Session.TrackVaultSource(database, source);
+            database.DatabaseClosed += _onDatabaseClosed;
             _database = database;
 
             OnPropertyChanged(nameof(DatabaseOpened));
@@ -174,7 +196,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             or CorruptedSourceException
             or NullValueException)
          {
-            StatusMessage = Strings.Format(nameof(Strings.Login_OpenFailed), ex.Message);
+            StatusMessage = Strings.Format(nameof(Strings.Login_OpenFailed), ErrorText.Describe(ex));
          }
          finally
          {
@@ -212,7 +234,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             or NullValueException)
          {
             Reset();
-            StatusMessage = Strings.Format(nameof(Strings.Login_LoginFailed), ex.Message);
+            StatusMessage = Strings.Format(nameof(Strings.Login_LoginFailed), ErrorText.Describe(ex));
             return false;
          }
          finally
@@ -230,6 +252,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          }
 
          StatusMessage = string.Empty;
+         AppServices.Session.StartSession(database);
          LoggedIn?.Invoke(this, EventArgs.Empty);
          return true;
       }
@@ -242,8 +265,15 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          _pickedVault = null;
          SelectedVaultName = string.Empty;
 
-         // Close raises DatabaseClosed, which writes the working copy back.
-         database?.Close();
+         // Close raises DatabaseClosed; the session then writes the working copy back.
+         if (database is not null && ReferenceEquals(AppServices.Session.Database, database))
+         {
+            AppServices.Session.EndSession();
+         }
+         else
+         {
+            database?.Close();
+         }
          StatusMessage = string.Empty;
       }
 
@@ -286,54 +316,34 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          };
       }
 
-      private void _onDatabaseClosed(IDatabase database, IVaultSource source, LogoutEventArgs e)
+      private void _onDatabaseClosed(object? sender, LogoutEventArgs e)
       {
          // May run on the session-timer thread (auto-logout).
-         _ = _writeBackAsync(source);
-
-         void endSession()
+         if (sender is not IDatabase database)
          {
+            return;
+         }
+
+         database.DatabaseClosed -= _onDatabaseClosed;
+         database.AutoSaveDetected -= _onAutoSaveDetected;
+
+         UiThread.Post(() =>
+         {
+            if (ReferenceEquals(AppServices.Session.Database, database))
+            {
+               AppServices.Session.EndSession(closeDatabase: false);
+            }
+
             if (ReferenceEquals(_database, database))
             {
                _clearSessionState();
             }
 
             SessionEnded?.Invoke(this, e);
-         }
-
-         if (AppServices.Ui is { } ui)
-         {
-            ui.Post(endSession);
-         }
-         else
-         {
-            endSession();
-         }
+         });
       }
 
-      private async Task _writeBackAsync(IVaultSource source)
-      {
-         string? message;
-         try
-         {
-            message = await source.WriteBackAsync().ConfigureAwait(false) switch
-            {
-               VaultWriteBackResult.Conflict => Strings.Login_WriteBackConflict,
-               VaultWriteBackResult.Failed => Strings.Login_WriteBackFailed,
-               _ => null,
-            };
-         }
-         catch (Exception ex) when (ex is IOException
-            or UnauthorizedAccessException
-            or InvalidOperationException)
-         {
-            message = Strings.Format(nameof(Strings.Login_WriteBackFailedWithReason), ex.Message);
-         }
-
-         if (message is not null)
-         {
-            AppServices.Ui?.Post(() => StatusMessage = message);
-         }
-      }
+      private void _onWriteBackCompleted(object? sender, VaultWriteBackEventArgs e)
+         => StatusMessage = e.Message;
    }
 }

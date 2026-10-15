@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Resources;
 
 namespace Upsilon.Apps.Passkey.GUI.Presentation.Localization
@@ -415,6 +415,10 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Localization
       public static string Login_WriteBackConflict => Get(nameof(Login_WriteBackConflict));
       public static string Login_WriteBackFailed => Get(nameof(Login_WriteBackFailed));
       public static string Login_WriteBackFailedWithReason => Get(nameof(Login_WriteBackFailedWithReason));
+      public static string Error_FileAccess => Get(nameof(Error_FileAccess));
+      public static string Error_AccessDenied => Get(nameof(Error_AccessDenied));
+      public static string Error_InvalidVault => Get(nameof(Error_InvalidVault));
+      public static string Error_Unexpected => Get(nameof(Error_Unexpected));
 
       public static string Title_SessionClosed => Get(nameof(Title_SessionClosed));
       public static string Msg_SessionClosedTimeout => Get(nameof(Msg_SessionClosedTimeout));

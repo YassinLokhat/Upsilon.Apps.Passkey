@@ -33,6 +33,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          AppServices.Paths = new WpfAppPaths();
          AppServices.Launcher = new WpfLauncher();
          AppServices.VaultSources = new PathVaultSourceFactory();
+         AppServices.Theme = new WpfThemePlatform();
+         AppServices.Session = new SessionService(() => WpfAppServices.OfflineLeakFilterUpdate.IsBusy);
 
          _ = AppInfo.ConfigFile;
          LanguageAwareNotify.Install();

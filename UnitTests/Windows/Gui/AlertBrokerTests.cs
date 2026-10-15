@@ -1,9 +1,10 @@
 using FluentAssertions;
-using Upsilon.Apps.Passkey.GUI.WPF.Alerts;
+using Upsilon.Apps.Passkey.GUI.Presentation.Alerts;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests.Multiplateform;
 using Upsilon.Apps.Passkey.UnitTests.Windows.Gui.Fakes;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
 {

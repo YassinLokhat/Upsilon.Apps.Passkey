@@ -19,7 +19,7 @@ Parity progress: [[MAUI Parity Checklist]]. Today MAUI is a preview (login + rea
 
 ## Android storage
 
-`SafVaultSource` copies a SAF URI into `NoBackupFilesDir`, runs Core on the working path, and write-backs with SHA-256 conflict detection (never silent overwrite). `MainActivity` uses `ACTION_OPEN_DOCUMENT` with persistable read/write grants. See [[ADR-001-MAUI-Host-and-Multi-Device]].
+`SafVaultSource` copies a SAF URI into `NoBackupFilesDir`, runs Core on the working path, and write-backs with SHA-256 conflict detection (never silent overwrite). The shared `SessionService` owns the source: write-back runs after Core raises `DatabaseClosed`, one at a time in close order; a conflict keeps a conflict copy, a failed write restores the pristine copy, and the user sees a fixed localized message (never a path or URI). An unchanged working copy skips the write. Closing the window ends the session and waits up to 10 s for pending write-backs. `MainActivity` uses `ACTION_OPEN_DOCUMENT` with persistable read/write grants. See [[ADR-001-MAUI-Host-and-Multi-Device]].
 
 ## Android security posture
 

@@ -3,6 +3,7 @@ using System.Runtime.Versioning;
 using Android.Content;
 using Android.OS;
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using AndroidApp = Android.App.Application;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
@@ -17,6 +18,8 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
       private string? _tracked;
       private CancellationTokenSource? _clearCts;
       private bool _disposed;
+
+      public event EventHandler<ClipboardSecretCopiedEventArgs>? SecretCopied;
 
       public void SetText(string text, TimeSpan? autoClearAfter = null)
       {
@@ -51,6 +54,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
 
          if (autoClearAfter is { } delay && delay > TimeSpan.Zero)
          {
+            SecretCopied?.Invoke(this, new ClipboardSecretCopiedEventArgs(text));
             lock (_gate)
             {
                _tracked = text;
@@ -84,6 +88,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
       }
 
       public void ClearIfStillOwned()
+         => UiThread.Send(_clearIfStillOwnedOnUi);
+
+      private void _clearIfStillOwnedOnUi()
       {
          lock (_gate)
          {

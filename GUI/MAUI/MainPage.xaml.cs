@@ -1,11 +1,11 @@
-﻿using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI
 {
-   internal sealed partial class MainPage : ContentPage
+   internal sealed partial class MainPage : ContentPage, IDisposable
    {
       private readonly LoginViewModel _viewModel = new();
 
@@ -23,6 +23,16 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          {
             life.EnteredBackground += _onEnteredBackground;
          }
+      }
+
+      public void Dispose()
+      {
+         if (AppServices.Lifecycle is { } life)
+         {
+            life.EnteredBackground -= _onEnteredBackground;
+         }
+
+         _viewModel.Dispose();
       }
 
       protected override void OnHandlerChanged()

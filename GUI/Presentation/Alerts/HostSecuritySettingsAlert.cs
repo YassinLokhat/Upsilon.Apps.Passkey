@@ -1,7 +1,7 @@
-﻿using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
+namespace Upsilon.Apps.Passkey.GUI.Presentation.Alerts
 {
    internal sealed class HostSecuritySettingsAlert(HostSecurityIssue issues) : IHostSecuritySettingsAlert
    {
