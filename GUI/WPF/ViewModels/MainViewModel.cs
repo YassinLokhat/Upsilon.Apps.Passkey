@@ -121,7 +121,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       private static void _newUser()
       {
-         _ = AppServices.Dialogs.ShowDialog(new UserSettingsView());
+         using UserSettingsView view = new();
+         _ = AppServices.Dialogs.ShowDialog(view);
       }
 
       private static void _appSettings()

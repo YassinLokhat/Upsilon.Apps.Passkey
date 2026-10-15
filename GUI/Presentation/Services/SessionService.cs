@@ -15,7 +15,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
       private Task _writeBackTail = Task.CompletedTask;
       private readonly Func<bool> _isOfflineFilterBusy;
       private readonly Dictionary<IDatabase, IVaultSource> _sources = new(ReferenceEqualityComparer.Instance);
-      private readonly HashSet<IDatabase> _deleting = new(ReferenceEqualityComparer.Instance);
+      private readonly Dictionary<IDatabase, TaskCompletionSource<bool>> _deleting = new(ReferenceEqualityComparer.Instance);
+      private readonly Dictionary<IDatabase, (string FileName, TaskCompletionSource<VaultRenameOutcome> Done)> _renaming = new(ReferenceEqualityComparer.Instance);
       private IDatabase? _database;
       private IClipboardService? _clipboard;
       private bool _disposed;
@@ -64,15 +65,20 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
          void onClosed(object? sender, LogoutEventArgs e)
          {
             database.DatabaseClosed -= onClosed;
-            bool deleted;
+            TaskCompletionSource<bool>? deleted;
+            (string FileName, TaskCompletionSource<VaultRenameOutcome> Done) rename;
+            bool renaming;
             lock (_gate)
             {
                _ = _sources.Remove(database);
-               deleted = _deleting.Remove(database);
+               _ = _deleting.Remove(database, out deleted);
+               renaming = _renaming.Remove(database, out rename);
             }
 
-            _ = _enqueue(deleted
-               ? () => _deleteThenDisposeAsync(source)
+            _ = _enqueue(deleted is not null
+               ? () => _deleteThenDisposeAsync(source, deleted)
+               : renaming
+               ? () => _writeBackRenameThenDisposeAsync(source, rename.FileName, rename.Done)
                : () => _writeBackThenDisposeAsync(source));
          }
 
@@ -121,13 +127,21 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
          return result;
       }
 
-      public void DeleteVault()
+      public void DeleteVault() => _ = DeleteVaultAsync();
+
+      public Task<bool> DeleteVaultAsync()
       {
          IDatabase database;
+         TaskCompletionSource<bool> done = new(TaskCreationOptions.RunContinuationsAsynchronously);
+         bool tracked;
          lock (_gate)
          {
             database = _database ?? throw new InvalidOperationException("No active session.");
-            _ = _deleting.Add(database);
+            tracked = _sources.ContainsKey(database);
+            if (tracked)
+            {
+               _deleting[database] = done;
+            }
          }
 
          try
@@ -145,6 +159,49 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
          }
 
          EndSession(closeDatabase: false);
+
+         if (!tracked)
+         {
+            // Untracked vaults are the real file: Core's delete is the whole job.
+            done.TrySetResult(true);
+         }
+
+         return done.Task;
+      }
+
+      public async Task<VaultRenameOutcome> EndSessionAndRenameAsync(string newFileName)
+      {
+         ArgumentException.ThrowIfNullOrWhiteSpace(newFileName);
+
+         IDatabase database;
+         TaskCompletionSource<VaultRenameOutcome> done = new(TaskCreationOptions.RunContinuationsAsynchronously);
+         bool tracked;
+         lock (_gate)
+         {
+            database = _database ?? throw new InvalidOperationException("No active session.");
+            tracked = _sources.ContainsKey(database);
+            if (tracked)
+            {
+               _renaming[database] = (newFileName, done);
+            }
+         }
+
+         string databaseFile = database.DatabaseFile;
+         EndSession();
+
+         if (tracked)
+         {
+            return await done.Task.ConfigureAwait(false);
+         }
+
+         if (AppServices.VaultSources is not { } factory)
+         {
+            return new VaultRenameOutcome(false, VaultWriteBackResult.Skipped, databaseFile);
+         }
+
+         IVaultSource source = await factory.OpenPathAsync(databaseFile).ConfigureAwait(false);
+         _ = _enqueue(() => _writeBackRenameThenDisposeAsync(source, newFileName, done));
+         return await done.Task.ConfigureAwait(false);
       }
 
       public void StartSession(IDatabase database)
@@ -327,7 +384,33 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
          _report(result, failure);
       }
 
-      private async Task _deleteThenDisposeAsync(IVaultSource source)
+      private async Task _writeBackRenameThenDisposeAsync(
+         IVaultSource source,
+         string newFileName,
+         TaskCompletionSource<VaultRenameOutcome> done)
+      {
+         (VaultWriteBackResult result, Exception? failure) = await _tryWriteBackAsync(source).ConfigureAwait(false);
+         bool renamed = false;
+
+         if (result is VaultWriteBackResult.Written or VaultWriteBackResult.Skipped)
+         {
+            try
+            {
+               renamed = await source.RenameAsync(newFileName).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (_isSourceFailure(ex))
+            {
+               AppServices.Log.Error($"Vault rename failed: {ErrorText.ForLog(ex)}");
+            }
+         }
+
+         string location = source.Location;
+         await _disposeAsync(source).ConfigureAwait(false);
+         _report(result, failure);
+         done.TrySetResult(new VaultRenameOutcome(renamed, result, location));
+      }
+
+      private async Task _deleteThenDisposeAsync(IVaultSource source, TaskCompletionSource<bool> done)
       {
          bool deleted;
          try
@@ -347,6 +430,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
                this,
                new VaultWriteBackEventArgs(VaultWriteBackResult.Failed, Strings.Login_VaultDeleteRefused)));
          }
+
+         done.TrySetResult(deleted);
       }
 
       private static async Task<(VaultWriteBackResult Result, Exception? Failure)> _tryWriteBackAsync(IVaultSource source)

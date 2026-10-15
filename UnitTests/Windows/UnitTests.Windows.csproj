@@ -31,6 +31,7 @@
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
     <Using Include="Upsilon.Apps.Passkey.GUI.Presentation.Localization" />
     <Using Include="Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault" />
+    <Using Include="Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings" />
   </ItemGroup>
 
   <ItemGroup>

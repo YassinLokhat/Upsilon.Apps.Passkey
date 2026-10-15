@@ -20,12 +20,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
       /// Theme preferences the client knows how to apply. Order is display order
       /// in App Settings.
       /// </summary>
-      public static IReadOnlyList<AppThemeOption> Supported =>
-      [
-         new(SystemCode, Strings.EnumValue_Theme_System),
-         new(LightCode, Strings.EnumValue_Theme_Light),
-         new(DarkCode, Strings.EnumValue_Theme_Dark),
-      ];
+      public static IReadOnlyList<AppThemeOption> Supported => ThemePreferences.Options;
 
       /// <summary>
       /// Last preference passed to <see cref="Apply"/> (<c>System</c>, <c>Light</c>,

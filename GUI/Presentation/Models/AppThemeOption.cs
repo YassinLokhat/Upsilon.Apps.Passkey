@@ -1,4 +1,4 @@
-namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
+namespace Upsilon.Apps.Passkey.GUI.Presentation.Models
 {
    /// <summary>
    /// A theme choice shown in App / User settings combo boxes.

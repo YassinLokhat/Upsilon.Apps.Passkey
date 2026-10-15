@@ -1,40 +1,30 @@
 ﻿using System.Windows.Controls;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 {
    /// <summary>
-   /// Interaction logic for UserPasswordItem.xaml
+   /// Interaction logic for UserPasswordItem.xaml. The PasswordBox is the only
+   /// live copy of the passkey; the ViewModel reads it through <see cref="ISecretInput"/>.
    /// </summary>
-   internal sealed partial class UserPasswordItem : UserControl
+   internal sealed partial class UserPasswordItem : UserControl, ISecretInput
    {
-      internal readonly UserPasswordItemViewModel ViewModel;
+      internal readonly PasskeyEntryViewModel ViewModel;
 
-      /// <summary>
-      /// Reads the secret from the PasswordBox rather than a ViewModel string,
-      /// so typing does not leave a long-lived managed duplicate.
-      /// </summary>
-      public string Password
-      {
-         get => _password_VPB.Password;
-         set => _password_VPB.Password = value;
-      }
-
-      internal UserPasswordItem(UserPasswordItemViewModel viewModel)
+      internal UserPasswordItem(PasskeyEntryViewModel viewModel)
       {
          InitializeComponent();
 
          DataContext = ViewModel = viewModel;
-         _password_VPB.Password = viewModel.InitialPassword;
-         // Drop the seed copy now that PasswordBox holds it.
-         viewModel.InitialPassword = string.Empty;
+         viewModel.Attach(this);
       }
 
-      public new void Focus()
-      {
-         _password_VPB.Focus();
-      }
+      public string Read() => _password_VPB.Password;
+
+      public void Write(string secret) => _password_VPB.Password = secret;
 
       public void Clear() => _password_VPB.Clear();
+
+      public new void Focus() => _password_VPB.Focus();
    }
 }

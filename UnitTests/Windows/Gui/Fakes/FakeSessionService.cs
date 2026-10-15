@@ -35,6 +35,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui.Fakes
 
       public void DeleteVault() => Database?.Delete();
 
+      public Task<bool> DeleteVaultAsync()
+      {
+         DeleteVault();
+         return Task.FromResult(true);
+      }
+
+      public Task<VaultRenameOutcome> EndSessionAndRenameAsync(string newFileName)
+      {
+         string? location = Database?.DatabaseFile;
+         EndSession();
+         return Task.FromResult(new VaultRenameOutcome(false, VaultWriteBackResult.Skipped, location));
+      }
+
       public void StartSession(IDatabase database)
       {
          ArgumentNullException.ThrowIfNull(database);

@@ -1433,4 +1433,16 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
   <data name="Vault_NoSelection" xml:space="preserve">
     <value>Sélectionnez un service</value>
   </data>
+  <data name="Msg_VaultRenameKept" xml:space="preserve">
+    <value>Votre coffre a été enregistré, mais son fichier n&apos;a pas pu être renommé et garde son ancien nom :{0}{1}{0}Utilisez Ouvrir un coffre pour le sélectionner.</value>
+  </data>
+  <data name="Msg_VaultTargetExists" xml:space="preserve">
+    <value>Un fichier de coffre nommé {0} existe déjà dans ce dossier. Rien n&apos;a été modifié.</value>
+  </data>
+  <data name="Msg_UserSaveFailed" xml:space="preserve">
+    <value>Le coffre n&apos;a pas pu être enregistré ; vos réglages précédents ont été rétablis.{0}{1}</value>
+  </data>
+  <data name="Msg_VaultCreateFailed" xml:space="preserve">
+    <value>Le coffre n&apos;a pas pu être créé.{0}{1}</value>
+  </data>
 </root>

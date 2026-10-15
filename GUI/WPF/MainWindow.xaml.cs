@@ -1,3 +1,4 @@
+﻿using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using System.ComponentModel;
 using System.IO;
 using System.Security;
@@ -247,14 +248,24 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             try
             {
                string databaseFile = Path.GetFullPath(args[1]);
-               if (File.Exists(databaseFile))
+
+               // UNC and device paths can trigger network authentication just by being probed.
+               if (databaseFile.StartsWith(@"\\", StringComparison.Ordinal))
+               {
+                  Log.Warn("Ignored command-line database path: network or device paths are not accepted.");
+               }
+               else if (!string.Equals(Path.GetExtension(databaseFile), ".pku", StringComparison.OrdinalIgnoreCase))
+               {
+                  Log.Warn("Ignored command-line database path: not a .pku file.");
+               }
+               else if (File.Exists(databaseFile))
                {
                   _mainViewModel.DatabaseFile = databaseFile;
                }
             }
             catch (Exception ex) when (ex is ArgumentException or PathTooLongException or NotSupportedException)
             {
-               Log.Warn($"Ignored invalid database path from command line: {ex.Message}");
+               Log.Warn($"Ignored invalid database path from command line: {ErrorText.ForLog(ex)}");
             }
          }
 
@@ -348,14 +359,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
       private async Task _submitUsernameAsync()
       {
-         if (string.IsNullOrEmpty(_username_TB.Text))
+         string username = CredentialRules.NormalizeUsername(_username_TB.Text);
+         if (username.Length == 0)
          {
             return;
          }
 
          if (!File.Exists(_mainViewModel.DatabaseFile))
          {
-            string filename = AppServices.Cryptography.GetHash(_username_TB.Text);
+            string filename = AppServices.Cryptography.GetHash(username);
             _mainViewModel.DatabaseFile = Path.GetFullPath($"{Path.Join(AppInfo.AppSettings.DefaultDatabaseDirectory, filename + ".pku")}");
          }
 
@@ -369,7 +381,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
                AppServices.Clipboard,
                AppServices.SecretProtector,
                _mainViewModel.DatabaseFile,
-               _username_TB.Text).ConfigureAwait(true);
+               username).ConfigureAwait(true);
 
             if (_isClosing)
             {
@@ -387,6 +399,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             AppServices.Dialogs.Warn(
                   Strings.Msg_InsufficientKdf,
                   Strings.Title_InsufficientKdf);
+            return;
+         }
+         catch (Exception ex) when (ex is IOException
+            or UnauthorizedAccessException
+            or ArgumentException
+            or InvalidOperationException
+            or CorruptedSourceException
+            or NullValueException)
+         {
+            Log.Warn($"Failed to open database: {ErrorText.ForLog(ex)}");
+            AppServices.Dialogs.Warn(
+                  Strings.Format(nameof(Strings.Login_OpenFailed), ErrorText.Describe(ex)),
+                  Strings.Title_Error);
             return;
          }
          finally

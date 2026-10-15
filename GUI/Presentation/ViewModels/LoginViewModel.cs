@@ -129,7 +129,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
 
       public async Task SubmitUsernameAsync(string username, CancellationToken cancellationToken = default)
       {
-         username = username.Trim();
+         username = CredentialRules.NormalizeUsername(username);
          if (IsBusy
              || DatabaseOpened
              || username.Length == 0)

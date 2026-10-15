@@ -1433,4 +1433,16 @@ This affects all vault users. Disabling the option alone does not delete the fil
   <data name="Vault_NoSelection" xml:space="preserve">
     <value>Select a service</value>
   </data>
+  <data name="Msg_VaultRenameKept" xml:space="preserve">
+    <value>Your vault was saved, but its file could not be renamed and keeps its previous name:{0}{1}{0}Use Open vault to select it.</value>
+  </data>
+  <data name="Msg_VaultTargetExists" xml:space="preserve">
+    <value>A vault file named {0} already exists in this folder. Nothing was changed.</value>
+  </data>
+  <data name="Msg_UserSaveFailed" xml:space="preserve">
+    <value>The vault could not be saved; your previous settings were restored.{0}{1}</value>
+  </data>
+  <data name="Msg_VaultCreateFailed" xml:space="preserve">
+    <value>The vault could not be created.{0}{1}</value>
+  </data>
 </root>

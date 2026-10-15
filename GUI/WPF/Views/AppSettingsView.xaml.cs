@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
@@ -6,7 +6,7 @@ using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings;
 using Upsilon.Apps.Passkey.Utils;
 using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
@@ -128,7 +128,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             return;
          }
 
-         _ = AppSettingsViewModel.Save();
+         _ = _viewModel.Save();
          DialogResult = true;
       }
 

@@ -72,6 +72,19 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
       void DeleteVault();
 
       /// <summary>
+      /// <see cref="DeleteVault"/>, completing with whether the durable vault is
+      /// gone once the source finished (a refused source delete yields <c>false</c>).
+      /// </summary>
+      Task<bool> DeleteVaultAsync();
+
+      /// <summary>
+      /// Ends the session, writes the vault back, then renames the durable vault
+      /// to <paramref name="newFileName"/> before the source is released. The
+      /// rename never overwrites and is skipped when the write-back failed.
+      /// </summary>
+      Task<VaultRenameOutcome> EndSessionAndRenameAsync(string newFileName);
+
+      /// <summary>
       /// Applies the effective UI language for the current session (user override
       /// when logged in, otherwise the application language).
       /// </summary>
@@ -83,6 +96,10 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
       /// </summary>
       void ApplySessionTheme();
    }
+
+   /// <param name="Renamed">The durable vault now has the requested name.</param>
+   /// <param name="Location">Reopen key after the operation (new one when renamed); <c>null</c> when unknown.</param>
+   internal sealed record VaultRenameOutcome(bool Renamed, VaultWriteBackResult WriteBack, string? Location);
 
    internal sealed class VaultWriteBackEventArgs(VaultWriteBackResult result, string message) : EventArgs
    {
