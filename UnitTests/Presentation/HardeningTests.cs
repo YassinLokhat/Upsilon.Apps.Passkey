@@ -36,7 +36,7 @@ namespace UnitTests.Presentation
       }
 
       [TestMethod]
-      public async Task BackgroundLock_EndsSessionOnlyAfterTheThreshold()
+      public void BackgroundLock_EndsSessionOnlyAfterTheThreshold()
       {
          FakeLifecycle lifecycle = new();
          using BackgroundLockPolicy policy = new(lifecycle, () => _now);
@@ -45,18 +45,16 @@ namespace UnitTests.Presentation
          lifecycle.Background();
          _now = _now.AddSeconds(AppSettings.DEFAULT_BACKGROUND_LOCK_SECONDS - 1);
          lifecycle.Resume();
-         await policy.LastCheck;
          AppServices.Session.Database.Should().BeSameAs(database);
 
          lifecycle.Background();
          _now = _now.AddSeconds(AppSettings.DEFAULT_BACKGROUND_LOCK_SECONDS);
          lifecycle.Resume();
-         await policy.LastCheck;
-         AppServices.Session.Database.Should().BeNull();
+         AppServices.Session.Database.Should().BeNull("the vault is hidden at once, before any upload completes");
       }
 
       [TestMethod]
-      public async Task BackgroundLock_ZeroLocksOnEveryReturn_AndIgnoresResumeWithoutBackground()
+      public void BackgroundLock_ZeroLocksOnEveryReturn_AndIgnoresResumeWithoutBackground()
       {
          FakeLifecycle lifecycle = new();
          using BackgroundLockPolicy policy = new(lifecycle, () => _now);
@@ -64,12 +62,10 @@ namespace UnitTests.Presentation
          _ = _startSession();
 
          lifecycle.Resume();
-         await policy.LastCheck;
          AppServices.Session.Database.Should().NotBeNull();
 
          lifecycle.Background();
          lifecycle.Resume();
-         await policy.LastCheck;
          AppServices.Session.Database.Should().BeNull();
       }
 
