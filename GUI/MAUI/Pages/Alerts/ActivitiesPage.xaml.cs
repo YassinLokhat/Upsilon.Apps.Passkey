@@ -4,10 +4,16 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Alerts
 {
    internal sealed partial class ActivitiesPage : ClosablePage
    {
-      public ActivitiesPage(bool needsReview)
+      public ActivitiesPage(bool needsReview, string? searchCriteria)
       {
          InitializeComponent();
-         BindingContext = new UserActivitiesViewModel { NeedsReview = needsReview };
+         UserActivitiesViewModel vm = new() { NeedsReview = needsReview };
+         if (searchCriteria is not null)
+         {
+            vm.SearchCriteria = searchCriteria;
+         }
+
+         BindingContext = vm;
       }
 
       private void _onClose(object? sender, EventArgs e) => CompletePage();

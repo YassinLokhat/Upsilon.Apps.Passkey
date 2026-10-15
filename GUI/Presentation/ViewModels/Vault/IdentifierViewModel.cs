@@ -1,12 +1,12 @@
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
 {
    internal sealed class IdentifierTypeChoice(IdentifierType type, string glyph)
    {
@@ -17,7 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public string Display => Glyph;
    }
 
-   internal sealed class IdentifierViewModel(IAccount account, IIdentifier identifier, bool isNew = false) : ObservableObject, IThemeAware, ILanguageAware
+   internal sealed class IdentifierViewModel(IAccount account, IIdentifier identifier, bool isNew = false) : ObservableObject, ILanguageRefreshable
    {
       private readonly IAccount _account = account;
       private readonly bool _isNew = isNew;

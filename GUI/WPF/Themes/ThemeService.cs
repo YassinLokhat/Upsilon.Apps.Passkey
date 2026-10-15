@@ -246,6 +246,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
                {
                   dataContextAware.OnThemeChanged();
                }
+               else if (window.DataContext is Presentation.Models.IThemeRefreshable shared)
+               {
+                  shared.OnThemeChanged();
+               }
             }
          }
 

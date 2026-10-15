@@ -33,7 +33,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          dialogs.Register<InsertIdentifierRequest, IIdentifier>(r => new InsertIdentifierPage(r.Identifiers, r.Current));
          dialogs.Register<ShowQrCodeRequest, bool>(r => new QrCodePage(r.Content, r.DelayMilliseconds));
          dialogs.Register<ConfirmCredentialsRequest, bool>(r => new CredentialsConfirmationPage(r.Credentials, r.IsNew));
-         dialogs.Register<ActivitiesRequest, bool>(r => new ActivitiesPage(r.NeedsReview));
+         dialogs.Register<ActivitiesRequest, bool>(r => new ActivitiesPage(r.NeedsReview, r.SearchCriteria));
          dialogs.Register<AccountPasswordsAlertRequest, bool>(r => new AccountPasswordsAlertPage(r.Kind));
          dialogs.Register<DuplicatedPasswordsAlertRequest, bool>(_ => new DuplicatedPasswordsAlertPage());
          dialogs.Register<PasskeyQualityAlertRequest, bool>(_ => IssuesAlertPage.ForPasskeyQuality());

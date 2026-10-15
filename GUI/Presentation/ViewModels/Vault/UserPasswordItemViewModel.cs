@@ -1,16 +1,14 @@
-using System.Windows.Input;
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
-using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using System.Windows.Input;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
-using AppServices = Upsilon.Apps.Passkey.GUI.WPF.Services.AppServices;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
 {
-   internal sealed class UserPasswordItemViewModel : ObservableObject, IThemeAware, IDisposable
+   internal sealed class UserPasswordItemViewModel : ObservableObject, IDisposable
    {
       private bool _disposed;
 

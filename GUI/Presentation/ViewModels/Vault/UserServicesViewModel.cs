@@ -1,31 +1,24 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Threading;
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
-using Upsilon.Apps.Passkey.GUI.WPF.Views;
+using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using System.Collections.ObjectModel;
+using System.Windows.Input;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
-using AsyncRelayCommand = Upsilon.Apps.Passkey.GUI.Presentation.Helper.AsyncRelayCommand;
 
-using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities;
-using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
 {
-   internal sealed class UserServicesViewModel : ObservableObject, IDisposable, ILanguageAware, IThemeAware
+   internal sealed class UserServicesViewModel : ObservableObject, IDisposable, ILanguageRefreshable, IThemeRefreshable
    {
       private static readonly TimeSpan _filterDebounce = TimeSpan.FromMilliseconds(250);
 
       private string _defaultTitle;
       private readonly string _userDisplayName;
-      private readonly DispatcherTimer _titleTimer;
-      private readonly DispatcherTimer _filterDebounceTimer;
+      private readonly IUiTimer _titleTimer;
+      private readonly IUiTimer _filterDebounceTimer;
       private bool _disposed;
 
       public string Title
@@ -273,20 +266,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public UserServicesViewModel(string userDisplayName)
       {
          _userDisplayName = userDisplayName;
-         Title = _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
+         Title = _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppServices.Info.Title, _userDisplayName);
 
          SaveCommand = new RelayCommand(() => SaveRequested?.Invoke(this, EventArgs.Empty));
          UndoCommand = new RelayCommand(_undo, () => AppServices.Session.Database?.EditHistory.CanUndo == true);
          RedoCommand = new RelayCommand(_redo, () => AppServices.Session.Database?.EditHistory.CanRedo == true);
-         UserSettingsCommand = new RelayCommand(_openUserSettings);
+         UserSettingsCommand = new AsyncRelayCommand(() => _openSettingsAsync(new UserSettingsRequest()));
 
          if (AppServices.Session.Database is { } database)
          {
             database.EditHistory.HistoryChanged += _onEditHistoryChanged;
          }
          GeneratePasswordCommand = new RelayCommand(() => GeneratePasswordRequested?.Invoke(this, EventArgs.Empty));
-         ShowActivitiesCommand = new RelayCommand(_showActivities);
-         AppSettingsCommand = new RelayCommand(_openAppSettings);
+         ShowActivitiesCommand = new AsyncRelayCommand(() => _showAsync(new ActivitiesRequest(NeedsReview: false)));
+         AppSettingsCommand = new AsyncRelayCommand(() => _openSettingsAsync(new AppSettingsRequest()));
          FocusFilterCommand = new RelayCommand(() => FocusFilterRequested?.Invoke(this, EventArgs.Empty));
          CopyIdentifierCommand = new RelayCommand(() => CopyIdentifierRequested?.Invoke(this, EventArgs.Empty));
          CopyPasswordCommand = new RelayCommand(() => CopyPasswordRequested?.Invoke(this, EventArgs.Empty));
@@ -294,33 +287,29 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          LogoutCommand = new RelayCommand(() => LogoutRequested?.Invoke(this, EventArgs.Empty));
          AddServiceCommand = new RelayCommand(_addService);
          DeleteServiceCommand = new AsyncRelayCommand(_deleteServiceAsync);
-         ShowActivityAlertsCommand = new RelayCommand(_showActivityAlerts);
-         ShowDuplicatedPasswordAlertsCommand = new RelayCommand(() =>
-            _ = AppServices.Dialogs.ShowSingleton(() => new DuplicatedPasswordsAlertView()));
-         ShowExpiredPasswordAlertsCommand = new RelayCommand(() =>
-            _showAccountPasswordAlerts(AlertKinds.PasswordUpdateReminder));
-         ShowLeakedPasswordAlertsCommand = new RelayCommand(() =>
-            _showAccountPasswordAlerts(AlertKinds.PasswordLeaked));
-         ShowWeakPasswordAlertsCommand = new RelayCommand(() =>
-            _showAccountPasswordAlerts(AlertKinds.WeakAccountPassword));
-         ShowSecuritySettingsAlertsCommand = new RelayCommand(() =>
-            _ = AppServices.Dialogs.ShowSingleton(() => new SecuritySettingsAlertView()));
-         ShowPasskeyQualityAlertsCommand = new RelayCommand(() =>
-            _ = AppServices.Dialogs.ShowSingleton(() => new PasskeyQualityAlertView()));
+         ShowActivityAlertsCommand = new AsyncRelayCommand(() => _showAsync(new ActivitiesRequest(NeedsReview: true)));
+         ShowDuplicatedPasswordAlertsCommand = new AsyncRelayCommand(() => _showAsync(new DuplicatedPasswordsAlertRequest()));
+         ShowExpiredPasswordAlertsCommand = new AsyncRelayCommand(() =>
+            _showAsync(new AccountPasswordsAlertRequest(AlertKinds.PasswordUpdateReminder)));
+         ShowLeakedPasswordAlertsCommand = new AsyncRelayCommand(() =>
+            _showAsync(new AccountPasswordsAlertRequest(AlertKinds.PasswordLeaked)));
+         ShowWeakPasswordAlertsCommand = new AsyncRelayCommand(() =>
+            _showAsync(new AccountPasswordsAlertRequest(AlertKinds.WeakAccountPassword)));
+         ShowSecuritySettingsAlertsCommand = new AsyncRelayCommand(() => _showAsync(new SecuritySettingsAlertRequest()));
+         ShowPasskeyQualityAlertsCommand = new AsyncRelayCommand(() => _showAsync(new PasskeyQualityAlertRequest()));
 
          RefreshFilters();
 
-         _titleTimer = new DispatcherTimer
-         {
-            Interval = TimeSpan.FromMilliseconds(500),
-            IsEnabled = true,
-         };
-         _titleTimer.Tick += _onTitleTimerElapsed;
+         IUiTimerFactory timers = AppServices.Timers
+            ?? throw new InvalidOperationException("No UI timer factory registered.");
 
-         _filterDebounceTimer = new DispatcherTimer
-         {
-            Interval = _filterDebounce,
-         };
+         _titleTimer = timers.Create();
+         _titleTimer.Interval = TimeSpan.FromMilliseconds(500);
+         _titleTimer.Tick += _onTitleTimerElapsed;
+         _titleTimer.Start();
+
+         _filterDebounceTimer = timers.Create();
+         _filterDebounceTimer.Interval = _filterDebounce;
          _filterDebounceTimer.Tick += _onFilterDebounceElapsed;
       }
 
@@ -331,7 +320,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             return;
          }
 
-         _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppInfo.Title, _userDisplayName);
+         _defaultTitle = Strings.Format(nameof(Strings.Title_UserServices), AppServices.Info.Title, _userDisplayName);
          _refreshWindowTitle();
          UserId = Strings.Format(nameof(Strings.Msg_UserId), AppServices.Session.User?.ItemId);
          OnPropertyChanged(nameof(TypeLabel));
@@ -381,11 +370,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          _disposed = true;
 
-         _titleTimer.Stop();
+         _titleTimer.StopTimer();
          _titleTimer.Tick -= _onTitleTimerElapsed;
+         _titleTimer.Dispose();
 
-         _filterDebounceTimer.Stop();
+         _filterDebounceTimer.StopTimer();
          _filterDebounceTimer.Tick -= _onFilterDebounceElapsed;
+         _filterDebounceTimer.Dispose();
 
          // Drop UI listeners so EndSession's app language/theme Apply cannot
          // refresh a closing UserServicesView (alerts menu reorder would throw).
@@ -479,9 +470,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          FiltersRefreshed?.Invoke(this, EventArgs.Empty);
       }
 
-      private void _openUserSettings()
+      private async Task _openSettingsAsync<TRequest>(TRequest request)
+         where TRequest : IViewRequest<bool>
       {
-         UserSettingsView.ShowUserSettings();
+         await _showAsync(request).ConfigureAwait(true);
          // Re-assert effective culture/theme after the modal: nested dialogs and
          // MainWindow restore paths can briefly apply the app preference alone.
          AppServices.Session.ApplySessionLanguage();
@@ -489,52 +481,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          RefreshFilters();
       }
 
-      private void _openAppSettings()
+      private void _raiseHistoryCommands()
       {
-         AppSettingsView.ShowAppSettings();
-         AppServices.Session.ApplySessionLanguage();
-         AppServices.Session.ApplySessionTheme();
-         RefreshFilters();
+         ((RelayCommand)UndoCommand).RaiseCanExecuteChanged();
+         ((RelayCommand)RedoCommand).RaiseCanExecuteChanged();
       }
 
-      private static void _showActivities()
-      {
-         _ = AppServices.Dialogs.ShowSingleton(
-            factory: () => new UserActivitiesView(needsReviewFilter: false),
-            configure: view =>
-            {
-               if (view.DataContext is UserActivitiesViewModel vm)
-               {
-                  vm.NeedsReview = false;
-               }
-            });
-      }
+      private static IDialogService _dialogs
+         => AppServices.Dialogs ?? throw new InvalidOperationException("No dialog service registered.");
 
-      private static void _showActivityAlerts()
-      {
-         _ = AppServices.Dialogs.ShowSingleton(
-            factory: () => new UserActivitiesView(needsReviewFilter: true),
-            configure: view =>
-            {
-               if (view.DataContext is UserActivitiesViewModel vm)
-               {
-                  vm.NeedsReview = true;
-               }
-            });
-      }
-
-      private static void _showAccountPasswordAlerts(string kind)
-      {
-         _ = AppServices.Dialogs.ShowSingleton(
-            factory: () => new AccountPasswordsAlertView(kind),
-            configure: view =>
-            {
-               if (view.DataContext is AccountPasswordsAlertViewModel vm)
-               {
-                  vm.Kind = kind;
-               }
-            });
-      }
+      private static async Task _showAsync(IViewRequest<bool> request)
+         => _ = await _dialogs.ShowAsync(request).ConfigureAwait(true);
 
       private void _undo()
       {
@@ -576,11 +533,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
 
          AppServices.Session.Database?.RefreshAlerts();
-         RelayCommand.RaiseCanExecuteChanged();
+         _raiseHistoryCommands();
       }
 
       private void _onEditHistoryChanged(object? sender, EventArgs e)
-         => RelayCommand.RaiseCanExecuteChanged();
+         => _raiseHistoryCommands();
 
       private void _addService()
          => SelectedService = AddService();
@@ -588,7 +545,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       private async Task _deleteServiceAsync()
       {
          if (SelectedService is not { } serviceViewModel
-            || await AppServices.AsyncDialogs.ConfirmAsync(
+            || await _dialogs.ConfirmAsync(
                Strings.Format(nameof(Strings.Msg_DeleteService), serviceViewModel.ServiceDisplay),
                Strings.Title_DeleteService).ConfigureAwait(true) != DialogResult.Yes)
          {
@@ -623,13 +580,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          // Coalesce rapid keystrokes into a single RefreshFilters call so the
          // ServiceViewModel tree is not rebuilt on every character.
-         _filterDebounceTimer.Stop();
+         _filterDebounceTimer.StopTimer();
          _filterDebounceTimer.Start();
       }
 
       private void _onFilterDebounceElapsed(object? sender, EventArgs e)
       {
-         _filterDebounceTimer.Stop();
+         _filterDebounceTimer.StopTimer();
          RefreshFilters();
       }
 
@@ -643,7 +600,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          // up to one timer interval (500 ms).
          _defaultTitle = Strings.Format(
             nameof(Strings.Title_UserServices),
-            AppInfo.Title,
+            AppServices.Info.Title,
             _userDisplayName);
 
          string title = _defaultTitle;
