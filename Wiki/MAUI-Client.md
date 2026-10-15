@@ -17,6 +17,8 @@ iOS / MacCatalyst are out of scope for v1.
 
 Tool dialogs (password generator, insert identifier, QR code, credentials confirmation) share their ViewModels with WPF (`GUI/Presentation/ViewModels/Tools`) and are modal pages opened through typed requests (`GeneratePasswordRequest`, `InsertIdentifierRequest`, `ShowQrCodeRequest`, `ConfirmCredentialsRequest`) registered on `MauiDialogService`. Credentials confirmation keeps only HMAC digests of the expected factors; the QR matrix is cleared on expiry or close.
 
+The activity log and the five alert views (account passwords, duplicated passwords, passkey quality, security settings) also share their ViewModels (`ViewModels/Activities`, `ViewModels/Alerts`): filters, sort order and localized filter options live in the ViewModel, and MAUI pages are opened through `ActivitiesRequest` and the `*AlertRequest` types. Shared ViewModels implement `ILanguageRefreshable`; WPF's `ForwardToDataContext` forwards to it. MAUI activity filters have no date pickers yet.
+
 Parity progress: [[MAUI Parity Checklist]]. Today MAUI is a preview (login + read-only session overview); it is not shipped (`ship: false`) until the checklist is green. WPF is kept alongside MAUI.
 
 ## Android storage

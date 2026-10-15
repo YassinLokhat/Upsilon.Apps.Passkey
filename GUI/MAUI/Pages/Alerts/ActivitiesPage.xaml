@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<pages:ClosablePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                    xmlns:pages="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Pages"
+                    xmlns:act="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+                    xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
+                    x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Pages.Alerts.ActivitiesPage"
+                    x:ClassModifier="internal"
+                    x:DataType="act:UserActivitiesViewModel"
+                    Title="{Binding Title}">
+   <Grid Padding="16" RowSpacing="8" RowDefinitions="Auto,Auto,Auto,*,Auto">
+      <Label Grid.Row="0" Text="{Binding FiltersHeader}" Style="{StaticResource SubHeadline}" />
+      <Entry Grid.Row="1" Text="{Binding SearchCriteria}"
+             IsTextPredictionEnabled="False" IsSpellCheckEnabled="False" />
+      <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+         <Picker Grid.Column="0" ItemsSource="{Binding EventTypeOptions}" SelectedItem="{Binding ReadableEventType}" />
+         <CheckBox Grid.Column="1" IsChecked="{Binding NeedsReview}" />
+         <Label Grid.Column="2" Text="{loc:Loc Label_NeedsReview}" VerticalOptions="Center" />
+         <Button Grid.Column="3" Text="{loc:Loc Tooltip_Clear}" Command="{Binding ClearFiltersCommand}" />
+      </Grid>
+
+      <CollectionView Grid.Row="3" ItemsSource="{Binding Activities}">
+         <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="act:ActivityViewModel">
+               <Grid Padding="0,6" RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+                  <Label Grid.Row="0" Grid.Column="0" FontAttributes="Bold">
+                     <Label.FormattedText>
+                        <FormattedString>
+                           <Span Text="{Binding DateTime}" />
+                           <Span Text="  " />
+                           <Span Text="{Binding EventType}" />
+                        </FormattedString>
+                     </Label.FormattedText>
+                  </Label>
+                  <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding NeedsReview}" />
+                  <Label Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Message}" LineBreakMode="WordWrap">
+                     <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoToCommand}" />
+                     </Label.GestureRecognizers>
+                  </Label>
+               </Grid>
+            </DataTemplate>
+         </CollectionView.ItemTemplate>
+      </CollectionView>
+
+      <Button Grid.Row="4" Text="{loc:Loc Button_OK}" Clicked="_onClose" />
+   </Grid>
+</pages:ClosablePage>

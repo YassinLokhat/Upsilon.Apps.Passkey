@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -12,6 +12,9 @@ using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using AsyncRelayCommand = Upsilon.Apps.Passkey.GUI.Presentation.Helper.AsyncRelayCommand;
+
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {

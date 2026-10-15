@@ -1,20 +1,19 @@
-﻿using System.Collections.ObjectModel;
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts
 {
-   internal sealed class AccountPasswordsAlertViewModel : ObservableObject, ILanguageAware
+   internal sealed class AccountPasswordsAlertViewModel : ObservableObject, ILanguageRefreshable
    {
       public string Title
       {
          get;
          private set => SetProperty(ref field, value);
-      } = Strings.Format(nameof(Strings.Title_AccountPasswordsAlerts), AppInfo.Title);
+      } = Strings.Format(nameof(Strings.Title_AccountPasswordsAlerts), AppServices.Info.Title);
 
       public string ReadableAlertKind
       {
@@ -49,6 +48,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public ObservableCollection<AccountPasswordAlertViewModel> Alerts { get; set; } = [];
 
+      /// <summary>Localized kind filter labels; <see cref="ReadableAlertKind"/> is one of them.</summary>
+      public IReadOnlyList<string> KindOptions
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      } = _kindOptions();
+
       public ICommand ClearFiltersCommand { get; }
 
       public AccountPasswordsAlertViewModel()
@@ -59,10 +65,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnLanguageChanged()
       {
-         Title = Strings.Format(nameof(Strings.Title_AccountPasswordsAlerts), AppInfo.Title);
+         Title = Strings.Format(nameof(Strings.Title_AccountPasswordsAlerts), AppServices.Info.Title);
+         KindOptions = _kindOptions();
          OnPropertyChanged(nameof(ReadableAlertKind));
          RefreshFilters();
       }
+
+      private static string[] _kindOptions()
+         =>
+         [
+            EnumHelper.ToReadableAlertKind(EnumHelper.AccountPasswordFilterAll),
+            EnumHelper.ToReadableAlertKind(AlertKinds.PasswordLeaked),
+            EnumHelper.ToReadableAlertKind(AlertKinds.PasswordUpdateReminder),
+            EnumHelper.ToReadableAlertKind(AlertKinds.WeakAccountPassword),
+            EnumHelper.ToReadableAlertKind(AlertKinds.PasskeyReusedAsAccountPassword),
+         ];
 
       public void ClearFilters()
       {

@@ -1,8 +1,7 @@
 ﻿using System.Windows;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
-using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -31,18 +30,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       public void OnLanguageChanged()
       {
-         this.ForwardToDataContext();
+         ViewModel.OnLanguageChanged();
          _bindEventTypeCombo();
       }
 
       private void _bindEventTypeCombo()
       {
-         ActivityEventType selected = ViewModel.EventType;
-         _eventType_CB.ItemsSource = Enum.GetValues<ActivityEventType>()
-            .Cast<ActivityEventType>()
-            .Select(x => x.ToReadableString())
-            .ToArray();
-         _eventType_CB.SelectedItem = selected.ToReadableString();
+         string selected = ViewModel.ReadableEventType;
+         _eventType_CB.ItemsSource = ViewModel.EventTypeOptions;
+         _eventType_CB.SelectedItem = selected;
       }
    }
 }

@@ -1,20 +1,19 @@
-﻿using System.Collections.ObjectModel;
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities
 {
-   internal sealed class UserActivitiesViewModel : ObservableObject, ILanguageAware
+   internal sealed class UserActivitiesViewModel : ObservableObject, ILanguageRefreshable
    {
       public string Title
       {
          get;
          private set => SetProperty(ref field, value);
-      } = Strings.Format(nameof(Strings.Title_Activities), AppInfo.Title);
+      } = Strings.Format(nameof(Strings.Title_Activities), AppServices.Info.Title);
 
       public string FiltersHeader => Strings.Format(nameof(Strings.Msg_FiltersHeader), Activities.Count, AppServices.Session.Database?.Activities?.Count());
       public DateTime FromDateFilter
@@ -84,6 +83,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public ObservableCollection<ActivityViewModel> Activities { get; set; } = [];
 
+      /// <summary>Localized event-type filter labels; <see cref="ReadableEventType"/> is one of them.</summary>
+      public IReadOnlyList<string> EventTypeOptions
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      } = _eventTypeOptions();
+
       public ICommand ClearFiltersCommand { get; }
 
       public UserActivitiesViewModel()
@@ -95,10 +101,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnLanguageChanged()
       {
-         Title = Strings.Format(nameof(Strings.Title_Activities), AppInfo.Title);
+         Title = Strings.Format(nameof(Strings.Title_Activities), AppServices.Info.Title);
+         EventTypeOptions = _eventTypeOptions();
          OnPropertyChanged(nameof(ReadableEventType));
          RefreshFilters();
       }
+
+      private static string[] _eventTypeOptions()
+         => [.. Enum.GetValues<ActivityEventType>().Select(x => x.ToReadableString())];
 
       private bool _locked;
       public void ClearFilters()

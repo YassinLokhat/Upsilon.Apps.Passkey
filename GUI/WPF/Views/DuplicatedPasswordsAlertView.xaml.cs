@@ -1,7 +1,7 @@
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
