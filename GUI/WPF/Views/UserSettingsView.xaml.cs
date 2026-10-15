@@ -187,8 +187,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
          else
          {
+            // Use the live session path — not DefaultDatabaseDirectory — so a vault
+            // opened from elsewhere is renamed/moved correctly.
+            oldDatabaseFile = Path.GetFullPath(_database.DatabaseFile);
             string oldFileName = AppServices.Cryptography.GetHash(_database.User.Username);
-            oldDatabaseFile = Path.GetFullPath($"{Path.Join(AppInfo.AppSettings.DefaultDatabaseDirectory, oldFileName + ".pku")}");
 
             credentialsChanged = _credentialsChanged(oldFileName,
                oldPasskeys: _database.User.Passkeys,
@@ -277,7 +279,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          string oldDatabaseDirectory = Path.GetDirectoryName(oldDatabaseFile) ?? string.Empty;
          string newDatabaseDirectory = Path.GetDirectoryName(newDatabaseFile) ?? string.Empty;
 
-         if (oldDatabaseDirectory != newDatabaseDirectory)
+         if (!string.Equals(oldDatabaseFile, newDatabaseFile, StringComparison.OrdinalIgnoreCase))
          {
             if (!Directory.Exists(newDatabaseDirectory))
             {
@@ -288,11 +290,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             {
                File.Move(oldDatabaseFile, newDatabaseFile);
             }
-
-            if (Directory.Exists(oldDatabaseDirectory))
-            {
-               Directory.Delete(oldDatabaseDirectory, true);
-            }
+            // Never delete the old directory: it may be a user sync folder that
+            // still holds other vaults or non-Passkey files.
          }
       }
 

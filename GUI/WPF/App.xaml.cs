@@ -1,9 +1,11 @@
 ﻿using System.Windows;
 using System.Windows.Threading;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Adapters;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using WpfAppServices = Upsilon.Apps.Passkey.GUI.WPF.Services.AppServices;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF
 {
@@ -23,12 +25,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          // Touch so CA1812 sees BAML-created types as used (factories are never invoked).
          _ = XamlBamlCreatedTypeAnchors.Factories.Length;
 
+         AppServices.Ui = new WpfUiDispatcher();
+         AppServices.Timers = new WpfUiTimerFactory();
+         AppServices.Paths = new WpfAppPaths();
+         AppServices.Launcher = new WpfLauncher();
+         AppServices.VaultSources = new PathVaultSourceFactory();
+         AppServices.Cryptography = WpfAppServices.Cryptography;
+         AppServices.Serialization = WpfAppServices.Serialization;
+         AppServices.PasswordFactory = WpfAppServices.PasswordFactory;
+         AppServices.SecretProtector = WpfAppServices.SecretProtector;
+
          _ = AppInfo.ConfigFile;
          _ = LocalizationService.Apply(AppInfo.AppSettings.Language);
          _ = ThemeService.Apply(AppInfo.AppSettings.Theme);
 
          // Refresh an existing .pkbf only — never a first full build (too heavy).
-         AppServices.OfflineLeakFilterUpdate.TryStartAutoUpdate();
+         WpfAppServices.OfflineLeakFilterUpdate.TryStartAutoUpdate();
 
          base.OnStartup(e);
       }
@@ -37,7 +49,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       {
          ArgumentNullException.ThrowIfNull(e);
 
-         OfflineLeakFilterUpdateService update = AppServices.OfflineLeakFilterUpdate;
+         WPF.Services.OfflineLeakFilterUpdateService update = WpfAppServices.OfflineLeakFilterUpdate;
          if (update.ContinueThroughExit)
          {
             // Consented background continue — wait without cancelling.
@@ -53,7 +65,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          // Close any open vault and clear owned clipboard content before the
          // process tears down, in case MainWindow.Closed did not run first.
-         AppServices.Session.EndSession();
+         WpfAppServices.Session.EndSession();
          ThemeService.Shutdown();
 
          Log.Info($"Application exiting with code {e.ApplicationExitCode}.");

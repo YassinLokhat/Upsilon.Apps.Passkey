@@ -46,8 +46,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       /// </summary>
       public bool PasskeyWeak
          => AppServices.Session.Alerts
-            .GetNotifiedAlerts(AlertKinds.WeakAccountPassword)
-            .OfType<IPasskeyLeakedAlert>()
+            .GetNotifiedAlerts(AlertKinds.WeakPasskey)
+            .OfType<IWeakPasskeyAlert>()
             .Any(w => w.PasskeyIndexes.Contains(Index));
 
       public Brush PasswordBackground

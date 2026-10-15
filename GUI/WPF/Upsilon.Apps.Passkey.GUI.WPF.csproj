@@ -31,6 +31,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Upsilon.Apps.Passkey.Core.csproj" />
     <ProjectReference Include="..\..\Utils\Upsilon.Apps.Passkey.Utils.csproj" />
+    <ProjectReference Include="..\Presentation\Upsilon.Apps.Passkey.GUI.Presentation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
