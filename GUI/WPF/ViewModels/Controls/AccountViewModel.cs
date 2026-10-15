@@ -229,9 +229,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                   .Any(x => x.Accounts.Contains(Account));
 
       public bool PasswordWeak
-         => Account.Options.HasFlag(AccountOption.WarnIfPasswordLeaked)
+         => Account.Options.HasFlag(AccountOption.WarnIfWeakPassword)
                && AppServices.Session.Alerts
-                  .GetNotifiedAlerts(AlertKinds.PasswordLeaked)
+                  .GetNotifiedAlerts(AlertKinds.WeakAccountPassword)
                   .OfType<IAccountsAlert>()
                   .Any(x => x.Accounts.Contains(Account));
 

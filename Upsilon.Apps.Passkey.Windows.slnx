@@ -6,9 +6,11 @@
   </Folder>
   <Folder Name="/UnitTests/">
     <Project Path="UnitTests/Multiplateform/UnitTests.Multiplateform.csproj" />
+    <Project Path="UnitTests/Presentation/UnitTests.Presentation.csproj" />
     <Project Path="UnitTests/Windows/UnitTests.Windows.csproj" />
   </Folder>
   <Folder Name="/GUI/">
+    <Project Path="GUI/Presentation/Upsilon.Apps.Passkey.GUI.Presentation.csproj" />
     <Project Path="GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj" />
   </Folder>
 </Solution>

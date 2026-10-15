@@ -5,6 +5,10 @@
     <Project Path="Core/Upsilon.Apps.Passkey.Core.csproj" />
   </Folder>
   <Folder Name="/GUI/">
+    <Project Path="GUI/Presentation/Upsilon.Apps.Passkey.GUI.Presentation.csproj" />
     <Project Path="GUI/MAUI/Upsilon.Apps.Passkey.GUI.MAUI.csproj" />
+  </Folder>
+  <Folder Name="/UnitTests/">
+    <Project Path="UnitTests/Presentation/UnitTests.Presentation.csproj" />
   </Folder>
 </Solution>
