@@ -296,10 +296,28 @@ namespace UnitTests.Presentation
       }
 
       [TestMethod]
+      public void AppSettings_BackgroundLock_IsOfferedOnlyToHostsReportingBackgrounds()
+      {
+         AppServices.Settings = new FakeSettingsStore();
+
+         new AppSettingsViewModel().SupportsBackgroundLock.Should().BeFalse();
+
+         AppServices.Lifecycle = new SilentLifecycle();
+         new AppSettingsViewModel().SupportsBackgroundLock.Should().BeTrue();
+      }
+
+      [TestMethod]
       public void ThemeOptions_UnknownCodeFallsBackToSystem()
       {
          ThemePreferences.Options.Select(o => o.Code).Should().Equal(ThemePreferences.SystemCode, ThemePreferences.LightCode, ThemePreferences.DarkCode);
          ThemePreferences.GetOptionOrDefault("nope").Code.Should().Be(ThemePreferences.SystemCode);
+      }
+
+      private sealed class SilentLifecycle : IAppLifecycle
+      {
+         public event EventHandler? EnteredBackground { add { } remove { } }
+
+         public event EventHandler? Resumed { add { } remove { } }
       }
 
       private sealed class FakeSecretInput : ISecretInput
