@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
-using Upsilon.Apps.Passkey.GUI.WPF.Alerts;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
@@ -20,6 +19,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
             FieldVisualState.Weak => SemanticBrushes.Warning,
             FieldVisualState.Leaked or FieldVisualState.WeakAndLeaked => SemanticBrushes.Danger,
             _ => FieldStateBrushes.UnchangedBrush2,
+         };
+
+      public static Brush For(AlertSeverity severity)
+         => severity switch
+         {
+            AlertSeverity.Critical => SemanticBrushes.Danger,
+            AlertSeverity.Warning => SemanticBrushes.Warning,
+            _ => SemanticBrushes.Info,
          };
    }
 
@@ -42,7 +49,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
    internal sealed class AlertSeverityToBrushConverter : IValueConverter
    {
       public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-         => AlertBroker.BrushFor(value is AlertSeverity severity ? severity : AlertSeverity.Info);
+         => VisualStateBrushes.For(value is AlertSeverity severity ? severity : AlertSeverity.Info);
 
       public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
          => DependencyProperty.UnsetValue;

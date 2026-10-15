@@ -38,6 +38,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
 
       public static IClipboardService? Clipboard { get; set; }
 
+      public static ISessionService Session { get; set; } = new SessionService();
+
       public static ICryptographyCenter Cryptography { get; set; } = new CryptographyCenter();
 
       public static ISerializationCenter Serialization { get; set; } = new JsonSerializationCenter();
@@ -63,6 +65,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
          Lifecycle = null;
          VaultSources = null;
          Clipboard = null;
+         Session = new SessionService();
          Cryptography = new CryptographyCenter();
          Serialization = new JsonSerializationCenter();
          PasswordFactory = new PasswordFactory();

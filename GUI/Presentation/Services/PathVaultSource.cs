@@ -21,6 +21,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
 
       public Task<VaultWriteBackResult> WriteBackAsync(CancellationToken cancellationToken = default)
          => Task.FromResult(VaultWriteBackResult.Skipped);
+
+      public ValueTask DisposeAsync() => ValueTask.CompletedTask;
    }
 
    internal sealed class PathVaultSourceFactory : IVaultSourceFactory

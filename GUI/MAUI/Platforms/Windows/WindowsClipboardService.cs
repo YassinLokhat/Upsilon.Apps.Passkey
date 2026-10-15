@@ -1,5 +1,6 @@
 #if WINDOWS
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using WinClipboard = Windows.ApplicationModel.DataTransfer.Clipboard;
 using WinDataPackage = Windows.ApplicationModel.DataTransfer.DataPackage;
 using WinDataPackageView = Windows.ApplicationModel.DataTransfer.DataPackageView;
@@ -20,6 +21,8 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Windows
       private CancellationTokenSource? _clearCts;
       private bool _disposed;
 
+      public event EventHandler<ClipboardSecretCopiedEventArgs>? SecretCopied;
+
       public void SetText(string text, TimeSpan? autoClearAfter = null)
       {
          if (string.IsNullOrEmpty(text))
@@ -38,6 +41,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Windows
 
          if (autoClearAfter is { } delay && delay > TimeSpan.Zero)
          {
+            SecretCopied?.Invoke(this, new ClipboardSecretCopiedEventArgs(text));
             lock (_gate)
             {
                _tracked = text;
@@ -107,6 +111,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Windows
       }
 
       public void ClearIfStillOwned()
+         => UiThread.Send(_clearIfStillOwnedOnUi);
+
+      private void _clearIfStillOwnedOnUi()
       {
          lock (_gate)
          {

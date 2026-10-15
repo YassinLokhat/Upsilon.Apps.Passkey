@@ -1,0 +1,212 @@
+using FluentAssertions;
+using UnitTests.Presentation.Fakes;
+using Upsilon.Apps.Passkey.GUI.Presentation.Alerts;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
+using Upsilon.Apps.Passkey.UnitTests.Multiplateform;
+
+namespace UnitTests.Presentation
+{
+   [TestClass]
+   [DoNotParallelize]
+   public sealed class SessionServiceTests
+   {
+      private const string _secretPath = @"C:\secret\vault-of-alice.pku";
+
+      [TestInitialize]
+      public void Initialize()
+      {
+         _ = LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
+         AppServices.Reset();
+         AppServices.Ui = new InlineUiDispatcher();
+         AppServices.Clipboard = new FakeClipboardService();
+         AppServices.PasswordFactory = UnitTestsHelper.FastPasswordFactory;
+      }
+
+      [TestCleanup]
+      public void Cleanup()
+      {
+         AppServices.Reset();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      public void ErrorText_NeverExposesExceptionMessage()
+      {
+         Exception[] errors =
+         [
+            new UnauthorizedAccessException(_secretPath),
+            new IOException(_secretPath),
+            new CorruptedSourceException(_secretPath),
+            new InvalidOperationException(_secretPath),
+         ];
+
+         foreach (Exception error in errors)
+         {
+            _ = ErrorText.Describe(error).Should().NotContain("secret").And.NotBeNullOrWhiteSpace();
+            _ = ErrorText.ForLog(error).Should().NotContain("secret").And.StartWith(error.GetType().Name);
+         }
+
+         _ = ErrorText.Describe(new UnauthorizedAccessException()).Should().Be(Strings.Error_AccessDenied);
+         _ = ErrorText.Describe(new IOException()).Should().Be(Strings.Error_FileAccess);
+         _ = ErrorText.Describe(new CorruptedSourceException("x")).Should().Be(Strings.Error_InvalidVault);
+         _ = ErrorText.Describe(new InvalidOperationException()).Should().Be(Strings.Error_Unexpected);
+      }
+
+      [TestMethod]
+      public void AlertSummary_Empty_HasNoCountAndAllGroups()
+      {
+         AlertSummary summary = AlertSummary.Empty;
+
+         _ = summary.TotalCount.Should().Be(0);
+         _ = summary.OrderedGroups.Select(x => x.Group).Should().Equal(Enum.GetValues<AlertGroup>());
+      }
+
+      [TestMethod]
+      public void AlertSummary_CountsHostIssuesAndPutsNonEmptyGroupsFirst()
+      {
+         AlertSummary summary = AlertSummary.From(
+         [
+            new HostSecuritySettingsAlert(HostSecurityIssue.IdleLoginDisabled | HostSecurityIssue.OfflineLeakFilterUnavailable),
+         ]);
+
+         _ = summary.TotalCount.Should().Be(2);
+         _ = summary.Severity.Should().Be(AlertSeverity.Warning);
+         _ = summary[AlertGroup.SecuritySettings].Count.Should().Be(2);
+         _ = summary.OrderedGroups[0].Group.Should().Be(AlertGroup.SecuritySettings);
+         _ = summary.OrderedGroups.Skip(1).Should().OnlyContain(x => x.Count == 0);
+      }
+
+      [TestMethod]
+      public void ResolveEffective_UserOverrideWins()
+      {
+         _ = ThemePreferences.ResolveEffective("dark", null).Should().Be(ThemePreferences.DarkCode);
+         _ = ThemePreferences.ResolveEffective(ThemePreferences.DarkCode, " LIGHT ").Should().Be(ThemePreferences.LightCode);
+         _ = ThemePreferences.ResolveEffective("bogus", "bogus").Should().Be(ThemePreferences.SystemCode);
+      }
+
+      [TestMethod]
+      public async Task WriteBack_ConflictAndFailure_ReportLocalizedPathFreeMessages()
+      {
+         using SessionService session = new();
+         List<VaultWriteBackEventArgs> reports = [];
+         session.WriteBackCompleted += (_, e) => reports.Add(e);
+
+         FakeVaultSource conflict = new(VaultWriteBackResult.Conflict);
+         FakeVaultSource failing = new(new IOException(_secretPath));
+         FakeVaultSource written = new(VaultWriteBackResult.Written);
+
+         foreach (FakeVaultSource source in new[] { conflict, failing, written })
+         {
+            IDatabase database = _createDatabase();
+            session.TrackVaultSource(database, source);
+            database.Close();
+         }
+
+         _ = (await session.FlushWriteBacksAsync(TimeSpan.FromSeconds(10))).Should().BeTrue();
+
+         _ = reports.Should().HaveCount(2);
+         _ = reports[0].Result.Should().Be(VaultWriteBackResult.Conflict);
+         _ = reports[0].Message.Should().Be(Strings.Login_WriteBackConflict);
+         _ = reports[1].Result.Should().Be(VaultWriteBackResult.Failed);
+         _ = reports[1].Message.Should().NotContain("secret");
+         _ = new[] { conflict, failing, written }.Should().OnlyContain(x => x.WriteCount == 1 && x.Disposed);
+      }
+
+      [TestMethod]
+      public async Task WriteBack_RunsOneAtATimeInCloseOrder()
+      {
+         using SessionService session = new();
+         TaskCompletionSource gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+         List<string> order = [];
+         FakeVaultSource first = new(VaultWriteBackResult.Written) { Gate = gate.Task, OnWrite = () => order.Add("first") };
+         FakeVaultSource second = new(VaultWriteBackResult.Written) { OnWrite = () => order.Add("second") };
+
+         IDatabase database = _createDatabase();
+         session.TrackVaultSource(database, first);
+         database.Close();
+         database = _createDatabase();
+         session.TrackVaultSource(database, second);
+         database.Close();
+
+         _ = (await session.FlushWriteBacksAsync(TimeSpan.FromMilliseconds(100))).Should().BeFalse();
+         _ = second.WriteCount.Should().Be(0);
+
+         gate.SetResult();
+         _ = (await session.FlushWriteBacksAsync(TimeSpan.FromSeconds(10))).Should().BeTrue();
+         _ = order.Should().Equal("first", "second");
+      }
+
+      [TestMethod]
+      public void Session_EndIsIdempotent_AndCopiedSecretsAreRemembered()
+      {
+         FakeClipboardService clipboard = (FakeClipboardService)AppServices.Clipboard!;
+         using SessionService session = new();
+         int changes = 0;
+         session.SessionChanged += (_, _) => changes++;
+
+         IDatabase database = _createDatabase();
+         session.StartSession(database);
+         _ = session.Database.Should().BeSameAs(database);
+
+         Action copy = () => clipboard.RaiseSecretCopied("copied-secret");
+         _ = copy.Should().NotThrow();
+
+         session.EndSession();
+         session.EndSession();
+
+         _ = session.Database.Should().BeNull();
+         _ = changes.Should().Be(2);
+         _ = copy.Should().NotThrow();
+      }
+
+      private static IDatabase _createDatabase()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         return UnitTestsHelper.CreateTestDatabase(UnitTestsHelper.GetRandomStringArray());
+      }
+
+      private sealed class FakeVaultSource : IVaultSource
+      {
+         private readonly VaultWriteBackResult _result;
+         private readonly Exception? _failure;
+
+         public FakeVaultSource(VaultWriteBackResult result) => _result = result;
+
+         public FakeVaultSource(Exception failure) => _failure = failure;
+
+         public Task Gate { get; init; } = Task.CompletedTask;
+
+         public Action? OnWrite { get; init; }
+
+         public int WriteCount { get; private set; }
+
+         public bool Disposed { get; private set; }
+
+         public string WorkingPath => _secretPath;
+
+         public string DisplayName => "vault.pku";
+
+         public Task CheckoutAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+         public async Task<VaultWriteBackResult> WriteBackAsync(CancellationToken cancellationToken = default)
+         {
+            await Gate.ConfigureAwait(false);
+            WriteCount++;
+            OnWrite?.Invoke();
+            return _failure is null ? _result : throw _failure;
+         }
+
+         public ValueTask DisposeAsync()
+         {
+            Disposed = true;
+            return ValueTask.CompletedTask;
+         }
+      }
+   }
+}

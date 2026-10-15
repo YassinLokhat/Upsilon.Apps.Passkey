@@ -1367,4 +1367,16 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
   <data name="Maui_ViewUnavailable" xml:space="preserve">
     <value>Cette vue n'est pas encore disponible dans le client MAUI.</value>
   </data>
+  <data name="Error_FileAccess" xml:space="preserve">
+    <value>le fichier n&apos;a pas pu être lu ou écrit</value>
+  </data>
+  <data name="Error_AccessDenied" xml:space="preserve">
+    <value>l&apos;accès a été refusé</value>
+  </data>
+  <data name="Error_InvalidVault" xml:space="preserve">
+    <value>le fichier du coffre est invalide ou endommagé</value>
+  </data>
+  <data name="Error_Unexpected" xml:space="preserve">
+    <value>une erreur inattendue s&apos;est produite</value>
+  </data>
 </root>

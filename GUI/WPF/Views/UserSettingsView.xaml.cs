@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,6 +11,11 @@ using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+
+using AppServices = Upsilon.Apps.Passkey.GUI.WPF.Services.AppServices;
+using IDialogService = Upsilon.Apps.Passkey.GUI.WPF.Services.IDialogService;
+using INavigationService = Upsilon.Apps.Passkey.GUI.WPF.Services.INavigationService;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {

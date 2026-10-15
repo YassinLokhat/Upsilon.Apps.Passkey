@@ -1367,4 +1367,16 @@ This affects all vault users. Disabling the option alone does not delete the fil
   <data name="Maui_ViewUnavailable" xml:space="preserve">
     <value>This view is not available in the MAUI client yet.</value>
   </data>
+  <data name="Error_FileAccess" xml:space="preserve">
+    <value>the file could not be read or written</value>
+  </data>
+  <data name="Error_AccessDenied" xml:space="preserve">
+    <value>access was denied</value>
+  </data>
+  <data name="Error_InvalidVault" xml:space="preserve">
+    <value>the vault file is invalid or damaged</value>
+  </data>
+  <data name="Error_Unexpected" xml:space="preserve">
+    <value>an unexpected error occurred</value>
+  </data>
 </root>

@@ -1,17 +1,29 @@
 using Android.Content;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using AndroidApp = Android.App.Application;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
 {
    /// <summary>
    /// SAF-backed vault: private working copy + SHA-256 fingerprint for conflict detection.
+   /// SAF offers no atomic replace, so write-back keeps a pristine copy of the
+   /// checked-out source, verifies the written bytes, and restores the pristine
+   /// copy when the write did not land intact.
    /// </summary>
    internal sealed class SafVaultSource : IVaultSource
    {
       private readonly global::Android.Net.Uri _sourceUri;
       private readonly string _workDir;
+      private readonly string _pristinePath;
       private string? _sourceSha256;
+
+      /// <summary>
+      /// True once the durable source matches the working copy; only then may
+      /// <see cref="DisposeAsync"/> delete the private directory.
+      /// </summary>
+      private bool _safeToDelete;
 
       public SafVaultSource(global::Android.Net.Uri sourceUri, string displayName)
       {
@@ -23,6 +35,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
          _workDir = Path.Join(root, "vaults", Guid.NewGuid().ToString("N"));
          _ = Directory.CreateDirectory(_workDir);
          WorkingPath = Path.Join(_workDir, "vault.pku");
+         _pristinePath = Path.Join(_workDir, "pristine.pku");
       }
 
       public string WorkingPath { get; }
@@ -35,14 +48,10 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
 
       public async Task CheckoutAsync(CancellationToken cancellationToken = default)
       {
-         ContentResolver resolver = AndroidApp.Context.ContentResolver
-            ?? throw new InvalidOperationException("ContentResolver unavailable.");
+         ContentResolver resolver = _resolver();
 
-         Stream? opened = resolver.OpenInputStream(_sourceUri);
-         if (opened is null)
-         {
-            throw new IOException("Cannot open SAF URI for read.");
-         }
+         Stream opened = resolver.OpenInputStream(_sourceUri)
+            ?? throw new IOException("Cannot open the vault source for reading.");
 
          await using (opened.ConfigureAwait(false))
          {
@@ -54,7 +63,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
             }
          }
 
+         File.Copy(WorkingPath, _pristinePath, overwrite: true);
          _sourceSha256 = await _hashFileAsync(WorkingPath, cancellationToken).ConfigureAwait(false);
+         _safeToDelete = true;
       }
 
       public async Task<VaultWriteBackResult> WriteBackAsync(CancellationToken cancellationToken = default)
@@ -65,37 +76,85 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
             return VaultWriteBackResult.Failed;
          }
 
-         ContentResolver resolver = AndroidApp.Context.ContentResolver
-            ?? throw new InvalidOperationException("ContentResolver unavailable.");
-
-         Stream? remote = resolver.OpenInputStream(_sourceUri);
-         if (remote is null)
+         bool overwriting = false;
+         try
          {
+            string workingHash = await _hashFileAsync(WorkingPath, cancellationToken).ConfigureAwait(false);
+            if (string.Equals(workingHash, _sourceSha256, StringComparison.OrdinalIgnoreCase))
+            {
+               _safeToDelete = true;
+               return VaultWriteBackResult.Skipped;
+            }
+
+            _safeToDelete = false;
+
+            // Checked immediately before opening for write. A change landing
+            // between this read and the write below cannot be detected through
+            // SAF; that residual window is accepted.
+            string? remoteHash = await _hashSourceAsync(cancellationToken).ConfigureAwait(false);
+            if (remoteHash is null)
+            {
+               return VaultWriteBackResult.Failed;
+            }
+
+            if (!string.Equals(remoteHash, _sourceSha256, StringComparison.OrdinalIgnoreCase))
+            {
+               string conflictPath = Path.Join(_workDir, $"conflict-{DateTime.UtcNow:yyyyMMddHHmmss}.pku");
+               File.Copy(WorkingPath, conflictPath, overwrite: true);
+               return VaultWriteBackResult.Conflict;
+            }
+
+            overwriting = true;
+            if (!await _tryWriteSourceAsync(WorkingPath, cancellationToken).ConfigureAwait(false)
+                || !string.Equals(await _hashSourceAsync(cancellationToken).ConfigureAwait(false), workingHash, StringComparison.OrdinalIgnoreCase))
+            {
+               await _restorePristineAsync().ConfigureAwait(false);
+               return VaultWriteBackResult.Failed;
+            }
+
+            overwriting = false;
+            _sourceSha256 = workingHash;
+            File.Copy(WorkingPath, _pristinePath, overwrite: true);
+            _safeToDelete = true;
+            return VaultWriteBackResult.Written;
+         }
+         catch (Exception ex) when (ex is IOException or Java.Lang.Exception)
+         {
+            AppServices.Log.Error($"SAF write-back failed: {ErrorText.ForLog(ex)}");
+            if (overwriting)
+            {
+               await _restorePristineAsync().ConfigureAwait(false);
+            }
+
             return VaultWriteBackResult.Failed;
          }
+      }
 
-         string remoteHash;
-         await using (remote.ConfigureAwait(false))
+      /// <summary>
+      /// Deletes the private copies when the source is known to hold them.
+      /// Otherwise (failed write, conflict) they are kept so no edit is lost.
+      /// </summary>
+      public ValueTask DisposeAsync()
+      {
+         if (_safeToDelete && Directory.Exists(_workDir))
          {
-            remoteHash = await _hashStreamAsync(remote, cancellationToken).ConfigureAwait(false);
+            Directory.Delete(_workDir, recursive: true);
          }
 
-         if (!string.Equals(remoteHash, _sourceSha256, StringComparison.OrdinalIgnoreCase))
-         {
-            string conflictPath = Path.Join(_workDir, $"conflict-{DateTime.UtcNow:yyyyMMddHHmmss}.pku");
-            File.Copy(WorkingPath, conflictPath, overwrite: true);
-            return VaultWriteBackResult.Conflict;
-         }
+         return ValueTask.CompletedTask;
+      }
 
-         Stream? output = resolver.OpenOutputStream(_sourceUri, "wt");
+      private async Task<bool> _tryWriteSourceAsync(string path, CancellationToken cancellationToken)
+      {
+         Stream? output = _resolver().OpenOutputStream(_sourceUri, "wt");
          if (output is null)
          {
-            return VaultWriteBackResult.Failed;
+            return false;
          }
 
          await using (output.ConfigureAwait(false))
          {
-            FileStream input = new(WorkingPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            FileStream input = new(path, FileMode.Open, FileAccess.Read, FileShare.Read);
             await using (input.ConfigureAwait(false))
             {
                await input.CopyToAsync(output, cancellationToken).ConfigureAwait(false);
@@ -103,9 +162,41 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
             }
          }
 
-         _sourceSha256 = await _hashFileAsync(WorkingPath, cancellationToken).ConfigureAwait(false);
-         return VaultWriteBackResult.Written;
+         return true;
       }
+
+      private async Task _restorePristineAsync()
+      {
+         try
+         {
+            if (File.Exists(_pristinePath))
+            {
+               _ = await _tryWriteSourceAsync(_pristinePath, CancellationToken.None).ConfigureAwait(false);
+            }
+         }
+         catch (Exception ex) when (ex is IOException or Java.Lang.Exception)
+         {
+            AppServices.Log.Error($"SAF restore of the original vault failed: {ErrorText.ForLog(ex)}");
+         }
+      }
+
+      private async Task<string?> _hashSourceAsync(CancellationToken cancellationToken)
+      {
+         Stream? remote = _resolver().OpenInputStream(_sourceUri);
+         if (remote is null)
+         {
+            return null;
+         }
+
+         await using (remote.ConfigureAwait(false))
+         {
+            return await _hashStreamAsync(remote, cancellationToken).ConfigureAwait(false);
+         }
+      }
+
+      private static ContentResolver _resolver()
+         => AndroidApp.Context.ContentResolver
+            ?? throw new InvalidOperationException("ContentResolver unavailable.");
 
       private static async Task<string> _hashFileAsync(string path, CancellationToken cancellationToken)
       {

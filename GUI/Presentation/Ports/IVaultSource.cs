@@ -3,8 +3,10 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Ports
    /// <summary>
    /// Host vault file access. On Windows this is typically a direct path;
    /// on Android it is SAF + private working copy with conflict detection.
+   /// Owned by the session: disposed after the final write-back, which removes
+   /// the working copy once it reached the durable source.
    /// </summary>
-   internal interface IVaultSource
+   internal interface IVaultSource : IAsyncDisposable
    {
       /// <summary>Local filesystem path Core can open (working copy or real file).</summary>
       string WorkingPath { get; }
