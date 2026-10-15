@@ -1,0 +1,60 @@
+name: C# Build with Dot Net - MAUI Windows
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+
+concurrency:
+  group: maui-windows-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-2025-vs2026
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Install MAUI workloads
+      run: |
+        dotnet workload install maui-windows maui-android --skip-manifest-update
+
+    - name: Restore dependencies
+      run: dotnet restore Upsilon.Apps.Passkey.MAUI.slnx --locked-mode
+
+    - name: NuGet vulnerability audit
+      shell: pwsh
+      run: |
+        $output = dotnet list Upsilon.Apps.Passkey.MAUI.slnx package --vulnerable --include-transitive 2>&1 | Out-String
+        $output | Tee-Object -FilePath nuget-vulnerable-maui.txt | Out-Host
+        "## NuGet vulnerability audit (MAUI)" | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        '```' | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        $output | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        '```' | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+        if ($output -match '(?i)has the following vulnerable packages') {
+          Write-Error "One or more NuGet packages have known vulnerabilities."
+          exit 1
+        }
+
+    - name: Verify versions.json sync
+      shell: pwsh
+      run: ./scripts/Sync-Versions.ps1 -Check
+
+    # Build the MAUI project (not the solution with -f): referenced net10.0
+    # libraries must keep their own TFM and must not inherit the Windows TFM.
+    - name: Build Debug (Windows)
+      run: dotnet build GUI/MAUI/Upsilon.Apps.Passkey.GUI.MAUI.csproj --no-restore --configuration Debug -f net10.0-windows10.0.19041.0
+
+    - name: Build Release (Windows)
+      run: dotnet build GUI/MAUI/Upsilon.Apps.Passkey.GUI.MAUI.csproj --no-restore --configuration Release -f net10.0-windows10.0.19041.0
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write

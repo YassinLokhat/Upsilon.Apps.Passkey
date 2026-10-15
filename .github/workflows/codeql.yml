@@ -42,8 +42,14 @@ jobs:
         build-mode: manual
         queries: security-and-quality
 
+    - name: Install MAUI workloads
+      run: |
+        dotnet workload install maui-windows maui-android --skip-manifest-update
+
     - name: Restore dependencies
-      run: dotnet restore Upsilon.Apps.Passkey.Windows.slnx
+      run: |
+        dotnet restore Upsilon.Apps.Passkey.Windows.slnx
+        dotnet restore Upsilon.Apps.Passkey.MAUI.slnx --locked-mode
 
     # Build production projects only. CodeQL traces this compilation, so
     # excluding UnitTests keeps test code out of the database
@@ -52,6 +58,7 @@ jobs:
         dotnet sln Upsilon.Apps.Passkey.Windows.slnx remove UnitTests/Multiplateform/UnitTests.Multiplateform.csproj
         dotnet sln Upsilon.Apps.Passkey.Windows.slnx remove UnitTests/Windows/UnitTests.Windows.csproj
         dotnet build Upsilon.Apps.Passkey.Windows.slnx --no-restore --configuration Release
+        dotnet build GUI/MAUI/Upsilon.Apps.Passkey.GUI.MAUI.csproj --no-restore --configuration Release -f net10.0-windows10.0.19041.0
 
     # With build-mode: manual, CodeQL traces the compiler and includes generated
     # output (obj/, bin/, *.g.cs). Filter the SARIF before upload instead.
