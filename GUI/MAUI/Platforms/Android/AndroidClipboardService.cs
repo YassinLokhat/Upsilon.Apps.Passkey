@@ -2,6 +2,7 @@
 using System.Runtime.Versioning;
 using Android.Content;
 using Android.OS;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using AndroidApp = Android.App.Application;
@@ -11,6 +12,11 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
    /// <summary>
    /// Android clipboard with EXTRA_IS_SENSITIVE when API allows.
    /// History scrub has no equivalent — RemoveAllOccurrence is a documented no-op.
+   /// <para>
+   /// Android 10+ hides the clipboard from an app without focus but still lets it
+   /// write. A secret copied before switching apps is therefore cleared at the
+   /// deadline (or at session end) unless the clipboard visibly holds other text.
+   /// </para>
    /// </summary>
    internal sealed class AndroidClipboardService : IClipboardService, IDisposable
    {
@@ -104,17 +110,31 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
             try
             {
                Context? context = AndroidApp.Context;
-               ClipboardManager? cm = context?.GetSystemService(Context.ClipboardService) as ClipboardManager;
-               if (cm?.PrimaryClip is { } clip
-                   && clip.ItemCount > 0
-                   && string.Equals(clip.GetItemAt(0)?.Text, tracked, StringComparison.Ordinal))
+               if (context?.GetSystemService(Context.ClipboardService) is not ClipboardManager cm)
+               {
+                  return;
+               }
+
+               // Null without focus: the clip may still be ours.
+               if (cm.PrimaryClip is { ItemCount: > 0 } clip
+                   && !string.Equals(clip.GetItemAt(0)?.Text, tracked, StringComparison.Ordinal))
+               {
+                  return;
+               }
+
+               if (OperatingSystem.IsAndroidVersionAtLeast(33))
                {
                   cm.ClearPrimaryClip();
+               }
+               else
+               {
+                  // ClearPrimaryClip is unreliable on some API 29-32 devices.
+                  cm.PrimaryClip = ClipData.NewPlainText(string.Empty, string.Empty);
                }
             }
             catch (Exception ex) when (ex is InvalidOperationException or Java.Lang.Exception)
             {
-               // Foreground-only clear on Android 10+.
+               AppServices.Log.Warn($"Clipboard clear failed: {ErrorText.ForLog(ex)}");
             }
          }
       }

@@ -59,8 +59,8 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          base.OnSleep();
 #if ANDROID
          // On Windows OnSleep also fires on minimize; the WPF client keeps the
-         // half-open login and the clipboard countdown in that case.
-         AppServices.Clipboard?.ClearIfStillOwned();
+         // half-open login in that case. The clipboard is left alone: the user
+         // is usually leaving to paste, and the auto-clear deadline still runs.
          _lifecycle.NotifyEnteredBackground();
          // Android may kill a backgrounded process: get pending edits to the
          // durable source while the session stays open.

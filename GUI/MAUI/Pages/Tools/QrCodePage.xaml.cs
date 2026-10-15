@@ -1,4 +1,5 @@
 using Upsilon.Apps.Passkey.GUI.MAUI.Adapters;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Tools
@@ -15,6 +16,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Tools
          Title = _viewModel.Title;
          QrView.Drawable = new QrDrawable(_viewModel);
          _viewModel.Expired += (s, e) => _complete();
+         // With ShowPasswordDelay 0 nothing else would ever hide the code.
+         BackgroundGuard.Attach(this, _complete);
+         AppServices.Session.SessionChanged += _onSessionChanged;
       }
 
       public Task<bool> Completion => _completion.Task;
@@ -33,8 +37,17 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Tools
 
       private void _onClose(object? sender, EventArgs e) => _complete();
 
+      private void _onSessionChanged(object? sender, EventArgs e)
+      {
+         if (AppServices.Session.Database is null)
+         {
+            _complete();
+         }
+      }
+
       private void _complete()
       {
+         AppServices.Session.SessionChanged -= _onSessionChanged;
          _viewModel.Close();
          QrView.Invalidate();
          _ = _completion.TrySetResult(true);

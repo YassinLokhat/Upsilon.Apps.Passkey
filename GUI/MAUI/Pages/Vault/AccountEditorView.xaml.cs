@@ -30,6 +30,16 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault
 
       private void _onRevealReleased(object? sender, EventArgs e) => PasswordEntry.IsPassword = true;
 
+      private void _onPasswordCommitted(object? sender, EventArgs e)
+      {
+         string typed = PasswordEntry.Text ?? string.Empty;
+         if (_account is { } account
+            && !string.Equals(account.Password, typed, StringComparison.Ordinal))
+         {
+            account.Password = typed;
+         }
+      }
+
       private void _onCopyPassword(object? sender, EventArgs e)
       {
          if (!string.IsNullOrEmpty(_account?.Password))

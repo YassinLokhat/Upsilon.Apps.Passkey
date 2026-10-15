@@ -53,6 +53,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          AppServices.VaultSources = new Platforms.Android.AndroidVaultSourceFactory();
          AppServices.Files = new Platforms.Android.AndroidFileExchange();
          AppServices.ConflictCopies = new Platforms.Android.SafConflictCopyStore();
+         Platforms.Android.PrivateTextInput.Register();
 #else
          AppServices.Clipboard = new MauiClipboardService();
          AppServices.VaultSources = new PathVaultSourceFactory();
