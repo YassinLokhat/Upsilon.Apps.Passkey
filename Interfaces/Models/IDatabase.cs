@@ -116,11 +116,26 @@ namespace Upsilon.Apps.Passkey.Interfaces.Models
       Task<ImportExportError> ImportFromFileAsync(string filePath, CancellationToken cancellationToken = default);
 
       /// <summary>
+      /// Import from a stream. <paramref name="formatExtension"/> is <c>.json</c> or <c>.csv</c>
+      /// (including the leading dot). Prefer this on Android SAF to avoid a plaintext temp file.
+      /// </summary>
+      ImportExportError ImportFromStream(Stream stream, string formatExtension);
+
+      Task<ImportExportError> ImportFromStreamAsync(Stream stream, string formatExtension, CancellationToken cancellationToken = default);
+
+      /// <summary>
       /// Export to <c>.json</c> or <c>.csv</c>. Files are plaintext — see SECURITY.md.
       /// </summary>
       /// <returns><see cref="ImportExportError.None"/> on success; otherwise the failure reason.</returns>
       ImportExportError ExportToFile(string filePath);
 
       Task<ImportExportError> ExportToFileAsync(string filePath, CancellationToken cancellationToken = default);
+
+      /// <summary>
+      /// Export plaintext JSON/CSV to a stream. <paramref name="formatExtension"/> is <c>.json</c> or <c>.csv</c>.
+      /// </summary>
+      ImportExportError ExportToStream(Stream stream, string formatExtension);
+
+      Task<ImportExportError> ExportToStreamAsync(Stream stream, string formatExtension, CancellationToken cancellationToken = default);
    }
 }

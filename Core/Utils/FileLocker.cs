@@ -23,6 +23,11 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       private readonly ICryptographyCenter _cryptographicCenter;
       private readonly ISerializationCenter _serializationCenter;
 
+      // Path metadata after the last successful open/commit. Used to detect an
+      // external replace (sync client) before we overwrite the path atomically.
+      private long _lastKnownLength;
+      private DateTime _lastKnownWriteTimeUtc;
+
       // Serializes every public operation so two threads (e.g. a save and the
       // session-timeout timer) cannot touch the archive at the same time. The
       // lock is re-entrant, which matches how nested call paths reach the file.
@@ -60,11 +65,40 @@ namespace Upsilon.Apps.Passkey.Core.Utils
          try
          {
             _stream = new FileStream(FilePath, fileMode, FileAccess.ReadWrite, SHARE_MODE);
+            _rememberPathIdentity();
          }
          catch
          {
             _releaseSessionLock();
             throw;
+         }
+      }
+
+      private void _rememberPathIdentity()
+      {
+         FileInfo info = new(FilePath);
+         _lastKnownLength = info.Exists ? info.Length : 0;
+         _lastKnownWriteTimeUtc = info.Exists ? info.LastWriteTimeUtc : DateTime.MinValue;
+      }
+
+      /// <summary>
+      /// Fails when the path no longer matches the file this session last wrote
+      /// or opened (typical after a sync client delete+recreate).
+      /// </summary>
+      private void _ensurePathStillOurs()
+      {
+         FileInfo info = new(FilePath);
+         if (!info.Exists)
+         {
+            throw new ExternalVaultReplacedException(
+               $"Vault file '{FilePath}' is missing; it was likely replaced or deleted externally.");
+         }
+
+         if (info.Length != _lastKnownLength
+             || info.LastWriteTimeUtc != _lastKnownWriteTimeUtc)
+         {
+            throw new ExternalVaultReplacedException(
+               $"Vault file '{FilePath}' changed on disk while the session was open (external replace).");
          }
       }
 
@@ -469,6 +503,8 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       // (no in-place rewrite of the live .pku).
       private void _commitArchiveAtomically(ReadOnlySpan<byte> archiveBytes)
       {
+         _ensurePathStillOurs();
+
          string directory = Path.GetDirectoryName(FilePath) is { Length: > 0 } dir
             ? dir
             : ".";
@@ -503,6 +539,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             {
                tempPath = string.Empty;
                _stream = _openExistingWithRetries(path);
+               _rememberPathIdentity();
             }
             else
             {
