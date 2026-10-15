@@ -37,6 +37,9 @@
     <AllowedExternalPackagePrefixes>Microsoft.Maui.</AllowedExternalPackagePrefixes>
 
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
+    <!-- Keep in sync with LocalizationService.Shipped (Presentation satellites). -->
+    <SatelliteResourceLanguages>en;fr</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <!-- Windows App SDK injects UndockedRegFreeWinRT-AutoInitializer.cs; its P/Invoke lacks

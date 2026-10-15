@@ -1,8 +1,8 @@
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
+namespace Upsilon.Apps.Passkey.GUI.Presentation.Localization
 {
    /// <summary>
    /// Localizes enum values stored in activity <c>FieldValue</c> (Core persists
@@ -62,9 +62,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       private static string _formatTheme(string stored)
          => stored switch
          {
-            ThemeService.SystemCode => Strings.EnumValue_Theme_System,
-            ThemeService.LightCode => Strings.EnumValue_Theme_Light,
-            ThemeService.DarkCode => Strings.EnumValue_Theme_Dark,
+            ThemePreferences.SystemCode => Strings.EnumValue_Theme_System,
+            ThemePreferences.LightCode => Strings.EnumValue_Theme_Light,
+            ThemePreferences.DarkCode => Strings.EnumValue_Theme_Dark,
             _ => _isFollowApp(stored) ? Strings.EnumValue_FollowApp : stored,
          };
 

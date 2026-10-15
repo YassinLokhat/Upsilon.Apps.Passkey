@@ -8,13 +8,15 @@ Target framework: `net10.0-windows10.0.18362.0`. Light and dark WPF resource dic
 
 ## Localization
 
-UI strings live in `GUI/WPF/Localization/`:
+UI strings are shared with the MAUI client and live in `GUI/Presentation/Localization/`:
 
 * `Strings.resx` — English (neutral / fallback)
 * `Strings.fr.resx` — French
 * `LocalizationService.Supported` — combo-box registry (`System` + shipped cultures)
-* `{loc:Loc KeyName}` in XAML (live binding via `TranslationSource`); `Strings.KeyName` / `Strings.Format(...)` in C#
-* `LocalizationService.Apply` refreshes open windows via `LanguageAwareNotify` / `ILanguageAware` (titles, combos, computed labels) — **no restart required**
+* `{loc:Loc KeyName}` in XAML (live binding via `LocalizationCatalog`); `Strings.KeyName` / `Strings.Format(...)` in C#. The WPF and MAUI clients each have their own `LocExtension` over the same catalog.
+* `LocalizationService.Apply` refreshes the catalog, then raises `LanguageChanged`. WPF subscribes once at startup (`LanguageAwareNotify.Install`) to refresh open windows via `ILanguageAware` (titles, combos, computed labels) — **no restart required**
+
+`GUI/WPF/Localization/` keeps only the WPF-specific pieces (`LocExtension`, `ILanguageAware`, `LanguageAwareNotify`).
 
 **Live-refresh contract:** every dialog `Window` implements `ILanguageAware` and, in `OnLanguageChanged`, forwards to its DataContext (`this.ForwardToDataContext()` or the typed ViewModel) before rebuilding any code-behind snapshots (combo `ItemsSource`, progress text, immersive title). Static XAML text should use `{loc:Loc …}` so it does not depend on that walk. `LanguageAwareNotify` isolates failures so one window cannot skip the others.
 
@@ -80,7 +82,8 @@ Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (optio
 
 1. Copy `Strings.resx` → `Strings.xx.resx` and translate values (keep key names). Pay special attention to **both** `EnumValue_ActivityEventType_*` and `Activity_*` for every event.
 2. Append `new("xx", "Native name")` to `LocalizationService.Shipped`.
-3. Run `LocalizationTests` — they loop every non-English entry in `Shipped` (`SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
+3. Add `xx` to `SatelliteResourceLanguages` in `GUI/MAUI/Upsilon.Apps.Passkey.GUI.MAUI.csproj`, or the MAUI client will not ship the satellite.
+4. Run `LocalizationTests` (in `UnitTests.Presentation` and `UnitTests.Windows`) — they loop every non-English entry in `Shipped` (`Case02_SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
 
 ## User settings — credentials confirmation
 

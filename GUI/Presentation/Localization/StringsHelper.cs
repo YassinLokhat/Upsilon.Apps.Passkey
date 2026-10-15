@@ -1,6 +1,6 @@
 ﻿using Upsilon.Apps.Passkey.Interfaces.Models;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
+namespace Upsilon.Apps.Passkey.GUI.Presentation.Localization
 {
    internal static class StringsHelper
    {

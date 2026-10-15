@@ -1,4 +1,5 @@
 ﻿using Upsilon.Apps.Passkey.GUI.MAUI.Adapters;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI
@@ -11,6 +12,8 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
       {
          InitializeComponent();
          AppServices.Lifecycle = _lifecycle;
+         // App settings (language preference) arrive with the shared AppSettings store.
+         _ = LocalizationService.Apply(LocalizationService.SystemCode);
       }
 
       protected override Window CreateWindow(IActivationState? activationState)

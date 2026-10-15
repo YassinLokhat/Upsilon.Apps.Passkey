@@ -35,6 +35,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          AppServices.VaultSources = new PathVaultSourceFactory();
 
          _ = AppInfo.ConfigFile;
+         LanguageAwareNotify.Install();
          _ = LocalizationService.Apply(AppInfo.AppSettings.Language);
          _ = ThemeService.Apply(AppInfo.AppSettings.Theme);
 

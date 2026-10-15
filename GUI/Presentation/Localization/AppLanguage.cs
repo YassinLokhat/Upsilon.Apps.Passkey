@@ -1,4 +1,4 @@
-namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
+namespace Upsilon.Apps.Passkey.GUI.Presentation.Localization
 {
    /// <summary>
    /// A UI language the client knows how to load (satellite <c>Strings.xx.resx</c>).

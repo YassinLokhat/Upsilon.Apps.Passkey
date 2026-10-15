@@ -32,7 +32,7 @@ Status today: the MAUI client is a **preview** that covers login and a read-only
 | QR | [ ] | [ ] |
 | Credentials confirmation | [ ] | [ ] |
 | Themes Light/Dark/System | [~] port only, no setting UI | [~] port only, no setting UI |
-| Localization (resx + hot reload) | [ ] (English only) | [ ] (English only) |
+| Localization (resx + hot reload) | [~] (shared resx, follows the OS language; no language picker yet) | [~] (shared resx, follows the OS language; no language picker yet) |
 | Keyboard accelerators / copy buttons | [ ] | copy buttons [ ] |
 
 ## Smoke (manual)
