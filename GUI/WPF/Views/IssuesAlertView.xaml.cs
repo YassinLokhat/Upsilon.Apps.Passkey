@@ -1,7 +1,7 @@
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -28,9 +28,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          switch (viewModel)
          {
             case PasskeyQualityAlertViewModel passkey:
+               passkey.OpenUserSettingsRequested += (_, _) => UserSettingsView.ShowUserSettings();
+               passkey.OpenAppSettingsRequested += (_, _) => AppSettingsView.ShowAppSettings();
                passkey.CloseRequested += (_, _) => Close();
                break;
             case SecuritySettingsAlertViewModel security:
+               security.OpenUserSettingsRequested += (_, _) => UserSettingsView.ShowUserSettings();
+               security.OpenAppSettingsRequested += (_, _) => AppSettingsView.ShowAppSettings();
                security.CloseRequested += (_, _) => Close();
                break;
          }
@@ -38,7 +42,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       public void OnLanguageChanged()
       {
-         if (_viewModel is ILanguageAware languageAware)
+         if (_viewModel is ILanguageRefreshable languageAware)
          {
             languageAware.OnLanguageChanged();
          }

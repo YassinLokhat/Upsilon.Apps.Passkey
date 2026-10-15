@@ -1,18 +1,17 @@
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts
 {
-   internal sealed class DuplicatedPasswordsAlertViewModel : ObservableObject, ILanguageAware
+   internal sealed class DuplicatedPasswordsAlertViewModel : ObservableObject, ILanguageRefreshable
    {
       public string Title
       {
          get;
          private set => SetProperty(ref field, value);
-      } = Strings.Format(nameof(Strings.Title_DuplicatedPasswordsAlerts), AppInfo.Title);
+      } = Strings.Format(nameof(Strings.Title_DuplicatedPasswordsAlerts), AppServices.Info.Title);
 
       public DuplicatedPasswordAlertViewModel[] Alerts
       {
@@ -34,7 +33,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnLanguageChanged()
       {
-         Title = Strings.Format(nameof(Strings.Title_DuplicatedPasswordsAlerts), AppInfo.Title);
+         Title = Strings.Format(nameof(Strings.Title_DuplicatedPasswordsAlerts), AppServices.Info.Title);
 
          DuplicatedPasswordAlertViewModel? previous = SelectedAlert;
          Alerts = _loadAlerts();

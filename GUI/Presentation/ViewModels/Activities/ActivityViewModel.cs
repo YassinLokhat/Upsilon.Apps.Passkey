@@ -1,11 +1,11 @@
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using System.Windows.Input;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities
 {
    internal sealed class ActivityViewModel : ObservableObject
    {
@@ -35,7 +35,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       {
          Activity = activity;
          GoToCommand = new RelayCommand(() => AppServices.Navigation.RequestItem(Activity.ItemId));
-         CopyCommand = new RelayCommand(() => AppServices.Clipboard.SetText(Message));
+         CopyCommand = new RelayCommand(() => AppServices.Clipboard?.SetText(Message));
       }
 
       public bool MeetsConditions(DateTime fromDateFilter, DateTime toDateFilter, ActivityEventType eventType, string searchCriteria, bool needsReview)

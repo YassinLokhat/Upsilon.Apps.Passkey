@@ -1,8 +1,8 @@
-﻿using Upsilon.Apps.Passkey.GUI.WPF.Localization;
+
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
+namespace Upsilon.Apps.Passkey.GUI.Presentation.Localization
 {
    /// <summary>
    /// Maps activity/alert enums to localized strings in <c>Strings.resx</c>

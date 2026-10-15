@@ -75,10 +75,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
                return;
             }
 
-            if (window.DataContext is ILanguageAware dataContextAware)
-            {
-               dataContextAware.OnLanguageChanged();
-            }
+            _forward(window.DataContext);
          }
          catch (Exception ex)
             when (ex is NotSupportedException
@@ -93,10 +90,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       /// Call from window <see cref="ILanguageAware.OnLanguageChanged"/> handlers.
       /// </summary>
       public static void ForwardToDataContext(this Window window)
+         => _forward(window.DataContext);
+
+      private static void _forward(object? dataContext)
       {
-         if (window.DataContext is ILanguageAware dataContextAware)
+         if (dataContext is ILanguageAware dataContextAware)
          {
             dataContextAware.OnLanguageChanged();
+         }
+         else if (dataContext is ILanguageRefreshable shared)
+         {
+            shared.OnLanguageChanged();
          }
       }
    }

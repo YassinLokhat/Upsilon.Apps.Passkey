@@ -1,22 +1,19 @@
-using System.Windows.Input;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.Views;
-using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using System.Windows.Input;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
-using AppServices = Upsilon.Apps.Passkey.GUI.WPF.Services.AppServices;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts
 {
-   internal sealed class PasskeyQualityAlertViewModel : ObservableObject, ILanguageAware, IDisposable
+   internal sealed class PasskeyQualityAlertViewModel : ObservableObject, ILanguageRefreshable, IDisposable
    {
       public string Title
       {
          get;
          private set => SetProperty(ref field, value);
-      } = Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppInfo.Title);
+      } = Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppServices.Info.Title);
 
       public IssueItemViewModel[] Issues
       {
@@ -30,16 +27,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public event EventHandler? CloseRequested;
 
+      /// <summary>Host opens the user settings view; raised before <see cref="CloseRequested"/>.</summary>
+      public event EventHandler? OpenUserSettingsRequested;
+
+      /// <summary>Host opens the application settings view; raised before <see cref="CloseRequested"/>.</summary>
+      public event EventHandler? OpenAppSettingsRequested;
+
       public PasskeyQualityAlertViewModel()
       {
          OpenUserSettingsCommand = new RelayCommand(() =>
          {
-            UserSettingsView.ShowUserSettings();
+            OpenUserSettingsRequested?.Invoke(this, EventArgs.Empty);
             CloseRequested?.Invoke(this, EventArgs.Empty);
          });
          OpenAppSettingsCommand = new RelayCommand(() =>
          {
-            AppSettingsView.ShowAppSettings();
+            OpenAppSettingsRequested?.Invoke(this, EventArgs.Empty);
             CloseRequested?.Invoke(this, EventArgs.Empty);
          });
          OkCommand = new RelayCommand(() => CloseRequested?.Invoke(this, EventArgs.Empty));
@@ -55,6 +58,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       {
          AppServices.Session.Alerts.NotifiedAlertsChanged -= _alerts_NotifiedAlertsChanged;
          CloseRequested = null;
+         OpenUserSettingsRequested = null;
+         OpenAppSettingsRequested = null;
       }
 
       private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
@@ -65,7 +70,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          Issues = _loadIssues();
          if (alsoTitle)
          {
-            Title = Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppInfo.Title);
+            Title = Strings.Format(nameof(Strings.Title_PasskeyQualityAlertsWindow), AppServices.Info.Title);
          }
       }
 

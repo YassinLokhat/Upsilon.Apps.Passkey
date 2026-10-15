@@ -1,8 +1,7 @@
 using System.Windows;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
-using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -35,14 +34,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _bindAlertKindCombo()
       {
-         string selected = _viewModel.Kind;
-         _alertKind_CB.Items.Clear();
-         _ = _alertKind_CB.Items.Add(EnumHelper.ToReadableAlertKind(EnumHelper.AccountPasswordFilterAll));
-         _ = _alertKind_CB.Items.Add(EnumHelper.ToReadableAlertKind(AlertKinds.PasswordLeaked));
-         _ = _alertKind_CB.Items.Add(EnumHelper.ToReadableAlertKind(AlertKinds.PasswordUpdateReminder));
-         _ = _alertKind_CB.Items.Add(EnumHelper.ToReadableAlertKind(AlertKinds.WeakAccountPassword));
-         _ = _alertKind_CB.Items.Add(EnumHelper.ToReadableAlertKind(AlertKinds.PasskeyReusedAsAccountPassword));
-         _alertKind_CB.SelectedItem = EnumHelper.ToReadableAlertKind(selected);
+         string selected = _viewModel.ReadableAlertKind;
+         _alertKind_CB.ItemsSource = _viewModel.KindOptions;
+         _alertKind_CB.SelectedItem = selected;
       }
    }
 }
