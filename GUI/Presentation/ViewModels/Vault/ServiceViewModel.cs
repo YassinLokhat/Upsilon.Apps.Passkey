@@ -103,7 +103,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
          }
       }
 
-      public readonly ObservableCollection<AccountViewModel> Accounts = [];
+      public ObservableCollection<AccountViewModel> Accounts { get; } = [];
 
       private void _notify(string propertyName)
       {

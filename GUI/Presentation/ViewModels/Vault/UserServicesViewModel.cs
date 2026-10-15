@@ -1,3 +1,4 @@
+using Upsilon.Apps.Passkey.GUI.Presentation.Alerts;
 using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
 using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
@@ -396,6 +397,164 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
          LogoutRequested = null;
 
          GC.SuppressFinalize(this);
+      }
+
+      public bool IsSaving
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      }
+
+      public bool HasAlerts
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      }
+
+      /// <summary>Alert groups in display order, empty groups included.</summary>
+      public IReadOnlyList<AlertGroupSummary> AlertGroups
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      } = [];
+
+      /// <summary>Selected identifier of the selected account, or its first identifier.</summary>
+      public string? CurrentIdentifier
+      {
+         get
+         {
+            AccountViewModel? account = SelectedService?.SelectedAccount;
+            return account?.SelectedIdentifier?.Identifier ?? account?.Identifiers.FirstOrDefault()?.Identifier;
+         }
+      }
+
+      public string? CurrentPassword => SelectedService?.SelectedAccount?.Password;
+
+      public ICommand CommandFor(AlertGroup group) => group switch
+      {
+         AlertGroup.LeakedPasswords => ShowLeakedPasswordAlertsCommand,
+         AlertGroup.PasskeyQuality => ShowPasskeyQualityAlertsCommand,
+         AlertGroup.ExpiredPasswords => ShowExpiredPasswordAlertsCommand,
+         AlertGroup.WeakPasswords => ShowWeakPasswordAlertsCommand,
+         AlertGroup.ActivityReview => ShowActivityAlertsCommand,
+         AlertGroup.DuplicatedPasswords => ShowDuplicatedPasswordAlertsCommand,
+         _ => ShowSecuritySettingsAlertsCommand,
+      };
+
+      public void ApplyAlertSummary(AlertSummary summary)
+      {
+         ArgumentNullException.ThrowIfNull(summary);
+
+         if (_disposed)
+         {
+            return;
+         }
+
+         ShowAlerts = Strings.Format(nameof(Strings.Msg_ShowAlerts), summary.TotalCount);
+         ShowAlertsSeverity = summary.Severity;
+         ShowActivityAlertsSeverity = summary[AlertGroup.ActivityReview].Severity;
+         ShowExpiredPasswordAlertsSeverity = summary[AlertGroup.ExpiredPasswords].Severity;
+         ShowDuplicatedPasswordAlertsSeverity = summary[AlertGroup.DuplicatedPasswords].Severity;
+         ShowLeakedPasswordAlertsSeverity = summary[AlertGroup.LeakedPasswords].Severity;
+         ShowWeakPasswordAlertsSeverity = summary[AlertGroup.WeakPasswords].Severity;
+         ShowSecuritySettingsAlertsSeverity = summary[AlertGroup.SecuritySettings].Severity;
+         ShowPasskeyQualityAlertsSeverity = summary[AlertGroup.PasskeyQuality].Severity;
+         ShowActivityAlerts = Strings.Format(nameof(Strings.Msg_ShowActivityAlerts), summary[AlertGroup.ActivityReview].Count);
+         ShowExpiredPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowExpiredPasswordAlerts), summary[AlertGroup.ExpiredPasswords].Count);
+         ShowDuplicatedPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowDuplicatedPasswordAlerts), summary[AlertGroup.DuplicatedPasswords].Count);
+         ShowLeakedPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowLeakedPasswordAlerts), summary[AlertGroup.LeakedPasswords].Count);
+         ShowWeakPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowWeakPasswordAlerts), summary[AlertGroup.WeakPasswords].Count);
+         ShowSecuritySettingsAlerts = Strings.Format(nameof(Strings.Msg_ShowSecuritySettingsAlerts), summary[AlertGroup.SecuritySettings].Count);
+         ShowPasskeyQualityAlerts = Strings.Format(nameof(Strings.Msg_ShowPasskeyQualityAlerts), summary[AlertGroup.PasskeyQuality].Count);
+         HasAlerts = summary.TotalCount != 0;
+         AlertGroups = summary.OrderedGroups;
+      }
+
+      /// <summary>
+      /// Saves the vault, rebuilds the list and restores the service and account selection.
+      /// </summary>
+      public async Task SaveAsync()
+      {
+         if (IsSaving || AppServices.Session.Database is not { } database)
+         {
+            return;
+         }
+
+         string? serviceId = SelectedService?.Service.ItemId;
+         string? accountId = SelectedService?.SelectedAccount?.Account.ItemId;
+
+         IsSaving = true;
+         try
+         {
+            await database.SaveAsync().ConfigureAwait(true);
+         }
+         finally
+         {
+            IsSaving = false;
+         }
+
+         if (_disposed)
+         {
+            return;
+         }
+
+         RefreshFilters();
+         SelectedService = Services.FirstOrDefault(x => x.Service.ItemId == serviceId);
+
+         if (SelectedService is { } service && !string.IsNullOrEmpty(accountId))
+         {
+            service.SelectedAccount = service.Accounts.FirstOrDefault(x => x.Account.ItemId == accountId);
+         }
+      }
+
+      /// <summary>
+      /// Clears the filters and selects the service or account with <paramref name="itemId"/>.
+      /// </summary>
+      public bool TrySelectItem(string itemId)
+      {
+         if (string.IsNullOrEmpty(itemId))
+         {
+            return false;
+         }
+
+         ClearFilters();
+         _filterDebounceTimer.StopTimer();
+         RefreshFilters();
+
+         switch (itemId[0])
+         {
+            case 'S':
+               SelectedService = Services.FirstOrDefault(x => x.Service.ItemId == itemId);
+               break;
+            case 'A':
+               SelectedService = Services.FirstOrDefault(x => x.Service.Accounts.Any(y => y.ItemId == itemId));
+               if (SelectedService is { } service)
+               {
+                  service.SelectedAccount = service.Accounts.FirstOrDefault(x => x.Account.ItemId == itemId);
+               }
+               break;
+            default:
+               SelectedService = null;
+               break;
+         }
+
+         return SelectedService is not null;
+      }
+
+      /// <summary>Opens the generator and writes the result into the selected account.</summary>
+      public async Task GeneratePasswordIntoSelectionAsync()
+      {
+         if (SelectedService?.SelectedAccount is not { } account || AppServices.Dialogs is not { } dialogs)
+         {
+            return;
+         }
+
+         string? password = await dialogs.ShowAsync(new GeneratePasswordRequest()).ConfigureAwait(true);
+
+         if (!string.IsNullOrEmpty(password) && !_disposed)
+         {
+            account.Password = password;
+         }
       }
 
       public ServiceViewModel AddService()

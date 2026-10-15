@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vault="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+             xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault"
+             xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault.VaultPage"
+             x:ClassModifier="internal"
+             x:DataType="vault:UserServicesViewModel"
+             Title="{Binding Title}">
+
+   <ContentPage.MenuBarItems>
+      <MenuBarItem Text="{Binding UserId}">
+         <MenuFlyoutItem Text="{loc:Loc Menu_Save}" Command="{Binding SaveCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl" Key="S" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+         <MenuFlyoutItem Text="{loc:Loc Menu_Undo}" Command="{Binding UndoCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="Z" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+         <MenuFlyoutItem Text="{loc:Loc Menu_Redo}" Command="{Binding RedoCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="Y" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+         <MenuFlyoutItem Text="{loc:Loc Menu_UserSettings}" Command="{Binding UserSettingsCommand}" />
+         <MenuFlyoutItem Text="{loc:Loc Menu_GenerateRandomPassword}" Clicked="_onGeneratePassword">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl" Key="P" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+         <MenuFlyoutItem Text="{loc:Loc Menu_ShowActivities}" Command="{Binding ShowActivitiesCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="A" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+         <MenuFlyoutItem Text="{loc:Loc Menu_Logout}" Command="{Binding LogoutCommand}" />
+      </MenuBarItem>
+      <MenuBarItem Text="{loc:Loc Label_Service}">
+         <MenuFlyoutItem Text="{loc:Loc Vault_AddService}" Command="{Binding AddServiceCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl" Key="N" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+         <MenuFlyoutItem Text="{loc:Loc Vault_DeleteService}" Command="{Binding DeleteServiceCommand}" />
+         <MenuFlyoutItem Text="{loc:Loc Label_Filters}" Command="{Binding FocusFilterCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl" Key="F" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+         <MenuFlyoutItem Text="{loc:Loc Vault_CopyIdentifier}" Command="{Binding CopyIdentifierCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="L" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+         <MenuFlyoutItem Text="{loc:Loc Vault_CopyPassword}" Command="{Binding CopyPasswordCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="P" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+      </MenuBarItem>
+      <MenuBarItem Text="{loc:Loc Menu_AppSettings}">
+         <MenuFlyoutItem Text="{loc:Loc Menu_AppSettings}" Command="{Binding AppSettingsCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl" Key="OemComma" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+      </MenuBarItem>
+   </ContentPage.MenuBarItems>
+
+   <Grid RowDefinitions="Auto,Auto,*" Padding="8" RowSpacing="6">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+         <SearchBar x:Name="ServiceFilterBar"
+                    Placeholder="{loc:Loc Vault_SearchServices}"
+                    Text="{Binding ServiceFilter}" />
+         <Button Grid.Column="1"
+                 x:Name="AlertsButton"
+                 Text="{Binding ShowAlerts}"
+                 IsVisible="{Binding HasAlerts}"
+                 Clicked="_onShowAlerts" />
+      </Grid>
+
+      <Grid Grid.Row="1" ColumnDefinitions="*,*,Auto,Auto" ColumnSpacing="6">
+         <Entry Placeholder="{loc:Loc Label_Identifier}" Text="{Binding IdentifierFilter}" IsTextPredictionEnabled="False" />
+         <Entry Grid.Column="1" Placeholder="{loc:Loc Label_Text}" Text="{Binding TextFilter}" />
+         <HorizontalStackLayout Grid.Column="2" Spacing="4">
+            <CheckBox IsChecked="{Binding ChangedItemsOnly}" />
+            <Label Text="{loc:Loc Label_UnsavedItemsOnly}" VerticalOptions="Center" />
+         </HorizontalStackLayout>
+         <Button Grid.Column="3" Text="{loc:Loc Tooltip_Clear}" Command="{Binding ClearFiltersCommand}" />
+      </Grid>
+
+      <Grid x:Name="ContentGrid" Grid.Row="2" ColumnSpacing="8">
+         <CollectionView x:Name="ServicesList"
+                         ItemsSource="{Binding Services}"
+                         SelectionMode="Single"
+                         SelectedItem="{Binding SelectedService}"
+                         SelectionChanged="_onServiceSelectionChanged">
+            <CollectionView.ItemTemplate>
+               <DataTemplate x:DataType="vault:ServiceViewModel">
+                  <SwipeView>
+                     <SwipeView.RightItems>
+                        <SwipeItems>
+                           <SwipeItem Text="{loc:Loc Vault_Delete}" BackgroundColor="Firebrick" Invoked="_onDeleteService" />
+                        </SwipeItems>
+                     </SwipeView.RightItems>
+                     <Label Padding="6,10" Text="{Binding ServiceDisplay}" />
+                  </SwipeView>
+               </DataTemplate>
+            </CollectionView.ItemTemplate>
+         </CollectionView>
+
+         <Grid x:Name="DetailHost">
+            <Label x:Name="NoSelectionLabel"
+                   Text="{loc:Loc Vault_NoSelection}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+            <local:ServiceEditorView x:Name="DetailEditor" IsVisible="False" />
+         </Grid>
+      </Grid>
+   </Grid>
+</ContentPage>

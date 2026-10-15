@@ -113,7 +113,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
             return;
          }
 
-         await Navigation.PushAsync(new SessionPage(new SessionViewModel(database))).ConfigureAwait(true);
+         await Navigation.PushAsync(new Pages.Vault.VaultPage(database)).ConfigureAwait(true);
       }
 
       private async void _onSessionEnded(object? sender, LogoutEventArgs e)
