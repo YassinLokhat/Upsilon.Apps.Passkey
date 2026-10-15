@@ -353,5 +353,19 @@ namespace UnitTests.Presentation
          viewModel.Reset();
          _ = viewModel.SelectedVaultLabel.Should().BeEmpty();
       }
+
+      [TestMethod]
+      /*
+       * Hosts without access keys (MAUI) drop the WPF "_" markers; a doubled
+       * underscore stays a literal one.
+      */
+      public void Case17_AccessKeyText_StripsWpfMarkers()
+      {
+         _ = AccessKeyText.Strip(Strings.Menu_Save).Should().NotContain("_");
+         _ = AccessKeyText.Strip("Export as _JSON").Should().Be("Export as JSON");
+         _ = AccessKeyText.Strip("a__b_c_").Should().Be("a_bc");
+         _ = AccessKeyText.Strip("Plain").Should().Be("Plain");
+         _ = AccessKeyText.Strip("_").Should().BeEmpty();
+      }
    }
 }

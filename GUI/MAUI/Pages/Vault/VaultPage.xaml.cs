@@ -1,4 +1,5 @@
 using static Upsilon.Apps.Passkey.GUI.Presentation.Helper.IItemHelper;
+using Upsilon.Apps.Passkey.GUI.MAUI.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Alerts;
 using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
@@ -167,15 +168,15 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault
 
       private void _addToolbarItems()
       {
-         ToolbarItems.Add(new ToolbarItem { Text = Strings.Menu_Save, Command = _viewModel.SaveCommand });
-         ToolbarItems.Add(new ToolbarItem { Text = Strings.Vault_AddService, Command = _viewModel.AddServiceCommand });
-         ToolbarItems.Add(new ToolbarItem { Text = Strings.Menu_Undo, Command = _viewModel.UndoCommand, Order = ToolbarItemOrder.Secondary });
-         ToolbarItems.Add(new ToolbarItem { Text = Strings.Menu_Redo, Command = _viewModel.RedoCommand, Order = ToolbarItemOrder.Secondary });
-         ToolbarItems.Add(new ToolbarItem { Text = Strings.Menu_GenerateRandomPassword, Command = _viewModel.GeneratePasswordCommand, Order = ToolbarItemOrder.Secondary });
-         ToolbarItems.Add(new ToolbarItem { Text = Strings.Menu_ShowActivities, Command = _viewModel.ShowActivitiesCommand, Order = ToolbarItemOrder.Secondary });
-         ToolbarItems.Add(new ToolbarItem { Text = Strings.Menu_UserSettings, Command = _viewModel.UserSettingsCommand, Order = ToolbarItemOrder.Secondary });
-         ToolbarItems.Add(new ToolbarItem { Text = Strings.Menu_AppSettings, Command = _viewModel.AppSettingsCommand, Order = ToolbarItemOrder.Secondary });
-         ToolbarItems.Add(new ToolbarItem { Text = Strings.Menu_Logout, Command = _viewModel.LogoutCommand, Order = ToolbarItemOrder.Secondary });
+         ToolbarItems.AddLocalized(nameof(Strings.Menu_Save), _viewModel.SaveCommand);
+         ToolbarItems.AddLocalized(nameof(Strings.Vault_AddService), _viewModel.AddServiceCommand);
+         ToolbarItems.AddLocalized(nameof(Strings.Menu_Undo), _viewModel.UndoCommand, ToolbarItemOrder.Secondary);
+         ToolbarItems.AddLocalized(nameof(Strings.Menu_Redo), _viewModel.RedoCommand, ToolbarItemOrder.Secondary);
+         ToolbarItems.AddLocalized(nameof(Strings.Menu_GenerateRandomPassword), _viewModel.GeneratePasswordCommand, ToolbarItemOrder.Secondary);
+         ToolbarItems.AddLocalized(nameof(Strings.Menu_ShowActivities), _viewModel.ShowActivitiesCommand, ToolbarItemOrder.Secondary);
+         ToolbarItems.AddLocalized(nameof(Strings.Menu_UserSettings), _viewModel.UserSettingsCommand, ToolbarItemOrder.Secondary);
+         ToolbarItems.AddLocalized(nameof(Strings.Menu_AppSettings), _viewModel.AppSettingsCommand, ToolbarItemOrder.Secondary);
+         ToolbarItems.AddLocalized(nameof(Strings.Menu_Logout), _viewModel.LogoutCommand, ToolbarItemOrder.Secondary);
       }
 
       private void _onNotifiedAlertsChanged(object? sender, EventArgs e)

@@ -1,3 +1,4 @@
+using Upsilon.Apps.Passkey.GUI.MAUI.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault;
 
@@ -15,9 +16,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault
          Title = service.ServiceName;
          Content = new ServiceEditorView { BindingContext = service };
 
-         ToolbarItems.Add(new ToolbarItem { Text = Strings.Menu_Save, Command = vault.SaveCommand });
-         ToolbarItems.Add(new ToolbarItem { Text = Strings.Menu_GenerateRandomPassword, Command = vault.GeneratePasswordCommand, Order = ToolbarItemOrder.Secondary });
-         ToolbarItems.Add(new ToolbarItem { Text = Strings.Vault_DeleteService, Command = vault.DeleteServiceCommand, Order = ToolbarItemOrder.Secondary });
+         ToolbarItems.AddLocalized(nameof(Strings.Menu_Save), vault.SaveCommand);
+         ToolbarItems.AddLocalized(nameof(Strings.Menu_GenerateRandomPassword), vault.GeneratePasswordCommand, ToolbarItemOrder.Secondary);
+         ToolbarItems.AddLocalized(nameof(Strings.Vault_DeleteService), vault.DeleteServiceCommand, ToolbarItemOrder.Secondary);
       }
 
       protected override void OnDisappearing()
