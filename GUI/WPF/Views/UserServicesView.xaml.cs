@@ -13,8 +13,6 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
 using AppServices = Upsilon.Apps.Passkey.GUI.WPF.Services.AppServices;
-using IDialogService = Upsilon.Apps.Passkey.GUI.WPF.Services.IDialogService;
-using INavigationService = Upsilon.Apps.Passkey.GUI.WPF.Services.INavigationService;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -35,7 +33,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private bool _alertsMenuDirty;
 
       private static ISessionService _session => AppServices.Session;
-      private static IDialogService _dialogs => AppServices.Dialogs;
+      private static IWindowDialogService _dialogs => AppServices.Dialogs;
       private static INavigationService _navigation => AppServices.Navigation;
 
       private UserServicesView()
@@ -431,8 +429,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _viewModel.RefreshFilters();
       }
 
-      private void _navigation_ItemRequested(object? sender, string itemId)
+      private void _navigation_ItemRequested(object? sender, ItemNavigationEventArgs e)
       {
+         string itemId = e.ItemId;
          if (_session.Database?.User is null)
          {
             return;

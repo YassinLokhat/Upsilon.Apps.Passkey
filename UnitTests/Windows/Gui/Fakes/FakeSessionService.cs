@@ -6,8 +6,6 @@ using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
 using AppServices = Upsilon.Apps.Passkey.GUI.WPF.Services.AppServices;
-using IDialogService = Upsilon.Apps.Passkey.GUI.WPF.Services.IDialogService;
-using INavigationService = Upsilon.Apps.Passkey.GUI.WPF.Services.INavigationService;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui.Fakes
 {

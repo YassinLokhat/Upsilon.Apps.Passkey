@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.Core.Utils;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
+using AsyncRelayCommand = Upsilon.Apps.Passkey.GUI.Presentation.Helper.AsyncRelayCommand;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -122,8 +123,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          _syncAccountViewModels();
 
          AddAccountCommand = new RelayCommand(_addAccount);
-         DeleteAccountCommand = new RelayCommand(_deleteAccount);
-         OpenUrlCommand = new RelayCommand(_openUrl);
+         DeleteAccountCommand = new AsyncRelayCommand(_deleteAccountAsync);
+         OpenUrlCommand = new AsyncRelayCommand(_openUrlAsync);
          ViewActivitiesCommand = new RelayCommand(_viewActivities);
          MoveAccountUpCommand = new RelayCommand(_moveAccountUp);
          MoveAccountDownCommand = new RelayCommand(_moveAccountDown);
@@ -281,12 +282,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      private void _deleteAccount()
+      private async Task _deleteAccountAsync()
       {
          if (SelectedAccount is not { } accountViewModel
-            || AppServices.Dialogs.Confirm(
+            || await AppServices.AsyncDialogs.ConfirmAsync(
                Strings.Format(nameof(Strings.Msg_DeleteAccount), accountViewModel.AccountDisplay),
-               Strings.Title_DeleteAccount) != MessageBoxResult.Yes)
+               Strings.Title_DeleteAccount).ConfigureAwait(true) != DialogResult.Yes)
          {
             return;
          }
@@ -295,7 +296,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          SelectedAccount = index >= 0 && index < Accounts.Count ? Accounts[index] : null;
       }
 
-      private void _openUrl()
+      private async Task _openUrlAsync()
       {
          if (string.IsNullOrWhiteSpace(Url))
          {
@@ -305,16 +306,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          switch (ServiceUrlHelper.ClassifyForOpen(Url))
          {
             case ServiceUrlHelper.OpenDisposition.Rejected:
-               AppServices.Dialogs.Error(Strings.Msg_UrlSchemeNotAllowed, Strings.Title_OpenUrl);
+               await AppServices.AsyncDialogs.ErrorAsync(Strings.Msg_UrlSchemeNotAllowed, Strings.Title_OpenUrl).ConfigureAwait(true);
                return;
 
             case ServiceUrlHelper.OpenDisposition.RequiresHttpConfirmation:
-               if (AppServices.Dialogs.Confirm(
+               if (await AppServices.AsyncDialogs.ConfirmAsync(
                      Strings.Format(nameof(Strings.Msg_OpenHttpUrlConfirm), Url),
                      Strings.Title_OpenUrl,
-                     MessageBoxButton.YesNo,
-                     MessageBoxImage.Warning)
-                  != MessageBoxResult.Yes)
+                     DialogButtons.YesNo,
+                     DialogIcon.Warning).ConfigureAwait(true)
+                  != DialogResult.Yes)
                {
                   return;
                }

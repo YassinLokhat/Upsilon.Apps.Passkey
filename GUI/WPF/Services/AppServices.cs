@@ -21,7 +21,20 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
    /// </summary>
    internal static class AppServices
    {
-      public static IDialogService Dialogs { get; set; } = new DialogService();
+      private static IWindowDialogService _dialogs = _shareDialogs(new DialogService());
+
+      /// <summary>
+      /// Assigning also publishes the instance as the shared async dialog
+      /// service when it implements it, so both locators show the same dialogs.
+      /// </summary>
+      public static IWindowDialogService Dialogs
+      {
+         get => _dialogs;
+         set => _dialogs = _shareDialogs(value);
+      }
+
+      public static IDialogService AsyncDialogs
+         => SharedServices.Dialogs ?? throw new InvalidOperationException("No dialog service is registered.");
 
       public static ISessionService Session
       {
@@ -29,7 +42,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          set => SharedServices.Session = value;
       }
 
-      public static INavigationService Navigation { get; set; } = new NavigationService();
+      public static INavigationService Navigation
+      {
+         get => SharedServices.Navigation;
+         set => SharedServices.Navigation = value;
+      }
 
       // The library services below are shared with GUI/Presentation so both
       // locators always hand out the same instances.
@@ -85,6 +102,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
          Clipboard = new ClipboardManager();
          SecretProtector = new SecretMemoryProtector();
          OfflineLeakFilterUpdate = new OfflineLeakFilterUpdateService();
+      }
+
+      private static IWindowDialogService _shareDialogs(IWindowDialogService dialogs)
+      {
+         ArgumentNullException.ThrowIfNull(dialogs);
+         if (dialogs is IDialogService shared)
+         {
+            SharedServices.Dialogs = shared;
+         }
+
+         return dialogs;
       }
    }
 }

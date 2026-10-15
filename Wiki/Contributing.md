@@ -54,7 +54,7 @@ Shared rules live in `.editorconfig` and `Directory.Build.props`:
 * Private fields and private methods: `_camelCase`
 * Private `const` fields: `SCREAMING_SNAKE`
 * Interfaces: `I…` prefix
-* WPF ViewModels: inherit `ObservableObject`; use `RelayCommand`; open UI via `IDialogService`
+* WPF ViewModels: inherit `ObservableObject`; use `RelayCommand`; ask the user via the shared async `IDialogService`; host windows via `IWindowDialogService`
 * Helpers: `ItemExtensions` (Interfaces), `SerializationHelpers` (Core)
 
 Match the surrounding file. Do not reformat unrelated code.
