@@ -10,6 +10,5 @@
   </Folder>
   <Folder Name="/GUI/">
     <Project Path="GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj" />
-    <Project Path="GUI/MAUI/Upsilon.Apps.Passkey.GUI.MAUI.csproj" />
   </Folder>
 </Solution>

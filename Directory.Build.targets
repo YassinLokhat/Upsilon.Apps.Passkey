@@ -1,9 +1,10 @@
 <Project>
 
   <!--
-    Zero-dependency gate for Core / Utils / Interfaces / WPF.
+    Zero-dependency gate for Core / Utils / Interfaces / WPF / Presentation.
     Opt in with <EnforceZeroExternalDependencies>true</EnforceZeroExternalDependencies>.
-    See CONTRIBUTING.md.
+    The MAUI host may set <AllowedExternalPackagePrefixes> (semicolon-separated
+    Identity prefixes) to allowlist Microsoft packages only. See CONTRIBUTING.md.
   -->
   <Target Name="EnforceZeroExternalDependencies"
           BeforeTargets="Build;Pack"
@@ -15,8 +16,16 @@
     <ItemGroup>
       <_DisallowedPackageReference Include="@(PackageReference)" Exclude="Microsoft.NET.ILLink.Tasks" />
     </ItemGroup>
+
+    <!-- MAUI host allowlist: Microsoft.Maui.* only (see AllowedExternalPackagePrefixes). -->
+    <ItemGroup Condition="'$(AllowedExternalPackagePrefixes)' != '' AND $(AllowedExternalPackagePrefixes.Contains('Microsoft.Maui.'))">
+      <_AllowedMauiPackage Include="@(_DisallowedPackageReference)"
+                           Condition="$([System.String]::Copy('%(Identity)').StartsWith('Microsoft.Maui.'))" />
+      <_DisallowedPackageReference Remove="@(_AllowedMauiPackage)" />
+    </ItemGroup>
+
     <Error Condition="'@(_DisallowedPackageReference)' != ''"
-           Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(_DisallowedPackageReference))." />
+           Text="Zero-dependency policy violated in '$(MSBuildProjectName)': external NuGet packages are not allowed (found: @(_DisallowedPackageReference)). Allowed prefixes: '$(AllowedExternalPackagePrefixes)'." />
   </Target>
 
 </Project>
