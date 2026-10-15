@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
@@ -16,9 +17,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
    /// </summary>
    internal sealed class ClipboardManager : IClipboardService, IDisposable
    {
-      // Windows clipboard data formats that keep a secret out of history, cloud
-      // clipboard, and clipboard-monitoring apps (undocumented but widely used).
-      private const string EXCLUDE_FORMAT = "ExcludeClipboardContentFromMonitoring";
+      // Win32 clipboard formats that keep a secret out of history, cloud
+      // clipboard, and clipboard-monitoring apps.
+      private const string EXCLUDE_FORMAT = "ExcludeClipboardContentFromMonitorProcessing";
       private const string HISTORY_FORMAT = "CanIncludeInClipboardHistory";
       private const string CLOUD_FORMAT = "CanUploadToCloudClipboard";
 
@@ -133,11 +134,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
 
       private static bool _write(string text)
       {
+         // WPF writes streams as raw bytes but serializes a bool behind a header,
+         // which Windows would read as a non-zero DWORD ("allowed").
+         using MemoryStream exclude = new(new byte[sizeof(int)]);
+         using MemoryStream history = new(new byte[sizeof(int)]);
+         using MemoryStream cloud = new(new byte[sizeof(int)]);
          DataObject data = new();
          data.SetText(text);
-         data.SetData(EXCLUDE_FORMAT, true);
-         data.SetData(HISTORY_FORMAT, false);
-         data.SetData(CLOUD_FORMAT, false);
+         data.SetData(EXCLUDE_FORMAT, exclude);
+         data.SetData(HISTORY_FORMAT, history);
+         data.SetData(CLOUD_FORMAT, cloud);
 
          try
          {
