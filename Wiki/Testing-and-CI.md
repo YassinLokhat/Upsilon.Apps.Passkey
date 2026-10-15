@@ -7,6 +7,7 @@ Two test projects:
 | Project | TFM | Scope |
 | ------- | --- | ----- |
 | `UnitTests/Multiplateform/` | `net10.0` | Core + Utils (vault lifecycle, import/export, crypto, models). Asserts structured activity fields via `ExpectedActivity` — not localized UI strings. |
+| `UnitTests/Presentation/` | `net10.0` | Shared Presentation ports / ViewModels (Linux + Windows CI). |
 | `UnitTests/Windows/` | `net10.0-windows` | WPF ViewModels / localization through `AppServices` fakes. Localized activity rendering lives here (`ActivityAssertHelper`, `ActivityViewModelMessageTests`). |
 
 There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay on the [[WPF Client]] manual smoke list.
@@ -42,8 +43,10 @@ Windows and Linux build workflows run on push to `master` and on pull requests. 
 | Workflow | What it does |
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Multiplateform tests); `dotnet test` runs Multiplateform with the **90% Core line-coverage gate** |
-| `.github/workflows/codeql.yml` | CodeQL on a Release build of production projects (both test projects removed from the solution for the trace); weekly scan as well; SARIF filtered for `bin`/`obj`/`*.g.cs` |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Multiplateform + Presentation tests); `dotnet test` with the **90% Core line-coverage gate** |
+| `.github/workflows/csharp-dotnet-maui-windows.yml` | MAUI workloads, locked restore of `Upsilon.Apps.Passkey.MAUI.slnx`, NuGet audit, versions check, Debug + Release `-f net10.0-windows10.0.19041.0` |
+| `.github/workflows/csharp-dotnet-maui-android.yml` | JDK 17, `maui-android` workload, locked restore, NuGet audit, Debug + Release `-f net10.0-android` (signed publish via protected Environment secrets — not in-repo) |
+| `.github/workflows/codeql.yml` | CodeQL on a Release build of production projects (test projects removed from the solution for the trace); installs MAUI workloads; weekly scan; SARIF filtered for `bin`/`obj`/`*.g.cs` |
 | `.github/workflows/publish-wiki.yml` | On `Wiki/**` changes to `master`: publish the `Wiki/` folder to the GitHub Wiki |
 
 ### Cutting a GitHub Release

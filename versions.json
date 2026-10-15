@@ -32,6 +32,18 @@
         "interfaces": "[2.0.0,3.0.0)"
       }
     },
+    "presentation": {
+      "id": "Upsilon.Apps.Passkey.GUI.Presentation",
+      "project": "GUI/Presentation/Upsilon.Apps.Passkey.GUI.Presentation.csproj",
+      "version": "2.0.0",
+      "kind": "library",
+      "ship": false,
+      "tagPrefix": "presentation",
+      "dependencies": {
+        "core": "[2.0.0,3.0.0)",
+        "utils": "[2.0.0,3.0.0)"
+      }
+    },
     "wpf": {
       "id": "Upsilon.Apps.Passkey.GUI.WPF",
       "project": "GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj",
@@ -43,12 +55,36 @@
       "publishDir": "GUI/WPF/bin/Release/net10.0-windows10.0.18362.0/publish/win-x64",
       "dependencies": {
         "core": "[2.0.0,3.0.0)",
-        "utils": "[2.0.0,3.0.0)"
+        "utils": "[2.0.0,3.0.0)",
+        "presentation": "[2.0.0,3.0.0)"
+      }
+    },
+    "maui": {
+      "id": "Upsilon.Apps.Passkey.GUI.MAUI",
+      "project": "GUI/MAUI/Upsilon.Apps.Passkey.GUI.MAUI.csproj",
+      "version": "2.0.0",
+      "kind": "app",
+      "ship": true,
+      "tagPrefix": "maui",
+      "assetStem": "Upsilon.Apps.Passkey.GUI.MAUI-{version}",
+      "publishDir": "GUI/MAUI/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish",
+      "dependencies": {
+        "core": "[2.0.0,3.0.0)",
+        "utils": "[2.0.0,3.0.0)",
+        "presentation": "[2.0.0,3.0.0)"
       }
     },
     "unitTestsMultiplateform": {
       "id": "UnitTests.Multiplateform",
       "project": "UnitTests/Multiplateform/UnitTests.Multiplateform.csproj",
+      "version": "1.0.0",
+      "kind": "test",
+      "ship": false,
+      "dependencies": {}
+    },
+    "unitTestsPresentation": {
+      "id": "UnitTests.Presentation",
+      "project": "UnitTests/Presentation/UnitTests.Presentation.csproj",
       "version": "1.0.0",
       "kind": "test",
       "ship": false,

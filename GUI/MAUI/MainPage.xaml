@@ -1,49 +1,36 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.ViewModels"
+             xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
              x:Class="Upsilon.Apps.Passkey.GUI.MAUI.MainPage"
              x:ClassModifier="internal"
-             x:DataType="viewmodels:MainPageViewModel"
-             BindingContext="viewmodels:MainPageViewModel"
-             Title="{Binding WindowTitle}">
+             x:DataType="viewmodels:LoginViewModel"
+             Title="Passkey">
    <ScrollView>
-      <VerticalStackLayout
-            Padding="30,0"
-            Spacing="25"
-            VerticalOptions="Center">
+      <VerticalStackLayout Padding="30,0" Spacing="16" VerticalOptions="Center">
 
-         <FlexLayout Direction="Row"
-                     HorizontalOptions="Fill">
-            <Label Text="{Binding CredentialsLabel}"
-                  MinimumWidthRequest="150"
-                  Style="{StaticResource SubHeadline}"
-                  SemanticProperties.HeadingLevel="Level2" />
-            <Entry Keyboard="Default"
-                  MaxLength="100"
-                  FlexLayout.Grow="1"
-                  VerticalTextAlignment="Center"
-                  HorizontalOptions="Fill"
-                  Text="{Binding ActualCredential, Mode=TwoWay}"
-                  IsPassword="{Binding DatabaseOpened}"
-                  ReturnCommand="{Binding CredentialCompleted}"/>
-            <Button Text="✕"
-                  Command="{Binding ResetCredential}"/>
-         </FlexLayout>
-         
-         <Button Text="Open database" 
-                SemanticProperties.Hint="Open database"
-                HorizontalOptions="Fill" />
-         <Button Text="New user" 
-                SemanticProperties.Hint="New user"
-                HorizontalOptions="Fill" />
-         <Button Text="App settings" 
-                SemanticProperties.Hint="App settings"
-                HorizontalOptions="Fill" />
-         <Button Text="Open Password generator" 
-                SemanticProperties.Hint="Open Password generator"
-                HorizontalOptions="Fill" />
+         <Label Text="{Binding CredentialsLabel}"
+                Style="{StaticResource SubHeadline}" />
+
+         <!-- Passkey/username: never TwoWay-bound to a secret property. Autofill off. -->
+         <Entry x:Name="CredentialEntry"
+                MaxLength="256"
+                IsPassword="{Binding DatabaseOpened}"
+                IsTextPredictionEnabled="False"
+                IsSpellCheckEnabled="False"
+                ReturnType="Done"
+                Completed="_onCredentialCompleted" />
+
+         <Label Text="{Binding StatusMessage}"
+                LineBreakMode="WordWrap" />
+
+         <Button Text="Open by username"
+                 Clicked="_onOpenByUsername" />
+         <Button Text="Reset"
+                 Clicked="_onReset" />
+         <Button Text="Open vault…"
+                 Clicked="_onPickVault" />
+
       </VerticalStackLayout>
    </ScrollView>
-   
 </ContentPage>

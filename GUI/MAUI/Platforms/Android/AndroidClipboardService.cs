@@ -1,0 +1,150 @@
+#if ANDROID
+using System.Runtime.Versioning;
+using Android.Content;
+using Android.OS;
+using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+using AndroidApp = Android.App.Application;
+
+namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
+{
+   /// <summary>
+   /// Android clipboard with EXTRA_IS_SENSITIVE when API allows.
+   /// History scrub has no equivalent — RemoveAllOccurrence is a documented no-op.
+   /// </summary>
+   internal sealed class AndroidClipboardService : IClipboardService, IDisposable
+   {
+      private readonly Lock _gate = new();
+      private string? _tracked;
+      private CancellationTokenSource? _clearCts;
+      private bool _disposed;
+
+      public void SetText(string text, TimeSpan? autoClearAfter = null)
+      {
+         if (string.IsNullOrEmpty(text))
+         {
+            return;
+         }
+
+         Context? context = AndroidApp.Context;
+         ClipboardManager? cm = context?.GetSystemService(Context.ClipboardService) as ClipboardManager;
+         if (cm is null)
+         {
+            Clipboard.Default.SetTextAsync(text).GetAwaiter().GetResult();
+         }
+         else
+         {
+            ClipData? clip = ClipData.NewPlainText("passkey", text);
+            if (clip is null)
+            {
+               Clipboard.Default.SetTextAsync(text).GetAwaiter().GetResult();
+            }
+            else
+            {
+               if (OperatingSystem.IsAndroidVersionAtLeast(33) && clip.Description is { } desc)
+               {
+                  _markSensitive(desc);
+               }
+
+               cm.PrimaryClip = clip;
+            }
+         }
+
+         if (autoClearAfter is { } delay && delay > TimeSpan.Zero)
+         {
+            lock (_gate)
+            {
+               _tracked = text;
+               _clearCts?.Cancel();
+               _clearCts = new CancellationTokenSource();
+               CancellationToken token = _clearCts.Token;
+               _ = Task.Run(async () =>
+               {
+                  try
+                  {
+                     await Task.Delay(delay, token).ConfigureAwait(false);
+                     ClearIfStillOwned();
+                  }
+                  catch (System.OperationCanceledException)
+                  {
+                     // Replaced.
+                  }
+               }, token);
+            }
+         }
+      }
+
+      public void SetText(string text, int autoClearAfter)
+         => SetText(text, autoClearAfter > 0 ? TimeSpan.FromSeconds(autoClearAfter) : null);
+
+      public Task<int> RemoveAllOccurrenceAsync(IEnumerable<string> removeList, CancellationToken cancellationToken = default)
+      {
+         // No clipboard-history scrub API on Android.
+         ArgumentNullException.ThrowIfNull(removeList);
+         return Task.FromResult(0);
+      }
+
+      public void ClearIfStillOwned()
+      {
+         lock (_gate)
+         {
+            string? tracked = _tracked;
+            _tracked = null;
+            if (tracked is null)
+            {
+               return;
+            }
+
+            try
+            {
+               Context? context = AndroidApp.Context;
+               ClipboardManager? cm = context?.GetSystemService(Context.ClipboardService) as ClipboardManager;
+               if (cm?.PrimaryClip is { } clip
+                   && clip.ItemCount > 0
+                   && string.Equals(clip.GetItemAt(0)?.Text, tracked, StringComparison.Ordinal))
+               {
+                  cm.ClearPrimaryClip();
+               }
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or Java.Lang.Exception)
+            {
+               // Foreground-only clear on Android 10+.
+            }
+         }
+      }
+
+      public void Dispose()
+      {
+         if (_disposed)
+         {
+            return;
+         }
+
+         _disposed = true;
+         lock (_gate)
+         {
+            _clearCts?.Cancel();
+            _clearCts?.Dispose();
+            _clearCts = null;
+            _tracked = null;
+         }
+      }
+
+      [SupportedOSPlatform("android33.0")]
+      private static void _markSensitive(ClipDescription desc)
+      {
+         PersistableBundle? existing = desc.Extras;
+         if (existing is not null)
+         {
+            existing.PutBoolean(ClipDescription.ExtraIsSensitive, true);
+            desc.Extras = existing;
+            return;
+         }
+
+         // Owned by ClipDescription after assignment — do not Dispose.
+         PersistableBundle extras = new();
+         extras.PutBoolean(ClipDescription.ExtraIsSensitive, true);
+         desc.Extras = extras;
+      }
+   }
+}
+#endif
