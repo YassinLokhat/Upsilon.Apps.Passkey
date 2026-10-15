@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.IO;
 using System.Security;
 using System.Windows;
@@ -635,7 +635,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
       /// <summary>
       /// Starts or restarts the login idle countdown from
-      /// <see cref="Models.AppSettings.LoginIdleTimeoutSeconds"/>. A value of
+      /// <see cref="Presentation.Models.AppSettings.LoginIdleTimeoutSeconds"/>. A value of
       /// <c>0</c> leaves the timer off (no reset, no title countdown).
       /// </summary>
       private void _armIdleTimer()

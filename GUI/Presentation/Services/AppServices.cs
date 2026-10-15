@@ -24,6 +24,10 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
 
       public static IAppPaths? Paths { get; set; }
 
+      public static IAppSettingsStore? Settings { get; set; }
+
+      public static IHostCapabilities Capabilities { get; set; } = HostCapabilities.Desktop;
+
       public static IThemePlatform? Theme { get; set; }
 
       public static ILauncher? Launcher { get; set; }
@@ -52,6 +56,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
          Ui = null;
          Timers = null;
          Paths = null;
+         Settings = null;
+         Capabilities = HostCapabilities.Desktop;
          Theme = null;
          Launcher = null;
          Lifecycle = null;

@@ -36,7 +36,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          {
             if (!Directory.Exists(value))
             {
-               value = new AppSettings().DefaultDatabaseDirectory;
+               value = AppInfo.SettingsStore.CreateDefault().DefaultDatabaseDirectory;
             }
 
             _ = SetProperty(ref field, value);
@@ -208,7 +208,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       /// </summary>
       public static bool Save()
       {
-         AppInfo.AppSettings.Save(AppInfo.ConfigFile);
+         AppInfo.SaveAppSettings();
          bool languageChanged = LocalizationService.ApplyEffective(
             AppInfo.AppSettings.Language,
             AppServices.Session.User?.Settings.Language);
@@ -222,7 +222,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void Reset()
       {
-         AppInfo.AppSettings = new AppSettings();
+         AppInfo.AppSettings = AppInfo.SettingsStore.CreateDefault();
 
          DefaultDatabaseDirectory = AppInfo.AppSettings.DefaultDatabaseDirectory;
          SelectedLanguage = LocalizationService.GetLanguageOrDefault(AppInfo.AppSettings.Language);

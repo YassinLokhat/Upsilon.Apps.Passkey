@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
@@ -278,7 +278,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   = _viewModel.OfflineLeakFilterAutoUpdateFrequency
                   = 7;
                AppInfo.AppSettings.LocalLeakDatabaseQuality = _viewModel.SelectedLeakFilterQuality.Code;
-               AppInfo.AppSettings.Save(AppInfo.ConfigFile);
+               AppInfo.SaveAppSettings();
             }
 
             _viewModel.OfflineLeakFilterProgress = _completionMessage(result.Value);

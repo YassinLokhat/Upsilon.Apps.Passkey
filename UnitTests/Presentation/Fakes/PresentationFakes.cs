@@ -64,7 +64,7 @@ namespace UnitTests.Presentation.Fakes
 
       public string LogDirectory => defaultDatabaseDirectory;
 
-      public string? OfflineLeakFilterPath => null;
+      public string? OfflineLeakFilterPath { get; init; }
 
       public string CacheDirectory => defaultDatabaseDirectory;
    }
