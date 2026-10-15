@@ -29,7 +29,10 @@ Parity progress: [[MAUI Parity Checklist]]. Today MAUI is a preview: login, the 
 
 ## Android security posture
 
-- `FLAG_SECURE` on `MainActivity`
+- `FLAG_SECURE` on `MainActivity`, recents screenshot disabled on API 33+ (MAUI alert windows are not covered; they never show secrets)
+- Background lock: `BackgroundLockPolicy` closes an open vault on resume after `BackgroundLockSeconds` (default 30); revealed passwords and passkeys are re-masked on background (`BackgroundGuard`)
+- Conflict copies: one per session (later flushes stop after a conflict), at most five per vault, saved out from the login screen through `IConflictCopyStore` + `IFileExchange`
+- SAF grants: only the vault in use keeps its persisted grant; stale grants are released at startup
 - `allowBackup=false` + full / device-transfer exclusion XML
 - `network_security_config` (no cleartext; system trust anchors only)
 - Manifest: `INTERNET` only (no `ACCESS_NETWORK_STATE`)

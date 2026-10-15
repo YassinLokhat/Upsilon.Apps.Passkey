@@ -18,6 +18,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
       private readonly Dictionary<IDatabase, TaskCompletionSource<bool>> _deleting = new(ReferenceEqualityComparer.Instance);
       private readonly Dictionary<IDatabase, (string FileName, TaskCompletionSource<VaultRenameOutcome> Done)> _renaming = new(ReferenceEqualityComparer.Instance);
       private IDatabase? _database;
+      private readonly HashSet<IVaultSource> _conflicted = [];
       private IClipboardService? _clipboard;
       private bool _disposed;
 
@@ -71,6 +72,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
             lock (_gate)
             {
                _ = _sources.Remove(database);
+               _ = _conflicted.Remove(source);
                _ = _deleting.Remove(database, out deleted);
                renaming = _renaming.Remove(database, out rename);
             }
@@ -103,6 +105,16 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
             return null;
          }
 
+         // After a conflict every later flush would conflict again and add one more copy;
+         // the user was told once, the final write-back at close still runs.
+         lock (_gate)
+         {
+            if (_conflicted.Contains(source))
+            {
+               return VaultWriteBackResult.Conflict;
+            }
+         }
+
          VaultWriteBackResult? result = null;
          await _enqueue(async () =>
          {
@@ -121,6 +133,14 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
 
             (VaultWriteBackResult written, Exception? failure) = await _tryWriteBackAsync(source).ConfigureAwait(false);
             result = written;
+            if (written == VaultWriteBackResult.Conflict)
+            {
+               lock (_gate)
+               {
+                  _ = _conflicted.Add(source);
+               }
+            }
+
             _report(written, failure);
          }).ConfigureAwait(false);
 

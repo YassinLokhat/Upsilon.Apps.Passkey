@@ -32,6 +32,83 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
       {
          _session = AppServices.Session;
          _session.WriteBackCompleted += _onWriteBackCompleted;
+         SaveConflictCopiesCommand = new AsyncRelayCommand(SaveConflictCopiesAsync, () => HasConflictCopies && IsIdle);
+         RefreshConflictCopies();
+      }
+
+      public AsyncRelayCommand SaveConflictCopiesCommand { get; }
+
+      public int ConflictCopyCount
+      {
+         get;
+         private set
+         {
+            if (SetProperty(ref field, value))
+            {
+               OnPropertyChanged(nameof(HasConflictCopies));
+               OnPropertyChanged(nameof(ConflictCopiesMessage));
+               SaveConflictCopiesCommand.RaiseCanExecuteChanged();
+            }
+         }
+      }
+
+      public bool HasConflictCopies => ConflictCopyCount > 0;
+
+      public string ConflictCopiesMessage
+         => HasConflictCopies ? Strings.Format(nameof(Strings.Login_ConflictCopies), ConflictCopyCount) : string.Empty;
+
+      public void RefreshConflictCopies()
+         => ConflictCopyCount = AppServices.ConflictCopies?.List().Count ?? 0;
+
+      /// <summary>
+      /// Saves each conflict copy through the host file exchange and deletes it once
+      /// written. Stops at the first cancelled picker; copies not saved stay on the device.
+      /// </summary>
+      public async Task SaveConflictCopiesAsync()
+      {
+         if (AppServices.ConflictCopies is not { } store || AppServices.Files is not { } files || IsBusy)
+         {
+            return;
+         }
+
+         IsBusy = true;
+         try
+         {
+            foreach (ConflictCopy copy in store.List())
+            {
+               ExchangeFile? target = await files.OpenWriteAsync(Strings.Title_SaveConflictCopy, copy.FileName, ".pku").ConfigureAwait(true);
+               if (target is null)
+               {
+                  break;
+               }
+
+               try
+               {
+                  await using (target.ConfigureAwait(true))
+                  {
+                     using Stream source = store.OpenRead(copy);
+                     await source.CopyToAsync(target.Stream).ConfigureAwait(true);
+                  }
+
+                  store.Delete(copy);
+               }
+               catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+               {
+                  AppServices.Log.Warn($"Saving a conflict copy failed: {ErrorText.ForLog(ex)}");
+                  if (AppServices.Dialogs is { } dialogs)
+                  {
+                     await dialogs.WarnAsync(Strings.Msg_ConflictCopySaveFailed, Strings.Title_SaveConflictCopy).ConfigureAwait(true);
+                  }
+
+                  break;
+               }
+            }
+         }
+         finally
+         {
+            IsBusy = false;
+            RefreshConflictCopies();
+         }
       }
 
       public void Dispose()
@@ -65,6 +142,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             if (SetProperty(ref _isBusy, value))
             {
                OnPropertyChanged(nameof(IsIdle));
+               SaveConflictCopiesCommand.RaiseCanExecuteChanged();
             }
          }
       }
@@ -191,6 +269,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
                VaultCheckoutResult.StaleCopyKeptAsConflict => $"{Strings.Login_StaleCopyKeptAsConflict} {Strings.Login_EnterPasskeys}",
                _ => Strings.Login_EnterPasskeys,
             };
+            RefreshConflictCopies();
          }
          catch (InsufficientKdfParametersException)
          {
@@ -353,11 +432,15 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
                _clearSessionState();
             }
 
+            RefreshConflictCopies();
             SessionEnded?.Invoke(this, e);
          });
       }
 
       private void _onWriteBackCompleted(object? sender, VaultWriteBackEventArgs e)
-         => StatusMessage = e.Message;
+      {
+         StatusMessage = e.Message;
+         RefreshConflictCopies();
+      }
    }
 }

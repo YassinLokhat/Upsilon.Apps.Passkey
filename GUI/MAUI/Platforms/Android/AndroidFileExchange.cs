@@ -38,7 +38,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
       {
          using Intent intent = new(Intent.ActionCreateDocument);
          intent.AddCategory(Intent.CategoryOpenable);
-         intent.SetType(string.Equals(extension, ".json", StringComparison.OrdinalIgnoreCase) ? "application/json" : "text/csv");
+         intent.SetType(extension.ToUpperInvariant() switch { ".JSON" => "application/json", ".CSV" => "text/csv", _ => "application/octet-stream" });
          intent.PutExtra(Intent.ExtraTitle, suggestedFileName);
          intent.AddFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.GrantWriteUriPermission);
 

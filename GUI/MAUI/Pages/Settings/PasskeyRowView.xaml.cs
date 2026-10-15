@@ -1,3 +1,4 @@
+using Upsilon.Apps.Passkey.GUI.MAUI.Adapters;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Settings
@@ -9,6 +10,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Settings
       public PasskeyRowView()
       {
          InitializeComponent();
+         BackgroundGuard.Attach(this, () => SecretEntry.IsPassword = true);
       }
 
       public string Read() => SecretEntry.Text ?? string.Empty;

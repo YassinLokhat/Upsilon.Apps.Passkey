@@ -32,6 +32,15 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Models
       /// </summary>
       public int LoginIdleTimeoutSeconds { get; set; } = 5;
 
+      public const int DEFAULT_BACKGROUND_LOCK_SECONDS = 30;
+
+      /// <summary>
+      /// Seconds the app may stay in the background before an open vault is closed on
+      /// resume. <c>0</c> closes it on every return. Only hosts with
+      /// <see cref="Ports.IAppLifecycle"/> (mobile) use it.
+      /// </summary>
+      public int BackgroundLockSeconds { get; set; } = DEFAULT_BACKGROUND_LOCK_SECONDS;
+
       /// <summary>
       /// When <see langword="true"/> and the <c>.pkbf</c> exists, use it after HIBP/XON fail.
       /// Disabling never deletes the on-disk filter.

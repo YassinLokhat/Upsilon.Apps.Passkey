@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Upsilon.Apps.Passkey.GUI.MAUI.Adapters;
 using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
@@ -6,14 +7,17 @@ using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI
 {
+   [SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable", Justification = "The policy lives as long as the process-wide Application.")]
    internal sealed partial class App : Application
    {
       private readonly MauiAppLifecycle _lifecycle = new();
+      private readonly BackgroundLockPolicy _backgroundLock;
 
       public App()
       {
          InitializeComponent();
          AppServices.Lifecycle = _lifecycle;
+         _backgroundLock = new BackgroundLockPolicy(_lifecycle);
          _ = AppServices.Settings?.Load();
          _ = LocalizationService.Apply(AppServices.Settings?.Current.Language ?? LocalizationService.SystemCode);
          AppServices.Theme?.Apply(AppServices.Settings?.Current.Theme ?? ThemePreferences.SystemCode);

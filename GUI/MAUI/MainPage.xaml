@@ -42,6 +42,13 @@
                  IsEnabled="{Binding IsIdle}"
                  Clicked="_onReset" />
 
+         <Label Text="{Binding ConflictCopiesMessage}"
+                IsVisible="{Binding HasConflictCopies}"
+                LineBreakMode="WordWrap" />
+         <Button Text="{loc:Loc Button_SaveConflictCopies}"
+                 IsVisible="{Binding HasConflictCopies}"
+                 Command="{Binding SaveConflictCopiesCommand}" />
+
       </VerticalStackLayout>
    </ScrollView>
 </ContentPage>

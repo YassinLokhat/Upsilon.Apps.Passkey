@@ -528,8 +528,10 @@ These are conscious trade-offs, documented for transparency:
   providers are unreachable (same as a Windows host without a filter).
 - **Multi-device sync**: only one writer at a time. Android SAF write-back
   re-hashes the source and never overwrites silently: on conflict the
-  write-back is refused and the working copy is kept locally (an explicit keep
-  both / reload / overwrite choice is not implemented yet). Whole-file rollback
+  write-back is refused, the working copy is kept as one conflict copy for the
+  session, and automatic background flushes stop until the vault is closed (an
+  explicit keep both / reload / overwrite choice is not implemented yet).
+  Whole-file rollback
   remains a residual risk without a monotonic generation counter (out of scope
   for v1; see ADR-001).
 - **SAF write is not atomic**: SAF has no atomic replace, so write-back
@@ -543,13 +545,25 @@ These are conscious trade-offs, documented for transparency:
   the document URI and keeps the source URI and pristine hash. On the next open,
   edits left by an interrupted run are recovered only if the source still
   matches the pristine hash; otherwise they are kept aside as a conflict copy
-  in app-private storage (no listing UI yet). These files are ciphertext but
-  can hold an older vault state.
+  in app-private storage. At most five copies are kept per vault; the login
+  screen offers to save them through the system file picker and deletes each one
+  once saved. These files are ciphertext but can hold an older vault state.
+- **Background lock on Android**: an open vault is closed when the app returns
+  after staying in the background for `BackgroundLockSeconds` (default 30,
+  `0` = every return); pending edits are flushed first. Revealed passwords and
+  passkeys are masked again as soon as the app leaves the foreground.
+- **Screenshots of dialogs on Android**: `FLAG_SECURE` covers the activity and
+  the recents thumbnail, but MAUI alert and action-sheet windows are separate
+  windows without it. They only show messages and labels, never a password or
+  passkey.
+- **SAF grants**: persisted read/write grants are kept only for the vault in
+  use; grants of other picked vaults are released, and leftovers from earlier
+  runs are released at startup.
 - **Vault file names**: a vault file is named after the unsalted hash of its
   username, so file listings and cloud metadata reveal that hash.
-- **MAUI client status**: the MAUI client is a preview (login and a read-only
-  session overview) and is not shipped or supported yet; WPF remains the
-  supported Windows client.
+- **MAUI client status**: the MAUI client is a preview (login, vault editor,
+  tools, alerts and settings) and is not shipped or supported yet; WPF remains
+  the supported Windows client.
 
 ## Reporting Non-Security Bugs
 

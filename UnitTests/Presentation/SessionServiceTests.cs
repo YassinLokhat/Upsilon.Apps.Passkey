@@ -291,6 +291,22 @@ namespace UnitTests.Presentation
          _ = source.Disposed.Should().BeTrue();
       }
 
+      [TestMethod]
+      public async Task FlushToSource_AfterConflict_StopsWritingForTheSession()
+      {
+         using SessionService session = new();
+         IDatabase database = _createDatabase();
+         FakeVaultSource source = new(VaultWriteBackResult.Conflict);
+         session.TrackVaultSource(database, source);
+         session.StartSession(database);
+
+         (await session.FlushToSourceAsync()).Should().Be(VaultWriteBackResult.Conflict);
+         (await session.FlushToSourceAsync()).Should().Be(VaultWriteBackResult.Conflict);
+
+         source.WriteCount.Should().Be(1);
+         session.EndSession();
+      }
+
       private static IDatabase _createDatabase()
       {
          UnitTestsHelper.ClearTestEnvironment();
