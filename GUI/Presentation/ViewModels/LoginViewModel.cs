@@ -310,7 +310,10 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          try
          {
             source = await AppServices.VaultSources.OpenPathAsync(location, cancellationToken).ConfigureAwait(true);
-            VaultCheckoutResult checkout = await source.CheckoutAsync(cancellationToken).ConfigureAwait(true);
+            IVaultSource opened = source;
+            VaultCheckoutResult checkout = await AppServices.Session
+               .RunSourceOperationAsync(() => opened.CheckoutAsync(cancellationToken))
+               .ConfigureAwait(true);
 
             database = await Core.Models.Database.OpenAsync(
                AppServices.Cryptography,

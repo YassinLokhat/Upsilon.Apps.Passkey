@@ -143,6 +143,41 @@ namespace UnitTests.Presentation
       }
 
       [TestMethod]
+      public async Task SourceOperation_WaitsForThePreviousSessionWriteBack()
+      {
+         using SessionService session = new();
+         TaskCompletionSource gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+         List<string> order = [];
+         FakeVaultSource closing = new(VaultWriteBackResult.Written) { Gate = gate.Task, OnWrite = () => order.Add("write-back") };
+
+         IDatabase database = _createDatabase();
+         session.TrackVaultSource(database, closing);
+         database.Close();
+
+         Task<int> checkout = session.RunSourceOperationAsync(() =>
+         {
+            order.Add("checkout");
+            return Task.FromResult(42);
+         });
+
+         _ = checkout.IsCompleted.Should().BeFalse();
+         gate.SetResult();
+         _ = (await checkout).Should().Be(42);
+         _ = order.Should().Equal("write-back", "checkout");
+      }
+
+      [TestMethod]
+      public async Task SourceOperation_Failure_ReachesTheCaller_AndDoesNotBlockTheQueue()
+      {
+         using SessionService session = new();
+
+         Func<Task> failing = () => session.RunSourceOperationAsync<int>(() => throw new IOException("checkout"));
+
+         _ = await failing.Should().ThrowAsync<IOException>();
+         _ = (await session.RunSourceOperationAsync(() => Task.FromResult(1))).Should().Be(1);
+      }
+
+      [TestMethod]
       public void Session_EndIsIdempotent_AndCopiedSecretsAreRemembered()
       {
          FakeClipboardService clipboard = (FakeClipboardService)AppServices.Clipboard!;
