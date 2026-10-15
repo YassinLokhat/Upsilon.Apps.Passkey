@@ -870,5 +870,67 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          reopened.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * When the closing flush fails (here: the vault was rewritten externally),
+       * Close still surfaces the error but tears the session down: DatabaseClosed
+       * is raised and the file handle / sibling .lock are released, so the vault
+       * can be reopened without restarting the process.
+      */
+      public void Case20_CloseReleasesVaultWhenFlushFails()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         bool closedRaised = false;
+         database.DatabaseClosed += (_, _) => closedRaised = true;
+
+         File.SetLastWriteTimeUtc(databaseFile, File.GetLastWriteTimeUtc(databaseFile).AddMinutes(-5));
+
+         Action close = () => database.Close();
+         _ = close.Should().Throw<ExternalVaultReplacedException>();
+         _ = closedRaised.Should().BeTrue();
+         _ = database.User.Should().BeNull();
+
+         IDatabase reopened = UnitTestsHelper.OpenTestDatabase(passkeys, out _);
+         _ = reopened.User.Should().NotBeNull();
+
+         reopened.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * SessionLeftTime is derived from a wall-clock deadline set by ResetTimer,
+       * so it tracks elapsed time (and expires after a background freeze)
+       * rather than counting timer ticks.
+      */
+      public void Case21_SessionLeftTimeFollowsWallClockDeadline()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase();
+
+         database.User!.Settings.LogoutTimeout = 5;
+         DateTime start = DateTime.UtcNow;
+         ((User)database.User).ResetTimer();
+
+         Thread.Sleep(TimeSpan.FromMilliseconds(2500));
+         DateTime deadline = DateTime.UtcNow.AddSeconds(5);
+         while (database.SessionLeftTime == 5 * 60 && DateTime.UtcNow < deadline)
+         {
+            Thread.Sleep(100);
+         }
+
+         int elapsed = (int)Math.Floor((DateTime.UtcNow - start).TotalSeconds);
+         int? left = database.SessionLeftTime;
+         _ = left.Should().BeLessThan(5 * 60);
+         _ = left.Should().BeInRange((5 * 60) - elapsed - 1, (5 * 60) - 1);
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

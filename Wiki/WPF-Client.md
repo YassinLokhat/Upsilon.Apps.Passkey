@@ -163,10 +163,10 @@ The GUI keeps the typed secret in `PasswordBox.SecurePassword` and bridges it th
 | `Ctrl+N` | New user |
 | `Ctrl+,` | App Settings (language, theme, default vault folder, login idle timeout, offline leak database) |
 | `Ctrl+P` | Password generator |
-| `Ctrl+Shift+L` | While the services window is open: paste the selected **identifier** into the focused field |
-| `Ctrl+Shift+P` | Paste the selected **password** into the focused field |
+| `Ctrl+Shift+L` | While the services window is open: copy the selected **identifier** to the clipboard |
+| `Ctrl+Shift+P` | Copy the selected **password** to the clipboard |
 
-Paste hotkeys copy via `IClipboardManager` then synthesize Ctrl+V. The clipboard still auto-clears after `ISettings.CleaningClipboardTimeout`, and Windows clipboard history is scrubbed through `RemoveAllOccurrenceAsync`.
+These hotkeys copy via `IClipboardManager` only; they do not paste into the focused field. The clipboard still auto-clears after `ISettings.CleaningClipboardTimeout`, and Windows clipboard history is scrubbed through `RemoveAllOccurrenceAsync`.
 
 ## QR codes
 

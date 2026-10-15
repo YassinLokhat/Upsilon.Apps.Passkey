@@ -126,5 +126,38 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
 
          _ = persistCount.Should().Be(2);
       }
+
+      [TestMethod]
+      /*
+       * An I/O failure on the debounce timer (ThreadPool) must not escape and
+       * kill the process; dirty is re-armed so the next explicit Flush retries.
+      */
+      public void Case08_TimerIoFailureIsSwallowedAndRetriedOnFlush()
+      {
+         int persistCount = 0;
+         using ManualResetEventSlim timerAttempted = new(false);
+         using DeferredPersistence deferred = new(() =>
+         {
+            if (Interlocked.Increment(ref persistCount) == 1)
+            {
+               timerAttempted.Set();
+               throw new IOException("simulated locked file");
+            }
+         }, TimeSpan.FromMilliseconds(20));
+
+         deferred.Schedule();
+
+         _ = timerAttempted.Wait(TimeSpan.FromSeconds(10)).Should().BeTrue();
+
+         // The timer re-arms dirty just after the throw; poll until it has.
+         DateTime deadline = DateTime.UtcNow.AddSeconds(10);
+         while (Volatile.Read(ref persistCount) < 2 && DateTime.UtcNow < deadline)
+         {
+            deferred.Flush();
+            Thread.Sleep(10);
+         }
+
+         _ = Volatile.Read(ref persistCount).Should().Be(2);
+      }
    }
 }

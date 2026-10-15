@@ -16,12 +16,14 @@
 Passkey remains **local-only**: there is no server-side merge. Opening the same `.pku` on Windows and Android (via copy or a sync folder) is supported with host-side conflict detection:
 
 1. **One writer at a time.** Close the vault and wait for the sync client before opening elsewhere.
-2. **Android:** SAF (tree or document) + persisted URI + private working copy under `NoBackupFilesDir`. Core keeps path-based `FileLocker` I/O on the working copy. Before write-back, re-hash the source; on mismatch, never overwrite silently — keep both / reload / overwrite with warning.
+2. **Android:** SAF document (`ACTION_OPEN_DOCUMENT`) + persisted URI + private working copy under `NoBackupFilesDir`. Core keeps path-based `FileLocker` I/O on the working copy. Before write-back, re-hash the source; on mismatch, never overwrite silently. Today the write-back is refused, the working copy is kept locally and the user is told; an explicit keep both / reload / overwrite choice is planned but not implemented. SAF tree mode (`ACTION_OPEN_DOCUMENT_TREE`) is not implemented either.
 3. **Windows:** detect external replace of the live `.pku` before atomic commit (session handle can retain the pre-replace inode); surface a conflict instead of silent overwrite.
 4. **No ZIP-entry merge** across copies (activity seal / autosave are not mergeable).
 5. **Offline `.pkbf`:** Windows only; Android uses online HIBP / XposedOrNot only.
 
 ## Spikes (manual — run on devices before Android release)
+
+Not run yet: no measurement has been recorded (see [[Spikes-MAUI]]).
 
 | Spike | Success criteria |
 | ----- | ---------------- |

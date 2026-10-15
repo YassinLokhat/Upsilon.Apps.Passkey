@@ -64,7 +64,7 @@
       "project": "GUI/MAUI/Upsilon.Apps.Passkey.GUI.MAUI.csproj",
       "version": "2.0.0",
       "kind": "app",
-      "ship": true,
+      "ship": false,
       "tagPrefix": "maui",
       "assetStem": "Upsilon.Apps.Passkey.GUI.MAUI-{version}",
       "publishDir": "GUI/MAUI/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish",
