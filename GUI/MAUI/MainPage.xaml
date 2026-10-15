@@ -9,6 +9,9 @@
    <ScrollView>
       <VerticalStackLayout Padding="30,0" Spacing="16" VerticalOptions="Center">
 
+         <Label Text="{Binding SelectedVaultName, StringFormat='Vault: {0}'}"
+                IsVisible="{Binding HasSelectedVault}" />
+
          <Label Text="{Binding CredentialsLabel}"
                 Style="{StaticResource SubHeadline}" />
 
@@ -16,20 +19,27 @@
          <Entry x:Name="CredentialEntry"
                 MaxLength="256"
                 IsPassword="{Binding DatabaseOpened}"
+                IsEnabled="{Binding IsIdle}"
                 IsTextPredictionEnabled="False"
                 IsSpellCheckEnabled="False"
                 ReturnType="Done"
                 Completed="_onCredentialCompleted" />
 
+         <ActivityIndicator IsRunning="{Binding IsBusy}"
+                            IsVisible="{Binding IsBusy}" />
+
          <Label Text="{Binding StatusMessage}"
                 LineBreakMode="WordWrap" />
 
-         <Button Text="Open by username"
-                 Clicked="_onOpenByUsername" />
-         <Button Text="Reset"
-                 Clicked="_onReset" />
+         <Button Text="Next"
+                 IsEnabled="{Binding IsIdle}"
+                 Clicked="_onCredentialCompleted" />
          <Button Text="Open vault…"
+                 IsEnabled="{Binding IsIdle}"
                  Clicked="_onPickVault" />
+         <Button Text="Reset"
+                 IsEnabled="{Binding IsIdle}"
+                 Clicked="_onReset" />
 
       </VerticalStackLayout>
    </ScrollView>

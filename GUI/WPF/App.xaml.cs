@@ -5,6 +5,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Adapters;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
 using WpfAppServices = Upsilon.Apps.Passkey.GUI.WPF.Services.AppServices;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF
@@ -77,6 +78,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       private static void _onDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
       {
          Log.Error(e.Exception, "Unhandled UI exception");
+
+         if (e.Exception is ExternalVaultReplacedException)
+         {
+            WpfAppServices.Dialogs.Error(Strings.Msg_VaultReplacedExternally, Strings.Title_Error);
+         }
+
          // The application keeps running; the caller has already shown any
          // feedback it needed. Marking as handled prevents the default crash.
          e.Handled = true;

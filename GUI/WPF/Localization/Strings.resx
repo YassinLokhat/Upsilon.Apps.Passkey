@@ -565,6 +565,9 @@ Please login again.</value>
   <data name="Msg_UserUpdated" xml:space="preserve">
     <value>'{0}' user database updated successfully</value>
   </data>
+  <data name="Msg_VaultReplacedExternally" xml:space="preserve">
+    <value>The vault file was modified or replaced by another program (for example a sync client) while it was open. Your changes were not written over it. Close the vault and reopen it to continue.</value>
+  </data>
   <data name="Msg_SaveBeforeContinue" xml:space="preserve">
     <value>Before continuing, all unsaved changes will be saved.</value>
   </data>

@@ -21,8 +21,12 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
       protected override void OnSleep()
       {
          base.OnSleep();
+#if ANDROID
+         // On Windows OnSleep also fires on minimize; the WPF client keeps the
+         // half-open login and the clipboard countdown in that case.
          AppServices.Clipboard?.ClearIfStillOwned();
          _lifecycle.NotifyEnteredBackground();
+#endif
       }
 
       protected override void OnResume()
