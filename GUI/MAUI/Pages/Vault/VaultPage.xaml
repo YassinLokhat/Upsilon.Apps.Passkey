@@ -26,7 +26,11 @@
                <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="Y" />
             </MenuFlyoutItem.KeyboardAccelerators>
          </MenuFlyoutItem>
-         <MenuFlyoutItem Text="{loc:Loc Menu_UserSettings}" Command="{Binding UserSettingsCommand}" />
+         <MenuFlyoutItem Text="{loc:Loc Menu_UserSettings}" Command="{Binding UserSettingsCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="OemComma" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
          <MenuFlyoutItem Text="{loc:Loc Menu_GenerateRandomPassword}" Clicked="_onGeneratePassword">
             <MenuFlyoutItem.KeyboardAccelerators>
                <KeyboardAccelerator Modifiers="Ctrl" Key="P" />
@@ -49,6 +53,13 @@
          <MenuFlyoutItem Text="{loc:Loc Label_Filters}" Command="{Binding FocusFilterCommand}">
             <MenuFlyoutItem.KeyboardAccelerators>
                <KeyboardAccelerator Modifiers="Ctrl" Key="F" />
+               <KeyboardAccelerator Key="F3" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+         <MenuFlyoutItem Text="{loc:Loc Tooltip_ClearFilters}" Command="{Binding ClearFiltersCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl,Shift" Key="F" />
+               <KeyboardAccelerator Modifiers="Shift" Key="F3" />
             </MenuFlyoutItem.KeyboardAccelerators>
          </MenuFlyoutItem>
          <MenuFlyoutItem Text="{loc:Loc Vault_CopyIdentifier}" Command="{Binding CopyIdentifierCommand}">
