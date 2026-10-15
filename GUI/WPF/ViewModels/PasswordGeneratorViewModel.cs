@@ -1,7 +1,7 @@
-﻿using System.Text;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -119,10 +119,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          }
       } = string.Empty;
 
-      public Brush PasswordBackground
-         => SecretFieldBrushes.Background(isDirty: false, isNotifiedWeak: SecretQuality.IsWeak(GeneratedPassword), isNotifiedLeak: _isLeaked);
+      public FieldVisualState PasswordState
+         => FieldVisualStateHelper.ForEditedSecret(isDirty: false, isNotifiedWeak: SecretQuality.IsWeak(GeneratedPassword), isNotifiedLeak: _isLeaked);
 
-      public static Visibility InsertVisibility => AppServices.Session.User is not null ? Visibility.Visible : Visibility.Collapsed;
+      public static bool IsInsertAvailable => AppServices.Session.User is not null;
 
       public ICommand RegenerateCommand { get; }
       public ICommand CopyCommand { get; }
@@ -185,7 +185,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       private void _scheduleLeakCheck()
       {
          _isLeaked = false;
-         OnPropertyChanged(nameof(PasswordBackground));
+         OnPropertyChanged(nameof(PasswordState));
          _ = _refreshLeakAsync(Interlocked.Increment(ref _leakCheck));
       }
 
@@ -207,7 +207,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (stamp == Volatile.Read(ref _leakCheck))
             {
                _isLeaked = leaked;
-               OnPropertyChanged(nameof(PasswordBackground));
+               OnPropertyChanged(nameof(PasswordState));
             }
          }
          catch (OperationCanceledException)

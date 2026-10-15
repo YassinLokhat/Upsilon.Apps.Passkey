@@ -1,7 +1,4 @@
-using System.Windows;
-using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 {
@@ -18,23 +15,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public Visibility PasswordVisibility
+      public bool IsRevealed
       {
          get;
-         set => SetProperty(ref field, value);
-      } = Visibility.Visible;
+         private set => SetProperty(ref field, value);
+      }
 
-      public Visibility TextVisibility
+      public bool CanReveal
       {
          get;
          set => SetProperty(ref field, value);
-      } = Visibility.Collapsed;
-
-      public Visibility ButtonVisibility
-      {
-         get;
-         set => SetProperty(ref field, value);
-      } = Visibility.Visible;
+      } = true;
 
       public bool IsEnabled
       {
@@ -42,22 +33,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          set => SetProperty(ref field, value);
       } = true;
 
-      public Brush Background
-      {
-         get;
-         set => SetProperty(ref field, value);
-      } = FieldStateBrushes.UnchangedBrush2;
+      public void ShowPassword() => IsRevealed = true;
 
-      public void ShowPassword()
-      {
-         PasswordVisibility = Visibility.Collapsed;
-         TextVisibility = Visibility.Visible;
-      }
-
-      public void HidePassword()
-      {
-         PasswordVisibility = Visibility.Visible;
-         TextVisibility = Visibility.Collapsed;
-      }
+      public void HidePassword() => IsRevealed = false;
    }
 }

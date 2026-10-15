@@ -28,7 +28,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             }
 
             // Keep the reveal TextBox in sync only while it is visible.
-            if (_viewModel.TextVisibility == Visibility.Visible)
+            if (_viewModel.IsRevealed)
             {
                _viewModel.RevealText = value;
             }
@@ -62,21 +62,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          // Keep DataContext on the inner tree only: the UserControl must inherit
          // the parent DataContext so attributes like Background="{Binding …}" resolve.
          _root.DataContext = _viewModel;
-         _viewModel.Background = Background;
 
          _passwordBox.LostFocus += _passwordBox_LostFocus;
          _passwordBox.KeyUp += _passwordBox_KeyUp;
          _passwordBox.PasswordChanged += _passwordBox_PasswordChanged;
-      }
-
-      protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
-      {
-         base.OnPropertyChanged(e);
-
-         if (e.Property == BackgroundProperty)
-         {
-            _viewModel.Background = (Brush)e.NewValue;
-         }
       }
 
       public new void Focus()
@@ -103,7 +92,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       {
          // Do not mirror into a managed string while the password stays masked;
          // only refresh the reveal TextBox when it is currently shown.
-         if (_viewModel.TextVisibility == Visibility.Visible)
+         if (_viewModel.IsRevealed)
          {
             _viewModel.RevealText = _passwordBox.Password;
          }

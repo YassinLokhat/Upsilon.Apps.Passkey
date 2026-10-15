@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.Controls.ServiceView"
+<UserControl x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.Controls.ServiceView"
              x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -34,7 +34,7 @@
             <TextBox Grid.Row="0"
                      Grid.Column="1"
                      Text="{Binding ServiceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Background="{Binding ServiceNameBackground}"/>
+                     Background="{Binding ServiceNameState, Converter={StaticResource FieldStateBrush}}"/>
             <Button Grid.Row="0"
                     Grid.Column="2"
                     Content="👓"
@@ -46,7 +46,7 @@
             <TextBox Grid.Row="1"
                      Grid.Column="1"
                      Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Background="{Binding UrlBackground}"/>
+                     Background="{Binding UrlState, Converter={StaticResource FieldStateBrush}}"/>
             <Button Grid.Row="1"
                     Grid.Column="2"
                     Content="🌐"
@@ -59,7 +59,7 @@
                      Grid.Column="1"
                      Grid.ColumnSpan="2"
                      Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Background="{Binding NotesBackground}"
+                     Background="{Binding NotesState, Converter={StaticResource FieldStateBrush}}"
                      MaxHeight="75"
                      VerticalScrollBarVisibility="Auto"
                      AcceptsReturn="True"

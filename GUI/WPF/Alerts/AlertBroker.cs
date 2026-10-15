@@ -1,4 +1,4 @@
-﻿using System.Windows.Media;
+using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
@@ -76,9 +76,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
          IAlert[] alertsArray = [.. alerts];
          return alertsArray.Length != 0 ? alertsArray.Max(x => x.Severity) : AlertSeverity.Info;
       }
-
-      public static Brush BrushFor(IEnumerable<IAlert> alerts)
-         => BrushFor(MaxSeverity(alerts));
 
       public void Attach(IDatabase database)
       {

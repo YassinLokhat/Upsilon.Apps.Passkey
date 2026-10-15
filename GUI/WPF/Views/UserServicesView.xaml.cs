@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
@@ -420,14 +420,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          AlertSeverity passkeySeverity = AlertBroker.MaxSeverity(passkeyKind);
 
          _viewModel.ShowAlerts = Strings.Format(nameof(Strings.Msg_ShowAlerts), totalAlertCount);
-         _viewModel.ShowAlertsColor = AlertBroker.BrushFor(alerts);
-         _viewModel.ShowActivityAlertsColor = AlertBroker.BrushFor(activitySeverity);
-         _viewModel.ShowExpiredPasswordAlertsColor = AlertBroker.BrushFor(expiredSeverity);
-         _viewModel.ShowDuplicatedPasswordAlertsColor = AlertBroker.BrushFor(duplicatedSeverity);
-         _viewModel.ShowLeakedPasswordAlertsColor = AlertBroker.BrushFor(leakedSeverity);
-         _viewModel.ShowWeakPasswordAlertsColor = AlertBroker.BrushFor(weakSeverity);
-         _viewModel.ShowSecuritySettingsAlertsColor = AlertBroker.BrushFor(securitySeverity);
-         _viewModel.ShowPasskeyQualityAlertsColor = AlertBroker.BrushFor(passkeySeverity);
+         _viewModel.ShowAlertsSeverity = AlertBroker.MaxSeverity(alerts);
+         _viewModel.ShowActivityAlertsSeverity = activitySeverity;
+         _viewModel.ShowExpiredPasswordAlertsSeverity = expiredSeverity;
+         _viewModel.ShowDuplicatedPasswordAlertsSeverity = duplicatedSeverity;
+         _viewModel.ShowLeakedPasswordAlertsSeverity = leakedSeverity;
+         _viewModel.ShowWeakPasswordAlertsSeverity = weakSeverity;
+         _viewModel.ShowSecuritySettingsAlertsSeverity = securitySeverity;
+         _viewModel.ShowPasskeyQualityAlertsSeverity = passkeySeverity;
          _viewModel.ShowActivityAlerts = Strings.Format(nameof(Strings.Msg_ShowActivityAlerts), activityAlerts);
          _viewModel.ShowExpiredPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowExpiredPasswordAlerts), expiredPasswordAlerts);
          _viewModel.ShowDuplicatedPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowDuplicatedPasswordAlerts), duplicatedPasswordAlerts);

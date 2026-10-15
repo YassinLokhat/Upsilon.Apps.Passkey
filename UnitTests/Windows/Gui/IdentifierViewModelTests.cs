@@ -1,6 +1,6 @@
 using FluentAssertions;
 using System.Windows.Threading;
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -59,14 +59,14 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          accountVm.AddIdentifier(first);
          accountVm.AddIdentifier(second);
 
-         _ = first.IdentifierBackground.Should().Be(FieldStateBrushes.UnchangedBrush2);
-         _ = second.IdentifierBackground.Should().Be(FieldStateBrushes.UnchangedBrush2);
+         _ = first.IdentifierState.Should().Be(FieldVisualState.Default);
+         _ = second.IdentifierState.Should().Be(FieldVisualState.Default);
 
          first.Identifier = "bob";
 
          _ = account.HasChanged(nameof(account.Identifiers)).Should().BeTrue();
-         _ = first.IdentifierBackground.Should().Be(FieldStateBrushes.ChangedBrush);
-         _ = second.IdentifierBackground.Should().Be(FieldStateBrushes.UnchangedBrush2);
+         _ = first.IdentifierState.Should().Be(FieldVisualState.Dirty);
+         _ = second.IdentifierState.Should().Be(FieldVisualState.Default);
       }
 
       [TestMethod]
@@ -87,8 +87,8 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          accountVm.AddIdentifier(string.Empty);
 
          _ = accountVm.Identifiers.Should().HaveCount(2);
-         _ = existing.IdentifierBackground.Should().Be(FieldStateBrushes.UnchangedBrush2);
-         _ = accountVm.Identifiers[1].IdentifierBackground.Should().Be(FieldStateBrushes.ChangedBrush);
+         _ = existing.IdentifierState.Should().Be(FieldVisualState.Default);
+         _ = accountVm.Identifiers[1].IdentifierState.Should().Be(FieldVisualState.Dirty);
       }
    }
 }

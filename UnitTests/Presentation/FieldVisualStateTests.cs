@@ -20,5 +20,25 @@ namespace UnitTests.Presentation
          FieldVisualStateHelper.FromFlags(isDirty: true, isNotifiedWeak: true, isNotifiedLeak: true)
             .Should().Be(FieldVisualState.WeakAndLeaked);
       }
+
+      [TestMethod]
+      public void FromChanged_MapsDirtyOrDefault()
+      {
+         FieldVisualStateHelper.FromChanged(true).Should().Be(FieldVisualState.Dirty);
+         FieldVisualStateHelper.FromChanged(false).Should().Be(FieldVisualState.Default);
+      }
+
+      [TestMethod]
+      public void ForEditedSecret_DirtyOutranksNotifications()
+      {
+         FieldVisualStateHelper.ForEditedSecret(isDirty: true, isNotifiedWeak: true, isNotifiedLeak: true)
+            .Should().Be(FieldVisualState.Dirty);
+         FieldVisualStateHelper.ForEditedSecret(isDirty: false, isNotifiedWeak: true, isNotifiedLeak: false)
+            .Should().Be(FieldVisualState.Weak);
+         FieldVisualStateHelper.ForEditedSecret(isDirty: false, isNotifiedWeak: true, isNotifiedLeak: true)
+            .Should().Be(FieldVisualState.WeakAndLeaked);
+         FieldVisualStateHelper.ForEditedSecret(isDirty: false, isNotifiedWeak: false, isNotifiedLeak: false)
+            .Should().Be(FieldVisualState.Default);
+      }
    }
 }

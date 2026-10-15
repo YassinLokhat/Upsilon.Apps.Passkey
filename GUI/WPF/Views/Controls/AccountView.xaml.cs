@@ -1,8 +1,9 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
@@ -64,7 +65,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             _viewModel.Password = value;
 
             _password_VPB.Password = value;
-            _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
+            _password_VPB.BackgroundColor = VisualStateBrushes.For(_viewModel.PasswordState);
             _refreshPasswordHistory();
          }
       }
@@ -114,7 +115,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
 
          _password_VPB.Password = _viewModel.Password;
-         _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
+         _password_VPB.BackgroundColor = VisualStateBrushes.For(_viewModel.PasswordState);
          _refreshPasswordHistory();
       }
 
@@ -170,7 +171,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
 
          _viewModel.Password = _password_VPB.Password;
-         _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
+         _password_VPB.BackgroundColor = VisualStateBrushes.For(_viewModel.PasswordState);
          _refreshPasswordHistory();
       }
 
@@ -185,7 +186,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          // Escape cancels the in-progress edit: restore the committed password
          // and its dirty/leak background instead of leaving an empty buffer.
          _password_VPB.Password = _viewModel.Password;
-         _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
+         _password_VPB.BackgroundColor = VisualStateBrushes.For(_viewModel.PasswordState);
       }
 
       private void _passwords_VPB_Loaded(object sender, RoutedEventArgs e)

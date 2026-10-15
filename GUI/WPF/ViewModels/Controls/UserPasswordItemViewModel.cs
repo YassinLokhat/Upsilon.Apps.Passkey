@@ -1,5 +1,5 @@
-﻿using System.Windows.Input;
-using System.Windows.Media;
+using System.Windows.Input;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
@@ -19,7 +19,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (SetProperty(ref field, value))
             {
                OnPropertyChanged(nameof(PasskeyLeaked));
-               OnPropertyChanged(nameof(PasswordBackground));
+               OnPropertyChanged(nameof(PasswordState));
             }
          }
       }
@@ -50,8 +50,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             .OfType<IWeakPasskeyAlert>()
             .Any(w => w.PasskeyIndexes.Contains(Index));
 
-      public Brush PasswordBackground
-         => SecretFieldBrushes.Background(isDirty: false, isNotifiedWeak: PasskeyWeak, isNotifiedLeak: PasskeyLeaked);
+      public FieldVisualState PasswordState
+         => FieldVisualStateHelper.ForEditedSecret(isDirty: false, isNotifiedWeak: PasskeyWeak, isNotifiedLeak: PasskeyLeaked);
 
       public ICommand UpCommand { get; }
       public ICommand DownCommand { get; }
@@ -71,7 +71,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       }
 
       public void OnThemeChanged()
-         => OnPropertyChanged(nameof(PasswordBackground));
+         => OnPropertyChanged(nameof(PasswordState));
 
       public void Dispose()
       {
@@ -91,7 +91,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          => UiThread.Post(() =>
          {
             OnPropertyChanged(nameof(PasskeyLeaked));
-            OnPropertyChanged(nameof(PasswordBackground));
+            OnPropertyChanged(nameof(PasswordState));
          });
    }
 }

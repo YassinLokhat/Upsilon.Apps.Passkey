@@ -1,10 +1,10 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -39,7 +39,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public ICommand MoveAccountUpCommand { get; }
       public ICommand MoveAccountDownCommand { get; }
 
-      public Brush ServiceNameBackground => Service.HasChanged(nameof(ServiceName)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
+      public FieldVisualState ServiceNameState => FieldVisualStateHelper.FromChanged(Service.HasChanged(nameof(ServiceName)));
       public string ServiceName
       {
          get => Service.ServiceName;
@@ -53,7 +53,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public Brush UrlBackground => Service.HasChanged(nameof(Url)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
+      public FieldVisualState UrlState => FieldVisualStateHelper.FromChanged(Service.HasChanged(nameof(Url)));
       public string Url
       {
          get => Service.Url?.OriginalString ?? string.Empty;
@@ -93,7 +93,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public Brush NotesBackground => Service.HasChanged(nameof(Notes)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
+      public FieldVisualState NotesState => FieldVisualStateHelper.FromChanged(Service.HasChanged(nameof(Notes)));
       public string Notes
       {
          get => Service.Notes;
@@ -112,7 +112,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       private void _notify(string propertyName)
       {
          OnPropertyChanged(propertyName);
-         OnPropertyChanged($"{propertyName}Background");
+         OnPropertyChanged($"{propertyName}State");
          OnPropertyChanged(nameof(ServiceDisplay));
       }
 
@@ -140,9 +140,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void OnThemeChanged()
       {
-         OnPropertyChanged(nameof(ServiceNameBackground));
-         OnPropertyChanged(nameof(UrlBackground));
-         OnPropertyChanged(nameof(NotesBackground));
+         OnPropertyChanged(nameof(ServiceNameState));
+         OnPropertyChanged(nameof(UrlState));
+         OnPropertyChanged(nameof(NotesState));
 
          foreach (AccountViewModel account in _accountViewModelsById.Values)
          {
