@@ -8,21 +8,29 @@
                     x:ClassModifier="internal"
                     x:DataType="act:UserActivitiesViewModel"
                     Title="{Binding Title}">
-   <Grid Padding="16" RowSpacing="8" RowDefinitions="Auto,Auto,Auto,*,Auto">
+   <Grid Padding="16" RowSpacing="8" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
       <Label Grid.Row="0" Text="{Binding FiltersHeader}" Style="{StaticResource SubHeadline}" />
       <Entry Grid.Row="1" Text="{Binding SearchCriteria}"
+             Placeholder="{loc:Loc Label_Message}"
              IsTextPredictionEnabled="False" IsSpellCheckEnabled="False" />
-      <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
-         <Picker Grid.Column="0" ItemsSource="{Binding EventTypeOptions}" SelectedItem="{Binding ReadableEventType}" />
+      <!-- A date after today means no bound (see ActivityViewModel.MeetsConditions). -->
+      <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="8">
+         <Label Grid.Column="0" Text="{loc:Loc Label_From}" VerticalOptions="Center" />
+         <DatePicker Grid.Column="1" Date="{Binding FromDateFilter}" />
+         <Label Grid.Column="2" Text="{loc:Loc Label_To}" VerticalOptions="Center" />
+         <DatePicker Grid.Column="3" Date="{Binding ToDateFilter}" />
+      </Grid>
+      <Grid Grid.Row="3" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+         <Picker Grid.Column="0" Title="{loc:Loc Label_EventType}" ItemsSource="{Binding EventTypeOptions}" SelectedItem="{Binding ReadableEventType}" />
          <CheckBox Grid.Column="1" IsChecked="{Binding NeedsReview}" />
-         <Label Grid.Column="2" Text="{loc:Loc Label_NeedsReview}" VerticalOptions="Center" />
+         <Label Grid.Column="2" Text="{loc:Loc Label_NeedsReviewOnly}" VerticalOptions="Center" />
          <Button Grid.Column="3" Text="{loc:Loc Tooltip_Clear}" Command="{Binding ClearFiltersCommand}" />
       </Grid>
 
-      <CollectionView Grid.Row="3" ItemsSource="{Binding Activities}">
+      <CollectionView Grid.Row="4" ItemsSource="{Binding Activities}">
          <CollectionView.ItemTemplate>
             <DataTemplate x:DataType="act:ActivityViewModel">
-               <Grid Padding="0,6" RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+               <Grid Padding="0,6" RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
                   <Label Grid.Row="0" Grid.Column="0" FontAttributes="Bold">
                      <Label.FormattedText>
                         <FormattedString>
@@ -33,7 +41,8 @@
                      </Label.FormattedText>
                   </Label>
                   <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding NeedsReview}" />
-                  <Label Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Message}" LineBreakMode="WordWrap">
+                  <Button Grid.Row="0" Grid.Column="2" Text="{loc:Loc Label_Copy}" Command="{Binding CopyCommand}" />
+                  <Label Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding Message}" LineBreakMode="WordWrap">
                      <Label.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding GoToCommand}" />
                      </Label.GestureRecognizers>
@@ -43,6 +52,6 @@
          </CollectionView.ItemTemplate>
       </CollectionView>
 
-      <Button Grid.Row="4" Text="{loc:Loc Button_OK}" Clicked="_onClose" />
+      <Button Grid.Row="5" Text="{loc:Loc Button_OK}" Clicked="_onClose" />
    </Grid>
 </pages:ClosablePage>
