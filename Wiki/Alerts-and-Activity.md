@@ -50,7 +50,7 @@ Each scan runs in **two phases** so local posture is never blocked on network I/
 
 If a newer `RefreshAlerts` / Save supersedes a scan **before** it starts publishing, that generation is discarded. Once a generation begins publishing a batch, completion is always paired with that batch. Unexpected exceptions in the background scan are traced and still surface a completion when nothing was published yet, so clients are never left waiting indefinitely.
 
-The WPF `AlertBroker` also publishes host alerts and applies `AlertsToNotify`. It stores per-kind updates on `CoreAlertsChanged` and raises `NotifiedAlertsChanged` on `CoreAlertsScanCompleted` (after refreshing host posture). Menu colors come from `IAlert.Severity` (`AlertBroker.BrushFor`), not hard-coded kinds. When `AlertsToNotify` is empty, the WPF client shows a **MessageBox**.
+The WPF `AlertBroker` also publishes host alerts and applies `AlertsToNotify`. It stores per-kind updates on `CoreAlertsChanged` and raises `NotifiedAlertsChanged` on `CoreAlertsScanCompleted` (after refreshing host posture). Menu colors come from `IAlert.Severity` (`AlertSeverity` on the ViewModel, mapped to brushes by `AlertSeverityToBrushConverter`), not hard-coded kinds. When `AlertsToNotify` is empty, the WPF client shows a **MessageBox**.
 
 Duplicate and password-update reminder alerts are local. Leak / passkey-leak checks use `IPasswordFactory.PasswordLeakedAsync` (HIBP → XposedOrNot → optional local `.pkbf`). Fail-open when unreachable. See [[Security]].
 

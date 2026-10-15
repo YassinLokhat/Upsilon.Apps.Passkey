@@ -72,34 +72,34 @@
          <MenuItem Name="_alerts_MI"
                    Header="{Binding ShowAlerts}"
                    DockPanel.Dock="Left"
-                   Foreground="{Binding ShowAlertsColor}">
+                   Foreground="{Binding ShowAlertsSeverity, Converter={StaticResource AlertSeverityBrush}}">
             <MenuItem Name="_activityAlerts_MI"
                       Header="{Binding ShowActivityAlerts}"
-                      Foreground="{Binding ShowActivityAlertsColor}"
+                      Foreground="{Binding ShowActivityAlertsSeverity, Converter={StaticResource AlertSeverityBrush}}"
                       Command="{Binding ShowActivityAlertsCommand}"/>
             <MenuItem Name="_duplicatedPasswordAlerts_MI"
                       Header="{Binding ShowDuplicatedPasswordAlerts}"
-                      Foreground="{Binding ShowDuplicatedPasswordAlertsColor}"
+                      Foreground="{Binding ShowDuplicatedPasswordAlertsSeverity, Converter={StaticResource AlertSeverityBrush}}"
                       Command="{Binding ShowDuplicatedPasswordAlertsCommand}"/>
             <MenuItem Name="_expiredPasswordAlerts_MI"
                       Header="{Binding ShowExpiredPasswordAlerts}"
-                      Foreground="{Binding ShowExpiredPasswordAlertsColor}"
+                      Foreground="{Binding ShowExpiredPasswordAlertsSeverity, Converter={StaticResource AlertSeverityBrush}}"
                       Command="{Binding ShowExpiredPasswordAlertsCommand}"/>
             <MenuItem Name="_leakedPasswordAlerts_MI"
                       Header="{Binding ShowLeakedPasswordAlerts}"
-                      Foreground="{Binding ShowLeakedPasswordAlertsColor}"
+                      Foreground="{Binding ShowLeakedPasswordAlertsSeverity, Converter={StaticResource AlertSeverityBrush}}"
                       Command="{Binding ShowLeakedPasswordAlertsCommand}"/>
             <MenuItem Name="_weakPasswordAlerts_MI"
                       Header="{Binding ShowWeakPasswordAlerts}"
-                      Foreground="{Binding ShowWeakPasswordAlertsColor}"
+                      Foreground="{Binding ShowWeakPasswordAlertsSeverity, Converter={StaticResource AlertSeverityBrush}}"
                       Command="{Binding ShowWeakPasswordAlertsCommand}"/>
             <MenuItem Name="_securitySettingsAlerts_MI"
                       Header="{Binding ShowSecuritySettingsAlerts}"
-                      Foreground="{Binding ShowSecuritySettingsAlertsColor}"
+                      Foreground="{Binding ShowSecuritySettingsAlertsSeverity, Converter={StaticResource AlertSeverityBrush}}"
                       Command="{Binding ShowSecuritySettingsAlertsCommand}"/>
             <MenuItem Name="_passkeyQualityAlerts_MI"
                       Header="{Binding ShowPasskeyQualityAlerts}"
-                      Foreground="{Binding ShowPasskeyQualityAlertsColor}"
+                      Foreground="{Binding ShowPasskeyQualityAlertsSeverity, Converter={StaticResource AlertSeverityBrush}}"
                       Command="{Binding ShowPasskeyQualityAlertsCommand}"/>
          </MenuItem>
          <MenuItem Header="{loc:Loc Menu_Logout}"

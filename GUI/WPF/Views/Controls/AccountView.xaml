@@ -35,7 +35,7 @@
          <TextBox Grid.Row="0"
                   Grid.Column="1"
                   Text="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  Background="{Binding LabelBackground}"/>
+                  Background="{Binding LabelState, Converter={StaticResource FieldStateBrush}}"/>
          <Grid Grid.Row="1"
                Grid.Column="0"
                Grid.ColumnSpan="3">
@@ -81,7 +81,7 @@
                                         SelectedValuePath="Type"
                                         DisplayMemberPath="Display"
                                         ToolTip="{Binding TypeLabel}"/>
-                              <TextBox Background="{Binding IdentifierBackground}"
+                              <TextBox Background="{Binding IdentifierState, Converter={StaticResource FieldStateBrush}}"
                                        Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                        KeyUp="_identifier_TextBox_KeyUp"/>
                            </DockPanel>
@@ -136,7 +136,7 @@
                                             Grid.Row="0"
                                             Grid.Column="0"
                                             Margin="5"
-                                            Background="{Binding PasswordBackground}"
+                                            Background="{Binding PasswordState, Converter={StaticResource FieldStateBrush}}"
                                             Validated="_password_VPB_Validated"
                                             Aborted="_password_VPB_Aborted"/>
                   <Button Grid.Row="0"
@@ -198,7 +198,7 @@
                   Grid.Column="1"
                   Grid.ColumnSpan="2"
                   Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  Background="{Binding NotesBackground}"
+                  Background="{Binding NotesState, Converter={StaticResource FieldStateBrush}}"
                   MaxHeight="75"
                   VerticalScrollBarVisibility="Auto"
                   AcceptsReturn="True"

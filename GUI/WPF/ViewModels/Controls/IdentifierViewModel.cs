@@ -1,4 +1,4 @@
-﻿using System.Windows.Media;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
@@ -82,19 +82,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       /// <c>HasChanged(Identifiers)</c> is true after any edit, so gray state
       /// compares against the baseline captured at construction.
       /// </summary>
-      public Brush IdentifierBackground
-      {
-         get
-         {
-            return !_account.HasChanged(nameof(_account.Identifiers))
-               ? FieldStateBrushes.UnchangedBrush2
-               : _isNew
+      public FieldVisualState IdentifierState
+         => FieldVisualStateHelper.FromChanged(
+            _account.HasChanged(nameof(_account.Identifiers))
+            && (_isNew
                || Type != _baselineType
-               || !string.Equals(Identifier, _baselineValue, StringComparison.Ordinal)
-               ? FieldStateBrushes.ChangedBrush
-               : FieldStateBrushes.UnchangedBrush2;
-         }
-      }
+               || !string.Equals(Identifier, _baselineValue, StringComparison.Ordinal)));
 
       public IdentifierType Type
       {
@@ -105,7 +98,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             {
                OnPropertyChanged(nameof(TypeGlyph));
                OnPropertyChanged(nameof(TypeLabel));
-               OnPropertyChanged(nameof(IdentifierBackground));
+               OnPropertyChanged(nameof(IdentifierState));
             }
          }
       }
@@ -145,7 +138,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             }
 
             OnPropertyChanged(nameof(Identifier));
-            OnPropertyChanged(nameof(IdentifierBackground));
+            OnPropertyChanged(nameof(IdentifierState));
          }
       } = identifier.Value ?? string.Empty;
 
@@ -158,7 +151,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public void Refresh()
       {
-         OnPropertyChanged(nameof(IdentifierBackground));
+         OnPropertyChanged(nameof(IdentifierState));
       }
 
       public void OnThemeChanged() => Refresh();

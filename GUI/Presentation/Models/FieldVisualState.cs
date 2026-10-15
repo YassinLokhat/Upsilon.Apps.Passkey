@@ -34,5 +34,15 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Models
 
          return isDirty ? FieldVisualState.Dirty : FieldVisualState.Default;
       }
+
+      public static FieldVisualState FromChanged(bool hasChanged)
+         => hasChanged ? FieldVisualState.Dirty : FieldVisualState.Default;
+
+      /// <summary>
+      /// Editor variant where an uncommitted edit outranks leak / weakness
+      /// notifications, which describe the saved value.
+      /// </summary>
+      public static FieldVisualState ForEditedSecret(bool isDirty, bool isNotifiedWeak, bool isNotifiedLeak)
+         => isDirty ? FieldVisualState.Dirty : FromFlags(false, isNotifiedWeak, isNotifiedLeak);
    }
 }

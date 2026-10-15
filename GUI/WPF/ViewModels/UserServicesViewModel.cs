@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -42,53 +41,53 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = string.Empty;
 
-      public Brush ShowAlertsColor
+      public AlertSeverity ShowAlertsSeverity
       {
          get;
          set => SetProperty(ref field, value);
-      } = SemanticBrushes.Info;
+      } = AlertSeverity.Info;
 
-      public Brush ShowActivityAlertsColor
+      public AlertSeverity ShowActivityAlertsSeverity
       {
          get;
          set => SetProperty(ref field, value);
-      } = SemanticBrushes.Info;
+      } = AlertSeverity.Info;
 
-      public Brush ShowExpiredPasswordAlertsColor
+      public AlertSeverity ShowExpiredPasswordAlertsSeverity
       {
          get;
          set => SetProperty(ref field, value);
-      } = SemanticBrushes.Info;
+      } = AlertSeverity.Info;
 
-      public Brush ShowDuplicatedPasswordAlertsColor
+      public AlertSeverity ShowDuplicatedPasswordAlertsSeverity
       {
          get;
          set => SetProperty(ref field, value);
-      } = SemanticBrushes.Info;
+      } = AlertSeverity.Info;
 
-      public Brush ShowLeakedPasswordAlertsColor
+      public AlertSeverity ShowLeakedPasswordAlertsSeverity
       {
          get;
          set => SetProperty(ref field, value);
-      } = SemanticBrushes.Info;
+      } = AlertSeverity.Info;
 
-      public Brush ShowWeakPasswordAlertsColor
+      public AlertSeverity ShowWeakPasswordAlertsSeverity
       {
          get;
          set => SetProperty(ref field, value);
-      } = SemanticBrushes.Info;
+      } = AlertSeverity.Info;
 
-      public Brush ShowSecuritySettingsAlertsColor
+      public AlertSeverity ShowSecuritySettingsAlertsSeverity
       {
          get;
          set => SetProperty(ref field, value);
-      } = SemanticBrushes.Info;
+      } = AlertSeverity.Info;
 
-      public Brush ShowPasskeyQualityAlertsColor
+      public AlertSeverity ShowPasskeyQualityAlertsSeverity
       {
          get;
          set => SetProperty(ref field, value);
-      } = SemanticBrushes.Info;
+      } = AlertSeverity.Info;
 
       public string ShowActivityAlerts
       {
@@ -353,6 +352,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          {
             service.OnThemeChanged();
          }
+
+         OnPropertyChanged(nameof(ShowAlertsSeverity));
+         OnPropertyChanged(nameof(ShowActivityAlertsSeverity));
+         OnPropertyChanged(nameof(ShowExpiredPasswordAlertsSeverity));
+         OnPropertyChanged(nameof(ShowDuplicatedPasswordAlertsSeverity));
+         OnPropertyChanged(nameof(ShowLeakedPasswordAlertsSeverity));
+         OnPropertyChanged(nameof(ShowWeakPasswordAlertsSeverity));
+         OnPropertyChanged(nameof(ShowSecuritySettingsAlertsSeverity));
+         OnPropertyChanged(nameof(ShowPasskeyQualityAlertsSeverity));
 
          ThemeRefreshed?.Invoke(this, EventArgs.Empty);
       }

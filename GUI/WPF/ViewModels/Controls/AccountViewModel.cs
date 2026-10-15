@@ -1,7 +1,7 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
-using System.Windows.Media;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -58,7 +58,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string AccountId => Strings.Format(nameof(Strings.Msg_AccountId), Account.ItemId);
 
-      public Brush LabelBackground => Account.HasChanged(nameof(Label)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
+      public FieldVisualState LabelState => FieldVisualStateHelper.FromChanged(Account.HasChanged(nameof(Label)));
       public string Label
       {
          get => Account.Label;
@@ -74,8 +74,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public ObservableCollection<IdentifierViewModel> Identifiers = [];
 
-      public Brush PasswordBackground
-         => SecretFieldBrushes.Background(
+      public FieldVisualState PasswordState
+         => FieldVisualStateHelper.ForEditedSecret(
             isDirty: Account.HasChanged(nameof(Password)),
             isNotifiedWeak: PasswordWeak,
             isNotifiedLeak: PasswordLeaked);
@@ -112,7 +112,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
       }
 
-      public Brush NotesBackground => Account.HasChanged(nameof(Notes)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
+      public FieldVisualState NotesState => FieldVisualStateHelper.FromChanged(Account.HasChanged(nameof(Notes)));
       public string Notes
       {
          get => Account.Notes;
@@ -279,9 +279,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       }
       public void OnThemeChanged()
       {
-         OnPropertyChanged(nameof(LabelBackground));
-         OnPropertyChanged(nameof(PasswordBackground));
-         OnPropertyChanged(nameof(NotesBackground));
+         OnPropertyChanged(nameof(LabelState));
+         OnPropertyChanged(nameof(PasswordState));
+         OnPropertyChanged(nameof(NotesState));
 
          foreach (IdentifierViewModel identifier in Identifiers)
          {
@@ -293,13 +293,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          => UiThread.Post(() =>
          {
             OnPropertyChanged(nameof(PasswordLeaked));
-            OnPropertyChanged(nameof(PasswordBackground));
+            OnPropertyChanged(nameof(PasswordState));
          });
 
       private void _notify(string propertyName)
       {
          OnPropertyChanged(propertyName);
-         OnPropertyChanged($"{propertyName}Background");
+         OnPropertyChanged($"{propertyName}State");
          OnPropertyChanged(nameof(AccountDisplay));
       }
 

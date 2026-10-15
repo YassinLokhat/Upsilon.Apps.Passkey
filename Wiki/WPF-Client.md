@@ -132,7 +132,7 @@ Preferences that *are* persisted (`Enabled`, quality preset, auto-update frequen
 
 ## Alerts in the GUI
 
-Core publishes **per-kind** alert events; the host publishes app-level posture (`IdleLoginDisabled`, `OfflineLeakFilterUnavailable`). `SessionService.Alerts` (`AlertBroker`) subscribes to both, applies `ISettings.AlertsToNotify`, and drives the services-window Alerts menu. Badge colors come from `IAlert.Severity` (`AlertBroker.BrushFor`), not hard-coded kinds.
+Core publishes **per-kind** alert events; the host publishes app-level posture (`IdleLoginDisabled`, `OfflineLeakFilterUnavailable`). `SessionService.Alerts` (`AlertBroker`) subscribes to both, applies `ISettings.AlertsToNotify`, and drives the services-window Alerts menu. Badge colors come from `IAlert.Severity` (`AlertSeverity` on the ViewModel, mapped to brushes by `AlertSeverityToBrushConverter`), not hard-coded kinds.
 
 User settings exposes one checkbox per known kind (`Label_Notify*`). An empty notify list shows a MessageBox. Detail windows: activities review, account passwords (reminder / leaked / weak / passkey-reuse), duplicates, vault+host security settings, and passkey quality. See [[Alerts and Activity]].
 

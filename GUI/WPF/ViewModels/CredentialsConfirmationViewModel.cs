@@ -33,15 +33,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             if (SetProperty(ref field, value))
             {
                OnPropertyChanged(nameof(CredentialsLabel));
-               OnPropertyChanged(nameof(UsernameVisibility));
-               OnPropertyChanged(nameof(PasswordVisibility));
             }
          }
       }
 
       public string CredentialsLabel => IsAwaitingPasskeys ? Strings.Label_Password : Strings.Label_Username;
-      public System.Windows.Visibility UsernameVisibility => IsAwaitingPasskeys ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
-      public System.Windows.Visibility PasswordVisibility => IsAwaitingPasskeys ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
 
       public void OnLanguageChanged()
       {
