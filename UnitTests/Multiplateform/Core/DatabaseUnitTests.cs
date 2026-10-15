@@ -932,5 +932,28 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          database.Close();
          UnitTestsHelper.ClearTestEnvironment();
       }
+
+      [TestMethod]
+      /*
+       * A picked file that is not a vault (document pickers accept any type)
+       * fails as CorruptedSourceException, and the file and its sibling .lock
+       * are released so another file can be picked or this one deleted.
+      */
+      public void Case22_OpenNonVaultFile_ThrowsCorruptedSourceAndReleasesTheFile()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string databaseFile = UnitTestsHelper.ComputeDatabaseFilePath();
+         _ = Directory.CreateDirectory(Path.GetDirectoryName(databaseFile)!);
+         File.WriteAllText(databaseFile, "not a zip archive");
+
+         Action open = () => UnitTestsHelper.OpenTestDatabase(UnitTestsHelper.GetRandomStringArray(), out _);
+         _ = open.Should().Throw<CorruptedSourceException>();
+
+         _ = File.Exists(databaseFile + ".lock").Should().BeFalse();
+         Action delete = () => File.Delete(databaseFile);
+         _ = delete.Should().NotThrow();
+
+         UnitTestsHelper.ClearTestEnvironment();
+      }
    }
 }

@@ -234,7 +234,16 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       {
          _ensureArchiveSizeWithinBudget();
          _stream2.Position = 0;
-         ZipArchive archive = new(_stream2, mode, leaveOpen: true, Encoding.UTF8);
+         ZipArchive archive;
+         try
+         {
+            archive = new(_stream2, mode, leaveOpen: true, Encoding.UTF8);
+         }
+         catch (InvalidDataException ex)
+         {
+            throw new CorruptedSourceException("Vault file is not a valid archive.", ex);
+         }
+
          if (mode == ZipArchiveMode.Read
             && _stream2.Length > 0)
          {
