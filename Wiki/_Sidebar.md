@@ -3,6 +3,7 @@
 * [[Home]]
 * [[Getting Started]]
 * [[Architecture]]
+* [[ADR-001-MAUI-Host-and-Multi-Device]]
 * [[Vault Format]]
 * [[Core API]]
 * [[Usage Cookbook]]
