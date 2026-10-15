@@ -165,6 +165,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
             if (SetProperty(ref field, value))
             {
                OnPropertyChanged(nameof(TypeLabel));
+               OnPropertyChanged(nameof(SelectedTypeChoice));
                _scheduleRefresh();
             }
          }
@@ -172,6 +173,19 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
 
       /// <summary>Glyph-only choices including All; see <see cref="IdentifierViewModel.FilterTypeChoices"/>.</summary>
       public IReadOnlyList<IdentifierTypeChoice> TypeChoices { get; } = IdentifierViewModel.FilterTypeChoices;
+
+      /// <summary><see cref="Type"/> as an item of <see cref="TypeChoices"/>, for pickers without a value path.</summary>
+      public IdentifierTypeChoice SelectedTypeChoice
+      {
+         get => TypeChoices.FirstOrDefault(c => c.Type == Type) ?? TypeChoices[0];
+         set
+         {
+            if (value is not null)
+            {
+               Type = value.Type;
+            }
+         }
+      }
 
       /// <summary>Localized tooltip for the current <see cref="Type"/>.</summary>
       public string TypeLabel => IdentifierViewModel.GetTypeLabel(Type);

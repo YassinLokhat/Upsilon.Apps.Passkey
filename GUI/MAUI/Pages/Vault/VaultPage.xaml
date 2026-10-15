@@ -94,14 +94,19 @@
                  Clicked="_onShowAlerts" />
       </Grid>
 
-      <Grid Grid.Row="1" ColumnDefinitions="*,*,Auto,Auto" ColumnSpacing="6">
-         <Entry Placeholder="{loc:Loc Label_Identifier}" Text="{Binding IdentifierFilter}" IsTextPredictionEnabled="False" />
-         <Entry Grid.Column="1" Placeholder="{loc:Loc Label_Text}" Text="{Binding TextFilter}" />
-         <HorizontalStackLayout Grid.Column="2" Spacing="4">
+      <Grid Grid.Row="1" ColumnDefinitions="Auto,*,*,Auto,Auto" ColumnSpacing="6">
+         <Picker ItemsSource="{Binding TypeChoices}"
+                 SelectedItem="{Binding SelectedTypeChoice}"
+                 Title="{Binding TypeLabel}"
+                 ToolTipProperties.Text="{Binding TypeLabel}"
+                 MinimumWidthRequest="56" />
+         <Entry Grid.Column="1" Placeholder="{loc:Loc Label_Identifier}" Text="{Binding IdentifierFilter}" IsTextPredictionEnabled="False" />
+         <Entry Grid.Column="2" Placeholder="{loc:Loc Label_Text}" Text="{Binding TextFilter}" />
+         <HorizontalStackLayout Grid.Column="3" Spacing="4">
             <CheckBox IsChecked="{Binding ChangedItemsOnly}" />
             <Label Text="{loc:Loc Label_UnsavedItemsOnly}" VerticalOptions="Center" />
          </HorizontalStackLayout>
-         <Button Grid.Column="3" Text="{loc:Loc Tooltip_Clear}" Command="{Binding ClearFiltersCommand}" />
+         <Button Grid.Column="4" Text="{loc:Loc Tooltip_Clear}" Command="{Binding ClearFiltersCommand}" />
       </Grid>
 
       <Grid x:Name="ContentGrid" Grid.Row="2" ColumnSpacing="8">

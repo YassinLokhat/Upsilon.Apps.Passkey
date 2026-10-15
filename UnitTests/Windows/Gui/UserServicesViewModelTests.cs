@@ -184,6 +184,27 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
       }
 
       [TestMethod]
+      public void Case08b_SelectedTypeChoice_MirrorsTheIdentifierTypeFilter()
+      {
+         using UserServicesViewModel vm = new("Test");
+         List<string?> changed = [];
+         vm.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+         _ = vm.SelectedTypeChoice.Should().BeSameAs(vm.TypeChoices[0]);
+         _ = vm.SelectedTypeChoice.ToString().Should().Be(IdentifierViewModel.AllTypeGlyph);
+
+         vm.SelectedTypeChoice = vm.TypeChoices.Single(c => c.Type == IdentifierType.Email);
+         _ = vm.Type.Should().Be(IdentifierType.Email);
+
+         vm.SelectedTypeChoice = null!;
+         _ = vm.Type.Should().Be(IdentifierType.Email);
+
+         vm.ClearFilters();
+         _ = vm.SelectedTypeChoice.Should().BeSameAs(vm.TypeChoices[0]);
+         _ = changed.Should().Contain(nameof(UserServicesViewModel.SelectedTypeChoice));
+      }
+
+      [TestMethod]
       public void Case09_OnLanguageChanged_RebuildsSessionLeftTimeTitle()
       {
          _database!.User!.Settings.LogoutTimeout = 5;
