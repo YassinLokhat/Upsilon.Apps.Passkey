@@ -1,18 +1,14 @@
-﻿using static Upsilon.Apps.Passkey.GUI.Presentation.Helper.IItemHelper;
-using System.IO;
+using static Upsilon.Apps.Passkey.GUI.Presentation.Helper.IItemHelper;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Upsilon.Apps.Passkey.Core.Models;
-using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
-using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
-using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
 using AppServices = Upsilon.Apps.Passkey.GUI.WPF.Services.AppServices;
 
@@ -21,11 +17,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// <summary>
    /// Interaction logic for UserSettingsView.xaml
    /// </summary>
-   internal sealed partial class UserSettingsView : Window, IThemeAware, ILanguageAware
+   internal sealed partial class UserSettingsView : Window, IThemeAware, ILanguageAware, IDisposable
    {
       private readonly UserSettingsViewModel _viewModel;
+      private readonly IDatabase? _database;
       private bool _isClosing;
-      private IDatabase? _database;
 
       private static ISessionService _session => AppServices.Session;
 
@@ -43,8 +39,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             = hasUser ? Visibility.Visible : Visibility.Collapsed;
 
          DataContext = _viewModel = new UserSettingsViewModel();
+         _viewModel.CloseRequested += _viewModel_CloseRequested;
+         _viewModel.PropertyChanged += _viewModel_PropertyChanged;
+         _passwordsContainer.Bind(_viewModel.Passkeys);
 
-         if (_database is not null && _database.User is not null)
+         if (_database?.User is not null)
          {
             _database.User.Shake();
             _database.DatabaseClosed += _database_DatabaseClosed;
@@ -61,472 +60,64 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          => this.ForwardToDataContext();
 
       public void OnThemeChanged()
-         => _passwordsContainer.OnThemeChanged();
+         => _viewModel.OnThemeChanged();
 
-      private void _window_Closed(object? sender, EventArgs e)
+      public static async Task ShowUserSettingsAsync()
       {
-         _isClosing = true;
-
-         _passwordsContainer.ClearSecrets();
-         _passwordsContainer.DisposeItems();
-         _database?.DatabaseClosed -= _database_DatabaseClosed;
-      }
-
-      public static void ShowUserSettings()
-      {
-         if (!_confirmStoredCredentials())
+         if (_session.Database?.User is not null
+            && !await UserSettingsViewModel.ConfirmStoredCredentialsAsync().ConfigureAwait(true))
          {
             return;
          }
 
-         _ = AppServices.Dialogs.ShowDialog(new UserSettingsView());
+         using UserSettingsView view = new();
+         _ = AppServices.Dialogs.ShowDialog(view);
       }
+
+      public static void ShowUserSettings() => _ = ShowUserSettingsAsync();
+
+      private void _viewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+      {
+         if (e.PropertyName == nameof(UserSettingsViewModel.IsBusy))
+         {
+            this.SetIsBusy(_viewModel.IsBusy);
+         }
+      }
+
+      private void _viewModel_CloseRequested(object? sender, EventArgs e)
+      {
+         // Close before the session ends so DatabaseClosed reaches UserServicesView
+         // without this modal still open on top.
+         _database?.DatabaseClosed -= _database_DatabaseClosed;
+
+         if (!_isClosing && IsLoaded)
+         {
+            DialogResult = true;
+         }
+      }
+
+      private void _window_Closed(object? sender, EventArgs e)
+      {
+         _isClosing = true;
+         _database?.DatabaseClosed -= _database_DatabaseClosed;
+         _viewModel.CloseRequested -= _viewModel_CloseRequested;
+         _viewModel.PropertyChanged -= _viewModel_PropertyChanged;
+         _passwordsContainer.Unbind();
+         _viewModel.Dispose();
+      }
+
+      public void Dispose() => _viewModel.Dispose();
 
       private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
           => this.DatabaseClosed(_isClosing);
 
       private void _value_TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
-      {
-         NumericTextBoxHelper.PreviewTextInput(sender, e);
-      }
+         => NumericTextBoxHelper.PreviewTextInput(sender, e);
 
       private void _value_TextBox_Pasting(object sender, DataObjectPastingEventArgs e)
-      {
-         NumericTextBoxHelper.Pasting(sender, e);
-      }
+         => NumericTextBoxHelper.Pasting(sender, e);
 
       private void _value_TextBox_TextChanged(object sender, TextChangedEventArgs e)
-      {
-         NumericTextBoxHelper.TextChanged(sender, e);
-      }
-
-      private string _canSave()
-      {
-         return string.IsNullOrEmpty(_viewModel.Username)
-            ? Strings.Msg_UsernameEmpty
-            : !_passwordsContainer.Passkeys.Any()
-            ? Strings.Msg_AtLeastOnePassword
-            : _passwordsContainer.Passkeys.Any(string.IsNullOrEmpty)
-            ? Strings.Msg_NoPasswordEmpty
-            : string.Empty;
-      }
-
-      private void _deleteUser_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _database?.User is null
-            || AppServices.Dialogs.Confirm(Strings.Msg_DeleteUserConfirm1, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes
-            || AppServices.Dialogs.Confirm(Strings.Msg_DeleteUserConfirm2, Strings.Title_ConfirmationRequired, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning) != MessageBoxResult.Yes
-            || !_confirmStoredCredentials())
-         {
-            return;
-         }
-
-         string username = _viewModel.Username;
-         _passwordsContainer.ClearSecrets();
-         _database.DatabaseClosed -= _database_DatabaseClosed;
-
-         // Close settings before Delete so DatabaseClosed hits UserServicesView
-         // without a nested modal (MainWindow Show() depends on ShowUser == true).
-         if (!_isClosing && IsLoaded)
-         {
-            DialogResult = true;
-         }
-
-         _database.Delete();
-
-         AppServices.Dialogs.Info(Strings.Format(nameof(Strings.Msg_UserDeleted), username), Strings.Title_Success);
-      }
-
-      private async Task _saveAsync()
-      {
-         string error = _canSave();
-         if (!string.IsNullOrEmpty(error))
-         {
-            AppServices.Dialogs.Error(error, Strings.Title_Error);
-
-            return;
-         }
-
-         string newFilename = AppServices.Cryptography.GetHash(_viewModel.Username);
-         string newDatabaseFile = Path.GetFullPath($"{Path.Join(AppInfo.AppSettings.DefaultDatabaseDirectory, newFilename + ".pku")}");
-
-         bool newUser = false;
-         bool credentialsChanged = false;
-         string oldDatabaseFile = string.Empty;
-
-         if (_database?.User is null)
-         {
-            if (!CredentialsConfirmationView.ShowConfirmationDialog(credentials: [_viewModel.Username, .. _passwordsContainer.Passkeys], isNew: true))
-            {
-               return;
-            }
-
-            if (AppServices.Dialogs.Confirm(Strings.Format(nameof(Strings.Msg_UseDefaultLocation), newDatabaseFile), Strings.Title_UseDefaultLocation, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
-            {
-               string? picked = AppServices.Dialogs.PickSaveFile(
-                  Strings.Filter_Pku,
-                  Strings.Title_NewUserDatabase,
-                  Path.GetFileName(newDatabaseFile),
-                  Path.GetDirectoryName(newDatabaseFile));
-               if (!string.IsNullOrEmpty(picked))
-               {
-                  newDatabaseFile = picked;
-               }
-            }
-
-            _database = await Database.CreateAsync(AppServices.Cryptography,
-               AppServices.Serialization,
-               AppServices.PasswordFactory,
-               AppServices.Clipboard,
-               AppServices.SecretProtector,
-               newDatabaseFile,
-               _viewModel.Username,
-               [.. _passwordsContainer.Passkeys]).ConfigureAwait(true);
-
-            _database.DatabaseClosed += _database_DatabaseClosed;
-            _session.StartSession(_database);
-
-            newUser = true;
-         }
-         else
-         {
-            // Use the live session path — not DefaultDatabaseDirectory — so a vault
-            // opened from elsewhere is renamed/moved correctly.
-            oldDatabaseFile = Path.GetFullPath(_database.DatabaseFile);
-            string oldFileName = AppServices.Cryptography.GetHash(_database.User.Username);
-
-            // Stay in the vault's own folder (it may be synced). Only a file still
-            // named after the username hash needs a rename to remain resolvable.
-            newDatabaseFile = string.Equals(Path.GetFileName(oldDatabaseFile), oldFileName + ".pku", StringComparison.OrdinalIgnoreCase)
-               ? Path.Join(Path.GetDirectoryName(oldDatabaseFile), newFilename + ".pku")
-               : oldDatabaseFile;
-
-            credentialsChanged = _credentialsChanged(oldFileName,
-               oldPasskeys: _database.User.Passkeys,
-               newFilename,
-               newPasskeys: _passwordsContainer.Passkeys);
-
-            if (credentialsChanged
-               && (!_confirmStoredCredentials()
-                  || !CredentialsConfirmationView.ShowConfirmationDialog(credentials: [_viewModel.Username, .. _passwordsContainer.Passkeys], isNew: true)))
-            {
-               return;
-            }
-         }
-
-         if (_database.User is not null)
-         {
-            _database.User.Username = _viewModel.Username;
-            _database.User.Passkeys = _passwordsContainer.Passkeys;
-            _database.User.Settings.LogoutTimeout = _viewModel.LogoutTimeout;
-            _database.User.Settings.CleaningClipboardTimeout = _viewModel.CleaningClipboardTimeout;
-            _database.User.Settings.ShowPasswordDelay = _viewModel.ShowPasswordDelay;
-            _database.User.Settings.NumberOfOldPasswordToKeep = _viewModel.NumberOfOldPasswordToKeep;
-            _database.User.Settings.NumberOfMonthActivitiesToKeep = _viewModel.NumberOfMonthActivitiesToKeep;
-            _database.User.Settings.Language = _viewModel.SelectedLanguage.Code;
-            _database.User.Settings.Theme = _viewModel.SelectedTheme.Code;
-            AlertKindList alertsToNotify = _viewModel.BuildAlertsToNotify();
-
-            if (alertsToNotify.Count == 0)
-            {
-               AppServices.Dialogs.Warn(Strings.Msg_NoAlertsToNotify, Strings.Title_NoAlertsToNotify);
-            }
-
-            _database.User.Settings.AlertsToNotify = alertsToNotify;
-
-            await _database.SaveAsync().ConfigureAwait(true);
-            _session.ApplySessionLanguage();
-            _session.ApplySessionTheme();
-         }
-
-         string message;
-         bool endSessionAfterClose = false;
-
-         if (credentialsChanged)
-         {
-            message = Strings.Format(nameof(Strings.Msg_CredentialsUpdated), _viewModel.Username);
-            _passwordsContainer.ClearSecrets();
-            endSessionAfterClose = true;
-         }
-         else if (newUser)
-         {
-            message = Strings.Format(nameof(Strings.Msg_UserCreated), _viewModel.Username);
-            _passwordsContainer.ClearSecrets();
-            endSessionAfterClose = true;
-         }
-         else
-         {
-            message = Strings.Format(nameof(Strings.Msg_UserUpdated), _viewModel.Username);
-         }
-
-         // Success UI before closing this dialog: DatabaseClosed sets DialogResult
-         // synchronously on the UI thread and would otherwise dismiss Info's owner.
-         AppServices.Dialogs.Info(message, Strings.Title_Success);
-
-         if (!endSessionAfterClose)
-         {
-            this.DatabaseClosed(_isClosing);
-            return;
-         }
-
-         // Close settings first so EndSession's DatabaseClosed hits UserServicesView
-         // without nested modals. MainWindow only Show()s when ShowUser returns true.
-         _database?.DatabaseClosed -= _database_DatabaseClosed;
-
-         if (!_isClosing && IsLoaded)
-         {
-            DialogResult = true;
-         }
-
-         _session.EndSession();
-
-         if (!credentialsChanged)
-         {
-            return;
-         }
-
-         string oldDatabaseDirectory = Path.GetDirectoryName(oldDatabaseFile) ?? string.Empty;
-         string newDatabaseDirectory = Path.GetDirectoryName(newDatabaseFile) ?? string.Empty;
-
-         if (!string.Equals(oldDatabaseFile, newDatabaseFile, StringComparison.OrdinalIgnoreCase))
-         {
-            if (!Directory.Exists(newDatabaseDirectory))
-            {
-               _ = Directory.CreateDirectory(newDatabaseDirectory);
-            }
-
-            if (File.Exists(oldDatabaseFile))
-            {
-               File.Move(oldDatabaseFile, newDatabaseFile);
-            }
-            // Never delete the old directory: it may be a user sync folder that
-            // still holds other vaults or non-Passkey files.
-         }
-      }
-
-      private async void _save_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         // The busy cursor is set synchronously before the first await, so it
-         // doubles as the re-entrancy guard against a second save being started
-         // while this one is still running.
-         if (this.GetIsBusy())
-         {
-            return;
-         }
-
-         this.SetIsBusy(true);
-
-         try
-         {
-            await _saveAsync().ConfigureAwait(true);
-         }
-         finally
-         {
-            this.SetIsBusy(false);
-         }
-      }
-
-      private static bool _credentialsChanged(string oldFileName, IEnumerable<string> oldPasskeys, string newFilename, IEnumerable<string> newPasskeys)
-      {
-         return oldFileName != newFilename || AppServices.Serialization.AreDifferent(oldPasskeys, newPasskeys);
-      }
-
-      /// <summary>
-      /// Re-type the vault's current username + ordered passkeys (old credentials).
-      /// Used before opening User Settings (when a vault is loaded), credential
-      /// updates, and delete — not again at the Export click (credentials are
-      /// already visible in this view).
-      /// </summary>
-      private static bool _confirmStoredCredentials()
-      {
-         IUser? user = _session.Database?.User;
-         return user is not null
-            && CredentialsConfirmationView.ShowConfirmationDialog(
-               credentials: [user.Username, .. user.Passkeys],
-               isNew: false);
-      }
-
-      /// <summary>
-      /// Explicit consent that the chosen export path will contain passwords in
-      /// cleartext. Interop format by design; backup should copy the <c>.pku</c>.
-      /// </summary>
-      private static bool _confirmPlaintextExport()
-         => AppServices.Dialogs.Confirm(
-               Strings.Msg_ExportPlaintextWarning,
-               Strings.Title_ExportPlaintextWarning,
-               MessageBoxButton.YesNo,
-               MessageBoxImage.Warning)
-            == MessageBoxResult.Yes;
-
-      private static async Task<bool> _savePendingChangesAsync(IDatabase database, string title)
-      {
-         if (!database.User!.HasChanged())
-         {
-            return true;
-         }
-
-         if (AppServices.Dialogs.Confirm(Strings.Msg_SaveBeforeContinue, title, MessageBoxButton.OKCancel, MessageBoxImage.None)
-            != MessageBoxResult.OK)
-         {
-            return false;
-         }
-
-         await database.SaveAsync().ConfigureAwait(true);
-         return true;
-      }
-
-      private async void _import_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         IDatabase? database = _database;
-
-         if (this.GetIsBusy()
-            || database?.User is null)
-         {
-            return;
-         }
-
-         if (!await _savePendingChangesAsync(database, Strings.Msg_ImportData).ConfigureAwait(true))
-         {
-            return;
-         }
-
-         string? fileName = AppServices.Dialogs.PickOpenFile($"{Strings.Filter_Json}|{Strings.Filter_Csv}", Strings.Title_ImportData);
-         if (string.IsNullOrEmpty(fileName))
-         {
-            return;
-         }
-
-         this.SetIsBusy(true);
-
-         try
-         {
-            ImportExportError imported = await database.ImportFromFileAsync(fileName).ConfigureAwait(true);
-
-            if (imported == ImportExportError.None)
-            {
-               AppServices.Dialogs.Info(Strings.Msg_ImportSuccess, Strings.Title_ImportSuccess);
-            }
-            else
-            {
-               string reason = EnumDisplayHelper.FormatFieldValue(nameof(ImportExportError), imported.ToString());
-               AppServices.Dialogs.Error($"{Strings.Msg_ImportFailed}\n{reason}", Strings.Title_ImportFailed);
-            }
-         }
-         finally
-         {
-            this.SetIsBusy(false);
-         }
-      }
-
-      private async void _export_json_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         IDatabase? database = _database;
-
-         if (this.GetIsBusy()
-            || database?.User is null)
-         {
-            return;
-         }
-
-         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true))
-         {
-            return;
-         }
-
-         if (!_confirmPlaintextExport())
-         {
-            return;
-         }
-
-         string? fileName = AppServices.Dialogs.PickSaveFile(
-            Strings.Filter_Json,
-            Strings.Title_ExportJson,
-            $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}");
-         if (string.IsNullOrEmpty(fileName))
-         {
-            return;
-         }
-
-         await _exportAsync(database, fileName).ConfigureAwait(true);
-      }
-
-      private async void _export_csv_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         IDatabase? database = _database;
-
-         if (this.GetIsBusy()
-            || database?.User is null)
-         {
-            return;
-         }
-
-         if (!await _savePendingChangesAsync(database, Strings.Msg_ExportData).ConfigureAwait(true))
-         {
-            return;
-         }
-
-         if (!_confirmPlaintextExport())
-         {
-            return;
-         }
-
-         string? fileName = AppServices.Dialogs.PickSaveFile(
-            Strings.Filter_CsvExport,
-            Strings.Title_ExportCsv,
-            $"{database.User.ItemId ?? string.Empty}-{DateTime.Now:yyyyMMddHHmm}");
-         if (string.IsNullOrEmpty(fileName))
-         {
-            return;
-         }
-
-         await _exportAsync(database, fileName).ConfigureAwait(true);
-      }
-
-      private async Task _exportAsync(IDatabase database, string fileName)
-      {
-         this.SetIsBusy(true);
-
-         try
-         {
-            ImportExportError exported = await database.ExportToFileAsync(fileName).ConfigureAwait(true);
-
-            if (exported == ImportExportError.None)
-            {
-               AppServices.Dialogs.Info(Strings.Msg_ExportSuccess, Strings.Title_ExportSuccess);
-            }
-            else
-            {
-               string reason = EnumDisplayHelper.FormatFieldValue(nameof(ImportExportError), exported.ToString());
-               AppServices.Dialogs.Error($"{Strings.Msg_ExportFailed}\n{reason}", Strings.Title_ExportFailed);
-            }
-         }
-         finally
-         {
-            this.SetIsBusy(false);
-         }
-      }
-
-      private void _viewActivities_MenuItem_Click(object sender, RoutedEventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _viewModel is null
-            || AppServices.Session.User is null)
-         {
-            return;
-         }
-
-         string itemId = AppServices.Session.User.ItemId;
-
-         _ = AppServices.Dialogs.ShowSingleton(
-            factory: () =>
-            {
-               UserActivitiesView view = new(needsReviewFilter: false);
-               view.ViewModel.ClearFilters();
-               view.ViewModel.SearchCriteria = itemId;
-               return view;
-            },
-            configure: view => view.ViewModel.SearchCriteria = itemId);
-      }
+         => NumericTextBoxHelper.TextChanged(sender, e);
    }
 }

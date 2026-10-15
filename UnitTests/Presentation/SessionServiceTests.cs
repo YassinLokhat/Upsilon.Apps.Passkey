@@ -241,6 +241,56 @@ namespace UnitTests.Presentation
          _ = reports.Should().ContainSingle().Which.Message.Should().Be(Strings.Login_WriteBackSourceDamaged);
       }
 
+      [TestMethod]
+      public async Task DeleteVaultAsync_CompletesWithSourceResult()
+      {
+         using SessionService session = new();
+         FakeVaultSource source = new(VaultWriteBackResult.Written) { DeleteResult = false };
+         IDatabase database = _createDatabase();
+         session.TrackVaultSource(database, source);
+         session.StartSession(database);
+
+         _ = (await session.DeleteVaultAsync()).Should().BeFalse();
+         _ = session.Database.Should().BeNull();
+      }
+
+      [TestMethod]
+      public async Task EndSessionAndRename_WritesBackThenRenamesBeforeDispose()
+      {
+         using SessionService session = new();
+         FakeVaultSource source = new(VaultWriteBackResult.Written) { RenameResult = true };
+         IDatabase database = _createDatabase();
+         session.TrackVaultSource(database, source);
+         session.StartSession(database);
+
+         VaultRenameOutcome outcome = await session.EndSessionAndRenameAsync("renamed.pku");
+
+         _ = outcome.Renamed.Should().BeTrue();
+         _ = outcome.WriteBack.Should().Be(VaultWriteBackResult.Written);
+         _ = outcome.Location.Should().Be("renamed.pku");
+         _ = source.WriteCount.Should().Be(1);
+         _ = source.DisposedBeforeRename.Should().BeFalse();
+         _ = source.Disposed.Should().BeTrue();
+         _ = session.Database.Should().BeNull();
+      }
+
+      [TestMethod]
+      public async Task EndSessionAndRename_SkipsRenameWhenWriteBackFails()
+      {
+         using SessionService session = new();
+         FakeVaultSource source = new(VaultWriteBackResult.Conflict) { RenameResult = true };
+         IDatabase database = _createDatabase();
+         session.TrackVaultSource(database, source);
+         session.StartSession(database);
+
+         VaultRenameOutcome outcome = await session.EndSessionAndRenameAsync("renamed.pku");
+
+         _ = outcome.Renamed.Should().BeFalse();
+         _ = outcome.WriteBack.Should().Be(VaultWriteBackResult.Conflict);
+         _ = source.RenamedTo.Should().BeNull();
+         _ = source.Disposed.Should().BeTrue();
+      }
+
       private static IDatabase _createDatabase()
       {
          UnitTestsHelper.ClearTestEnvironment();
@@ -268,7 +318,7 @@ namespace UnitTests.Presentation
 
          public string DisplayName => "vault.pku";
 
-         public string Location => _secretPath;
+         public string Location => RenameResult && RenamedTo is not null ? RenamedTo : _secretPath;
 
          public bool DeleteResult { get; init; } = true;
 
@@ -283,8 +333,18 @@ namespace UnitTests.Presentation
             return Task.FromResult(DeleteResult);
          }
 
+         public bool RenameResult { get; init; }
+
+         public string? RenamedTo { get; private set; }
+
+         public bool DisposedBeforeRename { get; private set; }
+
          public Task<bool> RenameAsync(string newFileName, CancellationToken cancellationToken = default)
-            => Task.FromResult(false);
+         {
+            DisposedBeforeRename = Disposed;
+            RenamedTo = newFileName;
+            return Task.FromResult(RenameResult);
+         }
 
          public async Task<VaultWriteBackResult> WriteBackAsync(CancellationToken cancellationToken = default)
          {

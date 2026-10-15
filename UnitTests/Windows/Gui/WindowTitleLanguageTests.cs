@@ -48,7 +48,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          DuplicatedPasswordsAlertViewModel duplicated = new();
          AccountPasswordsAlertViewModel accountPasswords = new();
          AppSettingsViewModel appSettings = new();
-         UserSettingsViewModel userSettings = new();
+         using UserSettingsViewModel userSettings = new();
          UserActivitiesViewModel activities = new();
          PasswordGeneratorViewModel passwordGenerator = new();
          CredentialsConfirmationViewModel credentialsNew = new(["u", "p"], isNew: true);

@@ -1,4 +1,4 @@
-<Window xmlns:Controls="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views.Controls"
+﻿<Window xmlns:Controls="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views.Controls"
         x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.UserSettingsView"
         x:ClassModifier="internal"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -6,7 +6,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views"
-        xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
         xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
         d:DataContext="{d:DesignInstance Type=viewmodels:UserSettingsViewModel}"
         mc:Ignorable="d"
@@ -26,24 +26,24 @@
             </ItemsPanelTemplate>
          </Menu.ItemsPanel>
          <MenuItem Header="{loc:Loc Menu_Save}"
-                   Click="_save_MenuItem_Click"/>
+                   Command="{Binding SaveCommand}"/>
          <MenuItem Name="_import_MI"
                    Header="{loc:Loc Menu_Import}"
-                   Click="_import_MenuItem_Click"/>
+                   Command="{Binding ImportCommand}"/>
          <MenuItem Name="_export_MI"
                    Header="{loc:Loc Menu_Export}">
             <MenuItem Header="{loc:Loc Menu_ExportJson}"
-                      Click="_export_json_MenuItem_Click"/>
+                      Command="{Binding ExportJsonCommand}"/>
             <MenuItem Header="{loc:Loc Menu_ExportCsv}"
-                      Click="_export_csv_MenuItem_Click"/>
+                      Command="{Binding ExportCsvCommand}"/>
          </MenuItem>
          <MenuItem Name="_viewActivities_MI"
                    Header="{loc:Loc Menu_ViewActivities}"
-                   Click="_viewActivities_MenuItem_Click"/>
+                   Command="{Binding ViewActivitiesCommand}"/>
          <MenuItem Name="_deleteUser_MI"
                    Header="{loc:Loc Menu_DeleteUser}"
                    HorizontalAlignment="Right"
-                   Click="_deleteUser_MenuItem_Click"/>
+                   Command="{Binding DeleteCommand}"/>
       </Menu>
 
       <ScrollViewer Grid.Row="1"

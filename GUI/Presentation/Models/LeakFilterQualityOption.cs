@@ -1,4 +1,4 @@
-namespace Upsilon.Apps.Passkey.GUI.WPF.Models
+namespace Upsilon.Apps.Passkey.GUI.Presentation.Models
 {
    /// <summary>
    /// A Bloom quality preset shown in the App Settings combo box.
