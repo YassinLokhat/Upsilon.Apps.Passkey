@@ -141,7 +141,7 @@ User settings exposes one checkbox per known kind (`Label_Notify*`). An empty no
 `LoginIdleTimeoutSeconds` (`config.json`, default **5**) is the inactivity budget on the **login** window before typed credentials and any half-open session are cleared.
 
 * **0** disables the idle reset (no countdown, no automatic clear). Not recommended: typed factors can remain on the login window indefinitely; the host raises `IdleLoginDisabled`.
-* While the timer is armed, the window title appends a live countdown (`Msg_LoginIdleLeftTime`, e.g. ` - 5s`).
+* While the timer is armed, the window title appends a live countdown (`Title_IdleResetCredentialTimeout`, e.g. ` - Credentials reset in 5`).
 * Typing on the username or passkey field restarts the budget; Escape still clears immediately.
 * Open / Login awaits pause the timer; it is re-armed only when something remains to protect (typed username or half-open session).
 
