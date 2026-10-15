@@ -60,6 +60,31 @@ namespace UnitTests.Presentation.Fakes
       }
    }
 
+   /// <summary>Manual timer: <see cref="Fire"/> raises one tick, whatever the state.</summary>
+   internal sealed class FakeTimer : IUiTimer
+   {
+      public TimeSpan Interval { get; set; }
+      public bool IsRunning { get; private set; }
+      public bool IsDisposed { get; private set; }
+
+      public event EventHandler? Tick;
+
+      public void Fire() => Tick?.Invoke(this, EventArgs.Empty);
+
+      public void Start() => IsRunning = true;
+
+      public void StopTimer() => IsRunning = false;
+
+      public void Dispose() => IsDisposed = true;
+   }
+
+   internal sealed class FakeTimerFactory : IUiTimerFactory
+   {
+      public FakeTimer? Last { get; private set; }
+
+      public IUiTimer Create() => Last = new FakeTimer();
+   }
+
    internal sealed class FakeAppPaths(string defaultDatabaseDirectory) : IAppPaths
    {
       public string ConfigDirectory => defaultDatabaseDirectory;

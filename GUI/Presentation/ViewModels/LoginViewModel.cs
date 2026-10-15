@@ -13,7 +13,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
    /// <summary>
    /// Progressive login without binding passkeys to the ViewModel. Mirrors the
    /// WPF login: an explicitly picked vault wins over the default directory,
-   /// then username, then each passkey in order (no rollback).
+   /// then username, then each passkey in order (no rollback). An idle countdown
+   /// clears typed credentials and any half-open session.
    /// Hosts read the secret from the control and pass it to <see cref="SubmitPasskeyAsync"/>.
    /// Must be driven from the UI thread.
    /// </summary>
@@ -26,17 +27,39 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
       private string _pickedVaultName = string.Empty;
       private string _statusMessage = string.Empty;
       private readonly ISessionService _session;
+      private readonly LoginIdleTimer _idleTimer;
       private bool _disposed;
 
       public LoginViewModel()
       {
          _session = AppServices.Session;
          _session.WriteBackCompleted += _onWriteBackCompleted;
+         _idleTimer = new LoginIdleTimer(AppServices.Timers);
+         _idleTimer.Changed += (_, _) => OnPropertyChanged(nameof(Title));
+         _idleTimer.Elapsed += _onIdleTimeout;
          SaveConflictCopiesCommand = new AsyncRelayCommand(SaveConflictCopiesAsync, () => HasConflictCopies && IsIdle);
+         NewUserCommand = new AsyncRelayCommand(() => _showToolAsync(new UserSettingsRequest()), () => MenusEnabled);
+         AppSettingsCommand = new AsyncRelayCommand(() => _showToolAsync(new AppSettingsRequest()), () => MenusEnabled);
+         GeneratePasswordCommand = new AsyncRelayCommand(() => _showToolAsync(new GeneratePasswordRequest()), () => MenusEnabled);
          RefreshConflictCopies();
       }
 
       public AsyncRelayCommand SaveConflictCopiesCommand { get; }
+
+      public AsyncRelayCommand NewUserCommand { get; }
+
+      public AsyncRelayCommand AppSettingsCommand { get; }
+
+      public AsyncRelayCommand GeneratePasswordCommand { get; }
+
+      /// <summary>
+      /// Menus and shortcuts stay off while an open or a login runs and during the
+      /// passkey prompt, so a half-open session cannot race "New user" or "Open".
+      /// </summary>
+      public bool MenusEnabled => IsIdle && !DatabaseOpened;
+
+      /// <summary>App title, followed by the idle reset countdown while it runs.</summary>
+      public string Title => _idleTimer.AppendCountdown(AppServices.Info.Title);
 
       public int ConflictCopyCount
       {
@@ -120,8 +143,10 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
 
          _disposed = true;
          _session.WriteBackCompleted -= _onWriteBackCompleted;
+         _idleTimer.Dispose();
          LoggedIn = null;
          SessionEnded = null;
+         IdleTimeoutElapsed = null;
       }
 
       /// <summary>Raised on the UI thread once the last passkey unlocked the vault.</summary>
@@ -129,6 +154,12 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
 
       /// <summary>Raised on the UI thread after the session closed (logout, timeout, reset).</summary>
       public event EventHandler<LogoutEventArgs>? SessionEnded;
+
+      /// <summary>
+      /// Raised after the idle countdown reset the login; the host clears the
+      /// credential control.
+      /// </summary>
+      public event EventHandler? IdleTimeoutElapsed;
 
       public bool DatabaseOpened => _database is not null;
 
@@ -143,6 +174,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             {
                OnPropertyChanged(nameof(IsIdle));
                SaveConflictCopiesCommand.RaiseCanExecuteChanged();
+               _raiseMenusEnabled();
             }
          }
       }
@@ -181,6 +213,39 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
       {
          OnPropertyChanged(nameof(CredentialsLabel));
          OnPropertyChanged(nameof(SelectedVaultLabel));
+         OnPropertyChanged(nameof(Title));
+      }
+
+      /// <summary>
+      /// Call when the credential control's text changes: restarts the idle
+      /// countdown while something is typed or a vault is half-open.
+      /// </summary>
+      public void NotifyCredentialInput(bool hasText)
+      {
+         if (IsBusy || IsLoggedIn || (!hasText && !DatabaseOpened))
+         {
+            return;
+         }
+
+         _idleTimer.Restart();
+      }
+
+      /// <summary>
+      /// Applies <see cref="LoginCommandLine"/> arguments: selects the vault, then
+      /// submits the username so the passkey prompt is shown.
+      /// </summary>
+      public async Task ApplyCommandLineAsync(IReadOnlyList<string> args)
+      {
+         (string? vaultPath, string? username) = LoginCommandLine.Parse(args);
+         if (vaultPath is not null)
+         {
+            SelectVault(vaultPath, Path.GetFileName(vaultPath));
+         }
+
+         if (!string.IsNullOrWhiteSpace(username))
+         {
+            await SubmitUsernameAsync(username).ConfigureAwait(true);
+         }
       }
 
       public IDatabase? Database => _database;
@@ -214,6 +279,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          {
             return;
          }
+
+         _idleTimer.Stop();
 
          if (AppServices.DefaultVaultDirectory is not { } vaultDirectory
              || AppServices.VaultSources is null
@@ -263,6 +330,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
 
             OnPropertyChanged(nameof(DatabaseOpened));
             OnPropertyChanged(nameof(CredentialsLabel));
+            _raiseMenusEnabled();
             StatusMessage = checkout switch
             {
                VaultCheckoutResult.RecoveredLocalChanges => $"{Strings.Login_RecoveredLocalChanges} {Strings.Login_EnterPasskeys}",
@@ -295,6 +363,11 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
 
             IsBusy = false;
          }
+
+         if (DatabaseOpened)
+         {
+            _idleTimer.Restart();
+         }
       }
 
       /// <summary>Pass the passkey from the control; do not store it on this ViewModel.</summary>
@@ -309,6 +382,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             return false;
          }
 
+         _idleTimer.Stop();
          IsBusy = true;
          StatusMessage = Strings.Login_CheckingPasskey;
          try
@@ -341,6 +415,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          {
             // Same soft feedback as WPF: a wrong layer is not reported (no rollback).
             StatusMessage = Strings.Login_NextPasskey;
+            _idleTimer.Restart();
             return false;
          }
 
@@ -372,11 +447,41 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
 
       private void _clearSessionState()
       {
+         _idleTimer.Stop();
          _database = null;
          _user = null;
          OnPropertyChanged(nameof(DatabaseOpened));
          OnPropertyChanged(nameof(CredentialsLabel));
          OnPropertyChanged(nameof(IsLoggedIn));
+         _raiseMenusEnabled();
+      }
+
+      private void _raiseMenusEnabled()
+      {
+         OnPropertyChanged(nameof(MenusEnabled));
+         NewUserCommand.RaiseCanExecuteChanged();
+         AppSettingsCommand.RaiseCanExecuteChanged();
+         GeneratePasswordCommand.RaiseCanExecuteChanged();
+      }
+
+      private async Task _showToolAsync<TResult>(IViewRequest<TResult> request)
+      {
+         _idleTimer.Stop();
+         if (AppServices.Dialogs is { } dialogs)
+         {
+            _ = await dialogs.ShowAsync(request).ConfigureAwait(true);
+         }
+      }
+
+      private void _onIdleTimeout(object? sender, EventArgs e)
+      {
+         if (IsBusy || IsLoggedIn)
+         {
+            return;
+         }
+
+         Reset();
+         IdleTimeoutElapsed?.Invoke(this, EventArgs.Empty);
       }
 
       private void _onAutoSaveDetected(object? sender, AutoSaveDetectedEventArgs e)

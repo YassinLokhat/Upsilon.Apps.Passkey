@@ -225,6 +225,162 @@ namespace UnitTests.Presentation
          UnitTestsHelper.ClearTestEnvironment();
       }
 
+      [TestMethod]
+      /*
+       * Once the vault is open, the idle countdown shows in the title and, at
+       * zero, closes the half-open session and asks the host to clear its field.
+       * A tick queued before the reset is ignored.
+      */
+      public async Task Case07_IdleTimeout_CountsDownInTitle_ThenResetsHalfOpenLogin()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         UnitTestsHelper.CreateTestDatabase(UnitTestsHelper.GetRandomStringArray()).Close();
+         _configureHost(UnitTestsHelper.ComputeDatabaseFileDirectory());
+         FakeTimerFactory timers = _configureIdleTimeout(seconds: 2);
+
+         LoginViewModel viewModel = new();
+         FakeTimer timer = timers.Last!;
+         int cleared = 0;
+         viewModel.IdleTimeoutElapsed += (_, _) => cleared++;
+         _ = viewModel.Title.Should().Be(AppServices.Info.Title);
+
+         await viewModel.SubmitUsernameAsync(UnitTestsHelper.GetUsername());
+         _ = viewModel.DatabaseOpened.Should().BeTrue();
+         _ = timer.IsRunning.Should().BeTrue();
+         _ = timer.Interval.Should().Be(TimeSpan.FromSeconds(1));
+         _ = viewModel.Title.Should().Be(AppServices.Info.Title + Strings.Format(nameof(Strings.Title_IdleResetCredentialTimeout), 2));
+
+         timer.Fire();
+         _ = viewModel.Title.Should().Be(AppServices.Info.Title + Strings.Format(nameof(Strings.Title_IdleResetCredentialTimeout), 1));
+
+         timer.Fire();
+         timer.Fire();
+         _ = cleared.Should().Be(1);
+         _ = viewModel.DatabaseOpened.Should().BeFalse();
+         _ = timer.IsRunning.Should().BeFalse();
+         _ = viewModel.Title.Should().Be(AppServices.Info.Title);
+
+         await viewModel.SubmitUsernameAsync(UnitTestsHelper.GetUsername());
+         _ = viewModel.DatabaseOpened.Should().BeTrue("the reset released the vault");
+
+         viewModel.Reset();
+         viewModel.Dispose();
+         _ = timer.IsDisposed.Should().BeTrue();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Typing restarts the countdown; an emptied field only does so while a
+       * vault is half-open. A zero timeout disables it.
+      */
+      public void Case08_CredentialInput_RestartsCountdown_UnlessDisabled()
+      {
+         _configureHost(UnitTestsHelper.ComputeTestDirectory());
+         FakeTimerFactory timers = _configureIdleTimeout(seconds: 5);
+         using LoginViewModel viewModel = new();
+         FakeTimer timer = timers.Last!;
+
+         viewModel.NotifyCredentialInput(hasText: false);
+         _ = timer.IsRunning.Should().BeFalse();
+
+         viewModel.NotifyCredentialInput(hasText: true);
+         _ = timer.IsRunning.Should().BeTrue();
+         timer.Fire();
+         viewModel.NotifyCredentialInput(hasText: true);
+         _ = viewModel.Title.Should().EndWith(Strings.Format(nameof(Strings.Title_IdleResetCredentialTimeout), 5));
+
+         viewModel.Reset();
+         _ = timer.IsRunning.Should().BeFalse();
+
+         AppServices.Settings!.Current.LoginIdleTimeoutSeconds = 0;
+         viewModel.NotifyCredentialInput(hasText: true);
+         _ = timer.IsRunning.Should().BeFalse();
+         _ = viewModel.Title.Should().Be(AppServices.Info.Title);
+      }
+
+      [TestMethod]
+      /*
+       * New user, app settings and the generator open their views from the login
+       * screen, but not while a vault is half-open (same rule as the WPF menus).
+      */
+      public async Task Case09_Menus_ShowViews_ButNotDuringThePasskeyPrompt()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         UnitTestsHelper.CreateTestDatabase(UnitTestsHelper.GetRandomStringArray()).Close();
+         FakeDialogService dialogs = _configureHost(UnitTestsHelper.ComputeDatabaseFileDirectory());
+         FakeTimerFactory timers = _configureIdleTimeout(seconds: 5);
+         LoginViewModel viewModel = new();
+         FakeTimer timer = timers.Last!;
+
+         _ = viewModel.MenusEnabled.Should().BeTrue();
+         viewModel.NotifyCredentialInput(hasText: true);
+         await viewModel.NewUserCommand.ExecuteAsync(null);
+         _ = timer.IsRunning.Should().BeFalse("a dialog pauses the idle reset");
+         await viewModel.AppSettingsCommand.ExecuteAsync(null);
+         await viewModel.GeneratePasswordCommand.ExecuteAsync(null);
+         _ = dialogs.ShownRequests.Select(r => r.GetType()).Should().Equal(
+            typeof(UserSettingsRequest),
+            typeof(AppSettingsRequest),
+            typeof(GeneratePasswordRequest));
+
+         List<string?> changed = [];
+         viewModel.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+         await viewModel.SubmitUsernameAsync(UnitTestsHelper.GetUsername());
+
+         _ = changed.Should().Contain(nameof(LoginViewModel.MenusEnabled));
+         _ = viewModel.MenusEnabled.Should().BeFalse();
+         _ = viewModel.NewUserCommand.CanExecute(null).Should().BeFalse();
+         _ = viewModel.AppSettingsCommand.CanExecute(null).Should().BeFalse();
+         _ = viewModel.GeneratePasswordCommand.CanExecute(null).Should().BeFalse();
+
+         viewModel.Reset();
+         _ = viewModel.MenusEnabled.Should().BeTrue();
+         _ = viewModel.NewUserCommand.CanExecute(null).Should().BeTrue();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Launch arguments [vault.pku] [username] select the vault and submit the
+       * username. Anything but an existing local .pku file is ignored.
+      */
+      public async Task Case10_CommandLine_SelectsVaultAndSubmitsUsername()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         UnitTestsHelper.CreateTestDatabase(UnitTestsHelper.GetRandomStringArray()).Close();
+         string emptyDirectory = Path.Join(UnitTestsHelper.ComputeTestDirectory(), "empty");
+         _ = Directory.CreateDirectory(emptyDirectory);
+         _configureHost(emptyDirectory);
+         string vault = Path.GetFullPath(UnitTestsHelper.ComputeDatabaseFilePath());
+         string notes = Path.Join(emptyDirectory, "notes.txt");
+         File.WriteAllText(notes, "not a vault");
+
+         _ = LoginCommandLine.Parse(["exe"]).Should().Be(((string?)null, (string?)null));
+         _ = LoginCommandLine.Parse(["exe", notes]).VaultPath.Should().BeNull();
+         _ = LoginCommandLine.Parse(["exe", Path.Join(emptyDirectory, "missing.pku")]).VaultPath.Should().BeNull();
+         _ = LoginCommandLine.Parse(["exe", @"\\server\share\vault.pku"]).VaultPath.Should().BeNull();
+         _ = LoginCommandLine.Parse(["exe", vault, "bob"]).Should().Be((vault, "bob"));
+
+         LoginViewModel viewModel = new();
+         await viewModel.ApplyCommandLineAsync(["exe", vault, UnitTestsHelper.GetUsername()]);
+
+         _ = viewModel.SelectedVaultName.Should().Be(Path.GetFileName(vault));
+         _ = viewModel.DatabaseOpened.Should().BeTrue();
+
+         viewModel.Reset();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      private static FakeTimerFactory _configureIdleTimeout(int seconds)
+      {
+         FakeTimerFactory timers = new();
+         AppServices.Timers = timers;
+         AppServices.Settings = new JsonAppSettingsStore(AppServices.Paths!);
+         AppServices.Settings.Current.LoginIdleTimeoutSeconds = seconds;
+         return timers;
+      }
+
       private static FakeDialogService _configureHost(string defaultDatabaseDirectory)
       {
          FakeDialogService dialogs = new();
