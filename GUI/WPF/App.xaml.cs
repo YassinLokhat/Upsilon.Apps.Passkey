@@ -26,15 +26,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          // Touch so CA1812 sees BAML-created types as used (factories are never invoked).
          _ = XamlBamlCreatedTypeAnchors.Factories.Length;
 
+         AppServices.Info = new WpfAppInfo();
+         AppServices.Log = new WpfAppLog();
          AppServices.Ui = new WpfUiDispatcher();
          AppServices.Timers = new WpfUiTimerFactory();
          AppServices.Paths = new WpfAppPaths();
          AppServices.Launcher = new WpfLauncher();
          AppServices.VaultSources = new PathVaultSourceFactory();
-         AppServices.Cryptography = WpfAppServices.Cryptography;
-         AppServices.Serialization = WpfAppServices.Serialization;
-         AppServices.PasswordFactory = WpfAppServices.PasswordFactory;
-         AppServices.SecretProtector = WpfAppServices.SecretProtector;
 
          _ = AppInfo.ConfigFile;
          _ = LocalizationService.Apply(AppInfo.AppSettings.Language);

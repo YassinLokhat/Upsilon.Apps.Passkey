@@ -42,9 +42,16 @@ namespace UnitTests.Presentation.Fakes
 
       public Task<string?> PickSaveFileAsync(string filter, string title, string? defaultFileName = null, string? initialDirectory = null, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
 
-      public Task ShowViewAsync(string viewKey, object? parameter = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+      public List<object> ShownRequests { get; } = [];
 
-      public Task<object?> ShowModalViewAsync(string viewKey, object? parameter = null, CancellationToken cancellationToken = default) => Task.FromResult<object?>(null);
+      /// <summary>Result returned for the next requests, keyed by request type.</summary>
+      public Dictionary<Type, object?> ViewResults { get; } = [];
+
+      public Task<TResult?> ShowAsync<TResult>(IViewRequest<TResult> request, CancellationToken cancellationToken = default)
+      {
+         ShownRequests.Add(request);
+         return Task.FromResult(ViewResults.TryGetValue(request.GetType(), out object? result) ? (TResult?)result : default);
+      }
    }
 
    internal sealed class FakeAppPaths(string defaultDatabaseDirectory) : IAppPaths

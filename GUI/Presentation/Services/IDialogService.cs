@@ -19,10 +19,11 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
 
       Task<string?> PickSaveFileAsync(string filter, string title, string? defaultFileName = null, string? initialDirectory = null, CancellationToken cancellationToken = default);
 
-      /// <summary>Show a host-specific view by logical key (e.g. <c>PasswordGenerator</c>).</summary>
-      Task ShowViewAsync(string viewKey, object? parameter = null, CancellationToken cancellationToken = default);
-
-      /// <summary>Show a modal host view; returns when closed.</summary>
-      Task<object?> ShowModalViewAsync(string viewKey, object? parameter = null, CancellationToken cancellationToken = default);
+      /// <summary>
+      /// Shows the host view registered for the request type and completes when
+      /// it closes; <c>default</c> when cancelled or when the host has no view
+      /// for this request yet.
+      /// </summary>
+      Task<TResult?> ShowAsync<TResult>(IViewRequest<TResult> request, CancellationToken cancellationToken = default);
    }
 }
