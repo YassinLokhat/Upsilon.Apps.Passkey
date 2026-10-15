@@ -2,6 +2,7 @@
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 using Upsilon.Apps.Passkey.Utils;
+using SharedServices = Upsilon.Apps.Passkey.GUI.Presentation.Services.AppServices;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 {
@@ -24,18 +25,36 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
 
       public static INavigationService Navigation { get; set; } = new NavigationService();
 
-      public static ICryptographyCenter Cryptography { get; set; } = new CryptographyCenter();
+      // The library services below are shared with GUI/Presentation so both
+      // locators always hand out the same instances.
+      public static ICryptographyCenter Cryptography
+      {
+         get => SharedServices.Cryptography;
+         set => SharedServices.Cryptography = value;
+      }
 
-      public static ISerializationCenter Serialization { get; set; } = new JsonSerializationCenter();
+      public static ISerializationCenter Serialization
+      {
+         get => SharedServices.Serialization;
+         set => SharedServices.Serialization = value;
+      }
 
-      // Parameterless: AppInfo.AppSettings is still the default instance when
-      // this type initializer runs (it is triggered from config deserialize).
+      // Created parameterless by the shared locator: AppInfo.AppSettings is still
+      // the default instance at that point (config deserialize triggers it).
       // AppInfo attaches the real .pkbf after config.json is loaded.
-      public static IPasswordFactory PasswordFactory { get; set; } = new PasswordFactory();
+      public static IPasswordFactory PasswordFactory
+      {
+         get => SharedServices.PasswordFactory;
+         set => SharedServices.PasswordFactory = value;
+      }
 
       public static IClipboardManager Clipboard { get; set; } = new ClipboardManager();
 
-      public static ISecretMemoryProtector SecretProtector { get; set; } = new SecretMemoryProtector();
+      public static ISecretMemoryProtector SecretProtector
+      {
+         get => SharedServices.SecretProtector;
+         set => SharedServices.SecretProtector = value;
+      }
 
       /// <summary>
       /// Shared offline leak-filter build/update runner (manual settings + startup auto-update).

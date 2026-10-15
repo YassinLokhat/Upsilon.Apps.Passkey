@@ -12,6 +12,10 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
    {
       public static IDialogService? Dialogs { get; set; }
 
+      public static IAppInfo Info { get; set; } = new AssemblyAppInfo(typeof(AppServices).Assembly);
+
+      public static IAppLog Log { get; set; } = new NullAppLog();
+
       public static INavigationService Navigation { get; set; } = new NavigationService();
 
       public static IUiDispatcher? Ui { get; set; }
@@ -42,6 +46,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
       public static void Reset()
       {
          Dialogs = null;
+         Info = new AssemblyAppInfo(typeof(AppServices).Assembly);
+         Log = new NullAppLog();
          Navigation = new NavigationService();
          Ui = null;
          Timers = null;

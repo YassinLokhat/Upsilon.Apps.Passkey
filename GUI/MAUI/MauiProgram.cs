@@ -10,9 +10,12 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          // Touch so CA1812 sees framework-created types as used (factories are never invoked).
          _ = MauiFrameworkCreatedTypeAnchors.Factories.Length;
 
+         MauiAppPaths paths = new();
+         AppServices.Info = new AssemblyAppInfo(typeof(MauiProgram).Assembly);
+         AppServices.Log = new TraceFileAppLog(paths.LogDirectory);
          AppServices.Ui = new MauiUiDispatcher();
          AppServices.Timers = new MauiUiTimerFactory();
-         AppServices.Paths = new MauiAppPaths();
+         AppServices.Paths = paths;
          AppServices.Launcher = new MauiLauncher();
          AppServices.Dialogs = new MauiDialogService();
          AppServices.Theme = new MauiThemePlatform();

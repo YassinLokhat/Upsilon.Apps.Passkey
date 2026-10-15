@@ -6,6 +6,8 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
    /// <summary>MAUI dialogs via the current page. File pickers use ESSentials.</summary>
    internal sealed class MauiDialogService : IDialogService
    {
+      private readonly Dictionary<Type, Func<object, Page>> _views = [];
+
       private static Page? _page
       {
          get
@@ -105,17 +107,45 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
          return null;
       }
 
-      public Task ShowViewAsync(string viewKey, object? parameter = null, CancellationToken cancellationToken = default)
+      /// <summary>
+      /// Maps a request type to the modal page that serves it. The page must
+      /// implement <see cref="IResultPage{TResult}"/>.
+      /// </summary>
+      public void Register<TRequest, TResult>(Func<TRequest, Page> factory)
+         where TRequest : IViewRequest<TResult>
       {
-         cancellationToken.ThrowIfCancellationRequested();
-         // Shell routes for remaining WPF windows land in later parity PRs.
-         return InfoAsync($"View '{viewKey}' is not wired in MAUI yet.", "Navigation", cancellationToken);
+         ArgumentNullException.ThrowIfNull(factory);
+         _views[typeof(TRequest)] = request => factory((TRequest)request);
       }
 
-      public async Task<object?> ShowModalViewAsync(string viewKey, object? parameter = null, CancellationToken cancellationToken = default)
+      public async Task<TResult?> ShowAsync<TResult>(IViewRequest<TResult> request, CancellationToken cancellationToken = default)
       {
-         await ShowViewAsync(viewKey, parameter, cancellationToken).ConfigureAwait(true);
-         return null;
+         ArgumentNullException.ThrowIfNull(request);
+         cancellationToken.ThrowIfCancellationRequested();
+
+         if (!_views.TryGetValue(request.GetType(), out Func<object, Page>? factory))
+         {
+            await InfoAsync("This view is not available in the MAUI client yet.", AppServices.Info.Title, cancellationToken)
+               .ConfigureAwait(true);
+            return default;
+         }
+
+         Page page = factory(request);
+         if (page is not IResultPage<TResult> resultPage)
+         {
+            throw new InvalidOperationException($"{page.GetType().Name} does not return {typeof(TResult).Name}.");
+         }
+
+         INavigation navigation = (_page ?? throw new InvalidOperationException("No active page for dialogs.")).Navigation;
+         await navigation.PushModalAsync(page).ConfigureAwait(true);
+         TResult? result = await resultPage.Completion.ConfigureAwait(true);
+
+         if (navigation.ModalStack.Contains(page))
+         {
+            _ = await navigation.PopModalAsync().ConfigureAwait(true);
+         }
+
+         return result;
       }
 
       private static async Task<DialogResult> _okAsync(Page page, string text, string title)
