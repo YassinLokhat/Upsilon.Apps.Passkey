@@ -192,6 +192,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             oldDatabaseFile = Path.GetFullPath(_database.DatabaseFile);
             string oldFileName = AppServices.Cryptography.GetHash(_database.User.Username);
 
+            // Stay in the vault's own folder (it may be synced). Only a file still
+            // named after the username hash needs a rename to remain resolvable.
+            newDatabaseFile = string.Equals(Path.GetFileName(oldDatabaseFile), oldFileName + ".pku", StringComparison.OrdinalIgnoreCase)
+               ? Path.Join(Path.GetDirectoryName(oldDatabaseFile), newFilename + ".pku")
+               : oldDatabaseFile;
+
             credentialsChanged = _credentialsChanged(oldFileName,
                oldPasskeys: _database.User.Passkeys,
                newFilename,

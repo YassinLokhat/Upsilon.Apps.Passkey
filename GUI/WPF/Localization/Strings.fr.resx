@@ -565,6 +565,9 @@ Veuillez vous reconnecter.</value>
   <data name="Msg_UserUpdated" xml:space="preserve">
     <value>Base utilisateur '{0}' mise à jour avec succès</value>
   </data>
+  <data name="Msg_VaultReplacedExternally" xml:space="preserve">
+    <value>Le fichier du coffre a été modifié ou remplacé par un autre programme (par exemple un client de synchronisation) pendant qu'il était ouvert. Vos modifications n'ont pas été écrites par-dessus. Fermez le coffre puis rouvrez-le pour continuer.</value>
+  </data>
   <data name="Msg_SaveBeforeContinue" xml:space="preserve">
     <value>Avant de continuer, toutes les modifications non enregistrées seront sauvegardées.</value>
   </data>

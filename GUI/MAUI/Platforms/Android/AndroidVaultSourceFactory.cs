@@ -13,17 +13,18 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
    internal sealed class AndroidVaultSourceFactory : IVaultSourceFactory
    {
       private static readonly Lock _gate = new();
-      private static global::Android.Net.Uri? _pendingSafUri;
-      private static string? _pendingDisplayName;
+      private static readonly Dictionary<string, (global::Android.Net.Uri Uri, string DisplayName)> _safUris = [];
 
-      /// <summary>Register a SAF document URI (with persistable permission already taken).</summary>
+      /// <summary>
+      /// Register a SAF document URI (with persistable permission already taken).
+      /// Kept for the process lifetime so the same vault can be reopened after a reset.
+      /// </summary>
       internal static void RegisterSafUri(global::Android.Net.Uri uri, string displayName)
       {
          ArgumentNullException.ThrowIfNull(uri);
          lock (_gate)
          {
-            _pendingSafUri = uri;
-            _pendingDisplayName = displayName;
+            _safUris[uri.ToString()!] = (uri, displayName);
          }
       }
 
@@ -41,12 +42,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
 
          lock (_gate)
          {
-            if (_pendingSafUri is { } uri)
+            if (_safUris.TryGetValue(path, out (global::Android.Net.Uri Uri, string DisplayName) registered))
             {
-               string name = _pendingDisplayName ?? uri.LastPathSegment ?? "vault.pku";
-               _pendingSafUri = null;
-               _pendingDisplayName = null;
-               return Task.FromResult<IVaultSource>(SafVaultSource.Create(uri, name));
+               return Task.FromResult<IVaultSource>(SafVaultSource.Create(registered.Uri, registered.DisplayName));
             }
          }
 

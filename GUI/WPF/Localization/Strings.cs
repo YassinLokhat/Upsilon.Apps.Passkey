@@ -294,6 +294,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_UserId => Get(nameof(Msg_UserId));
       public static string Msg_UsernameEmpty => Get(nameof(Msg_UsernameEmpty));
       public static string Msg_UserUpdated => Get(nameof(Msg_UserUpdated));
+      public static string Msg_VaultReplacedExternally => Get(nameof(Msg_VaultReplacedExternally));
       public static string Title_AccountPasswordsAlerts => Get(nameof(Title_AccountPasswordsAlerts));
       public static string Title_Activities => Get(nameof(Title_Activities));
       public static string Title_AppSettings => Get(nameof(Title_AppSettings));
