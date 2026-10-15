@@ -1,6 +1,6 @@
 # MAUI Client
 
-The cross-platform host lives in `GUI/MAUI` (`net10.0-android` + Windows unpackaged). Shared ViewModels and ports live in `GUI/Presentation` (zero NuGet). WPF remains the full-featured Windows reference; MAUI is catching up (login + vault open first). Without a picked file, the username resolves to `{hash}.pku` in the default database directory; "Open vault…" picks a file (Windows) or a SAF document (Android) first, like WPF's Ctrl+O.
+The cross-platform host lives in `GUI/MAUI` (`net10.0-android` + Windows unpackaged). Shared ViewModels and ports live in `GUI/Presentation` (zero NuGet). WPF remains the full-featured Windows reference and stays supported; MAUI covers the same features except the Windows-only ones listed in [[MAUI Parity Checklist]]. Without a picked file, the username resolves to `{hash}.pku` in the default database directory; "Open vault…" picks a file (Windows) or a SAF document (Android) first, like WPF's Ctrl+O.
 
 ## Targets
 
