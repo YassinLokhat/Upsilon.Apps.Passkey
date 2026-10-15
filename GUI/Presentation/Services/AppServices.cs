@@ -26,6 +26,25 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
 
       public static IAppSettingsStore? Settings { get; set; }
 
+      /// <summary>
+      /// Folder where username-named vaults are looked up and created: the configured
+      /// <see cref="Models.AppSettings.DefaultDatabaseDirectory"/>, else the host default.
+      /// <c>null</c> when the host registered no <see cref="Paths"/>.
+      /// </summary>
+      public static string? DefaultVaultDirectory
+      {
+         get
+         {
+            if (Paths is not { } paths)
+            {
+               return null;
+            }
+
+            string? configured = Settings?.Current.DefaultDatabaseDirectory;
+            return string.IsNullOrWhiteSpace(configured) ? paths.DefaultDatabaseDirectory : configured;
+         }
+      }
+
       public static IHostCapabilities Capabilities { get; set; } = HostCapabilities.Desktop;
 
       public static IThemePlatform? Theme { get; set; }

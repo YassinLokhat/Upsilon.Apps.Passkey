@@ -565,7 +565,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings
       private async Task _createAsync(string username, string[] passkeys)
       {
          if (AppServices.VaultSources is not { } factory
-            || AppServices.Paths is not { } paths)
+            || AppServices.DefaultVaultDirectory is not { } vaultDirectory)
          {
             return;
          }
@@ -580,7 +580,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings
 
          if (AppServices.Capabilities.SupportsFileSystemPaths)
          {
-            string path = Path.GetFullPath(Path.Join(paths.DefaultDatabaseDirectory, fileName));
+            string path = Path.GetFullPath(Path.Join(vaultDirectory, fileName));
             if (await _dialogs.ConfirmAsync(Strings.Format(nameof(Strings.Msg_UseDefaultLocation), path), Strings.Title_UseDefaultLocation).ConfigureAwait(true) != DialogResult.Yes)
             {
                string? picked = await _dialogs.PickSaveFileAsync(Strings.Filter_Pku, Strings.Title_NewUserDatabase, fileName, Path.GetDirectoryName(path)).ConfigureAwait(true);

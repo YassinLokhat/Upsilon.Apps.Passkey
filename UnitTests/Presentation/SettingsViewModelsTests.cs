@@ -85,6 +85,43 @@ namespace UnitTests.Presentation
          ((FakeDialogService)AppServices.Dialogs!).LastError.Should().Contain(EnumDisplayHelper.FormatFieldValue(nameof(ImportExportError), nameof(ImportExportError.ExtensionFileNotSupported)));
       }
 
+      [TestMethod]
+      /*
+       * A new vault defaults to the directory configured in the app settings,
+       * where the next login by username looks for it, not the host's folder.
+      */
+      public async Task NewUser_IsCreatedInTheConfiguredDirectory()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string configured = Path.GetFullPath(UnitTestsHelper.ComputeDatabaseFileDirectory());
+         string hostDefault = Path.GetFullPath(Path.Join(UnitTestsHelper.ComputeTestDirectory(), "host-default"));
+         FakeDialogService dialogs = new() { ConfirmAnswer = DialogResult.Yes };
+         dialogs.ViewResults[typeof(ConfirmCredentialsRequest)] = true;
+         AppServices.Ui = new InlineUiDispatcher();
+         AppServices.Clipboard = new FakeClipboardService();
+         AppServices.PasswordFactory = UnitTestsHelper.FastPasswordFactory;
+         AppServices.Dialogs = dialogs;
+         AppServices.Paths = new FakeAppPaths(hostDefault);
+         AppServices.VaultSources = new PathVaultSourceFactory();
+         FakeSettingsStore store = new();
+         store.Current.DefaultDatabaseDirectory = configured;
+         AppServices.Settings = store;
+
+         string username = UnitTestsHelper.GetUsername();
+         using (UserSettingsViewModel vm = new() { Username = username })
+         {
+            vm.Passkeys.Entries[0].Attach(new FakeSecretInput { Value = "first passkey" });
+            await vm.SaveAsync();
+         }
+
+         dialogs.LastError.Should().BeNull();
+         string fileName = AppServices.Cryptography.GetHash(username) + ".pku";
+         File.Exists(Path.Join(configured, fileName)).Should().BeTrue();
+         File.Exists(Path.Join(hostDefault, fileName)).Should().BeFalse();
+
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
       private static FakeFileExchange _startSession(out IDatabase database)
       {
          UnitTestsHelper.ClearTestEnvironment();
