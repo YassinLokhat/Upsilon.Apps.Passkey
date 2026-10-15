@@ -25,6 +25,9 @@ Versions and dependency ranges are maintained in [`versions.json`](versions.json
 <!-- END:versions-supported-table -->
 
 Any version older than the latest release of a given component is not supported.
+The MAUI client (`Upsilon.Apps.Passkey.GUI.MAUI`, Windows and Android) is a
+preview with no release yet, so it has no supported version; report its
+vulnerabilities through the same private channels.
 
 ## Reporting a Vulnerability
 
@@ -75,8 +78,8 @@ What to expect:
 - Physical access to an unlocked, logged-in session.
 - Plaintext files the user deliberately produces via **Import/Export** (see
   "Known Limitations").
-- Third-party keyboards / autofill clouds on Android (hosts must disable
-  learning and autofill on secret fields).
+- Third-party keyboards / autofill clouds on Android that ignore the flags the
+  MAUI host sets on every text field (no autofill, no personalized learning).
 - Silent merge of divergent `.pku` copies synced between devices (conflict
   detection is host-side; see ADR-001).
 
@@ -269,10 +272,10 @@ login:
   username and passkeys are excluded from the stack. See also "Known Limitations".
 - `IDatabase.Login` takes a plain `string` passkey (there is no `SecureString`
   overload on the Core API). The WPF GUI keeps the typed secret in
-  `PasswordBox.SecurePassword` and bridges it through
+  `PasswordBox.SecurePassword` and copies it out through
   `SecureStringExtensions.UseAsString`: the unmanaged BSTR is zeroed in a
-  `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of
-  the `Login` call. The MAUI host has no `SecureString`/`BSTR` wipe path —
+  `finally` block (`Marshal.ZeroFreeBSTR`) before `LoginAsync` runs on the
+  managed copy. The MAUI host has no `SecureString`/`BSTR` wipe path —
   passkeys are read from the Entry, passed once, then cleared from the control.
   The short-lived managed `string` passed to Core remains subject to the usual
   .NET GC limitations documented under "Known Limitations".
@@ -307,29 +310,36 @@ login:
 - **Auto-logout**: after a configurable inactivity timeout
   (`ISettings.LogoutTimeout`), the session is closed automatically and the
   database file handle is released.
-- **Session timers**: auto-logout and clipboard clear use **wall-clock deadlines**
-  in Core (`User`), so a suspended Android process does not freeze the countdown.
-  Hosts re-check on resume; backgrounding clears half-open login UI.
+- **Session timers**: auto-logout and the clipboard-history scrub use
+  **wall-clock deadlines** in Core (`User`), so a suspended Android process does
+  not freeze those countdowns: the first tick after resume ends an expired
+  session. The visible clipboard is cleared by the host clipboard service on its
+  own delay timer, which fires late if Android froze the process; ending the
+  session clears an owned clip at once. On Android, backgrounding clears
+  half-open login UI.
 - **Clipboard cleaning**: copied passwords are removed from the clipboard (and
   clipboard history, via the OS-specific `IClipboardManager`) after a
   configurable delay (`ISettings.CleaningClipboardTimeout`). History scrub
   targets only secrets registered through `IUser.RememberClipboardSecret`
-  (WPF records auto-cleared copies); it does not reveal every stored password
-  on each tick. The WPF hotkeys Ctrl+Shift+L / Ctrl+Shift+P copy the selected
-  identifier / password through the same clipboard path; they do not paste
-  (no synthetic Ctrl+V).
+  (the shared session service records auto-cleared copies); it does not reveal
+  every stored password on each tick. The Windows clients' Ctrl+Shift+L /
+  Ctrl+Shift+P shortcuts copy the selected identifier / password through the
+  same clipboard path; they do not paste (no synthetic Ctrl+V).
 - **Service URL storage (Core)**: `IService.Url` refuses absolute URIs that are
   not `http`/`https` (same allowlist as import/`ServiceUrlHelper`). Relative
   values may still be stored while typing; shell open re-validates.
-- **Service URL open (WPF host)**: opening a service URL uses the OS shell
-  (`UseShellExecute`). Only **absolute `http` and `https`** URIs are allowed
-  (`ServiceUrlHelper`). `https` opens directly; `http` requires an explicit
-  confirmation dialog. Local paths, UNC paths, and custom schemes are refused
+- **Service URL open (both clients)**: the shared `ServiceViewModel` checks the
+  URL, then WPF opens it through the OS shell (`UseShellExecute`) and MAUI
+  through the system browser (`Browser.OpenAsync`). Only **absolute `http` and
+  `https`** URIs are allowed (`ServiceUrlHelper`). `https` opens directly;
+  `http` requires an explicit confirmation dialog. Local paths, UNC paths, and custom schemes are refused
   so an imported or typed value cannot invoke an unexpected protocol handler.
   Import stores only the same allowlisted schemes (others become `null`).
-- **Credential confirmation (WPF host)**: before creating a vault, or before
-  saving a change to username / ordered master passkeys, the WPF client
-  prompts the user to re-type those credentials (`CredentialsConfirmationView`).
+- **Credential confirmation (both clients)**: before creating a vault, or before
+  saving a change to username / ordered master passkeys, the client prompts
+  the user to re-type those credentials (shared
+  `CredentialsConfirmationViewModel`, which keeps the expected factors only as
+  HMAC-SHA256 digests under a random key).
   On an update that changes credentials, the flow is **old credentials first**,
   then **new credentials**. The same **old credentials** prompt also runs before
   vault **Delete** and before opening **User Settings** (where plaintext Export
@@ -338,10 +348,11 @@ login:
   writing JSON/CSV. Entry is progressive
   (username, then each passkey) **without rollback**, deliberately matching
   progressive login: a mistype **intentionally poisons** the in-dialog sequence
-  until Escape resets it (later correct factors cannot recover it — not a UX
-  defect). Closing the dialog cancels the action. Passkey fields use
-  `SecurePassword` / `UseAsString` (BSTR wiped) like login; typed factors are
-  not retained in the ViewModel. This is a
+  until Escape (WPF) or the Reset button (MAUI) resets it (later correct
+  factors cannot recover it — not a UX defect). Closing the dialog cancels the
+  action. WPF passkey fields use `SecurePassword` / `UseAsString` (BSTR wiped)
+  like login; MAUI reads the Entry once and clears it. Typed factors are not
+  retained in the ViewModel. This is a
   **host-side intentionality / anti-mistype control**, not a cryptographic
   step-up: Core still exposes writable `IUser.Username` / `IUser.Passkeys`, and
   an already-unlocked session can reveal the current passkeys in User settings.
@@ -365,8 +376,10 @@ login:
   a **miss** means not leaked (no false negatives); a **hit** is treated as
   leaked (conservative — false positives possible at the filter's build-time
   target rate; default **Balanced** ~1 %). The filter file is
-  `<exe>/pwned-ntlm.pkbf` (fixed path in the WPF host — not stored in
-  `config.json`); a sidecar `<filter>.pkbf.ranges` holds per-range
+  `pwned-ntlm.pkbf` at a path fixed by the Windows clients (next to the
+  executable when that folder is writable, otherwise in the per-user app data
+  folder; not stored in `config.json`; Android has none); a sidecar
+  `<filter>.pkbf.ranges` holds per-range
   ETags for incremental updates. If no offline filter is attached, the check
   **fails open** (reports "not leaked") so a network problem never blocks the
   user. These remote calls are the **only** outbound network traffic; the
@@ -387,12 +400,12 @@ login:
   **application-scoped** (shared by all vaults on the machine): enabling or
   disabling it never deletes the `.pkbf`; only an explicit delete (App Settings
   or `LeakFilterConfig.TryDeleteFilterFile`) removes it, along with its
-  sidecar. Quality preset (`LeakFilterConfig.FalsePositiveRate`, WPF:
+  sidecar. Quality preset (`LeakFilterConfig.FalsePositiveRate`, app setting
   `LocalLeakDatabaseQuality` — `Balanced` / `Strict` / `Paranoid`) is applied
   only on a full build or rebuild; incremental updates keep the on-disk sizing.
-  `LeakFilterConfig.AutoUpdateFrequency` (WPF:
+  `LeakFilterConfig.AutoUpdateFrequency` (app setting
   `LocalLeakDatabaseAutoUpdateFrequency`, default **7** days; **0** = off)
-  tells the WPF host to refresh an **existing** `.pkbf` in the background at
+  tells the Windows clients to refresh an **existing** `.pkbf` in the background at
   startup when offline use is also enabled, the `.ranges` sidecar is present,
   and the filter header `BuiltUtc` is older than that interval; a missing file
   never triggers an automatic first build, a missing sidecar skips the
@@ -400,7 +413,7 @@ login:
   `HibpBloomCorruptException` (logged and skipped — never a silent scratch
   rebuild). If the WPF UI continues a mid-close
   refresh in the background, the vault session (and owned clipboard) is ended
-  first. Application logs still live under `%LocalAppData%\Passkey\logs` —
+  first; the MAUI Windows client cancels the job on close instead. Application logs still live under `%LocalAppData%\Passkey\logs` —
   that path is unrelated to the Bloom filter.
 - **Duplicate-password** and **password-update reminder** alerts are computed locally.
 
@@ -428,19 +441,20 @@ These are conscious trade-offs, documented for transparency:
   a durable audit or recovery log.
 - **On-screen QR codes**: identifiers and passwords can be shown as a QR code
   (generated in-process, no network). That puts the secret on the display until
-  the window closes or the configured `ShowPasswordDelay` elapses. Anyone who
-  can see or photograph the screen can capture it.
+  the window closes or the configured `ShowPasswordDelay` elapses (MAUI also
+  closes it on logout and, on Android, when the app goes to the background).
+  Anyone who can see or photograph the screen can capture it.
 - **Password stretching algorithm**: the project uses PBKDF2 rather than a
   memory-hard KDF such as Argon2id, because Argon2 is not part of the .NET base
   class library and the project maintains a zero-external-dependency policy for
-  Core, Utils, Interfaces, and the WPF GUI. To compensate, it uses PBKDF2-HMAC-SHA-512 (more hostile to
+  Core, Utils, Interfaces, Presentation, and the WPF GUI. To compensate, it uses PBKDF2-HMAC-SHA-512 (more hostile to
   GPU/ASIC parallelism than SHA-256) with 1,000,000 iterations. The sticky KDF
   header (see "Crypto-agility") keeps the door open to adopting a memory-hard
   KDF later, pluggably, should the policy ever be relaxed.
 - **Import/Export files**: CSV and JSON files produced by the Export feature (and
   consumed by Import) are **unencrypted plaintext** by design, for
   interoperability with other tools — **not** a substitute for backing up the
-  encrypted `.pku`. The WPF client warns before writing an export. The `.csv`
+  encrypted `.pku`. Both clients warn before writing an export. The `.csv`
   path uses JSON-encoded cells and covers services/accounts only; import accepts
   comma- or tab-delimited rows, while export writes tab-separated rows. `.json`
   also carries user settings. Users are responsible for protecting or deleting
@@ -451,7 +465,7 @@ These are conscious trade-offs, documented for transparency:
 - **Leak check fails open**: if both Have I Been Pwned and XposedOrNot are
   unreachable (timeout, HTTP error, offline host) **and** no offline Bloom
   filter is attached (the `.pkbf` is absent, or disabled through
-  `LeakFilterConfig` in the WPF host's `config.json`),
+  `LeakFilterConfig` in the client's `config.json`),
   the check reports "not leaked" and the UI stays quiet. Failures are not
   cached, so a later successful reach of either API can still raise a leak
   alert. When an offline filter *is* attached, a Bloom **miss** is definitive
@@ -487,8 +501,8 @@ These are conscious trade-offs, documented for transparency:
   concurrently with `If-None-Match` against the ETags in the `.pkbf.ranges`
   sidecar (default parallelism 64) and only changed ranges are downloaded and
   folded in — so freshness costs minutes rather than another full build. A
-  non-zero `AutoUpdateFrequency` can run that incremental refresh at WPF
-  startup when a `.pkbf` and sidecar already exist and `BuiltUtc` is older than
+  non-zero `AutoUpdateFrequency` can run that incremental refresh when a
+  Windows client starts, if a `.pkbf` and sidecar already exist and `BuiltUtc` is older than
   the configured number of days; it never starts a first full build
   automatically, and a missing sidecar skips the refresh while keeping the
   filter. A corrupt / unusable `.pkbf` on Update throws
@@ -519,10 +533,14 @@ These are conscious trade-offs, documented for transparency:
   savings on structured data.
 - **MAUI / Android clipboard history**: Windows MAUI uses WinRT
   `SetContentWithOptions(IsAllowedInHistory=false, IsRoamable=false)` and can
-  scrub history when the API allows. Android marks clips with
-  `EXTRA_IS_SENSITIVE` and clears the primary clip when still owned; there is
-  **no** history-scrub equivalent (documented no-op). Clear-if-owned only works
-  while the app is in the foreground on Android 10+.
+  scrub history when the API allows; unlike WPF it does not set the
+  monitor-exclusion format, so clipboard monitoring apps still see the copy.
+  Android marks clips with `EXTRA_IS_SENSITIVE`; there is **no** history-scrub
+  equivalent (documented no-op). Android 10+ hides the clipboard from apps
+  without focus: at the auto-clear deadline or at session end, a clip that
+  cannot be read is cleared anyway (`ClearPrimaryClip` on API 33+, an empty
+  clip below), so a later copy made in another app may be erased too. The clip
+  is left in place when the app goes to the background.
 - **Offline Bloom on Android**: the `.pkbf` path is null on Android in v1;
   online HIBP / XposedOrNot remain. Leak checks therefore fail open when both
   providers are unreachable (same as a Windows host without a filter).
@@ -548,10 +566,14 @@ These are conscious trade-offs, documented for transparency:
   in app-private storage. At most five copies are kept per vault; the login
   screen offers to save them through the system file picker and deletes each one
   once saved. These files are ciphertext but can hold an older vault state.
-- **Background lock on Android**: an open vault is closed when the app returns
-  after staying in the background for `BackgroundLockSeconds` (default 30,
-  `0` = every return); pending edits are flushed first. Revealed passwords and
-  passkeys are masked again as soon as the app leaves the foreground.
+- **Background lock on Android**: an open vault is closed at once when the app
+  returns after staying in the background for `BackgroundLockSeconds` (default
+  30, `0` = every return); pending edits are flushed and the final write-back
+  completes after the vault is hidden. The check runs on return, so the vault
+  stays open while the app is in the background. Revealed passwords and
+  passkeys are masked again, and the QR code page closed, as soon as the app
+  leaves the foreground. The MAUI Windows client has no background lock:
+  minimizing keeps the session, like WPF.
 - **Screenshots of dialogs on Android**: `FLAG_SECURE` covers the activity and
   the recents thumbnail, but MAUI alert and action-sheet windows are separate
   windows without it. They only show messages and labels, never a password or
@@ -564,8 +586,8 @@ These are conscious trade-offs, documented for transparency:
 - **MAUI client status**: the MAUI client is a preview (login, vault editor,
   tools, alerts and settings) and is not shipped yet. WPF is not being retired:
   it remains the supported Windows client, and both clients open the same
-  `.pku` files. Report MAUI issues like any other; fixes land in the shared
-  Presentation layer when possible.
+  `.pku` files. Report MAUI vulnerabilities through the same private channels;
+  fixes land in the shared Presentation layer when possible.
 
 ## Reporting Non-Security Bugs
 

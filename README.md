@@ -59,7 +59,7 @@ shared Presentation `AppServices` locator so ViewModels stay testable without a 
 *   **At rest**: AES-256-GCM onion (HKDF-SHA256 per layer) over ordered passkeys; the activity log uses RSA-4096 hybrid encryption plus a login-time seal. See [SECURITY.md](SECURITY.md).
 *   **In memory**: account passwords, passkeys, and the RSA private key are held as `IProtectedSecret` via an injected `ISecretMemoryProtector` (default: Utils `ProtectedSecret`, process-wide AES-GCM) and only revealed just in time.
 *   **Session**: configurable auto-logout, clipboard auto-clear (including Windows clipboard history), and progressive login without rollback.
-*   **Supply chain**: Core, Utils, Interfaces, and the WPF GUI refuse any third-party NuGet package at build time. GitHub CodeQL scans production code on CI.
+*   **Supply chain**: Core, Utils, Interfaces, Presentation, and the WPF GUI refuse any third-party NuGet package at build time; the MAUI host may reference only `Microsoft.Maui.*`, with its transitive packages locked and audited. GitHub CodeQL scans production code on CI.
 
 **Models**
 ----------

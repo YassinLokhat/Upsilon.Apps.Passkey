@@ -8,7 +8,7 @@
 
 - `Interfaces`, `Utils`, `Core`, `GUI/Presentation`, and `GUI/WPF` keep `EnforceZeroExternalDependencies` with **no** third-party `PackageReference`.
 - Only `GUI/MAUI` may set `AllowedExternalPackagePrefixes` (today: `Microsoft.Maui.`). Direct allowlisted package: `Microsoft.Maui.Controls`.
-- Transitive Microsoft / AndroidX / Windows App SDK packages are accepted as the MAUI SDK surface; they are locked via `packages.lock.json` + `--locked-mode` in CI, audited with `dotnet list … package --vulnerable`, and constrained by `nuget.config` (nuget.org only, source mapping, `signatureValidationMode=require`, trusted signers).
+- Transitive packages are accepted as the MAUI SDK surface: Microsoft packages (Windows App SDK, WebView2, Win2D) and Microsoft-published .NET bindings of AndroidX, Google, Kotlin and JetBrains libraries. They are locked via `packages.lock.json` + `--locked-mode` in CI, audited with `dotnet list … package --vulnerable`, and restored through `nuget.config` (nuget.org only, source mapping, `signatureValidationMode=require`). The trusted nuget.org repository signer has no `<owners>` list, so the signature check accepts any nuget.org package; the lock file's content hashes are what pin the set.
 - Rationale: MAUI cannot ship without the Microsoft UI stack; widening the allowlist to CommunityToolkit would grow the supply-chain surface without unlocking Core.
 
 ## Decision 2 — Multi-device access without sync protocol

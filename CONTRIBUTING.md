@@ -7,7 +7,7 @@ focused change and enough context for review.
 
 - **Security issues** must not be filed as public GitHub issues. Follow
   [SECURITY.md](SECURITY.md) instead.
-- Keep Core, Utils, Interfaces, and the WPF GUI free of third-party NuGet packages (see below).
+- Keep Core, Utils, Interfaces, Presentation, and the WPF GUI free of third-party NuGet packages; the MAUI host may reference only `Microsoft.Maui.*` (see below).
 - Prefer a small PR over a mixed refactor + feature + docs dump.
 
 ## Repository layout
