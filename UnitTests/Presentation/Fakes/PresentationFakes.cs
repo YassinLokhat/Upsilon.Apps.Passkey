@@ -104,15 +104,15 @@ namespace UnitTests.Presentation.Fakes
    {
       public event EventHandler<ClipboardSecretCopiedEventArgs>? SecretCopied;
 
+      public List<string> Texts { get; } = [];
+
+      public string? LastText => Texts.LastOrDefault();
+
       public void RaiseSecretCopied(string text) => SecretCopied?.Invoke(this, new ClipboardSecretCopiedEventArgs(text));
 
-      public void SetText(string text, TimeSpan? autoClearAfter = null)
-      {
-      }
+      public void SetText(string text, TimeSpan? autoClearAfter = null) => Texts.Add(text);
 
-      public void SetText(string text, int autoClearAfter)
-      {
-      }
+      public void SetText(string text, int autoClearAfter) => Texts.Add(text);
 
       public Task<int> RemoveAllOccurrenceAsync(IEnumerable<string> removeList, CancellationToken cancellationToken = default)
          => Task.FromResult(0);

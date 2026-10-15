@@ -21,8 +21,8 @@ focused change and enough context for review.
 | `GUI/WPF/` | Windows desktop client (WPF, .NET 10 Windows TFM). |
 | `GUI/MAUI/` | MAUI host (`net10.0-android` + `net10.0-windows10.0.19041.0`); Microsoft.Maui allowlist only. |
 | `UnitTests/Multiplateform/` | Core/Utils tests (`net10.0`; Linux + Windows CI). |
-| `UnitTests/Presentation/` | Presentation ports/ViewModels (`net10.0`; Linux + Windows). |
-| `UnitTests/Windows/` | WPF ViewModel tests through the `AppServices` seam (`net10.0-windows`). |
+| `UnitTests/Presentation/` | Shared Presentation ports, services and ViewModels (`net10.0`; Linux, Windows and MAUI Windows CI). |
+| `UnitTests/Windows/` | WPF host tests: theme, `{loc:Loc}` extension, language delivery to open windows (`net10.0-windows`). |
 
 Three solution files exist on purpose:
 
@@ -44,10 +44,10 @@ WPF assembly are excluded. Do not lower that gate without an explicit discussion
 in the PR. Coverage reports from `run_code_coverage.bat` / Windows CI land in
 `_testResult/` (gitignored).
 
-GUI ViewModel tests can be filtered with:
+Shared ViewModel tests run on their own with:
 
 ```bash
-dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Windows.Gui"
+dotnet test UnitTests/Presentation/UnitTests.Presentation.csproj
 ```
 
 There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global
@@ -126,8 +126,9 @@ Match the surrounding file. Do not reformat unrelated code.
 
 - Tests for Core/Utils behaviour you change (crypto, vault lifecycle, import/export,
   alerts, persistence).
-- ViewModel tests when you change GUI logic that already sits behind
-  `AppServices` (dialogs, session, clipboard, navigation).
+- ViewModel tests in `UnitTests/Presentation` when you change shared GUI logic
+  (it sits behind `AppServices`: dialogs, session, clipboard, navigation);
+  `UnitTests/Windows` is only for WPF host code.
 - README / SECURITY.md updates when you change a public contract, a threat-model
   assumption, or a user-visible security behaviour.
 - No secrets: vault files, exported JSON/CSV, logs, or credentials.

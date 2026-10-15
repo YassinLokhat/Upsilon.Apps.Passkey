@@ -1,11 +1,12 @@
 using FluentAssertions;
-using System.Windows.Threading;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using UnitTests.Presentation.Fakes;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests.Multiplateform;
 
-namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
+namespace UnitTests.Presentation
 {
    [TestClass]
    [DoNotParallelize]
@@ -18,21 +19,19 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
       [TestInitialize]
       public void Initialize()
       {
-         _ = Dispatcher.CurrentDispatcher;
-         GuiTestServices.Install();
+         ViewModelTestServices.Install();
 
          UnitTestsHelper.ClearTestEnvironment(TestUsername);
          string[] passkeys = UnitTestsHelper.GetRandomStringArray(2);
          _database = UnitTestsHelper.CreateTestDatabase(passkeys, TestUsername);
-         GuiTestServices.Session.StartSession(_database);
+         AppServices.Session.StartSession(_database);
       }
 
       [TestCleanup]
       public void Cleanup()
       {
-         GuiTestServices.Session.EndSession();
          _database = null;
-         GuiTestServices.Reset();
+         ViewModelTestServices.Reset();
          UnitTestsHelper.ClearTestEnvironment(TestUsername);
       }
 

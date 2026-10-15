@@ -1,14 +1,15 @@
 using FluentAssertions;
+using UnitTests.Presentation.Fakes;
 using Upsilon.Apps.Passkey.GUI.Presentation.Alerts;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests.Multiplateform;
-using Upsilon.Apps.Passkey.UnitTests.Windows.Gui.Fakes;
-using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
-namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
+namespace UnitTests.Presentation
 {
    [TestClass]
+   [DoNotParallelize]
    public sealed class AlertBrokerTests
    {
       [TestMethod]
@@ -18,7 +19,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
       */
       public void ScanCompleted_RaisesNotifiedAlertsChanged_WithFilteredKinds()
       {
-         GuiTestServices.Install();
+         ViewModelTestServices.Install();
          try
          {
             UnitTestsHelper.ClearTestEnvironment();
@@ -32,7 +33,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
             a.Options = AccountOption.WarnIfDuplicatedPassword;
             b.Options = AccountOption.WarnIfDuplicatedPassword;
 
-            FakeSessionService session = GuiTestServices.Session;
+            ISessionService session = AppServices.Session;
             session.StartSession(database);
 
             AlertBroker broker = session.Alerts;
@@ -55,7 +56,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          }
          finally
          {
-            GuiTestServices.Reset();
+            ViewModelTestServices.Reset();
          }
       }
    }

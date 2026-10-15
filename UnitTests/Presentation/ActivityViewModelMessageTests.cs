@@ -1,20 +1,22 @@
-﻿using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities;
-using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
-using Upsilon.Apps.Passkey.UnitTests.Windows.Helpers;
 
-namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
+namespace UnitTests.Presentation
 {
    [TestClass]
+   [DoNotParallelize]
    public sealed class ActivityViewModelMessageTests
    {
+      [TestInitialize]
+      public void Initialize() => _ = LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
+
       [TestMethod]
       /*
        * Every activity event type produces a non-empty human-readable message
-       * through the WPF localization path.
+       * through the shared localization path.
       */
       public void Case01_Message_CoversEveryEventType()
       {
@@ -64,7 +66,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
             parentName: null,
             ActivityEventType.ImportingDataFailed,
             needsReview: true));
-         _ = importFailed.Message.Should().Be(ActivityAssertHelper.FormatImportFailed(ImportExportError.IncorrectCSVFormat).Split(" : ", 2)[1]);
+         _ = importFailed.Message.Should().Be(_expectedFailure(nameof(Strings.Activity_ImportingDataFailed), ImportExportError.IncorrectCSVFormat));
 
          ActivityViewModel exportFailed = new(new Activity(
             DateTime.Now.Ticks,
@@ -77,7 +79,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
             parentName: null,
             ActivityEventType.ExportingDataFailed,
             needsReview: true));
-         _ = exportFailed.Message.Should().Be(ActivityAssertHelper.FormatExportFailed(ImportExportError.ExportFileAlreadyExists).Split(" : ", 2)[1]);
+         _ = exportFailed.Message.Should().Be(_expectedFailure(nameof(Strings.Activity_ExportingDataFailed), ImportExportError.ExportFileAlreadyExists));
 
          ActivityViewModel loggedOutDirty = new(new Activity(DateTime.Now.Ticks, "id", "alice", null, null, "needsReview", "1", null, ActivityEventType.UserLoggedOut, needsReview: true));
          _ = loggedOutDirty.Message.Should().Contain("without saving");
@@ -85,6 +87,13 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          ActivityViewModel updatedBlank = new(new Activity(DateTime.Now.Ticks, "id", null, null, "Account", "Notes", null, null, ActivityEventType.ItemUpdated, needsReview: false));
          _ = updatedBlank.Message.Should().Contain("updated");
          _ = updatedBlank.Message.Should().NotContain("set to");
+      }
+
+      private static string _expectedFailure(string resourceKey, ImportExportError error)
+      {
+         string reason = EnumDisplayHelper.FormatFieldValue(nameof(ImportExportError), error.ToString());
+         string message = Strings.Format(resourceKey, reason).Trim();
+         return message[..1].ToUpperInvariant() + message[1..];
       }
    }
 }

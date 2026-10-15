@@ -2,29 +2,30 @@
 
 ## Automated tests
 
-Two test projects:
+Three test projects:
 
 | Project | TFM | Scope |
 | ------- | --- | ----- |
 | `UnitTests/Multiplateform/` | `net10.0` | Core + Utils (vault lifecycle, import/export, crypto, models). Asserts structured activity fields via `ExpectedActivity` — not localized UI strings. |
-| `UnitTests/Presentation/` | `net10.0` | Shared Presentation ports / ViewModels (Linux + Windows CI). |
-| `UnitTests/Windows/` | `net10.0-windows` | WPF ViewModels / localization through `AppServices` fakes. Localized activity rendering lives here (`ActivityAssertHelper`, `ActivityViewModelMessageTests`). |
+| `UnitTests/Presentation/` | `net10.0` | Shared Presentation ports, services and ViewModels used by both hosts, including localized activity messages (`ActivityViewModelMessageTests`). Runs in the Windows, Linux and MAUI Windows workflows. |
+| `UnitTests/Windows/` | `net10.0-windows` | WPF host code only: theme service, `{loc:Loc}` extension, language delivery to open windows. |
 
 There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay on the [[WPF Client]] manual smoke list.
 
 ### Activity log assertions
 
-Multiplateform tests compare `IActivity` fields with `UnitTestsHelper.LastActivitiesShouldMatch` and `ExpectedActivity` factories (`ImportFailed`, `DatabaseSaved`, `ItemUpdated`, …). Windows GUI / localization tests that need the Activities-grid message path use `ActivityAssertHelper` (same templates as `ActivityViewModel`). Alert waits use `WaitForAlertKind` / `WaitForAlerts` (event-driven); avoid `Thread.Sleep` polling.
+Multiplateform tests compare `IActivity` fields with `UnitTestsHelper.LastActivitiesShouldMatch` and `ExpectedActivity` factories (`ImportFailed`, `DatabaseSaved`, `ItemUpdated`, …). The WPF localization tests that need the Activities-grid message path use `ActivityAssertHelper` (same templates as `ActivityViewModel`). Alert waits use `WaitForAlertKind` / `WaitForAlerts` (event-driven); avoid `Thread.Sleep` polling.
 
 ### Naming conventions
 
 - Models/Utils tests: `*UnitTests` classes and `CaseNN_…` method names.
-- GUI tests: `*Tests` classes, descriptive method names, `[TestInitialize]` / `[TestCleanup]` via `GuiTestServices`.
+- GUI tests: `*Tests` classes, descriptive method names, `[TestInitialize]` / `[TestCleanup]` via `ViewModelTestServices` (Presentation) or `GuiTestServices` (WPF host).
 - `TestDatabaseGenerator` is a `[TestMethod]` in Multiplateform (`GenerateNewDatabase`); it writes a sample vault under the test output and runs with `dotnet test` on Windows and Linux CI.
 
 ```bash
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
 dotnet test Upsilon.Apps.Passkey.Linux.slnx
+dotnet test UnitTests/Presentation/UnitTests.Presentation.csproj
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Windows.Gui"
 ```
 
@@ -32,9 +33,9 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitT
 
 `coverage.runsettings` measures **Core only** (the vault assembly). Utils (crypto, password factory) is a separate assembly and is not in that gate. The WPF assembly is excluded. Windows and Linux CI fail the build if line coverage of `Upsilon.Apps.Passkey.Core` drops below **90%**. Do not lower that gate without an explicit discussion in the pull request.
 
-Locally, `run_code_coverage.bat` (and Windows CI) write TRX / Cobertura output under `_testResult/` (gitignored). The same path is set in `coverage.runsettings` (`<ResultsDirectory>`). Both test projects set `RunSettingsFilePath` to that file so Visual Studio Test Explorer and a plain `dotnet test` pick it up without a manual menu selection.
+Locally, `run_code_coverage.bat` (and Windows CI) write TRX / Cobertura output under `_testResult/` (gitignored). The same path is set in `coverage.runsettings` (`<ResultsDirectory>`). All three test projects set `RunSettingsFilePath` to that file so Visual Studio Test Explorer and a plain `dotnet test` pick it up without a manual menu selection.
 
-Linux CI builds Interfaces + Utils + Core, runs Multiplateform tests on `Upsilon.Apps.Passkey.Linux.slnx`, and enforces the same **90%** Core coverage gate.
+Linux CI builds Interfaces + Utils + Core + Presentation, runs the Multiplateform and Presentation tests on `Upsilon.Apps.Passkey.Linux.slnx`, and enforces the same **90%** Core coverage gate.
 
 ## GitHub Actions
 
@@ -44,7 +45,7 @@ Windows and Linux build workflows run on push to `master` and on pull requests. 
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
 | `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Multiplateform + Presentation tests); `dotnet test` with the **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-maui-windows.yml` | MAUI workloads, locked restore of `Upsilon.Apps.Passkey.MAUI.slnx`, NuGet audit, versions check, Debug + Release `-f net10.0-windows10.0.19041.0` |
+| `.github/workflows/csharp-dotnet-maui-windows.yml` | MAUI workloads, locked restore of `Upsilon.Apps.Passkey.MAUI.slnx`, NuGet audit, versions check, Debug + Release `-f net10.0-windows10.0.19041.0`, Presentation tests |
 | `.github/workflows/csharp-dotnet-maui-android.yml` | JDK 17, `maui-android` workload, locked restore, NuGet audit, Debug + Release `-f net10.0-android` (signed publish via protected Environment secrets — not in-repo) |
 | `.github/workflows/codeql.yml` | CodeQL on a Release build of production projects (test projects removed from the solution for the trace); installs MAUI workloads; weekly scan; SARIF filtered for `bin`/`obj`/`*.g.cs` |
 | `.github/workflows/publish-wiki.yml` | On `Wiki/**` changes to `master`: publish the `Wiki/` folder to the GitHub Wiki |
@@ -77,7 +78,7 @@ Dependabot is configured for the **`github-actions`** ecosystem only (pinned wor
 ## What a change should add
 
 * Tests for Core/Utils behaviour you change (crypto, vault lifecycle, import/export, alerts, persistence) — prefer Multiplateform when OS-independent
-* ViewModel tests when you change GUI logic that already sits behind `AppServices` (Windows test project)
+* ViewModel tests when you change GUI logic in `GUI/Presentation` (Presentation test project); the Windows test project is only for WPF host code
 * README / SECURITY.md / `Wiki/` updates when you change a public contract, a threat-model assumption, or a user-visible security behaviour
 
 See [[Contributing]].

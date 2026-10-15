@@ -18,10 +18,10 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
 dotnet test Upsilon.Apps.Passkey.Linux.slnx
 ```
 
-GUI ViewModel tests:
+Shared ViewModel tests on their own:
 
 ```bash
-dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Windows.Gui"
+dotnet test UnitTests/Presentation/UnitTests.Presentation.csproj
 ```
 
 ## Zero-dependency policy (Core, Utils, Interfaces, and WPF)
@@ -62,7 +62,7 @@ Match the surrounding file. Do not reformat unrelated code.
 ## What a PR should include
 
 * Tests for Core/Utils behaviour you change (crypto, vault lifecycle, import/export, alerts, persistence)
-* ViewModel tests when you change GUI logic behind `AppServices`
+* ViewModel tests in `UnitTests/Presentation` when you change shared GUI logic behind `AppServices`
 * README / SECURITY.md / wiki updates when you change a public contract, a threat-model assumption, or a user-visible security behaviour
 * No secrets: vault files, exported JSON/CSV, logs, or credentials
 
