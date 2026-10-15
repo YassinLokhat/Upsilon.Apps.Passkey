@@ -90,10 +90,11 @@ usual surface).
 
 ## Adding a UI language
 
-1. Copy `GUI/WPF/Localization/Strings.resx` → `Strings.xx.resx` and translate
-   values (do not rename keys).
+1. Copy `GUI/Presentation/Localization/Strings.resx` → `Strings.xx.resx` and translate
+   values (do not rename keys). The resources are shared by the WPF and MAUI clients.
 2. Register `new("xx", "Native name")` in `LocalizationService.Shipped`
-   (keep `System` as the follow-OS preference at the top of `Supported`).
+   (keep `System` as the follow-OS preference at the top of `Supported`), and add
+   `xx` to `SatelliteResourceLanguages` in the MAUI `.csproj`.
 3. Run `dotnet test … --filter "FullyQualifiedName~LocalizationTests"` (or the full
    GUI filter). Tests verify satellite key parity and localized enum/activity strings.
 4. Prefer `{loc:Loc Key}` in XAML and `Strings.Key` / `Strings.Format` in C#.

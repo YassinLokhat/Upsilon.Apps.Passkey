@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+             xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
              x:Class="Upsilon.Apps.Passkey.GUI.MAUI.SessionPage"
              x:ClassModifier="internal"
              x:DataType="viewmodels:SessionViewModel"
@@ -25,7 +26,7 @@
       </CollectionView>
 
       <Button Grid.Row="2"
-              Text="Log out"
+              Text="{loc:Loc Session_Logout}"
               Clicked="_onLogout" />
    </Grid>
 </ContentPage>

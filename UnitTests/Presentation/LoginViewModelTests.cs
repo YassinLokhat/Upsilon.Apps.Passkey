@@ -1,5 +1,6 @@
 using FluentAssertions;
 using UnitTests.Presentation.Fakes;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels;
@@ -13,6 +14,9 @@ namespace UnitTests.Presentation
    [DoNotParallelize]
    public sealed class LoginViewModelTests
    {
+      [TestInitialize]
+      public void Initialize() => _ = LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
+
       [TestCleanup]
       public void Cleanup() => AppServices.Reset();
 
@@ -34,7 +38,10 @@ namespace UnitTests.Presentation
 
          _ = viewModel.DatabaseOpened.Should().BeFalse();
          _ = viewModel.IsBusy.Should().BeFalse();
-         _ = viewModel.StatusMessage.Should().Contain("No vault");
+         _ = viewModel.StatusMessage.Should().Be(Strings.Format(
+            nameof(Strings.Login_NoVaultForUsername),
+            UnitTestsHelper.ComputeTestDirectory(),
+            Strings.Login_OpenVault));
 
          UnitTestsHelper.ClearTestEnvironment();
       }
@@ -60,7 +67,8 @@ namespace UnitTests.Presentation
 
          await viewModel.SubmitUsernameAsync($"  {UnitTestsHelper.GetUsername()}  ");
          _ = viewModel.DatabaseOpened.Should().BeTrue();
-         _ = viewModel.CredentialsLabel.Should().StartWith("Passkey");
+         _ = viewModel.CredentialsLabel.Should().Be(Strings.Label_Password);
+         _ = viewModel.StatusMessage.Should().Be(Strings.Login_EnterPasskeys);
 
          for (int i = 0; i < passkeys.Length - 1; i++)
          {

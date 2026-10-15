@@ -2,7 +2,7 @@ using Microsoft.Win32;
 using System.IO;
 using System.Security;
 using System.Windows;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
 {
@@ -12,9 +12,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
    /// </summary>
    internal static class ThemeService
    {
-      public const string SystemCode = "System";
-      public const string LightCode = "Light";
-      public const string DarkCode = "Dark";
+      public const string SystemCode = ThemePreferences.SystemCode;
+      public const string LightCode = ThemePreferences.LightCode;
+      public const string DarkCode = ThemePreferences.DarkCode;
 
       /// <summary>
       /// Theme preferences the client knows how to apply. Order is display order

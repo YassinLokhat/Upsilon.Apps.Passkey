@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+             xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
              x:Class="Upsilon.Apps.Passkey.GUI.MAUI.MainPage"
              x:ClassModifier="internal"
              x:DataType="viewmodels:LoginViewModel"
@@ -9,7 +10,7 @@
    <ScrollView>
       <VerticalStackLayout Padding="30,0" Spacing="16" VerticalOptions="Center">
 
-         <Label Text="{Binding SelectedVaultName, StringFormat='Vault: {0}'}"
+         <Label Text="{Binding SelectedVaultLabel}"
                 IsVisible="{Binding HasSelectedVault}" />
 
          <Label Text="{Binding CredentialsLabel}"
@@ -31,13 +32,13 @@
          <Label Text="{Binding StatusMessage}"
                 LineBreakMode="WordWrap" />
 
-         <Button Text="Next"
+         <Button Text="{loc:Loc Login_Next}"
                  IsEnabled="{Binding IsIdle}"
                  Clicked="_onCredentialCompleted" />
-         <Button Text="Open vault…"
+         <Button Text="{loc:Loc Login_OpenVault}"
                  IsEnabled="{Binding IsIdle}"
                  Clicked="_onPickVault" />
-         <Button Text="Reset"
+         <Button Text="{loc:Loc Login_Reset}"
                  IsEnabled="{Binding IsIdle}"
                  Clicked="_onReset" />
 

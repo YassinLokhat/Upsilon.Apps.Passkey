@@ -35,6 +35,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Using Include="Upsilon.Apps.Passkey.GUI.Presentation.Localization" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="UnitTests.Multiplateform" />
     <InternalsVisibleTo Include="UnitTests.Windows" />
   </ItemGroup>

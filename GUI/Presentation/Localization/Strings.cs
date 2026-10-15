@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Resources;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
+namespace Upsilon.Apps.Passkey.GUI.Presentation.Localization
 {
    /// <summary>
    /// Strongly-named accessors over <c>Strings.resx</c> / satellite cultures.
@@ -11,7 +11,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
    internal static class Strings
    {
       private static readonly ResourceManager _manager = new(
-         "Upsilon.Apps.Passkey.GUI.WPF.Localization.Strings",
+         "Upsilon.Apps.Passkey.GUI.Presentation.Localization.Strings",
          typeof(Strings).Assembly);
 
       public static string Get(string name)
@@ -399,6 +399,33 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Tooltip_ShowQrCodeIdentifier => Get(nameof(Tooltip_ShowQrCodeIdentifier));
       public static string Tooltip_ShowQrCodePassword => Get(nameof(Tooltip_ShowQrCodePassword));
       public static string Tooltip_ViewActivities => Get(nameof(Tooltip_ViewActivities));
+
+      public static string Login_SelectedVault => Get(nameof(Login_SelectedVault));
+      public static string Login_Next => Get(nameof(Login_Next));
+      public static string Login_OpenVault => Get(nameof(Login_OpenVault));
+      public static string Login_Reset => Get(nameof(Login_Reset));
+      public static string Login_EnterVaultUsername => Get(nameof(Login_EnterVaultUsername));
+      public static string Login_HostNotConfigured => Get(nameof(Login_HostNotConfigured));
+      public static string Login_NoVaultForUsername => Get(nameof(Login_NoVaultForUsername));
+      public static string Login_Opening => Get(nameof(Login_Opening));
+      public static string Login_EnterPasskeys => Get(nameof(Login_EnterPasskeys));
+      public static string Login_OpenFailed => Get(nameof(Login_OpenFailed));
+      public static string Login_CheckingPasskey => Get(nameof(Login_CheckingPasskey));
+      public static string Login_LoginFailed => Get(nameof(Login_LoginFailed));
+      public static string Login_NextPasskey => Get(nameof(Login_NextPasskey));
+      public static string Login_WriteBackConflict => Get(nameof(Login_WriteBackConflict));
+      public static string Login_WriteBackFailed => Get(nameof(Login_WriteBackFailed));
+      public static string Login_WriteBackFailedWithReason => Get(nameof(Login_WriteBackFailedWithReason));
+
+      public static string Title_SessionClosed => Get(nameof(Title_SessionClosed));
+      public static string Msg_SessionClosedTimeout => Get(nameof(Msg_SessionClosedTimeout));
+      public static string Session_Summary => Get(nameof(Session_Summary));
+      public static string Session_Logout => Get(nameof(Session_Logout));
+      public static string Maui_Title_FolderPicker => Get(nameof(Maui_Title_FolderPicker));
+      public static string Maui_FolderPickerAndroid => Get(nameof(Maui_FolderPickerAndroid));
+      public static string Maui_Title_SaveFile => Get(nameof(Maui_Title_SaveFile));
+      public static string Maui_SaveAsUnavailable => Get(nameof(Maui_SaveAsUnavailable));
+      public static string Maui_ViewUnavailable => Get(nameof(Maui_ViewUnavailable));
 
    }
 }

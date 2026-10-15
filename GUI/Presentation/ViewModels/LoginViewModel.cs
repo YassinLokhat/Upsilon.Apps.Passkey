@@ -1,4 +1,5 @@
 using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
@@ -63,14 +64,25 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             if (SetProperty(ref _pickedVaultName, value))
             {
                OnPropertyChanged(nameof(HasSelectedVault));
+               OnPropertyChanged(nameof(SelectedVaultLabel));
             }
          }
       }
 
       public bool HasSelectedVault => _pickedVaultName.Length != 0;
 
+      public string SelectedVaultLabel
+         => HasSelectedVault ? Strings.Format(nameof(Strings.Login_SelectedVault), _pickedVaultName) : string.Empty;
+
       public string CredentialsLabel
-         => DatabaseOpened ? "Passkey :" : "Username :";
+         => DatabaseOpened ? Strings.Label_Password : Strings.Label_Username;
+
+      /// <summary>Re-reads culture-dependent labels after <see cref="LocalizationService.LanguageChanged"/>.</summary>
+      public void OnLanguageChanged()
+      {
+         OnPropertyChanged(nameof(CredentialsLabel));
+         OnPropertyChanged(nameof(SelectedVaultLabel));
+      }
 
       public IDatabase? Database => _database;
 
@@ -91,7 +103,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          Reset();
          _pickedVault = location;
          SelectedVaultName = displayName;
-         StatusMessage = "Enter the username of this vault.";
+         StatusMessage = Strings.Login_EnterVaultUsername;
       }
 
       public async Task SubmitUsernameAsync(string username, CancellationToken cancellationToken = default)
@@ -108,7 +120,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
              || AppServices.VaultSources is null
              || AppServices.Clipboard is null)
          {
-            StatusMessage = "Host paths are not configured.";
+            StatusMessage = Strings.Login_HostNotConfigured;
             return;
          }
 
@@ -118,12 +130,15 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          if (_pickedVault is null
              && !File.Exists(location))
          {
-            StatusMessage = $"No vault for this username in '{AppServices.Paths.DefaultDatabaseDirectory}'. Use \"Open vault…\" to pick the file.";
+            StatusMessage = Strings.Format(
+               nameof(Strings.Login_NoVaultForUsername),
+               AppServices.Paths.DefaultDatabaseDirectory,
+               Strings.Login_OpenVault);
             return;
          }
 
          IsBusy = true;
-         StatusMessage = "Opening…";
+         StatusMessage = Strings.Login_Opening;
          IDatabase? database = null;
          try
          {
@@ -146,11 +161,11 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
 
             OnPropertyChanged(nameof(DatabaseOpened));
             OnPropertyChanged(nameof(CredentialsLabel));
-            StatusMessage = "Enter passkeys in order. Reset to start over after a typo.";
+            StatusMessage = Strings.Login_EnterPasskeys;
          }
          catch (InsufficientKdfParametersException)
          {
-            StatusMessage = "This vault uses key-derivation parameters outside the accepted range; it was refused.";
+            StatusMessage = Strings.Msg_InsufficientKdf;
          }
          catch (Exception ex) when (ex is IOException
             or UnauthorizedAccessException
@@ -159,7 +174,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             or CorruptedSourceException
             or NullValueException)
          {
-            StatusMessage = $"Open failed: {ex.Message}";
+            StatusMessage = Strings.Format(nameof(Strings.Login_OpenFailed), ex.Message);
          }
          finally
          {
@@ -180,7 +195,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          }
 
          IsBusy = true;
-         StatusMessage = "Checking passkey…";
+         StatusMessage = Strings.Login_CheckingPasskey;
          try
          {
             _user = await database.LoginAsync(passkey, cancellationToken).ConfigureAwait(true);
@@ -188,7 +203,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          catch (CorruptedSourceException)
          {
             Reset();
-            StatusMessage = "The vault is corrupted or is not a Passkey vault.";
+            StatusMessage = Strings.Msg_CorruptedDatabase;
             return false;
          }
          catch (Exception ex) when (ex is IOException
@@ -197,7 +212,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             or NullValueException)
          {
             Reset();
-            StatusMessage = $"Login failed: {ex.Message}";
+            StatusMessage = Strings.Format(nameof(Strings.Login_LoginFailed), ex.Message);
             return false;
          }
          finally
@@ -210,7 +225,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          if (_user is null)
          {
             // Same soft feedback as WPF: a wrong layer is not reported (no rollback).
-            StatusMessage = "Next passkey (Reset to start over).";
+            StatusMessage = Strings.Login_NextPasskey;
             return false;
          }
 
@@ -257,8 +272,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          }
 
          DialogResult answer = ui.Send(() => dialogs.ConfirmAsync(
-               "Unsaved changes from a previous session were found.\nYes: merge and save. No: discard them. Cancel: merge without saving and decide later.",
-               "Autosave detected",
+               Strings.Msg_AutosaveDetected,
+               Strings.Title_AutosaveDetected,
                DialogButtons.YesNoCancel))
             .GetAwaiter()
             .GetResult();
@@ -303,8 +318,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          {
             message = await source.WriteBackAsync().ConfigureAwait(false) switch
             {
-               VaultWriteBackResult.Conflict => "The vault source changed elsewhere; your copy was kept locally and the source was not overwritten.",
-               VaultWriteBackResult.Failed => "Could not write the vault back to its source.",
+               VaultWriteBackResult.Conflict => Strings.Login_WriteBackConflict,
+               VaultWriteBackResult.Failed => Strings.Login_WriteBackFailed,
                _ => null,
             };
          }
@@ -312,7 +327,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             or UnauthorizedAccessException
             or InvalidOperationException)
          {
-            message = $"Could not write the vault back to its source: {ex.Message}";
+            message = Strings.Format(nameof(Strings.Login_WriteBackFailedWithReason), ex.Message);
          }
 
          if (message is not null)

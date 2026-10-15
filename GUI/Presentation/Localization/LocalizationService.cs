@@ -1,10 +1,9 @@
 using System.Globalization;
-using System.Windows;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
+namespace Upsilon.Apps.Passkey.GUI.Presentation.Localization
 {
    /// <summary>
-   /// Applies the UI culture and lists languages shipping with the WPF client.
+   /// Applies the UI culture and lists languages shipping with the clients.
    /// To add a language: copy <c>Strings.resx</c> → <c>Strings.xx.resx</c>, translate,
    /// then append one entry to <see cref="Shipped"/>.
    /// Translators must keep both <c>EnumValue_ActivityEventType_*</c> (short labels)
@@ -47,10 +46,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       internal static Func<string> DetectSystemLanguageCode { get; set; } = static () => _osUiLanguageAtLoad;
 
       /// <summary>
-      /// Raised on the UI thread after <see cref="Apply"/> changes the culture.
-      /// Prefer implementing <see cref="ILanguageAware"/> on open <see cref="Window"/>
-      /// subclasses (see <see cref="LanguageAwareNotify"/>); this event is for
-      /// tests and rare non-visual listeners.
+      /// Raised after <see cref="Apply"/> changes the culture and refreshed
+      /// <see cref="LocalizationCatalog"/>. Must be applied from the UI thread;
+      /// hosts subscribe once to refresh their open windows / pages, and
+      /// ViewModels with computed strings (titles, combo items) re-read them.
       /// </summary>
       public static event EventHandler? LanguageChanged;
 
@@ -123,8 +122,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
 
       /// <summary>
       /// Sets thread / default UI culture. When the culture actually changes (or
-      /// <paramref name="forceRefresh"/> is set), refreshes <see cref="TranslationSource"/>
-      /// bindings and notifies open <see cref="ILanguageAware"/> surfaces.
+      /// <paramref name="forceRefresh"/> is set), refreshes
+      /// <see cref="LocalizationCatalog"/> bindings and raises <see cref="LanguageChanged"/>.
       /// </summary>
       /// <returns><see langword="true"/> when the culture code changed.</returns>
       public static bool Apply(string? languageCode, bool forceRefresh = false)
@@ -147,36 +146,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
             return false;
          }
 
-         TranslationSource.Instance.NotifyLanguageChanged();
-         _notifyOpenWindows();
+         LocalizationCatalog.Instance.NotifyLanguageChanged();
          LanguageChanged?.Invoke(null, EventArgs.Empty);
          return changed;
-      }
-
-      private static void _notifyOpenWindows()
-      {
-         Application? app = Application.Current;
-         if (app is null)
-         {
-            return;
-         }
-
-         void notify()
-         {
-            foreach (Window window in app.Windows.Cast<Window>().ToArray())
-            {
-               LanguageAwareNotify.Notify(window);
-            }
-         }
-
-         if (app.Dispatcher.CheckAccess())
-         {
-            notify();
-         }
-         else
-         {
-            app.Dispatcher.Invoke(notify);
-         }
       }
    }
 }

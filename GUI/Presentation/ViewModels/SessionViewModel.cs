@@ -1,4 +1,5 @@
 using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
@@ -30,7 +31,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
 
       public IReadOnlyList<ServiceSummary> Services { get; }
 
-      public string Summary => $"{Services.Count} service(s), {Services.Sum(s => s.AccountCount)} account(s).";
+      public string Summary => Strings.Format(nameof(Strings.Session_Summary), Services.Count, Services.Sum(s => s.AccountCount));
 
       /// <summary>Closes the session; the login ViewModel handles the write-back and navigation.</summary>
       public void Logout() => _database.Close();

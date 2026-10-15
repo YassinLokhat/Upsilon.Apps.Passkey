@@ -1,3 +1,4 @@
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
@@ -46,7 +47,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
       {
          cancellationToken.ThrowIfCancellationRequested();
          Page page = _page ?? throw new InvalidOperationException("No active page for dialogs.");
-         await page.DisplayAlertAsync(title, text, "OK").ConfigureAwait(true);
+         await page.DisplayAlertAsync(title, text, Strings.Button_OK).ConfigureAwait(true);
       }
 
       public Task WarnAsync(string text, string title, CancellationToken cancellationToken = default)
@@ -66,8 +67,8 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
          return probe is null ? null : Path.GetDirectoryName(probe.FullPath);
 #else
          await InfoAsync(
-            "On Android, pick a vault document or tree via Open vault (SAF). Folder browse is Windows-oriented.",
-            "Folder picker",
+            Strings.Format(nameof(Strings.Maui_FolderPickerAndroid), Strings.Login_OpenVault),
+            Strings.Maui_Title_FolderPicker,
             cancellationToken).ConfigureAwait(true);
          return null;
 #endif
@@ -102,7 +103,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
          _ = initialDirectory;
          cancellationToken.ThrowIfCancellationRequested();
          // MAUI has no cross-platform save-file picker; hosts use platform APIs in later parity work.
-         await InfoAsync("Save-as is not yet available in the MAUI host.", "Save file", cancellationToken)
+         await InfoAsync(Strings.Maui_SaveAsUnavailable, Strings.Maui_Title_SaveFile, cancellationToken)
             .ConfigureAwait(true);
          return null;
       }
@@ -125,7 +126,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
 
          if (!_views.TryGetValue(request.GetType(), out Func<object, Page>? factory))
          {
-            await InfoAsync("This view is not available in the MAUI client yet.", AppServices.Info.Title, cancellationToken)
+            await InfoAsync(Strings.Maui_ViewUnavailable, AppServices.Info.Title, cancellationToken)
                .ConfigureAwait(true);
             return default;
          }
@@ -150,32 +151,33 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
 
       private static async Task<DialogResult> _okAsync(Page page, string text, string title)
       {
-         await page.DisplayAlertAsync(title, text, "OK").ConfigureAwait(true);
+         await page.DisplayAlertAsync(title, text, Strings.Button_OK).ConfigureAwait(true);
          return DialogResult.OK;
       }
 
       private static async Task<DialogResult> _okCancelAsync(Page page, string text, string title)
       {
-         bool ok = await page.DisplayAlertAsync(title, text, "OK", "Cancel").ConfigureAwait(true);
+         bool ok = await page.DisplayAlertAsync(title, text, Strings.Button_OK, Strings.Button_Cancel).ConfigureAwait(true);
          return ok ? DialogResult.OK : DialogResult.Cancel;
       }
 
       private static async Task<DialogResult> _yesNoAsync(Page page, string text, string title)
       {
-         bool yes = await page.DisplayAlertAsync(title, text, "Yes", "No").ConfigureAwait(true);
+         bool yes = await page.DisplayAlertAsync(title, text, Strings.Button_Yes, Strings.Button_No).ConfigureAwait(true);
          return yes ? DialogResult.Yes : DialogResult.No;
       }
 
       private static async Task<DialogResult> _yesNoCancelAsync(Page page, string text, string title)
       {
-         string? answer = await page.DisplayActionSheetAsync(title + "\n" + text, "Cancel", null, "Yes", "No")
+         // The action sheet returns the tapped label; compare against the labels shown.
+         string yes = Strings.Button_Yes;
+         string no = Strings.Button_No;
+         string? answer = await page.DisplayActionSheetAsync(title + "\n" + text, Strings.Button_Cancel, null, yes, no)
             .ConfigureAwait(true);
-         return answer switch
-         {
-            "Yes" => DialogResult.Yes,
-            "No" => DialogResult.No,
-            _ => DialogResult.Cancel,
-         };
+
+         return string.Equals(answer, yes, StringComparison.Ordinal) ? DialogResult.Yes
+            : string.Equals(answer, no, StringComparison.Ordinal) ? DialogResult.No
+            : DialogResult.Cancel;
       }
    }
 }

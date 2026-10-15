@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+﻿using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels;
 using Upsilon.Apps.Passkey.Interfaces.Events;
 
@@ -16,6 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
 
          _viewModel.LoggedIn += _onLoggedIn;
          _viewModel.SessionEnded += _onSessionEnded;
+         LocalizationService.LanguageChanged += (_, _) => _viewModel.OnLanguageChanged();
 
          if (AppServices.Lifecycle is { } life)
          {
@@ -113,7 +115,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
 
          if (e.LoginTimeoutReached)
          {
-            await DisplayAlertAsync("Session closed", "The session was closed after the configured inactivity timeout.", "OK")
+            await DisplayAlertAsync(Strings.Title_SessionClosed, Strings.Msg_SessionClosedTimeout, Strings.Button_OK)
                .ConfigureAwait(true);
          }
       }
@@ -152,7 +154,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
       {
          FileResult? file = await FilePicker.Default.PickAsync(new PickOptions
          {
-            PickerTitle = "Open Passkey vault",
+            PickerTitle = Strings.Title_OpenDatabase,
             FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
             {
                { DevicePlatform.WinUI, [".pku"] },

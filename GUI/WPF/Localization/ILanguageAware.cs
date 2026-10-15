@@ -11,7 +11,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
    /// <see cref="LanguageAwareNotify.ForwardToDataContext"/> (or the typed
    /// ViewModel) before refreshing any code-behind snapshots. Prefer
    /// <c>{loc:Loc …}</c> for static XAML text — it refreshes via
-   /// <see cref="TranslationSource"/> without this interface.
+   /// <see cref="LocalizationCatalog"/> without this interface.
    /// </remarks>
    internal interface ILanguageAware
    {
