@@ -428,6 +428,11 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Localization
       public static string Msg_SessionClosedTimeout => Get(nameof(Msg_SessionClosedTimeout));
       public static string Session_Summary => Get(nameof(Session_Summary));
       public static string Session_Logout => Get(nameof(Session_Logout));
+      public static string Label_BackgroundLock => Get(nameof(Label_BackgroundLock));
+      public static string Login_ConflictCopies => Get(nameof(Login_ConflictCopies));
+      public static string Button_SaveConflictCopies => Get(nameof(Button_SaveConflictCopies));
+      public static string Title_SaveConflictCopy => Get(nameof(Title_SaveConflictCopy));
+      public static string Msg_ConflictCopySaveFailed => Get(nameof(Msg_ConflictCopySaveFailed));
       public static string Msg_VaultRenameKept => Get(nameof(Msg_VaultRenameKept));
       public static string Msg_VaultTargetExists => Get(nameof(Msg_VaultTargetExists));
       public static string Msg_UserSaveFailed => Get(nameof(Msg_UserSaveFailed));

@@ -1445,4 +1445,19 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
   <data name="Msg_VaultCreateFailed" xml:space="preserve">
     <value>Le coffre n&apos;a pas pu être créé.{0}{1}</value>
   </data>
+  <data name="Label_BackgroundLock" xml:space="preserve">
+    <value>Verrouiller le coffre après une absence de l&apos;application en arrière-plan de</value>
+  </data>
+  <data name="Login_ConflictCopies" xml:space="preserve">
+    <value>{0} copies en conflit de vos coffres sont conservées sur cet appareil. Enregistrez-les en lieu sûr ; elles seront ensuite retirées de l&apos;application.</value>
+  </data>
+  <data name="Button_SaveConflictCopies" xml:space="preserve">
+    <value>Enregistrer les copies en conflit</value>
+  </data>
+  <data name="Title_SaveConflictCopy" xml:space="preserve">
+    <value>Enregistrer la copie en conflit</value>
+  </data>
+  <data name="Msg_ConflictCopySaveFailed" xml:space="preserve">
+    <value>Une copie en conflit n&apos;a pas pu être enregistrée ; elle reste conservée sur cet appareil.</value>
+  </data>
 </root>

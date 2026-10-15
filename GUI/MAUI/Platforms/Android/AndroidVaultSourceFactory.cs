@@ -17,6 +17,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
    {
       private static readonly Lock _gate = new();
       private static readonly Dictionary<string, (global::Android.Net.Uri Uri, string DisplayName)> _safUris = [];
+      private static string? _lastOpened;
 
       /// <summary>
       /// Register a SAF document URI (with persistable permission already taken).
@@ -25,9 +26,57 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
       internal static void RegisterSafUri(global::Android.Net.Uri uri, string displayName)
       {
          ArgumentNullException.ThrowIfNull(uri);
+         List<global::Android.Net.Uri> superseded;
+         string? open = AppServices.Session.Database is not null ? _openLocation() : null;
          lock (_gate)
          {
+            // Only the last picked vault is reachable from the login screen: drop the
+            // write grants of the others so the app does not keep access to old documents.
+            superseded = [.. _safUris
+               .Where(p => !string.Equals(p.Key, uri.ToString(), StringComparison.Ordinal)
+                  && !string.Equals(p.Key, open, StringComparison.Ordinal))
+               .Select(p => p.Value.Uri)];
             _safUris[uri.ToString()!] = (uri, displayName);
+         }
+
+         foreach (global::Android.Net.Uri old in superseded)
+         {
+            Forget(old);
+         }
+      }
+
+      /// <summary>
+      /// Releases persisted grants left by earlier runs: the registry is per process,
+      /// so nothing can reopen those documents without a new pick.
+      /// </summary>
+      internal static void ReleaseStaleGrants()
+      {
+         ContentResolver? resolver = AndroidApp.Context.ContentResolver;
+         if (resolver?.PersistedUriPermissions is not { } granted)
+         {
+            return;
+         }
+
+         HashSet<string> registered;
+         lock (_gate)
+         {
+            registered = [.. _safUris.Keys];
+         }
+
+         foreach (UriPermission permission in granted)
+         {
+            if (permission.Uri is { } uri && !registered.Contains(uri.ToString()!))
+            {
+               Forget(uri);
+            }
+         }
+      }
+
+      private static string? _openLocation()
+      {
+         lock (_gate)
+         {
+            return _lastOpened;
          }
       }
 
@@ -83,6 +132,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
          {
             if (_safUris.TryGetValue(path, out (global::Android.Net.Uri Uri, string DisplayName) registered))
             {
+               _lastOpened = path;
                return Task.FromResult<IVaultSource>(SafVaultSource.Create(registered.Uri, registered.DisplayName));
             }
          }

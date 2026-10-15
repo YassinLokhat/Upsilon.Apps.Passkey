@@ -36,6 +36,12 @@
             <Label Grid.Column="2" Text="{loc:Loc Label_Seconds}" VerticalOptions="Center" />
          </Grid>
 
+         <Grid ColumnDefinitions="*,80,Auto" ColumnSpacing="8" IsVisible="{Binding SupportsBackgroundLock}">
+            <Label Text="{loc:Loc Label_BackgroundLock}" VerticalOptions="Center" />
+            <Entry Grid.Column="1" Keyboard="Numeric" Text="{Binding BackgroundLockSeconds}" />
+            <Label Grid.Column="2" Text="{loc:Loc Label_Seconds}" VerticalOptions="Center" />
+         </Grid>
+
          <VerticalStackLayout Spacing="8" IsVisible="{Binding SupportsOfflineLeakFilter}" Margin="0,12,0,0">
             <Label Text="{loc:Loc Label_OfflineLeakDatabase}" Style="{StaticResource SubHeadline}" ToolTipProperties.Text="{loc:Loc Tooltip_OfflineLeakDatabase}" />
             <Label Text="{Binding OfflineLeakFilterStatus}" />

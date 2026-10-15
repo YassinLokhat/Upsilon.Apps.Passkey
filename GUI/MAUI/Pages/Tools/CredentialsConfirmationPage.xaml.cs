@@ -12,6 +12,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Tools
       {
          InitializeComponent();
          BindingContext = _viewModel = new CredentialsConfirmationViewModel(credentials, isNew);
+         BackgroundGuard.Attach(this, () => CredentialEntry.Text = string.Empty);
       }
 
       public Task<bool> Completion => _completion.Task;

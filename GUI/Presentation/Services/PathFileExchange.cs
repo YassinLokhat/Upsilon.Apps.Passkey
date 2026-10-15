@@ -56,6 +56,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
          {
             ".JSON" => Strings.Filter_Json,
             ".CSV" => export ? Strings.Filter_CsvExport : Strings.Filter_Csv,
+            ".PKU" => Strings.Filter_Pku,
             _ => throw new ArgumentOutOfRangeException(nameof(extension), extension, null),
          };
    }

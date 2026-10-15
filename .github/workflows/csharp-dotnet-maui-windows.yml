@@ -54,6 +54,10 @@ jobs:
     - name: Build Release (Windows)
       run: dotnet build GUI/MAUI/Upsilon.Apps.Passkey.GUI.MAUI.csproj --no-restore --configuration Release -f net10.0-windows10.0.19041.0
 
+    # Shared ViewModels and ports the MAUI pages bind to.
+    - name: Test Presentation
+      run: dotnet test UnitTests/Presentation/UnitTests.Presentation.csproj --no-restore --configuration Debug --verbosity normal
+
 permissions:
   contents: read
   issues: write

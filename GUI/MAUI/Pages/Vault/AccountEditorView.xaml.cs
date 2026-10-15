@@ -1,3 +1,4 @@
+using Upsilon.Apps.Passkey.GUI.MAUI.Adapters;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault;
 
@@ -8,6 +9,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault
       public AccountEditorView()
       {
          InitializeComponent();
+         BackgroundGuard.Attach(this, () => PasswordEntry.IsPassword = true);
       }
 
       private AccountViewModel? _account => BindingContext as AccountViewModel;

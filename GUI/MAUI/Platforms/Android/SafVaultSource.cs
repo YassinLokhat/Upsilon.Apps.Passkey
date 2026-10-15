@@ -25,6 +25,8 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
    {
       private const string META_FILE = "source.meta";
       private const string COMPLETE_MARKER = "checkout.complete";
+      private const string CONFLICTS_DIR = "conflicts";
+      private const int MAX_CONFLICT_COPIES = 5;
 
       private static readonly string _emptySha256 = Convert.ToHexString(SHA256.HashData([]));
 
@@ -40,6 +42,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
       /// <see cref="DisposeAsync"/> delete the private directory.
       /// </summary>
       private bool _safeToDelete;
+
+      /// <summary>Write-back conflicts of this session share one copy, refreshed on each attempt.</summary>
+      private string? _sessionConflictPath;
 
       private SafVaultSource(global::Android.Net.Uri sourceUri, string displayName, bool isNew)
       {
@@ -156,7 +161,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
 
             if (!string.Equals(remoteHash, _sourceSha256, StringComparison.OrdinalIgnoreCase))
             {
-               _keepAsConflict(_snapshotPath);
+               _sessionConflictPath = _keepAsConflict(_snapshotPath, _sessionConflictPath);
                return VaultWriteBackResult.Conflict;
             }
 
@@ -357,11 +362,45 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
          output.Flush(flushToDisk: true);
       }
 
-      private void _keepAsConflict(string path)
+      /// <summary>
+      /// Copies <paramref name="path"/> into the conflict folder, reusing <paramref name="target"/>
+      /// when given, and keeps only the newest <see cref="MAX_CONFLICT_COPIES"/> copies.
+      /// </summary>
+      private string _keepAsConflict(string path, string? target = null)
       {
-         string conflicts = Path.Join(_workDir, "conflicts");
+         string conflicts = Path.Join(_workDir, CONFLICTS_DIR);
          _ = Directory.CreateDirectory(conflicts);
-         File.Copy(path, Path.Join(conflicts, $"conflict-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid():N}.pku"), overwrite: false);
+         target ??= Path.Join(conflicts, $"{_safeFilePrefix(DisplayName)}-conflict-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid().ToString("N")[..8]}.pku");
+         File.Copy(path, target, overwrite: true);
+
+         foreach (FileInfo stale in new DirectoryInfo(conflicts).GetFiles("*.pku")
+            .OrderByDescending(f => f.LastWriteTimeUtc)
+            .Skip(MAX_CONFLICT_COPIES))
+         {
+            _tryDelete(stale.FullName);
+         }
+
+         return target;
+      }
+
+      private static string _safeFilePrefix(string displayName)
+      {
+         char[] invalid = Path.GetInvalidFileNameChars();
+         string safe = new([.. Path.GetFileNameWithoutExtension(displayName).Where(c => !invalid.Contains(c))]);
+         return safe.Length == 0 ? "vault" : safe;
+      }
+
+      /// <summary>Conflict copies of every SAF vault, oldest first.</summary>
+      internal static IEnumerable<FileInfo> EnumerateConflictCopies()
+      {
+         string root = Path.Join(AndroidApp.Context.NoBackupFilesDir?.AbsolutePath ?? FileSystem.AppDataDirectory, "vaults");
+         return !Directory.Exists(root)
+            ? []
+            : new DirectoryInfo(root).EnumerateDirectories()
+               .Select(d => new DirectoryInfo(Path.Join(d.FullName, CONFLICTS_DIR)))
+               .Where(d => d.Exists)
+               .SelectMany(d => d.EnumerateFiles("*.pku"))
+               .OrderBy(f => f.LastWriteTimeUtc);
       }
 
       private Task _writeMetaAsync(CancellationToken cancellationToken)
@@ -387,7 +426,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
             File.Delete(file);
          }
 
-         string conflicts = Path.Join(_workDir, "conflicts");
+         string conflicts = Path.Join(_workDir, CONFLICTS_DIR);
          if (!keepConflicts && Directory.Exists(conflicts))
          {
             Directory.Delete(conflicts, recursive: true);

@@ -36,6 +36,12 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          base.OnCreate(savedInstanceState);
          // Keep secrets out of screenshots / recents / screen share.
          Window?.SetFlags(WindowManagerFlags.Secure, WindowManagerFlags.Secure);
+         if (OperatingSystem.IsAndroidVersionAtLeast(33))
+         {
+            SetRecentsScreenshotEnabled(false);
+         }
+
+         AndroidVaultSourceFactory.ReleaseStaleGrants();
       }
 
       /// <summary>ACTION_OPEN_DOCUMENT for a single .pku (persistable read/write).</summary>
@@ -125,20 +131,22 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
                return;
          }
 
+         // No pending request (process recreated mid-pick): never take a grant nobody will use.
+         if (tcs is null)
+         {
+            return;
+         }
+
          if (resultCode != Result.Ok || data?.Data is not { } uri)
          {
-            tcs?.TrySetResult(null);
+            tcs.TrySetResult(null);
             return;
          }
 
          AndroidVaultSourceFactory.TakePersistablePermission(uri, write: true);
-         string name = uri.LastPathSegment ?? "vault.pku";
-         if (name.Contains('/', StringComparison.Ordinal))
-         {
-            name = name[(name.LastIndexOf('/') + 1)..];
-         }
-
-         tcs?.TrySetResult((uri, name));
+         // LastPathSegment is the provider's document id and can contain folder names.
+         string name = AndroidVaultSourceFactory.QueryDisplayName(uri) ?? "vault.pku";
+         tcs.TrySetResult((uri, name));
       }
    }
 }

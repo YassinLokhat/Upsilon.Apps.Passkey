@@ -118,6 +118,16 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings
          set => SetProperty(ref field, Math.Max(0, value));
       }
 
+      /// <summary>Only hosts that report background/resume transitions can honour it.</summary>
+      public bool SupportsBackgroundLock { get; } = AppServices.Lifecycle is not null;
+
+      /// <summary>Seconds in the background before an open vault closes on resume; <c>0</c> closes it on every return.</summary>
+      public int BackgroundLockSeconds
+      {
+         get;
+         set => SetProperty(ref field, Math.Max(0, value));
+      } = AppSettings.DEFAULT_BACKGROUND_LOCK_SECONDS;
+
       public bool OfflineLeakFilterEnabled
       {
          get;
@@ -219,6 +229,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings
          settings.Language = SelectedLanguage.Code;
          settings.Theme = SelectedTheme.Code;
          settings.LoginIdleTimeoutSeconds = LoginIdleTimeoutSeconds;
+         settings.BackgroundLockSeconds = BackgroundLockSeconds;
          settings.LocalLeakDatabaseAutoUpdateFrequency = OfflineLeakFilterAutoUpdateFrequency;
          settings.LocalLeakDatabaseQuality = SelectedLeakFilterQuality.Code;
          return _persistAndApply();
@@ -531,6 +542,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings
          SelectedLanguage = LocalizationService.GetLanguageOrDefault(settings.Language);
          SelectedTheme = ThemePreferences.GetOptionOrDefault(settings.Theme);
          LoginIdleTimeoutSeconds = settings.LoginIdleTimeoutSeconds;
+         BackgroundLockSeconds = settings.BackgroundLockSeconds;
          OfflineLeakFilterAutoUpdateFrequency = settings.LocalLeakDatabaseAutoUpdateFrequency;
          LeakFilterQualityOptions = _qualityOptions();
          SelectedLeakFilterQuality = _qualityOptionOrDefault(settings.LocalLeakDatabaseQuality);

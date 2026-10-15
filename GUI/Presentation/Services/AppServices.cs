@@ -41,6 +41,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
       /// <summary>Defaults to the dialog path pickers when unset.</summary>
       public static IFileExchange? Files { get; set; }
 
+      public static IConflictCopyStore? ConflictCopies { get; set; }
+
       /// <summary>Single runner for manual and automatic <c>.pkbf</c> builds; idle on hosts without the offline filter.</summary>
       public static OfflineLeakFilterUpdateService OfflineLeakFilterUpdate { get; set; } = new();
 
@@ -72,6 +74,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Services
          VaultSources = null;
          Clipboard = null;
          Files = null;
+         ConflictCopies = null;
          OfflineLeakFilterUpdate = new OfflineLeakFilterUpdateService();
          Session = new SessionService();
          Cryptography = new CryptographyCenter();

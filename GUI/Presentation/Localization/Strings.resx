@@ -1445,4 +1445,19 @@ This affects all vault users. Disabling the option alone does not delete the fil
   <data name="Msg_VaultCreateFailed" xml:space="preserve">
     <value>The vault could not be created.{0}{1}</value>
   </data>
+  <data name="Label_BackgroundLock" xml:space="preserve">
+    <value>Lock the vault after the app stays in the background for</value>
+  </data>
+  <data name="Login_ConflictCopies" xml:space="preserve">
+    <value>{0} conflict copies of your vaults are kept on this device. Save them somewhere safe, then they are removed from the app.</value>
+  </data>
+  <data name="Button_SaveConflictCopies" xml:space="preserve">
+    <value>Save conflict copies</value>
+  </data>
+  <data name="Title_SaveConflictCopy" xml:space="preserve">
+    <value>Save conflict copy</value>
+  </data>
+  <data name="Msg_ConflictCopySaveFailed" xml:space="preserve">
+    <value>A conflict copy could not be saved; it is still kept on this device.</value>
+  </data>
 </root>
