@@ -26,6 +26,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
+      internal void SetKind(string kind) => _viewModel.Kind = kind;
+
       public void OnLanguageChanged()
       {
          _viewModel.OnLanguageChanged();

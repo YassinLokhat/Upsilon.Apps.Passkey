@@ -48,8 +48,62 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       public Task<TResult?> ShowAsync<TResult>(IViewRequest<TResult> request, CancellationToken cancellationToken = default)
       {
          ArgumentNullException.ThrowIfNull(request);
+         cancellationToken.ThrowIfCancellationRequested();
+
+         object? result = request switch
+         {
+            GeneratePasswordRequest => PasswordGenerator.ShowGeneratePasswordDialog(),
+            InsertIdentifierRequest r => InsertIdentifierView.InsertIdentifierDialog(r.Identifiers, r.Current),
+            ShowQrCodeRequest r => _done(() => QrCodeView.ShowQrCode(r.Content, r.DelayMilliseconds)),
+            ConfirmCredentialsRequest r => CredentialsConfirmationView.ShowConfirmationDialog(r.Credentials, r.IsNew),
+            ActivitiesRequest r => _done(() => _showActivities(r)),
+            AccountPasswordsAlertRequest r => _done(() => ShowSingleton(
+               () => new AccountPasswordsAlertView(r.Kind),
+               view => view.SetKind(r.Kind))),
+            DuplicatedPasswordsAlertRequest => _done(() => ShowSingleton(() => new DuplicatedPasswordsAlertView())),
+            PasskeyQualityAlertRequest => _done(() => ShowSingleton(() => new PasskeyQualityAlertView())),
+            SecuritySettingsAlertRequest => _done(() => ShowSingleton(() => new SecuritySettingsAlertView())),
+            UserSettingsRequest => _done(UserSettingsView.ShowUserSettings),
+            AppSettingsRequest => _done(AppSettingsView.ShowAppSettings),
+            _ => _unhandled(request),
+         };
+
+         return Task.FromResult(result is TResult typed ? typed : default);
+      }
+
+      private void _showActivities(ActivitiesRequest request)
+      {
+         void apply(UserActivitiesView view)
+         {
+            if (request.SearchCriteria is not null)
+            {
+               view.ViewModel.ClearFilters();
+               view.ViewModel.SearchCriteria = request.SearchCriteria;
+            }
+
+            view.ViewModel.NeedsReview = request.NeedsReview;
+         }
+
+         _ = ShowSingleton(
+            () =>
+            {
+               UserActivitiesView view = new(request.NeedsReview);
+               apply(view);
+               return view;
+            },
+            apply);
+      }
+
+      private static bool _done(Action show)
+      {
+         show();
+         return true;
+      }
+
+      private static object? _unhandled(object request)
+      {
          SharedServices.Log.Warn($"No WPF view registered for {request.GetType().Name}.");
-         return Task.FromResult<TResult?>(default);
+         return null;
       }
 
       internal static MessageBoxButton ToButton(DialogButtons buttons) => buttons switch

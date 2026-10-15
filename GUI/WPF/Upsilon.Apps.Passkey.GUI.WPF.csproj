@@ -36,6 +36,7 @@
 
   <ItemGroup>
     <Using Include="Upsilon.Apps.Passkey.GUI.Presentation.Localization" />
+    <Using Include="Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault" />
   </ItemGroup>
 
   <ItemGroup>

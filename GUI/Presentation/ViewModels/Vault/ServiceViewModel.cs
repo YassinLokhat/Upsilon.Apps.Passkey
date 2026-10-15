@@ -1,23 +1,18 @@
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Windows;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.Core.Utils;
-using Upsilon.Apps.Passkey.GUI.Presentation.Models;
-using AsyncRelayCommand = Upsilon.Apps.Passkey.GUI.Presentation.Helper.AsyncRelayCommand;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
-using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
 {
-   internal sealed class ServiceViewModel : ObservableObject, IThemeAware
+   internal sealed class ServiceViewModel : ObservableObject
    {
       public readonly IService Service;
 
@@ -122,10 +117,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          Service = service;
          _syncAccountViewModels();
 
-         AddAccountCommand = new RelayCommand(_addAccount);
+         AddAccountCommand = new AsyncRelayCommand(_addAccountAsync);
          DeleteAccountCommand = new AsyncRelayCommand(_deleteAccountAsync);
          OpenUrlCommand = new AsyncRelayCommand(_openUrlAsync);
-         ViewActivitiesCommand = new RelayCommand(_viewActivities);
+         ViewActivitiesCommand = new AsyncRelayCommand(() => AccountViewModel.ShowActivitiesAsync(Service.ItemId));
          MoveAccountUpCommand = new RelayCommand(_moveAccountUp);
          MoveAccountDownCommand = new RelayCommand(_moveAccountDown);
       }
@@ -196,9 +191,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             : Accounts.FirstOrDefault();
       }
 
-      public AccountViewModel? AddAccount()
+      public async Task<AccountViewModel?> AddAccountAsync()
       {
-         IIdentifier? identifier = InsertIdentifierView.InsertIdentifierDialog(AccountViewModel.IdentifierAutoCompleteList ?? []);
+         IIdentifier? identifier = AppServices.Dialogs is { } dialogs
+            ? await dialogs.ShowAsync(new InsertIdentifierRequest(AccountViewModel.IdentifierAutoCompleteList, null)).ConfigureAwait(true)
+            : null;
 
          if (identifier is null)
          {
@@ -272,9 +269,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          _notify(string.Empty);
       }
 
-      private void _addAccount()
+      private static IDialogService _dialogs
+         => AppServices.Dialogs ?? throw new InvalidOperationException("No dialog service registered.");
+
+      private async Task _addAccountAsync()
       {
-         AccountViewModel? accountViewModel = AddAccount();
+         AccountViewModel? accountViewModel = await AddAccountAsync().ConfigureAwait(true);
 
          if (accountViewModel is not null)
          {
@@ -285,7 +285,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       private async Task _deleteAccountAsync()
       {
          if (SelectedAccount is not { } accountViewModel
-            || await AppServices.AsyncDialogs.ConfirmAsync(
+            || await _dialogs.ConfirmAsync(
                Strings.Format(nameof(Strings.Msg_DeleteAccount), accountViewModel.AccountDisplay),
                Strings.Title_DeleteAccount).ConfigureAwait(true) != DialogResult.Yes)
          {
@@ -306,11 +306,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          switch (ServiceUrlHelper.ClassifyForOpen(Url))
          {
             case ServiceUrlHelper.OpenDisposition.Rejected:
-               await AppServices.AsyncDialogs.ErrorAsync(Strings.Msg_UrlSchemeNotAllowed, Strings.Title_OpenUrl).ConfigureAwait(true);
+               await _dialogs.ErrorAsync(Strings.Msg_UrlSchemeNotAllowed, Strings.Title_OpenUrl).ConfigureAwait(true);
                return;
 
             case ServiceUrlHelper.OpenDisposition.RequiresHttpConfirmation:
-               if (await AppServices.AsyncDialogs.ConfirmAsync(
+               if (await _dialogs.ConfirmAsync(
                      Strings.Format(nameof(Strings.Msg_OpenHttpUrlConfirm), Url),
                      Strings.Title_OpenUrl,
                      DialogButtons.YesNo,
@@ -331,30 +331,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             return;
          }
 
-         using Process process = new()
+         if (AppServices.Launcher is { } launcher)
          {
-            StartInfo = new ProcessStartInfo(uri!.AbsoluteUri)
-            {
-               UseShellExecute = true,
-            },
-         };
-
-         _ = process.Start();
-      }
-
-      private void _viewActivities()
-      {
-         string itemId = Service.ItemId;
-
-         _ = AppServices.Dialogs.ShowSingleton(
-            factory: () =>
-            {
-               UserActivitiesView view = new(needsReviewFilter: false);
-               view.ViewModel.ClearFilters();
-               view.ViewModel.SearchCriteria = itemId;
-               return view;
-            },
-            configure: view => view.ViewModel.SearchCriteria = itemId);
+            await launcher.OpenUriAsync(uri).ConfigureAwait(true);
+         }
       }
 
       private void _moveAccountUp()

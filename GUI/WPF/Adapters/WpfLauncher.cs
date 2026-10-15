@@ -8,7 +8,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Adapters
       public Task OpenUriAsync(Uri uri, CancellationToken cancellationToken = default)
       {
          ArgumentNullException.ThrowIfNull(uri);
-         _ = Process.Start(new ProcessStartInfo
+         using Process? process = Process.Start(new ProcessStartInfo
          {
             FileName = uri.AbsoluteUri,
             UseShellExecute = true,

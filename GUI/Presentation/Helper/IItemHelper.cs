@@ -1,8 +1,8 @@
-﻿using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
+namespace Upsilon.Apps.Passkey.GUI.Presentation.Helper
 {
    /// <summary>
    /// Filter helpers and a session keep-alive. <see cref="Shake"/> only exists to

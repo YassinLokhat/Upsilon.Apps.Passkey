@@ -1,23 +1,18 @@
-﻿using System.Collections.ObjectModel;
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
-using Upsilon.Apps.Passkey.GUI.Presentation.Models;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.Themes;
-using Upsilon.Apps.Passkey.GUI.WPF.Utils;
-using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
-using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
-using AppServices = Upsilon.Apps.Passkey.GUI.WPF.Services.AppServices;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
 {
-   internal sealed class AccountViewModel : ObservableObject, IThemeAware, IDisposable
+   internal sealed class AccountViewModel : ObservableObject, IDisposable
    {
       public readonly IAccount Account;
       private bool _disposed;
@@ -27,13 +22,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          Account = account;
          AppServices.Session.Alerts.NotifiedAlertsChanged += _onAlertsChanged;
 
-         AddIdentifierCommand = new RelayCommand(_addIdentifier);
+         AddIdentifierCommand = new AsyncRelayCommand(_addIdentifierAsync);
          MoveIdentifierUpCommand = new RelayCommand(_moveIdentifierUp);
          MoveIdentifierDownCommand = new RelayCommand(_moveIdentifierDown);
          DeleteIdentifierCommand = new RelayCommand(_deleteIdentifier);
          CopyIdentifierCommand = new RelayCommand(_copyIdentifier);
-         ShowQrCodeIdentifierCommand = new RelayCommand(_showQrCodeIdentifier);
-         ViewActivitiesCommand = new RelayCommand(_viewActivities);
+         ShowQrCodeIdentifierCommand = new AsyncRelayCommand(() => ClipboardPolicy.ShowQrCodeAsync(SelectedIdentifier?.Identifier));
+         ViewActivitiesCommand = new AsyncRelayCommand(() => ShowActivitiesAsync(Account.ItemId));
       }
 
       public ICommand AddIdentifierCommand { get; }
@@ -372,10 +367,40 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          return true;
       }
 
-      private void _addIdentifier()
+      private async Task _addIdentifierAsync()
       {
-         SelectedIdentifier = AddIdentifier(string.Empty);
-         Views.InsertIdentifierView.ShowInsertIdentifierView(SelectedIdentifier);
+         IdentifierViewModel added = AddIdentifier(string.Empty);
+         SelectedIdentifier = added;
+         await EditIdentifierAsync(added).ConfigureAwait(true);
+      }
+
+      /// <summary>Opens the insert-identifier picker for <paramref name="identifier"/> and applies a non-empty pick.</summary>
+      public static async Task EditIdentifierAsync(IdentifierViewModel identifier)
+      {
+         ArgumentNullException.ThrowIfNull(identifier);
+         if (AppServices.Dialogs is not { } dialogs)
+         {
+            return;
+         }
+
+         IIdentifier? picked = await dialogs
+            .ShowAsync(new InsertIdentifierRequest(IdentifierAutoCompleteList, identifier.ToIdentifier()))
+            .ConfigureAwait(true);
+
+         if (!string.IsNullOrEmpty(picked?.Value))
+         {
+            identifier.Type = picked.Type;
+            identifier.Identifier = picked.Value;
+         }
+      }
+
+      /// <summary>Opens the activity log filtered on <paramref name="itemId"/>.</summary>
+      internal static async Task ShowActivitiesAsync(string itemId)
+      {
+         if (AppServices.Dialogs is { } dialogs)
+         {
+            _ = await dialogs.ShowAsync(new ActivitiesRequest(NeedsReview: false, itemId)).ConfigureAwait(true);
+         }
       }
 
       private void _moveIdentifierUp()
@@ -429,33 +454,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             return;
          }
 
-         AppServices.Clipboard.SetText(SelectedIdentifier.Identifier, ClipboardManager.AutoClearAfter);
-      }
-
-      private void _showQrCodeIdentifier()
-      {
-         if (SelectedIdentifier is null)
-         {
-            return;
-         }
-
-         QrCodeView.ShowQrCode(SelectedIdentifier.Identifier,
-            AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0);
-      }
-
-      private void _viewActivities()
-      {
-         string itemId = Account.ItemId;
-
-         _ = AppServices.Dialogs.ShowSingleton(
-            factory: () =>
-            {
-               UserActivitiesView view = new(needsReviewFilter: false);
-               view.ViewModel.ClearFilters();
-               view.ViewModel.SearchCriteria = itemId;
-               return view;
-            },
-            configure: view => view.ViewModel.SearchCriteria = itemId);
+         AppServices.Clipboard?.SetText(SelectedIdentifier.Identifier, ClipboardPolicy.AutoClearAfter);
       }
 
       public override string ToString() => $"{(Account.HasChanged() ? "* " : string.Empty)}{Account}";

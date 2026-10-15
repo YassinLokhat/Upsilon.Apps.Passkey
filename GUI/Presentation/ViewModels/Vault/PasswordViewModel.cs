@@ -1,10 +1,10 @@
-﻿using System.Windows.Input;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.Utils;
-using Upsilon.Apps.Passkey.GUI.WPF.Views;
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using System.Windows.Input;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
 {
    internal sealed class PasswordViewModel : ObservableObject
    {
@@ -23,9 +23,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          UpdateDate = updateDate;
          Password = password;
          CopyCommand = new RelayCommand(() =>
-            AppServices.Clipboard.SetText(Password, ClipboardManager.AutoClearAfter));
+            AppServices.Clipboard?.SetText(Password, ClipboardPolicy.AutoClearAfter));
          ShowQrCodeCommand = new RelayCommand(() =>
-            QrCodeView.ShowQrCode(Password, AppServices.Session.User?.Settings.ShowPasswordDelay ?? 0));
+            _ = ClipboardPolicy.ShowQrCodeAsync(Password));
       }
 
       public void Clear()
