@@ -1,25 +1,27 @@
 using System.Text;
-using System.Windows;
 using System.Windows.Input;
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
-using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.Utils;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools
 {
-   internal sealed class PasswordGeneratorViewModel : ObservableObject, ILanguageAware
+   /// <summary>
+   /// Password generator shared by hosts. Results that arrive after a newer
+   /// request, or after <see cref="Close"/>, are dropped.
+   /// </summary>
+   internal sealed class PasswordGeneratorViewModel : ObservableObject
    {
       public string Title
       {
          get;
          private set => SetProperty(ref field, value);
-      } = Strings.Format(nameof(Strings.Title_PasswordGenerator), AppInfo.Title);
+      } = _title();
 
       public void OnLanguageChanged()
-         => Title = Strings.Format(nameof(Strings.Title_PasswordGenerator), AppInfo.Title);
+         => Title = _title();
 
       public bool CheckIfLeaked
       {
@@ -50,7 +52,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (SetProperty(ref field, value))
+            if (SetProperty(ref field, value ?? string.Empty))
             {
                // Pasted or edited text must not call sync PasswordLeaked on the
                // UI thread; schedule an async check and paint from cached state.
@@ -112,7 +114,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          get;
          set
          {
-            if (SetProperty(ref field, value))
+            if (SetProperty(ref field, value ?? string.Empty))
             {
                GeneratePassword();
             }
@@ -123,6 +125,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          => FieldVisualStateHelper.ForEditedSecret(isDirty: false, isNotifiedWeak: SecretQuality.IsWeak(GeneratedPassword), isNotifiedLeak: _isLeaked);
 
       public static bool IsInsertAvailable => AppServices.Session.User is not null;
+
+      public static int ClipboardAutoClearAfter
+         => AppServices.Session.User?.Settings.CleaningClipboardTimeout ?? 0;
 
       public ICommand RegenerateCommand { get; }
       public ICommand CopyCommand { get; }
@@ -136,10 +141,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          GeneratePassword();
 
          RegenerateCommand = new RelayCommand(GeneratePassword);
-         CopyCommand = new RelayCommand(() => AppServices.Clipboard.SetText(GeneratedPassword, ClipboardManager.AutoClearAfter));
+         CopyCommand = new RelayCommand(_copy);
          InsertCommand = new RelayCommand(() =>
          {
-            AppServices.Clipboard.SetText(GeneratedPassword, ClipboardManager.AutoClearAfter);
+            _copy();
             InsertRequested?.Invoke(this, EventArgs.Empty);
          });
       }
@@ -153,12 +158,33 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       // in-flight regenerate, and a slow leak answer must not paint a newer paste.
       private int _leakCheck;
       private bool _isLeaked;
+      private bool _closed;
 
       internal void GeneratePassword()
       {
          GeneratedPassword = string.Empty;
 
-         _ = _generatePasswordAsync(Interlocked.Increment(ref _generation));
+         if (!_closed)
+         {
+            _ = _generatePasswordAsync(Interlocked.Increment(ref _generation));
+         }
+      }
+
+      /// <summary>Drops in-flight results and clears the generated secret when the view closes.</summary>
+      public void Close()
+      {
+         _closed = true;
+         _ = Interlocked.Increment(ref _generation);
+         _ = Interlocked.Increment(ref _leakCheck);
+         GeneratedPassword = string.Empty;
+      }
+
+      private void _copy()
+      {
+         if (!string.IsNullOrEmpty(GeneratedPassword))
+         {
+            AppServices.Clipboard?.SetText(GeneratedPassword, ClipboardAutoClearAfter);
+         }
       }
 
       private async Task _generatePasswordAsync(int generation)
@@ -176,9 +202,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                GeneratedPassword = password;
             }
          }
-         catch (OperationCanceledException ex)
+         catch (Exception ex) when (ex is OperationCanceledException or HttpRequestException or InvalidOperationException or ArgumentException or IOException)
          {
-            Log.Error(ex, "Failed to generate a password");
+            // The exception text is not logged: it may echo generator input.
+            AppServices.Log.Error($"Failed to generate a password ({ex.GetType().Name})");
          }
       }
 
@@ -191,7 +218,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       private async Task _refreshLeakAsync(int stamp)
       {
-         if (!CheckIfLeaked || string.IsNullOrEmpty(GeneratedPassword))
+         if (_closed || !CheckIfLeaked || string.IsNullOrEmpty(GeneratedPassword))
          {
             return;
          }
@@ -210,9 +237,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                OnPropertyChanged(nameof(PasswordState));
             }
          }
-         catch (OperationCanceledException)
+         catch (Exception ex) when (ex is OperationCanceledException or HttpRequestException or InvalidOperationException or ArgumentException or IOException)
          {
             // Fail-open UI: leave the field unmarked rather than flash danger.
+            AppServices.Log.Warn($"Leak check failed ({ex.GetType().Name})");
          }
       }
 
@@ -247,5 +275,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          return alphabetBuilder.ToString();
       }
+
+      private static string _title()
+         => Strings.Format(nameof(Strings.Title_PasswordGenerator), AppServices.Info.Title);
    }
 }

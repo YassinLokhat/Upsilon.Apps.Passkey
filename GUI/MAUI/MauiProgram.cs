@@ -1,4 +1,7 @@
 using Upsilon.Apps.Passkey.GUI.MAUI.Adapters;
+using Upsilon.Apps.Passkey.GUI.MAUI.Pages.Tools;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
@@ -24,7 +27,12 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          AppServices.Capabilities = HostCapabilities.Desktop with { SupportsMultipleWindows = false };
 #endif
          AppServices.Launcher = new MauiLauncher();
-         AppServices.Dialogs = new MauiDialogService();
+         MauiDialogService dialogs = new();
+         dialogs.Register<GeneratePasswordRequest, string>(_ => new PasswordGeneratorPage());
+         dialogs.Register<InsertIdentifierRequest, IIdentifier>(r => new InsertIdentifierPage(r.Identifiers, r.Current));
+         dialogs.Register<ShowQrCodeRequest, bool>(r => new QrCodePage(r.Content, r.DelayMilliseconds));
+         dialogs.Register<ConfirmCredentialsRequest, bool>(r => new CredentialsConfirmationPage(r.Credentials, r.IsNew));
+         AppServices.Dialogs = dialogs;
          AppServices.Theme = new MauiThemePlatform();
 #if WINDOWS
          AppServices.Clipboard = new Platforms.Windows.WindowsClipboardService();

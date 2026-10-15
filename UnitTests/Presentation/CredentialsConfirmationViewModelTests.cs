@@ -1,7 +1,7 @@
-using FluentAssertions;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+﻿using FluentAssertions;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools;
 
-namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
+namespace UnitTests.Presentation
 {
    [TestClass]
    public sealed class CredentialsConfirmationViewModelTests
@@ -57,6 +57,24 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
          vm.ReleaseExpectedCredentials();
          vm.ValidateCredentials("alice").Should().BeFalse();
          vm.ValidateCredentials("one").Should().BeFalse();
+      }
+      [TestMethod]
+      public void ValidateCredentials_RejectsPastEndEmptyAndNonOrdinalMatches()
+      {
+         CredentialsConfirmationViewModel vm = new(["Élise", "ß"], isNew: true);
+
+         vm.ValidateCredentials("ÉLISE").Should().BeFalse();
+         vm.ClearCredentials();
+         vm.ValidateCredentials("").Should().BeFalse();
+         vm.ClearCredentials();
+         vm.ValidateCredentials(null).Should().BeFalse();
+         vm.ClearCredentials();
+         vm.ValidateCredentials("Élise").Should().BeFalse();
+         vm.ValidateCredentials("ss").Should().BeFalse();
+         vm.ClearCredentials();
+         vm.ValidateCredentials("Élise").Should().BeFalse();
+         vm.ValidateCredentials("ß").Should().BeTrue();
+         vm.ValidateCredentials("ß").Should().BeFalse();
       }
    }
 }

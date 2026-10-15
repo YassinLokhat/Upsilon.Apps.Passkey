@@ -3,6 +3,7 @@ using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using CredentialsConfirmationViewModel = Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools.CredentialsConfirmationViewModel;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -33,7 +34,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       }
 
       public void OnLanguageChanged()
-         => this.ForwardToDataContext();
+         => _viewModel.OnLanguageChanged();
 
       public static bool ShowConfirmationDialog(IEnumerable<string> credentials, bool isNew)
          => new CredentialsConfirmationView(credentials, isNew).ShowDialog() ?? false;

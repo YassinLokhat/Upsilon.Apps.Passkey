@@ -4,7 +4,7 @@ using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using PasswordGeneratorViewModel = Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools.PasswordGeneratorViewModel;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 {
@@ -25,10 +25,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _viewModel.InsertRequested += _viewModel_InsertRequested;
 
          Loaded += (s, e) => this.PostLoadSetup();
+         Closed += (s, e) => _viewModel.Close();
       }
 
       public void OnLanguageChanged()
-         => this.ForwardToDataContext();
+         => _viewModel.OnLanguageChanged();
 
       public static string? ShowGeneratePasswordDialog()
       {

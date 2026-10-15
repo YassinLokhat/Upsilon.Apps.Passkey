@@ -15,6 +15,8 @@ iOS / MacCatalyst are out of scope for v1.
 
 `MauiProgram` assigns Presentation `AppServices` ports: dispatcher, timers, dialogs, theme, `MauiAppPaths`, `JsonAppSettingsStore` (shared `config.json` model, language and theme applied at startup), `IHostCapabilities` (Android: no `.pkbf`, no multi-window), platform clipboard (WinRT / Android sensitive), vault factory (`PathVaultSourceFactory` on Windows, `AndroidVaultSourceFactory` + SAF on Android), `MauiLauncher`. Login uses `LoginViewModel`: passkeys are read from the Entry and cleared — never TwoWay-bound to the ViewModel.
 
+Tool dialogs (password generator, insert identifier, QR code, credentials confirmation) share their ViewModels with WPF (`GUI/Presentation/ViewModels/Tools`) and are modal pages opened through typed requests (`GeneratePasswordRequest`, `InsertIdentifierRequest`, `ShowQrCodeRequest`, `ConfirmCredentialsRequest`) registered on `MauiDialogService`. Credentials confirmation keeps only HMAC digests of the expected factors; the QR matrix is cleared on expiry or close.
+
 Parity progress: [[MAUI Parity Checklist]]. Today MAUI is a preview (login + read-only session overview); it is not shipped (`ship: false`) until the checklist is green. WPF is kept alongside MAUI.
 
 ## Android storage

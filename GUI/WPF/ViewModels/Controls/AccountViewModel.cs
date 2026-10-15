@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
@@ -375,7 +375,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       private void _addIdentifier()
       {
          SelectedIdentifier = AddIdentifier(string.Empty);
-         InsertIdentifierViewModel.ShowInsertIdentifierView(SelectedIdentifier);
+         Views.InsertIdentifierView.ShowInsertIdentifierView(SelectedIdentifier);
       }
 
       private void _moveIdentifierUp()

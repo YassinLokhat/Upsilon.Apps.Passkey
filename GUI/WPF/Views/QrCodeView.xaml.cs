@@ -3,8 +3,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
-using Upsilon.Apps.Passkey.Core.Utils;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -16,37 +15,29 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    /// </summary>
    internal sealed partial class QrCodeView : Window, ILanguageAware
    {
+      private readonly QrCodeViewModel _viewModel;
+
       private QrCodeView(string qrCode, int delay)
       {
          InitializeComponent();
 
-         _refreshTitle();
-         _qrCode_I.Source = _getBitmap(qrCode);
+         _viewModel = new QrCodeViewModel(qrCode, delay);
+         Title = _viewModel.Title;
+         _qrCode_I.Source = _getBitmap(_viewModel.Modules);
 
-         if (delay != 0)
+         _viewModel.Expired += (s, e) => DialogResult = true;
+         Closed += (s, e) =>
          {
-            DispatcherTimer timer = new()
-            {
-               Interval = new TimeSpan(0, 0, 0, 0, delay),
-               IsEnabled = true,
-            };
-
-            timer.Tick += _timer_Elapsed;
-         }
-
+            _viewModel.Close();
+            _qrCode_I.Source = null;
+         };
          Loaded += (s, e) => this.PostLoadSetup();
       }
 
       public void OnLanguageChanged()
-         => _refreshTitle();
-
-      private void _refreshTitle()
-         => Title = Strings.Format(nameof(Strings.Title_QrCode), AppInfo.Title);
-
-      private void _timer_Elapsed(object? sender, EventArgs e)
       {
-         (sender as DispatcherTimer)?.Stop();
-         DialogResult = true;
+         _viewModel.OnLanguageChanged();
+         Title = _viewModel.Title;
       }
 
       public static void ShowQrCode(string qrCode, int delay)
@@ -57,10 +48,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
-      private static BitmapImage _getBitmap(string content)
+      private static BitmapImage _getBitmap(bool[][] qrCode)
       {
          int unit = 20;
-         bool[][] qrCode = QrCode.Generate(content);
          int height = qrCode.Length;
          int width = qrCode[0].Length;
 
