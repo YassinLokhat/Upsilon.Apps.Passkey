@@ -25,12 +25,14 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Models
       /// </summary>
       public string Theme { get; set; } = ThemePreferences.SystemCode;
 
+      public const int DEFAULT_LOGIN_IDLE_TIMEOUT_SECONDS = 5;
+
       /// <summary>
       /// Seconds of inactivity on the login screen before credentials and any
       /// half-open session are cleared. <c>0</c> disables the idle reset (not
       /// recommended; raises <c>IdleLoginDisabled</c>).
       /// </summary>
-      public int LoginIdleTimeoutSeconds { get; set; } = 5;
+      public int LoginIdleTimeoutSeconds { get; set; } = DEFAULT_LOGIN_IDLE_TIMEOUT_SECONDS;
 
       public const int DEFAULT_BACKGROUND_LOCK_SECONDS = 30;
 

@@ -193,6 +193,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Localization
       public static string Menu_Redo => Get(nameof(Menu_Redo));
       public static string Menu_ShowActivities => Get(nameof(Menu_ShowActivities));
       public static string Menu_UserSettings => Get(nameof(Menu_UserSettings));
+      public static string Menu_Vault => Get(nameof(Menu_Vault));
       public static string Menu_ViewActivities => Get(nameof(Menu_ViewActivities));
       public static string Msg_AccountId => Get(nameof(Msg_AccountId));
       public static string Msg_AtLeastOnePassword => Get(nameof(Msg_AtLeastOnePassword));

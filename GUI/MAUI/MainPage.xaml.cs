@@ -1,3 +1,4 @@
+using Upsilon.Apps.Passkey.GUI.MAUI.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels;
@@ -8,6 +9,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
    internal sealed partial class MainPage : ContentPage, IDisposable
    {
       private readonly LoginViewModel _viewModel = new();
+#if WINDOWS
+      private bool _commandLineApplied;
+#endif
 
       public MainPage()
       {
@@ -17,13 +21,35 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
 
          _viewModel.LoggedIn += _onLoggedIn;
          _viewModel.SessionEnded += _onSessionEnded;
+         _viewModel.IdleTimeoutElapsed += (_, _) => CredentialEntry.Text = string.Empty;
          LocalizationService.LanguageChanged += (_, _) => _viewModel.OnLanguageChanged();
+
+         if (!AppServices.Capabilities.SupportsKeyboardShortcuts)
+         {
+            ToolbarItems.AddLocalized(nameof(Strings.Menu_NewUser), _viewModel.NewUserCommand, ToolbarItemOrder.Secondary);
+            ToolbarItems.AddLocalized(nameof(Strings.Menu_GenerateRandomPassword), _viewModel.GeneratePasswordCommand, ToolbarItemOrder.Secondary);
+            ToolbarItems.AddLocalized(nameof(Strings.Menu_AppSettings), _viewModel.AppSettingsCommand, ToolbarItemOrder.Secondary);
+         }
 
          if (AppServices.Lifecycle is { } life)
          {
             life.EnteredBackground += _onEnteredBackground;
          }
       }
+
+#if WINDOWS
+      protected override async void OnAppearing()
+      {
+         base.OnAppearing();
+         if (_commandLineApplied)
+         {
+            return;
+         }
+
+         _commandLineApplied = true;
+         await _viewModel.ApplyCommandLineAsync(Environment.GetCommandLineArgs()).ConfigureAwait(true);
+      }
+#endif
 
       public void Dispose()
       {
@@ -73,6 +99,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
             }
          });
       }
+
+      private void _onCredentialTextChanged(object? sender, TextChangedEventArgs e)
+         => _viewModel.NotifyCredentialInput(!string.IsNullOrEmpty(e.NewTextValue));
 
       private async void _onCredentialCompleted(object? sender, EventArgs e)
       {

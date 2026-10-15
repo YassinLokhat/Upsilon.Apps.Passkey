@@ -177,6 +177,9 @@
   <data name="Menu_Insert" xml:space="preserve">
     <value>_Insert</value>
   </data>
+  <data name="Menu_Vault" xml:space="preserve">
+    <value>_Vault</value>
+  </data>
   <data name="Label_Username" xml:space="preserve">
     <value>Username :</value>
   </data>

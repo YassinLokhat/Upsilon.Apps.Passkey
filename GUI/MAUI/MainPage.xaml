@@ -6,7 +6,35 @@
              x:Class="Upsilon.Apps.Passkey.GUI.MAUI.MainPage"
              x:ClassModifier="internal"
              x:DataType="viewmodels:LoginViewModel"
-             Title="Passkey">
+             Title="{Binding Title}">
+
+   <ContentPage.MenuBarItems>
+      <MenuBarItem Text="{loc:Loc Menu_Vault}">
+         <MenuFlyoutItem Text="{loc:Loc Menu_OpenDatabase}" IsEnabled="{Binding MenusEnabled}" Clicked="_onPickVault">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl" Key="O" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+         <MenuFlyoutItem Text="{loc:Loc Menu_NewUser}" Command="{Binding NewUserCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl" Key="N" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+         <MenuFlyoutItem Text="{loc:Loc Menu_GenerateRandomPassword}" Command="{Binding GeneratePasswordCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl" Key="P" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+      </MenuBarItem>
+      <MenuBarItem Text="{loc:Loc Menu_AppSettings}">
+         <MenuFlyoutItem Text="{loc:Loc Menu_AppSettings}" Command="{Binding AppSettingsCommand}">
+            <MenuFlyoutItem.KeyboardAccelerators>
+               <KeyboardAccelerator Modifiers="Ctrl" Key="OemComma" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+         </MenuFlyoutItem>
+      </MenuBarItem>
+   </ContentPage.MenuBarItems>
+
    <ScrollView>
       <VerticalStackLayout Padding="30,0" Spacing="16" VerticalOptions="Center">
 
@@ -24,7 +52,8 @@
                 IsTextPredictionEnabled="False"
                 IsSpellCheckEnabled="False"
                 ReturnType="Done"
-                Completed="_onCredentialCompleted" />
+                Completed="_onCredentialCompleted"
+                TextChanged="_onCredentialTextChanged" />
 
          <ActivityIndicator IsRunning="{Binding IsBusy}"
                             IsVisible="{Binding IsBusy}" />

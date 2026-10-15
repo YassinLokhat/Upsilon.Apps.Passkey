@@ -1,5 +1,5 @@
 using FluentAssertions;
-using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+using UnitTests.Presentation.Fakes;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
@@ -100,30 +100,6 @@ namespace UnitTests.Presentation
 
          vm.PasswordLength = 30;
          vm.GeneratedPassword.Should().BeEmpty();
-      }
-
-      private sealed class FakeTimer : IUiTimer
-      {
-         public TimeSpan Interval { get; set; }
-         public bool IsRunning { get; private set; }
-         public bool IsDisposed { get; private set; }
-
-         public event EventHandler? Tick;
-
-         public void Fire() => Tick?.Invoke(this, EventArgs.Empty);
-
-         public void Start() => IsRunning = true;
-
-         public void StopTimer() => IsRunning = false;
-
-         public void Dispose() => IsDisposed = true;
-      }
-
-      private sealed class FakeTimerFactory : IUiTimerFactory
-      {
-         public FakeTimer? Last { get; private set; }
-
-         public IUiTimer Create() => Last = new FakeTimer();
       }
    }
 }
