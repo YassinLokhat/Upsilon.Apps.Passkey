@@ -1,4 +1,4 @@
-namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities
+﻿namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities
 {
    /// <summary>
    /// Activity list orders, offered where the host has no sortable columns.

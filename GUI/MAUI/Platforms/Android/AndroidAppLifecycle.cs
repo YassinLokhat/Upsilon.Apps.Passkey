@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+﻿using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
 {
