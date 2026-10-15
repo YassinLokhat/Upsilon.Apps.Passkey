@@ -1,13 +1,16 @@
-﻿using System.IO;
-using System.Text.Json;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.Utils.LeakFilter;
 
-namespace Upsilon.Apps.Passkey.GUI.WPF.Models
+namespace Upsilon.Apps.Passkey.GUI.Presentation.Models
 {
+   /// <summary>
+   /// Machine-wide application preferences persisted as JSON by
+   /// <see cref="Ports.IAppSettingsStore"/>. Host-dependent paths are filled by
+   /// the store from <see cref="Ports.IAppPaths"/>.
+   /// </summary>
    internal sealed class AppSettings
    {
-      public string DefaultDatabaseDirectory { get; set; } = Path.GetFullPath(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "raw"));
+      public string DefaultDatabaseDirectory { get; set; } = string.Empty;
 
       /// <summary>
       /// UI language preference (<c>System</c>, <c>en</c>, <c>fr</c>, …). Machine-wide;
@@ -20,10 +23,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Models
       /// UI theme preference (<c>System</c>, <c>Light</c>, <c>Dark</c>). Machine-wide;
       /// not stored in the vault. Users may override it in their vault settings.
       /// </summary>
-      public string Theme { get; set; } = LocalizationService.SystemCode;
+      public string Theme { get; set; } = ThemePreferences.SystemCode;
 
       /// <summary>
-      /// Seconds of inactivity on the login window before credentials and any
+      /// Seconds of inactivity on the login screen before credentials and any
       /// half-open session are cleared. <c>0</c> disables the idle reset (not
       /// recommended; raises <c>IdleLoginDisabled</c>).
       /// </summary>
@@ -61,19 +64,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Models
          set => LeakFilterConfig.FalsePositiveRate = LeakFilterQuality.RateFromCode(value);
       }
 
-      internal readonly LeakFilterConfig LeakFilterConfig = new(Path.GetFullPath(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "pwned-ntlm.pkbf")));
-
-      private static readonly JsonSerializerOptions _options = new() { WriteIndented = true, };
-      public void Save(string configFile)
-      {
-         string configDirectory = Path.GetDirectoryName(configFile) ?? "./";
-
-         if (!Directory.Exists(configDirectory))
-         {
-            _ = Directory.CreateDirectory(configDirectory);
-         }
-
-         File.WriteAllText(configFile, JsonSerializer.Serialize(this, _options));
-      }
+      internal readonly LeakFilterConfig LeakFilterConfig = new(string.Empty);
    }
 }

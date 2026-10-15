@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.GUI.MAUI.Adapters;
+using Upsilon.Apps.Passkey.GUI.MAUI.Adapters;
+using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI
@@ -16,6 +17,12 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          AppServices.Ui = new MauiUiDispatcher();
          AppServices.Timers = new MauiUiTimerFactory();
          AppServices.Paths = paths;
+         AppServices.Settings = new JsonAppSettingsStore(paths);
+#if ANDROID
+         AppServices.Capabilities = HostCapabilities.Mobile;
+#else
+         AppServices.Capabilities = HostCapabilities.Desktop with { SupportsMultipleWindows = false };
+#endif
          AppServices.Launcher = new MauiLauncher();
          AppServices.Dialogs = new MauiDialogService();
          AppServices.Theme = new MauiThemePlatform();

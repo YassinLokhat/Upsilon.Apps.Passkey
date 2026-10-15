@@ -1,9 +1,9 @@
-﻿using System.IO;
 using System.Reflection;
-using System.Security;
-using System.Text.Json;
-using Upsilon.Apps.Passkey.GUI.WPF.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+using Upsilon.Apps.Passkey.GUI.WPF.Adapters;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using SharedServices = Upsilon.Apps.Passkey.GUI.Presentation.Services.AppServices;
 using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
@@ -20,7 +20,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       private static readonly Lazy<string> _configFile = new(_buildConfigFile);
       public static string ConfigFile => _configFile.Value;
 
-      public static AppSettings AppSettings { get; set; } = new();
+      /// <summary>Shared store; created on first use so unit tests need no host bootstrap.</summary>
+      public static IAppSettingsStore SettingsStore
+         => SharedServices.Settings ??= new Presentation.Services.JsonAppSettingsStore(SharedServices.Paths ??= new WpfAppPaths());
+
+      public static AppSettings AppSettings
+      {
+         get => SettingsStore.Current;
+         set => SettingsStore.Current = value;
+      }
+
+      public static void SaveAppSettings() => SettingsStore.Save();
 
       /// <summary>
       /// Set when <see cref="ConfigFile"/> was missing or invalid and a default was written.
@@ -54,34 +64,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       private static string _buildConfigFile()
       {
-         string configFile = Path.GetFullPath(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "config.json"));
-
-         try
-         {
-            AppSettings = AppServices.Serialization.Deserialize<AppSettings>(File.ReadAllText(configFile));
-         }
-         catch (Exception ex)
-            when (ex is ArgumentNullException
-            or ArgumentException
-            or JsonException
-            or NotSupportedException
-            or PathTooLongException
-            or DirectoryNotFoundException
-            or IOException
-            or UnauthorizedAccessException
-            or FileNotFoundException
-            or SecurityException)
-         {
-            AppSettings.Save(configFile);
-            ConfigLoadHadError = true;
-         }
+         IAppSettingsStore store = SettingsStore;
+         ConfigLoadHadError = !store.Load();
 
          if (AppServices.PasswordFactory is PasswordFactory factory)
          {
             factory.ReloadLocalFilter(AppSettings.LeakFilterConfig);
          }
 
-         return configFile;
+         return store.ConfigFilePath;
       }
    }
 }
