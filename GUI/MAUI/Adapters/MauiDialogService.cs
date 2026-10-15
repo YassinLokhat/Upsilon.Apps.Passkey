@@ -62,9 +62,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
          _ = defaultPath;
          cancellationToken.ThrowIfCancellationRequested();
 #if WINDOWS
-         // FolderPicker is WinRT; for v1 fall back to asking the user to pick any file under the folder.
-         FileResult? probe = await FilePicker.Default.PickAsync().ConfigureAwait(true);
-         return probe is null ? null : Path.GetDirectoryName(probe.FullPath);
+         return await Platforms.Windows.WindowsPathPickers.PickFolderAsync().ConfigureAwait(true);
 #else
          await InfoAsync(
             Strings.Format(nameof(Strings.Maui_FolderPickerAndroid), Strings.Login_OpenVault),
@@ -99,13 +97,17 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
       {
          _ = filter;
          _ = title;
-         _ = defaultFileName;
          _ = initialDirectory;
          cancellationToken.ThrowIfCancellationRequested();
-         // MAUI has no cross-platform save-file picker; hosts use platform APIs in later parity work.
+#if WINDOWS
+         return await Platforms.Windows.WindowsPathPickers.PickNewFileAsync(defaultFileName ?? string.Empty).ConfigureAwait(true);
+#else
+         // Android hosts create documents through IVaultSourceFactory / IFileExchange, never by path.
+         _ = defaultFileName;
          await InfoAsync(Strings.Maui_SaveAsUnavailable, Strings.Maui_Title_SaveFile, cancellationToken)
             .ConfigureAwait(true);
          return null;
+#endif
       }
 
       /// <summary>
