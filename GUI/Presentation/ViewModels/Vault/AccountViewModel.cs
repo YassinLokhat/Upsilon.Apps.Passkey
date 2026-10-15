@@ -70,7 +70,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
          }
       }
 
-      public ObservableCollection<IdentifierViewModel> Identifiers = [];
+      public ObservableCollection<IdentifierViewModel> Identifiers { get; } = [];
 
       public FieldVisualState PasswordState
          => FieldVisualStateHelper.ForEditedSecret(
@@ -316,6 +316,30 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
          }
 
          _notify(string.Empty);
+      }
+
+      /// <summary>Rebuilds <see cref="Identifiers"/> from the model; an empty account gets one blank row.</summary>
+      public void LoadIdentifiers()
+      {
+         foreach (IdentifierViewModel existing in Identifiers)
+         {
+            existing.PropertyChanged -= _identifierViewModel_PropertyChanged;
+         }
+
+         Identifiers.Clear();
+
+         if (!Account.Identifiers.Any())
+         {
+            _ = AddIdentifier(string.Empty);
+            return;
+         }
+
+         foreach (IIdentifier identifier in Account.Identifiers)
+         {
+            IdentifierViewModel identifierViewModel = new(Account, identifier);
+            Identifiers.Add(identifierViewModel);
+            AddIdentifier(identifierViewModel);
+         }
       }
 
       public void AddIdentifier(IdentifierViewModel identifierViewModel)

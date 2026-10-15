@@ -1,4 +1,5 @@
-﻿using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities;
+﻿using Upsilon.Apps.Passkey.GUI.Presentation.Alerts;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts;
 using FluentAssertions;
 using System.Windows.Threading;
@@ -255,6 +256,87 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
             because: satellite.Code);
 
          LocalizationService.Apply(LocalizationService.DefaultLanguageCode, forceRefresh: true);
+      }
+
+      [TestMethod]
+      public void Case12_TrySelectItem_SelectsServiceAndAccountAfterClearingFilters()
+      {
+         IService service = _database!.User!.AddService("Target Service");
+         IAccount account = service.AddAccount("Target", UnitTestsHelper.Ids("target@test"), "pw-target");
+         _ = _database.User.AddService("Other Service");
+
+         using UserServicesViewModel vm = new("Test");
+         vm.ServiceFilter = "Other";
+         vm.RefreshFilters();
+
+         _ = vm.TrySelectItem(account.ItemId).Should().BeTrue();
+         _ = vm.ServiceFilter.Should().BeEmpty();
+         _ = vm.SelectedService!.Service.ItemId.Should().Be(service.ItemId);
+         _ = vm.SelectedService.SelectedAccount!.Account.ItemId.Should().Be(account.ItemId);
+
+         _ = vm.TrySelectItem(service.ItemId).Should().BeTrue();
+         _ = vm.TrySelectItem("S-unknown").Should().BeFalse();
+         _ = vm.SelectedService.Should().BeNull();
+         _ = vm.TrySelectItem(string.Empty).Should().BeFalse();
+      }
+
+      [TestMethod]
+      public void Case13_ApplyAlertSummary_ExposesTotalsAndOrderedGroups()
+      {
+         using UserServicesViewModel vm = new("Test");
+
+         vm.ApplyAlertSummary(AlertSummary.Empty);
+
+         _ = vm.HasAlerts.Should().BeFalse();
+         _ = vm.ShowAlerts.Should().Be(Strings.Format(nameof(Strings.Msg_ShowAlerts), 0));
+         _ = vm.AlertGroups.Should().Equal(AlertSummary.Empty.OrderedGroups);
+
+         foreach (AlertGroup group in Enum.GetValues<AlertGroup>())
+         {
+            _ = vm.CommandFor(group).Should().NotBeNull();
+         }
+
+         _ = vm.CommandFor(AlertGroup.LeakedPasswords).Should().BeSameAs(vm.ShowLeakedPasswordAlertsCommand);
+      }
+
+      [TestMethod]
+      public void Case14_CurrentIdentifierAndPassword_FollowSelection()
+      {
+         IService service = _database!.User!.AddService("Copy Service");
+         _ = service.AddAccount("Copy", UnitTestsHelper.Ids("first@test", "second@test"), "pw-copy");
+
+         using UserServicesViewModel vm = new("Test");
+         vm.RefreshFilters();
+
+         _ = vm.CurrentIdentifier.Should().BeNull();
+
+         vm.SelectedService = vm.Services.Single();
+         AccountViewModel account = vm.SelectedService.Accounts.Single();
+         vm.SelectedService.SelectedAccount = account;
+         account.LoadIdentifiers();
+
+         _ = vm.CurrentIdentifier.Should().Be("first@test");
+         _ = vm.CurrentPassword.Should().Be("pw-copy");
+
+         account.SelectedIdentifier = account.Identifiers[1];
+         _ = vm.CurrentIdentifier.Should().Be("second@test");
+      }
+
+      [TestMethod]
+      public void Case15_LoadIdentifiers_RebuildsRowsAndAddsBlankForEmptyAccount()
+      {
+         IService service = _database!.User!.AddService("Load Service");
+         IAccount filled = service.AddAccount("Filled", UnitTestsHelper.Ids("a@test", "b@test"), "pw-a");
+         IAccount empty = service.AddAccount("Empty", UnitTestsHelper.Ids(), "pw-b");
+
+         using AccountViewModel filledVm = new(filled);
+         filledVm.LoadIdentifiers();
+         filledVm.LoadIdentifiers();
+         _ = filledVm.Identifiers.Select(i => i.Identifier).Should().Equal("a@test", "b@test");
+
+         using AccountViewModel emptyVm = new(empty);
+         emptyVm.LoadIdentifiers();
+         _ = emptyVm.Identifiers.Should().ContainSingle().Which.Identifier.Should().BeEmpty();
       }
    }
 }

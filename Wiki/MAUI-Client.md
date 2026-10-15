@@ -19,7 +19,7 @@ Tool dialogs (password generator, insert identifier, QR code, credentials confir
 
 The activity log and the five alert views (account passwords, duplicated passwords, passkey quality, security settings) also share their ViewModels (`ViewModels/Activities`, `ViewModels/Alerts`): filters, sort order and localized filter options live in the ViewModel, and MAUI pages are opened through `ActivitiesRequest` and the `*AlertRequest` types. Shared ViewModels implement `ILanguageRefreshable`; WPF's `ForwardToDataContext` forwards to it. MAUI activity filters have no date pickers yet.
 
-Parity progress: [[MAUI Parity Checklist]]. Today MAUI is a preview (login + read-only session overview); it is not shipped (`ship: false`) until the checklist is green. WPF is kept alongside MAUI.
+Parity progress: [[MAUI Parity Checklist]]. Today MAUI is a preview: login, the services and accounts editor (master-detail from 800 px wide, list then detail page on phones, swipe actions, Windows menu bar shortcuts, Android toolbar), tools, activities and alerts. Settings pages are not ported yet; it is not shipped (`ship: false`) until the checklist is green. WPF is kept alongside MAUI.
 
 ## Android storage
 

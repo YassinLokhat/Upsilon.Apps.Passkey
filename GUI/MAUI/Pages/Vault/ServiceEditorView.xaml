@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vault="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+             xmlns:conv="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Converters"
+             xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault"
+             xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault.ServiceEditorView"
+             x:ClassModifier="internal"
+             x:DataType="vault:ServiceViewModel">
+   <ContentView.Resources>
+      <conv:FieldVisualStateColorConverter x:Key="StateColor" />
+      <conv:NotNullConverter x:Key="NotNull" />
+   </ContentView.Resources>
+
+   <ScrollView>
+      <VerticalStackLayout Padding="12" Spacing="6">
+         <Label Text="{Binding ServiceId}" FontSize="12" />
+
+         <Label Text="{loc:Loc Label_ServiceName}" />
+         <Entry Text="{Binding ServiceName}" TextColor="{Binding ServiceNameState, Converter={StaticResource StateColor}}" />
+
+         <Label Text="{loc:Loc Label_Url}" />
+         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+            <Entry Text="{Binding Url}" Keyboard="Url" TextColor="{Binding UrlState, Converter={StaticResource StateColor}}" />
+            <Button Grid.Column="1" Text="{loc:Loc Vault_OpenUrl}" Command="{Binding OpenUrlCommand}" />
+         </Grid>
+
+         <Label Text="{loc:Loc Label_Notes}" />
+         <Editor Text="{Binding Notes}" AutoSize="TextChanges" TextColor="{Binding NotesState, Converter={StaticResource StateColor}}" />
+
+         <Button Text="{loc:Loc Menu_ViewActivities}" Command="{Binding ViewActivitiesCommand}" />
+
+         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+            <Label Text="{loc:Loc Vault_Accounts}" FontAttributes="Bold" VerticalOptions="Center" />
+            <Button Grid.Column="1" Text="{loc:Loc Vault_AddAccount}" Command="{Binding AddAccountCommand}" />
+         </Grid>
+         <CollectionView ItemsSource="{Binding Accounts}"
+                         SelectionMode="Single"
+                         SelectedItem="{Binding SelectedAccount}"
+                         MaximumHeightRequest="260">
+            <CollectionView.ItemTemplate>
+               <DataTemplate x:DataType="vault:AccountViewModel">
+                  <SwipeView>
+                     <SwipeView.RightItems>
+                        <SwipeItems>
+                           <SwipeItem Text="{loc:Loc Vault_MoveUp}" BackgroundColor="Gray" Invoked="_onMoveAccountUp" />
+                           <SwipeItem Text="{loc:Loc Vault_MoveDown}" BackgroundColor="Gray" Invoked="_onMoveAccountDown" />
+                           <SwipeItem Text="{loc:Loc Vault_Delete}" BackgroundColor="Firebrick" Invoked="_onDeleteAccount" />
+                        </SwipeItems>
+                     </SwipeView.RightItems>
+                     <Label Padding="4,8" Text="{Binding AccountDisplay}" />
+                  </SwipeView>
+               </DataTemplate>
+            </CollectionView.ItemTemplate>
+         </CollectionView>
+
+         <HorizontalStackLayout Spacing="6">
+            <Button Text="{loc:Loc Vault_MoveUp}" Command="{Binding MoveAccountUpCommand}" />
+            <Button Text="{loc:Loc Vault_MoveDown}" Command="{Binding MoveAccountDownCommand}" />
+            <Button Text="{loc:Loc Vault_DeleteAccount}" Command="{Binding DeleteAccountCommand}" />
+         </HorizontalStackLayout>
+
+         <local:AccountEditorView BindingContext="{Binding SelectedAccount}"
+                                  IsVisible="{Binding BindingContext, Source={RelativeSource Self}, Converter={StaticResource NotNull}, x:DataType=local:AccountEditorView}" />
+      </VerticalStackLayout>
+   </ScrollView>
+</ContentView>

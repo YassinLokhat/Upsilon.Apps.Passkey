@@ -92,20 +92,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          // re-selecting the same account after switching away.
          if (!sameAccount)
          {
-            _viewModel.Identifiers.Clear();
-
-            if (!_viewModel.Account.Identifiers.Any())
-            {
-               _ = _viewModel.AddIdentifier(string.Empty);
-            }
-            else
-            {
-               _viewModel.Identifiers = [.. _viewModel.Account.Identifiers.Select(x => new IdentifierViewModel(_viewModel.Account, x))];
-               foreach (IdentifierViewModel identifier in _viewModel.Identifiers)
-               {
-                  _viewModel.AddIdentifier(identifier);
-               }
-            }
+            _viewModel.LoadIdentifiers();
          }
 
          _identifiers_LB.ItemsSource = _viewModel.Identifiers;

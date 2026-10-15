@@ -365,22 +365,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          AlertSummary summary = AlertSummary.From(alerts);
 
-         _viewModel.ShowAlerts = Strings.Format(nameof(Strings.Msg_ShowAlerts), summary.TotalCount);
-         _viewModel.ShowAlertsSeverity = summary.Severity;
-         _viewModel.ShowActivityAlertsSeverity = summary[AlertGroup.ActivityReview].Severity;
-         _viewModel.ShowExpiredPasswordAlertsSeverity = summary[AlertGroup.ExpiredPasswords].Severity;
-         _viewModel.ShowDuplicatedPasswordAlertsSeverity = summary[AlertGroup.DuplicatedPasswords].Severity;
-         _viewModel.ShowLeakedPasswordAlertsSeverity = summary[AlertGroup.LeakedPasswords].Severity;
-         _viewModel.ShowWeakPasswordAlertsSeverity = summary[AlertGroup.WeakPasswords].Severity;
-         _viewModel.ShowSecuritySettingsAlertsSeverity = summary[AlertGroup.SecuritySettings].Severity;
-         _viewModel.ShowPasskeyQualityAlertsSeverity = summary[AlertGroup.PasskeyQuality].Severity;
-         _viewModel.ShowActivityAlerts = Strings.Format(nameof(Strings.Msg_ShowActivityAlerts), summary[AlertGroup.ActivityReview].Count);
-         _viewModel.ShowExpiredPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowExpiredPasswordAlerts), summary[AlertGroup.ExpiredPasswords].Count);
-         _viewModel.ShowDuplicatedPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowDuplicatedPasswordAlerts), summary[AlertGroup.DuplicatedPasswords].Count);
-         _viewModel.ShowLeakedPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowLeakedPasswordAlerts), summary[AlertGroup.LeakedPasswords].Count);
-         _viewModel.ShowWeakPasswordAlerts = Strings.Format(nameof(Strings.Msg_ShowWeakPasswordAlerts), summary[AlertGroup.WeakPasswords].Count);
-         _viewModel.ShowSecuritySettingsAlerts = Strings.Format(nameof(Strings.Msg_ShowSecuritySettingsAlerts), summary[AlertGroup.SecuritySettings].Count);
-         _viewModel.ShowPasskeyQualityAlerts = Strings.Format(nameof(Strings.Msg_ShowPasskeyQualityAlerts), summary[AlertGroup.PasskeyQuality].Count);
+         _viewModel.ApplyAlertSummary(summary);
 
          _alerts_MI.Visibility = summary.TotalCount != 0 ? Visibility.Visible : Visibility.Collapsed;
          _alerts_MI.Items.Clear();

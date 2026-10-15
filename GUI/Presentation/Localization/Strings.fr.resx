@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1390,5 +1390,47 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
   </data>
   <data name="Error_Unexpected" xml:space="preserve">
     <value>une erreur inattendue s&apos;est produite</value>
+  </data>
+  <data name="Vault_AddService" xml:space="preserve">
+    <value>Ajouter un service</value>
+  </data>
+  <data name="Vault_DeleteService" xml:space="preserve">
+    <value>Supprimer le service</value>
+  </data>
+  <data name="Vault_AddAccount" xml:space="preserve">
+    <value>Ajouter un compte</value>
+  </data>
+  <data name="Vault_DeleteAccount" xml:space="preserve">
+    <value>Supprimer le compte</value>
+  </data>
+  <data name="Vault_AddIdentifier" xml:space="preserve">
+    <value>Ajouter un identifiant</value>
+  </data>
+  <data name="Vault_MoveUp" xml:space="preserve">
+    <value>Monter</value>
+  </data>
+  <data name="Vault_MoveDown" xml:space="preserve">
+    <value>Descendre</value>
+  </data>
+  <data name="Vault_Delete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="Vault_Accounts" xml:space="preserve">
+    <value>Comptes</value>
+  </data>
+  <data name="Vault_OpenUrl" xml:space="preserve">
+    <value>Ouvrir l&apos;URL</value>
+  </data>
+  <data name="Vault_SearchServices" xml:space="preserve">
+    <value>Rechercher un service</value>
+  </data>
+  <data name="Vault_CopyIdentifier" xml:space="preserve">
+    <value>Copier l&apos;identifiant</value>
+  </data>
+  <data name="Vault_CopyPassword" xml:space="preserve">
+    <value>Copier le mot de passe</value>
+  </data>
+  <data name="Vault_NoSelection" xml:space="preserve">
+    <value>Sélectionnez un service</value>
   </data>
 </root>

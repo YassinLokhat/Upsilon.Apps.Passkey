@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vault="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+             xmlns:conv="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Converters"
+             xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault.AccountEditorView"
+             x:ClassModifier="internal"
+             x:DataType="vault:AccountViewModel">
+   <ContentView.Resources>
+      <conv:FieldVisualStateColorConverter x:Key="StateColor" />
+   </ContentView.Resources>
+
+   <VerticalStackLayout Spacing="6">
+      <Label Text="{Binding AccountId}" FontSize="12" />
+
+      <Label Text="{loc:Loc Label_Label}" />
+      <Entry Text="{Binding Label}" TextColor="{Binding LabelState, Converter={StaticResource StateColor}}" />
+
+      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+         <Label Text="{loc:Loc Label_Identifiers}" VerticalOptions="Center" />
+         <Button Grid.Column="1" Text="{loc:Loc Vault_AddIdentifier}" Command="{Binding AddIdentifierCommand}" />
+         <Button Grid.Column="2" Text="{loc:Loc Vault_CopyIdentifier}" Command="{Binding CopyIdentifierCommand}" />
+      </Grid>
+      <CollectionView x:Name="IdentifiersList"
+                      ItemsSource="{Binding Identifiers}"
+                      SelectionMode="Single"
+                      SelectedItem="{Binding SelectedIdentifier}"
+                      MaximumHeightRequest="220">
+         <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="vault:IdentifierViewModel">
+               <SwipeView>
+                  <SwipeView.LeftItems>
+                     <SwipeItems Mode="Execute">
+                        <SwipeItem Text="{loc:Loc Menu_Copy}" BackgroundColor="SteelBlue" Invoked="_onCopyIdentifier" />
+                     </SwipeItems>
+                  </SwipeView.LeftItems>
+                  <SwipeView.RightItems>
+                     <SwipeItems>
+                        <SwipeItem Text="{loc:Loc Vault_MoveUp}" BackgroundColor="Gray" Invoked="_onMoveIdentifierUp" />
+                        <SwipeItem Text="{loc:Loc Vault_MoveDown}" BackgroundColor="Gray" Invoked="_onMoveIdentifierDown" />
+                        <SwipeItem Text="{loc:Loc Vault_Delete}" BackgroundColor="Firebrick" Invoked="_onDeleteIdentifier" />
+                     </SwipeItems>
+                  </SwipeView.RightItems>
+                  <Grid Padding="4,6" ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                     <Label Text="{Binding TypeGlyph}" />
+                     <Label Grid.Column="1"
+                            Text="{Binding Identifier}"
+                            TextColor="{Binding IdentifierState, Converter={StaticResource StateColor}}" />
+                     <Grid.GestureRecognizers>
+                        <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="_onEditIdentifier" />
+                     </Grid.GestureRecognizers>
+                  </Grid>
+               </SwipeView>
+            </DataTemplate>
+         </CollectionView.ItemTemplate>
+      </CollectionView>
+
+      <Label Text="{loc:Loc Label_Password}" />
+      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+         <Entry x:Name="PasswordEntry"
+                Text="{Binding Password}"
+                IsPassword="True"
+                IsTextPredictionEnabled="False"
+                IsSpellCheckEnabled="False"
+                TextColor="{Binding PasswordState, Converter={StaticResource StateColor}}" />
+         <Button Grid.Column="1" Text="👁" Pressed="_onRevealPressed" Released="_onRevealReleased" />
+         <Button Grid.Column="2" Text="{loc:Loc Vault_CopyPassword}" Clicked="_onCopyPassword" />
+      </Grid>
+
+      <Label Text="{loc:Loc Label_Notes}" />
+      <Editor Text="{Binding Notes}" AutoSize="TextChanges" TextColor="{Binding NotesState, Converter={StaticResource StateColor}}" />
+
+      <Label Text="{loc:Loc Label_Options}" FontAttributes="Bold" />
+      <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="4">
+         <Label Text="{loc:Loc Label_RemindPasswordUpdate}" VerticalOptions="Center" />
+         <Switch Grid.Column="1" IsToggled="{Binding RemindPasswordUpdate}" />
+         <HorizontalStackLayout Grid.Row="1" Spacing="6" IsVisible="{Binding RemindPasswordUpdate}">
+            <Stepper Minimum="1" Maximum="120" Value="{Binding RemindPasswordUpdateDelay}" />
+            <Label Text="{Binding RemindPasswordUpdateDelay}" VerticalOptions="Center" />
+            <Label Text="{loc:Loc Label_Months}" VerticalOptions="Center" />
+         </HorizontalStackLayout>
+         <Label Grid.Row="2" Text="{loc:Loc Label_WarnPasswordLeak}" VerticalOptions="Center" />
+         <Switch Grid.Row="2" Grid.Column="1" IsToggled="{Binding WarnPasswordLeak}" />
+         <Label Grid.Row="3" Text="{loc:Loc Label_WarnDuplicatedPassword}" VerticalOptions="Center" />
+         <Switch Grid.Row="3" Grid.Column="1" IsToggled="{Binding WarnIfDuplicatedPassword}" />
+         <Label Grid.Row="4" Text="{loc:Loc Label_WarnWeakPassword}" VerticalOptions="Center" />
+         <Switch Grid.Row="4" Grid.Column="1" IsToggled="{Binding WarnIfWeakPassword}" />
+      </Grid>
+
+      <Label Text="{loc:Loc Label_Passwords}" FontAttributes="Bold" />
+      <CollectionView ItemsSource="{Binding Passwords}" MaximumHeightRequest="200">
+         <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="vault:PasswordViewModel">
+               <Grid Padding="4" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                  <Label Text="{Binding UpdateDate}" VerticalOptions="Center" />
+                  <Button Grid.Column="1" Text="{loc:Loc Menu_Copy}" Command="{Binding CopyCommand}" />
+                  <Button Grid.Column="2" Text="QR" Command="{Binding ShowQrCodeCommand}" />
+               </Grid>
+            </DataTemplate>
+         </CollectionView.ItemTemplate>
+      </CollectionView>
+
+      <Button Text="{loc:Loc Menu_ViewActivities}" Command="{Binding ViewActivitiesCommand}" />
+   </VerticalStackLayout>
+</ContentView>
