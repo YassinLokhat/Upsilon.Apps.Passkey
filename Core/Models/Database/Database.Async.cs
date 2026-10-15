@@ -26,8 +26,14 @@ namespace Upsilon.Apps.Passkey.Core.Models
       public Task<ImportExportError> ImportFromFileAsync(string filePath, CancellationToken cancellationToken = default)
          => Task.Run(() => ImportFromFile(filePath), cancellationToken);
 
+      public Task<ImportExportError> ImportFromStreamAsync(Stream stream, string formatExtension, CancellationToken cancellationToken = default)
+         => Task.Run(() => ImportFromStream(stream, formatExtension), cancellationToken);
+
       public Task<ImportExportError> ExportToFileAsync(string filePath, CancellationToken cancellationToken = default)
          => Task.Run(() => ExportToFile(filePath), cancellationToken);
+
+      public Task<ImportExportError> ExportToStreamAsync(Stream stream, string formatExtension, CancellationToken cancellationToken = default)
+         => Task.Run(() => ExportToStream(stream, formatExtension), cancellationToken);
 
       /// <summary>
       /// Same as <see cref="Create"/>, but handed to a worker thread so the
