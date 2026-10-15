@@ -1,6 +1,6 @@
 # MAUI Client
 
-The cross-platform host lives in `GUI/MAUI` (`net10.0-android` + Windows unpackaged). Shared ViewModels and ports live in `GUI/Presentation` (zero NuGet). WPF remains the full-featured Windows reference; MAUI is catching up (login + vault open first).
+The cross-platform host lives in `GUI/MAUI` (`net10.0-android` + Windows unpackaged). Shared ViewModels and ports live in `GUI/Presentation` (zero NuGet). WPF remains the full-featured Windows reference; MAUI is catching up (login + vault open first). Without a picked file, the username resolves to `{hash}.pku` in the default database directory; "Open vault…" picks a file (Windows) or a SAF document (Android) first, like WPF's Ctrl+O.
 
 ## Targets
 
@@ -15,7 +15,7 @@ iOS / MacCatalyst are out of scope for v1.
 
 `MauiProgram` assigns Presentation `AppServices` ports: dispatcher, timers, dialogs, theme, `MauiAppPaths`, platform clipboard (WinRT / Android sensitive), vault factory (`PathVaultSourceFactory` on Windows, `AndroidVaultSourceFactory` + SAF on Android), `MauiLauncher`. Login uses `LoginViewModel`: passkeys are read from the Entry and cleared — never TwoWay-bound to the ViewModel.
 
-Parity progress: [[MAUI Parity Checklist]]. WPF stays until that checklist is green.
+Parity progress: [[MAUI Parity Checklist]]. Today MAUI is a preview (login + read-only session overview); it is not shipped (`ship: false`) until the checklist is green. WPF is kept alongside MAUI.
 
 ## Android storage
 

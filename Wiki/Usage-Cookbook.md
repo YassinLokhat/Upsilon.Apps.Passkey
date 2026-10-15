@@ -171,7 +171,7 @@ database.ClipboardManager.SetText(
    autoClearAfter: user.Settings.CleaningClipboardTimeout);
 ```
 
-`SetText` only clears later if the clipboard still holds that same text, so an unrelated copy the user made afterwards is left alone. The WPF paste hotkeys (`Ctrl+Shift+L` / `Ctrl+Shift+P`) go through this same path before synthesizing Ctrl+V.
+`SetText` only clears later if the clipboard still holds that same text, so an unrelated copy the user made afterwards is left alone. The WPF copy hotkeys (`Ctrl+Shift+L` / `Ctrl+Shift+P`) go through this same path; they copy only and do not paste.
 
 ## Check whether a candidate is leaked
 

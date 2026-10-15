@@ -587,6 +587,155 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Core
          UnitTestsHelper.ClearTestEnvironment();
       }
 
+      [TestMethod]
+      /*
+       * The stream overloads (used by SAF on Android) round-trip JSON through a
+       * MemoryStream into a fresh database, like the file-based Case13.
+      */
+      public async Task Case17_ImportExportStreamJson_RoundTrip()
+      {
+         string username = UnitTestsHelper.GetUsername();
+         string roundTripUsername = $"{username}_roundtrip";
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.json");
+
+         UnitTestsHelper.ClearTestEnvironment();
+         UnitTestsHelper.ClearTestEnvironment(roundTripUsername);
+
+         IDatabase source = UnitTestsHelper.CreateTestDatabase(passkeys);
+         IDatabase roundTripped = UnitTestsHelper.CreateTestDatabase(passkeys, roundTripUsername);
+
+         using (FileStream input = File.OpenRead(importFile))
+         {
+            _ = (await source.ImportFromStreamAsync(input, ".json")).Should().Be(ImportExportError.None);
+         }
+
+         using MemoryStream exported = new();
+         _ = (await source.ExportToStreamAsync(exported, "json")).Should().Be(ImportExportError.None);
+         _ = exported.Length.Should().BeGreaterThan(0);
+
+         exported.Position = 0;
+         _ = roundTripped.ImportFromStream(exported, "JSON").Should().Be(ImportExportError.None);
+
+         _project(source).Should().BeEquivalentTo(_project(roundTripped));
+
+         source.Close();
+         roundTripped.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+         UnitTestsHelper.ClearTestEnvironment(roundTripUsername);
+      }
+
+      [TestMethod]
+      /*
+       * CSV through a stream: the format comes from the extension argument
+       * (case-insensitive, leading dot optional), not from a file name.
+      */
+      public void Case18_ImportExportStreamCsv_OK()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         string importFile = UnitTestsHelper.GetTestFilePath("import.csv");
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         using (FileStream input = File.OpenRead(importFile))
+         {
+            _ = database.ImportFromStream(input, "Csv").Should().Be(ImportExportError.None);
+         }
+
+         _ = database.User!.Services.Should().NotBeEmpty();
+
+         using MemoryStream exported = new();
+         _ = database.ExportToStream(exported, ".csv").Should().Be(ImportExportError.None);
+         exported.Position = 0;
+         using StreamReader reader = new(exported);
+         _ = reader.ReadToEnd().Should().Contain(database.User.Services.First().ServiceName);
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Unsupported formats are refused on both directions and nothing is
+       * written to the export stream.
+      */
+      public void Case19_ImportExportStream_UnsupportedExtension()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string username = UnitTestsHelper.GetUsername();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+         Stack<ExpectedActivity> expectedActivities = new();
+
+         using MemoryStream input = new("x"u8.ToArray());
+         _ = database.ImportFromStream(input, "txt").Should().Be(ImportExportError.ExtensionFileNotSupported);
+
+         using MemoryStream output = new();
+         _ = database.ExportToStream(output, ".xml").Should().Be(ImportExportError.ExtensionFileNotSupported);
+         _ = output.Length.Should().Be(0);
+
+         expectedActivities.Push(new(ActivityEventType.ImportingDataStarted, true, Username: username, FieldName: "formatExtension", FieldValue: ".TXT"));
+         expectedActivities.Push(ExpectedActivity.ImportFailed(username, ImportExportError.ExtensionFileNotSupported));
+         expectedActivities.Push(new(ActivityEventType.ExportingDataStarted, true, Username: username, FieldName: "formatExtension", FieldValue: ".XML"));
+         expectedActivities.Push(ExpectedActivity.ExportFailed(username, ImportExportError.ExtensionFileNotSupported));
+         UnitTestsHelper.LastActivitiesShouldMatch(database, [.. expectedActivities]);
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * A seekable stream larger than the import budget is refused before
+       * being read; nothing is imported.
+      */
+      public void Case20_ImportFromStream_TooLarge()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         using OversizedStream input = new(ResourceBudgets.MaxImportFileBytes + 1);
+         _ = database.ImportFromStream(input, ".json").Should().Be(ImportExportError.ImportFileTooLarge);
+         _ = database.User!.Services.Should().BeEmpty();
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Export into a read-only stream fails with an error code instead of
+       * throwing, and argument validation rejects null streams / blank formats.
+      */
+      public void Case21_ExportToStream_NotWritableAndArgumentChecks()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase database = UnitTestsHelper.CreateTestDatabase(passkeys);
+
+         using MemoryStream readOnly = new([], writable: false);
+         _ = database.ExportToStream(readOnly, ".json").Should().Be(ImportExportError.ImportFileNotAccessible);
+
+         Action nullStream = () => database.ExportToStream(null!, ".json");
+         Action blankFormat = () => database.ImportFromStream(new MemoryStream(), " ");
+         _ = nullStream.Should().Throw<ArgumentNullException>();
+         _ = blankFormat.Should().Throw<ArgumentException>();
+
+         database.Close();
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      // Reports a huge length without allocating it, to exercise the size budget.
+      private sealed class OversizedStream(long length) : MemoryStream
+      {
+         public override long Length => length;
+      }
+
       // Sample import.csv / import.json item chain (password ItemUpdated needsReview:false).
       private static void _pushSampleImportItemActivities(Stack<ExpectedActivity> expectedActivities, string username)
       {

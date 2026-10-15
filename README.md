@@ -872,9 +872,9 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     [Wiki/WPF-Client.md](Wiki/WPF-Client.md).
 *   **Shortcuts**: `Ctrl+O` open, `Ctrl+N` new user, `Ctrl+,` App Settings,
     `Ctrl+P` password generator. While the services window is open,
-    **Ctrl+Shift+L** pastes the selected identifier and **Ctrl+Shift+P** pastes
-    the selected password into the focused field (copy + synthetic Ctrl+V;
-    clipboard still auto-clears).
+    **Ctrl+Shift+L** copies the selected identifier and **Ctrl+Shift+P** copies
+    the selected password to the clipboard (no automatic paste; the clipboard
+    still auto-clears).
 *   **Offline leak database**: App Settings can build / update / enable / delete
     the local `.pkbf` Bloom filter next to the executable, and schedule
     auto-refresh of an existing file at startup

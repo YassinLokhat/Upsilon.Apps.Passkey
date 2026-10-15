@@ -282,6 +282,60 @@ namespace Upsilon.Apps.Passkey.UnitTests.Multiplateform.Utils
          }
       }
 
+      [TestMethod]
+      /*
+       * A sync client rewriting the .pku while the session is open changes its
+       * length / mtime: the next commit refuses to overwrite it. The exception is
+       * an IOException so existing host I/O handling applies.
+      */
+      public void Case12_ExternalRewrite_SaveThrowsExternalVaultReplaced()
+      {
+         string path = _preparePath();
+
+         try
+         {
+            using FileLocker locker = _createLocker(path, FileMode.CreateNew);
+            locker.Save(new Payload { Value = "ours" }, "header");
+
+            File.SetLastWriteTimeUtc(path, File.GetLastWriteTimeUtc(path).AddMinutes(-5));
+
+            Action save = () => locker.Save(new Payload { Value = "overwrite" }, "header");
+            _ = save.Should().Throw<ExternalVaultReplacedException>()
+               .Which.Should().BeAssignableTo<IOException>();
+         }
+         finally
+         {
+            _cleanup(path);
+         }
+      }
+
+      [TestMethod]
+      /*
+       * The vault moved or deleted under the open handle is reported the same way
+       * instead of silently recreating a file at the old path.
+      */
+      public void Case13_ExternalMove_SaveThrowsExternalVaultReplaced()
+      {
+         string path = _preparePath();
+         string moved = path + ".moved";
+
+         try
+         {
+            using FileLocker locker = _createLocker(path, FileMode.CreateNew);
+            locker.Save(new Payload { Value = "ours" }, "header");
+
+            File.Move(path, moved);
+
+            Action save = () => locker.Save(new Payload { Value = "overwrite" }, "header");
+            _ = save.Should().Throw<ExternalVaultReplacedException>();
+            _ = File.Exists(path).Should().BeFalse();
+         }
+         finally
+         {
+            _cleanup(path);
+         }
+      }
+
       private static FileLocker _createLocker(string path, FileMode mode) =>
          new(UnitTestsHelper.CryptographyCenter, UnitTestsHelper.SerializationCenter, path, mode);
 

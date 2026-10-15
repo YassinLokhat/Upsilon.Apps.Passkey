@@ -2,6 +2,17 @@
 
 These measurements are **manual** (Release + trimming). Record medians on a low-end phone, a mid/high-end phone, and a Windows reference PC. Do **not** lower KDF parameters based on results.
 
+**Status: not run yet.** No result has been recorded below; fill the tables when the spikes are executed.
+
+| Spike | Low-end phone | Mid/high-end phone | Windows PC |
+| ----- | ------------- | ------------------ | ---------- |
+| `GetSlowHash` (1 passkey) | — | — | — |
+| `CreateAsync` (3 passkeys) | — | — | — |
+| `OpenAsync` + `LoginAsync` (500 accounts) | — | — | — |
+| `RSA.Create(4096)` + PEM import | — | — | — |
+| Interop Windows ↔ Android round-trip | — | — | — |
+| SAF write-back + conflict | — | — | — |
+
 ## Performance
 
 1. `CryptographyCenter.GetSlowHash` — 1 000 000 PBKDF2-HMAC-SHA-512 iterations.
@@ -17,4 +28,4 @@ Create on Windows → Open/Login/Save on Android → reopen on Windows (and reve
 
 ## SAF
 
-`ACTION_OPEN_DOCUMENT_TREE` / `ACTION_OPEN_DOCUMENT`, persistable permission, write-back `"wt"`, re-read hash, conflict when Drive/OneDrive/Syncthing changed the file.
+`ACTION_OPEN_DOCUMENT` (tree mode is not implemented), persistable permission, write-back `"wt"`, re-read hash, conflict when Drive/OneDrive/Syncthing changed the file (today: write-back refused, working copy kept).

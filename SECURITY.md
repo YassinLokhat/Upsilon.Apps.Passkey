@@ -11,7 +11,7 @@ protects data and how to report a problem.
 Each component is versioned **independently** and may evolve at its own pace.
 Security fixes are applied to the latest released version of each component only,
 so please always upgrade to the most recent release before reporting an issue.
-<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core`, `Upsilon.Apps.Passkey.Utils`, `Upsilon.Apps.Passkey.Interfaces` and `Upsilon.Apps.Passkey.GUI.MAUI` are on **2.0.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
+<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core`, `Upsilon.Apps.Passkey.Utils` and `Upsilon.Apps.Passkey.Interfaces` are on **2.0.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
 
 Versions and dependency ranges are maintained in [`versions.json`](versions.json).
 
@@ -22,7 +22,6 @@ Versions and dependency ranges are maintained in [`versions.json`](versions.json
 | `Upsilon.Apps.Passkey.Core`           | 2.0.x             | :white_check_mark: |
 | `Upsilon.Apps.Passkey.Utils`          | 2.0.x             | :white_check_mark: |
 | `Upsilon.Apps.Passkey.Interfaces`     | 2.0.x             | :white_check_mark: |
-| `Upsilon.Apps.Passkey.GUI.MAUI`       | 2.0.x             | :white_check_mark: |
 <!-- END:versions-supported-table -->
 
 Any version older than the latest release of a given component is not supported.
@@ -316,9 +315,9 @@ login:
   configurable delay (`ISettings.CleaningClipboardTimeout`). History scrub
   targets only secrets registered through `IUser.RememberClipboardSecret`
   (WPF records auto-cleared copies); it does not reveal every stored password
-  on each tick. The WPF paste hotkeys (Ctrl+Shift+L / Ctrl+Shift+P) go through
-  the same clipboard path
-  before synthesizing Ctrl+V.
+  on each tick. The WPF hotkeys Ctrl+Shift+L / Ctrl+Shift+P copy the selected
+  identifier / password through the same clipboard path; they do not paste
+  (no synthetic Ctrl+V).
 - **Service URL storage (Core)**: `IService.Url` refuses absolute URIs that are
   not `http`/`https` (same allowlist as import/`ServiceUrlHelper`). Relative
   values may still be stored while typing; shell open re-validates.
@@ -528,9 +527,14 @@ These are conscious trade-offs, documented for transparency:
   online HIBP / XposedOrNot remain. Leak checks therefore fail open when both
   providers are unreachable (same as a Windows host without a filter).
 - **Multi-device sync**: only one writer at a time. Android SAF write-back
-  re-hashes the source and never overwrites silently on conflict (keep both /
-  reload / overwrite). Whole-file rollback remains a residual risk without a
-  monotonic generation counter (out of scope for v1; see ADR-001).
+  re-hashes the source and never overwrites silently: on conflict the
+  write-back is refused and the working copy is kept locally (an explicit keep
+  both / reload / overwrite choice is not implemented yet). Whole-file rollback
+  remains a residual risk without a monotonic generation counter (out of scope
+  for v1; see ADR-001).
+- **MAUI client status**: the MAUI client is a preview (login and a read-only
+  session overview) and is not shipped or supported yet; WPF remains the
+  supported Windows client.
 
 ## Reporting Non-Security Bugs
 
