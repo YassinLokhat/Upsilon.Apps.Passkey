@@ -128,6 +128,12 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.Localization
       public static string Label_Months => Get(nameof(Label_Months));
       public static string Label_NeedsReview => Get(nameof(Label_NeedsReview));
       public static string Label_NeedsReviewOnly => Get(nameof(Label_NeedsReviewOnly));
+      public static string Label_SortBy => Get(nameof(Label_SortBy));
+      public static string ActivitySort_NewestFirst => Get(nameof(ActivitySort_NewestFirst));
+      public static string ActivitySort_OldestFirst => Get(nameof(ActivitySort_OldestFirst));
+      public static string ActivitySort_EventType => Get(nameof(ActivitySort_EventType));
+      public static string ActivitySort_NeedsReviewFirst => Get(nameof(ActivitySort_NeedsReviewFirst));
+      public static string ActivitySort_Message => Get(nameof(ActivitySort_Message));
       public static string Label_NewUser => Get(nameof(Label_NewUser));
       public static string Label_Notes => Get(nameof(Label_Notes));
       public static string Label_OfflineLeakDatabase => Get(nameof(Label_OfflineLeakDatabase));

@@ -90,6 +90,39 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities
          private set => SetProperty(ref field, value);
       } = _eventTypeOptions();
 
+      public ActivitySortOrder SortOrder
+      {
+         get;
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               OnPropertyChanged(nameof(SelectedSortOption));
+               RefreshFilters();
+            }
+         }
+      } = ActivitySortOrder.NewestFirst;
+
+      /// <summary>Localized sort labels in <see cref="ActivitySortOrder"/> order.</summary>
+      public IReadOnlyList<string> SortOptions
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      } = _sortOptions();
+
+      public string SelectedSortOption
+      {
+         get => SortOptions[(int)SortOrder];
+         set
+         {
+            int index = SortOptions.ToList().IndexOf(value);
+            if (index >= 0)
+            {
+               SortOrder = (ActivitySortOrder)index;
+            }
+         }
+      }
+
       public ICommand ClearFiltersCommand { get; }
 
       public UserActivitiesViewModel()
@@ -103,12 +136,39 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities
       {
          Title = Strings.Format(nameof(Strings.Title_Activities), AppServices.Info.Title);
          EventTypeOptions = _eventTypeOptions();
+         SortOptions = _sortOptions();
          OnPropertyChanged(nameof(ReadableEventType));
+         OnPropertyChanged(nameof(SelectedSortOption));
          RefreshFilters();
       }
 
       private static string[] _eventTypeOptions()
          => [.. Enum.GetValues<ActivityEventType>().Select(x => x.ToReadableString())];
+
+      private static string[] _sortOptions()
+         => [
+            Strings.ActivitySort_NewestFirst,
+            Strings.ActivitySort_OldestFirst,
+            Strings.ActivitySort_EventType,
+            Strings.ActivitySort_NeedsReviewFirst,
+            Strings.ActivitySort_Message,
+         ];
+
+      /// <summary>Sorts on the activity timestamp: the displayed date text is culture-formatted.</summary>
+      internal static IEnumerable<ActivityViewModel> Sort(IEnumerable<ActivityViewModel> activities, ActivitySortOrder order) => order switch
+      {
+         ActivitySortOrder.OldestFirst => activities.OrderBy(x => x.Activity.DateTime),
+         ActivitySortOrder.EventType => activities
+            .OrderBy(x => x.EventType, StringComparer.CurrentCulture)
+            .ThenByDescending(x => x.Activity.DateTime),
+         ActivitySortOrder.NeedsReviewFirst => activities
+            .OrderByDescending(x => x.NeedsReview)
+            .ThenByDescending(x => x.Activity.DateTime),
+         ActivitySortOrder.Message => activities
+            .OrderBy(x => x.Message, StringComparer.CurrentCulture)
+            .ThenByDescending(x => x.Activity.DateTime),
+         _ => activities.OrderByDescending(x => x.Activity.DateTime),
+      };
 
       private bool _locked;
       public void ClearFilters()
@@ -139,10 +199,9 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities
             return;
          }
 
-         ActivityViewModel[] activities = [.. AppServices.Session.Database.Activities
+         ActivityViewModel[] activities = [.. Sort(AppServices.Session.Database.Activities
             .Select(x => new ActivityViewModel(x))
-            .Where(x => x.MeetsConditions(FromDateFilter, ToDateFilter, EventType, SearchCriteria, NeedsReview))
-            .OrderByDescending(x => x.DateTime)];
+            .Where(x => x.MeetsConditions(FromDateFilter, ToDateFilter, EventType, SearchCriteria, NeedsReview)), SortOrder)];
 
          foreach (ActivityViewModel activity in activities)
          {

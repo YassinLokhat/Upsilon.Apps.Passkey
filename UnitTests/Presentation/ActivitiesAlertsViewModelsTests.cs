@@ -62,6 +62,48 @@ namespace UnitTests.Presentation
       }
 
       [TestMethod]
+      public void UserActivities_SortOptions_RoundTripThroughSelectedSortOption()
+      {
+         UserActivitiesViewModel vm = new();
+
+         vm.SortOrder.Should().Be(ActivitySortOrder.NewestFirst);
+         vm.SortOptions.Should().HaveCount(Enum.GetValues<ActivitySortOrder>().Length);
+         foreach (ActivitySortOrder order in Enum.GetValues<ActivitySortOrder>())
+         {
+            vm.SelectedSortOption = vm.SortOptions[(int)order];
+            vm.SortOrder.Should().Be(order);
+            vm.SelectedSortOption.Should().Be(vm.SortOptions[(int)order]);
+         }
+
+         vm.SelectedSortOption = "not an option";
+         vm.SortOrder.Should().Be(ActivitySortOrder.Message);
+      }
+
+      [TestMethod]
+      public void ActivitySort_UsesTheTimestamp_NotTheLocalizedDateText()
+      {
+         _ = LocalizationService.Apply("fr");
+         try
+         {
+            ActivityViewModel older = new(new FakeActivity(new DateTime(2026, 1, 20, 9, 0, 0), "a", ActivityEventType.DatabaseOpened, needsReview: true));
+            ActivityViewModel newer = new(new FakeActivity(new DateTime(2026, 2, 3, 9, 0, 0), "b", ActivityEventType.LoginFailed, needsReview: false));
+            ActivityViewModel[] activities = [older, newer];
+
+            UserActivitiesViewModel.Sort(activities, ActivitySortOrder.NewestFirst).Should().Equal(newer, older);
+            UserActivitiesViewModel.Sort(activities, ActivitySortOrder.OldestFirst).Should().Equal(older, newer);
+            UserActivitiesViewModel.Sort(activities, ActivitySortOrder.NeedsReviewFirst).Should().Equal(older, newer);
+            UserActivitiesViewModel.Sort(activities, ActivitySortOrder.EventType)
+               .Should().BeInAscendingOrder(x => x.EventType, StringComparer.CurrentCulture);
+            UserActivitiesViewModel.Sort(activities, ActivitySortOrder.Message)
+               .Should().BeInAscendingOrder(x => x.Message, StringComparer.CurrentCulture);
+         }
+         finally
+         {
+            _ = LocalizationService.Apply(LocalizationService.DefaultLanguageCode);
+         }
+      }
+
+      [TestMethod]
       public void AccountPasswordsAlert_KindOptions_RoundTripThroughReadableKind()
       {
          AccountPasswordsAlertViewModel vm = new();
