@@ -16,8 +16,10 @@ Authoritative list: [`SECURITY.md`](https://github.com/YassinLokhat/Upsilon.Apps
 
 * A compromised host (malware, keylogger, memory scraper, or an attacker with code execution on the machine while the database is unlocked)
 * The security of the operating system, its clipboard, and its swap/hibernation files
-* Physical access to an unlocked, logged-in session (the WPF **credential confirmation** dialog before create / username-or-passkey save / Delete / opening User Settings is intentionality / anti-mistype only — not a cryptographic step-up; Core still allows writing `IUser.Username` / `IUser.Passkeys` without it — see [[Security]] / [[WPF Client]])
-* Plaintext files the user deliberately produces via **Import/Export** (WPF warns before export; backup remains the `.pku`)
+* Physical access to an unlocked, logged-in session (the **credential confirmation** dialog of both clients before create / username-or-passkey save / Delete / opening User Settings is intentionality / anti-mistype only — not a cryptographic step-up; Core still allows writing `IUser.Username` / `IUser.Passkeys` without it — see [[Security]] / [[WPF Client]])
+* Plaintext files the user deliberately produces via **Import/Export** (both clients warn before export; backup remains the `.pku`)
+* Third-party keyboards / autofill services on Android that ignore the no-autofill and no-learning flags the MAUI host sets on every text field
+* Silent merge of divergent `.pku` copies synced between devices (conflicts are detected host-side, never merged — see [[ADR-001-MAUI-Host-and-Multi-Device]])
 
 ## Scenario: stolen `.pku` on a USB stick
 
@@ -56,9 +58,17 @@ They still cannot read `database` / `autosave` without the passkeys.
 
 Out of scope. The default `ProtectedSecret` (via injected `ISecretMemoryProtector`) shrinks the window (ciphertext in RAM, `***` in logs) but `Reveal()` still produces a `string` for display, copy, QR, and save. Clipboard and screen are OS surfaces. Auto-logout and clipboard timeouts reduce *casual* exposure; they do not stop a scraper with equal privilege to the process.
 
-## Scenario: imported service URL opens via the Windows shell
+## Scenario: imported service URL opens outside the app
 
-In scope for the open action. A crafted import could set `file:`, UNC, or a custom protocol and the user might click “open URL”. The client allowlists **absolute `http`/`https` only** before `UseShellExecute`; `http` requires an extra confirmation. Other schemes never reach the shell.
+In scope for the open action. A crafted import could set `file:`, UNC, or a custom protocol and the user might click “open URL”. The shared ViewModel allowlists **absolute `http`/`https` only** before WPF hands the URL to the shell (`UseShellExecute`) or MAUI to the system browser; `http` requires an extra confirmation. Other schemes never reach the shell or the browser.
+
+## Scenario: phone left unattended with the vault open
+
+In scope as session exposure. On Android, leaving the app clears a half-open login, masks revealed secrets and closes the QR code page; the recents thumbnail is blank (`FLAG_SECURE`). The vault itself stays open in the background and is closed when the app returns after `BackgroundLockSeconds` (default 30), so someone who picks up the phone sooner sees the unlocked vault. A device lock screen remains the first barrier.
+
+## Scenario: the same vault on a PC and a phone
+
+In scope for integrity. Android works on a private copy of the SAF document and re-hashes the source before writing back: if a sync client or another device changed it, nothing is overwritten and the session's edits are kept as a conflict copy. Keeping the vault open on both devices at once is still the user's risk (one writer at a time), and replacing the vault with an older copy (whole-file rollback) is not detected.
 
 ## Scenario: user exports JSON "for backup" to a cloud folder
 
@@ -66,4 +76,4 @@ Out of scope by design. Export is plaintext for interoperability. The user is re
 
 ## Scenario: QR code on a projector or in a screenshot
 
-The identifier or password is in the pixels until the window closes or `ShowPasswordDelay` elapses. Anyone who can see or photograph the screen can capture it. Treat QR reveal like writing the secret on a whiteboard.
+The identifier or password is in the pixels until the window closes or `ShowPasswordDelay` elapses (MAUI also closes it on logout and, on Android, when the app goes to the background). Anyone who can see or photograph the screen can capture it. Treat QR reveal like writing the secret on a whiteboard.
