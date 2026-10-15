@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Adapters;
@@ -51,7 +51,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       {
          ArgumentNullException.ThrowIfNull(e);
 
-         WPF.Services.OfflineLeakFilterUpdateService update = WpfAppServices.OfflineLeakFilterUpdate;
+         Presentation.Services.OfflineLeakFilterUpdateService update = WpfAppServices.OfflineLeakFilterUpdate;
          if (update.ContinueThroughExit)
          {
             // Consented background continue — wait without cancelling.

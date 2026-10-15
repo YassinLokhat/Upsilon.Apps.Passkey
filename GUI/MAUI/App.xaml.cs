@@ -2,6 +2,7 @@ using Upsilon.Apps.Passkey.GUI.MAUI.Adapters;
 using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using Upsilon.Apps.Passkey.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI
 {
@@ -16,6 +17,13 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          _ = AppServices.Settings?.Load();
          _ = LocalizationService.Apply(AppServices.Settings?.Current.Language ?? LocalizationService.SystemCode);
          AppServices.Theme?.Apply(AppServices.Settings?.Current.Theme ?? ThemePreferences.SystemCode);
+
+         if (AppServices.Capabilities.SupportsOfflineLeakFilter && AppServices.Settings is { } settings)
+         {
+            AppServices.PasswordFactory = new PasswordFactory(settings.Current.LeakFilterConfig);
+            // Refresh an existing .pkbf only; a first full build is always an explicit choice.
+            AppServices.OfflineLeakFilterUpdate.TryStartAutoUpdate();
+         }
       }
 
       protected override Window CreateWindow(IActivationState? activationState)
@@ -27,6 +35,12 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
 
       private static void _onWindowDestroying(object? sender, EventArgs e)
       {
+         // A .pkbf build holds the filter file open for writing: stop it before the process goes away.
+         if (!AppServices.OfflineLeakFilterUpdate.WaitForIdle(TimeSpan.FromSeconds(15)))
+         {
+            AppServices.Log.Warn("Offline leak filter: still busy after exit cancel timeout.");
+         }
+
          // Closing the database queues the final write-back; wait for it so the
          // last save reaches the durable source before the process exits.
          AppServices.Session.EndSession();

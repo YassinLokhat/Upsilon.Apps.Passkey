@@ -86,7 +86,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Services
       /// <summary>
       /// Shared offline leak-filter build/update runner (manual settings + startup auto-update).
       /// </summary>
-      public static OfflineLeakFilterUpdateService OfflineLeakFilterUpdate { get; set; } = new();
+      public static OfflineLeakFilterUpdateService OfflineLeakFilterUpdate
+      {
+         get => SharedServices.OfflineLeakFilterUpdate;
+         set => SharedServices.OfflineLeakFilterUpdate = value;
+      }
 
       /// <summary>
       /// Restores production defaults. Intended for unit-test cleanup only.

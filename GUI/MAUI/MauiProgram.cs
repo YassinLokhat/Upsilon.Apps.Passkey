@@ -1,5 +1,6 @@
 using Upsilon.Apps.Passkey.GUI.MAUI.Adapters;
 using Upsilon.Apps.Passkey.GUI.MAUI.Pages.Alerts;
+using Upsilon.Apps.Passkey.GUI.MAUI.Pages.Settings;
 using Upsilon.Apps.Passkey.GUI.MAUI.Pages.Tools;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.Interfaces.Models;
@@ -38,14 +39,19 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          dialogs.Register<DuplicatedPasswordsAlertRequest, bool>(_ => new DuplicatedPasswordsAlertPage());
          dialogs.Register<PasskeyQualityAlertRequest, bool>(_ => IssuesAlertPage.ForPasskeyQuality());
          dialogs.Register<SecuritySettingsAlertRequest, bool>(_ => IssuesAlertPage.ForSecuritySettings());
+         dialogs.Register<UserSettingsRequest, bool>(_ => new UserSettingsPage());
+         dialogs.Register<AppSettingsRequest, bool>(_ => new AppSettingsPage());
          AppServices.Dialogs = dialogs;
          AppServices.Theme = new MauiThemePlatform();
 #if WINDOWS
          AppServices.Clipboard = new Platforms.Windows.WindowsClipboardService();
          AppServices.VaultSources = new PathVaultSourceFactory();
+         AppServices.Files = new Platforms.Windows.WindowsFileExchange();
+         AppServices.Session = new SessionService(() => AppServices.OfflineLeakFilterUpdate.IsBusy);
 #elif ANDROID
          AppServices.Clipboard = new Platforms.Android.AndroidClipboardService();
          AppServices.VaultSources = new Platforms.Android.AndroidVaultSourceFactory();
+         AppServices.Files = new Platforms.Android.AndroidFileExchange();
 #else
          AppServices.Clipboard = new MauiClipboardService();
          AppServices.VaultSources = new PathVaultSourceFactory();

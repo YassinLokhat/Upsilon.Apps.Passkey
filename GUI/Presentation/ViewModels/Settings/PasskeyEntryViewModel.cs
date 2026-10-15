@@ -67,6 +67,18 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings
       public void Attach(ISecretInput input)
       {
          ArgumentNullException.ThrowIfNull(input);
+         if (ReferenceEquals(_input, input))
+         {
+            return;
+         }
+
+         // Hosts may recreate the row control (reorder, re-template): carry the typed secret over.
+         if (_input is { } previous)
+         {
+            input.Write(previous.Read());
+            previous.Clear();
+         }
+
          _input = input;
 
          if (_seed is not null)

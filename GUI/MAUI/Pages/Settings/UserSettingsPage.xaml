@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:settings="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+             xmlns:pages="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Pages.Settings"
+             xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
+             xmlns:pl="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.Localization;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+             xmlns:pm="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.Models;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
+             x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Pages.Settings.UserSettingsPage"
+             x:ClassModifier="internal"
+             x:DataType="settings:UserSettingsViewModel"
+             Title="{Binding Title}">
+   <ContentPage.ToolbarItems>
+      <ToolbarItem Text="{loc:Loc Menu_Save}" Command="{Binding SaveCommand}" Order="Primary" />
+      <ToolbarItem Text="{loc:Loc Button_Cancel}" Clicked="_onClose" Order="Primary" />
+      <ToolbarItem Text="{loc:Loc Menu_Import}" Command="{Binding ImportCommand}" Order="Secondary" />
+      <ToolbarItem Text="{loc:Loc Menu_ExportJson}" Command="{Binding ExportJsonCommand}" Order="Secondary" />
+      <ToolbarItem Text="{loc:Loc Menu_ExportCsv}" Command="{Binding ExportCsvCommand}" Order="Secondary" />
+      <ToolbarItem Text="{loc:Loc Menu_ViewActivities}" Command="{Binding ViewActivitiesCommand}" Order="Secondary" />
+      <ToolbarItem Text="{loc:Loc Menu_DeleteUser}" Command="{Binding DeleteCommand}" Order="Secondary" />
+   </ContentPage.ToolbarItems>
+
+   <Grid>
+      <ScrollView>
+         <VerticalStackLayout Padding="16" Spacing="10">
+            <Label Text="{loc:Loc Label_Credentials}" Style="{StaticResource SubHeadline}" />
+            <Label Text="{loc:Loc Label_Username}" />
+            <Entry Text="{Binding Username}" IsTextPredictionEnabled="False" IsSpellCheckEnabled="False" MaxLength="256" />
+
+            <Label Text="{loc:Loc Label_Passwords}" />
+            <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Passkeys.Entries}">
+               <BindableLayout.ItemTemplate>
+                  <DataTemplate x:DataType="settings:PasskeyEntryViewModel">
+                     <pages:PasskeyRowView />
+                  </DataTemplate>
+               </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+            <Button Text="{loc:Loc Tooltip_AddPassword}" Command="{Binding Passkeys.AddCommand}" HorizontalOptions="Start" />
+
+            <Label Text="{loc:Loc Label_Settings}" Style="{StaticResource SubHeadline}" Margin="0,12,0,0" />
+            <Grid ColumnDefinitions="Auto,*,80,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
+               <CheckBox Grid.Row="0" IsChecked="{Binding LogoutTimeoutChecked}" />
+               <Label Grid.Row="0" Grid.Column="1" Text="{loc:Loc Label_LogoutAfter}" VerticalOptions="Center" />
+               <Entry Grid.Row="0" Grid.Column="2" Keyboard="Numeric" Text="{Binding LogoutTimeout}" IsEnabled="{Binding LogoutTimeoutChecked}" />
+               <Label Grid.Row="0" Grid.Column="3" Text="{loc:Loc Label_Minutes}" VerticalOptions="Center" />
+
+               <CheckBox Grid.Row="1" IsChecked="{Binding CleaningClipboardTimeoutChecked}" />
+               <Label Grid.Row="1" Grid.Column="1" Text="{loc:Loc Label_CleanClipboardEvery}" VerticalOptions="Center" />
+               <Entry Grid.Row="1" Grid.Column="2" Keyboard="Numeric" Text="{Binding CleaningClipboardTimeout}" IsEnabled="{Binding CleaningClipboardTimeoutChecked}" />
+               <Label Grid.Row="1" Grid.Column="3" Text="{loc:Loc Label_Seconds}" VerticalOptions="Center" />
+
+               <CheckBox Grid.Row="2" IsChecked="{Binding ShowPasswordDelayChecked}" />
+               <Label Grid.Row="2" Grid.Column="1" Text="{loc:Loc Label_ShowQrCodeDuring}" VerticalOptions="Center" />
+               <Entry Grid.Row="2" Grid.Column="2" Keyboard="Numeric" Text="{Binding ShowPasswordDelay}" IsEnabled="{Binding ShowPasswordDelayChecked}" />
+               <Label Grid.Row="2" Grid.Column="3" Text="{loc:Loc Label_Milliseconds}" VerticalOptions="Center" />
+
+               <CheckBox Grid.Row="3" IsChecked="{Binding NumberOfOldPasswordToKeepChecked}" />
+               <Label Grid.Row="3" Grid.Column="1" Text="{loc:Loc Label_LimitPasswordHistory}" VerticalOptions="Center" />
+               <Entry Grid.Row="3" Grid.Column="2" Keyboard="Numeric" Text="{Binding NumberOfOldPasswordToKeep}" IsEnabled="{Binding NumberOfOldPasswordToKeepChecked}" />
+               <Label Grid.Row="3" Grid.Column="3" Text="{loc:Loc Label_Entries}" VerticalOptions="Center" />
+
+               <CheckBox Grid.Row="4" IsChecked="{Binding NumberOfMonthActivitiesToKeepChecked}" />
+               <Label Grid.Row="4" Grid.Column="1" Text="{loc:Loc Label_LimitActivityHistory}" VerticalOptions="Center" />
+               <Entry Grid.Row="4" Grid.Column="2" Keyboard="Numeric" Text="{Binding NumberOfMonthActivitiesToKeep}" IsEnabled="{Binding NumberOfMonthActivitiesToKeepChecked}" />
+               <Label Grid.Row="4" Grid.Column="3" Text="{loc:Loc Label_Months}" VerticalOptions="Center" />
+            </Grid>
+
+            <Label Text="{loc:Loc Label_Language}" />
+            <Picker ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}" ItemDisplayBinding="{Binding NativeName, x:DataType=pl:AppLanguage}" />
+            <Label Text="{loc:Loc Label_Theme}" />
+            <Picker ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" ItemDisplayBinding="{Binding DisplayName, x:DataType=pm:AppThemeOption}" />
+
+            <Label Text="{loc:Loc Label_Alerts}" Style="{StaticResource SubHeadline}" Margin="0,12,0,0" />
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="4">
+               <Label Grid.Row="0" Text="{loc:Loc Label_NotifyActivityReview}" VerticalOptions="Center" />
+               <Switch Grid.Row="0" Grid.Column="1" IsToggled="{Binding NotifyActivityReview}" />
+               <Label Grid.Row="1" Text="{loc:Loc Label_NotifyDuplicatedPasswords}" VerticalOptions="Center" />
+               <Switch Grid.Row="1" Grid.Column="1" IsToggled="{Binding NotifyDuplicatedPasswords}" />
+               <Label Grid.Row="2" Text="{loc:Loc Label_NotifyPasswordUpdateReminder}" VerticalOptions="Center" />
+               <Switch Grid.Row="2" Grid.Column="1" IsToggled="{Binding NotifyPasswordUpdateReminder}" />
+               <Label Grid.Row="3" Text="{loc:Loc Label_NotifyPasswordLeaked}" VerticalOptions="Center" />
+               <Switch Grid.Row="3" Grid.Column="1" IsToggled="{Binding NotifyPasswordLeaked}" />
+               <Label Grid.Row="4" Text="{loc:Loc Label_NotifyWeakAccountPassword}" VerticalOptions="Center" />
+               <Switch Grid.Row="4" Grid.Column="1" IsToggled="{Binding NotifyWeakAccountPassword}" />
+               <Label Grid.Row="5" Text="{loc:Loc Label_NotifyPasskeyReusedAsAccountPassword}" VerticalOptions="Center" />
+               <Switch Grid.Row="5" Grid.Column="1" IsToggled="{Binding NotifyPasskeyReusedAsAccountPassword}" />
+               <Label Grid.Row="6" Text="{loc:Loc Label_NotifyInsufficientPasskeys}" VerticalOptions="Center" />
+               <Switch Grid.Row="6" Grid.Column="1" IsToggled="{Binding NotifyInsufficientPasskeys}" />
+               <Label Grid.Row="7" Text="{loc:Loc Label_NotifyWeakPasskey}" VerticalOptions="Center" />
+               <Switch Grid.Row="7" Grid.Column="1" IsToggled="{Binding NotifyWeakPasskey}" />
+               <Label Grid.Row="8" Text="{loc:Loc Label_NotifyPasskeyLeaked}" VerticalOptions="Center" />
+               <Switch Grid.Row="8" Grid.Column="1" IsToggled="{Binding NotifyPasskeyLeaked}" />
+               <Label Grid.Row="9" Text="{loc:Loc Label_NotifySecuritySettings}" VerticalOptions="Center" />
+               <Switch Grid.Row="9" Grid.Column="1" IsToggled="{Binding NotifySecuritySettings}" />
+            </Grid>
+         </VerticalStackLayout>
+      </ScrollView>
+
+      <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center" VerticalOptions="Center" />
+   </Grid>
+</ContentPage>
