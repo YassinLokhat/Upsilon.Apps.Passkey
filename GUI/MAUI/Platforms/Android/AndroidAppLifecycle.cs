@@ -1,16 +1,12 @@
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 
-namespace Upsilon.Apps.Passkey.GUI.MAUI.Adapters
+namespace Upsilon.Apps.Passkey.GUI.MAUI.Platforms.Android
 {
-   internal sealed class MauiAppLifecycle : IAppLifecycle
+   /// <summary>Raised from <see cref="App"/>'s OnSleep / OnResume.</summary>
+   internal sealed class AndroidAppLifecycle : IAppLifecycle
    {
       public event EventHandler? EnteredBackground;
       public event EventHandler? Resumed;
-
-      public MauiAppLifecycle()
-      {
-         // Wire once the app is running; hosts call Notify* from App.xaml.cs.
-      }
 
       public void NotifyEnteredBackground() => EnteredBackground?.Invoke(this, EventArgs.Empty);
 

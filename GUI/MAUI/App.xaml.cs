@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Upsilon.Apps.Passkey.GUI.MAUI.Adapters;
 using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
@@ -10,14 +9,20 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
    [SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable", Justification = "The policy lives as long as the process-wide Application.")]
    internal sealed partial class App : Application
    {
-      private readonly MauiAppLifecycle _lifecycle = new();
+#if ANDROID
+      private readonly Platforms.Android.AndroidAppLifecycle _lifecycle = new();
       private readonly BackgroundLockPolicy _backgroundLock;
+#endif
 
       public App()
       {
          InitializeComponent();
+#if ANDROID
+         // Windows gets no lifecycle, hence no background lock: OnSleep there also
+         // fires on minimize, where the WPF client keeps the vault and half-open login.
          AppServices.Lifecycle = _lifecycle;
          _backgroundLock = new BackgroundLockPolicy(_lifecycle);
+#endif
          _ = AppServices.Settings?.Load();
          _ = LocalizationService.Apply(AppServices.Settings?.Current.Language ?? LocalizationService.SystemCode);
          AppServices.Theme?.Apply(AppServices.Settings?.Current.Theme ?? ThemePreferences.SystemCode);
@@ -58,9 +63,8 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
       {
          base.OnSleep();
 #if ANDROID
-         // On Windows OnSleep also fires on minimize; the WPF client keeps the
-         // half-open login in that case. The clipboard is left alone: the user
-         // is usually leaving to paste, and the auto-clear deadline still runs.
+         // The clipboard is left alone: the user is usually leaving to paste,
+         // and the auto-clear deadline still runs.
          _lifecycle.NotifyEnteredBackground();
          // Android may kill a backgrounded process: get pending edits to the
          // durable source while the session stays open.
@@ -71,7 +75,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
       protected override void OnResume()
       {
          base.OnResume();
+#if ANDROID
          _lifecycle.NotifyResumed();
+#endif
       }
    }
 }
