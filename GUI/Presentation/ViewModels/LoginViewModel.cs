@@ -215,7 +215,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             return;
          }
 
-         if (AppServices.Paths is null
+         if (AppServices.DefaultVaultDirectory is not { } vaultDirectory
              || AppServices.VaultSources is null
              || AppServices.Clipboard is null)
          {
@@ -224,14 +224,14 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          }
 
          string location = _pickedVault
-            ?? Path.GetFullPath(Path.Join(AppServices.Paths.DefaultDatabaseDirectory, AppServices.Cryptography.GetHash(username) + ".pku"));
+            ?? Path.GetFullPath(Path.Join(vaultDirectory, AppServices.Cryptography.GetHash(username) + ".pku"));
 
          if (_pickedVault is null
              && !File.Exists(location))
          {
             StatusMessage = Strings.Format(
                nameof(Strings.Login_NoVaultForUsername),
-               AppServices.Paths.DefaultDatabaseDirectory,
+               vaultDirectory,
                Strings.Login_OpenVault);
             return;
          }

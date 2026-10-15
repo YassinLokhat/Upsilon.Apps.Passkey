@@ -196,6 +196,35 @@ namespace UnitTests.Presentation
          UnitTestsHelper.ClearTestEnvironment(testName);
       }
 
+      [TestMethod]
+      /*
+       * Usernames resolve against the default database directory configured in
+       * the app settings, not the host's built-in folder.
+      */
+      public async Task Case06_ConfiguredDirectory_WinsOverHostDefault()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         UnitTestsHelper.CreateTestDatabase(passkeys).Close();
+         string hostDefault = Path.Join(UnitTestsHelper.ComputeTestDirectory(), "host-default");
+         _ = Directory.CreateDirectory(hostDefault);
+         _configureHost(hostDefault);
+         AppServices.Settings = new JsonAppSettingsStore(AppServices.Paths!);
+         AppServices.Settings.Current.DefaultDatabaseDirectory = UnitTestsHelper.ComputeDatabaseFileDirectory();
+
+         _ = AppServices.DefaultVaultDirectory.Should().Be(UnitTestsHelper.ComputeDatabaseFileDirectory());
+
+         LoginViewModel viewModel = new();
+         await viewModel.SubmitUsernameAsync(UnitTestsHelper.GetUsername());
+         _ = viewModel.DatabaseOpened.Should().BeTrue();
+
+         viewModel.Reset();
+         AppServices.Settings.Current.DefaultDatabaseDirectory = " ";
+         _ = AppServices.DefaultVaultDirectory.Should().Be(hostDefault);
+
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
       private static FakeDialogService _configureHost(string defaultDatabaseDirectory)
       {
          FakeDialogService dialogs = new();
