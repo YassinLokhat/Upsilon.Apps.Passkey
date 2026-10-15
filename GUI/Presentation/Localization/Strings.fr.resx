@@ -242,6 +242,24 @@
   <data name="Label_NeedsReviewOnly" xml:space="preserve">
     <value>À revoir uniquement</value>
   </data>
+  <data name="Label_SortBy" xml:space="preserve">
+    <value>Trier par :</value>
+  </data>
+  <data name="ActivitySort_NewestFirst" xml:space="preserve">
+    <value>Plus récentes d'abord</value>
+  </data>
+  <data name="ActivitySort_OldestFirst" xml:space="preserve">
+    <value>Plus anciennes d'abord</value>
+  </data>
+  <data name="ActivitySort_EventType" xml:space="preserve">
+    <value>Type d'événement</value>
+  </data>
+  <data name="ActivitySort_NeedsReviewFirst" xml:space="preserve">
+    <value>À revoir d'abord</value>
+  </data>
+  <data name="ActivitySort_Message" xml:space="preserve">
+    <value>Message</value>
+  </data>
   <data name="Label_DateAndTime" xml:space="preserve">
     <value>Date et heure</value>
   </data>
