@@ -50,8 +50,8 @@ Shared ViewModel tests run on their own with:
 dotnet test UnitTests/Presentation/UnitTests.Presentation.csproj
 ```
 
-There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global
-hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay in the [manual smoke list](README.md#manual-smoke-gui).
+There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, keyboard
+shortcuts, and themed confirmation dialogs (`ThemedMessageBoxView`) stay in the [manual smoke list](README.md#manual-smoke-gui).
 
 ## Zero-dependency policy (Core, Utils, Interfaces, Presentation, and WPF)
 
@@ -117,7 +117,7 @@ Shared rules live in [`.editorconfig`](.editorconfig) and
 - Private fields and private methods: `_camelCase`.
 - Private `const` fields: `SCREAMING_SNAKE`.
 - Interfaces: `I…` prefix.
-- WPF ViewModels: inherit `ObservableObject`; use `RelayCommand`; ask the user via the shared async `IDialogService`; host windows via `IWindowDialogService`.
+- ViewModels live in `GUI/Presentation`: inherit its `ObservableObject`; use `RelayCommand` / `AsyncRelayCommand`; ask the user via the async `IDialogService`; open views via `INavigationService`. Hosts keep only view glue (WPF windows through `IWindowDialogService`, MAUI pages).
 - Helpers: `ItemExtensions` (Interfaces), `SerializationHelpers` (Core) — do not reintroduce a `StaticMethods` type name.
 
 Match the surrounding file. Do not reformat unrelated code.
@@ -129,6 +129,9 @@ Match the surrounding file. Do not reformat unrelated code.
 - ViewModel tests in `UnitTests/Presentation` when you change shared GUI logic
   (it sits behind `AppServices`: dialogs, session, clipboard, navigation);
   `UnitTests/Windows` is only for WPF host code.
+- User-visible features in both clients: the logic in `GUI/Presentation`, a view
+  in WPF and in MAUI. A gap that remains (platform limit or follow-up) goes in
+  [Wiki/MAUI-Parity-Checklist.md](Wiki/MAUI-Parity-Checklist.md).
 - README / SECURITY.md updates when you change a public contract, a threat-model
   assumption, or a user-visible security behaviour.
 - No secrets: vault files, exported JSON/CSV, logs, or credentials.

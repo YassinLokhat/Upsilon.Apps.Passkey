@@ -4,7 +4,8 @@
 
 * **Windows 10** (1809 / build 18362) or later for the WPF client
 * **.NET 10 SDK** only if you build from source (release zips are self-contained)
-* **Linux** can build Interfaces + Utils + Core (`Upsilon.Apps.Passkey.Linux.slnx`) — there is no official Linux GUI
+* **MAUI preview** (Windows 10 1809 or later, Android 10 / API 29 or later): build from source with the MAUI workloads, see [[MAUI Client]]; there is no MAUI release yet
+* **Linux** can build Interfaces + Utils + Core + Presentation and their tests (`Upsilon.Apps.Passkey.Linux.slnx`) — there is no official Linux GUI
 
 ## Install a release
 
@@ -24,9 +25,11 @@ cd Upsilon.Apps.Passkey
 dotnet build Upsilon.Apps.Passkey.Windows.slnx
 dotnet run --project GUI/WPF
 
-# Linux: Interfaces + Utils + Core
+# Linux: Interfaces + Utils + Core + Presentation, with their tests
 dotnet build Upsilon.Apps.Passkey.Linux.slnx
 ```
+
+The MAUI preview builds from `Upsilon.Apps.Passkey.MAUI.slnx`; workloads and per-platform commands are in [[MAUI Client]].
 
 Run tests on Windows:
 
@@ -34,7 +37,7 @@ Run tests on Windows:
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
 ```
 
-See [[Testing and CI]] for coverage, GUI ViewModel filters, and workflows.
+See [[Testing and CI]] for coverage, the shared ViewModel tests (`UnitTests/Presentation`), and workflows.
 
 ## First vault in the WPF client
 
