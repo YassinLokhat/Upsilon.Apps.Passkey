@@ -22,6 +22,7 @@ independently; see [SECURITY.md](SECURITY.md) and [`versions.json`](versions.jso
 *   **Leak detection**: opt-in Have I Been Pwned checks, then XposedOrNot failover, then an optional local HIBP Bloom filter (k-anonymity / offline; see [SECURITY.md](SECURITY.md))
 *   **Import / Export**: plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited)
 *   **WPF client** (Windows): System / Light / Dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
+*   **MAUI client** (preview; Windows + Android): same vault files and shared ViewModels; Android adds SAF documents with conflict copies, a background lock and screenshot blocking, and has no offline `.pkbf` or global hotkeys (see [Wiki/MAUI-Client.md](Wiki/MAUI-Client.md)). WPF stays supported alongside it.
 
 **Architecture**
 ----------------
@@ -945,7 +946,7 @@ GitHub Actions on `master` and pull requests:
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
 | `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Presentation + tests); `dotnet test` with the **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-maui-windows.yml` | MAUI workloads, locked restore, Debug + Release build for `net10.0-windows10.0.19041.0` |
+| `.github/workflows/csharp-dotnet-maui-windows.yml` | MAUI workloads, locked restore, Debug + Release build for `net10.0-windows10.0.19041.0`, Presentation tests |
 | `.github/workflows/csharp-dotnet-maui-android.yml` | MAUI Android workload + JDK 17, locked restore, Debug + Release build for `net10.0-android` |
 | `.github/workflows/codeql.yml` | CodeQL on every push (any branch) and weekly; Release build of WPF + MAUI production projects (tests excluded); SARIF filtered for `bin`/`obj`/`*.g.cs` |
 | `.github/workflows/publish-wiki.yml` | On `Wiki/**` changes to `master`: publish the `Wiki/` folder to the GitHub Wiki |

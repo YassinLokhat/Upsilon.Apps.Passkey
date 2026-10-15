@@ -36,3 +36,10 @@ Not run yet: no measurement has been recorded (see [[Spikes-MAUI]]).
 - New solution `Upsilon.Apps.Passkey.MAUI.slnx` and dedicated CI workflows.
 - Docs (`SECURITY.md`, `Threat-Model`, client wiki) must document SecureString loss, Android clipboard limits, and multi-device conflict behaviour.
 - Presentation layer (`GUI/Presentation`, net10.0) becomes the shared ViewModel / services home for WPF and MAUI.
+
+## Amendment (2026-10): WPF and MAUI coexist
+
+- `GUI/WPF` is kept permanently; it is not retired once MAUI reaches parity. Both clients ship from the same repository and open the same `.pku` files.
+- Shared behaviour lives in `GUI/Presentation` (ViewModels, typed view requests, ports such as `IFileExchange`, `IConflictCopyStore`, `IAppLifecycle`). Hosts only map requests to views and implement ports.
+- Windows-only features stay in WPF (global paste hotkeys, multi-window); Android-only protections stay in the MAUI Android host (SAF working copy, background lock, `FLAG_SECURE`).
+- MAUI ships once the manual smoke list in [[MAUI Parity Checklist]] passes; until then `versions.json` keeps `ship: false` for it.

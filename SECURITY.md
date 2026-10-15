@@ -562,8 +562,10 @@ These are conscious trade-offs, documented for transparency:
 - **Vault file names**: a vault file is named after the unsalted hash of its
   username, so file listings and cloud metadata reveal that hash.
 - **MAUI client status**: the MAUI client is a preview (login, vault editor,
-  tools, alerts and settings) and is not shipped or supported yet; WPF remains
-  the supported Windows client.
+  tools, alerts and settings) and is not shipped yet. WPF is not being retired:
+  it remains the supported Windows client, and both clients open the same
+  `.pku` files. Report MAUI issues like any other; fixes land in the shared
+  Presentation layer when possible.
 
 ## Reporting Non-Security Bugs
 
