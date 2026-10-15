@@ -58,8 +58,11 @@
 
       <Label Text="{loc:Loc Label_Password}" />
       <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+         <!-- Committed on Completed / Unfocused: every Core write adds a history entry. -->
          <Entry x:Name="PasswordEntry"
-                Text="{Binding Password}"
+                Text="{Binding Password, Mode=OneWay}"
+                Completed="_onPasswordCommitted"
+                Unfocused="_onPasswordCommitted"
                 IsPassword="True"
                 IsTextPredictionEnabled="False"
                 IsSpellCheckEnabled="False"

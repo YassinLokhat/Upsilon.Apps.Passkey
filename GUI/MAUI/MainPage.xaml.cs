@@ -69,15 +69,14 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
 
       private void _configureSecretEntry()
       {
-         _applyAutofillGuards(CredentialEntry);
+         _applySecretInputType(CredentialEntry);
       }
 
-      private static void _applyAutofillGuards(Entry entry)
+      private static void _applySecretInputType(Entry entry)
       {
 #if ANDROID
          if (entry.Handler?.PlatformView is Android.Widget.EditText edit)
          {
-            edit.ImportantForAutofill = Android.Views.ImportantForAutofill.NoExcludeDescendants;
             edit.InputType = Android.Text.InputTypes.ClassText
                | Android.Text.InputTypes.TextVariationPassword
                | Android.Text.InputTypes.TextFlagNoSuggestions;
