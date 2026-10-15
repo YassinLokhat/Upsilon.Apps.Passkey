@@ -15,6 +15,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault
       public string Glyph { get; } = glyph;
 
       public string Display => Glyph;
+
+      public override string ToString() => Display;
    }
 
    internal sealed class IdentifierViewModel(IAccount account, IIdentifier identifier, bool isNew = false) : ObservableObject, ILanguageRefreshable
