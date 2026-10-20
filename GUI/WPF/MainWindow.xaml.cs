@@ -238,6 +238,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _viewModel.CredentialsReset -= _viewModel_CredentialsReset;
          _viewModel.ErrorReported -= _viewModel_ErrorReported;
          _viewModel.PropertyChanged -= _viewModel_PropertyChanged;
+         _clearCredentials();
 
          // Closes a half-open vault; an open or a login still running is closed by the ViewModel.
          _viewModel.Reset();

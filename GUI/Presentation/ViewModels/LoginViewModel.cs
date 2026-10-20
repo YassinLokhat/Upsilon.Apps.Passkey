@@ -29,6 +29,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
       private readonly ISessionService _session;
       private readonly LoginIdleTimer _idleTimer;
       private bool _disposed;
+      private bool _vaultOperationRunning;
+      private bool _resetPending;
 
       public LoginViewModel()
       {
@@ -335,6 +337,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          }
 
          IsBusy = true;
+         _vaultOperationRunning = true;
          StatusMessage = Strings.Login_Opening;
          IDatabase? database = null;
          IVaultSource? source = null;
@@ -409,7 +412,14 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
                await source.DisposeAsync().ConfigureAwait(true);
             }
 
+            _vaultOperationRunning = false;
             IsBusy = false;
+         }
+
+         if (_resetPending)
+         {
+            _resetNow();
+            return;
          }
 
          if (DatabaseOpened)
@@ -432,6 +442,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
 
          _idleTimer.Stop();
          IsBusy = true;
+         _vaultOperationRunning = true;
          StatusMessage = Strings.Login_CheckingPasskey;
          try
          {
@@ -440,7 +451,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          catch (CorruptedSourceException ex)
          {
             AppServices.Log.Warn($"Database corrupted during login: {ErrorText.ForLog(ex)}");
-            Reset();
+            _resetNow();
             _reportError(Strings.Title_CorruptedDatabase, Strings.Msg_CorruptedDatabase);
             return false;
          }
@@ -450,12 +461,13 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             or NullValueException)
          {
             AppServices.Log.Warn($"Login failed: {ErrorText.ForLog(ex)}");
-            Reset();
+            _resetNow();
             _reportError(Strings.Title_Error, Strings.Format(nameof(Strings.Login_LoginFailed), ErrorText.Describe(ex)));
             return false;
          }
          finally
          {
+            _vaultOperationRunning = false;
             IsBusy = false;
          }
 
@@ -464,6 +476,12 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          {
             _user = null;
             database.Close();
+            return false;
+         }
+
+         if (_resetPending)
+         {
+            _resetNow();
             return false;
          }
 
@@ -483,9 +501,25 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          return true;
       }
 
-      /// <summary>Closes any open or half-open session and clears the picked vault.</summary>
+      /// <summary>
+      /// Closes any open or half-open session and clears the picked vault. While
+      /// a vault opens or a passkey is checked, the reset runs once that call returns.
+      /// </summary>
       public void Reset()
       {
+         // Closing the database under a running OpenAsync / LoginAsync would race Core on its worker thread.
+         if (_vaultOperationRunning)
+         {
+            _resetPending = true;
+            return;
+         }
+
+         _resetNow();
+      }
+
+      private void _resetNow()
+      {
+         _resetPending = false;
          IDatabase? database = _database;
          _clearSessionState();
          _pickedVault = null;

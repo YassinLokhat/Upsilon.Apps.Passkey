@@ -473,7 +473,7 @@ namespace UnitTests.Presentation
          FakeDialogService dialogs = _configureHost(UnitTestsHelper.ComputeDatabaseFileDirectory(testName));
 
          LoginViewModel opening = new();
-         AppServices.VaultSources = new DisposingVaultSourceFactory(opening);
+         AppServices.VaultSources = new InterruptingVaultSourceFactory(opening.Dispose);
          await opening.SubmitUsernameAsync(testName);
          _ = opening.DatabaseOpened.Should().BeFalse();
 
@@ -505,13 +505,67 @@ namespace UnitTests.Presentation
          UnitTestsHelper.ClearTestEnvironment(testName);
       }
 
-      private sealed class DisposingVaultSourceFactory(LoginViewModel viewModel) : IVaultSourceFactory
+      [TestMethod]
+      /*
+       * A reset requested while the vault is opening, or during the last
+       * passkey, waits for Core to return, then closes the vault and clears
+       * the credentials instead of racing the open or the login.
+      */
+      public async Task Case15_ResetDuringOpenOrLogin_RunsOnceTheCallReturns()
+      {
+         string testName = nameof(Case15_ResetDuringOpenOrLogin_RunsOnceTheCallReturns);
+         UnitTestsHelper.ClearTestEnvironment(testName);
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase previous = UnitTestsHelper.CreateTestDatabase(passkeys, testName);
+         _ = previous.User!.AddService("PendingService");
+         previous.Close();
+         FakeDialogService dialogs = _configureHost(UnitTestsHelper.ComputeDatabaseFileDirectory(testName));
+
+         using LoginViewModel opening = new();
+         int resets = 0;
+         opening.CredentialsReset += (_, _) => resets++;
+         AppServices.VaultSources = new InterruptingVaultSourceFactory(opening.Reset);
+         await opening.SubmitUsernameAsync(testName);
+         _ = opening.DatabaseOpened.Should().BeFalse();
+         _ = opening.IsBusy.Should().BeFalse();
+         _ = resets.Should().Be(1);
+
+         AppServices.VaultSources = new PathVaultSourceFactory();
+         using LoginViewModel loggingIn = new();
+         int loggedIn = 0;
+         loggingIn.LoggedIn += (_, _) => loggedIn++;
+         await loggingIn.SubmitUsernameAsync(testName);
+         _ = loggingIn.DatabaseOpened.Should().BeTrue("the reset open released the vault");
+
+         dialogs.Confirming = loggingIn.Reset;
+         bool result = false;
+         foreach (string passkey in passkeys)
+         {
+            result = await loggingIn.SubmitPasskeyAsync(passkey);
+         }
+
+         _ = result.Should().BeFalse();
+         _ = loggedIn.Should().Be(0);
+         _ = loggingIn.IsLoggedIn.Should().BeFalse();
+         _ = loggingIn.DatabaseOpened.Should().BeFalse();
+         _ = AppServices.Session.Database.Should().BeNull();
+
+         dialogs.Confirming = null;
+         using LoginViewModel again = new();
+         await again.SubmitUsernameAsync(testName);
+         _ = again.DatabaseOpened.Should().BeTrue("the reset login closed the vault");
+
+         again.Reset();
+         UnitTestsHelper.ClearTestEnvironment(testName);
+      }
+
+      private sealed class InterruptingVaultSourceFactory(Action interrupt) : IVaultSourceFactory
       {
          private readonly PathVaultSourceFactory _inner = new();
 
          public Task<IVaultSource> OpenPathAsync(string path, CancellationToken cancellationToken = default)
          {
-            viewModel.Dispose();
+            interrupt();
             return _inner.OpenPathAsync(path, cancellationToken);
          }
 
