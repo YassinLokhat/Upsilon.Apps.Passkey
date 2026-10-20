@@ -4,7 +4,7 @@
     "interfaces": {
       "id": "Upsilon.Apps.Passkey.Interfaces",
       "project": "Interfaces/Upsilon.Apps.Passkey.Interfaces.csproj",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "kind": "library",
       "ship": true,
       "tagPrefix": "interfaces",
@@ -24,39 +24,39 @@
     "core": {
       "id": "Upsilon.Apps.Passkey.Core",
       "project": "Core/Upsilon.Apps.Passkey.Core.csproj",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "kind": "library",
       "ship": true,
       "tagPrefix": "core",
       "dependencies": {
-        "interfaces": "[2.0.0,3.0.0)"
+        "interfaces": "[2.1.0,3.0.0)"
       }
     },
     "presentation": {
       "id": "Upsilon.Apps.Passkey.GUI.Presentation",
       "project": "GUI/Presentation/Upsilon.Apps.Passkey.GUI.Presentation.csproj",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "kind": "library",
       "ship": false,
       "tagPrefix": "presentation",
       "dependencies": {
-        "core": "[2.0.0,3.0.0)",
+        "core": "[2.1.0,3.0.0)",
         "utils": "[2.0.0,3.0.0)"
       }
     },
     "wpf": {
       "id": "Upsilon.Apps.Passkey.GUI.WPF",
       "project": "GUI/WPF/Upsilon.Apps.Passkey.GUI.WPF.csproj",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "kind": "app",
       "ship": true,
       "tagPrefix": "wpf",
       "assetStem": "Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64",
       "publishDir": "GUI/WPF/bin/Release/net10.0-windows10.0.18362.0/publish/win-x64",
       "dependencies": {
-        "core": "[2.0.0,3.0.0)",
+        "core": "[2.1.0,3.0.0)",
         "utils": "[2.0.0,3.0.0)",
-        "presentation": "[2.0.0,3.0.0)"
+        "presentation": "[2.1.0,3.0.0)"
       }
     },
     "maui": {
@@ -69,9 +69,9 @@
       "assetStem": "Upsilon.Apps.Passkey.GUI.MAUI-{version}",
       "publishDir": "GUI/MAUI/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish",
       "dependencies": {
-        "core": "[2.0.0,3.0.0)",
+        "core": "[2.1.0,3.0.0)",
         "utils": "[2.0.0,3.0.0)",
-        "presentation": "[2.0.0,3.0.0)"
+        "presentation": "[2.1.0,3.0.0)"
       }
     },
     "unitTestsMultiplateform": {
