@@ -107,8 +107,26 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
       }
 
-      private void _viewButton_MouseDown(object sender, MouseButtonEventArgs e) => _secret.Reveal();
+      // Left button only: the button captures it, so the release always comes back here.
+      private void _viewButton_MouseDown(object sender, MouseButtonEventArgs e)
+      {
+         if (e.ChangedButton == MouseButton.Left)
+         {
+            _secret.Reveal();
+         }
+      }
 
       private void _viewButton_MouseUp(object sender, MouseButtonEventArgs e) => _secret.Mask();
+
+      // Alt+Tab or a modal steals the capture before the release arrives.
+      private void _viewButton_LostMouseCapture(object sender, MouseEventArgs e) => _secret.Mask();
+
+      private void _root_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+      {
+         if (!(bool)e.NewValue)
+         {
+            _secret.Mask();
+         }
+      }
    }
 }
