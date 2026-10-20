@@ -2,7 +2,7 @@
 
 WPF and MAUI are both kept and keep evolving. Their logic is shared through `GUI/Presentation`, so a fix there reaches both clients. A new feature ships in both hosts, or the gap is listed on this page.
 
-MAUI is a **preview** until the manual smoke list below passes on Windows and Android. `[x]` implemented, `[~]` partial (detail in the cell), `n/a` not applicable on that platform.
+MAUI ships alongside WPF; the manual smoke list below must pass on Windows and Android before each `maui-v*` tag. `[x]` implemented, `[~]` partial (detail in the cell), `n/a` not applicable on that platform.
 
 ## Host shell
 
@@ -65,4 +65,4 @@ Adapt the README WPF smoke list:
 
 ## Shipping MAUI
 
-MAUI stays `ship: false` in `versions.json` until the smoke list passes on Windows and Android. `GUI/WPF` is not retired: both clients remain supported. WPF keeps several top-level windows where MAUI uses modal pages.
+MAUI is `ship: true` in `versions.json`. A `maui-v*` tag publishes the Windows zip and the signed Android APK (see [[Testing and CI]]); run the smoke list on Windows and Android first. `GUI/WPF` is not retired: both clients remain supported. WPF keeps several top-level windows where MAUI uses modal pages.

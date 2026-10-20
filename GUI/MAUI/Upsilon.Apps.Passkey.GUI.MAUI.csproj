@@ -22,7 +22,7 @@
     <AssemblyVersion>2.0.0</AssemblyVersion>
     <FileVersion>2.0.0</FileVersion>
     <ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
-    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationVersion>2000000</ApplicationVersion>
 
     <!-- Unpackaged Windows host (zip distribution, same model as WPF). -->
     <WindowsPackageType>None</WindowsPackageType>

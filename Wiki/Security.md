@@ -8,18 +8,19 @@ Related: [[Vault Format]], [[Threat Model]], [[Alerts and Activity]].
 
 Each component is versioned **independently**. Security fixes apply to the latest released version of each component only.
 
-<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.Utils` is on **2.0.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Interfaces` are on **2.1.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
+<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.GUI.MAUI` and `Upsilon.Apps.Passkey.Utils` are on **2.0.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Interfaces` are on **2.1.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
 
 <!-- BEGIN:versions-supported-table -->
 | Component (assembly) | Supported version | Supported |
 | -------------------- | ----------------- | --------- |
 | `Upsilon.Apps.Passkey.GUI.WPF` | 2.1.x | Yes |
+| `Upsilon.Apps.Passkey.GUI.MAUI` | 2.0.x | Yes |
 | `Upsilon.Apps.Passkey.Core` | 2.1.x | Yes |
 | `Upsilon.Apps.Passkey.Utils` | 2.0.x | Yes |
 | `Upsilon.Apps.Passkey.Interfaces` | 2.1.x | Yes |
 <!-- END:versions-supported-table -->
 
-Any version older than the latest release of a given component is not supported. Source of truth: [`versions.json`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/versions.json). The MAUI client (`Upsilon.Apps.Passkey.GUI.MAUI`, Windows and Android) is a preview with no release yet, so it has no supported version; report its vulnerabilities through the same private channels.
+Any version older than the latest release of a given component is not supported. Source of truth: [`versions.json`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/versions.json). The MAUI client (`Upsilon.Apps.Passkey.GUI.MAUI`) ships one release with a Windows zip and an Android APK; both builds share its version.
 
 ## Reporting a vulnerability
 
@@ -75,7 +76,7 @@ Combined with the expensive PBKDF2 stretch on every attempt, an interactive gues
 * **Service URL storage (Core)**: absolute URIs that are not `http`/`https` are refused (`ServiceUrlHelper`). Relative values may still be stored while typing; shell open re-validates.
 * **Credential confirmation (both clients)**: create vault, or save a username/passkey change, asks the user to re-type credentials (shared `CredentialsConfirmationViewModel`, which keeps the expected factors only as HMAC-SHA256 digests). Updates that change credentials require **old then new**. Vault **Delete** and opening **User Settings** require **old** credentials. **Export** does **not** re-prompt for credentials (they were already confirmed to open User Settings) but shows an explicit **plaintext warning** before writing JSON/CSV. Progressive entry **without rollback**, deliberately matching login: a mistype **intentionally poisons** the in-dialog sequence until Escape (WPF) or Reset (MAUI) (not a dialog bug). Closing the dialog cancels the action. WPF passkey input uses `SecurePassword` / `UseAsString` like login; MAUI reads the Entry once and clears it. Host-side intentionality / anti-mistype — not a crypto step-up; Core still allows writing `IUser.Username` / `IUser.Passkeys` without it. Details: [[WPF Client]], [[MAUI Client]].
 
-## Android (MAUI preview)
+## Android (MAUI)
 
 * **Vault documents**: a `.pku` picked through the system file picker (SAF) is copied to app-private, non-backed-up storage; Core works on that copy and the write-back re-hashes the source first, so an external change is never overwritten silently (one conflict copy per session instead). App backup is disabled.
 * **Background**: half-open login fields are cleared, revealed secrets are masked again and the QR code page closes as soon as the app leaves the foreground; on return after `BackgroundLockSeconds` (default 30) the open vault is closed at once. Windows has no background lock.

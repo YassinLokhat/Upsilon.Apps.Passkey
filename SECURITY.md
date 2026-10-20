@@ -11,7 +11,7 @@ protects data and how to report a problem.
 Each component is versioned **independently** and may evolve at its own pace.
 Security fixes are applied to the latest released version of each component only,
 so please always upgrade to the most recent release before reporting an issue.
-<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.Utils` is on **2.0.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Interfaces` are on **2.1.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
+<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.GUI.MAUI` and `Upsilon.Apps.Passkey.Utils` are on **2.0.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Interfaces` are on **2.1.x**. Each assembly is versioned independently and may diverge.<!-- END:versions-summary -->
 
 Versions and dependency ranges are maintained in [`versions.json`](versions.json).
 
@@ -19,15 +19,15 @@ Versions and dependency ranges are maintained in [`versions.json`](versions.json
 | Component (assembly)                  | Supported version | Supported          |
 | ------------------------------------- | ----------------- | ------------------ |
 | `Upsilon.Apps.Passkey.GUI.WPF` (app)  | 2.1.x             | :white_check_mark: |
+| `Upsilon.Apps.Passkey.GUI.MAUI` (app) | 2.0.x             | :white_check_mark: |
 | `Upsilon.Apps.Passkey.Core`           | 2.1.x             | :white_check_mark: |
 | `Upsilon.Apps.Passkey.Utils`          | 2.0.x             | :white_check_mark: |
 | `Upsilon.Apps.Passkey.Interfaces`     | 2.1.x             | :white_check_mark: |
 <!-- END:versions-supported-table -->
 
 Any version older than the latest release of a given component is not supported.
-The MAUI client (`Upsilon.Apps.Passkey.GUI.MAUI`, Windows and Android) is a
-preview with no release yet, so it has no supported version; report its
-vulnerabilities through the same private channels.
+The MAUI client (`Upsilon.Apps.Passkey.GUI.MAUI`) ships one release with a Windows
+zip and an Android APK; both builds share its version.
 
 ## Reporting a Vulnerability
 
@@ -583,11 +583,10 @@ These are conscious trade-offs, documented for transparency:
   runs are released at startup.
 - **Vault file names**: a vault file is named after the unsalted hash of its
   username, so file listings and cloud metadata reveal that hash.
-- **MAUI client status**: the MAUI client is a preview (login, vault editor,
-  tools, alerts and settings) and is not shipped yet. WPF is not being retired:
-  it remains the supported Windows client, and both clients open the same
-  `.pku` files. Report MAUI vulnerabilities through the same private channels;
-  fixes land in the shared Presentation layer when possible.
+- **Two clients**: WPF (Windows) and MAUI (Windows and Android) are both
+  supported and open the same `.pku` files; WPF is not being retired. Report
+  vulnerabilities in either client through the same private channels; fixes
+  land in the shared Presentation layer when possible.
 
 ## Reporting Non-Security Bugs
 

@@ -147,7 +147,18 @@ Edit that file, then sync the tree and (optionally) publish locally:
 
 # Sync + publish every shippable package into .\_artifacts (replaces publish.bat)
 .\scripts\Sync-Versions.ps1
+
+# Same, without signing the MAUI Android APK (no release keystore at hand)
+.\scripts\Sync-Versions.ps1 -SkipAndroid
 ```
+
+Publishing MAUI needs the `maui-windows` and `maui-android` workloads. It
+produces `Upsilon.Apps.Passkey.GUI.MAUI-{version}-win-x64.zip` and a signed
+`Upsilon.Apps.Passkey.GUI.MAUI-{version}-android.apk`. To sign the APK, pass
+`-AndroidKeyStore` and `-AndroidKeyAlias` (or set `PASSKEY_ANDROID_KEYSTORE` and
+`PASSKEY_ANDROID_KEY_ALIAS`). Put the passwords in `PASSKEY_ANDROID_STORE_PASS`
+and `PASSKEY_ANDROID_KEY_PASS`; the script never takes them as arguments. The
+Android `versionCode` is derived from the version (`major * 1000000 + minor * 1000 + patch`).
 
 Commit the synced `.csproj` / docs, merge to `master`, wait for CI, then push a
 **per-component** tag for each package you intend to ship:
@@ -155,23 +166,29 @@ Commit the synced `.csproj` / docs, merge to `master`, wait for CI, then push a
 ```bash
 git checkout master
 git pull
-git tag utils-v1.1.0
-git tag core-v1.1.0
-git tag wpf-v1.1.0
-git push origin utils-v1.1.0 core-v1.1.0 wpf-v1.1.0
+git tag core-v2.1.0
+git tag wpf-v2.1.0
+git tag maui-v2.0.0
+git push origin core-v2.1.0 wpf-v2.1.0 maui-v2.0.0
 ```
 
 Do **not** bump or tag a package whose public surface did not change (for example
-leave `interfaces` at `1.0.0` if Interfaces is unchanged).
+leave `utils` at its current version if Utils is unchanged).
 
-There is currently **no** automated `release.yml` workflow in this repository.
-Publish GitHub Releases manually after tagging (attach `.nupkg` / `.sha256` for
-libraries and `Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64.zip` (+ `.sha256`)
-for the WPF client, with dependency notes from `versions.json` as needed).
+Each tag triggers [`release.yml`](.github/workflows/release.yml). It checks that
+the tag matches `versions.json`, builds and tests `Upsilon.Apps.Passkey.Windows.slnx`,
+publishes the package with `Sync-Versions.ps1 -PublishOnly` and creates the GitHub
+Release with the `.nupkg`, `.zip` or `.apk` assets, their `.sha256` files and the
+dependency notes. `maui-v*` tags run in the protected `android-release`
+environment, which must hold `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
+`ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`.
 
-Use a prerelease suffix (`wpf-v1.1.0-rc.1`) when marking a GitHub Release as a
-prerelease. Prefer component tags (`interfaces-v*`, `utils-v*`, `core-v*`,
-`wpf-v*`). Do not retag an existing version.
+Before tagging MAUI, run the manual smoke list in
+[Wiki/MAUI-Parity-Checklist.md](Wiki/MAUI-Parity-Checklist.md) on Windows and Android.
+
+Use a prerelease suffix (`wpf-v1.1.0-rc.1`) to mark a GitHub Release as a
+prerelease. Tags are `interfaces-v*`, `utils-v*`, `core-v*`, `wpf-v*` and
+`maui-v*`. Do not retag an existing version.
 
 CI runs `.\scripts\Sync-Versions.ps1 -Check` so `versions.json`, `.csproj`, and
 docs stay aligned.

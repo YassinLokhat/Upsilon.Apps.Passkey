@@ -7,10 +7,16 @@
   versions.json is the single source of truth for component versions and dependency
   ranges. This script:
 
-  - Writes Version / AssemblyVersion / FileVersion into each .csproj
+  - Writes Version / AssemblyVersion / FileVersion into each .csproj (plus the MAUI
+    ApplicationDisplayVersion and Android ApplicationVersion code)
   - Refreshes version tables / overview snippets in docs (marked regions)
-  - Packs libraries and publishes the WPF client into ./_artifacts (replaces publish.bat)
+  - Packs libraries and publishes the WPF and MAUI clients into ./_artifacts (replaces publish.bat)
   - Can run in -Check mode for CI (fail if csproj/docs drift from the JSON)
+
+  The MAUI Android APK is signed with the release keystore: pass -AndroidKeyStore and
+  -AndroidKeyAlias (or set PASSKEY_ANDROID_KEYSTORE / PASSKEY_ANDROID_KEY_ALIAS) and put
+  the passwords in PASSKEY_ANDROID_STORE_PASS / PASSKEY_ANDROID_KEY_PASS. Use -SkipAndroid
+  to publish only the Windows zip.
 
 .PARAMETER Check
   Verify csproj + docs match versions.json and that dependency ranges hold. Exit 1 on drift.
@@ -22,10 +28,19 @@
   Publish without syncing (assumes csproj already match the JSON).
 
 .PARAMETER Package
-  Optional package key (interfaces, utils, core, wpf). When set, only that package is published.
+  Optional package key (interfaces, utils, core, wpf, maui). When set, only that package is published.
 
 .PARAMETER ArtifactsDir
-  Output directory for nupkg / zip / checksums / notes (default: _artifacts).
+  Output directory for nupkg / zip / apk / checksums / notes (default: _artifacts).
+
+.PARAMETER AndroidKeyStore
+  Release keystore used to sign the MAUI Android APK (default: $env:PASSKEY_ANDROID_KEYSTORE).
+
+.PARAMETER AndroidKeyAlias
+  Key alias inside the release keystore (default: $env:PASSKEY_ANDROID_KEY_ALIAS).
+
+.PARAMETER SkipAndroid
+  Publish the MAUI Windows zip only.
 
 .EXAMPLE
   .\scripts\Sync-Versions.ps1
@@ -45,7 +60,10 @@ param(
    [switch]$SyncOnly,
    [switch]$PublishOnly,
    [string]$Package,
-   [string]$ArtifactsDir = "_artifacts"
+   [string]$ArtifactsDir = "_artifacts",
+   [string]$AndroidKeyStore = $env:PASSKEY_ANDROID_KEYSTORE,
+   [string]$AndroidKeyAlias = $env:PASSKEY_ANDROID_KEY_ALIAS,
+   [switch]$SkipAndroid
 )
 
 Set-StrictMode -Version Latest
@@ -68,6 +86,16 @@ function Get-NumericVersion([string]$Version) {
    }
 
    return $Matches[1]
+}
+
+# Android versionCode must grow with every release: major.minor.patch -> MMMmmmppp without leading zeros.
+function Get-AndroidVersionCode([string]$Version) {
+   $v = ConvertTo-VersionObject $Version
+   if ($v.Minor -gt 999 -or $v.Patch -gt 999) {
+      throw "Version '$Version' does not fit the Android versionCode scheme (minor and patch must be below 1000)."
+   }
+
+   return [string]($v.Major * 1000000 + $v.Minor * 1000 + $v.Patch)
 }
 
 function Get-SupportLine([string]$Version) {
@@ -137,7 +165,18 @@ function Get-CsprojVersions([string]$ProjectPath) {
       Version = [string]$pg.Version
       AssemblyVersion = [string]$pg.AssemblyVersion
       FileVersion = [string]$pg.FileVersion
+      ApplicationDisplayVersion = Get-XmlChildText $pg "ApplicationDisplayVersion"
+      ApplicationVersion = Get-XmlChildText $pg "ApplicationVersion"
    }
+}
+
+function Get-XmlChildText($Node, [string]$Name) {
+   $child = $Node.SelectSingleNode($Name)
+   if ($null -eq $child) {
+      return ""
+   }
+
+   return [string]$child.InnerText
 }
 
 function Set-CsprojVersions([string]$ProjectPath, [string]$Version) {
@@ -151,6 +190,8 @@ function Set-CsprojVersions([string]$ProjectPath, [string]$Version) {
    $content = [regex]::Replace($content, '<Version>[^<]*</Version>', "<Version>$Version</Version>")
    $content = [regex]::Replace($content, '<AssemblyVersion>[^<]*</AssemblyVersion>', "<AssemblyVersion>$numeric</AssemblyVersion>")
    $content = [regex]::Replace($content, '<FileVersion>[^<]*</FileVersion>', "<FileVersion>$numeric</FileVersion>")
+   $content = [regex]::Replace($content, '<ApplicationDisplayVersion>[^<]*</ApplicationDisplayVersion>', "<ApplicationDisplayVersion>$numeric</ApplicationDisplayVersion>")
+   $content = [regex]::Replace($content, '<ApplicationVersion>[^<]*</ApplicationVersion>', "<ApplicationVersion>$(Get-AndroidVersionCode $Version)</ApplicationVersion>")
    Write-Utf8File -Path $ProjectPath -Content $content
 }
 
@@ -193,9 +234,10 @@ function Get-MarkedRegion([string]$Path, [string]$Name) {
 function Get-PackageSortRank([string]$Key) {
    switch ($Key) {
       "wpf" { return 0 }
-      "core" { return 1 }
-      "utils" { return 2 }
-      "interfaces" { return 3 }
+      "maui" { return 1 }
+      "core" { return 2 }
+      "utils" { return 3 }
+      "interfaces" { return 4 }
       default { return 100 }
    }
 }
@@ -260,7 +302,7 @@ function Build-SecurityTableMarkdown($Manifest, [string]$Style) {
       $lines.Add("| ------------------------------------- | ----------------- | ------------------ |")
       foreach ($entry in $shipped) {
          $id = $entry.Package.id
-         $label = if ($entry.Key -eq "wpf") { "``$id`` (app)" } else { "``$id``" }
+         $label = if ($entry.Package.kind -eq "app") { "``$id`` (app)" } else { "``$id``" }
          $line = Get-SupportLine $entry.Package.version
          $lines.Add("| $($label.PadRight(37)) | $($line.PadRight(17)) | :white_check_mark: |")
       }
@@ -361,6 +403,13 @@ function Test-TreeMatchesManifest($Manifest) {
       if ($current.FileVersion -ne $expectedNumeric) {
          $errors.Add("$($pkg.project): FileVersion is '$($current.FileVersion)' but expected '$expectedNumeric'.")
       }
+      if ($current.ApplicationDisplayVersion -and $current.ApplicationDisplayVersion -ne $expectedNumeric) {
+         $errors.Add("$($pkg.project): ApplicationDisplayVersion is '$($current.ApplicationDisplayVersion)' but expected '$expectedNumeric'.")
+      }
+      $expectedCode = Get-AndroidVersionCode ([string]$pkg.version)
+      if ($current.ApplicationVersion -and $current.ApplicationVersion -ne $expectedCode) {
+         $errors.Add("$($pkg.project): ApplicationVersion is '$($current.ApplicationVersion)' but expected '$expectedCode'.")
+      }
    }
 
    $overview = Get-OverviewVersion $Manifest
@@ -415,13 +464,21 @@ function New-Sha256Sidecar([string]$FilePath) {
    return $hash
 }
 
-function Build-ReleaseNotes($Manifest, [string]$PackageKey, [string]$Hash, [string]$AssetName) {
+function New-ReleaseAsset([string]$Name, [string]$Hash) {
+   return [pscustomobject]@{ Name = $Name; Hash = $Hash }
+}
+
+function Build-ReleaseNotes($Manifest, [string]$PackageKey, [object[]]$Assets) {
    $pkg = $Manifest.packages.$PackageKey
    $lines = New-Object System.Collections.Generic.List[string]
    $lines.Add("## $($pkg.id) $([string]$pkg.version)")
    $lines.Add("")
 
-   if ($pkg.kind -eq "app") {
+   if ($PackageKey -eq "maui") {
+      $lines.Add("Windows x64 client (unpackaged zip, .NET 10 and the Windows App SDK bundled; Windows 10 1809 / build 17763 or later) and Android APK (Android 10 / API 29 or later), signed with the release key. Both open the same .pku vaults; the offline leak database (.pkbf) is Windows only.")
+      $lines.Add("")
+   }
+   elseif ($pkg.kind -eq "app") {
       $lines.Add("Self-contained Windows x64 client. The .NET 10 runtime is bundled; Windows 10 (1809 / build 18362) or later is required. No SDK install is needed.")
       $lines.Add("")
    }
@@ -445,9 +502,11 @@ function Build-ReleaseNotes($Manifest, [string]$PackageKey, [string]$Hash, [stri
    $lines.Add("")
    $lines.Add("### Assets")
    $lines.Add("")
-   $lines.Add("- ``$AssetName``")
-   if (-not [string]::IsNullOrWhiteSpace($Hash)) {
-      $lines.Add("- SHA-256: ``$Hash``")
+   foreach ($asset in $Assets) {
+      $lines.Add("- ``$($asset.Name)``")
+      if (-not [string]::IsNullOrWhiteSpace($asset.Hash)) {
+         $lines.Add("  - SHA-256: ``$($asset.Hash)``")
+      }
    }
 
    return ($lines -join "`n")
@@ -486,63 +545,140 @@ function Publish-LibraryPackage($Manifest, [string]$PackageKey, [string]$OutDir)
 
    $hash = New-Sha256Sidecar $nupkg.FullName
    $notesPath = Join-Path $OutDir "$($pkg.id)-$version-release-notes.md"
-   Write-Utf8File -Path $notesPath -Content (Build-ReleaseNotes $Manifest $PackageKey $hash $nupkg.Name)
+   Write-Utf8File -Path $notesPath -Content (Build-ReleaseNotes $Manifest $PackageKey @(New-ReleaseAsset $nupkg.Name $hash))
    Write-Host "  -> $($nupkg.FullName)"
+}
+
+function Get-VersionArguments([string]$Version) {
+   $numeric = Get-NumericVersion $Version
+   return @(
+      "-p:Version=$Version",
+      "-p:AssemblyVersion=$numeric",
+      "-p:FileVersion=$numeric",
+      "-p:InformationalVersion=$Version"
+   )
+}
+
+function Invoke-DotnetPublish([string]$PackageId, [string[]]$Arguments) {
+   # Out-Host keeps the build log out of the callers' return values.
+   & dotnet publish @Arguments | Out-Host
+   if ($LASTEXITCODE -ne 0) {
+      throw "dotnet publish failed for $PackageId."
+   }
+}
+
+# Zips a Windows publish folder without the sample vault folder and symbols.
+function Compress-WindowsPublishDir([string]$PublishDir, [string]$ZipPath) {
+   if (-not (Test-Path -LiteralPath $PublishDir)) {
+      throw "Publish output was not found at '$PublishDir'."
+   }
+
+   Remove-Item -Path (Join-Path $PublishDir "raw") -Recurse -Force -ErrorAction SilentlyContinue
+   Get-ChildItem -Path $PublishDir -Filter *.pdb -File -ErrorAction SilentlyContinue | Remove-Item -Force
+
+   $exe = Get-ChildItem -Path $PublishDir -Filter *.exe -File | Select-Object -First 1
+   if ($null -eq $exe) {
+      throw "No executable was produced in '$PublishDir'."
+   }
+
+   if (Test-Path -LiteralPath $ZipPath) {
+      Remove-Item -LiteralPath $ZipPath -Force
+   }
+
+   $staging = Join-Path ([System.IO.Path]::GetTempPath()) ("passkey-publish-" + [guid]::NewGuid().ToString("n"))
+   New-Item -ItemType Directory -Path $staging | Out-Null
+   try {
+      Copy-Item -Path (Join-Path $PublishDir "*") -Destination $staging -Recurse
+      Compress-Archive -Path (Join-Path $staging "*") -DestinationPath $ZipPath -CompressionLevel Optimal
+   }
+   finally {
+      Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
+   }
+
+   return New-Sha256Sidecar $ZipPath
 }
 
 function Publish-WpfPackage($Manifest, [string]$PackageKey, [string]$OutDir) {
    $pkg = $Manifest.packages.$PackageKey
    $projectPath = Join-Path $RepoRoot $pkg.project
    $version = [string]$pkg.version
-   $numeric = Get-NumericVersion $version
 
    Write-Host "Publishing $($pkg.id) $version ..."
-   & dotnet publish $projectPath `
-      --configuration Release `
-      -r win-x64 `
-      "-p:PublishProfile=FolderProfile" `
-      "-p:Version=$version" `
-      "-p:AssemblyVersion=$numeric" `
-      "-p:FileVersion=$numeric" `
-      "-p:InformationalVersion=$version"
-   if ($LASTEXITCODE -ne 0) {
-      throw "dotnet publish failed for $($pkg.id)."
-   }
+   Invoke-DotnetPublish $pkg.id (@($projectPath, "--configuration", "Release", "-r", "win-x64", "-p:PublishProfile=FolderProfile") + (Get-VersionArguments $version))
 
-   $publishDir = Join-Path $RepoRoot ([string]$pkg.publishDir)
-   if (-not (Test-Path -LiteralPath $publishDir)) {
-      throw "Publish output was not found at '$publishDir'."
-   }
-
-   Remove-Item -Path (Join-Path $publishDir "raw") -Recurse -Force -ErrorAction SilentlyContinue
-   Get-ChildItem -Path $publishDir -Filter *.pdb -File -ErrorAction SilentlyContinue | Remove-Item -Force
-
-   $exe = Get-ChildItem -Path $publishDir -Filter *.exe -File | Select-Object -First 1
-   if ($null -eq $exe) {
-      throw "No executable was produced in '$publishDir'."
-   }
-
-   $stem = Resolve-AssetStem $pkg $version
-   $zipName = "$stem.zip"
+   $zipName = "$(Resolve-AssetStem $pkg $version).zip"
    $zipPath = Join-Path $OutDir $zipName
-   if (Test-Path -LiteralPath $zipPath) {
-      Remove-Item -LiteralPath $zipPath -Force
-   }
+   $hash = Compress-WindowsPublishDir (Join-Path $RepoRoot ([string]$pkg.publishDir)) $zipPath
 
-   $staging = Join-Path ([System.IO.Path]::GetTempPath()) ("passkey-publish-" + [guid]::NewGuid().ToString("n"))
-   New-Item -ItemType Directory -Path $staging | Out-Null
-   try {
-      Copy-Item -Path (Join-Path $publishDir "*") -Destination $staging -Recurse
-      Compress-Archive -Path (Join-Path $staging "*") -DestinationPath $zipPath -CompressionLevel Optimal
-   }
-   finally {
-      Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
-   }
-
-   $hash = New-Sha256Sidecar $zipPath
    $notesPath = Join-Path $OutDir "$($pkg.id)-$version-release-notes.md"
-   Write-Utf8File -Path $notesPath -Content (Build-ReleaseNotes $Manifest $PackageKey $hash $zipName)
+   Write-Utf8File -Path $notesPath -Content (Build-ReleaseNotes $Manifest $PackageKey @(New-ReleaseAsset $zipName $hash))
    Write-Host "  -> $zipPath"
+}
+
+function Publish-MauiAndroid($Package, [string]$ProjectPath, [string]$Version, [string]$OutDir) {
+   if ([string]::IsNullOrWhiteSpace($AndroidKeyStore) -or [string]::IsNullOrWhiteSpace($AndroidKeyAlias)) {
+      throw "Signing the Android APK needs -AndroidKeyStore and -AndroidKeyAlias (or PASSKEY_ANDROID_KEYSTORE / PASSKEY_ANDROID_KEY_ALIAS). Use -SkipAndroid to publish the Windows zip only."
+   }
+   if (-not (Test-Path -LiteralPath $AndroidKeyStore)) {
+      throw "Android keystore '$AndroidKeyStore' was not found."
+   }
+   foreach ($name in @("PASSKEY_ANDROID_STORE_PASS", "PASSKEY_ANDROID_KEY_PASS")) {
+      if ([string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($name))) {
+         throw "Set $name before publishing the Android APK; passwords are never passed on the command line."
+      }
+   }
+
+   $androidTfm = "net10.0-android"
+   Write-Host "Publishing $($Package.id) $Version ($androidTfm) ..."
+   Invoke-DotnetPublish $Package.id (@(
+         $ProjectPath, "--configuration", "Release", "-f", $androidTfm, "-p:RestoreLockedMode=true",
+         "-p:AndroidPackageFormats=apk",
+         "-p:AndroidKeyStore=true",
+         "-p:AndroidSigningKeyStore=$((Resolve-Path -LiteralPath $AndroidKeyStore).Path)",
+         "-p:AndroidSigningKeyAlias=$AndroidKeyAlias",
+         "-p:AndroidSigningStorePass=env:PASSKEY_ANDROID_STORE_PASS",
+         "-p:AndroidSigningKeyPass=env:PASSKEY_ANDROID_KEY_PASS"
+      ) + (Get-VersionArguments $Version))
+
+   $androidPublishDir = Join-Path (Split-Path -Parent $ProjectPath) "bin/Release/$androidTfm/publish"
+   $apk = Get-ChildItem -Path $androidPublishDir -Filter *-Signed.apk -File -ErrorAction SilentlyContinue | Select-Object -First 1
+   if ($null -eq $apk) {
+      throw "No signed APK was produced in '$androidPublishDir'."
+   }
+
+   $apkName = "$(Resolve-AssetStem $Package $Version)-android.apk"
+   $apkPath = Join-Path $OutDir $apkName
+   Copy-Item -LiteralPath $apk.FullName -Destination $apkPath -Force
+   Write-Host "  -> $apkPath"
+   return New-ReleaseAsset $apkName (New-Sha256Sidecar $apkPath)
+}
+
+function Publish-MauiPackage($Manifest, [string]$PackageKey, [string]$OutDir) {
+   $pkg = $Manifest.packages.$PackageKey
+   $projectPath = Join-Path $RepoRoot $pkg.project
+   $version = [string]$pkg.version
+   $assets = New-Object System.Collections.Generic.List[object]
+
+   # -r would also reach the Android target during restore; RuntimeIdentifierOverride only
+   # reaches the Windows one. Locked mode fails instead of rewriting packages.lock.json.
+   $windowsTfm = "net10.0-windows10.0.19041.0"
+   Write-Host "Publishing $($pkg.id) $version ($windowsTfm) ..."
+   Invoke-DotnetPublish $pkg.id (@($projectPath, "--configuration", "Release", "-f", $windowsTfm, "-p:RuntimeIdentifierOverride=win-x64", "-p:SelfContained=true", "-p:RestoreLockedMode=true") + (Get-VersionArguments $version))
+
+   $zipName = "$(Resolve-AssetStem $pkg $version)-win-x64.zip"
+   $zipPath = Join-Path $OutDir $zipName
+   $assets.Add((New-ReleaseAsset $zipName (Compress-WindowsPublishDir (Join-Path $RepoRoot ([string]$pkg.publishDir)) $zipPath)))
+   Write-Host "  -> $zipPath"
+
+   if ($SkipAndroid) {
+      Write-Host "  Android APK skipped (-SkipAndroid)." -ForegroundColor Yellow
+   }
+   else {
+      $assets.Add((Publish-MauiAndroid $pkg $projectPath $version $OutDir))
+   }
+
+   $notesPath = Join-Path $OutDir "$($pkg.id)-$version-release-notes.md"
+   Write-Utf8File -Path $notesPath -Content (Build-ReleaseNotes $Manifest $PackageKey $assets.ToArray())
 }
 
 function Publish-Packages($Manifest, [string]$OutDir, [string]$OnlyKey) {
@@ -559,7 +695,10 @@ function Publish-Packages($Manifest, [string]$OutDir, [string]$OnlyKey) {
    foreach ($entry in $targets) {
       switch ([string]$entry.Package.kind) {
          "library" { Publish-LibraryPackage $Manifest $entry.Key $OutDir }
-         "app" { Publish-WpfPackage $Manifest $entry.Key $OutDir }
+         "app" {
+            if ($entry.Key -eq "maui") { Publish-MauiPackage $Manifest $entry.Key $OutDir }
+            else { Publish-WpfPackage $Manifest $entry.Key $OutDir }
+         }
          default { throw "Unknown kind '$($entry.Package.kind)' for '$($entry.Key)'." }
       }
    }

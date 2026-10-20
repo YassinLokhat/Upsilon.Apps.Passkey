@@ -42,4 +42,4 @@ Not run yet: no measurement has been recorded (see [[Spikes-MAUI]]).
 - `GUI/WPF` is kept permanently; it is not retired once MAUI reaches parity. Both clients ship from the same repository and open the same `.pku` files.
 - Shared behaviour lives in `GUI/Presentation` (ViewModels, typed view requests, ports such as `IFileExchange`, `IConflictCopyStore`, `IAppLifecycle`). Hosts only map requests to views and implement ports.
 - Desktop-only features stay in the Windows hosts: several top-level windows are WPF-only, the offline `.pkbf` and keyboard shortcuts are in WPF and MAUI Windows. Android-only protections stay in the MAUI Android host (SAF working copy, background lock, `FLAG_SECURE`).
-- MAUI ships once the manual smoke list in [[MAUI Parity Checklist]] passes; until then `versions.json` keeps `ship: false` for it.
+- MAUI ships as one component (`ship: true`, tag `maui-v*`) with a Windows zip and a signed Android APK; the manual smoke list in [[MAUI Parity Checklist]] gates each tag.
