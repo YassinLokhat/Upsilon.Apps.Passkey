@@ -34,7 +34,7 @@ MAUI ships alongside WPF; the manual smoke list below must pass on Windows and A
 | Services / accounts editor | [x] | [x] master-detail from 800 px wide | [x] list then detail, swipe actions |
 | Vault filters (service, identifier type, identifier, text, unsaved only) | [x] | [x] | [x] |
 | Save, undo / redo | [x] Ctrl+S, Ctrl+Shift+Z, Ctrl+Shift+Y | [x] same shortcuts | [x] toolbar |
-| Password reveal | [x] hold | [x] hold | [x] hold; re-masked on background |
+| Password reveal (shared `SecretField`; hold only, no tap toggle that would leave a secret shown) | [x] hold | [x] hold | [x] hold; re-masked on background |
 | Password history (copy, QR) | [x] | [x] | [x] |
 | User settings (create, save, import, export, delete) | [x] | [x] WinRT pickers | [x] SAF documents, no temp files |
 | Credentials confirmation | [x] Escape resets | [x] Reset button | [x] Reset button |

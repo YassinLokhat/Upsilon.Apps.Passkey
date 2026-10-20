@@ -30,7 +30,7 @@ Parity status: [[MAUI Parity Checklist]]. MAUI covers login, the services and ac
 ## Android security posture
 
 - `FLAG_SECURE` on `MainActivity`, recents screenshot disabled on API 33+ (MAUI alert windows are not covered; they never show secrets)
-- Background lock: `BackgroundLockPolicy` closes an open vault at once on resume after `BackgroundLockSeconds` (default 30); the final write-back runs after the vault is hidden. Revealed passwords and passkeys are re-masked and the QR page closed on background (`BackgroundGuard`). Only Android registers the lifecycle, so Windows hides the setting
+- Background lock: `BackgroundLockPolicy` closes an open vault at once on resume after `BackgroundLockSeconds` (default 30); the final write-back runs after the vault is hidden. Revealed passwords and passkeys (hold-to-reveal, shared `SecretField` through `EntrySecretInput`) are re-masked and the QR page closed on background (`BackgroundGuard`). Only Android registers the lifecycle, so Windows hides the setting
 - Autofill and personalized keyboard learning are disabled on every text field (`PrivateTextInput`), modal pages included
 - Clipboard: copies are marked sensitive; the clip is cleared at the auto-clear deadline and at session end even without focus (`ClearPrimaryClip` on API 33+, an empty clip below), and left alone when the app goes to the background
 - Conflict copies: one per session (later flushes stop after a conflict), at most five per vault, saved out from the login screen through `IConflictCopyStore` + `IFileExchange`

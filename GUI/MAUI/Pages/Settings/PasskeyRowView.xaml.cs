@@ -6,23 +6,20 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Settings
 {
    internal sealed partial class PasskeyRowView : ContentView, ISecretInput
    {
+      private readonly EntrySecretInput _secret;
       private PasskeyEntryViewModel? _entry;
 
       public PasskeyRowView()
       {
          InitializeComponent();
-         BackgroundGuard.Attach(this, () => SecretEntry.IsPassword = true);
+         _secret = new EntrySecretInput(this, SecretEntry);
       }
 
-      public string Read() => SecretEntry.Text ?? string.Empty;
+      public string Read() => _secret.Read();
 
-      public void Write(string secret) => SecretEntry.Text = secret;
+      public void Write(string secret) => _secret.Write(secret);
 
-      public void Clear()
-      {
-         SecretEntry.IsPassword = true;
-         SecretEntry.Text = string.Empty;
-      }
+      public void Clear() => _secret.Clear();
 
       protected override void OnBindingContextChanged()
       {
@@ -36,8 +33,8 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Settings
          _entry?.Attach(this);
       }
 
-      private void _onRevealPressed(object? sender, EventArgs e) => SecretEntry.IsPassword = false;
+      private void _onRevealPressed(object? sender, EventArgs e) => _secret.Field.Reveal();
 
-      private void _onRevealReleased(object? sender, EventArgs e) => SecretEntry.IsPassword = true;
+      private void _onRevealReleased(object? sender, EventArgs e) => _secret.Field.Mask();
    }
 }

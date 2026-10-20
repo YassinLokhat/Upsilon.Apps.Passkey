@@ -2,7 +2,6 @@
 using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using InsertIdentifierViewModel = Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools.InsertIdentifierViewModel;
