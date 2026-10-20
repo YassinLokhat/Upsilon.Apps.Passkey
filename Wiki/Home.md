@@ -2,7 +2,7 @@
 
 A **local-only** password manager written in C# on **.NET 10**. There is no server, no account, and no synchronization: every secret lives in a single encrypted `.pku` file on the user's device.
 
-<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.Utils` is on **2.0.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Interfaces` are on **2.1.x**. Each assembly is versioned independently and may diverge. Always upgrade to the latest release of a component before reporting an issue.<!-- END:versions-summary -->
+<!-- BEGIN:versions-summary -->At the time of writing, `Upsilon.Apps.Passkey.GUI.MAUI` and `Upsilon.Apps.Passkey.Utils` are on **2.0.x**; `Upsilon.Apps.Passkey.GUI.WPF`, `Upsilon.Apps.Passkey.Core` and `Upsilon.Apps.Passkey.Interfaces` are on **2.1.x**. Each assembly is versioned independently and may diverge. Always upgrade to the latest release of a component before reporting an issue.<!-- END:versions-summary -->
 
 ## What it stores
 
@@ -29,7 +29,7 @@ A **local-only** password manager written in C# on **.NET 10**. There is no serv
 | Leak checks | Opt-in Have I Been Pwned, then XposedOrNot failover, then an optional local HIBP Bloom filter (`.pkbf`; k-anonymity / offline) |
 | Import / export | Plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited) |
 | WPF client (Windows) | System / Light / Dark theme, QR codes, copy shortcuts (Ctrl+Shift+L / Ctrl+Shift+P), autosave merge on next login, App Settings for vault folder, login idle timeout, and offline leak DB (scheduled auto-update of an existing `.pkbf`, default every 7 days) |
-| MAUI client (preview) | Same features on Windows and Android over the same vault files; Android opens `.pku` documents through the system picker (conflict copies, background lock, screenshot blocking) and has no offline `.pkbf` |
+| MAUI client | Same features on Windows and Android over the same vault files; Android opens `.pku` documents through the system picker (conflict copies, background lock, screenshot blocking) and has no offline `.pkbf` |
 
 ## Start here
 
@@ -41,7 +41,7 @@ A **local-only** password manager written in C# on **.NET 10**. There is no serv
 | Move data in or out | [[Import Export]] |
 | How `.pku` and cryptography work | [[Vault Format]] and [[Security]] |
 | GUI shortcuts, QR, clipboard | [[WPF Client]] |
-| Build or run the MAUI preview (Windows, Android) | [[MAUI Client]] and [[MAUI Parity Checklist]] |
+| Build or run the MAUI client (Windows, Android) | [[MAUI Client]] and [[MAUI Parity Checklist]] |
 | Alerts and the audit trail | [[Alerts and Activity]] |
 | Tests, coverage, GitHub Actions | [[Testing and CI]] |
 

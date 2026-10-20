@@ -74,13 +74,13 @@ Package versions and dependency ranges live in [`versions.json`](https://github.
 ```bash
 git checkout master
 git pull
-git tag utils-v1.1.0
-git tag core-v1.1.0
-git tag wpf-v1.1.0
-git push origin utils-v1.1.0 core-v1.1.0 wpf-v1.1.0
+git tag core-v2.1.0
+git tag wpf-v2.1.0
+git tag maui-v2.0.0
+git push origin core-v2.1.0 wpf-v2.1.0 maui-v2.0.0
 ```
 
-Do not tag a package that did not change. Local publish of every shippable package: `.\scripts\Sync-Versions.ps1` (writes `_artifacts/`). Details: [[Testing and CI]].
+Each tag triggers `release.yml`, which publishes the GitHub Release. Do not tag a package that did not change, and run the manual smoke list in [[MAUI Parity Checklist]] before a `maui-v*` tag. Local publish of every shippable package: `.\scripts\Sync-Versions.ps1` (writes `_artifacts/`; add `-SkipAndroid` without a release keystore). Details: [[Testing and CI]].
 
 ## Commit messages
 

@@ -1,9 +1,11 @@
 name: Release
 
 # Publish a per-component GitHub Release when a version tag is pushed.
-# Tags: interfaces-v*, utils-v*, core-v*, wpf-v* (legacy v* aliases to wpf).
+# Tags: interfaces-v*, utils-v*, core-v*, wpf-v*, maui-v*.
 # versions.json is the source of truth for versions, dependency ranges, and asset names.
 # Uses only GitHub-owned actions plus the runner's gh CLI (no third-party release action).
+# maui-v* tags run in the protected "android-release" environment, which holds the
+# ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS / ANDROID_KEY_PASSWORD secrets.
 
 on:
   push:
@@ -12,6 +14,7 @@ on:
       - "utils-v*.*.*"
       - "core-v*.*.*"
       - "wpf-v*.*.*"
+      - "maui-v*.*.*"
 
 concurrency:
   group: release-${{ github.ref }}
@@ -23,6 +26,7 @@ permissions:
 jobs:
   release:
     runs-on: windows-2025-vs2026
+    environment: ${{ startsWith(github.ref_name, 'maui-v') && 'android-release' || '' }}
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -42,12 +46,12 @@ jobs:
         $component = $null
         $version = $null
 
-        if ($tag -match '^(interfaces|utils|core|wpf)-v(.+)$') {
+        if ($tag -match '^(interfaces|utils|core|wpf|maui)-v(.+)$') {
           $component = $Matches[1]
           $version = $Matches[2]
         }
         else {
-          Write-Error "Tag '$tag' must look like wpf-v1.2.3 or legacy v1.2.3."
+          Write-Error "Tag '$tag' must look like wpf-v1.2.3 or maui-v1.2.3."
           exit 1
         }
 
@@ -91,10 +95,45 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal Upsilon.Apps.Passkey.Windows.slnx --configuration Release
 
+    - name: Setup JDK 17 (MAUI)
+      if: steps.meta.outputs.component == 'maui'
+      uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+      with:
+        distribution: temurin
+        java-version: "17"
+
+    - name: Install MAUI workloads
+      if: steps.meta.outputs.component == 'maui'
+      run: dotnet workload install maui-windows maui-android --skip-manifest-update
+
+    - name: Decode Android release keystore
+      if: steps.meta.outputs.component == 'maui'
+      shell: pwsh
+      env:
+        ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      run: |
+        if ([string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_BASE64) -or [string]::IsNullOrWhiteSpace($env:ANDROID_KEY_ALIAS)) {
+          Write-Error "ANDROID_KEYSTORE_BASE64 and ANDROID_KEY_ALIAS must be set on the android-release environment."
+          exit 1
+        }
+        $keystore = Join-Path $env:RUNNER_TEMP "passkey-release.keystore"
+        [IO.File]::WriteAllBytes($keystore, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))
+        "PASSKEY_ANDROID_KEYSTORE=$keystore" >> $env:GITHUB_ENV
+        "PASSKEY_ANDROID_KEY_ALIAS=$env:ANDROID_KEY_ALIAS" >> $env:GITHUB_ENV
+
     - name: Publish package artifacts
       shell: pwsh
+      env:
+        PASSKEY_ANDROID_STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        PASSKEY_ANDROID_KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
       run: |
         ./scripts/Sync-Versions.ps1 -PublishOnly -Package ${{ steps.meta.outputs.component }} -ArtifactsDir _artifacts
+
+    - name: Remove Android release keystore
+      if: always() && steps.meta.outputs.component == 'maui'
+      shell: pwsh
+      run: Remove-Item -LiteralPath (Join-Path $env:RUNNER_TEMP "passkey-release.keystore") -Force -ErrorAction SilentlyContinue
 
     - name: Create GitHub Release
       env:
@@ -124,11 +163,12 @@ jobs:
             Where-Object {
               $_.Extension -eq ".nupkg" -or
               $_.Extension -eq ".zip" -or
+              $_.Extension -eq ".apk" -or
               $_.Name.EndsWith(".sha256")
             }
         )
         if ($upload.Count -eq 0) {
-          Write-Error "No nupkg/zip/sha256 assets found under _artifacts/."
+          Write-Error "No nupkg/zip/apk/sha256 assets found under _artifacts/."
           exit 1
         }
 

@@ -39,14 +39,15 @@ Linux CI builds Interfaces + Utils + Core + Presentation, runs the Multiplatefor
 
 ## GitHub Actions
 
-Windows and Linux build workflows run on push to `master` and on pull requests. CodeQL runs on **every** push (any branch) plus a weekly schedule (not on pull requests). There is currently **no** automated `release.yml` — GitHub Releases are published manually after tagging (see [[Contributing]]).
+Windows and Linux build workflows run on push to `master` and on pull requests. CodeQL runs on **every** push (any branch) plus a weekly schedule (not on pull requests). `release.yml` publishes a GitHub Release for each component tag (see [Cutting a GitHub Release](#cutting-a-github-release)).
 
 | Workflow | What it does |
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
 | `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Multiplateform + Presentation tests); `dotnet test` with the **90% Core line-coverage gate** |
 | `.github/workflows/csharp-dotnet-maui-windows.yml` | MAUI workloads, locked restore of `Upsilon.Apps.Passkey.MAUI.slnx`, NuGet audit, versions check, Debug + Release `-f net10.0-windows10.0.19041.0`, Presentation tests |
-| `.github/workflows/csharp-dotnet-maui-android.yml` | JDK 17, `maui-android` workload, locked restore, NuGet audit, Debug + Release `-f net10.0-android` (signed publish via protected Environment secrets — not in-repo) |
+| `.github/workflows/csharp-dotnet-maui-android.yml` | JDK 17, `maui-android` workload, locked restore, NuGet audit, Debug + Release `-f net10.0-android` (unsigned; the signed APK comes from `release.yml`) |
+| `.github/workflows/release.yml` | On `interfaces-v*`, `utils-v*`, `core-v*`, `wpf-v*` and `maui-v*` tags: checks the tag against `versions.json`, versions check, Release build + tests of `Upsilon.Apps.Passkey.Windows.slnx`, `Sync-Versions.ps1 -PublishOnly` for that component, then `gh release create` with the assets and their `.sha256`. `maui-v*` tags add the MAUI workloads and JDK 17 and sign the APK with the `android-release` environment secrets |
 | `.github/workflows/codeql.yml` | CodeQL on a Release build of production projects (test projects removed from the solution for the trace); installs MAUI workloads; weekly scan; SARIF filtered for `bin`/`obj`/`*.g.cs` |
 | `.github/workflows/publish-wiki.yml` | On `Wiki/**` changes to `master`: publish the `Wiki/` folder to the GitHub Wiki |
 
@@ -54,22 +55,22 @@ Windows and Linux build workflows run on push to `master` and on pull requests. 
 
 1. Edit [`versions.json`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/versions.json) (version and dependency ranges for the packages you ship).
 2. Run `.\scripts\Sync-Versions.ps1 -SyncOnly` and commit the updated `.csproj` / docs.
-3. Merge to `master` and wait for Windows / Linux / CodeQL to pass.
-4. Tag **each** package you ship and push the tags, then create the GitHub Release manually (attach `.nupkg` / WPF zip + `.sha256` as appropriate):
+3. Merge to `master` and wait for Windows / Linux / MAUI / CodeQL to pass. Before a MAUI tag, run the manual smoke list in [[MAUI Parity Checklist]] on Windows and Android.
+4. Tag **each** package you ship and push the tags; `release.yml` creates each GitHub Release:
 
 ```bash
 # Examples — use the versions from versions.json
-git tag interfaces-v2.0.0 && git push origin interfaces-v2.0.0
-git tag utils-v2.0.0 && git push origin utils-v2.0.0
-git tag core-v2.0.0 && git push origin core-v2.0.0
-git tag wpf-v2.0.0 && git push origin wpf-v2.0.0
+git tag interfaces-v2.1.0 && git push origin interfaces-v2.1.0
+git tag core-v2.1.0 && git push origin core-v2.1.0
+git tag wpf-v2.1.0 && git push origin wpf-v2.1.0
+git tag maui-v2.0.0 && git push origin maui-v2.0.0
 ```
 
 The tag should match `versions.json` for that component. A `-` suffix can mark a GitHub Release as a prerelease. Do not reuse a tag.
 
-WPF assets are named `Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64.zip` (not a generic Passkey zip). Library releases attach a `.nupkg`. Each Release notes file lists dependency ranges from `versions.json`.
+WPF assets are named `Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64.zip` (not a generic Passkey zip). MAUI releases attach `Upsilon.Apps.Passkey.GUI.MAUI-{version}-win-x64.zip` and a signed `Upsilon.Apps.Passkey.GUI.MAUI-{version}-android.apk`. Library releases attach a `.nupkg`. Each Release notes file lists dependency ranges from `versions.json`.
 
-Local dry-run (all shippable packages into `_artifacts/`): `.\scripts\Sync-Versions.ps1`.
+Local dry-run (all shippable packages into `_artifacts/`): `.\scripts\Sync-Versions.ps1`. Without a release keystore, add `-SkipAndroid`; otherwise pass `-AndroidKeyStore` / `-AndroidKeyAlias` and set `PASSKEY_ANDROID_STORE_PASS` / `PASSKEY_ANDROID_KEY_PASS` (see [[Contributing]]).
 
 See [`CONTRIBUTING.md`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/CONTRIBUTING.md#cutting-a-release).
 

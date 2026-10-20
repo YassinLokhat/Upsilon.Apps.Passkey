@@ -22,7 +22,7 @@ independently; see [SECURITY.md](SECURITY.md) and [`versions.json`](versions.jso
 *   **Leak detection**: opt-in Have I Been Pwned checks, then XposedOrNot failover, then an optional local HIBP Bloom filter (k-anonymity / offline; see [SECURITY.md](SECURITY.md))
 *   **Import / Export**: plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited)
 *   **WPF client** (Windows): System / Light / Dark theme, QR codes, copy shortcuts (Ctrl+Shift+L / Ctrl+Shift+P), auto-logout, clipboard cleaning
-*   **MAUI client** (preview; Windows + Android): same vault files, shared ViewModels and the same features as WPF, with modal pages instead of extra windows. Android adds SAF documents with conflict copies, a background lock and screenshot blocking, and has no offline `.pkbf` or keyboard shortcuts (see [Wiki/MAUI-Client.md](Wiki/MAUI-Client.md) and [Wiki/MAUI-Parity-Checklist.md](Wiki/MAUI-Parity-Checklist.md)). WPF stays supported alongside it.
+*   **MAUI client** (Windows + Android): same vault files, shared ViewModels and the same features as WPF, with modal pages instead of extra windows. Android adds SAF documents with conflict copies, a background lock and screenshot blocking, and has no offline `.pkbf` or keyboard shortcuts (see [Wiki/MAUI-Client.md](Wiki/MAUI-Client.md) and [Wiki/MAUI-Parity-Checklist.md](Wiki/MAUI-Parity-Checklist.md)). WPF stays supported alongside it.
 
 **Architecture**
 ----------------
@@ -973,7 +973,7 @@ To build from source:
 1.  Clone the repository: `git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git`
 2.  Windows (GUI + tests): `dotnet build Upsilon.Apps.Passkey.Windows.slnx` then `dotnet run --project GUI/WPF`
 3.  Linux (Interfaces + Utils + Core + Presentation, with their tests): `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
-4.  MAUI preview (Windows + Android): workloads and build commands in [Wiki/MAUI-Client.md](Wiki/MAUI-Client.md#build)
+4.  MAUI client (Windows + Android): the Windows zip and the Android APK are attached to each `maui-v*` GitHub Release; to build from source, workloads and commands are in [Wiki/MAUI-Client.md](Wiki/MAUI-Client.md#build)
 
 Requires the .NET 10 SDK. The WPF app targets `net10.0-windows10.0.18362.0`.
 
