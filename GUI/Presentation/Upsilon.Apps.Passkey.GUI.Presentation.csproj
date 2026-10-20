@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Description>Shared presentation layer (ViewModels, ports) for WPF and MAUI hosts.</Description>
-    <Version>2.0.0</Version>
-    <AssemblyVersion>2.0.0</AssemblyVersion>
-    <FileVersion>2.0.0</FileVersion>
+    <Version>2.1.0</Version>
+    <AssemblyVersion>2.1.0</AssemblyVersion>
+    <FileVersion>2.1.0</FileVersion>
     <RootNamespace>Upsilon.Apps.Passkey.GUI.Presentation</RootNamespace>
     <EnforceZeroExternalDependencies>true</EnforceZeroExternalDependencies>
   </PropertyGroup>
