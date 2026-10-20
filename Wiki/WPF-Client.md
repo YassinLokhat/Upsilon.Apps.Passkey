@@ -98,7 +98,7 @@ Saving **User settings** that change the username or ordered master passkeys (or
 | **Open User settings** (vault loaded) | Re-type the **old** credentials (gate for settings + export UI) |
 | **Export** JSON / CSV | After save-pending (if dirty), confirm the **plaintext warning**, then pick the file (no second credentials prompt) |
 
-Entry is progressive (username, then each passkey) **without rollback** — the same **deliberate** rule as progressive login, not a dialog bug. A mistype **intentionally poisons** the in-dialog sequence; typing the remaining correct factors cannot recover it. **Escape** clears the poison and restarts the sequence (it does **not** cancel the dialog — close the window / X to abort and skip the action). Failures are silent (no “wrong factor” toast). Passkey fields use `SecurePassword` / `UseAsString` (unmanaged BSTR wiped) like login; the ViewModel keeps only an accepted-count / poison flag, not typed secrets. After a successful credentials change, the client clears the on-screen secrets and ends the session so the next open uses the new onion.
+Entry is progressive (username, then each passkey) **without rollback** — the same **deliberate** rule as progressive login, not a dialog bug. A mistype **intentionally poisons** the in-dialog sequence; typing the remaining correct factors cannot recover it. **Escape** clears the poison and restarts the sequence (it does **not** cancel the dialog — close the window / X to abort and skip the action). Failures are silent (no “wrong factor” toast). Passkey fields use `SecurePassword` through `PasswordBoxSecretInput` (unmanaged BSTR wiped) like login; the ViewModel keeps only an accepted-count / poison flag, not typed secrets. After a successful credentials change, the client clears the on-screen secrets and ends the session so the next open uses the new onion.
 
 This is **intentionality / anti-mistype**, not cryptographic re-auth of an unlocked session: User settings may already show the current passkeys, and Core does not enforce the prompt. See [[Security]].
 
@@ -154,7 +154,7 @@ This is separate from the vault **session** auto-logout (`ISettings.LogoutTimeou
 
 Escape cancels and closes the half-open session. That is required: there is no passkey rollback (see [[Security]]). Inactivity on this screen also clears credentials after `LoginIdleTimeoutSeconds` when that setting is non-zero.
 
-The GUI keeps the typed secret in `PasswordBox.SecurePassword` and bridges it through `SecureStringExtensions.UseAsString`: the unmanaged BSTR is zeroed in a `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of the `Login` call. The short-lived managed `string` passed to Core remains subject to the usual .NET GC limitations.
+The GUI keeps the typed secret in `PasswordBox.SecurePassword` and reads it through `PasswordBoxSecretInput`, the WPF adapter of the shared `ISecretInput` port: the unmanaged BSTR is zeroed in a `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of the `Login` call. The short-lived managed `string` passed to Core remains subject to the usual .NET GC limitations.
 
 `Create` already logs the user in; the new-user flow must not call `Login` again on that session.
 

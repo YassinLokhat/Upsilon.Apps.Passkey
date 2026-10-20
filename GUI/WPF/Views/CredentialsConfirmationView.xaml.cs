@@ -1,5 +1,5 @@
-﻿using System.Security;
-using System.Windows;
+﻿using System.Windows;
+using Upsilon.Apps.Passkey.GUI.WPF.Adapters;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
@@ -13,10 +13,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    internal sealed partial class CredentialsConfirmationView : Window, ILanguageAware
    {
       private readonly CredentialsConfirmationViewModel _viewModel;
+      private readonly PasswordBoxSecretInput _passwordInput;
 
       private CredentialsConfirmationView(IEnumerable<string> credentials, bool isNew)
       {
          InitializeComponent();
+         _passwordInput = new PasswordBoxSecretInput(_password_PB);
 
          DataContext = _viewModel = new CredentialsConfirmationViewModel(credentials, isNew);
 
@@ -77,16 +79,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
          if (e.Key == System.Windows.Input.Key.Enter)
          {
-            // PasswordBox.SecurePassword returns a new SecureString the caller must dispose.
-            using SecureString securePassword = _password_PB.SecurePassword;
-            if (securePassword.Length == 0)
+            string password = _passwordInput.Read();
+            if (password.Length == 0)
             {
                return;
             }
 
-            // UseAsString zeroes the unmanaged BSTR; Clear erases the PasswordBox buffer.
-            bool complete = securePassword.UseAsString(_viewModel.ValidateCredentials);
-            _password_PB.Clear();
+            _passwordInput.Clear();
+            bool complete = _viewModel.ValidateCredentials(password);
 
             if (complete)
             {

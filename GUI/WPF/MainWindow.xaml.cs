@@ -1,11 +1,11 @@
 ﻿using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using System.ComponentModel;
 using System.IO;
-using System.Security;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.GUI.WPF.Adapters;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
@@ -26,6 +26,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
    internal sealed partial class MainWindow : Window, ILanguageAware
    {
       private readonly MainViewModel _mainViewModel;
+      private readonly PasswordBoxSecretInput _passkeyInput;
       private readonly DispatcherTimer _idleTimer;
 
       private static ISessionService _session => AppServices.Session;
@@ -50,6 +51,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       public MainWindow()
       {
          InitializeComponent();
+         _passkeyInput = new PasswordBoxSecretInput(_password_PB);
 
          DataContext = _mainViewModel = new MainViewModel();
          _mainViewModel.ResetRequested += (_, _) => _resetCredentials();
@@ -444,10 +446,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             return;
          }
 
-         // PasswordBox.SecurePassword returns a new SecureString the caller must
-         // dispose; keep a single copy for the length check and the login call.
-         using SecureString securePassword = _password_PB.SecurePassword;
-         if (securePassword.Length == 0)
+         string passkey = _passkeyInput.Read();
+         if (passkey.Length == 0)
          {
             return;
          }
@@ -455,15 +455,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          _setBusy();
          try
          {
-            // Materialize the managed copy while SecureString is still alive.
-            // UseAsString zeroes the unmanaged BSTR before returning; LoginAsync
-            // only needs the managed string, which outlives this call.
-            string passkey = securePassword.UseAsString(static s => s);
-
-            // Erase the PasswordBox buffer right after submitting so the secret
-            // is not kept alive longer than necessary.
-            _password_PB.Clear();
-
+            _passkeyInput.Clear();
             _ = await database.LoginAsync(passkey).ConfigureAwait(true);
          }
          catch (CorruptedSourceException ex)
