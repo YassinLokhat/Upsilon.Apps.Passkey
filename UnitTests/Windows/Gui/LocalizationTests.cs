@@ -4,7 +4,6 @@ using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using FluentAssertions;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.UnitTests.Windows.Helpers;

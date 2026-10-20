@@ -6,10 +6,12 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault
 {
    internal sealed partial class AccountEditorView : ContentView
    {
+      private readonly EntrySecretInput _password;
+
       public AccountEditorView()
       {
          InitializeComponent();
-         BackgroundGuard.Attach(this, () => PasswordEntry.IsPassword = true);
+         _password = new EntrySecretInput(this, PasswordEntry);
       }
 
       private AccountViewModel? _account => BindingContext as AccountViewModel;
@@ -17,7 +19,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault
       protected override void OnBindingContextChanged()
       {
          base.OnBindingContextChanged();
-         PasswordEntry.IsPassword = true;
+         _password.Field.Mask();
 
          // An empty list also follows Undo/Redo SyncFromModel, which drops the rows.
          if (_account is { Identifiers.Count: 0 } account)
@@ -26,9 +28,9 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault
          }
       }
 
-      private void _onRevealPressed(object? sender, EventArgs e) => PasswordEntry.IsPassword = false;
+      private void _onRevealPressed(object? sender, EventArgs e) => _password.Field.Reveal();
 
-      private void _onRevealReleased(object? sender, EventArgs e) => PasswordEntry.IsPassword = true;
+      private void _onRevealReleased(object? sender, EventArgs e) => _password.Field.Mask();
 
       private void _onPasswordCommitted(object? sender, EventArgs e)
       {

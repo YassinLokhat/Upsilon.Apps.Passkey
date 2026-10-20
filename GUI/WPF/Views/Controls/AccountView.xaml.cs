@@ -6,8 +6,6 @@ using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
-
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 {
    /// <summary>
