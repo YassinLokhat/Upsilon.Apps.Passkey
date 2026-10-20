@@ -2,6 +2,7 @@ using FluentAssertions;
 using UnitTests.Presentation.Fakes;
 using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
 using Upsilon.Apps.Passkey.GUI.Presentation.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels;
 using Upsilon.Apps.Passkey.Interfaces.Events;
@@ -370,6 +371,155 @@ namespace UnitTests.Presentation
 
          viewModel.Reset();
          UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * Open picks a vault through the dialog service and selects it, which
+       * resets the credentials first; a cancelled picker changes nothing.
+      */
+      public async Task Case11_OpenVaultCommand_SelectsPickedVault_CancelKeepsState()
+      {
+         FakeDialogService dialogs = _configureHost(UnitTestsHelper.ComputeTestDirectory());
+         using LoginViewModel viewModel = new();
+         int resets = 0;
+         viewModel.CredentialsReset += (_, _) => resets++;
+
+         await viewModel.OpenVaultCommand.ExecuteAsync(null);
+         _ = viewModel.HasSelectedVault.Should().BeFalse();
+         _ = resets.Should().Be(0);
+
+         string vault = Path.Join(UnitTestsHelper.ComputeTestDirectory(), "picked.pku");
+         dialogs.OpenFileAnswer = vault;
+         await viewModel.OpenVaultCommand.ExecuteAsync(null);
+
+         _ = viewModel.SelectedVaultName.Should().Be("picked.pku");
+         _ = viewModel.DatabaseLabel.Should().Be(Strings.Format(nameof(Strings.Msg_DatabaseLabel), "picked.pku"));
+         _ = resets.Should().Be(1);
+      }
+
+      [TestMethod]
+      /*
+       * Each failure shown in StatusMessage is also raised through
+       * ErrorReported, for hosts that report failures in a dialog.
+      */
+      public async Task Case12_Failures_RaiseErrorReported()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         _configureHost(UnitTestsHelper.ComputeTestDirectory());
+         using LoginViewModel viewModel = new();
+         List<LoginErrorEventArgs> errors = [];
+         viewModel.ErrorReported += (_, e) => errors.Add(e);
+
+         await viewModel.SubmitUsernameAsync(UnitTestsHelper.GetUsername());
+         _ = errors.Should().ContainSingle();
+         _ = errors[0].Title.Should().Be(Strings.Title_Error);
+         _ = errors[0].Message.Should().Be(viewModel.StatusMessage);
+
+         AppServices.Clipboard = null;
+         await viewModel.SubmitUsernameAsync(UnitTestsHelper.GetUsername());
+
+         _ = errors.Should().HaveCount(2);
+         _ = errors[1].Message.Should().Be(Strings.Login_HostNotConfigured);
+         _ = viewModel.StatusMessage.Should().Be(Strings.Login_HostNotConfigured);
+
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * The database label names the half-open vault (default directory or
+       * picked), falls back to "no database" on reset, and follows the language.
+      */
+      public async Task Case13_DatabaseLabel_FollowsVault_AndLanguage()
+      {
+         UnitTestsHelper.ClearTestEnvironment();
+         UnitTestsHelper.CreateTestDatabase(UnitTestsHelper.GetRandomStringArray()).Close();
+         _configureHost(UnitTestsHelper.ComputeDatabaseFileDirectory());
+         using LoginViewModel viewModel = new();
+         _ = viewModel.Should().BeAssignableTo<ILanguageRefreshable>();
+         _ = viewModel.DatabaseLabel.Should().Be(Strings.Msg_NoDatabaseLoaded);
+
+         await viewModel.SubmitUsernameAsync(UnitTestsHelper.GetUsername());
+         string fileName = Path.GetFileName(UnitTestsHelper.ComputeDatabaseFilePath());
+         _ = viewModel.VaultFileName.Should().Be(fileName);
+         _ = viewModel.DatabaseLabel.Should().Be(Strings.Format(nameof(Strings.Msg_DatabaseLabel), fileName));
+
+         viewModel.Reset();
+         _ = viewModel.VaultFileName.Should().BeEmpty();
+
+         List<string?> changed = [];
+         viewModel.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+         ((ILanguageRefreshable)viewModel).OnLanguageChanged();
+         _ = changed.Should().Contain(nameof(LoginViewModel.DatabaseLabel));
+
+         UnitTestsHelper.ClearTestEnvironment();
+      }
+
+      [TestMethod]
+      /*
+       * A host that closes while the vault is opening, or during the last
+       * passkey, gets neither a half-open vault nor a session: the vault is
+       * closed and released.
+      */
+      public async Task Case14_DisposedDuringOpenOrLogin_ClosesTheVault()
+      {
+         string testName = nameof(Case14_DisposedDuringOpenOrLogin_ClosesTheVault);
+         UnitTestsHelper.ClearTestEnvironment(testName);
+         string[] passkeys = UnitTestsHelper.GetRandomStringArray();
+         IDatabase previous = UnitTestsHelper.CreateTestDatabase(passkeys, testName);
+         _ = previous.User!.AddService("PendingService");
+         previous.Close();
+         FakeDialogService dialogs = _configureHost(UnitTestsHelper.ComputeDatabaseFileDirectory(testName));
+
+         LoginViewModel opening = new();
+         AppServices.VaultSources = new DisposingVaultSourceFactory(opening);
+         await opening.SubmitUsernameAsync(testName);
+         _ = opening.DatabaseOpened.Should().BeFalse();
+
+         AppServices.VaultSources = new PathVaultSourceFactory();
+         LoginViewModel loggingIn = new();
+         int loggedIn = 0;
+         loggingIn.LoggedIn += (_, _) => loggedIn++;
+         await loggingIn.SubmitUsernameAsync(testName);
+         _ = loggingIn.DatabaseOpened.Should().BeTrue("the first attempt released the vault");
+
+         dialogs.Confirming = loggingIn.Dispose;
+         bool result = false;
+         foreach (string passkey in passkeys)
+         {
+            result = await loggingIn.SubmitPasskeyAsync(passkey);
+         }
+
+         _ = result.Should().BeFalse();
+         _ = loggedIn.Should().Be(0);
+         _ = loggingIn.IsLoggedIn.Should().BeFalse();
+         _ = AppServices.Session.Database.Should().BeNull();
+
+         dialogs.Confirming = null;
+         using LoginViewModel again = new();
+         await again.SubmitUsernameAsync(testName);
+         _ = again.DatabaseOpened.Should().BeTrue("the disposed login closed the vault");
+
+         again.Reset();
+         UnitTestsHelper.ClearTestEnvironment(testName);
+      }
+
+      private sealed class DisposingVaultSourceFactory(LoginViewModel viewModel) : IVaultSourceFactory
+      {
+         private readonly PathVaultSourceFactory _inner = new();
+
+         public Task<IVaultSource> OpenPathAsync(string path, CancellationToken cancellationToken = default)
+         {
+            viewModel.Dispose();
+            return _inner.OpenPathAsync(path, cancellationToken);
+         }
+
+         public Task<IVaultSource> CreatePathAsync(string path, CancellationToken cancellationToken = default)
+            => _inner.CreatePathAsync(path, cancellationToken);
+
+         public Task<IVaultSource?> CreateInteractiveAsync(string suggestedFileName, CancellationToken cancellationToken = default)
+            => _inner.CreateInteractiveAsync(suggestedFileName, cancellationToken);
       }
 
       private static FakeTimerFactory _configureIdleTimeout(int seconds)

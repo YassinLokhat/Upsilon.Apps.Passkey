@@ -11,14 +11,14 @@ using Upsilon.Apps.Passkey.Interfaces.Utils;
 namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
 {
    /// <summary>
-   /// Progressive login without binding passkeys to the ViewModel. Mirrors the
-   /// WPF login: an explicitly picked vault wins over the default directory,
+   /// Progressive login of the WPF and MAUI login screens, without binding passkeys
+   /// to the ViewModel: an explicitly picked vault wins over the default directory,
    /// then username, then each passkey in order (no rollback). An idle countdown
    /// clears typed credentials and any half-open session.
    /// Hosts read the secret from the control and pass it to <see cref="SubmitPasskeyAsync"/>.
    /// Must be driven from the UI thread.
    /// </summary>
-   internal sealed class LoginViewModel : ObservableObject, IDisposable
+   internal sealed class LoginViewModel : ObservableObject, ILanguageRefreshable, IDisposable
    {
       private IDatabase? _database;
       private IUser? _user;
@@ -38,6 +38,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          _idleTimer.Changed += (_, _) => OnPropertyChanged(nameof(Title));
          _idleTimer.Elapsed += _onIdleTimeout;
          SaveConflictCopiesCommand = new AsyncRelayCommand(SaveConflictCopiesAsync, () => HasConflictCopies && IsIdle);
+         OpenVaultCommand = new AsyncRelayCommand(_pickVaultAsync, () => MenusEnabled);
          NewUserCommand = new AsyncRelayCommand(() => _showToolAsync(new UserSettingsRequest()), () => MenusEnabled);
          AppSettingsCommand = new AsyncRelayCommand(() => _showToolAsync(new AppSettingsRequest()), () => MenusEnabled);
          GeneratePasswordCommand = new AsyncRelayCommand(() => _showToolAsync(new GeneratePasswordRequest()), () => MenusEnabled);
@@ -45,6 +46,9 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
       }
 
       public AsyncRelayCommand SaveConflictCopiesCommand { get; }
+
+      /// <summary>Picks a vault file through <see cref="IDialogService.PickOpenFileAsync"/> (desktop hosts).</summary>
+      public AsyncRelayCommand OpenVaultCommand { get; }
 
       public AsyncRelayCommand NewUserCommand { get; }
 
@@ -147,10 +151,24 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          LoggedIn = null;
          SessionEnded = null;
          IdleTimeoutElapsed = null;
+         CredentialsReset = null;
+         ErrorReported = null;
       }
 
       /// <summary>Raised on the UI thread once the last passkey unlocked the vault.</summary>
       public event EventHandler? LoggedIn;
+
+      /// <summary>
+      /// Raised by <see cref="Reset"/> (Open, idle timeout, a corrupted vault, the
+      /// host's own reset); the host clears its credential controls.
+      /// </summary>
+      public event EventHandler? CredentialsReset;
+
+      /// <summary>
+      /// Raised with each failure also shown in <see cref="StatusMessage"/>, for hosts
+      /// that report failures in a dialog.
+      /// </summary>
+      public event EventHandler<LoginErrorEventArgs>? ErrorReported;
 
       /// <summary>Raised on the UI thread after the session closed (logout, timeout, reset).</summary>
       public event EventHandler<LogoutEventArgs>? SessionEnded;
@@ -208,11 +226,23 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
       public string CredentialsLabel
          => DatabaseOpened ? Strings.Label_Password : Strings.Label_Username;
 
+      /// <summary>File name of the picked or half-open vault; empty when none.</summary>
+      public string VaultFileName
+      {
+         get;
+         private set => SetProperty(ref field, value, [nameof(DatabaseLabel)]);
+      } = string.Empty;
+
+      public string DatabaseLabel => VaultFileName.Length != 0
+         ? Strings.Format(nameof(Strings.Msg_DatabaseLabel), VaultFileName)
+         : Strings.Msg_NoDatabaseLoaded;
+
       /// <summary>Re-reads culture-dependent labels after <see cref="LocalizationService.LanguageChanged"/>.</summary>
       public void OnLanguageChanged()
       {
          OnPropertyChanged(nameof(CredentialsLabel));
          OnPropertyChanged(nameof(SelectedVaultLabel));
+         OnPropertyChanged(nameof(DatabaseLabel));
          OnPropertyChanged(nameof(Title));
       }
 
@@ -267,6 +297,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          Reset();
          _pickedVault = location;
          SelectedVaultName = displayName;
+         VaultFileName = displayName;
          StatusMessage = Strings.Login_EnterVaultUsername;
       }
 
@@ -286,7 +317,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
              || AppServices.VaultSources is null
              || AppServices.Clipboard is null)
          {
-            StatusMessage = Strings.Login_HostNotConfigured;
+            _reportError(Strings.Title_Error, Strings.Login_HostNotConfigured);
             return;
          }
 
@@ -296,10 +327,10 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          if (_pickedVault is null
              && !File.Exists(location))
          {
-            StatusMessage = Strings.Format(
+            _reportError(Strings.Title_Error, Strings.Format(
                nameof(Strings.Login_NoVaultForUsername),
                vaultDirectory,
-               Strings.Login_OpenVault);
+               Strings.Login_OpenVault));
             return;
          }
 
@@ -325,6 +356,13 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
                username,
                cancellationToken).ConfigureAwait(true);
 
+            // The host closed while the vault was opening: never publish it.
+            if (_disposed)
+            {
+               database.Close();
+               return;
+            }
+
             database.AutoSaveDetected += _onAutoSaveDetected;
             AppServices.Session.TrackVaultSource(database, source);
             source = null;
@@ -334,6 +372,11 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             OnPropertyChanged(nameof(DatabaseOpened));
             OnPropertyChanged(nameof(CredentialsLabel));
             _raiseMenusEnabled();
+            if (_pickedVault is null)
+            {
+               VaultFileName = Path.GetFileName(location);
+            }
+
             StatusMessage = checkout switch
             {
                VaultCheckoutResult.RecoveredLocalChanges => $"{Strings.Login_RecoveredLocalChanges} {Strings.Login_EnterPasskeys}",
@@ -342,9 +385,10 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             };
             RefreshConflictCopies();
          }
-         catch (InsufficientKdfParametersException)
+         catch (InsufficientKdfParametersException ex)
          {
-            StatusMessage = Strings.Msg_InsufficientKdf;
+            AppServices.Log.Warn($"Failed to open database: {ErrorText.ForLog(ex)}");
+            _reportError(Strings.Title_InsufficientKdf, Strings.Msg_InsufficientKdf);
          }
          catch (Exception ex) when (ex is IOException
             or UnauthorizedAccessException
@@ -353,7 +397,8 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             or CorruptedSourceException
             or NullValueException)
          {
-            StatusMessage = Strings.Format(nameof(Strings.Login_OpenFailed), ErrorText.Describe(ex));
+            AppServices.Log.Warn($"Failed to open database: {ErrorText.ForLog(ex)}");
+            _reportError(Strings.Title_Error, Strings.Format(nameof(Strings.Login_OpenFailed), ErrorText.Describe(ex)));
          }
          finally
          {
@@ -392,10 +437,11 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          {
             _user = await database.LoginAsync(passkey, cancellationToken).ConfigureAwait(true);
          }
-         catch (CorruptedSourceException)
+         catch (CorruptedSourceException ex)
          {
+            AppServices.Log.Warn($"Database corrupted during login: {ErrorText.ForLog(ex)}");
             Reset();
-            StatusMessage = Strings.Msg_CorruptedDatabase;
+            _reportError(Strings.Title_CorruptedDatabase, Strings.Msg_CorruptedDatabase);
             return false;
          }
          catch (Exception ex) when (ex is IOException
@@ -403,13 +449,22 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             or InvalidOperationException
             or NullValueException)
          {
+            AppServices.Log.Warn($"Login failed: {ErrorText.ForLog(ex)}");
             Reset();
-            StatusMessage = Strings.Format(nameof(Strings.Login_LoginFailed), ErrorText.Describe(ex));
+            _reportError(Strings.Title_Error, Strings.Format(nameof(Strings.Login_LoginFailed), ErrorText.Describe(ex)));
             return false;
          }
          finally
          {
             IsBusy = false;
+         }
+
+         // The host closed during the login: never start the session.
+         if (_disposed)
+         {
+            _user = null;
+            database.Close();
+            return false;
          }
 
          OnPropertyChanged(nameof(IsLoggedIn));
@@ -435,6 +490,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          _clearSessionState();
          _pickedVault = null;
          SelectedVaultName = string.Empty;
+         VaultFileName = string.Empty;
 
          // Close raises DatabaseClosed; the session then writes the working copy back.
          if (database is not null && ReferenceEquals(AppServices.Session.Database, database))
@@ -446,6 +502,7 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
             database?.Close();
          }
          StatusMessage = string.Empty;
+         CredentialsReset?.Invoke(this, EventArgs.Empty);
       }
 
       private void _clearSessionState()
@@ -453,15 +510,38 @@ namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
          _idleTimer.Stop();
          _database = null;
          _user = null;
+         VaultFileName = _pickedVaultName;
          OnPropertyChanged(nameof(DatabaseOpened));
          OnPropertyChanged(nameof(CredentialsLabel));
          OnPropertyChanged(nameof(IsLoggedIn));
          _raiseMenusEnabled();
       }
 
+      private void _reportError(string title, string message)
+      {
+         StatusMessage = message;
+         ErrorReported?.Invoke(this, new LoginErrorEventArgs(title, message));
+      }
+
+      private async Task _pickVaultAsync()
+      {
+         if (AppServices.Dialogs is not { } dialogs)
+         {
+            return;
+         }
+
+         _idleTimer.Stop();
+         string? path = await dialogs.PickOpenFileAsync(Strings.Filter_Pku, Strings.Title_OpenDatabase).ConfigureAwait(true);
+         if (!string.IsNullOrWhiteSpace(path))
+         {
+            SelectVault(path, Path.GetFileName(path));
+         }
+      }
+
       private void _raiseMenusEnabled()
       {
          OnPropertyChanged(nameof(MenusEnabled));
+         OpenVaultCommand.RaiseCanExecuteChanged();
          NewUserCommand.RaiseCanExecuteChanged();
          AppSettingsCommand.RaiseCanExecuteChanged();
          GeneratePasswordCommand.RaiseCanExecuteChanged();

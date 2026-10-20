@@ -24,9 +24,13 @@ namespace UnitTests.Presentation.Fakes
 
       public int ConfirmCount { get; private set; }
 
+      /// <summary>Runs inside <see cref="ConfirmAsync"/>, before the answer is returned.</summary>
+      public Action? Confirming { get; set; }
+
       public Task<DialogResult> ConfirmAsync(string text, string title, DialogButtons buttons = DialogButtons.YesNo, DialogIcon icon = DialogIcon.Question, CancellationToken cancellationToken = default)
       {
          ConfirmCount++;
+         Confirming?.Invoke();
          return Task.FromResult(ConfirmAnswer);
       }
 
@@ -44,7 +48,9 @@ namespace UnitTests.Presentation.Fakes
 
       public Task<string?> PickBrowseFolderAsync(string title, string defaultPath, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
 
-      public Task<string?> PickOpenFileAsync(string filter, string title, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
+      public string? OpenFileAnswer { get; set; }
+
+      public Task<string?> PickOpenFileAsync(string filter, string title, CancellationToken cancellationToken = default) => Task.FromResult(OpenFileAnswer);
 
       public Task<string?> PickSaveFileAsync(string filter, string title, string? defaultFileName = null, string? initialDirectory = null, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
 
