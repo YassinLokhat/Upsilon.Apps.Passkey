@@ -272,10 +272,10 @@ login:
   username and passkeys are excluded from the stack. See also "Known Limitations".
 - `IDatabase.Login` takes a plain `string` passkey (there is no `SecureString`
   overload on the Core API). The WPF GUI keeps the typed secret in
-  `PasswordBox.SecurePassword` and copies it out through
-  `SecureStringExtensions.UseAsString`: the unmanaged BSTR is zeroed in a
-  `finally` block (`Marshal.ZeroFreeBSTR`) before `LoginAsync` runs on the
-  managed copy. The MAUI host has no `SecureString`/`BSTR` wipe path —
+  `PasswordBox.SecurePassword` and copies it out through the
+  `PasswordBoxSecretInput` adapter (shared `ISecretInput` port): the unmanaged
+  BSTR is zeroed in a `finally` block (`Marshal.ZeroFreeBSTR`) before
+  `LoginAsync` runs on the managed copy. The MAUI host has no `SecureString`/`BSTR` wipe path —
   passkeys are read from the Entry, passed once, then cleared from the control.
   The short-lived managed `string` passed to Core remains subject to the usual
   .NET GC limitations documented under "Known Limitations".
@@ -350,8 +350,8 @@ login:
   progressive login: a mistype **intentionally poisons** the in-dialog sequence
   until Escape (WPF) or the Reset button (MAUI) resets it (later correct
   factors cannot recover it — not a UX defect). Closing the dialog cancels the
-  action. WPF passkey fields use `SecurePassword` / `UseAsString` (BSTR wiped)
-  like login; MAUI reads the Entry once and clears it. Typed factors are not
+  action. WPF passkey fields use `SecurePassword` through `PasswordBoxSecretInput`
+  (BSTR wiped) like login; MAUI reads the Entry once and clears it. Typed factors are not
   retained in the ViewModel. This is a
   **host-side intentionality / anti-mistype control**, not a cryptographic
   step-up: Core still exposes writable `IUser.Username` / `IUser.Passkeys`, and
