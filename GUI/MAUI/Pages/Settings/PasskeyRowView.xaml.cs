@@ -29,6 +29,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Settings
             return;
          }
 
+         _secret.Field.Mask();
          _entry = BindingContext as PasskeyEntryViewModel;
          _entry?.Attach(this);
       }
