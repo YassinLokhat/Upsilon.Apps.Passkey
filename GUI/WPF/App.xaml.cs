@@ -5,6 +5,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Adapters;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
+using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 using WpfAppServices = Upsilon.Apps.Passkey.GUI.WPF.Services.AppServices;
 
@@ -35,6 +36,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          AppServices.VaultSources = new PathVaultSourceFactory();
          AppServices.Theme = new WpfThemePlatform();
          AppServices.Session = new SessionService(() => WpfAppServices.OfflineLeakFilterUpdate.IsBusy);
+         AppServices.Clipboard = new ClipboardManager();
 
          _ = AppInfo.ConfigFile;
          LanguageAwareNotify.Install();

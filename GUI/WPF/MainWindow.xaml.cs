@@ -1,47 +1,31 @@
-﻿using Upsilon.Apps.Passkey.GUI.Presentation.Models;
-using System.ComponentModel;
-using System.IO;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Threading;
-using Upsilon.Apps.Passkey.Core.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.Adapters;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Themes;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Models;
-using Upsilon.Apps.Passkey.Interfaces.Utils;
-using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
 using AppServices = Upsilon.Apps.Passkey.GUI.WPF.Services.AppServices;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF
 {
    /// <summary>
-   /// Interaction logic for MainWindow.xaml
+   /// Interaction logic for MainWindow.xaml. The progressive login itself lives in
+   /// the shared <see cref="LoginViewModel"/>; this window keeps focus, the passkey
+   /// read, the vault modal and the close-while-busy prompt.
    /// </summary>
-   internal sealed partial class MainWindow : Window, ILanguageAware
+   internal sealed partial class MainWindow : Window, ILanguageAware, IDisposable
    {
-      private readonly MainViewModel _mainViewModel;
+      private readonly LoginViewModel _viewModel;
       private readonly PasswordBoxSecretInput _passkeyInput;
-      private readonly DispatcherTimer _idleTimer;
-
-      private static ISessionService _session => AppServices.Session;
 
       private bool _isClosing;
-
-      // Opening a database and stretching a passkey are awaited, so the window
-      // keeps pumping messages while they run. This guard is what stops a second
-      // Enter from starting a concurrent attempt on the same progressive login
-      // stack, and what ignores Escape until the in-flight Open/Login finishes.
-      private bool _isBusy;
-
-      // Seconds remaining before the idle reset fires. Only meaningful while the
-      // one-second idle timer is running (LoginIdleTimeoutSeconds > 0).
-      private int _idleSecondsRemaining;
+      private bool _disposed;
 
       // Close-while-busy: prompt once (abort, continue headless, or stay open).
       private bool _forceClose;
@@ -53,34 +37,41 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          InitializeComponent();
          _passkeyInput = new PasswordBoxSecretInput(_password_PB);
 
-         DataContext = _mainViewModel = new MainViewModel();
-         _mainViewModel.ResetRequested += (_, _) => _resetCredentials();
+         DataContext = _viewModel = new LoginViewModel();
+         _viewModel.CredentialsReset += _viewModel_CredentialsReset;
+         _viewModel.ErrorReported += _viewModel_ErrorReported;
+         _viewModel.PropertyChanged += _viewModel_PropertyChanged;
 
-         _idleTimer = new()
-         {
-            Interval = TimeSpan.FromSeconds(1),
-         };
-
-         _resetCredentials();
-
-         _handleCommandLineArgs();
-
-         _username_TB.KeyUp += _credential_TB_KeyUp;
-         _password_PB.KeyUp += _credential_TB_KeyUp;
-         _idleTimer.Tick += _idleTimer_Tick;
+         _username_TB.KeyUp += _credential_KeyUp;
+         _password_PB.KeyUp += _credential_KeyUp;
          Loaded += _mainWindow_Loaded;
          Closing += _window_Closing;
          Closed += _window_Closed;
       }
 
-      private void _mainWindow_Loaded(object sender, RoutedEventArgs e)
+      public void OnLanguageChanged() => this.ForwardToDataContext();
+
+      private async void _mainWindow_Loaded(object sender, RoutedEventArgs e)
       {
          this.PostLoadSetup();
+         _focusCredential();
 
          if (AppInfo.TryConsumeConfigLoadError())
          {
             AppServices.Dialogs.Warn(Strings.Msg_ConfigFileError, Strings.Title_ConfigFileError);
          }
+
+         string[] args = Environment.GetCommandLineArgs();
+         await _viewModel.ApplyCommandLineAsync(args).ConfigureAwait(true);
+
+         // Like a typed username, a failed one from the command line stays in the box.
+         if (!_viewModel.DatabaseOpened && args.Length > 2 && args[2] is { Length: > 0 } username)
+         {
+            _username_TB.Text = username;
+            _username_TB.CaretIndex = username.Length;
+         }
+
+         _afterSubmit();
       }
 
       private void _window_Closing(object? sender, CancelEventArgs e)
@@ -180,9 +171,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
 
          // EndSession before Hide so vault/clipboard are gone before further filter I/O.
          _isClosing = true;
-         _stopIdleTimer();
-         _endSession();
-         _resetCredentials();
+         _viewModel.Reset();
+         AppServices.Session.EndSession();
 
          List<Window> others = [];
          foreach (Window window in Application.Current.Windows)
@@ -234,267 +224,91 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          }
       }
 
-      private void _window_Closed(object? sender, EventArgs e)
+      private void _window_Closed(object? sender, EventArgs e) => Dispose();
+
+      public void Dispose()
       {
+         if (_disposed)
+         {
+            return;
+         }
+
+         _disposed = true;
          _isClosing = true;
-         _stopIdleTimer();
-         _endSession();
+         _viewModel.CredentialsReset -= _viewModel_CredentialsReset;
+         _viewModel.ErrorReported -= _viewModel_ErrorReported;
+         _viewModel.PropertyChanged -= _viewModel_PropertyChanged;
+
+         // Closes a half-open vault; an open or a login still running is closed by the ViewModel.
+         _viewModel.Reset();
+         _viewModel.Dispose();
+         AppServices.Session.EndSession();
       }
 
-      private void _handleCommandLineArgs()
+      private async void _credential_KeyUp(object sender, KeyEventArgs e)
       {
-         string[] args = Environment.GetCommandLineArgs();
-
-         if (args.Length > 1)
-         {
-            try
-            {
-               string databaseFile = Path.GetFullPath(args[1]);
-
-               // UNC and device paths can trigger network authentication just by being probed.
-               if (databaseFile.StartsWith(@"\\", StringComparison.Ordinal))
-               {
-                  Log.Warn("Ignored command-line database path: network or device paths are not accepted.");
-               }
-               else if (!string.Equals(Path.GetExtension(databaseFile), ".pku", StringComparison.OrdinalIgnoreCase))
-               {
-                  Log.Warn("Ignored command-line database path: not a .pku file.");
-               }
-               else if (File.Exists(databaseFile))
-               {
-                  _mainViewModel.DatabaseFile = databaseFile;
-               }
-            }
-            catch (Exception ex) when (ex is ArgumentException or PathTooLongException or NotSupportedException)
-            {
-               Log.Warn($"Ignored invalid database path from command line: {ErrorText.ForLog(ex)}");
-            }
-         }
-
-         if (args.Length > 2)
-         {
-            _username_TB.Text = args[2];
-            _username_TB.SelectionStart = _username_TB.Text.Length;
-            _username_TB.SelectionLength = 0;
-
-            _ = _submitUsernameAsync().ConfigureAwait(true);
-            _armIdleTimer();
-         }
-      }
-
-      private void _idleTimer_Tick(object? sender, EventArgs e)
-      {
-         // While Open/Login is running the timer is stopped; this guard is a
-         // safety net if a tick was already queued.
-         if (_isBusy)
-         {
-            return;
-         }
-
-         if (_idleSecondsRemaining > 1)
-         {
-            _idleSecondsRemaining--;
-            _refreshIdleTitle();
-            return;
-         }
-
-         _idleSecondsRemaining = 0;
-         _stopIdleTimer();
-         _resetCredentials();
-         _endSession();
-      }
-
-      private async void _credential_TB_KeyUp(object sender, KeyEventArgs e)
-      {
-         // Every branch below can run while an open or a login is in flight, so
-         // the guard comes first: a second Enter would race the progressive stack,
-         // Escape would tear down a session that OpenAsync is about to publish,
-         // and menus are already disabled via MenusEnabled.
-         if (_isBusy)
+         // A second Enter would race the progressive stack, and Escape would
+         // close a vault that the running open is about to publish.
+         if (_viewModel.IsBusy)
          {
             return;
          }
 
          if (e.Key == Key.Enter)
          {
-            // Stop for the duration of Open/Login; restarted below if the attempt
-            // leaves the user still on the credential screen.
-            _stopIdleTimer();
-
-            if (sender.Equals(_username_TB))
+            if (ReferenceEquals(sender, _username_TB))
             {
-               await _submitUsernameAsync().ConfigureAwait(true);
+               await _viewModel.SubmitUsernameAsync(_username_TB.Text).ConfigureAwait(true);
             }
-            else
+            else if (await _submitPasskeyAsync().ConfigureAwait(true))
             {
-               await _submitPasswordAsync().ConfigureAwait(true);
-            }
-
-            if (_isClosing)
-            {
+               // Shown from here, not from LoggedIn, so the modal never nests inside the ViewModel call.
+               _showVault();
                return;
             }
 
-            _password_PB.Clear();
-
-            // Only re-arm when there is still something to protect (half-open
-            // session or typed username). A successful login already cleared the
-            // form before returning here.
-            if (_mainViewModel.IsAwaitingPasskeys
-               || _session.Database is not null
-               || !string.IsNullOrEmpty(_username_TB.Text))
-            {
-               _armIdleTimer();
-            }
+            _afterSubmit();
          }
          else if (e.Key == Key.Escape)
          {
-            _resetCredentials();
-            _endSession();
+            _viewModel.Reset();
          }
          else
          {
-            // Idle timeout stays armed while the user types (username or passkeys).
-            _armIdleTimer();
+            _viewModel.NotifyCredentialInput(_username_TB.Text.Length != 0);
          }
       }
 
-      private async Task _submitUsernameAsync()
+      private Task<bool> _submitPasskeyAsync()
       {
-         string username = CredentialRules.NormalizeUsername(_username_TB.Text);
-         if (username.Length == 0)
-         {
-            return;
-         }
-
-         if (!File.Exists(_mainViewModel.DatabaseFile))
-         {
-            string filename = AppServices.Cryptography.GetHash(username);
-            _mainViewModel.DatabaseFile = Path.GetFullPath($"{Path.Join(AppInfo.AppSettings.DefaultDatabaseDirectory, filename + ".pku")}");
-         }
-
-         _setBusy();
-
-         try
-         {
-            IDatabase database = await Database.OpenAsync(AppServices.Cryptography,
-               AppServices.Serialization,
-               AppServices.PasswordFactory,
-               AppServices.Clipboard,
-               AppServices.SecretProtector,
-               _mainViewModel.DatabaseFile,
-               username).ConfigureAwait(true);
-
-            if (_isClosing)
-            {
-               database.Close();
-               return;
-            }
-
-            database.DatabaseClosed += _database_DatabaseClosed;
-            database.AutoSaveDetected += _database_AutoSaveDetected;
-            _session.StartSession(database);
-         }
-         catch (InsufficientKdfParametersException ex)
-         {
-            Log.Error(ex, "Failed to open database");
-            AppServices.Dialogs.Warn(
-                  Strings.Msg_InsufficientKdf,
-                  Strings.Title_InsufficientKdf);
-            return;
-         }
-         catch (Exception ex) when (ex is IOException
-            or UnauthorizedAccessException
-            or ArgumentException
-            or InvalidOperationException
-            or CorruptedSourceException
-            or NullValueException)
-         {
-            Log.Warn($"Failed to open database: {ErrorText.ForLog(ex)}");
-            AppServices.Dialogs.Warn(
-                  Strings.Format(nameof(Strings.Login_OpenFailed), ErrorText.Describe(ex)),
-                  Strings.Title_Error);
-            return;
-         }
-         finally
-         {
-            _clearBusy();
-         }
-
-         if (_isClosing || _session.Database is null)
-         {
-            return;
-         }
-
-         // Open succeeded: lock menus for the rest of the progressive login and
-         // switch to the passkey prompt. The idle timer is restarted by the
-         // caller once this method returns.
-         _mainViewModel.IsAwaitingPasskeys = true;
-         _username_TB.Text = string.Empty;
-         _username_TB.Visibility = Visibility.Collapsed;
-
-         _password_PB.Clear();
-         _password_PB.Visibility = Visibility.Visible;
-         _ = _password_PB.Focus();
-      }
-
-      private async Task _submitPasswordAsync()
-      {
-         IDatabase? database = _session.Database;
-         if (database is null)
-         {
-            return;
-         }
-
          string passkey = _passkeyInput.Read();
-         if (passkey.Length == 0)
-         {
-            return;
-         }
+         _passkeyInput.Clear();
+         return _viewModel.SubmitPasskeyAsync(passkey);
+      }
 
-         _setBusy();
-         try
-         {
-            _passkeyInput.Clear();
-            _ = await database.LoginAsync(passkey).ConfigureAwait(true);
-         }
-         catch (CorruptedSourceException ex)
-         {
-            // Wrong passkeys stay soft (Login returns null). Corruption and other
-            // hard failures bubble up so the user can be told and restart cleanly.
-            Log.Error(ex, "Database corrupted during login");
-            AppServices.Dialogs.Warn(
-               Strings.Msg_CorruptedDatabase,
-               Strings.Title_CorruptedDatabase);
-            _resetCredentials();
-            _endSession();
-            return;
-         }
-         finally
-         {
-            _password_PB.Clear();
-            _clearBusy();
-         }
-
+      private void _afterSubmit()
+      {
          if (_isClosing)
          {
             return;
          }
 
-         if (_session.Database?.User is null)
+         if (_viewModel.DatabaseOpened)
          {
-            // Incomplete or failed layer: stay on the password prompt so the next
-            // passkey can be entered (or Escape to abandon). The idle timer is
-            // restarted by the caller once this method returns.
-            _ = _password_PB.Focus();
-            return;
+            _username_TB.Clear();
          }
 
-         _session.ApplySessionLanguage();
-         _session.ApplySessionTheme();
+         _viewModel.NotifyCredentialInput(_username_TB.Text.Length != 0);
+         _focusCredential();
+      }
+
+      private void _showVault()
+      {
+         AppServices.Session.ApplySessionLanguage();
+         AppServices.Session.ApplySessionTheme();
 
          Hide();
-         _resetCredentials();
+         _clearCredentials();
 
          bool stayOpen = UserServicesView.ShowUser();
 
@@ -502,7 +316,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          // while this window was still hidden under the dialog, so Loc bindings
          // can miss the refresh. Re-apply after the modal returns, then show the login UI.
          _restoreAppPreferences();
-         _resetCredentials();
+         _viewModel.Reset();
 
          if (stayOpen)
          {
@@ -535,9 +349,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
       {
          // forceRefresh: EndSession may already have switched culture/theme while
          // MainWindow was hidden under the modal; Loc bindings still need a nudge.
-         // While a vault session is still attached (stale DatabaseClosed BeginInvoke
-         // racing a new login, or an unexpected restore mid-session), honour the
-         // user's language/theme override — never stomp it with app-only Apply.
+         // While a vault session is still attached, honour the user's
+         // language/theme override — never stomp it with app-only Apply.
          IUser? user = AppServices.Session.User;
          _ = LocalizationService.ApplyEffective(
             AppInfo.AppSettings.Language,
@@ -549,154 +362,37 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
             forceRefresh: true);
       }
 
-      private void _setBusy()
+      private void _viewModel_CredentialsReset(object? sender, EventArgs e)
       {
-         // Open/Login must not race with the idle reset: pause the timer for the
-         // whole await, then let the caller restart it if the attempt failed.
-         _stopIdleTimer();
-         _isBusy = true;
-         _mainViewModel.IsBusy = true;
-         this.SetIsBusy(true);
+         _clearCredentials();
+         _focusCredential();
       }
 
-      private void _clearBusy()
-      {
-         _isBusy = false;
-         _mainViewModel.IsBusy = false;
-         this.SetIsBusy(false);
-      }
+      private void _viewModel_ErrorReported(object? sender, LoginErrorEventArgs e)
+         => AppServices.Dialogs.Warn(e.Message, e.Title);
 
-      private void _endSession(bool closeDatabase = true)
+      private void _viewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
       {
-         IDatabase? database = _session.Database;
-         if (database is not null)
+         if (e.PropertyName == nameof(LoginViewModel.IsBusy))
          {
-            database.DatabaseClosed -= _database_DatabaseClosed;
-            database.AutoSaveDetected -= _database_AutoSaveDetected;
+            this.SetIsBusy(_viewModel.IsBusy);
          }
-
-         _session.EndSession(closeDatabase);
       }
 
-      private void _database_AutoSaveDetected(object? sender, Interfaces.Events.AutoSaveDetectedEventArgs e)
+      private void _clearCredentials()
       {
-         ArgumentNullException.ThrowIfNull(e);
-
-         // LoginAsync raises this from a worker thread and blocks on the answer,
-         // so the prompt has to be marshalled back to the UI thread. That thread
-         // is awaiting the login rather than blocking on it, which is what makes
-         // this synchronous Invoke safe.
-         e.MergeBehavior = Dispatcher.Invoke(() =>
-         {
-            Hide();
-
-            MessageBoxResult result = AppServices.Dialogs.Confirm(
-               Strings.Msg_AutosaveDetected,
-               Strings.Title_AutosaveDetected,
-               MessageBoxButton.YesNoCancel,
-               MessageBoxImage.Question);
-            return result switch
-            {
-               MessageBoxResult.Cancel
-               or MessageBoxResult.None => Passkey.Interfaces.Enums.AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile,
-               MessageBoxResult.No => Passkey.Interfaces.Enums.AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile,
-               _ => Passkey.Interfaces.Enums.AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile,
-            };
-         });
+         _username_TB.Clear();
+         _passkeyInput.Clear();
       }
 
-      private void _database_DatabaseClosed(object? sender, Interfaces.Events.LogoutEventArgs e)
+      private void _focusCredential()
       {
-         if (_isClosing || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
+         if (_isClosing)
          {
             return;
          }
 
-         _ = Dispatcher.BeginInvoke(() =>
-         {
-            if (_isClosing || !IsLoaded)
-            {
-               return;
-            }
-
-            // A deferred close must not tear down a newer login that started
-            // before this callback ran (nested ShowDialog pumps can delay it).
-            if (!ReferenceEquals(sender, _session.Database)
-               && _session.Database is not null)
-            {
-               return;
-            }
-
-            _resetCredentials();
-            // The database already closed itself; only clear the session reference.
-            _endSession(closeDatabase: false);
-            _restoreAppPreferences();
-            // Do not Show() here. While the vault modal is open this window is
-            // hidden; EndSession from UserServicesView always raises DatabaseClosed
-            // and a Show() would resurrect the login UI even when the user closed
-            // the vault with X. Returning to MainWindow is decided only from
-            // ShowUser's DialogResult (logout / session timeout).
-         });
-      }
-
-      private void _resetCredentials()
-      {
-         _stopIdleTimer();
-
-         _mainViewModel.IsAwaitingPasskeys = false;
-         _mainViewModel.DatabaseFile = string.Empty;
-         _username_TB.Text = string.Empty;
-         _username_TB.Visibility = Visibility.Visible;
-         _ = _username_TB.Focus();
-
-         _password_PB.Clear();
-         _password_PB.Visibility = Visibility.Collapsed;
-      }
-
-      /// <summary>
-      /// Starts or restarts the login idle countdown from
-      /// <see cref="Presentation.Models.AppSettings.LoginIdleTimeoutSeconds"/>. A value of
-      /// <c>0</c> leaves the timer off (no reset, no title countdown).
-      /// </summary>
-      private void _armIdleTimer()
-      {
-         int timeout = Math.Max(0, AppInfo.AppSettings.LoginIdleTimeoutSeconds);
-         if (timeout == 0)
-         {
-            _stopIdleTimer();
-            return;
-         }
-
-         _idleSecondsRemaining = timeout;
-         _refreshIdleTitle();
-         _idleTimer.Stop();
-         _idleTimer.Start();
-      }
-
-      private void _stopIdleTimer()
-      {
-         _idleTimer.Stop();
-         _idleSecondsRemaining = 0;
-         _mainViewModel.WindowTitle = MainViewModel.AppTitle;
-      }
-
-      private void _refreshIdleTitle()
-      {
-         _mainViewModel.WindowTitle = MainViewModel.AppTitle + Strings.Format(nameof(Strings.Title_IdleResetCredentialTimeout), _idleSecondsRemaining);
-      }
-
-      public void OnLanguageChanged()
-      {
-         this.ForwardToDataContext();
-
-         if (_idleTimer.IsEnabled)
-         {
-            _refreshIdleTitle();
-         }
-         else
-         {
-            _mainViewModel.WindowTitle = MainViewModel.AppTitle;
-         }
+         _ = _viewModel.DatabaseOpened ? _password_PB.Focus() : _username_TB.Focus();
       }
    }
 }

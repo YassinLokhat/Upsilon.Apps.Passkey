@@ -1,8 +1,6 @@
 ﻿using FluentAssertions;
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
-
 namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
 {
    /// <summary>

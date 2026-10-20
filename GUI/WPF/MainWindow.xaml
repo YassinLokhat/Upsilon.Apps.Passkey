@@ -6,19 +6,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF"
-        xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
         xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
-        d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
+        d:DataContext="{d:DesignInstance Type=viewmodels:LoginViewModel}"
         mc:Ignorable="d"
-        Title="{Binding WindowTitle}"
+        Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         Height="150" Width="750">
-   <Window.Resources>
-      <BooleanToVisibilityConverter x:Key="_booleanToVisibility"/>
-   </Window.Resources>
    <Window.InputBindings>
-      <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenDatabaseCommand}"/>
+      <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenVaultCommand}"/>
       <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewUserCommand}"/>
       <KeyBinding Key="OemComma" Modifiers="Control" Command="{Binding AppSettingsCommand}"/>
       <KeyBinding Key="P" Modifiers="Control" Command="{Binding GeneratePasswordCommand}"/>
@@ -36,7 +33,7 @@
             </ItemsPanelTemplate>
          </Menu.ItemsPanel>
          <MenuItem Header="{loc:Loc Menu_OpenDatabase}"
-                   Command="{Binding OpenDatabaseCommand}"
+                   Command="{Binding OpenVaultCommand}"
                    InputGestureText="Ctrl+O"/>
          <MenuItem Header="{loc:Loc Menu_NewUser}"
                    Command="{Binding NewUserCommand}"
@@ -72,19 +69,19 @@
          <TextBox Name="_username_TB"
                   Grid.Row="0"
                   Grid.Column="1"
-                  Visibility="Visible"
+                  Visibility="{Binding DatabaseOpened, Converter={StaticResource InverseBoolToVisibility}}"
                   IsEnabled="{Binding MenusEnabled}"/>
          <PasswordBox Name="_password_PB"
                       Grid.Row="0"
                       Grid.Column="1"
-                      Visibility="Collapsed"
-                      IsEnabled="{Binding CanTypePasskey}"/>
+                      Visibility="{Binding DatabaseOpened, Converter={StaticResource BoolToVisibility}}"
+                      IsEnabled="{Binding IsIdle}"/>
          <ProgressBar Grid.Row="2"
                      Grid.Column="0"
                      Grid.ColumnSpan="2"
                      IsIndeterminate="True"
                      Height="6"
-                     Visibility="{Binding IsBusy, Converter={StaticResource _booleanToVisibility}}"/>
+                     Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"/>
       </Grid>
    </Grid>
 </Window>

@@ -2,7 +2,6 @@
 using Upsilon.Apps.Passkey.GUI.WPF.Adapters;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
 using CredentialsConfirmationViewModel = Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Tools.CredentialsConfirmationViewModel;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views
