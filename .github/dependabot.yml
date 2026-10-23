@@ -13,3 +13,13 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
+    # CodeQL init/analyze/upload-sarif must run the same version.
+    groups:
+      codeql-action:
+        applies-to: version-updates
+        patterns:
+          - "github/codeql-action*"
+      codeql-action-security:
+        applies-to: security-updates
+        patterns:
+          - "github/codeql-action*"
