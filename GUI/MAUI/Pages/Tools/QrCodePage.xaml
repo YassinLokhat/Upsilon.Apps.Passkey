@@ -3,7 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
              x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Pages.Tools.QrCodePage"
+             xmlns:pages="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Pages"
              x:ClassModifier="internal"
+             pages:WindowMinimumSize.Width="420"
+             pages:WindowMinimumSize.Height="500"
              BackgroundColor="White">
    <Grid Padding="24" RowDefinitions="*,Auto" RowSpacing="12">
       <GraphicsView x:Name="QrView" Grid.Row="0" />

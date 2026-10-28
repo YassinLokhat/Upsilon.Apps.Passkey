@@ -7,7 +7,6 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Tools
    {
       private readonly PasswordGeneratorViewModel _viewModel = new();
       private readonly TaskCompletionSource<string?> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
       public PasswordGeneratorPage()
       {
          InitializeComponent();

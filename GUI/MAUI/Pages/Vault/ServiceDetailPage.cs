@@ -15,6 +15,8 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault
          BindingContext = service;
          Title = service.ServiceName;
          Content = new ServiceEditorView { BindingContext = service };
+         WindowMinimumSize.SetWidth(this, 480);
+         WindowMinimumSize.SetHeight(this, 520);
 
          ToolbarItems.AddLocalized(nameof(Strings.Menu_Save), vault.SaveCommand);
          ToolbarItems.AddLocalized(nameof(Strings.Menu_GenerateRandomPassword), vault.GeneratePasswordCommand, ToolbarItemOrder.Secondary);

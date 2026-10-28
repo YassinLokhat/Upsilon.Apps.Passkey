@@ -6,7 +6,10 @@
              xmlns:pl="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.Localization;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
              xmlns:pm="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.Models;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
              x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Pages.Settings.AppSettingsPage"
+             xmlns:pages="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Pages"
              x:ClassModifier="internal"
+             pages:WindowMinimumSize.Width="600"
+             pages:WindowMinimumSize.Height="480"
              x:DataType="settings:AppSettingsViewModel"
              Title="{Binding Title}">
    <ContentPage.ToolbarItems>

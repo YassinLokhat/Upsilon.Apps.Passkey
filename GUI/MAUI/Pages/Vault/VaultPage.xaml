@@ -5,7 +5,10 @@
              xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault"
              xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
              x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Pages.Vault.VaultPage"
+             xmlns:pages="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Pages"
              x:ClassModifier="internal"
+             pages:WindowMinimumSize.Width="640"
+             pages:WindowMinimumSize.Height="520"
              x:DataType="vault:UserServicesViewModel"
              Title="{Binding Title}">
 

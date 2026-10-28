@@ -4,7 +4,10 @@
              xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
              xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
              x:Class="Upsilon.Apps.Passkey.GUI.MAUI.MainPage"
+             xmlns:pages="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Pages"
              x:ClassModifier="internal"
+             pages:WindowMinimumSize.Width="560"
+             pages:WindowMinimumSize.Height="480"
              x:DataType="viewmodels:LoginViewModel"
              Title="{Binding Title}">
 

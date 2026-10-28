@@ -6,6 +6,8 @@
                     xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
                     x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Pages.Alerts.ActivitiesPage"
                     x:ClassModifier="internal"
+                    pages:WindowMinimumSize.Width="640"
+                    pages:WindowMinimumSize.Height="560"
                     x:DataType="act:UserActivitiesViewModel"
                     Title="{Binding Title}">
    <Grid Padding="16" RowSpacing="8" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto">

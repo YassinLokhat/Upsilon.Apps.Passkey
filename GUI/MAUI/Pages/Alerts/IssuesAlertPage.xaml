@@ -5,7 +5,9 @@
                     xmlns:alerts="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Alerts;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
                     xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.MAUI.Localization"
                     x:Class="Upsilon.Apps.Passkey.GUI.MAUI.Pages.Alerts.IssuesAlertPage"
-                    x:ClassModifier="internal">
+                    x:ClassModifier="internal"
+                    pages:WindowMinimumSize.Width="520"
+                    pages:WindowMinimumSize.Height="420">
    <Grid Padding="16" RowSpacing="8" RowDefinitions="*,Auto">
       <CollectionView x:Name="IssuesList">
          <CollectionView.ItemTemplate>
