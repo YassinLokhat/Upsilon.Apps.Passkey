@@ -8,33 +8,6 @@
              x:DataType="viewmodels:LoginViewModel"
              Title="{Binding Title}">
 
-   <ContentPage.MenuBarItems>
-      <MenuBarItem Text="{loc:Loc Menu_Vault}">
-         <MenuFlyoutItem Text="{loc:Loc Menu_OpenDatabase}" IsEnabled="{Binding MenusEnabled}" Clicked="_onPickVault">
-            <MenuFlyoutItem.KeyboardAccelerators>
-               <KeyboardAccelerator Modifiers="Ctrl" Key="O" />
-            </MenuFlyoutItem.KeyboardAccelerators>
-         </MenuFlyoutItem>
-         <MenuFlyoutItem Text="{loc:Loc Menu_NewUser}" Command="{Binding NewUserCommand}">
-            <MenuFlyoutItem.KeyboardAccelerators>
-               <KeyboardAccelerator Modifiers="Ctrl" Key="N" />
-            </MenuFlyoutItem.KeyboardAccelerators>
-         </MenuFlyoutItem>
-         <MenuFlyoutItem Text="{loc:Loc Menu_GenerateRandomPassword}" Command="{Binding GeneratePasswordCommand}">
-            <MenuFlyoutItem.KeyboardAccelerators>
-               <KeyboardAccelerator Modifiers="Ctrl" Key="P" />
-            </MenuFlyoutItem.KeyboardAccelerators>
-         </MenuFlyoutItem>
-      </MenuBarItem>
-      <MenuBarItem Text="{loc:Loc Menu_AppSettings}">
-         <MenuFlyoutItem Text="{loc:Loc Menu_AppSettings}" Command="{Binding AppSettingsCommand}">
-            <MenuFlyoutItem.KeyboardAccelerators>
-               <KeyboardAccelerator Modifiers="Ctrl" Key="OemComma" />
-            </MenuFlyoutItem.KeyboardAccelerators>
-         </MenuFlyoutItem>
-      </MenuBarItem>
-   </ContentPage.MenuBarItems>
-
    <ScrollView>
       <VerticalStackLayout Padding="30,0" Spacing="16" VerticalOptions="Center">
 
@@ -44,32 +17,49 @@
          <Label Text="{Binding CredentialsLabel}"
                 Style="{StaticResource SubHeadline}" />
 
-         <!-- Passkey/username: never TwoWay-bound to a secret property. Autofill off. -->
-         <Entry x:Name="CredentialEntry"
-                MaxLength="256"
-                IsPassword="{Binding DatabaseOpened}"
-                IsEnabled="{Binding IsIdle}"
-                IsTextPredictionEnabled="False"
-                IsSpellCheckEnabled="False"
-                ReturnType="Done"
-                Completed="_onCredentialCompleted"
-                TextChanged="_onCredentialTextChanged" />
+         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <!-- Passkey/username: never TwoWay-bound to a secret property. Autofill off. -->
+            <Entry x:Name="CredentialEntry"
+                   Grid.Column="0"
+                   MaxLength="256"
+                   IsPassword="{Binding DatabaseOpened}"
+                   IsEnabled="{Binding IsIdle}"
+                   IsTextPredictionEnabled="False"
+                   IsSpellCheckEnabled="False"
+                   ReturnType="Done"
+                   Completed="_onCredentialCompleted"
+                   TextChanged="_onCredentialTextChanged" />
+            <Button Text="{loc:Loc Login_Next}"
+                 Grid.Column="1"
+                 IsEnabled="{Binding IsIdle}"
+                 Clicked="_onCredentialCompleted" />
+            <Button Text="{loc:Loc Login_Reset}"
+                 Grid.Column="2"
+                 IsEnabled="{Binding IsIdle}"
+                 Clicked="_onReset" />
+         </Grid>
+
+         <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+            <Button Grid.Row="0" Grid.Column="0"
+                    Text="{loc:Loc Menu_OpenDatabase}"
+                    IsEnabled="{Binding MenusEnabled}"
+                    Clicked="_onPickVault" />
+            <Button Grid.Row="0" Grid.Column="1"
+                    Text="{loc:Loc Menu_NewUser}"
+                    Command="{Binding NewUserCommand}" />
+            <Button Grid.Row="1" Grid.Column="0"
+                    Text="{loc:Loc Menu_GenerateRandomPassword}"
+                    Command="{Binding GeneratePasswordCommand}" />
+            <Button Grid.Row="1" Grid.Column="1"
+                    Text="{loc:Loc Menu_AppSettings}"
+                    Command="{Binding AppSettingsCommand}" />
+         </Grid>
 
          <ActivityIndicator IsRunning="{Binding IsBusy}"
                             IsVisible="{Binding IsBusy}" />
 
          <Label Text="{Binding StatusMessage}"
                 LineBreakMode="WordWrap" />
-
-         <Button Text="{loc:Loc Login_Next}"
-                 IsEnabled="{Binding IsIdle}"
-                 Clicked="_onCredentialCompleted" />
-         <Button Text="{loc:Loc Login_OpenVault}"
-                 IsEnabled="{Binding IsIdle}"
-                 Clicked="_onPickVault" />
-         <Button Text="{loc:Loc Login_Reset}"
-                 IsEnabled="{Binding IsIdle}"
-                 Clicked="_onReset" />
 
          <Label Text="{Binding ConflictCopiesMessage}"
                 IsVisible="{Binding HasConflictCopies}"

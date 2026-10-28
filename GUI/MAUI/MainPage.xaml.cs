@@ -24,13 +24,6 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
          _viewModel.IdleTimeoutElapsed += (_, _) => CredentialEntry.Text = string.Empty;
          LocalizationService.LanguageChanged += (_, _) => _viewModel.OnLanguageChanged();
 
-         if (!AppServices.Capabilities.SupportsKeyboardShortcuts)
-         {
-            ToolbarItems.AddLocalized(nameof(Strings.Menu_NewUser), _viewModel.NewUserCommand, ToolbarItemOrder.Secondary);
-            ToolbarItems.AddLocalized(nameof(Strings.Menu_GenerateRandomPassword), _viewModel.GeneratePasswordCommand, ToolbarItemOrder.Secondary);
-            ToolbarItems.AddLocalized(nameof(Strings.Menu_AppSettings), _viewModel.AppSettingsCommand, ToolbarItemOrder.Secondary);
-         }
-
          if (AppServices.Lifecycle is { } life)
          {
             life.EnteredBackground += _onEnteredBackground;
@@ -65,7 +58,29 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
       {
          base.OnHandlerChanged();
          _configureSecretEntry();
+#if WINDOWS
+         _attachKeyboardShortcuts();
+#endif
       }
+
+#if WINDOWS
+      private void _attachKeyboardShortcuts()
+      {
+         const global::Windows.System.VirtualKeyModifiers ctrl = global::Windows.System.VirtualKeyModifiers.Control;
+
+         Platforms.Windows.WindowsKeyboardShortcuts.Attach(this,
+            (ctrl, global::Windows.System.VirtualKey.O, () =>
+            {
+               if (_viewModel.MenusEnabled)
+               {
+                  _onPickVault(this, EventArgs.Empty);
+               }
+            }),
+            (ctrl, global::Windows.System.VirtualKey.N, Platforms.Windows.WindowsKeyboardShortcuts.Execute(_viewModel.NewUserCommand)),
+            (ctrl, global::Windows.System.VirtualKey.P, Platforms.Windows.WindowsKeyboardShortcuts.Execute(_viewModel.GeneratePasswordCommand)),
+            (ctrl, Platforms.Windows.WindowsKeyboardShortcuts.Comma, Platforms.Windows.WindowsKeyboardShortcuts.Execute(_viewModel.AppSettingsCommand)));
+      }
+#endif
 
       private void _configureSecretEntry()
       {
