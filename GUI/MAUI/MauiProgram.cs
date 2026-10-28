@@ -6,6 +6,9 @@ using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
 using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+#if WINDOWS
+using Microsoft.Maui.LifecycleEvents;
+#endif
 
 namespace Upsilon.Apps.Passkey.GUI.MAUI
 {
@@ -67,6 +70,12 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI
                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
+#if WINDOWS
+         // Unpackaged host: no manifest icon, so the window needs it explicitly.
+         _ = builder.ConfigureLifecycleEvents(events => events.AddWindows(windows =>
+            windows.OnWindowCreated(window =>
+               window.AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "icon.ico")))));
+#endif
 
          return builder.Build();
       }
