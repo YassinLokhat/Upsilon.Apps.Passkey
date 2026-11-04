@@ -5,8 +5,7 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Views.Controls
 {
     public partial class VisiblePasswordBox : ContentView
     {
-        // --- Bindable Properties (Équivalent des DependencyProperties WPF) ---
-
+        
         public static readonly BindableProperty PasswordProperty =
             BindableProperty.Create(nameof(Password), typeof(string), typeof(VisiblePasswordBox), default(string), BindingMode.TwoWay);
 
@@ -21,8 +20,6 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Views.Controls
 
         private static readonly BindableProperty EyeIconProperty =
             BindableProperty.Create(nameof(EyeIcon), typeof(string), typeof(VisiblePasswordBox), "👁");
-
-        // --- Propriétés publiques ---
 
         public string Password
         {
@@ -42,7 +39,6 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Views.Controls
             set => SetValue(BackgroundColorProperty, value);
         }
 
-        // Propriétés internes pour le binding de la vue
         internal bool IsPasswordHidden
         {
             get => (bool)GetValue(IsPasswordHiddenProperty);
@@ -55,18 +51,13 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Views.Controls
             set => SetValue(EyeIconProperty, value);
         }
 
-        // --- Événements ---
         public event EventHandler? PasswordChanged;
         public event EventHandler? Validated;
-        public event EventHandler? Aborted; // Corrigé de 'Aborded'
+        public event EventHandler? Aborted; 
 
         public VisiblePasswordBox()
         {
             InitializeComponent();
-
-            // En MAUI, on évite de mettre le DataContext (BindingContext) sur le composant lui-même 
-            // pour ne pas casser le BindingContext hérité par l'utilisateur du contrôle.
-            // C'est pourquoi le XAML utilise x:Reference this.
 
             _passwordEntry.Unfocused += _passwordEntry_Unfocused;
         }
@@ -88,20 +79,14 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Views.Controls
 
         private void _passwordEntry_Completed(object sender, EventArgs e)
         {
-            // Déclenché quand l'utilisateur appuie sur "Entrée" ou "OK" sur le clavier virtuel
             Validated?.Invoke(this, EventArgs.Empty);
         }
 
         private void EyeButton_Clicked(object sender, EventArgs e)
         {
-            // Mode Bascule (Toggle) : Plus adapté au multiplateforme (Mobile / Desktop)
             IsPasswordHidden = !IsPasswordHidden;
-            EyeIcon = IsPasswordHidden ? "👁" : "🙈"; // Change l'icône selon l'état
+            EyeIcon = IsPasswordHidden ? "👁" : "🙈"; 
         }
 
-        // Note pour le comportement "Escape" (Annuler) de WPF :
-        // Le clavier mobile n'a pas de touche Escape. Si vous ciblez uniquement le Desktop (Windows/macOS),
-        // vous pouvez ajouter un KeyboardAccelerator ou intercepter les touches au niveau de la Page,
-        // mais l'événement Entry.Completed gère déjà nativement la validation standard.
     }
 }
