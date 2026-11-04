@@ -30,7 +30,7 @@
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
 		<!-- Display name -->
-		<ApplicationTitle>MAUI</ApplicationTitle>
+		<ApplicationTitle>Upsilon.Apps.Passkey.GUI.MAUI</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.maui</ApplicationId>
@@ -95,6 +95,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="Resources\Fonts\" />
 	  <Folder Include="Resources\Splash\" />
 	</ItemGroup>
 
