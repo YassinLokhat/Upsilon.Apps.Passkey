@@ -1,10 +1,12 @@
-﻿using System.Diagnostics;
+﻿using Plugin.Fingerprint.Abstractions;
+using System.Diagnostics;
 using Upsilon.Apps.Passkey.Core.Models;
 using Upsilon.Apps.Passkey.GUI.MAUI.ViewModels;
 using Upsilon.Apps.Passkey.GUI.MAUI.Views;
 using Upsilon.Apps.Passkey.GUI.WPF.Views;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Events;
+using Upsilon.Apps.Passkey.Interfaces.Models;
 
 namespace MAUI
 {
@@ -17,11 +19,12 @@ namespace MAUI
         private bool _sessionActive = false;
         private int _passwordAttempt = 0;
 
-        public MainPage()
+        public MainPage(MainViewModel viewModel)
         {
             InitializeComponent();
 
-            BindingContext = _mainViewModel = new MainViewModel();
+            _mainViewModel = viewModel;
+            BindingContext = _mainViewModel;
 
             _timer = Dispatcher.CreateTimer();
             _timer.Interval = TimeSpan.FromMinutes(2);
@@ -30,17 +33,17 @@ namespace MAUI
             _resetCredentials();
 
 #if WINDOWS
-            Microsoft.Maui.Handlers.WindowHandler.Mapper.AppendToMapping("GlobalKeyInterceptor", (handler, view) =>
+        Microsoft.Maui.Handlers.WindowHandler.Mapper.AppendToMapping("GlobalKeyInterceptor", (handler, view) =>
+        {
+            handler.PlatformView.Content.KeyDown += (sender, e) =>
             {
-                handler.PlatformView.Content.KeyDown += (sender, e) =>
+                if (e.Key == Windows.System.VirtualKey.Escape)
                 {
-                    if (e.Key == Windows.System.VirtualKey.Escape)
-                    {
-                        _closeDatabase();
-                        _resetCredentials();
-                    }
-                };
-            });
+                    _closeDatabase();
+                    _resetCredentials();
+                }
+            };
+        });
 #endif
         }
 
@@ -68,7 +71,7 @@ namespace MAUI
 
         private async void _credential_Completed(object? sender, EventArgs e)
         {
-            if (_isBusy) return; // évite les doubles validations
+            if (_isBusy) return; 
 
             _isBusy = true;
             _timer.Stop();
@@ -87,7 +90,6 @@ namespace MAUI
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"CRASH: {ex}");
                 await DisplayAlert("Erreur", ex.Message, "OK");
             }
             finally
@@ -134,9 +136,16 @@ namespace MAUI
                 return;
             }
 
+            _typedUsername = username;
+            _enteredPasswords.Clear();
+
             try
             {
                 _closeDatabase();
+
+                System.Diagnostics.Debug.WriteLine(
+                    $"[MANUEL-OPEN] arg2='{username}' longueur={username.Length} fichier='{_mainViewModel.DatabaseFile}'");
+
                 var sw = Stopwatch.StartNew();
                 MainViewModel.Database = await Task.Run(() => Database.Open(
                     MainViewModel.CryptographyCenter,
@@ -183,6 +192,8 @@ namespace MAUI
                 return;
             }
 
+            _enteredPasswords.Add(password);
+
             try
             {
                 await Task.Run(() => MainViewModel.Database.Login(password));
@@ -196,6 +207,25 @@ namespace MAUI
             {
                 _sessionActive = true;
                 _timer.Stop();
+
+                // --- SAVING TO SECURE STORAGE ON ANDROID ---
+                if (DeviceInfo.Platform == DevicePlatform.Android && !string.IsNullOrEmpty(_mainViewModel.DatabaseFile))
+                {
+                    try
+                    {
+                        await SecureStorage.SetAsync(_usernameKey, _typedUsername);
+                        await SecureStorage.SetAsync(_passwordsKey,
+                            System.Text.Json.JsonSerializer.Serialize(_enteredPasswords));
+
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[ECRITURE] username='{_typedUsername}' nb mots de passe={_enteredPasswords.Count}");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Erreur lors de l'enregistrement SecureStorage : {ex.Message}");
+                    }
+                }
+                _enteredPasswords.Clear(); 
 
                 await DisplayAlert("Succès", $"Bienvenue {MainViewModel.Database.User.Username} !", "OK");
                 _resetCredentials();
@@ -307,9 +337,17 @@ namespace MAUI
             catch { }
         }
 
+        private string _originalFileName = string.Empty;
+        private string _typedUsername = string.Empty;
+        private readonly List<string> _enteredPasswords = new();
+        private string _usernameKey => $"pku_username_{_originalFileName}";
+        private string _passwordsKey => $"pku_passwords_{_originalFileName}";
+
+
         private async void _openDatabase_MenuItem_Click(object? sender, EventArgs e)
         {
             if (_isBusy) return;
+
             var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
             {
                 { DevicePlatform.iOS, new[] { "com.upsilon.pku" } },
@@ -325,6 +363,7 @@ namespace MAUI
                     PickerTitle = "Open user database file",
                     FileTypes = customFileType
                 });
+
                 if (result is null) return;
 
                 if (!result.FileName.EndsWith(".pku", StringComparison.OrdinalIgnoreCase))
@@ -336,11 +375,26 @@ namespace MAUI
                 _closeDatabase();
                 _resetCredentials();
 
+                _originalFileName = Path.GetFileNameWithoutExtension(result.FileName);
+                _typedUsername = string.Empty;
+                _enteredPasswords.Clear();
+
                 string targetFilePath = result.FullPath;
 
                 if (DeviceInfo.Platform == DevicePlatform.Android || DeviceInfo.Platform == DevicePlatform.iOS)
                 {
-                    string localPath = Path.Combine(FileSystem.CacheDirectory, result.FileName);
+                    foreach (var oldDir in Directory.EnumerateDirectories(FileSystem.CacheDirectory, "pku_*"))
+                    {
+                        try { Directory.Delete(oldDir, true); }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Impossible de supprimer {oldDir} : {ex.Message}");
+                        }
+                    }
+
+                    string cacheDir = Path.Combine(FileSystem.CacheDirectory, $"pku_{Guid.NewGuid():N}");
+                    Directory.CreateDirectory(cacheDir);
+                    string localPath = Path.Combine(cacheDir, result.FileName);
 
                     using (var source = await result.OpenReadAsync())
                     using (var target = File.Create(localPath))
@@ -352,12 +406,127 @@ namespace MAUI
                 }
 
                 _mainViewModel.DatabaseFile = targetFilePath;
+
+                // --- ANDROID: BIOMETRIC AUTHENTICATION ATTEMPT WITH MANUAL FALLBACK ---
+                if (DeviceInfo.Platform == DevicePlatform.Android)
+                {
+                    bool biometricSuccess = false;
+
+                    bool isAvailable = await Plugin.Fingerprint.CrossFingerprint.Current.IsAvailableAsync();
+                    System.Diagnostics.Debug.WriteLine($"Biométrie disponible : {isAvailable}");
+
+                    string? storedUsername = await SecureStorage.GetAsync(_usernameKey);
+                    string? storedJson = await SecureStorage.GetAsync(_passwordsKey);
+
+                    List<string>? storedPasswords = null;
+                    if (!string.IsNullOrEmpty(storedJson))
+                    {
+                        try { storedPasswords = System.Text.Json.JsonSerializer.Deserialize<List<string>>(storedJson); }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Coffre illisible : {ex.Message}");
+                        }
+                    }
+
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[LECTURE] username trouvé={!string.IsNullOrEmpty(storedUsername)} nb mots de passe={storedPasswords?.Count ?? 0}");
+
+                    if (isAvailable && !string.IsNullOrEmpty(storedUsername) && storedPasswords is { Count: > 0 })
+                    {
+                        int biometricAttempts = 0;
+                        const int maxBiometricAttempts = 3;
+
+                        while (biometricAttempts < maxBiometricAttempts && !biometricSuccess)
+                        {
+                            biometricAttempts++;
+
+                            var request = new AuthenticationRequestConfiguration(
+                                "Sécurité .pku", "Confirmez votre empreinte pour déverrouiller");
+                            var authResult = await Plugin.Fingerprint.CrossFingerprint.Current.AuthenticateAsync(request);
+
+                            if (!authResult.Authenticated)
+                            {
+                                if (authResult.Status == Plugin.Fingerprint.Abstractions.FingerprintAuthenticationResultStatus.Canceled)
+                                    break;
+
+                                continue; 
+                            }
+
+                            IDatabase? db = null;
+                            try
+                            {
+                                db = await Task.Run(() => Database.Open(
+                                    MainViewModel.CryptographyCenter,
+                                    MainViewModel.SerializationCenter,
+                                    MainViewModel.PasswordFactory,
+                                    MainViewModel.ClipboardManager,
+                                    targetFilePath,
+                                    storedUsername));
+
+                                foreach (var pwd in storedPasswords)
+                                {
+                                    await Task.Run(() => db.Login(pwd));
+                                }
+
+                                System.Diagnostics.Debug.WriteLine($"[BIO] Login terminé. User null ? {db.User is null}");
+
+                                if (db.User is not null)
+                                {
+                                    MainViewModel.Database = db;
+                                    MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
+                                    MainViewModel.Database.AutoSaveDetected += _database_AutoSaveDetected;
+                                    db = null; 
+
+                                    _sessionActive = true;
+                                    _timer.Stop();
+                                    biometricSuccess = true;
+
+                                    await DisplayAlert("Succès", $"Bienvenue {MainViewModel.Database.User.Username} !", "OK");
+
+                                    _resetCredentials();
+                                    return;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"ERREUR BIOMETRIQUE : {ex.GetType().Name} : {ex.Message}");
+                                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+                                break;
+                            }
+                            finally
+                            {
+                                (db as IDisposable)?.Dispose();
+                            }
+                            break; 
+                        }
+                    }                 
+                    if (!biometricSuccess)
+                    {
+                        await DisplayAlert("Authentification",
+                            "Échec de l'empreinte ou non configurée. Veuillez saisir vos identifiants.", "OK");
+                        _showManualCredentials();
+                    }
+                }
+                else
+                {
+                    // --- WINDOWS / iOS / OTHERS: DIRECT INPUT ---
+                    _showManualCredentials();
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Erreur sélection fichier: {ex.Message}");
                 await DisplayAlert("Erreur", "Impossible d'ouvrir le fichier.", "OK");
             }
+        }
+
+        private void _showManualCredentials()
+        {
+            _isPasswordStep = false;
+            _mainViewModel.CredentialsLabel = "Username :";
+            _username_TB.IsVisible = true;
+            _password_PB.IsVisible = false;
+            _setFocus(_username_TB);
         }
 
         private async void _generatePassword_MenuItem_Click(object? sender, EventArgs e)
