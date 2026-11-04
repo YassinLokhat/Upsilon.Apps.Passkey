@@ -62,7 +62,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             }
         }
 
-        // Valide la sélection et dépile la vue modale
         private async void OnSelectPasswordClicked(object sender, EventArgs e)
         {
             GeneratedPassword = _viewModel.GeneratedPassword;
@@ -70,21 +69,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             await Navigation.PopModalAsync();
         }
 
-        // Annule et ferme la vue modale
         private async void OnCancelClicked(object sender, EventArgs e)
         {
             _tcs?.TrySetResult(null);
             await Navigation.PopModalAsync();
         }
 
-        // Gestion de la touche "Retour" sur Android
         protected override bool OnBackButtonPressed()
         {
             _tcs?.TrySetResult(null);
             return base.OnBackButtonPressed();
         }
 
-        // Amélioration de l'ergonomie tactile pour le label "Leaked?"
         private void OnToggleLeakedTapped(object sender, EventArgs e)
         {
             LeakedCheckBox.IsChecked = !LeakedCheckBox.IsChecked;

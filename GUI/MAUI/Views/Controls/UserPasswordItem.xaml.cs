@@ -19,7 +19,6 @@ namespace Upsilon.Apps.Passkey.GUI.MAUI.Views.Controls
         {
             InitializeComponent();
 
-            // En MAUI, DataContext est remplacé par BindingContext
             BindingContext = ViewModel = viewModel;
             _password_VPB.Password = ViewModel.Password;
 
