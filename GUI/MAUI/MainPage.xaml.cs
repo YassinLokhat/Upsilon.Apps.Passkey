@@ -48,13 +48,10 @@ namespace MAUI
         }
 
         private void _timer_Elapsed(object? sender, EventArgs e)
-        {
-            
+        {           
                 if (_isBusy || _sessionActive) return;
-
                 _closeDatabase();
-                _resetCredentials();
-            
+                _resetCredentials();          
         }
 
         private void _credential_TextChanged(object? sender, TextChangedEventArgs e)
@@ -115,18 +112,30 @@ namespace MAUI
 
         private async Task _handleUsernameStepAsync()
         {
-            string username = _username_TB.Text ?? string.Empty;
+            string username = _username_TB.Text?.Trim() ?? string.Empty;
 
             if (string.IsNullOrEmpty(username))
             {
                 return;
             }
 
-            if (!File.Exists(_mainViewModel.DatabaseFile))
+            string filename = MainViewModel.CryptographyCenter.GetHash(username);
+            string rawDirectory;
+            if (DeviceInfo.Platform == DevicePlatform.WinUI)
             {
-                string filename = MainViewModel.CryptographyCenter.GetHash(username);
-                _mainViewModel.DatabaseFile = Path.Combine(FileSystem.AppDataDirectory, $"{filename}.pku");
+                rawDirectory = @"A:\Arsene\C#\Upsilon.Apps.Passkey\GUI\MAUI\raw";
             }
+            else
+            {
+                rawDirectory = Path.Combine(FileSystem.AppDataDirectory, "raw");
+            }
+
+            if (!Directory.Exists(rawDirectory))
+            {
+                Directory.CreateDirectory(rawDirectory);
+            }
+
+            _mainViewModel.DatabaseFile = Path.Combine(rawDirectory, $"{filename}.pku");
 
             if (!File.Exists(_mainViewModel.DatabaseFile))
             {
@@ -143,10 +152,6 @@ namespace MAUI
             {
                 _closeDatabase();
 
-                System.Diagnostics.Debug.WriteLine(
-                    $"[MANUEL-OPEN] arg2='{username}' longueur={username.Length} fichier='{_mainViewModel.DatabaseFile}'");
-
-                var sw = Stopwatch.StartNew();
                 MainViewModel.Database = await Task.Run(() => Database.Open(
                     MainViewModel.CryptographyCenter,
                     MainViewModel.SerializationCenter,
@@ -154,7 +159,6 @@ namespace MAUI
                     MainViewModel.ClipboardManager,
                     _mainViewModel.DatabaseFile,
                     username));
-                Debug.WriteLine($"OPEN took {sw.ElapsedMilliseconds} ms");
 
                 MainViewModel.Database.DatabaseClosed += _database_DatabaseClosed;
                 MainViewModel.Database.AutoSaveDetected += _database_AutoSaveDetected;
@@ -216,14 +220,9 @@ namespace MAUI
                         await SecureStorage.SetAsync(_usernameKey, _typedUsername);
                         await SecureStorage.SetAsync(_passwordsKey,
                             System.Text.Json.JsonSerializer.Serialize(_enteredPasswords));
-
-                        System.Diagnostics.Debug.WriteLine(
-                            $"[ECRITURE] username='{_typedUsername}' nb mots de passe={_enteredPasswords.Count}");
                     }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Erreur lors de l'enregistrement SecureStorage : {ex.Message}");
-                    }
+                    catch 
+                    {                    }
                 }
                 _enteredPasswords.Clear(); 
 
@@ -343,7 +342,6 @@ namespace MAUI
         private string _usernameKey => $"pku_username_{_originalFileName}";
         private string _passwordsKey => $"pku_passwords_{_originalFileName}";
 
-
         private async void _openDatabase_MenuItem_Click(object? sender, EventArgs e)
         {
             if (_isBusy) return;
@@ -386,10 +384,8 @@ namespace MAUI
                     foreach (var oldDir in Directory.EnumerateDirectories(FileSystem.CacheDirectory, "pku_*"))
                     {
                         try { Directory.Delete(oldDir, true); }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"Impossible de supprimer {oldDir} : {ex.Message}");
-                        }
+                        catch 
+                        {   }
                     }
 
                     string cacheDir = Path.Combine(FileSystem.CacheDirectory, $"pku_{Guid.NewGuid():N}");
@@ -411,10 +407,7 @@ namespace MAUI
                 if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
                     bool biometricSuccess = false;
-
-                    bool isAvailable = await Plugin.Fingerprint.CrossFingerprint.Current.IsAvailableAsync();
-                    System.Diagnostics.Debug.WriteLine($"Biométrie disponible : {isAvailable}");
-
+                    bool isAvailable = await Plugin.Fingerprint.CrossFingerprint.Current.IsAvailableAsync();           
                     string? storedUsername = await SecureStorage.GetAsync(_usernameKey);
                     string? storedJson = await SecureStorage.GetAsync(_passwordsKey);
 
@@ -422,14 +415,9 @@ namespace MAUI
                     if (!string.IsNullOrEmpty(storedJson))
                     {
                         try { storedPasswords = System.Text.Json.JsonSerializer.Deserialize<List<string>>(storedJson); }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"Coffre illisible : {ex.Message}");
-                        }
+                        catch 
+                        {    }
                     }
-
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[LECTURE] username trouvé={!string.IsNullOrEmpty(storedUsername)} nb mots de passe={storedPasswords?.Count ?? 0}");
 
                     if (isAvailable && !string.IsNullOrEmpty(storedUsername) && storedPasswords is { Count: > 0 })
                     {
@@ -468,8 +456,6 @@ namespace MAUI
                                     await Task.Run(() => db.Login(pwd));
                                 }
 
-                                System.Diagnostics.Debug.WriteLine($"[BIO] Login terminé. User null ? {db.User is null}");
-
                                 if (db.User is not null)
                                 {
                                     MainViewModel.Database = db;
@@ -487,10 +473,8 @@ namespace MAUI
                                     return;
                                 }
                             }
-                            catch (Exception ex)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"ERREUR BIOMETRIQUE : {ex.GetType().Name} : {ex.Message}");
-                                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+                            catch 
+                            {                               
                                 break;
                             }
                             finally
@@ -515,7 +499,6 @@ namespace MAUI
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Erreur sélection fichier: {ex.Message}");
                 await DisplayAlert("Erreur", "Impossible d'ouvrir le fichier.", "OK");
             }
         }
