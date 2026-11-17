@@ -46,6 +46,48 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          element.SetValue(ShortcutChipsMinWidthProperty, value);
       }
 
+      /// <summary>
+      /// Extra content a window shows in its custom title bar, between the app name
+      /// and the window buttons (the vault window puts the vault name, the seal and
+      /// the session state there). When set, it replaces the plain title text.
+      /// </summary>
+      public static readonly DependencyProperty TitleBarContentProperty = DependencyProperty.RegisterAttached(
+         "TitleBarContent",
+         typeof(object),
+         typeof(StrataChrome),
+         new PropertyMetadata(null));
+
+      public static object? GetTitleBarContent(DependencyObject element)
+      {
+         ArgumentNullException.ThrowIfNull(element);
+         return element.GetValue(TitleBarContentProperty);
+      }
+
+      public static void SetTitleBarContent(DependencyObject element, object? value)
+      {
+         ArgumentNullException.ThrowIfNull(element);
+         element.SetValue(TitleBarContentProperty, value);
+      }
+
+      /// <summary>Grey hint text shown inside an empty TextBox.</summary>
+      public static readonly DependencyProperty PlaceholderProperty = DependencyProperty.RegisterAttached(
+         "Placeholder",
+         typeof(string),
+         typeof(StrataChrome),
+         new PropertyMetadata(string.Empty));
+
+      public static string GetPlaceholder(DependencyObject element)
+      {
+         ArgumentNullException.ThrowIfNull(element);
+         return (string)element.GetValue(PlaceholderProperty);
+      }
+
+      public static void SetPlaceholder(DependencyObject element, string value)
+      {
+         ArgumentNullException.ThrowIfNull(element);
+         element.SetValue(PlaceholderProperty, value);
+      }
+
       /// <summary>Application version shown next to the name in the title bar, e.g. "v2.0.0".</summary>
       public static string VersionLabel { get; } = $"v{_assemblyName.Version?.ToString(3) ?? "0.0.0"}";
 
