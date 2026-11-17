@@ -457,6 +457,7 @@
                   </DockPanel>
                   <ListBox Grid.Row="1"
                            Name="_services_LB"
+                           Style="{StaticResource GlideListBox}"
                            ItemsSource="{Binding Services}"
                            SelectedItem="{Binding SelectedService, Mode=TwoWay}"
                            ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -538,12 +539,10 @@
             <StackPanel DockPanel.Dock="Left"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
-               <StackPanel x:Name="_depthSegments_SP"
-                           Orientation="Horizontal"
+               <StackPanel Orientation="Horizontal"
                            VerticalAlignment="Center"
                            Margin="0,0,14,0"
-                           Effect="{DynamicResource Glow.Soft}"
-                           helper:Motion.SequenceOnValue="{Binding SelectedService.SelectedAccount}">
+                           Effect="{DynamicResource Glow.Soft}">
                   <Rectangle Width="16" Height="4" Margin="0,0,3,0" Fill="{DynamicResource AccentBrush}"/>
                   <Rectangle Width="16" Height="4" Margin="0,0,3,0" Fill="{DynamicResource AccentBrush}"/>
                   <Rectangle Width="16" Height="4" Margin="0,0,3,0" Fill="{DynamicResource AccentBrush}"/>

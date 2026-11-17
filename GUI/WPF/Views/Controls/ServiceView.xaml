@@ -169,6 +169,7 @@
                </DockPanel>
                <ListBox Grid.Row="1"
                         Name="_accounts_LB"
+                        Style="{StaticResource GlideListBox}"
                         helper:Motion.TransitionTier="0"
                         SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
                         ScrollViewer.VerticalScrollBarVisibility="Auto"

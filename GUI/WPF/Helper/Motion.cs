@@ -100,13 +100,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       public static void SetFadeOnValue(DependencyObject element, object? value) => _notNull(element).SetValue(FadeOnValueProperty, value);
 
-      /// <summary>A panel's children light up one after the other when the bound value changes (depth bar).</summary>
-      public static readonly DependencyProperty SequenceOnValueProperty = DependencyProperty.RegisterAttached(
-         "SequenceOnValue", typeof(object), typeof(Motion), new PropertyMetadata(null, _onSequenceOnValueChanged));
+      /// <summary>
+      /// The list's selection highlight glides between rows (<see cref="SelectionGlide"/>).
+      /// Inherited, so the rows know to hide their own selected fill.
+      /// </summary>
+      public static readonly DependencyProperty GlideSelectionProperty = DependencyProperty.RegisterAttached(
+         "GlideSelection", typeof(bool), typeof(Motion), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits, _onGlideSelectionChanged));
 
-      public static object? GetSequenceOnValue(DependencyObject element) => _notNull(element).GetValue(SequenceOnValueProperty);
+      public static bool GetGlideSelection(DependencyObject element) => (bool)_notNull(element).GetValue(GlideSelectionProperty);
 
-      public static void SetSequenceOnValue(DependencyObject element, object? value) => _notNull(element).SetValue(SequenceOnValueProperty, value);
+      public static void SetGlideSelection(DependencyObject element, bool value) => _notNull(element).SetValue(GlideSelectionProperty, value);
+
+      private static readonly DependencyProperty _glideControllerProperty = DependencyProperty.RegisterAttached(
+         "GlideController", typeof(SelectionGlide), typeof(Motion), new PropertyMetadata(null));
 
       #endregion
 
@@ -213,29 +219,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          return _begin(storyboard, element);
       }
 
-      /// <summary>Children light up (0.25 → 1) one after the other, 45 ms apart.</summary>
-      public static Storyboard Sequence(Panel panel)
-      {
-         ArgumentNullException.ThrowIfNull(panel);
-
-         Storyboard storyboard = new();
-         int index = 0;
-         foreach (UIElement child in panel.Children)
-         {
-            DoubleAnimation light = new(0.25, 1, Normal)
-            {
-               BeginTime = Enabled ? TimeSpan.FromMilliseconds(45 * index) : TimeSpan.Zero,
-               EasingFunction = _easeOut,
-            };
-            Storyboard.SetTarget(light, child);
-            Storyboard.SetTargetProperty(light, new PropertyPath(UIElement.OpacityProperty));
-            storyboard.Children.Add(light);
-            index++;
-         }
-
-         return _begin(storyboard, panel);
-      }
-
       #endregion
 
       #region Behaviour handlers
@@ -267,7 +250,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
          element.IsVisibleChanged += static (sender, args) =>
          {
-            if (sender is FrameworkElement shown && args.NewValue is true)
+            // Only a reveal toggle on a loaded control, not a row being created.
+            if (sender is FrameworkElement { IsLoaded: true } shown && args.NewValue is true)
             {
                _ = FadeIn(shown);
             }
@@ -310,12 +294,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          _ = _begin(storyboard, element);
       }
 
-      private static void _onSequenceOnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+      private static void _onGlideSelectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
       {
-         if (d is Panel { IsLoaded: true } panel && !Equals(e.OldValue, e.NewValue))
+         // Only the list that opts in (not every row inheriting the value).
+         if (d is not ListBox list
+            || e.NewValue is not true
+            || DependencyPropertyHelper.GetValueSource(list, GlideSelectionProperty).BaseValueSource == BaseValueSource.Inherited
+            || list.GetValue(_glideControllerProperty) is not null)
          {
-            _ = Sequence(panel);
+            return;
          }
+
+         list.SetValue(_glideControllerProperty, SelectionGlide.Attach(list));
       }
 
       #endregion
