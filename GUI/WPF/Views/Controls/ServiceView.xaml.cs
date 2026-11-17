@@ -13,6 +13,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    {
       private ServiceViewModel? _viewModel;
 
+      // True while a service switch runs: its transition already covers the
+      // account and core, so the account selection inside it starts none.
+      private bool _switchingService;
+
       internal string? GetServiceId() => _viewModel?.Service.ItemId;
       internal string? GetAccountId() => _account_AV.GetAccountId();
 
@@ -45,7 +49,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          e.Handled = true;
       }
 
-      internal void SetDataContext(ServiceViewModel? serviceViewModel)
+      /// <summary>
+      /// Shows <paramref name="serviceViewModel"/>. <paramref name="direction"/> is
+      /// where it sits in the list relative to the previous one (+1 below, -1
+      /// above, 0 unknown: filtering, undo) and sets the transition's slide.
+      /// </summary>
+      internal void SetDataContext(ServiceViewModel? serviceViewModel, int direction = 0)
+      {
+         ContentTransition? transition = serviceViewModel is null || ReferenceEquals(serviceViewModel, _viewModel)
+            ? null
+            : ContentTransition.Capture(this);
+
+         _switchingService = true;
+         try
+         {
+            _setDataContext(serviceViewModel);
+         }
+         finally
+         {
+            _switchingService = false;
+         }
+
+         _ = transition?.Play(direction);
+      }
+
+      private void _setDataContext(ServiceViewModel? serviceViewModel)
       {
          if (serviceViewModel is null)
          {
@@ -78,7 +106,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
 
          AppServices.Session.User?.Shake();
+
+         ContentTransition? transition = _switchingService ? null : ContentTransition.Capture(_account_AV);
          _account_AV.SetDataContext(_accounts_LB.SelectedItem as AccountViewModel);
+         _ = transition?.Play(ContentTransition.Direction(_accounts_LB, e));
       }
 
       public bool SelectAccount(string itemId)

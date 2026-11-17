@@ -37,8 +37,7 @@
             </Button>
          </StackPanel>
       </GroupBox.Header>
-      <Grid xmlns:helper="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Helper"
-            helper:Motion.EnterOnDataContextChange="True">
+      <Grid xmlns:helper="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Helper">
          <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -66,6 +65,7 @@
                        Text="{loc:Loc Label_Name}"/>
             <TextBox Grid.Row="0"
                      Grid.Column="1"
+                     helper:Motion.TransitionTier="0"
                      Margin="0"
                      FontWeight="SemiBold"
                      Text="{Binding ServiceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -77,6 +77,7 @@
                        Text="{loc:Loc Label_UrlShort}"/>
             <TextBox Grid.Row="0"
                      Grid.Column="3"
+                     helper:Motion.TransitionTier="0"
                      Margin="0"
                      Style="{StaticResource MonoTextBox}"
                      Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -110,6 +111,7 @@
                        Text="{loc:Loc Label_NotesShort}"/>
             <TextBox Grid.Row="1"
                      Grid.Column="1"
+                     helper:Motion.TransitionTier="0"
                      Grid.ColumnSpan="5"
                      Margin="0,8,0,0"
                      Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -167,6 +169,7 @@
                </DockPanel>
                <ListBox Grid.Row="1"
                         Name="_accounts_LB"
+                        helper:Motion.TransitionTier="0"
                         SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
                         ScrollViewer.VerticalScrollBarVisibility="Auto"
                         ScrollViewer.CanContentScroll="True"

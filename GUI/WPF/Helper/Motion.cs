@@ -56,13 +56,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       public static void SetAnimateOpen(DependencyObject element, bool value) => _notNull(element).SetValue(AnimateOpenProperty, value);
 
-      /// <summary>Content fades in and slides 6 px up whenever its DataContext changes (layer selection).</summary>
-      public static readonly DependencyProperty EnterOnDataContextChangeProperty = DependencyProperty.RegisterAttached(
-         "EnterOnDataContextChange", typeof(bool), typeof(Motion), new PropertyMetadata(false, _onEnterOnDataContextChanged));
+      /// <summary>
+      /// Marks a part that moves in a layer transition (<see cref="ContentTransition"/>):
+      /// its text or items crossfade and slide; the value is the cascade tier
+      /// (0 service, 1 account, 2 password core), staggered 30 ms apart.
+      /// </summary>
+      public static readonly DependencyProperty TransitionTierProperty = DependencyProperty.RegisterAttached(
+         "TransitionTier", typeof(int), typeof(Motion), new PropertyMetadata(-1));
 
-      public static bool GetEnterOnDataContextChange(DependencyObject element) => (bool)_notNull(element).GetValue(EnterOnDataContextChangeProperty);
+      public static int GetTransitionTier(DependencyObject element) => (int)_notNull(element).GetValue(TransitionTierProperty);
 
-      public static void SetEnterOnDataContextChange(DependencyObject element, bool value) => _notNull(element).SetValue(EnterOnDataContextChangeProperty, value);
+      public static void SetTransitionTier(DependencyObject element, int value) => _notNull(element).SetValue(TransitionTierProperty, value);
 
       /// <summary>Fades in each time the element becomes visible (reveal crossfade).</summary>
       public static readonly DependencyProperty FadeInWhenShownProperty = DependencyProperty.RegisterAttached(
@@ -119,7 +123,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          return _begin(storyboard, element);
       }
 
-      /// <summary>Layer content: fade in and slide 6 px up.</summary>
+      /// <summary>Strip / panel appearing: fade in and slide 6 px up.</summary>
       public static Storyboard Enter(FrameworkElement element)
       {
          (_, TranslateTransform translate) = _transforms(element, new Point(0.5, 0.5));
@@ -250,22 +254,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
                && VisualTreeHelper.GetChild(loaded, 0) is FrameworkElement root)
             {
                _ = Open(root);
-            }
-         };
-      }
-
-      private static void _onEnterOnDataContextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-      {
-         if (d is not FrameworkElement element || e.NewValue is not true)
-         {
-            return;
-         }
-
-         element.DataContextChanged += static (sender, args) =>
-         {
-            if (sender is FrameworkElement changed && args.NewValue is not null && changed.IsLoaded)
-            {
-               _ = Enter(changed);
             }
          };
       }

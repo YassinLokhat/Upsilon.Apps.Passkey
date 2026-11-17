@@ -289,7 +289,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          _session.User?.Shake();
-         _service_SV.SetDataContext(_viewModel.SelectedService);
+         _service_SV.SetDataContext(_viewModel.SelectedService, ContentTransition.Direction(_services_LB, e));
       }
 
       private async void _save()
