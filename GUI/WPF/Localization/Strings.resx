@@ -1536,19 +1536,19 @@ This affects all vault users. Disabling the option alone does not delete the fil
     <value>Used only here</value>
   </data>
   <data name="Msg_QualityReused" xml:space="preserve">
-    <value>Also used on another account</value>
+    <value>Used on another account</value>
   </data>
   <data name="Msg_QualityReuseOff" xml:space="preserve">
-    <value>Reuse check off for this account</value>
+    <value>Reuse check off</value>
   </data>
   <data name="Msg_QualityLeakClean" xml:space="preserve">
-    <value>Not found in a known leak</value>
+    <value>No known leak</value>
   </data>
   <data name="Msg_QualityLeaked" xml:space="preserve">
     <value>Found in a leak</value>
   </data>
   <data name="Msg_QualityLeakOff" xml:space="preserve">
-    <value>Leak check off for this account</value>
+    <value>Leak check off</value>
   </data>
   <data name="Label_Current" xml:space="preserve">
     <value>current</value>

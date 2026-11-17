@@ -1536,19 +1536,19 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
     <value>Utilisé uniquement ici</value>
   </data>
   <data name="Msg_QualityReused" xml:space="preserve">
-    <value>Aussi utilisé sur un autre compte</value>
+    <value>Utilisé sur un autre compte</value>
   </data>
   <data name="Msg_QualityReuseOff" xml:space="preserve">
-    <value>Vérification de réutilisation désactivée pour ce compte</value>
+    <value>Vérif. de réutilisation désactivée</value>
   </data>
   <data name="Msg_QualityLeakClean" xml:space="preserve">
-    <value>Absent des fuites connues</value>
+    <value>Aucune fuite connue</value>
   </data>
   <data name="Msg_QualityLeaked" xml:space="preserve">
     <value>Trouvé dans une fuite</value>
   </data>
   <data name="Msg_QualityLeakOff" xml:space="preserve">
-    <value>Vérification des fuites désactivée pour ce compte</value>
+    <value>Vérif. des fuites désactivée</value>
   </data>
   <data name="Label_Current" xml:space="preserve">
     <value>actuel</value>
