@@ -123,6 +123,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
          => AppServices.Session.User?.Settings.CleaningClipboardTimeout ?? 0;
 
       /// <summary>
+      /// When the pending auto-clear will run (UTC), or null when nothing we copied
+      /// is waiting to be cleared. Drives the password core's clipboard strip.
+      /// </summary>
+      internal static DateTime? PendingClearUtc { get; private set; }
+
+      /// <summary>Raised (on the UI thread) when <see cref="PendingClearUtc"/> changes.</summary>
+      internal static event EventHandler? PendingClearChanged;
+
+      /// <summary>
       /// Clears the clipboard if (and only if) its current text content still
       /// matches the value previously written through <see cref="SetText"/>.
       /// </summary>
@@ -134,6 +143,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
             _trackedContent = null;
             _autoClearTimer?.Stop();
             _autoClearTimer = null;
+
+            if (PendingClearUtc is not null)
+            {
+               PendingClearUtc = null;
+               PendingClearChanged?.Invoke(null, EventArgs.Empty);
+            }
 
             if (tracked is null)
             {
@@ -169,6 +184,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
             };
             _autoClearTimer.Tick += (_, _) => ClearIfStillOwned();
             _autoClearTimer.Start();
+
+            PendingClearUtc = DateTime.UtcNow + delay;
+            PendingClearChanged?.Invoke(null, EventArgs.Empty);
          }
       }
 

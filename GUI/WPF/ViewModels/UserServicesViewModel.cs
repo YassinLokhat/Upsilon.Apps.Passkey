@@ -132,6 +132,65 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = string.Empty;
 
+      /// <summary>Vault (user) name shown in the custom title bar.</summary>
+      public string VaultName => _userDisplayName;
+
+      /// <summary>Session state for the title bar ("Session: no time limit" / time left).</summary>
+      public string SessionText
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      } = string.Empty;
+
+      /// <summary>True when auto-logout is off (shown with a warning dot).</summary>
+      public bool IsSessionUnlimited
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      }
+
+      /// <summary>Number of unsaved items (changed services, or 1 for user-level changes).</summary>
+      public int ChangeCount
+      {
+         get;
+         private set
+         {
+            if (SetProperty(ref field, value))
+            {
+               OnPropertyChanged(nameof(ChangeBadge));
+            }
+         }
+      }
+
+      /// <summary>Save button badge: "1 change" / "N changes".</summary>
+      public string ChangeBadge => ChangeCount == 1
+         ? Strings.Msg_ChangeOne
+         : Strings.Format(nameof(Strings.Msg_ChangeMany), ChangeCount);
+
+      /// <summary>Total notified alerts, shown on the Alerts button.</summary>
+      public int AlertCount
+      {
+         get;
+         set => SetProperty(ref field, value);
+      }
+
+      /// <summary>
+      /// What seals the vault ("username + 1 passkey"). The passkey count comes from
+      /// the insufficient-passkeys alert payload, never from the passkeys themselves.
+      /// </summary>
+      public string SealText
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = Strings.Format(nameof(Strings.Msg_SealAtLeastPasskeys), AlertKinds.RecommendedPasskeyCount);
+
+      /// <summary>True when fewer passkeys than recommended protect the vault.</summary>
+      public bool ShowAddPasskey
+      {
+         get;
+         set => SetProperty(ref field, value);
+      }
+
       public string ServiceFilter
       {
          get;
@@ -650,6 +709,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             title += sessionLeftTime == 0
                ? Strings.Msg_SessionUnlimitedTime
                : Strings.Format(nameof(Strings.Msg_SessionLeftTime), sessionLeftTime / 60, sessionLeftTime % 60);
+
+            IsSessionUnlimited = sessionLeftTime == 0;
+            SessionText = sessionLeftTime == 0
+               ? Strings.Msg_SessionNoLimit
+               : Strings.Format(nameof(Strings.Msg_SessionLeft), sessionLeftTime / 60, sessionLeftTime % 60);
+
+            int changedServices = user.Services.Count(static x => x.HasChanged());
+            ChangeCount = changedServices != 0 ? changedServices : user.HasChanged() ? 1 : 0;
          }
 
          Title = title;

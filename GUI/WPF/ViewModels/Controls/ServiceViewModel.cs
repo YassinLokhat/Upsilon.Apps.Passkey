@@ -26,6 +26,26 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string ServiceId => Strings.Format(nameof(Strings.Msg_ServiceId), Service.ItemId);
 
+      /// <summary>Unsaved-change dot in the services list.</summary>
+      public bool HasUnsavedChanges => Service.HasChanged();
+
+      /// <summary>"edited" tag next to the service notes.</summary>
+      public bool IsNotesChanged => Service.HasChanged(nameof(Notes));
+
+      /// <summary>Number of accounts, shown in the services list and the accounts caption.</summary>
+      public int AccountCount => Accounts.Count;
+
+      /// <summary>
+      /// "Needs attention" dot: one of this service's accounts is in a notified
+      /// account alert (weak, reused, leaked, due for change). Set by the vault view
+      /// from the alert broker's payloads.
+      /// </summary>
+      public bool NeedsAttention
+      {
+         get;
+         set => SetProperty(ref field, value);
+      }
+
       public AccountViewModel? SelectedAccount
       {
          get;
@@ -114,6 +134,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          OnPropertyChanged(propertyName);
          OnPropertyChanged($"{propertyName}Background");
          OnPropertyChanged(nameof(ServiceDisplay));
+         OnPropertyChanged(nameof(HasUnsavedChanges));
+         OnPropertyChanged(nameof(IsNotesChanged));
+         OnPropertyChanged(nameof(AccountCount));
       }
 
       public ServiceViewModel(IService service)

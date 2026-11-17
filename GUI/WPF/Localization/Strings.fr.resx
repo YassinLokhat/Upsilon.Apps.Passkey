@@ -1319,10 +1319,268 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
   <data name="Tooltip_Restore" xml:space="preserve">
     <value>Restaurer</value>
   </data>
-  <data name="Label_LocalVault" xml:space="preserve">
-    <value>Coffre local · ni cloud ni synchronisation</value>
+  <data name="Msg_SealedBy" xml:space="preserve">
+    <value>Scellé par</value>
   </data>
-  <data name="Msg_PasteHotkeys" xml:space="preserve">
-    <value>Ctrl+Shift+L colle l'identifiant · Ctrl+Shift+P colle le mot de passe</value>
+  <data name="Msg_SealUsernameOnly" xml:space="preserve">
+    <value>nom d'utilisateur seul</value>
+  </data>
+  <data name="Msg_SealOnePasskey" xml:space="preserve">
+    <value>nom d'utilisateur + 1 passkey</value>
+  </data>
+  <data name="Msg_SealPasskeys" xml:space="preserve">
+    <value>nom d'utilisateur + {0} passkeys</value>
+  </data>
+  <data name="Msg_SealAtLeastPasskeys" xml:space="preserve">
+    <value>nom d'utilisateur + {0}+ passkeys</value>
+  </data>
+  <data name="Label_AddSecondPasskey" xml:space="preserve">
+    <value>Ajouter une 2e passkey</value>
+  </data>
+  <data name="Msg_SessionNoLimit" xml:space="preserve">
+    <value>Session : sans limite de temps</value>
+  </data>
+  <data name="Msg_SessionLeft" xml:space="preserve">
+    <value>Session : {0:D2}:{1:D2} restantes</value>
+  </data>
+  <data name="Msg_ChangeOne" xml:space="preserve">
+    <value>1 modification</value>
+  </data>
+  <data name="Msg_ChangeMany" xml:space="preserve">
+    <value>{0} modifications</value>
+  </data>
+  <data name="Label_Generator" xml:space="preserve">
+    <value>Générateur</value>
+  </data>
+  <data name="Label_Activity" xml:space="preserve">
+    <value>Activité</value>
+  </data>
+  <data name="Label_UserSettingsShort" xml:space="preserve">
+    <value>Paramètres utilisateur</value>
+  </data>
+  <data name="Label_AppSettingsShort" xml:space="preserve">
+    <value>Paramètres de l'application</value>
+  </data>
+  <data name="Label_LogOut" xml:space="preserve">
+    <value>Se déconnecter</value>
+  </data>
+  <data name="Tooltip_Undo" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="Tooltip_Redo" xml:space="preserve">
+    <value>Rétablir</value>
+  </data>
+  <data name="Msg_AlertTotal" xml:space="preserve">
+    <value>{0} alertes</value>
+  </data>
+  <data name="Label_AlertGroupVault" xml:space="preserve">
+    <value>Protection du coffre</value>
+  </data>
+  <data name="Label_AlertGroupPasswords" xml:space="preserve">
+    <value>Mots de passe</value>
+  </data>
+  <data name="Label_AlertGroupActivity" xml:space="preserve">
+    <value>Activité</value>
+  </data>
+  <data name="Label_SeverityCritical" xml:space="preserve">
+    <value>critique</value>
+  </data>
+  <data name="Label_SeverityWarning" xml:space="preserve">
+    <value>avertissement</value>
+  </data>
+  <data name="Label_AlertPasskeyQuality" xml:space="preserve">
+    <value>Qualité des passkeys</value>
+  </data>
+  <data name="Label_AlertSecuritySettings" xml:space="preserve">
+    <value>Paramètres de sécurité</value>
+  </data>
+  <data name="Label_AlertWeak" xml:space="preserve">
+    <value>Mots de passe faibles</value>
+  </data>
+  <data name="Label_AlertDuplicated" xml:space="preserve">
+    <value>Même mot de passe sur plusieurs comptes</value>
+  </data>
+  <data name="Label_AlertLeaked" xml:space="preserve">
+    <value>Mots de passe divulgués</value>
+  </data>
+  <data name="Label_AlertExpired" xml:space="preserve">
+    <value>À changer</value>
+  </data>
+  <data name="Label_AlertActivity" xml:space="preserve">
+    <value>Revoir l'activité récente</value>
+  </data>
+  <data name="Msg_AlertActivitySub" xml:space="preserve">
+    <value>{0} événements à revoir</value>
+  </data>
+  <data name="Msg_AlertSettingsSub" xml:space="preserve">
+    <value>{0} réglages à vérifier</value>
+  </data>
+  <data name="Msg_AlertPasskeySub" xml:space="preserve">
+    <value>{0} problèmes de passkey</value>
+  </data>
+  <data name="Label_FilterService" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <data name="Label_FilterIdentifier" xml:space="preserve">
+    <value>Identifiant</value>
+  </data>
+  <data name="Label_FilterText" xml:space="preserve">
+    <value>Texte</value>
+  </data>
+  <data name="Msg_PlaceholderService" xml:space="preserve">
+    <value>Nom ou URL</value>
+  </data>
+  <data name="Msg_PlaceholderIdentifier" xml:space="preserve">
+    <value>Nom d'utilisateur, e-mail, téléphone…</value>
+  </data>
+  <data name="Msg_PlaceholderText" xml:space="preserve">
+    <value>Partout, notes comprises</value>
+  </data>
+  <data name="Label_UnsavedOnly" xml:space="preserve">
+    <value>Non enregistrés</value>
+  </data>
+  <data name="Label_Clear" xml:space="preserve">
+    <value>Effacer</value>
+  </data>
+  <data name="Label_ServicesCaption" xml:space="preserve">
+    <value>services</value>
+  </data>
+  <data name="Label_LegendUnsaved" xml:space="preserve">
+    <value>modification non enregistrée</value>
+  </data>
+  <data name="Label_LegendAttention" xml:space="preserve">
+    <value>à vérifier</value>
+  </data>
+  <data name="Label_Name" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="Label_UrlShort" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="Label_NotesShort" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Label_Open" xml:space="preserve">
+    <value>Ouvrir</value>
+  </data>
+  <data name="Label_Edited" xml:space="preserve">
+    <value>modifié</value>
+  </data>
+  <data name="Label_AccountsCaption" xml:space="preserve">
+    <value>comptes</value>
+  </data>
+  <data name="Label_Delete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="Label_LabelShort" xml:space="preserve">
+    <value>Libellé</value>
+  </data>
+  <data name="Label_SignInWith" xml:space="preserve">
+    <value>Connexion avec</value>
+  </data>
+  <data name="Label_AddIdentifierShort" xml:space="preserve">
+    <value>+ Identifiant</value>
+  </data>
+  <data name="Label_WatchFor" xml:space="preserve">
+    <value>Surveiller</value>
+  </data>
+  <data name="Label_WatchWeak" xml:space="preserve">
+    <value>Mot de passe faible</value>
+  </data>
+  <data name="Label_WatchReused" xml:space="preserve">
+    <value>Même mot de passe sur un autre compte</value>
+  </data>
+  <data name="Label_WatchLeaked" xml:space="preserve">
+    <value>Mot de passe trouvé dans une fuite</value>
+  </data>
+  <data name="Label_WatchRemind" xml:space="preserve">
+    <value>Me rappeler de le changer tous les</value>
+  </data>
+  <data name="Label_MonthsShort" xml:space="preserve">
+    <value>mois</value>
+  </data>
+  <data name="Msg_PlaceholderNotes" xml:space="preserve">
+    <value>Emplacement des codes de secours, questions de sécurité…</value>
+  </data>
+  <data name="Label_Qr" xml:space="preserve">
+    <value>QR</value>
+  </data>
+  <data name="Tooltip_MoreActions" xml:space="preserve">
+    <value>Plus d'actions</value>
+  </data>
+  <data name="Label_QrCode" xml:space="preserve">
+    <value>Code QR</value>
+  </data>
+  <data name="Label_GenerateNew" xml:space="preserve">
+    <value>Générer</value>
+  </data>
+  <data name="Msg_Quality12" xml:space="preserve">
+    <value>12 caractères ou plus</value>
+  </data>
+  <data name="Msg_QualityShort" xml:space="preserve">
+    <value>Moins de 12 caractères</value>
+  </data>
+  <data name="Msg_QualityKinds" xml:space="preserve">
+    <value>3 types de caractères ou plus</value>
+  </data>
+  <data name="Msg_QualityFewKinds" xml:space="preserve">
+    <value>Moins de 3 types de caractères</value>
+  </data>
+  <data name="Msg_QualityNotUsername" xml:space="preserve">
+    <value>Différent de votre nom d'utilisateur</value>
+  </data>
+  <data name="Msg_QualityIsUsername" xml:space="preserve">
+    <value>Identique à votre nom d'utilisateur</value>
+  </data>
+  <data name="Msg_QualityUnique" xml:space="preserve">
+    <value>Utilisé uniquement ici</value>
+  </data>
+  <data name="Msg_QualityReused" xml:space="preserve">
+    <value>Aussi utilisé sur un autre compte</value>
+  </data>
+  <data name="Msg_QualityReuseOff" xml:space="preserve">
+    <value>Vérification de réutilisation désactivée pour ce compte</value>
+  </data>
+  <data name="Msg_QualityLeakClean" xml:space="preserve">
+    <value>Absent des fuites connues</value>
+  </data>
+  <data name="Msg_QualityLeaked" xml:space="preserve">
+    <value>Trouvé dans une fuite</value>
+  </data>
+  <data name="Msg_QualityLeakOff" xml:space="preserve">
+    <value>Vérification des fuites désactivée pour ce compte</value>
+  </data>
+  <data name="Label_Current" xml:space="preserve">
+    <value>actuel</value>
+  </data>
+  <data name="Msg_ClipboardClears" xml:space="preserve">
+    <value>Copié. Effacé dans {0} s, aussi de l'historique du presse-papiers Windows.</value>
+  </data>
+  <data name="Label_ClearNow" xml:space="preserve">
+    <value>Effacer maintenant</value>
+  </data>
+  <data name="Msg_PasteHotkeysShort" xml:space="preserve">
+    <value>Ctrl Shift L coller l'identifiant · Ctrl Shift P coller le mot de passe</value>
+  </data>
+  <data name="Label_StoredLocally" xml:space="preserve">
+    <value>Stocké uniquement sur ce PC · AES-256-GCM · PBKDF2-SHA512 ×1 000 000</value>
+  </data>
+  <data name="Label_TypeShortUsername" xml:space="preserve">
+    <value>Util.</value>
+  </data>
+  <data name="Label_TypeShortEmail" xml:space="preserve">
+    <value>Mail</value>
+  </data>
+  <data name="Label_TypeShortPhone" xml:space="preserve">
+    <value>Tél.</value>
+  </data>
+  <data name="Label_TypeShortPasskey" xml:space="preserve">
+    <value>Passkey</value>
+  </data>
+  <data name="Label_TypeShortAuthenticator" xml:space="preserve">
+    <value>2FA</value>
+  </data>
+  <data name="Label_TypeShortAll" xml:space="preserve">
+    <value>Tous</value>
   </data>
 </root>
