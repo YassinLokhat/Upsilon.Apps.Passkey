@@ -48,9 +48,10 @@
                      VerticalAlignment="Center">
             <Rectangle Style="{StaticResource Dot}"
                        Margin="0,0,8,0"
+                       Effect="{DynamicResource Glow.Warning}"
                        Fill="{DynamicResource WarningBrush}"
                        Visibility="{Binding IsSessionUnlimited, Converter={StaticResource BooleanToVisibility}}"/>
-            <TextBlock FontSize="12"
+            <TextBlock FontSize="13"
                        Foreground="{DynamicResource MutedForegroundBrush}"
                        Text="{Binding SessionText}"/>
          </StackPanel>
@@ -58,7 +59,7 @@
                      Orientation="Horizontal"
                      VerticalAlignment="Center">
             <TextBlock FontFamily="{StaticResource MonoFontFamily}"
-                       FontSize="12"
+                       FontSize="13"
                        Foreground="{DynamicResource MutedForegroundBrush}"
                        VerticalAlignment="Center"
                        Text="{Binding VaultName, Mode=OneWay}"/>
@@ -66,7 +67,7 @@
                        Height="16"
                        Margin="14,0"
                        Fill="{DynamicResource BorderBrush}"/>
-            <TextBlock FontSize="12"
+            <TextBlock FontSize="13"
                        VerticalAlignment="Center"
                        Foreground="{DynamicResource MutedForegroundBrush}">
                <Run Text="{loc:Loc Msg_SealedBy}"/>
@@ -74,6 +75,8 @@
             </TextBlock>
             <Button Style="{StaticResource SmallButton}"
                     Margin="14,0,0,0"
+                    MinHeight="28"
+                    FontSize="13"
                     shell:WindowChrome.IsHitTestVisibleInChrome="True"
                     Foreground="{DynamicResource DangerTextBrush}"
                     BorderBrush="{DynamicResource DangerBorderBrush}"
@@ -126,6 +129,8 @@
                      <Border Margin="8,0,0,0"
                              Padding="5,1"
                              VerticalAlignment="Center"
+                             Effect="{DynamicResource Glow.Soft}"
+                             helper:Motion.PopOnValue="{Binding ChangeCount}"
                              Background="{DynamicResource AccentBrush}"
                              Visibility="{Binding ChangeCount, Converter={StaticResource CountToVisibilityConverter}}">
                         <TextBlock FontFamily="{StaticResource MonoFontFamily}"
@@ -197,9 +202,13 @@
                             AutomationProperties.Name="{loc:Loc Label_Alerts}">
                      <MenuItem.Header>
                         <StackPanel Orientation="Horizontal">
-                           <Rectangle Width="4" Height="12" Margin="0,0,2,0" Fill="{DynamicResource DangerBrush}"/>
-                           <Rectangle Width="4" Height="12" Margin="0,0,2,0" Fill="{DynamicResource WarningBrush}"/>
-                           <Rectangle Width="4" Height="12" Fill="{DynamicResource InfoBrush}"/>
+                           <StackPanel Orientation="Horizontal"
+                                       VerticalAlignment="Center"
+                                       helper:Motion.FadeOnValue="{Binding AlertCount}">
+                              <Rectangle Width="4" Height="12" Margin="0,0,2,0" Fill="{DynamicResource DangerBrush}"/>
+                              <Rectangle Width="4" Height="12" Margin="0,0,2,0" Fill="{DynamicResource WarningBrush}"/>
+                              <Rectangle Width="4" Height="12" Fill="{DynamicResource InfoBrush}"/>
+                           </StackPanel>
                            <TextBlock Margin="8,0,0,0"
                                       VerticalAlignment="Center"
                                       FontSize="13"
@@ -468,6 +477,7 @@
                                             Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BooleanToVisibility}}"/>
                                  <Rectangle Style="{StaticResource Dot}"
                                             Margin="8,0,0,0"
+                                            Effect="{DynamicResource Glow.Warning}"
                                             Fill="{DynamicResource WarningBrush}"
                                             Visibility="{Binding NeedsAttention, Converter={StaticResource BooleanToVisibility}}"/>
                                  <TextBlock Margin="8,0,0,0"
@@ -498,7 +508,7 @@
                      </StackPanel>
                      <StackPanel Margin="6,6,0,0"
                                  Orientation="Horizontal">
-                        <Rectangle Style="{StaticResource Dot}" Fill="{DynamicResource WarningBrush}"/>
+                        <Rectangle Style="{StaticResource Dot}" Effect="{DynamicResource Glow.Warning}" Fill="{DynamicResource WarningBrush}"/>
                         <TextBlock Margin="8,0,0,0"
                                    FontSize="12"
                                    Foreground="{DynamicResource MutedForegroundBrush}"
@@ -528,9 +538,12 @@
             <StackPanel DockPanel.Dock="Left"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
-               <StackPanel Orientation="Horizontal"
+               <StackPanel x:Name="_depthSegments_SP"
+                           Orientation="Horizontal"
                            VerticalAlignment="Center"
-                           Margin="0,0,14,0">
+                           Margin="0,0,14,0"
+                           Effect="{DynamicResource Glow.Soft}"
+                           helper:Motion.SequenceOnValue="{Binding SelectedService.SelectedAccount}">
                   <Rectangle Width="16" Height="4" Margin="0,0,3,0" Fill="{DynamicResource AccentBrush}"/>
                   <Rectangle Width="16" Height="4" Margin="0,0,3,0" Fill="{DynamicResource AccentBrush}"/>
                   <Rectangle Width="16" Height="4" Margin="0,0,3,0" Fill="{DynamicResource AccentBrush}"/>

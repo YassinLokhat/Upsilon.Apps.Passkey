@@ -57,20 +57,38 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          if (pending is null)
          {
-            _clipboard_G.Visibility = Visibility.Collapsed;
             _clipboardTimer.Stop();
+            _shownPendingClear = null;
+
+            if (_clipboard_G.Visibility == Visibility.Visible)
+            {
+               _ = Motion.FadeOutThenCollapse(_clipboard_G);
+            }
+
             return;
          }
 
-         int seconds = Math.Max(0, (int)Math.Ceiling((pending.Value - DateTime.UtcNow).TotalSeconds));
+         TimeSpan remaining = pending.Value - DateTime.UtcNow;
+         int seconds = Math.Max(0, (int)Math.Ceiling(remaining.TotalSeconds));
          _clipboard_TB.Text = Strings.Format(nameof(Strings.Msg_ClipboardClears), seconds);
-         _clipboard_G.Visibility = Visibility.Visible;
+
+         // New copy: slide the strip in and restart the progress line.
+         if (_shownPendingClear != pending)
+         {
+            _shownPendingClear = pending;
+            _clipboard_G.Visibility = Visibility.Visible;
+            _ = Motion.Enter(_clipboard_G);
+            _ = Motion.Progress(_clipboardProgress_R, remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero);
+         }
 
          if (!_clipboardTimer.IsEnabled)
          {
             _clipboardTimer.Start();
          }
       }
+
+      // Auto-clear time the strip currently shows (to restart its motion on a new copy).
+      private DateTime? _shownPendingClear;
 
       private void _clearClipboard_Click(object sender, RoutedEventArgs e)
          => ClipboardManager.ClearIfStillOwned();
@@ -287,6 +305,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          AppServices.Clipboard.SetText(_password_VPB.Password,
           ClipboardManager.AutoClearAfter);
+
+         // One brighter pulse of the core's glow, then it settles.
+         _ = Motion.Pulse(_corePulse_B);
       }
 
       private void _showQrCodePassword_Clicked(object sender, RoutedEventArgs e)

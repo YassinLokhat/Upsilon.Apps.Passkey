@@ -37,7 +37,8 @@
             </Button>
          </StackPanel>
       </GroupBox.Header>
-      <Grid>
+      <Grid xmlns:helper="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Helper"
+            helper:Motion.EnterOnDataContextChange="True">
          <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>

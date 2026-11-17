@@ -36,7 +36,7 @@
             </Button>
          </StackPanel>
       </GroupBox.Header>
-      <Grid>
+      <Grid helper:Motion.EnterOnDataContextChange="True">
          <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -144,17 +144,21 @@
                                  </Button.ContextMenu>
                               </Button>
                               <Button DockPanel.Dock="Right"
-                                      Style="{StaticResource SmallGhostButton}"
+                                      Style="{StaticResource SmallIconButton}"
                                       Margin="2,0,0,0"
-                                      Content="{loc:Loc Label_Qr}"
                                       ToolTip="{loc:Loc Tooltip_ShowQrCodeIdentifier}"
-                                      Command="{Binding DataContext.ShowQrCodeIdentifierCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                                      AutomationProperties.Name="{loc:Loc Tooltip_ShowQrCodeIdentifier}"
+                                      Command="{Binding DataContext.ShowQrCodeIdentifierCommand, RelativeSource={RelativeSource AncestorType=ListBox}}">
+                                 <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Qr}"/>
+                              </Button>
                               <Button DockPanel.Dock="Right"
-                                      Style="{StaticResource SmallGhostButton}"
+                                      Style="{StaticResource SmallIconButton}"
                                       Margin="4,0,0,0"
-                                      Content="{loc:Loc Label_Copy}"
                                       ToolTip="{loc:Loc Tooltip_CopyIdentifier}"
-                                      Command="{Binding DataContext.CopyIdentifierCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                                      AutomationProperties.Name="{loc:Loc Tooltip_CopyIdentifier}"
+                                      Command="{Binding DataContext.CopyIdentifierCommand, RelativeSource={RelativeSource AncestorType=ListBox}}">
+                                 <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Copy}"/>
+                              </Button>
                               <TextBox Style="{StaticResource MonoTextBox}"
                                        Margin="0"
                                        MinHeight="28"
@@ -231,10 +235,18 @@
                        Style="{StaticResource DashedColumnRule}"
                        Stroke="{DynamicResource Divider2Brush}"/>
 
-            <!-- Layer 3: the password core -->
-            <GroupBox Grid.Column="2"
-                      Margin="{DynamicResource LayerInset}"
-                      Style="{StaticResource CoreGroupBox}"
+            <!-- Layer 3: the password core (+ the pulse shown on Copy) -->
+            <Grid Grid.Column="2"
+                  Margin="{DynamicResource LayerInset}">
+            <Border x:Name="_corePulse_B"
+                    Margin="0,10,0,0"
+                    Opacity="0"
+                    IsHitTestVisible="False"
+                    BorderBrush="{DynamicResource AccentBrush}"
+                    BorderThickness="2"
+                    Panel.ZIndex="1"
+                    Effect="{DynamicResource Glow.Pulse}"/>
+            <GroupBox Style="{StaticResource CoreGroupBox}"
                       Tag="{DynamicResource Layer2Brush}">
                <GroupBox.Header>
                   <StackPanel Orientation="Horizontal">
@@ -428,6 +440,13 @@
                                 StrokeThickness="1"
                                 StrokeDashArray="3 3"
                                 SnapsToDevicePixels="True"/>
+                     <!-- Shrinks over the auto-clear time. -->
+                     <Rectangle x:Name="_clipboardProgress_R"
+                                Height="2"
+                                Margin="1,0,1,1"
+                                VerticalAlignment="Bottom"
+                                Fill="{DynamicResource AccentBrush}"
+                                Opacity="0.7"/>
                      <DockPanel Margin="12,8" LastChildFill="True">
                         <Rectangle DockPanel.Dock="Left"
                                    Style="{StaticResource Dot}"
@@ -446,6 +465,7 @@
                   </Grid>
                </Grid>
             </GroupBox>
+            </Grid>
          </Grid>
       </Grid>
    </GroupBox>
