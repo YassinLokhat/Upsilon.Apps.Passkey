@@ -23,7 +23,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       public static AppSettings AppSettings { get; set; } = new();
 
       /// <summary>
-      /// Set when <see cref="ConfigFile"/> was missing or invalid and a default was written.
+      /// Set when <see cref="ConfigFile"/> could not be read or was invalid and a default was written.
+      /// A missing file (first launch) is not an error: defaults are written silently.
       /// Consumed once at startup so the warning can be localized after culture apply.
       /// </summary>
       public static bool ConfigLoadHadError { get; private set; }
@@ -73,7 +74,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             or SecurityException)
          {
             AppSettings.Save(configFile);
-            ConfigLoadHadError = true;
+
+            // No config yet (first launch) is expected, not an error worth a warning.
+            ConfigLoadHadError = ex is not (FileNotFoundException or DirectoryNotFoundException);
          }
 
          if (AppServices.PasswordFactory is PasswordFactory factory)
