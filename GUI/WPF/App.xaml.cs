@@ -30,6 +30,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          // Refresh an existing .pkbf only — never a first full build (too heavy).
          AppServices.OfflineLeakFilterUpdate.TryStartAutoUpdate();
 
+         // Animations off in Windows: zero every motion duration up front.
+         Motion.Initialize(this);
+
          base.OnStartup(e);
       }
 
