@@ -9,6 +9,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -92,6 +93,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
       {
+         _updateServiceAttention(_notifiedAlerts());
          // Selection is owned by the VM; keep the service detail pane in sync.
          _service_SV.SetDataContext(_viewModel.SelectedService);
          if (_viewModel.SelectedService is not null)
@@ -445,41 +447,188 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _securitySettingsAlerts_MI.Visibility = securitySettingsAlerts != 0 ? Visibility.Visible : Visibility.Collapsed;
          _passkeyQualityAlerts_MI.Visibility = passkeyQualityAlerts != 0 ? Visibility.Visible : Visibility.Collapsed;
 
-         _reorderAlertsMenu(
-         [
-            (_leakedPasswordAlerts_MI, leakedSeverity, leakedPasswordAlerts),
-            (_passkeyQualityAlerts_MI, passkeySeverity, passkeyQualityAlerts),
-            (_expiredPasswordAlerts_MI, expiredSeverity, expiredPasswordAlerts),
-            (_weakPasswordAlerts_MI, weakSeverity, weakPasswordAlerts),
-            (_activityAlerts_MI, activitySeverity, activityAlerts),
-            (_duplicatedPasswordAlerts_MI, duplicatedSeverity, duplicatedPasswordAlerts),
-            (_securitySettingsAlerts_MI, securitySeverity, securitySettingsAlerts),
-         ]);
+         _viewModel.AlertCount = totalAlertCount;
+
+         // Plain-language subtitles, from the broker's own payloads.
+         _leakedPasswordAlerts_MI.Tag = _serviceNames(leakedKind);
+         _weakPasswordAlerts_MI.Tag = _serviceNames(weakKind);
+         _duplicatedPasswordAlerts_MI.Tag = _serviceNames(duplicatedKind);
+         _expiredPasswordAlerts_MI.Tag = _serviceNames(expiredKind);
+         _activityAlerts_MI.Tag = Strings.Format(nameof(Strings.Msg_AlertActivitySub), activityAlerts);
+         _securitySettingsAlerts_MI.Tag = Strings.Format(nameof(Strings.Msg_AlertSettingsSub), securitySettingsAlerts);
+         _passkeyQualityAlerts_MI.Tag = Strings.Format(nameof(Strings.Msg_AlertPasskeySub), passkeyQualityAlerts);
+
+         _updateSeal();
+         _updateServiceAttention(alerts);
+
+         _rebuildAlertsMenu(
+            totalAlertCount,
+            [
+               (Strings.Label_AlertGroupVault,
+               [
+                  (_passkeyQualityAlerts_MI, passkeySeverity, passkeyQualityAlerts),
+                  (_securitySettingsAlerts_MI, securitySeverity, securitySettingsAlerts),
+               ]),
+               (Strings.Label_AlertGroupPasswords,
+               [
+                  (_leakedPasswordAlerts_MI, leakedSeverity, leakedPasswordAlerts),
+                  (_weakPasswordAlerts_MI, weakSeverity, weakPasswordAlerts),
+                  (_duplicatedPasswordAlerts_MI, duplicatedSeverity, duplicatedPasswordAlerts),
+                  (_expiredPasswordAlerts_MI, expiredSeverity, expiredPasswordAlerts),
+               ]),
+               (Strings.Label_AlertGroupActivity,
+               [
+                  (_activityAlerts_MI, activitySeverity, activityAlerts),
+               ]),
+            ]);
       }
 
       /// <summary>
-      /// Critical first, then Warning, then Info. Hidden items stay at the end;
-      /// equal severity keeps the stable secondary order of <paramref name="entries"/>.
+      /// Rebuilds the alerts dropdown: a title row ("20 alerts" + legend), then one
+      /// group per area (vault protection, passwords, activity). Inside a group,
+      /// critical first, then warning, then info. Hidden kinds stay at the end.
       /// </summary>
-      private void _reorderAlertsMenu(
-         (MenuItem Item, AlertSeverity Severity, int Count)[] entries)
+      private void _rebuildAlertsMenu(
+         int total,
+         (string Group, (MenuItem Item, AlertSeverity Severity, int Count)[] Entries)[] groups)
       {
-         MenuItem[] ordered =
-         [
-            .. entries
+         _alerts_MI.Items.Clear();
+
+         _ = _alerts_MI.Items.Add(new MenuItem
+         {
+            Style = (Style)FindResource("AlertMenuTitle"),
+            Header = Strings.Format(nameof(Strings.Msg_AlertTotal), total),
+         });
+
+         foreach ((string group, (MenuItem Item, AlertSeverity Severity, int Count)[] entries) in groups)
+         {
+            if (entries.Any(static e => e.Count > 0))
+            {
+               _ = _alerts_MI.Items.Add(new MenuItem
+               {
+                  Style = (Style)FindResource("AlertGroupHeader"),
+                  Header = group,
+               });
+            }
+
+            foreach (MenuItem item in entries
                .Where(static e => e.Count > 0)
                .OrderByDescending(static e => e.Severity)
-               .Select(static e => e.Item),
-            .. entries
-               .Where(static e => e.Count == 0)
-               .Select(static e => e.Item),
-         ];
+               .Select(static e => e.Item))
+            {
+               _ = _alerts_MI.Items.Add(item);
+            }
+         }
 
-         _alerts_MI.Items.Clear();
-         foreach (MenuItem item in ordered)
+         foreach (MenuItem item in groups
+            .SelectMany(static g => g.Entries)
+            .Where(static e => e.Count == 0)
+            .Select(static e => e.Item))
          {
             _ = _alerts_MI.Items.Add(item);
          }
+      }
+
+      /// <summary>Services named in account alerts, e.g. "npm · Netflix".</summary>
+      private static string? _serviceNames(IEnumerable<IAlert> alerts)
+      {
+         string[] names =
+         [
+            .. alerts
+               .OfType<IAccountsAlert>()
+               .SelectMany(static x => x.Accounts)
+               .Select(static x => x.Service.ServiceName)
+               .Distinct(StringComparer.CurrentCulture),
+         ];
+
+         return names.Length switch
+         {
+            0 => null,
+            <= 4 => string.Join(" · ", names),
+            _ => $"{string.Join(" · ", names.Take(4))} …",
+         };
+      }
+
+      /// <summary>
+      /// Title-bar seal ("username + 1 passkey"). The count comes from the
+      /// insufficient-passkeys alert payload: the passkeys themselves are never
+      /// read (IUser.Passkeys would reveal them).
+      /// </summary>
+      private void _updateSeal()
+      {
+         IInsufficientPasskeysAlert? insufficient = _session.Alerts
+            .GetAllAlerts(AlertKinds.InsufficientPasskeys)
+            .OfType<IInsufficientPasskeysAlert>()
+            .FirstOrDefault();
+
+         if (insufficient is null)
+         {
+            _viewModel.SealText = Strings.Format(nameof(Strings.Msg_SealAtLeastPasskeys), AlertKinds.RecommendedPasskeyCount);
+            _viewModel.ShowAddPasskey = false;
+            return;
+         }
+
+         _viewModel.SealText = insufficient.Count switch
+         {
+            0 => Strings.Msg_SealUsernameOnly,
+            1 => Strings.Msg_SealOnePasskey,
+            _ => Strings.Format(nameof(Strings.Msg_SealPasskeys), insufficient.Count),
+         };
+         _viewModel.ShowAddPasskey = true;
+      }
+
+      /// <summary>Amber "needs attention" dot on services with an account in a notified account alert.</summary>
+      private void _updateServiceAttention(IEnumerable<IAlert> alerts)
+      {
+         HashSet<IService> flagged =
+         [
+            .. alerts
+               .OfType<IAccountsAlert>()
+               .SelectMany(static x => x.Accounts)
+               .Select(static x => x.Service),
+         ];
+
+         foreach (ServiceViewModel service in _viewModel.Services)
+         {
+            service.NeedsAttention = flagged.Contains(service.Service);
+         }
+      }
+
+      /// <summary>
+      /// Layout tokens follow the window: columns grow with the width (with min /
+      /// max), padding between layers tightens and the right-hand shortcut chips
+      /// drop on short or narrow windows.
+      /// </summary>
+      private void _window_SizeChanged(object sender, SizeChangedEventArgs e)
+      {
+         const double coreMaxWidth = 900;
+         const double fixedChrome = 150;
+
+         double width = e.NewSize.Width;
+         bool compact = width < 1400 || e.NewSize.Height < 800;
+
+         double services = Math.Clamp(width * 0.142, 180, 280);
+         double accounts = Math.Clamp(width * 0.136, 170, 260);
+
+         // The account column grows with the window; past the point where the
+         // password core would exceed coreMaxWidth, it takes the extra width so
+         // the core never turns into a vast empty panel.
+         double accountColumn = Math.Max(
+            Math.Clamp(width * 0.236, 300, 460),
+            width - services - accounts - fixedChrome - coreMaxWidth);
+
+         Resources["ServicesWidth"] = services;
+         Resources["AccountsWidth"] = accounts;
+         Resources["AccountColumnWidth"] = accountColumn;
+         Resources["BodyMargin"] = compact ? new Thickness(8, 12, 8, 8) : new Thickness(16, 20, 16, 12);
+         Resources["LayerHeaderPadding"] = compact ? new Thickness(10, 14, 10, 6) : new Thickness(14, 20, 14, 12);
+         Resources["LayerInset"] = compact ? new Thickness(8, 14, 8, 8) : new Thickness(14, 22, 14, 14);
+         Resources["ColumnPadding"] = compact ? new Thickness(8, 8, 8, 8) : new Thickness(10, 12, 10, 12);
+         Resources["CorePadding"] = compact ? new Thickness(14, 16, 14, 8) : new Thickness(20, 24, 20, 16);
+         Resources["CoreGap"] = compact ? new Thickness(0, 8, 0, 0) : new Thickness(0, 18, 0, 0);
+         Resources["CoreCaptionGap"] = compact ? new Thickness(0, 8, 0, 4) : new Thickness(0, 18, 0, 6);
+         Resources["CoreButtonHeight"] = compact ? 34d : 38d;
+         Resources["RightChipVisibility"] = width >= 1500 ? Visibility.Visible : Visibility.Collapsed;
       }
 
       private static int _passkeyQualityCount(IEnumerable<IAlert> alerts)

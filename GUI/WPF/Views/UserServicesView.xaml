@@ -10,16 +10,79 @@
         xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
         xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
         xmlns:helper="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Helper"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         d:DataContext="{d:DesignInstance Type=viewmodels:UserServicesViewModel}"
         mc:Ignorable="d"
         WindowState="Maximized"
         WindowStartupLocation="CenterScreen"
         Closed="_window_Closed"
+        SizeChanged="_window_SizeChanged"
+        helper:StrataChrome.TitleBarContent="{DynamicResource VaultTitleBarContent}"
         Title="{Binding Title}"
-        Height="700"
+        Height="720"
         Width="1300"
-        MinHeight="700"
-        MinWidth="1300">
+        MinHeight="680"
+        MinWidth="1200">
+   <Window.Resources>
+      <BooleanToVisibilityConverter x:Key="BooleanToVisibility"/>
+      <!-- Layout tokens. The code-behind tightens them on short / narrow windows
+           and grows the columns with the window (see _window_SizeChanged). -->
+      <Thickness x:Key="BodyMargin">16,20,16,12</Thickness>
+      <Thickness x:Key="LayerHeaderPadding">14,20,14,12</Thickness>
+      <Thickness x:Key="LayerInset">14,22,14,14</Thickness>
+      <Thickness x:Key="ColumnPadding">10,12,10,12</Thickness>
+      <Thickness x:Key="CorePadding">20,24,20,16</Thickness>
+      <system:Double xmlns:system="clr-namespace:System;assembly=System.Runtime" x:Key="CoreButtonHeight">38</system:Double>
+      <Thickness x:Key="CoreGap">0,18,0,0</Thickness>
+      <Thickness x:Key="CoreCaptionGap">0,18,0,6</Thickness>
+      <system:Double xmlns:system="clr-namespace:System;assembly=System.Runtime" x:Key="ServicesWidth">204</system:Double>
+      <system:Double xmlns:system="clr-namespace:System;assembly=System.Runtime" x:Key="AccountsWidth">196</system:Double>
+      <system:Double xmlns:system="clr-namespace:System;assembly=System.Runtime" x:Key="AccountColumnWidth">340</system:Double>
+      <Visibility x:Key="RightChipVisibility">Visible</Visibility>
+      <!-- Title bar: vault name, what seals it, the session state. -->
+      <DockPanel x:Key="VaultTitleBarContent"
+                 x:Shared="False"
+                 LastChildFill="False">
+         <StackPanel DockPanel.Dock="Right"
+                     Orientation="Horizontal"
+                     VerticalAlignment="Center">
+            <Rectangle Style="{StaticResource Dot}"
+                       Margin="0,0,8,0"
+                       Fill="{DynamicResource WarningBrush}"
+                       Visibility="{Binding IsSessionUnlimited, Converter={StaticResource BooleanToVisibility}}"/>
+            <TextBlock FontSize="12"
+                       Foreground="{DynamicResource MutedForegroundBrush}"
+                       Text="{Binding SessionText}"/>
+         </StackPanel>
+         <StackPanel DockPanel.Dock="Left"
+                     Orientation="Horizontal"
+                     VerticalAlignment="Center">
+            <TextBlock FontFamily="{StaticResource MonoFontFamily}"
+                       FontSize="12"
+                       Foreground="{DynamicResource MutedForegroundBrush}"
+                       VerticalAlignment="Center"
+                       Text="{Binding VaultName, Mode=OneWay}"/>
+            <Rectangle Width="1"
+                       Height="16"
+                       Margin="14,0"
+                       Fill="{DynamicResource BorderBrush}"/>
+            <TextBlock FontSize="12"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource MutedForegroundBrush}">
+               <Run Text="{loc:Loc Msg_SealedBy}"/>
+               <Run Foreground="{DynamicResource ForegroundBrush}" Text="{Binding SealText, Mode=OneWay}"/>
+            </TextBlock>
+            <Button Style="{StaticResource SmallButton}"
+                    Margin="14,0,0,0"
+                    shell:WindowChrome.IsHitTestVisibleInChrome="True"
+                    Foreground="{DynamicResource DangerTextBrush}"
+                    BorderBrush="{DynamicResource DangerBorderBrush}"
+                    Content="{loc:Loc Label_AddSecondPasskey}"
+                    Command="{Binding UserSettingsCommand}"
+                    Visibility="{Binding ShowAddPasskey, Converter={StaticResource BooleanToVisibility}}"/>
+         </StackPanel>
+      </DockPanel>
+   </Window.Resources>
    <Window.InputBindings>
       <KeyBinding Key="S" Modifiers="Control" Command="{Binding SaveCommand}"/>
       <KeyBinding Key="Z" Modifiers="Control+Shift" Command="{Binding UndoCommand}"/>
@@ -35,128 +98,220 @@
       <KeyBinding Key="F" Modifiers="Control+Shift" Command="{Binding ClearFiltersCommand}"/>
       <KeyBinding Key="F3" Modifiers="Shift" Command="{Binding ClearFiltersCommand}"/>
    </Window.InputBindings>
+
+
    <Grid>
       <Grid.RowDefinitions>
-         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="48"/>
          <RowDefinition Height="*"/>
-         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="32"/>
       </Grid.RowDefinitions>
+
+      <!-- Command row -->
       <Border Grid.Row="0"
+              Padding="16,0"
               BorderBrush="{DynamicResource SubtleBorderBrush}"
               BorderThickness="0,0,0,1">
-         <Menu helper:StrataChrome.ShortcutChipsMinWidth="1600">
-            <Menu.Resources>
-               <!-- Vertical divider between command groups, as in the design. -->
-               <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
-                  <Setter Property="Template">
-                     <Setter.Value>
-                        <ControlTemplate TargetType="Separator">
-                           <Border Width="1"
-                                   Height="18"
-                                   Margin="6,0"
-                                   Background="{DynamicResource BorderBrush}"/>
-                        </ControlTemplate>
-                     </Setter.Value>
-                  </Setter>
-               </Style>
-            </Menu.Resources>
-            <Menu.ItemsPanel>
-               <ItemsPanelTemplate>
-                  <DockPanel HorizontalAlignment="Stretch"/>
-               </ItemsPanelTemplate>
-            </Menu.ItemsPanel>
-            <MenuItem Header="{loc:Loc Menu_Save}"
-                      DockPanel.Dock="Left"
-                      Command="{Binding SaveCommand}"
-                      InputGestureText="Ctrl+S"/>
-            <MenuItem Header="{loc:Loc Menu_Undo}"
-                      DockPanel.Dock="Left"
-                      Command="{Binding UndoCommand}"
-                      InputGestureText="Ctrl+Shift+Z"/>
-            <MenuItem Header="{loc:Loc Menu_Redo}"
-                      DockPanel.Dock="Left"
-                      Command="{Binding RedoCommand}"
-                      InputGestureText="Ctrl+Shift+Y"/>
-            <Separator DockPanel.Dock="Left"/>
-            <MenuItem Header="{loc:Loc Menu_GenerateRandomPassword}"
-                      DockPanel.Dock="Left"
-                      Command="{Binding GeneratePasswordCommand}"
-                      InputGestureText="Ctrl+P"/>
-            <MenuItem Header="{loc:Loc Menu_ShowActivities}"
-                      DockPanel.Dock="Left"
-                      Command="{Binding ShowActivitiesCommand}"
-                      InputGestureText="Ctrl+Shift+A"/>
-            <MenuItem Header="{loc:Loc Menu_Logout}"
-                      HorizontalAlignment="Right"
-                      DockPanel.Dock="Right"
-                      Command="{Binding LogoutCommand}"/>
-            <MenuItem Header="{loc:Loc Menu_AppSettings}"
-                      HorizontalAlignment="Right"
-                      DockPanel.Dock="Right"
-                      Command="{Binding AppSettingsCommand}"
-                      InputGestureText="Ctrl+,"/>
-            <MenuItem Header="{loc:Loc Menu_UserSettings}"
-                      DockPanel.Dock="Right"
-                      Command="{Binding UserSettingsCommand}"
-                      InputGestureText="Ctrl+Shift+,"/>
-            <Separator DockPanel.Dock="Right"/>
-            <MenuItem Name="_alerts_MI"
-                      HorizontalAlignment="Right"
-                      Header="{Binding ShowAlerts}"
-                      DockPanel.Dock="Right"
-                      Foreground="{Binding ShowAlertsColor}">
-               <MenuItem Name="_activityAlerts_MI"
-                         Header="{Binding ShowActivityAlerts}"
-                         Foreground="{Binding ShowActivityAlertsColor}"
-                         Command="{Binding ShowActivityAlertsCommand}"/>
-               <MenuItem Name="_duplicatedPasswordAlerts_MI"
-                         Header="{Binding ShowDuplicatedPasswordAlerts}"
-                         Foreground="{Binding ShowDuplicatedPasswordAlertsColor}"
-                         Command="{Binding ShowDuplicatedPasswordAlertsCommand}"/>
-               <MenuItem Name="_expiredPasswordAlerts_MI"
-                         Header="{Binding ShowExpiredPasswordAlerts}"
-                         Foreground="{Binding ShowExpiredPasswordAlertsColor}"
-                         Command="{Binding ShowExpiredPasswordAlertsCommand}"/>
-               <MenuItem Name="_leakedPasswordAlerts_MI"
-                         Header="{Binding ShowLeakedPasswordAlerts}"
-                         Foreground="{Binding ShowLeakedPasswordAlertsColor}"
-                         Command="{Binding ShowLeakedPasswordAlertsCommand}"/>
-               <MenuItem Name="_weakPasswordAlerts_MI"
-                         Header="{Binding ShowWeakPasswordAlerts}"
-                         Foreground="{Binding ShowWeakPasswordAlertsColor}"
-                         Command="{Binding ShowWeakPasswordAlertsCommand}"/>
-               <MenuItem Name="_securitySettingsAlerts_MI"
-                         Header="{Binding ShowSecuritySettingsAlerts}"
-                         Foreground="{Binding ShowSecuritySettingsAlertsColor}"
-                         Command="{Binding ShowSecuritySettingsAlertsCommand}"/>
-               <MenuItem Name="_passkeyQualityAlerts_MI"
-                         Header="{Binding ShowPasskeyQualityAlerts}"
-                         Foreground="{Binding ShowPasskeyQualityAlertsColor}"
-                         Command="{Binding ShowPasskeyQualityAlertsCommand}"/>
-            </MenuItem>
-         </Menu>
+         <DockPanel LastChildFill="False">
+            <StackPanel DockPanel.Dock="Left"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+               <Button Margin="0,0,6,0"
+                       BorderBrush="{DynamicResource AccentBrush}"
+                       ToolTip="Ctrl+S"
+                       Command="{Binding SaveCommand}">
+                  <StackPanel Orientation="Horizontal">
+                     <AccessText VerticalAlignment="Center"
+                                 Text="{loc:Loc Menu_Save}"/>
+                     <Border Margin="8,0,0,0"
+                             Padding="5,1"
+                             VerticalAlignment="Center"
+                             Background="{DynamicResource AccentBrush}"
+                             Visibility="{Binding ChangeCount, Converter={StaticResource CountToVisibilityConverter}}">
+                        <TextBlock FontFamily="{StaticResource MonoFontFamily}"
+                                   FontSize="10"
+                                   Foreground="{DynamicResource AccentForegroundBrush}"
+                                   Text="{Binding ChangeBadge}"/>
+                     </Border>
+                     <ContentControl Style="{StaticResource Kbd}"
+                                     Margin="8,0,0,0"
+                                     Content="Ctrl S"/>
+                  </StackPanel>
+               </Button>
+               <Button Style="{StaticResource GhostIconButton}"
+                       Margin="0,0,6,0"
+                       Command="{Binding UndoCommand}"
+                       AutomationProperties.Name="{loc:Loc Tooltip_Undo}">
+                  <Button.ToolTip>
+                     <TextBlock>
+                        <Run Text="{loc:Loc Tooltip_Undo}"/>
+                        <Run Foreground="{DynamicResource MutedForegroundBrush}" Text="  Ctrl+Shift+Z"/>
+                     </TextBlock>
+                  </Button.ToolTip>
+                  <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Undo}"/>
+               </Button>
+               <Button Style="{StaticResource GhostIconButton}"
+                       Margin="0"
+                       Command="{Binding RedoCommand}"
+                       AutomationProperties.Name="{loc:Loc Tooltip_Redo}">
+                  <Button.ToolTip>
+                     <TextBlock>
+                        <Run Text="{loc:Loc Tooltip_Redo}"/>
+                        <Run Foreground="{DynamicResource MutedForegroundBrush}" Text="  Ctrl+Shift+Y"/>
+                     </TextBlock>
+                  </Button.ToolTip>
+                  <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Redo}"/>
+               </Button>
+               <Rectangle Width="1"
+                          Height="18"
+                          Margin="12,0"
+                          Fill="{DynamicResource BorderBrush}"/>
+               <Button Style="{StaticResource GhostButton}"
+                       Margin="0,0,6,0"
+                       Command="{Binding GeneratePasswordCommand}">
+                  <StackPanel Orientation="Horizontal">
+                     <TextBlock VerticalAlignment="Center" Text="{loc:Loc Label_Generator}"/>
+                     <ContentControl Style="{StaticResource Kbd}" Margin="8,0,0,0" Content="Ctrl P"/>
+                  </StackPanel>
+               </Button>
+               <Button Style="{StaticResource GhostButton}"
+                       Margin="0"
+                       Command="{Binding ShowActivitiesCommand}">
+                  <StackPanel Orientation="Horizontal">
+                     <TextBlock VerticalAlignment="Center" Text="{loc:Loc Label_Activity}"/>
+                     <ContentControl Style="{StaticResource Kbd}" Margin="8,0,0,0" Content="Ctrl Shift A"/>
+                  </StackPanel>
+               </Button>
+            </StackPanel>
+
+            <StackPanel DockPanel.Dock="Right"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
+               <!-- Alerts: a real menu (keyboard + the grouped dropdown), drawn as a button. -->
+               <Menu Background="Transparent"
+                     Padding="0"
+                     VerticalAlignment="Center">
+                  <MenuItem Name="_alerts_MI"
+                            Template="{StaticResource AlertsButtonTemplate}"
+                            Padding="12,0"
+                            AutomationProperties.Name="{loc:Loc Label_Alerts}">
+                     <MenuItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                           <Rectangle Width="4" Height="12" Margin="0,0,2,0" Fill="{DynamicResource DangerBrush}"/>
+                           <Rectangle Width="4" Height="12" Margin="0,0,2,0" Fill="{DynamicResource WarningBrush}"/>
+                           <Rectangle Width="4" Height="12" Fill="{DynamicResource InfoBrush}"/>
+                           <TextBlock Margin="8,0,0,0"
+                                      VerticalAlignment="Center"
+                                      FontSize="13"
+                                      FontWeight="Medium"
+                                      Foreground="{DynamicResource ForegroundBrush}"
+                                      Text="{loc:Loc Label_Alerts}"/>
+                           <TextBlock Margin="8,0,0,0"
+                                      VerticalAlignment="Center"
+                                      FontFamily="{StaticResource MonoFontFamily}"
+                                      FontSize="12"
+                                      Foreground="{DynamicResource ForegroundBrush}"
+                                      Text="{Binding AlertCount}"/>
+                           <Path Style="{StaticResource IconPath}"
+                                 Margin="8,1,0,0"
+                                 Stroke="{DynamicResource SoftForegroundBrush}"
+                                 Data="{StaticResource Icon.Chevron}"/>
+                        </StackPanel>
+                     </MenuItem.Header>
+                     <MenuItem Name="_activityAlerts_MI"
+                               Style="{StaticResource AlertItem}"
+                               Header="{loc:Loc Label_AlertActivity}"
+                               Foreground="{Binding ShowActivityAlertsColor}"
+                               Command="{Binding ShowActivityAlertsCommand}"/>
+                     <MenuItem Name="_duplicatedPasswordAlerts_MI"
+                               Style="{StaticResource AlertItem}"
+                               Header="{loc:Loc Label_AlertDuplicated}"
+                               Foreground="{Binding ShowDuplicatedPasswordAlertsColor}"
+                               Command="{Binding ShowDuplicatedPasswordAlertsCommand}"/>
+                     <MenuItem Name="_expiredPasswordAlerts_MI"
+                               Style="{StaticResource AlertItem}"
+                               Header="{loc:Loc Label_AlertExpired}"
+                               Foreground="{Binding ShowExpiredPasswordAlertsColor}"
+                               Command="{Binding ShowExpiredPasswordAlertsCommand}"/>
+                     <MenuItem Name="_leakedPasswordAlerts_MI"
+                               Style="{StaticResource AlertItem}"
+                               Header="{loc:Loc Label_AlertLeaked}"
+                               Foreground="{Binding ShowLeakedPasswordAlertsColor}"
+                               Command="{Binding ShowLeakedPasswordAlertsCommand}"/>
+                     <MenuItem Name="_weakPasswordAlerts_MI"
+                               Style="{StaticResource AlertItem}"
+                               Header="{loc:Loc Label_AlertWeak}"
+                               Foreground="{Binding ShowWeakPasswordAlertsColor}"
+                               Command="{Binding ShowWeakPasswordAlertsCommand}"/>
+                     <MenuItem Name="_securitySettingsAlerts_MI"
+                               Style="{StaticResource AlertItem}"
+                               Header="{loc:Loc Label_AlertSecuritySettings}"
+                               Foreground="{Binding ShowSecuritySettingsAlertsColor}"
+                               Command="{Binding ShowSecuritySettingsAlertsCommand}"/>
+                     <MenuItem Name="_passkeyQualityAlerts_MI"
+                               Style="{StaticResource AlertItem}"
+                               Header="{loc:Loc Label_AlertPasskeyQuality}"
+                               Foreground="{Binding ShowPasskeyQualityAlertsColor}"
+                               Command="{Binding ShowPasskeyQualityAlertsCommand}"/>
+                  </MenuItem>
+               </Menu>
+               <Rectangle Width="1"
+                          Height="18"
+                          Margin="12,0"
+                          Fill="{DynamicResource BorderBrush}"/>
+               <Button Style="{StaticResource GhostButton}"
+                       Margin="0,0,6,0"
+                       ToolTip="Ctrl+Shift+,"
+                       Command="{Binding UserSettingsCommand}">
+                  <StackPanel Orientation="Horizontal">
+                     <Path Style="{StaticResource IconPath}"
+                           Margin="0,0,8,0"
+                           Data="{StaticResource Icon.Lock}"/>
+                     <TextBlock VerticalAlignment="Center" Text="{loc:Loc Label_UserSettingsShort}"/>
+                     <ContentControl Style="{StaticResource Kbd}"
+                                     Margin="8,0,0,0"
+                                     Visibility="{DynamicResource RightChipVisibility}"
+                                     Content="Ctrl Shift ,"/>
+                  </StackPanel>
+               </Button>
+               <Button Style="{StaticResource GhostButton}"
+                       Margin="0,0,6,0"
+                       ToolTip="Ctrl+,"
+                       Command="{Binding AppSettingsCommand}">
+                  <StackPanel Orientation="Horizontal">
+                     <TextBlock VerticalAlignment="Center" Text="{loc:Loc Label_AppSettingsShort}"/>
+                     <ContentControl Style="{StaticResource Kbd}"
+                                     Margin="8,0,0,0"
+                                     Visibility="{DynamicResource RightChipVisibility}"
+                                     Content="Ctrl ,"/>
+                  </StackPanel>
+               </Button>
+               <Button Margin="0"
+                       Content="{loc:Loc Label_LogOut}"
+                       Command="{Binding LogoutCommand}"/>
+            </StackPanel>
+         </DockPanel>
       </Border>
 
       <!-- Layer 0: the vault. Filters on top, services on the left, the
            service layer nested on the right. -->
       <GroupBox Grid.Row="1"
-                Margin="12"
+                Margin="{DynamicResource BodyMargin}"
                 Style="{StaticResource LayerGroupBox}"
-                Background="{DynamicResource Layer0Brush}">
+                Background="{DynamicResource Layer0Brush}"
+                Tag="{DynamicResource BackgroundBrush}">
          <GroupBox.Header>
             <StackPanel Orientation="Horizontal">
-               <TextBlock Style="{StaticResource LayerNumber}"
-                          Text="0"/>
+               <TextBlock Style="{StaticResource LayerNumber}" Text="0"/>
                <TextBlock Style="{StaticResource LayerName}"
-                          Text="{loc:Loc Label_LayerVault}"/>
+                          Text="{Binding [Label_LayerVault], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}}"/>
                <Button Style="{StaticResource NotchIconButton}"
-                       Content="&#xE946;"
+                       Content="i"
                        AutomationProperties.Name="{Binding UserId}"
                        Click="_copyUserId_Click">
                   <Button.ToolTip>
                      <StackPanel>
-                        <TextBlock FontFamily="{StaticResource MonoFontFamily}"
-                                   Text="{Binding UserId}"/>
+                        <TextBlock FontFamily="{StaticResource MonoFontFamily}" Text="{Binding UserId}"/>
                         <TextBlock Margin="0,4,0,0"
                                    Foreground="{DynamicResource MutedForegroundBrush}"
                                    Text="{loc:Loc Tooltip_CopyItemId}"/>
@@ -172,155 +327,238 @@
                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0">
+            <!-- Filters -->
+            <Grid Grid.Row="0"
+                  Margin="{DynamicResource LayerHeaderPadding}">
                <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="200"/>
                   <ColumnDefinition Width="Auto"/>
                   <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="190"/>
                   <ColumnDefinition Width="Auto"/>
                   <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
                   <ColumnDefinition Width="Auto"/>
                   <ColumnDefinition Width="Auto"/>
                </Grid.ColumnDefinitions>
-               <Label Grid.Column="0"
-                      Content="{loc:Loc Label_Service}"/>
+               <Path Grid.Column="0"
+                     Style="{StaticResource IconPath}"
+                     Margin="0,0,10,0"
+                     Stroke="{DynamicResource MutedForegroundBrush}"
+                     Data="{StaticResource Icon.Search}"/>
+               <TextBlock Grid.Column="1"
+                          Style="{StaticResource FieldLabel}"
+                          Text="{loc:Loc Label_FilterService}"/>
                <TextBox Name="_serviceFilter_TB"
-                        Grid.Column="1"
+                        Grid.Column="2"
+                        Margin="0"
+                        helper:StrataChrome.Placeholder="{loc:Loc Msg_PlaceholderService}"
                         Text="{Binding ServiceFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-               <Label Grid.Column="2"
-                      Margin="12,4,4,4"
-                      Content="{loc:Loc Label_Identifier}"/>
-               <ComboBox Grid.Column="3"
-                         MinWidth="56"
+               <TextBlock Grid.Column="3"
+                          Style="{StaticResource FieldLabel}"
+                          Margin="12,0,8,0"
+                          Text="{loc:Loc Label_FilterIdentifier}"/>
+               <ComboBox Grid.Column="4"
+                         Margin="0,0,4,0"
+                         MinWidth="64"
                          VerticalAlignment="Center"
                          ItemsSource="{Binding TypeChoices}"
                          SelectedValue="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          SelectedValuePath="Type"
-                         DisplayMemberPath="Display"
+                         DisplayMemberPath="ShortLabel"
                          ToolTip="{Binding TypeLabel}"/>
-               <TextBox Grid.Column="4"
+               <TextBox Grid.Column="5"
+                        Margin="0"
                         Style="{StaticResource MonoTextBox}"
+                        helper:StrataChrome.Placeholder="{loc:Loc Msg_PlaceholderIdentifier}"
                         Text="{Binding IdentifierFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-               <Label Grid.Column="5"
-                      Margin="12,4,4,4"
-                      Content="{loc:Loc Label_Text}"/>
-               <TextBox Grid.Column="6"
+               <TextBlock Grid.Column="6"
+                          Style="{StaticResource FieldLabel}"
+                          Margin="12,0,8,0"
+                          Text="{loc:Loc Label_FilterText}"/>
+               <TextBox Grid.Column="7"
+                        Margin="0"
+                        helper:StrataChrome.Placeholder="{loc:Loc Msg_PlaceholderText}"
                         Text="{Binding TextFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-               <CheckBox Grid.Column="7"
-                         Margin="12,4,4,4"
-                         Content="{loc:Loc Label_UnsavedItemsOnly}"
+               <CheckBox Grid.Column="8"
+                         Margin="12,0,4,0"
+                         FontSize="13"
+                         Content="{loc:Loc Label_UnsavedOnly}"
                          IsChecked="{Binding ChangedItemsOnly, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-               <Button Grid.Column="8"
-                       Style="{StaticResource GhostIconButton}"
-                       Content="&#xE894;"
+               <Button Grid.Column="9"
+                       Style="{StaticResource SmallGhostButton}"
+                       Margin="4,0,0,0"
                        ToolTip="{loc:Loc Tooltip_ClearFilters}"
-                       AutomationProperties.Name="{loc:Loc Tooltip_ClearFilters}"
-                       Command="{Binding ClearFiltersCommand}"/>
+                       Command="{Binding ClearFiltersCommand}">
+                  <StackPanel Orientation="Horizontal">
+                     <TextBlock VerticalAlignment="Center" Text="{loc:Loc Label_Clear}"/>
+                     <ContentControl Style="{StaticResource Kbd}" Margin="8,0,0,0" Content="Shift F3"/>
+                  </StackPanel>
+               </Button>
+               <ContentControl Grid.Column="10"
+                               Style="{StaticResource Kbd}"
+                               Margin="8,0,0,0"
+                               Content="Ctrl F"/>
             </Grid>
 
             <Rectangle Grid.Row="1"
-                       Height="1"
-                       Margin="-12,8,-12,12"
-                       Fill="{DynamicResource SubtleBorderBrush}"/>
+                       Style="{StaticResource DashedRule}"
+                       Stroke="{DynamicResource SubtleBorderBrush}"/>
 
             <Grid Grid.Row="2">
-               <Grid.RowDefinitions>
-                  <RowDefinition Height="*"/>
-                  <RowDefinition Height="Auto"/>
-               </Grid.RowDefinitions>
                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="200"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
                   <ColumnDefinition Width="*"/>
                </Grid.ColumnDefinitions>
-               <ListBox Grid.Row="0"
-                        Grid.Column="0"
-                        Name="_services_LB"
-                        ItemsSource="{Binding Services}"
-                        SelectedItem="{Binding SelectedService, Mode=TwoWay}"
-                        ScrollViewer.VerticalScrollBarVisibility="Auto"
-                        ScrollViewer.CanContentScroll="True"
-                        ScrollViewer.IsDeferredScrollingEnabled="True"
-                        VirtualizingStackPanel.IsVirtualizing="True"
-                        VirtualizingStackPanel.VirtualizationMode="Recycling"
-                        SelectionChanged="_services_LB_SelectionChanged">
-                  <ListBox.ItemTemplate>
-                     <DataTemplate>
-                        <TextBlock Text="{Binding ServiceDisplay}"
-                                   TextTrimming="CharacterEllipsis"/>
-                     </DataTemplate>
-                  </ListBox.ItemTemplate>
-               </ListBox>
-               <DockPanel Grid.Row="1"
-                          Grid.Column="0"
-                          Margin="0,8,0,0">
-                  <Button DockPanel.Dock="Left"
-                          Style="{StaticResource IconButton}"
-                          Margin="0,0,4,0"
-                          Command="{Binding AddServiceCommand}"
-                          ToolTip="{loc:Loc Tooltip_AddService}"
-                          AutomationProperties.Name="{loc:Loc Tooltip_AddService}"
-                          Content="&#xE710;"/>
-                  <Button DockPanel.Dock="Right"
-                          HorizontalAlignment="Right"
-                          Style="{StaticResource IconButton}"
-                          Margin="0"
-                          Command="{Binding DeleteServiceCommand}"
-                          ToolTip="{loc:Loc Tooltip_DeleteService}"
-                          AutomationProperties.Name="{loc:Loc Tooltip_DeleteService}"
-                          Content="&#xE74D;"/>
-               </DockPanel>
+
+               <!-- Services column -->
+               <Grid Grid.Column="0"
+                     Width="{DynamicResource ServicesWidth}"
+                     Margin="{DynamicResource ColumnPadding}">
+                  <Grid.RowDefinitions>
+                     <RowDefinition Height="Auto"/>
+                     <RowDefinition Height="*"/>
+                     <RowDefinition Height="Auto"/>
+                  </Grid.RowDefinitions>
+                  <DockPanel Grid.Row="0"
+                             Margin="4,0,0,8">
+                     <StackPanel DockPanel.Dock="Right"
+                                 Orientation="Horizontal">
+                        <Button Style="{StaticResource SmallIconButton}"
+                                Command="{Binding AddServiceCommand}"
+                                ToolTip="{loc:Loc Tooltip_AddService}"
+                                AutomationProperties.Name="{loc:Loc Tooltip_AddService}">
+                           <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Plus}"/>
+                        </Button>
+                        <Button Style="{StaticResource SmallIconButton}"
+                                Margin="2,0,0,0"
+                                Command="{Binding DeleteServiceCommand}"
+                                ToolTip="{loc:Loc Tooltip_DeleteService}"
+                                AutomationProperties.Name="{loc:Loc Tooltip_DeleteService}">
+                           <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Minus}"/>
+                        </Button>
+                     </StackPanel>
+                     <TextBlock Style="{StaticResource Caption}">
+                        <Run Text="{Binding Services.Count, Mode=OneWay}"/>
+                        <Run Text="{Binding [Label_ServicesCaption], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}, Mode=OneWay}"/>
+                     </TextBlock>
+                  </DockPanel>
+                  <ListBox Grid.Row="1"
+                           Name="_services_LB"
+                           ItemsSource="{Binding Services}"
+                           SelectedItem="{Binding SelectedService, Mode=TwoWay}"
+                           ScrollViewer.VerticalScrollBarVisibility="Auto"
+                           ScrollViewer.CanContentScroll="True"
+                           ScrollViewer.IsDeferredScrollingEnabled="True"
+                           VirtualizingStackPanel.IsVirtualizing="True"
+                           VirtualizingStackPanel.VirtualizationMode="Recycling"
+                           SelectionChanged="_services_LB_SelectionChanged">
+                     <ListBox.ItemTemplate>
+                        <DataTemplate>
+                           <DockPanel LastChildFill="True">
+                              <StackPanel DockPanel.Dock="Right"
+                                          Orientation="Horizontal"
+                                          VerticalAlignment="Center">
+                                 <Rectangle Style="{StaticResource Dot}"
+                                            Margin="8,0,0,0"
+                                            Fill="{DynamicResource AccentBrush}"
+                                            Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BooleanToVisibility}}"/>
+                                 <Rectangle Style="{StaticResource Dot}"
+                                            Margin="8,0,0,0"
+                                            Fill="{DynamicResource WarningBrush}"
+                                            Visibility="{Binding NeedsAttention, Converter={StaticResource BooleanToVisibility}}"/>
+                                 <TextBlock Margin="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            FontFamily="{StaticResource MonoFontFamily}"
+                                            FontSize="11"
+                                            Foreground="{DynamicResource MutedForegroundBrush}"
+                                            Text="{Binding AccountCount}"/>
+                              </StackPanel>
+                              <TextBlock VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"
+                                         Text="{Binding ServiceName, Mode=OneWay}"/>
+                           </DockPanel>
+                        </DataTemplate>
+                     </ListBox.ItemTemplate>
+                  </ListBox>
+                  <StackPanel Grid.Row="2">
+                     <Rectangle Style="{StaticResource DashedRule}"
+                                Margin="0,8,0,10"
+                                Stroke="{DynamicResource SubtleBorderBrush}"/>
+                     <StackPanel Margin="6,0,0,0"
+                                 Orientation="Horizontal">
+                        <Rectangle Style="{StaticResource Dot}" Fill="{DynamicResource AccentBrush}"/>
+                        <TextBlock Margin="8,0,0,0"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource MutedForegroundBrush}"
+                                   Text="{loc:Loc Label_LegendUnsaved}"/>
+                     </StackPanel>
+                     <StackPanel Margin="6,6,0,0"
+                                 Orientation="Horizontal">
+                        <Rectangle Style="{StaticResource Dot}" Fill="{DynamicResource WarningBrush}"/>
+                        <TextBlock Margin="8,0,0,0"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource MutedForegroundBrush}"
+                                   Text="{loc:Loc Label_LegendAttention}"/>
+                     </StackPanel>
+                  </StackPanel>
+               </Grid>
+
+               <Rectangle Grid.Column="1"
+                          Style="{StaticResource DashedColumnRule}"
+                          Stroke="{DynamicResource SubtleBorderBrush}"/>
+
                <Controls:ServiceView x:Name="_service_SV"
-                                     Grid.Row="0"
-                                     Grid.RowSpan="2"
-                                     Grid.Column="1"
-                                     Margin="12,0,0,0"/>
+                                     Grid.Column="2"
+                                     Margin="{DynamicResource LayerInset}"/>
             </Grid>
          </Grid>
       </GroupBox>
 
-      <!-- Depth bar: where you are in the layers, the paste shortcuts, and
-           what kind of vault this is. -->
+      <!-- Depth bar: where you are in the layers, the paste shortcuts, where the
+           vault lives. -->
       <Border Grid.Row="2"
-              Height="30"
+              Padding="16,0"
               BorderBrush="{DynamicResource SubtleBorderBrush}"
               BorderThickness="0,1,0,0">
-         <DockPanel Margin="16,0"
-                    LastChildFill="False">
+         <DockPanel LastChildFill="False">
             <StackPanel DockPanel.Dock="Left"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
                <StackPanel Orientation="Horizontal"
                            VerticalAlignment="Center"
-                           Margin="0,0,12,0">
-                  <Rectangle Width="14" Height="3" Margin="0,0,2,0" Fill="{DynamicResource AccentBrush}"/>
-                  <Rectangle Width="14" Height="3" Margin="0,0,2,0" Fill="{DynamicResource AccentBrush}"/>
-                  <Rectangle Width="14" Height="3" Margin="0,0,2,0" Fill="{DynamicResource AccentBrush}"/>
-                  <Rectangle Width="14" Height="3" Fill="{DynamicResource AccentBrush}"/>
+                           Margin="0,0,14,0">
+                  <Rectangle Width="16" Height="4" Margin="0,0,3,0" Fill="{DynamicResource AccentBrush}"/>
+                  <Rectangle Width="16" Height="4" Margin="0,0,3,0" Fill="{DynamicResource AccentBrush}"/>
+                  <Rectangle Width="16" Height="4" Margin="0,0,3,0" Fill="{DynamicResource AccentBrush}"/>
+                  <Rectangle Width="16" Height="4" Fill="{DynamicResource AccentBrush}"/>
                </StackPanel>
-               <TextBlock FontSize="11"
-                          VerticalAlignment="Center">
+               <TextBlock FontSize="12"
+                          VerticalAlignment="Center"
+                          Foreground="{DynamicResource ForegroundBrush}">
                   <Run Text="{loc:Loc Label_LayerVault}"/>
                   <Run Foreground="{DynamicResource MutedForegroundBrush}" Text="›"/>
                   <Run Text="{Binding SelectedService.ServiceName, Mode=OneWay}"/>
                   <Run Foreground="{DynamicResource MutedForegroundBrush}" Text="›"/>
-                  <Run Text="{Binding SelectedService.SelectedAccount.Label, Mode=OneWay}"/>
+                  <Run Text="{Binding SelectedService.SelectedAccount.DisplayTitle, Mode=OneWay}"/>
                   <Run Foreground="{DynamicResource MutedForegroundBrush}" Text="›"/>
                   <Run Text="{loc:Loc Label_PasswordGroup}"/>
                </TextBlock>
-               <TextBlock Margin="20,0,0,0"
+               <TextBlock Margin="16,0,0,0"
                           VerticalAlignment="Center"
-                          FontSize="11"
+                          FontSize="12"
                           Foreground="{DynamicResource MutedForegroundBrush}"
-                          Text="{loc:Loc Msg_PasteHotkeys}"/>
+                          Text="{loc:Loc Msg_PasteHotkeysShort}"/>
             </StackPanel>
             <TextBlock DockPanel.Dock="Right"
                        VerticalAlignment="Center"
                        FontFamily="{StaticResource MonoFontFamily}"
-                       FontSize="10"
+                       FontSize="11"
                        Foreground="{DynamicResource MutedForegroundBrush}"
-                       Text="{loc:Loc Label_LocalVault}"/>
+                       Text="{loc:Loc Label_StoredLocally}"/>
          </DockPanel>
       </Border>
    </Grid>

@@ -1,7 +1,10 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
@@ -16,11 +19,83 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    {
       private AccountViewModel? _viewModel;
 
+      // Ticks the clipboard strip's countdown while a copied secret is pending.
+      private readonly DispatcherTimer _clipboardTimer = new()
+      {
+         Interval = TimeSpan.FromMilliseconds(250),
+      };
+
       internal string? GetAccountId() => _viewModel?.Account.ItemId;
 
       public AccountView()
       {
          InitializeComponent();
+
+         _clipboardTimer.Tick += (_, _) => _refreshClipboardStrip();
+         Loaded += (_, _) =>
+         {
+            ClipboardManager.PendingClearChanged += _clipboardManager_PendingClearChanged;
+            _refreshClipboardStrip();
+         };
+         Unloaded += (_, _) =>
+         {
+            ClipboardManager.PendingClearChanged -= _clipboardManager_PendingClearChanged;
+            _clipboardTimer.Stop();
+         };
+      }
+
+      private void _clipboardManager_PendingClearChanged(object? sender, EventArgs e)
+         => _refreshClipboardStrip();
+
+      /// <summary>
+      /// Shows "Copied. Clears in N s…" while the clipboard holds something we
+      /// copied with an auto-clear, and hides the strip otherwise.
+      /// </summary>
+      private void _refreshClipboardStrip()
+      {
+         DateTime? pending = ClipboardManager.PendingClearUtc;
+
+         if (pending is null)
+         {
+            _clipboard_G.Visibility = Visibility.Collapsed;
+            _clipboardTimer.Stop();
+            return;
+         }
+
+         int seconds = Math.Max(0, (int)Math.Ceiling((pending.Value - DateTime.UtcNow).TotalSeconds));
+         _clipboard_TB.Text = Strings.Format(nameof(Strings.Msg_ClipboardClears), seconds);
+         _clipboard_G.Visibility = Visibility.Visible;
+
+         if (!_clipboardTimer.IsEnabled)
+         {
+            _clipboardTimer.Start();
+         }
+      }
+
+      private void _clearClipboard_Click(object sender, RoutedEventArgs e)
+         => ClipboardManager.ClearIfStillOwned();
+
+      /// <summary>
+      /// Identifier row "⋯": selects that row, then opens its menu (move up, move
+      /// down, delete) bound to this account's identifier commands.
+      /// </summary>
+      private void _identifierMore_Click(object sender, RoutedEventArgs e)
+      {
+         if (_viewModel is null
+            || sender is not Button { ContextMenu: { } menu } button)
+         {
+            return;
+         }
+
+         if (button.DataContext is IdentifierViewModel identifier)
+         {
+            _identifiers_LB.SelectedItem = identifier;
+         }
+
+         menu.DataContext = _viewModel;
+         menu.PlacementTarget = button;
+         menu.Placement = PlacementMode.Bottom;
+         menu.IsOpen = true;
       }
 
       /// <summary>
