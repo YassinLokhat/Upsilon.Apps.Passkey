@@ -11,6 +11,7 @@
     <FontFamily x:Key="MonoFontFamily">Cascadia Mono, Consolas</FontFamily>
     <FontFamily x:Key="IconFontFamily">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
     <CornerRadius x:Key="ControlCornerRadius">2</CornerRadius>
+    <helper:ShortcutChipVisibilityConverter x:Key="ShortcutChipVisibilityConverter"/>
 
     <Style TargetType="Window">
         <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
@@ -155,7 +156,9 @@
                 <ContentPresenter ContentSource="Header"
                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                   RecognizesAccessKey="True"/>
-                <!-- Shortcut as a small key chip, as in the design. -->
+                <!-- Shortcut as a small key chip, as in the design. A menu can hide
+                     the chips below a window width (StrataChrome.ShortcutChipsMinWidth);
+                     the shortcut then stays in the tooltip only. -->
                 <Border x:Name="gestureChip"
                         Margin="6,0,0,0"
                         Padding="3,0"
@@ -163,6 +166,12 @@
                         BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
                         CornerRadius="{StaticResource ControlCornerRadius}">
+                    <Border.Visibility>
+                        <MultiBinding Converter="{StaticResource ShortcutChipVisibilityConverter}">
+                            <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Window}"/>
+                            <Binding Path="(helper:StrataChrome.ShortcutChipsMinWidth)" RelativeSource="{RelativeSource AncestorType=Menu}"/>
+                        </MultiBinding>
+                    </Border.Visibility>
                     <TextBlock FontFamily="{StaticResource MonoFontFamily}"
                                FontSize="10"
                                Foreground="{DynamicResource MutedForegroundBrush}"

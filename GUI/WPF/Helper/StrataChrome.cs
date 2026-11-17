@@ -23,6 +23,29 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          typeof(StrataChrome),
          new PropertyMetadata(false, _onUseSystemCommandsChanged));
 
+      /// <summary>
+      /// Set on a <see cref="System.Windows.Controls.Menu"/>: below this window width
+      /// the top-level items hide their shortcut chips (the shortcut stays in the
+      /// tooltip) so a long command row still fits. 0 = always show them.
+      /// </summary>
+      public static readonly DependencyProperty ShortcutChipsMinWidthProperty = DependencyProperty.RegisterAttached(
+         "ShortcutChipsMinWidth",
+         typeof(double),
+         typeof(StrataChrome),
+         new PropertyMetadata(0d));
+
+      public static double GetShortcutChipsMinWidth(DependencyObject element)
+      {
+         ArgumentNullException.ThrowIfNull(element);
+         return (double)element.GetValue(ShortcutChipsMinWidthProperty);
+      }
+
+      public static void SetShortcutChipsMinWidth(DependencyObject element, double value)
+      {
+         ArgumentNullException.ThrowIfNull(element);
+         element.SetValue(ShortcutChipsMinWidthProperty, value);
+      }
+
       /// <summary>Application version shown next to the name in the title bar, e.g. "v2.0.0".</summary>
       public static string VersionLabel { get; } = $"v{_assemblyName.Version?.ToString(3) ?? "0.0.0"}";
 
@@ -100,6 +123,26 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       }
 
       public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+         => throw new NotSupportedException();
+   }
+
+   /// <summary>
+   /// Visibility of a menu shortcut chip: values are the window width and the menu's
+   /// <see cref="StrataChrome.GetShortcutChipsMinWidth"/>.
+   /// </summary>
+   internal sealed class ShortcutChipVisibilityConverter : IMultiValueConverter
+   {
+      public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+      {
+         ArgumentNullException.ThrowIfNull(values);
+
+         double width = values.Length > 0 && values[0] is double w ? w : double.PositiveInfinity;
+         double minWidth = values.Length > 1 && values[1] is double m ? m : 0d;
+
+         return width >= minWidth ? Visibility.Visible : Visibility.Collapsed;
+      }
+
+      public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
          => throw new NotSupportedException();
    }
 }

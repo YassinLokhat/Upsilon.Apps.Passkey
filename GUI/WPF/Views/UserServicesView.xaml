@@ -9,6 +9,7 @@
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views"
         xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
         xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
+        xmlns:helper="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Helper"
         d:DataContext="{d:DesignInstance Type=viewmodels:UserServicesViewModel}"
         mc:Ignorable="d"
         WindowState="Maximized"
@@ -43,7 +44,7 @@
       <Border Grid.Row="0"
               BorderBrush="{DynamicResource SubtleBorderBrush}"
               BorderThickness="0,0,0,1">
-         <Menu>
+         <Menu helper:StrataChrome.ShortcutChipsMinWidth="1600">
             <Menu.Resources>
                <!-- Vertical divider between command groups, as in the design. -->
                <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
