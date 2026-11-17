@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
     <!-- Strata palette (light). Its own ramp: layers go from a darker paper at
          Layer0 (vault) to plain white at Layer3 (password core). Every key of
          the previous palette is kept. -->
@@ -45,4 +46,12 @@
     <SolidColorBrush x:Key="Layer1Brush" Color="#F3F3EF"/>
     <SolidColorBrush x:Key="Layer2Brush" Color="#F8F8F5"/>
     <SolidColorBrush x:Key="Layer3Brush" Color="#FFFFFF"/>
+
+    <!-- Soft accent glow for things that "emit" the accent (selected rows,
+         focused fields, mint buttons, dots, the logo). Small elements only;
+         about half strength on the light theme, where glows read as smudges. -->
+    <DropShadowEffect x:Key="Glow.Soft" ShadowDepth="0" BlurRadius="12" Opacity="0.12" Color="#0F7B68"/>
+    <DropShadowEffect x:Key="Glow.Warning" ShadowDepth="0" BlurRadius="10" Opacity="0.12" Color="#935500"/>
+    <DropShadowEffect x:Key="Glow.Pulse" ShadowDepth="0" BlurRadius="28" Opacity="0.25" Color="#0F7B68"/>
+    <sys:Double x:Key="CoreGlowOpacity">0.10</sys:Double>
 </ResourceDictionary>
