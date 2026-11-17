@@ -1,5 +1,8 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+                    xmlns:helper="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Helper"
+                    xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization">
     <!-- Strata control library.
          System fonts only (no embedded or downloaded fonts): Segoe UI Variable
          for the interface, Cascadia Mono / Consolas for data. Frames are square,
@@ -152,18 +155,24 @@
                 <ContentPresenter ContentSource="Header"
                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                   RecognizesAccessKey="True"/>
-                <TextBlock x:Name="gestureText"
-                           Margin="8,0,0,0"
-                           VerticalAlignment="Center"
-                           FontFamily="{StaticResource MonoFontFamily}"
-                           FontSize="10"
-                           Foreground="{DynamicResource MutedForegroundBrush}"
-                           Text="{TemplateBinding InputGestureText}"/>
+                <!-- Shortcut as a small key chip, as in the design. -->
+                <Border x:Name="gestureChip"
+                        Margin="6,0,0,0"
+                        Padding="3,0"
+                        VerticalAlignment="Center"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="{StaticResource ControlCornerRadius}">
+                    <TextBlock FontFamily="{StaticResource MonoFontFamily}"
+                               FontSize="10"
+                               Foreground="{DynamicResource MutedForegroundBrush}"
+                               Text="{TemplateBinding InputGestureText}"/>
+                </Border>
             </StackPanel>
         </Border>
         <ControlTemplate.Triggers>
             <Trigger Property="InputGestureText" Value="">
-                <Setter TargetName="gestureText" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="gestureChip" Property="Visibility" Value="Collapsed"/>
             </Trigger>
             <Trigger Property="IsHighlighted" Value="True">
                 <Setter TargetName="menuItemBorder" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
@@ -334,8 +343,8 @@
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-        <Setter Property="Margin" Value="2,0"/>
-        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="Padding" Value="8,6"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Template" Value="{StaticResource MenuTopLevelItemTemplate}"/>
         <Setter Property="ToolTip" Value="{Binding InputGestureText, RelativeSource={RelativeSource Self}}"/>
@@ -1232,5 +1241,261 @@
     <Style x:Key="CoreGroupBox" TargetType="GroupBox" BasedOn="{StaticResource LayerGroupBox}">
         <Setter Property="Background" Value="{DynamicResource Layer3Brush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+
+    <!-- Custom window chrome ===================================================
+         The Windows title bar is replaced by our own (WPF's built-in WindowChrome,
+         no package). The OS still drags the window from the bar, maximizes on
+         double-click, snaps, resizes from the edges and closes on Alt+F4. Buttons
+         inside the bar opt into hit-testing with IsHitTestVisibleInChrome.
+         StrataWindow: main windows (login strip, vault). StrataDialogWindow: all
+         other windows, title + close. Title stays the Window.Title (taskbar,
+         Alt+Tab); the bar shows it without the app-name prefix. -->
+    <helper:WindowTitleConverter x:Key="WindowTitleConverter"/>
+
+    <Style x:Key="ChromeButton" TargetType="Button">
+        <Setter Property="Width" Value="46"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource MutedForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource IconFontFamily}"/>
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="chromeButtonBorder"
+                            Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="chromeButtonBorder" Property="Background" Value="{DynamicResource HoverBackgroundBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="chromeButtonBorder" Property="Background" Value="{DynamicResource SelectedBackgroundBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Close turns red on hover, as Windows' own caption button does. -->
+    <Style x:Key="ChromeCloseButton" TargetType="Button" BasedOn="{StaticResource ChromeButton}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="chromeButtonBorder"
+                            Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="chromeButtonBorder" Property="Background" Value="#C42B1C"/>
+                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="chromeButtonBorder" Property="Background" Value="#9E2316"/>
+                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="StrataWindow" TargetType="Window">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
+        <Setter Property="helper:StrataChrome.UseSystemCommands" Value="True"/>
+        <Setter Property="shell:WindowChrome.WindowChrome">
+            <Setter.Value>
+                <shell:WindowChrome CaptionHeight="40"
+                                    ResizeBorderThickness="6"
+                                    GlassFrameThickness="0"
+                                    CornerRadius="0"
+                                    UseAeroCaptionButtons="False"/>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Window">
+                    <!-- A maximized chromeless window overhangs the screen by its
+                         resize border; the 7 px margin keeps content on screen. -->
+                    <Border x:Name="windowFrame"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="40"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Grid.Row="0"
+                                    BorderBrush="{DynamicResource SubtleBorderBrush}"
+                                    BorderThickness="0,0,0,1">
+                                <DockPanel LastChildFill="True">
+                                    <StackPanel DockPanel.Dock="Right"
+                                                Orientation="Horizontal">
+                                        <Button x:Name="minimizeButton"
+                                                Style="{StaticResource ChromeButton}"
+                                                Content="&#xE921;"
+                                                ToolTip="{loc:Loc Tooltip_Minimize}"
+                                                AutomationProperties.Name="{loc:Loc Tooltip_Minimize}"
+                                                Command="{x:Static SystemCommands.MinimizeWindowCommand}"/>
+                                        <Button x:Name="maximizeButton"
+                                                Style="{StaticResource ChromeButton}"
+                                                Content="&#xE922;"
+                                                ToolTip="{loc:Loc Tooltip_Maximize}"
+                                                AutomationProperties.Name="{loc:Loc Tooltip_Maximize}"
+                                                Command="{x:Static SystemCommands.MaximizeWindowCommand}"/>
+                                        <Button x:Name="restoreButton"
+                                                Style="{StaticResource ChromeButton}"
+                                                Visibility="Collapsed"
+                                                Content="&#xE923;"
+                                                ToolTip="{loc:Loc Tooltip_Restore}"
+                                                AutomationProperties.Name="{loc:Loc Tooltip_Restore}"
+                                                Command="{x:Static SystemCommands.RestoreWindowCommand}"/>
+                                        <Button Style="{StaticResource ChromeCloseButton}"
+                                                Content="&#xE8BB;"
+                                                ToolTip="{loc:Loc Tooltip_Close}"
+                                                AutomationProperties.Name="{loc:Loc Tooltip_Close}"
+                                                Command="{x:Static SystemCommands.CloseWindowCommand}"/>
+                                    </StackPanel>
+                                    <StackPanel Margin="16,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                        <TextBlock Margin="0,-2,10,0"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="19"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Text="&#x3C5;"/>
+                                        <TextBlock VerticalAlignment="Center"
+                                                   FontFamily="{StaticResource MonoFontFamily}"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Text="UPSILON"/>
+                                        <TextBlock Margin="8,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   FontFamily="{StaticResource MonoFontFamily}"
+                                                   FontSize="10"
+                                                   Foreground="{DynamicResource MutedForegroundBrush}"
+                                                   Text="{x:Static helper:StrataChrome.VersionLabel}"/>
+                                        <Rectangle x:Name="titleSeparator"
+                                                   Width="1"
+                                                   Height="16"
+                                                   Margin="14,0"
+                                                   Fill="{DynamicResource BorderBrush}"/>
+                                        <TextBlock VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource MutedForegroundBrush}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Text="{Binding Title, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource WindowTitleConverter}}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <AdornerDecorator Grid.Row="1">
+                                <ContentPresenter/>
+                            </AdornerDecorator>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="WindowState" Value="Maximized">
+                            <Setter TargetName="windowFrame" Property="BorderThickness" Value="0"/>
+                            <Setter TargetName="windowFrame" Property="Margin" Value="7"/>
+                            <Setter TargetName="maximizeButton" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="restoreButton" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="ResizeMode" Value="CanMinimize">
+                            <Setter TargetName="maximizeButton" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="restoreButton" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <!-- Nothing after the app name (e.g. login strip): no divider. -->
+                        <DataTrigger Binding="{Binding Title, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource WindowTitleConverter}}" Value="">
+                            <Setter TargetName="titleSeparator" Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                        <Trigger Property="ResizeMode" Value="NoResize">
+                            <Setter TargetName="minimizeButton" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="maximizeButton" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="restoreButton" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="StrataDialogWindow" TargetType="Window" BasedOn="{StaticResource StrataWindow}">
+        <Setter Property="shell:WindowChrome.WindowChrome">
+            <Setter.Value>
+                <shell:WindowChrome CaptionHeight="36"
+                                    ResizeBorderThickness="6"
+                                    GlassFrameThickness="0"
+                                    CornerRadius="0"
+                                    UseAeroCaptionButtons="False"/>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Window">
+                    <Border x:Name="windowFrame"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="36"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Grid.Row="0"
+                                    BorderBrush="{DynamicResource SubtleBorderBrush}"
+                                    BorderThickness="0,0,0,1">
+                                <DockPanel LastChildFill="True">
+                                    <Button DockPanel.Dock="Right"
+                                            Height="36"
+                                            Style="{StaticResource ChromeCloseButton}"
+                                            Content="&#xE8BB;"
+                                            ToolTip="{loc:Loc Tooltip_Close}"
+                                            AutomationProperties.Name="{loc:Loc Tooltip_Close}"
+                                            Command="{x:Static SystemCommands.CloseWindowCommand}"/>
+                                    <StackPanel Margin="14,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                        <TextBlock Margin="0,-2,10,0"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="16"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Text="&#x3C5;"/>
+                                        <TextBlock VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Text="{Binding Title, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource WindowTitleConverter}}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <AdornerDecorator Grid.Row="1">
+                                <ContentPresenter/>
+                            </AdornerDecorator>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="WindowState" Value="Maximized">
+                            <Setter TargetName="windowFrame" Property="BorderThickness" Value="0"/>
+                            <Setter TargetName="windowFrame" Property="Margin" Value="7"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 </ResourceDictionary>

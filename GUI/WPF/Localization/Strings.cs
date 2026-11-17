@@ -113,6 +113,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Label_Identifiers => Get(nameof(Label_Identifiers));
       public static string Label_Label => Get(nameof(Label_Label));
       public static string Label_Language => Get(nameof(Label_Language));
+      public static string Label_LayerAccount => Get(nameof(Label_LayerAccount));
+      public static string Label_LayerService => Get(nameof(Label_LayerService));
+      public static string Label_LayerVault => Get(nameof(Label_LayerVault));
+      public static string Label_LocalVault => Get(nameof(Label_LocalVault));
+      public static string Label_PasswordHistory => Get(nameof(Label_PasswordHistory));
       public static string Label_UseAppLanguage => Get(nameof(Label_UseAppLanguage));
       public static string Label_Theme => Get(nameof(Label_Theme));
       public static string Label_UseAppTheme => Get(nameof(Label_UseAppTheme));
@@ -199,6 +204,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Msg_AutosaveDetected => Get(nameof(Msg_AutosaveDetected));
       public static string Msg_BuildFailed => Get(nameof(Msg_BuildFailed));
       public static string Msg_BuildOfflineLeakDatabase => Get(nameof(Msg_BuildOfflineLeakDatabase));
+      public static string Msg_PasteHotkeys => Get(nameof(Msg_PasteHotkeys));
       public static string Msg_RebuildOfflineLeakDatabaseQuality => Get(nameof(Msg_RebuildOfflineLeakDatabaseQuality));
       public static string Msg_ConfigFileError => Get(nameof(Msg_ConfigFileError));
       public static string Msg_CorruptedDatabase => Get(nameof(Msg_CorruptedDatabase));
@@ -374,6 +380,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string EnumValue_ImportExportError_BlankService => Get(nameof(EnumValue_ImportExportError_BlankService));
       public static string EnumValue_ImportExportError_ExportFileAlreadyExists => Get(nameof(EnumValue_ImportExportError_ExportFileAlreadyExists));
       public static string EnumValue_ImportExportError_SecurityTimeoutsDisabled => Get(nameof(EnumValue_ImportExportError_SecurityTimeoutsDisabled));
+      public static string Tooltip_Close => Get(nameof(Tooltip_Close));
+      public static string Tooltip_CopyItemId => Get(nameof(Tooltip_CopyItemId));
+      public static string Tooltip_GeneratePassword => Get(nameof(Tooltip_GeneratePassword));
+      public static string Tooltip_Maximize => Get(nameof(Tooltip_Maximize));
+      public static string Tooltip_Minimize => Get(nameof(Tooltip_Minimize));
       public static string Tooltip_OfflineLeakDatabase => Get(nameof(Tooltip_OfflineLeakDatabase));
       public static string Tooltip_AutoUpdateOfflineLeakDatabase => Get(nameof(Tooltip_AutoUpdateOfflineLeakDatabase));
       public static string Tooltip_LeakFilterQuality => Get(nameof(Tooltip_LeakFilterQuality));
@@ -394,6 +405,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Tooltip_MoveDown => Get(nameof(Tooltip_MoveDown));
       public static string Tooltip_MoveUp => Get(nameof(Tooltip_MoveUp));
       public static string Tooltip_OpenUrl => Get(nameof(Tooltip_OpenUrl));
+      public static string Tooltip_Restore => Get(nameof(Tooltip_Restore));
       public static string Tooltip_RevealPassword => Get(nameof(Tooltip_RevealPassword));
       public static string Tooltip_ShowQrCodeIdentifier => Get(nameof(Tooltip_ShowQrCodeIdentifier));
       public static string Tooltip_ShowQrCodePassword => Get(nameof(Tooltip_ShowQrCodePassword));

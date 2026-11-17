@@ -1289,4 +1289,40 @@ This affects all vault users. Disabling the option alone does not delete the fil
   <data name="Tooltip_ViewActivities" xml:space="preserve">
     <value>View activities</value>
   </data>
+  <data name="Label_LayerAccount" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="Label_LayerService" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <data name="Label_LayerVault" xml:space="preserve">
+    <value>Vault</value>
+  </data>
+  <data name="Label_PasswordHistory" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="Tooltip_CopyItemId" xml:space="preserve">
+    <value>Click to copy this Id</value>
+  </data>
+  <data name="Tooltip_GeneratePassword" xml:space="preserve">
+    <value>Password generator</value>
+  </data>
+  <data name="Tooltip_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Tooltip_Maximize" xml:space="preserve">
+    <value>Maximize</value>
+  </data>
+  <data name="Tooltip_Minimize" xml:space="preserve">
+    <value>Minimize</value>
+  </data>
+  <data name="Tooltip_Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="Label_LocalVault" xml:space="preserve">
+    <value>Local vault · no cloud, no sync</value>
+  </data>
+  <data name="Msg_PasteHotkeys" xml:space="preserve">
+    <value>Ctrl+Shift+L pastes the identifier · Ctrl+Shift+P pastes the password</value>
+  </data>
 </root>

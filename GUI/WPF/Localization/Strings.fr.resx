@@ -1289,4 +1289,40 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
   <data name="Tooltip_ViewActivities" xml:space="preserve">
     <value>Voir les activités</value>
   </data>
+  <data name="Label_LayerAccount" xml:space="preserve">
+    <value>Compte</value>
+  </data>
+  <data name="Label_LayerService" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <data name="Label_LayerVault" xml:space="preserve">
+    <value>Coffre</value>
+  </data>
+  <data name="Label_PasswordHistory" xml:space="preserve">
+    <value>Historique</value>
+  </data>
+  <data name="Tooltip_CopyItemId" xml:space="preserve">
+    <value>Cliquer pour copier cet Id</value>
+  </data>
+  <data name="Tooltip_GeneratePassword" xml:space="preserve">
+    <value>Générateur de mots de passe</value>
+  </data>
+  <data name="Tooltip_Close" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="Tooltip_Maximize" xml:space="preserve">
+    <value>Agrandir</value>
+  </data>
+  <data name="Tooltip_Minimize" xml:space="preserve">
+    <value>Réduire</value>
+  </data>
+  <data name="Tooltip_Restore" xml:space="preserve">
+    <value>Restaurer</value>
+  </data>
+  <data name="Label_LocalVault" xml:space="preserve">
+    <value>Coffre local · ni cloud ni synchronisation</value>
+  </data>
+  <data name="Msg_PasteHotkeys" xml:space="preserve">
+    <value>Ctrl+Shift+L colle l'identifiant · Ctrl+Shift+P colle le mot de passe</value>
+  </data>
 </root>
