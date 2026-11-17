@@ -16,6 +16,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
       public static Brush Danger { get; private set; } = _freeze(Color.FromRgb(0xE0, 0x4A, 0x4A));
       public static Brush DisabledForeground { get; private set; } = _freeze(Color.FromRgb(0x80, 0x80, 0x80));
 
+      /// <summary>
+      /// Tinted field background for a notified leak. <see cref="Danger"/> is a text
+      /// colour; painted behind text it would not keep a readable contrast.
+      /// </summary>
+      public static Brush DangerField { get; private set; } = _freeze(Color.FromRgb(0x4A, 0x22, 0x26));
+
+      /// <summary>Tinted field background for a notified weak / duplicated secret.</summary>
+      public static Brush WarningField { get; private set; } = _freeze(Color.FromRgb(0x46, 0x36, 0x13));
+
       public static void SyncFromApplicationResources()
       {
          Info = _resourceOr("InfoBrush", Info);
@@ -23,6 +32,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
          Warning = _resourceOr("WarningBrush", Warning);
          Danger = _resourceOr("DangerBrush", Danger);
          DisabledForeground = _resourceOr("DisabledForegroundBrush", DisabledForeground);
+         DangerField = _resourceOr("DangerFieldBrush", DangerField);
+         WarningField = _resourceOr("WarningFieldBrush", WarningField);
       }
 
       private static Brush _resourceOr(string key, Brush fallback)
