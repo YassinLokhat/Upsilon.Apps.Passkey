@@ -23,15 +23,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          InitializeComponent();
       }
 
-      private void _accountView_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+      /// <summary>
+      /// The account layer's info button shows the account Id as a tooltip and
+      /// copies it on click (it used to be the frame header, copied on right-click).
+      /// </summary>
+      private void _copyAccountId_Click(object sender, RoutedEventArgs e)
       {
-         string sourceText = (e.OriginalSource as TextBlock)?.Text ?? string.Empty;
-
-         if (sourceText != _account_GB.Header.ToString())
-         {
-            return;
-         }
-
          string? itemId = GetAccountId();
 
          if (itemId is null)

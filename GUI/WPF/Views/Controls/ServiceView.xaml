@@ -9,23 +9,49 @@
              xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
              d:DataContext="{d:DesignInstance Type=controls:ServiceViewModel}"
              mc:Ignorable="d">
-   <GroupBox Name="_service_GB"
-             Header="{Binding ServiceId}"
-             MouseRightButtonUp="_serviceView_MouseRightButtonUp">
+   <!-- Layer 1: the selected service. Its fields on top, its accounts on the
+        left, the account layer nested on the right. -->
+   <GroupBox Style="{StaticResource LayerGroupBox}"
+             Background="{DynamicResource Layer1Brush}">
+      <GroupBox.Header>
+         <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource LayerNumber}"
+                       Text="1"/>
+            <TextBlock Style="{StaticResource LayerName}"
+                       Text="{loc:Loc Label_LayerService}"/>
+            <Button Style="{StaticResource NotchIconButton}"
+                    Content="&#xE946;"
+                    AutomationProperties.Name="{Binding ServiceId}"
+                    Click="_copyServiceId_Click">
+               <Button.ToolTip>
+                  <StackPanel>
+                     <TextBlock FontFamily="{StaticResource MonoFontFamily}"
+                                Text="{Binding ServiceId}"/>
+                     <TextBlock Margin="0,4,0,0"
+                                Foreground="{DynamicResource MutedForegroundBrush}"
+                                Text="{loc:Loc Tooltip_CopyItemId}"/>
+                  </StackPanel>
+               </Button.ToolTip>
+            </Button>
+         </StackPanel>
+      </GroupBox.Header>
       <Grid>
          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
          </Grid.RowDefinitions>
          <Grid Grid.Row="0">
             <Grid.RowDefinitions>
-               <RowDefinition/>
-               <RowDefinition/>
-               <RowDefinition/>
+               <RowDefinition Height="Auto"/>
+               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                <ColumnDefinition Width="Auto"/>
-               <ColumnDefinition Width="*"/>
+               <ColumnDefinition Width="2*"/>
+               <ColumnDefinition Width="Auto"/>
+               <ColumnDefinition Width="3*"/>
+               <ColumnDefinition Width="Auto"/>
                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Label Grid.Row="0"
@@ -33,31 +59,38 @@
                    Content="{loc:Loc Label_ServiceName}"/>
             <TextBox Grid.Row="0"
                      Grid.Column="1"
+                     FontWeight="SemiBold"
                      Text="{Binding ServiceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Background="{Binding ServiceNameBackground}"/>
+            <Label Grid.Row="0"
+                   Grid.Column="2"
+                   Margin="12,4,4,4"
+                   Content="{loc:Loc Label_Url}"/>
+            <TextBox Grid.Row="0"
+                     Grid.Column="3"
+                     Style="{StaticResource MonoTextBox}"
+                     Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Background="{Binding UrlBackground}"/>
             <Button Grid.Row="0"
-                    Grid.Column="2"
-                    Content="👓"
+                    Grid.Column="4"
+                    Style="{StaticResource IconButton}"
+                    Content="&#xE774;"
+                    ToolTip="{loc:Loc Tooltip_OpenUrl}"
+                    AutomationProperties.Name="{loc:Loc Tooltip_OpenUrl}"
+                    Command="{Binding OpenUrlCommand}"/>
+            <Button Grid.Row="0"
+                    Grid.Column="5"
+                    Style="{StaticResource IconButton}"
+                    Content="&#xE81C;"
                     ToolTip="{loc:Loc Tooltip_ViewActivities}"
+                    AutomationProperties.Name="{loc:Loc Tooltip_ViewActivities}"
                     Command="{Binding ViewActivitiesCommand}"/>
             <Label Grid.Row="1"
                    Grid.Column="0"
-                   Content="{loc:Loc Label_Url}"/>
+                   Content="{loc:Loc Label_Notes}"/>
             <TextBox Grid.Row="1"
                      Grid.Column="1"
-                     Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Background="{Binding UrlBackground}"/>
-            <Button Grid.Row="1"
-                    Grid.Column="2"
-                    Content="🌐"
-                    ToolTip="{loc:Loc Tooltip_OpenUrl}"
-                    Command="{Binding OpenUrlCommand}"/>
-            <Label Grid.Row="2"
-                   Grid.Column="0"
-                   Content="{loc:Loc Label_Notes}"/>
-            <TextBox Grid.Row="2"
-                     Grid.Column="1"
-                     Grid.ColumnSpan="2"
+                     Grid.ColumnSpan="5"
                      Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Background="{Binding NotesBackground}"
                      MaxHeight="75"
@@ -65,13 +98,19 @@
                      AcceptsReturn="True"
                      AcceptsTab="True"/>
          </Grid>
-         <Grid Grid.Row="1">
+
+         <Rectangle Grid.Row="1"
+                    Height="1"
+                    Margin="-12,8,-12,12"
+                    Fill="{DynamicResource SubtleBorderBrush}"/>
+
+         <Grid Grid.Row="2">
             <Grid.RowDefinitions>
                <RowDefinition Height="*"/>
                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-               <ColumnDefinition Width="Auto"/>
+               <ColumnDefinition Width="190"/>
                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <ListBox Grid.Row="0"
@@ -87,41 +126,45 @@
                      SelectionChanged="_accounts_LB_SelectionChanged">
                <ListBox.ItemTemplate>
                   <DataTemplate>
-                     <Label Margin="0"
-                            Content="{Binding AccountDisplay}"
-                            Background="Transparent"/>
+                     <TextBlock Text="{Binding AccountDisplay}"
+                                TextTrimming="CharacterEllipsis"/>
                   </DataTemplate>
                </ListBox.ItemTemplate>
             </ListBox>
-            <Grid Grid.Row="1"
-                  Grid.Column="0">
-               <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="Auto"/>
-               </Grid.ColumnDefinitions>
-               <Button Grid.Column="0"
+            <StackPanel Grid.Row="1"
+                        Grid.Column="0"
+                        Margin="0,8,0,0"
+                        Orientation="Horizontal">
+               <Button Style="{StaticResource IconButton}"
+                       Margin="0,0,4,0"
                        Command="{Binding AddAccountCommand}"
                        ToolTip="{loc:Loc Tooltip_AddAccount}"
-                       Content="+"/>
-               <Button Grid.Column="1"
-                          Content="🠉"
-                          ToolTip="{loc:Loc Tooltip_MoveUp}"
-                          Command="{Binding MoveAccountUpCommand}"/>
-               <Button Grid.Column="2"
-                          Command="{Binding MoveAccountDownCommand}"
-                          ToolTip="{loc:Loc Tooltip_MoveDown}"
-                          Content="🠋"/>
-               <Button Grid.Column="3"
+                       AutomationProperties.Name="{loc:Loc Tooltip_AddAccount}"
+                       Content="&#xE710;"/>
+               <Button Style="{StaticResource IconButton}"
+                       Margin="0,0,4,0"
+                       Content="&#xE74A;"
+                       ToolTip="{loc:Loc Tooltip_MoveUp}"
+                       AutomationProperties.Name="{loc:Loc Tooltip_MoveUp}"
+                       Command="{Binding MoveAccountUpCommand}"/>
+               <Button Style="{StaticResource IconButton}"
+                       Margin="0,0,4,0"
+                       Command="{Binding MoveAccountDownCommand}"
+                       ToolTip="{loc:Loc Tooltip_MoveDown}"
+                       AutomationProperties.Name="{loc:Loc Tooltip_MoveDown}"
+                       Content="&#xE74B;"/>
+               <Button Style="{StaticResource IconButton}"
+                       Margin="0"
                        Command="{Binding DeleteAccountCommand}"
                        ToolTip="{loc:Loc Tooltip_DeleteAccount}"
-                       Content="✕"/>
-            </Grid>
+                       AutomationProperties.Name="{loc:Loc Tooltip_DeleteAccount}"
+                       Content="&#xE74D;"/>
+            </StackPanel>
             <local:AccountView x:Name="_account_AV"
                                Grid.Row="0"
                                Grid.RowSpan="2"
-                               Grid.Column="1"/>
+                               Grid.Column="1"
+                               Margin="12,0,0,0"/>
          </Grid>
       </Grid>
    </GroupBox>

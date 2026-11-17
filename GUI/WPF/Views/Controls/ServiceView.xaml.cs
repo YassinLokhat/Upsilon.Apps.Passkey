@@ -1,5 +1,5 @@
-﻿using System.Windows.Controls;
-using System.Windows.Input;
+﻿using System.Windows;
+using System.Windows.Controls;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
@@ -27,15 +27,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          InitializeComponent();
       }
 
-      private void _serviceView_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+      /// <summary>
+      /// The service layer's info button shows the service Id as a tooltip and
+      /// copies it on click (it used to be the frame header, copied on right-click).
+      /// </summary>
+      private void _copyServiceId_Click(object sender, RoutedEventArgs e)
       {
-         string sourceText = (e.OriginalSource as TextBlock)?.Text ?? string.Empty;
-
-         if (sourceText != _service_GB.Header.ToString())
-         {
-            return;
-         }
-
          string? itemId = GetServiceId();
 
          if (itemId is null)
