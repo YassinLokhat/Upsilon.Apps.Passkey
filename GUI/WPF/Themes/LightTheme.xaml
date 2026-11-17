@@ -30,8 +30,8 @@
     <SolidColorBrush x:Key="Divider1Brush" Color="#D4D4CD"/>
     <SolidColorBrush x:Key="Divider2Brush" Color="#CFCFC8"/>
     <SolidColorBrush x:Key="OutlineBrush" Color="#C2C2BA"/>
-    <SolidColorBrush x:Key="HoverBackgroundBrush" Color="#08000000"/>
-    <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#10000000"/>
+    <SolidColorBrush x:Key="HoverBackgroundBrush" Color="#0E000000"/>
+    <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#15000000"/>
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="#0C000000"/>
     <SolidColorBrush x:Key="AccentForegroundBrush" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="AccentSoftBrush" Color="#1F0F7B68"/>
