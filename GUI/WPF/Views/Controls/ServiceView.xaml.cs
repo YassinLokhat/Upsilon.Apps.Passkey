@@ -70,7 +70,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             _switchingService = false;
          }
 
-         _ = transition?.Play(direction);
+         transition?.Play(direction);
       }
 
       private void _setDataContext(ServiceViewModel? serviceViewModel)
@@ -109,7 +109,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          ContentTransition? transition = _switchingService ? null : ContentTransition.Capture(_account_AV);
          _account_AV.SetDataContext(_accounts_LB.SelectedItem as AccountViewModel);
-         _ = transition?.Play(ContentTransition.Direction(_accounts_LB, e));
+         transition?.Play(ContentTransition.Direction(_accounts_LB, e));
       }
 
       public bool SelectAccount(string itemId)

@@ -106,7 +106,6 @@
                              Text="{Binding [Label_SignInWith], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}}"/>
                   <ListBox Grid.Row="1"
                            Name="_identifiers_LB"
-                           helper:Motion.TransitionTier="1"
                            HorizontalContentAlignment="Stretch"
                            ScrollViewer.VerticalScrollBarVisibility="Disabled"
                            ItemContainerStyle="{StaticResource PlainListBoxItem}"
@@ -116,6 +115,7 @@
                         <DataTemplate>
                            <DockPanel LastChildFill="True">
                               <ComboBox DockPanel.Dock="Left"
+                                        helper:Motion.TransitionTier="1"
                                         MinWidth="64"
                                         Margin="0,0,4,0"
                                         VerticalAlignment="Center"
@@ -162,6 +162,7 @@
                                  <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Copy}"/>
                               </Button>
                               <TextBox Style="{StaticResource MonoTextBox}"
+                                       helper:Motion.TransitionTier="1"
                                        Margin="0"
                                        MinHeight="28"
                                        FontSize="12"
