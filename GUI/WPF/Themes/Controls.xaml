@@ -17,7 +17,7 @@
         <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
-        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontSize" Value="14"/>
         <Setter Property="UseLayoutRounding" Value="True"/>
     </Style>
 
@@ -85,7 +85,7 @@
                             <ContentPresenter ContentSource="Header"
                                               VerticalAlignment="Center"
                                               RecognizesAccessKey="True"
-                                              TextElement.FontSize="11"
+                                              TextElement.FontSize="12"
                                               TextElement.FontWeight="SemiBold"
                                               TextElement.Foreground="{DynamicResource MutedForegroundBrush}"/>
                         </Border>
@@ -102,7 +102,7 @@
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontSize" Value="13"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
@@ -135,7 +135,7 @@
         <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="Padding" Value="8,4"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
-        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontSize" Value="14"/>
     </Style>
 
     <!-- Default chrome highlights menu items with a hard-coded translucent blue
@@ -173,7 +173,7 @@
                         </MultiBinding>
                     </Border.Visibility>
                     <TextBlock FontFamily="{StaticResource MonoFontFamily}"
-                               FontSize="10"
+                               FontSize="11"
                                Foreground="{DynamicResource MutedForegroundBrush}"
                                Text="{TemplateBinding InputGestureText}"/>
                 </Border>
@@ -276,7 +276,7 @@
                            Margin="16,0,8,0"
                            VerticalAlignment="Center"
                            FontFamily="{StaticResource MonoFontFamily}"
-                           FontSize="10"
+                           FontSize="11"
                            Foreground="{DynamicResource MutedForegroundBrush}"
                            Text="{TemplateBinding InputGestureText}"/>
             </Grid>
@@ -398,7 +398,7 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Margin" Value="0,0,0,2"/>
         <Setter Property="Padding" Value="8,2"/>
-        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="MinHeight" Value="34"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -458,7 +458,7 @@
         <Setter Property="Foreground" Value="{DynamicResource MutedForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/>
-        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontSize" Value="12"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Padding" Value="8,8"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -575,7 +575,7 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Margin" Value="4"/>
         <Setter Property="Padding" Value="8,0,0,0"/>
-        <Setter Property="MinHeight" Value="24"/>
+        <Setter Property="MinHeight" Value="26"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Template">
@@ -659,7 +659,7 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Margin" Value="4"/>
         <Setter Property="Padding" Value="8,0,0,0"/>
-        <Setter Property="MinHeight" Value="24"/>
+        <Setter Property="MinHeight" Value="26"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Template">
@@ -726,7 +726,7 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="12,0"/>
         <Setter Property="Margin" Value="4"/>
-        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="MinHeight" Value="34"/>
         <Setter Property="MinWidth" Value="30"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -790,9 +790,12 @@
 
     <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="FontFamily" Value="{StaticResource IconFontFamily}"/>
-        <Setter Property="FontSize" Value="13"/>
-        <Setter Property="Width" Value="30"/>
-        <Setter Property="Height" Value="30"/>
+        <!-- Grayscale: thin glyphs (+, arrows) otherwise pick up ClearType colour
+             fringes and read as blue next to bolder ones. -->
+        <Setter Property="TextOptions.TextRenderingMode" Value="Grayscale"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="Width" Value="34"/>
+        <Setter Property="Height" Value="34"/>
         <Setter Property="Padding" Value="0"/>
     </Style>
 
@@ -845,7 +848,7 @@
         <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="Margin" Value="4"/>
         <Setter Property="Padding" Value="6,0"/>
-        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="MinHeight" Value="34"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Template" Value="{StaticResource TextInputTemplate}"/>
@@ -860,7 +863,7 @@
     <!-- Data values (identifiers, URLs, numbers) in the monospace face. -->
     <Style x:Key="MonoTextBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
         <Setter Property="FontFamily" Value="{StaticResource MonoFontFamily}"/>
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontSize" Value="13"/>
     </Style>
 
     <Style TargetType="PasswordBox">
@@ -872,7 +875,7 @@
         <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="Margin" Value="4"/>
         <Setter Property="Padding" Value="6,0"/>
-        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="MinHeight" Value="34"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Template">
@@ -944,7 +947,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="Margin" Value="4"/>
         <Setter Property="Padding" Value="8,0,28,0"/>
-        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="MinHeight" Value="34"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
@@ -1032,7 +1035,7 @@
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
         <Setter Property="Margin" Value="4"/>
-        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="MinHeight" Value="34"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
@@ -1207,7 +1210,7 @@
 
     <!-- Small muted heading above a group of fields. -->
     <Style x:Key="SectionHeader" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontSize" Value="12"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="{DynamicResource MutedForegroundBrush}"/>
         <Setter Property="Margin" Value="4,8,4,4"/>
@@ -1216,7 +1219,7 @@
     <!-- Layer number in a vault-layer notch ("0", "1", …). -->
     <Style x:Key="LayerNumber" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource MonoFontFamily}"/>
-        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontSize" Value="11"/>
         <Setter Property="Foreground" Value="{DynamicResource MutedForegroundBrush}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="Margin" Value="0,0,6,0"/>
@@ -1224,7 +1227,7 @@
 
     <!-- Layer name in a vault-layer notch ("Vault", "Service", …). -->
     <Style x:Key="LayerName" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontSize" Value="12"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
@@ -1232,7 +1235,7 @@
 
     <!-- Tiny borderless glyph button inside a notch (item ID info). -->
     <Style x:Key="NotchIconButton" TargetType="Button" BasedOn="{StaticResource GhostIconButton}">
-        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontSize" Value="13"/>
         <Setter Property="Width" Value="20"/>
         <Setter Property="Height" Value="19"/>
         <Setter Property="MinWidth" Value="20"/>
@@ -1263,6 +1266,7 @@
     <helper:WindowTitleConverter x:Key="WindowTitleConverter"/>
 
     <Style x:Key="ChromeButton" TargetType="Button">
+        <Setter Property="TextOptions.TextRenderingMode" Value="Grayscale"/>
         <Setter Property="Width" Value="46"/>
         <Setter Property="Height" Value="40"/>
         <Setter Property="Focusable" Value="False"/>
@@ -1323,7 +1327,7 @@
         <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
-        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontSize" Value="14"/>
         <Setter Property="UseLayoutRounding" Value="True"/>
         <Setter Property="helper:StrataChrome.UseSystemCommands" Value="True"/>
         <Setter Property="shell:WindowChrome.WindowChrome">
@@ -1385,18 +1389,18 @@
                                                 Orientation="Horizontal">
                                         <TextBlock Margin="0,-2,10,0"
                                                    VerticalAlignment="Center"
-                                                   FontSize="19"
+                                                   FontSize="20"
                                                    Foreground="{DynamicResource AccentBrush}"
                                                    Text="&#x3C5;"/>
                                         <TextBlock VerticalAlignment="Center"
                                                    FontFamily="{StaticResource MonoFontFamily}"
-                                                   FontSize="11"
+                                                   FontSize="12"
                                                    FontWeight="SemiBold"
                                                    Text="UPSILON"/>
                                         <TextBlock Margin="8,0,0,0"
                                                    VerticalAlignment="Center"
                                                    FontFamily="{StaticResource MonoFontFamily}"
-                                                   FontSize="10"
+                                                   FontSize="11"
                                                    Foreground="{DynamicResource MutedForegroundBrush}"
                                                    Text="{x:Static helper:StrataChrome.VersionLabel}"/>
                                         <Rectangle x:Name="titleSeparator"
@@ -1405,7 +1409,7 @@
                                                    Margin="14,0"
                                                    Fill="{DynamicResource BorderBrush}"/>
                                         <TextBlock VerticalAlignment="Center"
-                                                   FontSize="12"
+                                                   FontSize="13"
                                                    Foreground="{DynamicResource MutedForegroundBrush}"
                                                    TextTrimming="CharacterEllipsis"
                                                    Text="{Binding Title, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource WindowTitleConverter}}"/>
@@ -1485,7 +1489,7 @@
                                                    Foreground="{DynamicResource AccentBrush}"
                                                    Text="&#x3C5;"/>
                                         <TextBlock VerticalAlignment="Center"
-                                                   FontSize="12"
+                                                   FontSize="13"
                                                    FontWeight="SemiBold"
                                                    TextTrimming="CharacterEllipsis"
                                                    Text="{Binding Title, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource WindowTitleConverter}}"/>
