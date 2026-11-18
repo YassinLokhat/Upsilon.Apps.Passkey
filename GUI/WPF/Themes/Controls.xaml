@@ -2041,6 +2041,9 @@
 
     <Style x:Key="StrataWindow" TargetType="Window">
         <Setter Property="helper:Motion.AnimateOpen" Value="True"/>
+        <!-- Whole device pixels everywhere: crisp 1 px lines, and text that sits
+             where a snapshot of it would sit (no sub-pixel drift). -->
+        <Setter Property="UseLayoutRounding" Value="True"/>
         <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>

@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -234,6 +235,40 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
 
          _passwords_LB.ItemsSource = _viewModel?.Passwords;
+
+         // Fill the rows now rather than on their Loaded (a frame later), so a row
+         // is final in the first frame drawn and the layer transition sees it as is.
+         if (_passwords_LB.IsLoaded)
+         {
+            _passwords_LB.UpdateLayout();
+            for (int i = 0; i < _passwords_LB.Items.Count; i++)
+            {
+               if (_passwords_LB.ItemContainerGenerator.ContainerFromIndex(i) is ListBoxItem { Content: PasswordViewModel entry } row
+                  && _findChild<VisiblePasswordBox>(row) is VisiblePasswordBox passwordBox)
+               {
+                  passwordBox.Password = entry.Password;
+               }
+            }
+         }
+      }
+
+      private static T? _findChild<T>(DependencyObject parent) where T : DependencyObject
+      {
+         for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+         {
+            DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T match)
+            {
+               return match;
+            }
+
+            if (_findChild<T>(child) is T found)
+            {
+               return found;
+            }
+         }
+
+         return null;
       }
 
       private void _value_TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)

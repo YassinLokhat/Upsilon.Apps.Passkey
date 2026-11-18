@@ -5,7 +5,6 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -16,7 +15,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// text, a combo box's value, each row of a list (account rows, quality ticks,
    /// history rows). <see cref="Capture"/> snapshots every part just before the
    /// selection changes; after the change <see cref="Play"/> snapshots them again and
-   /// compares the pixels. Identical parts are left alone (they do not move at all).
+   /// compares the pixels, before the next frame is drawn. Identical parts are left
+   /// alone: no overlay, no motion.
    /// A part that changed hands over quickly and lopsidedly: the old value fades
    /// out over 100 ms (ease-in, so it drops late and fast) while the new one fades
    /// in from 70 to 190 ms (ease-out), both sliding 10 px in the direction of
@@ -96,22 +96,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       public void Play(int direction)
       {
          _current = this;
-         _root.UpdateLayout();
 
-         // Keep showing the old state until the new content has fully settled
-         // (bindings, Loaded handlers that fill password boxes), then compare.
-         foreach (Snapshot snapshot in _old.Values)
-         {
-            _adorners.Add(_addAdorner(snapshot));
-         }
-
-         foreach (Part part in _collect(_root))
-         {
-            _touch(part.Content);
-            part.Content.Opacity = 0;
-         }
-
-         _ = _root.Dispatcher.BeginInvoke(DispatcherPriority.Input, () => _start(Math.Sign(direction)));
+         // Everything is decided before the next frame is drawn: an unchanged part
+         // never gets an overlay, not even for one frame (a bitmap of text is
+         // never pixel-identical to the live text, so that read as a vibration).
+         _start(Math.Sign(direction));
       }
 
       /// <summary>
@@ -142,12 +131,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
          _root.UpdateLayout();
 
-         // Back to full opacity for the comparison (no frame renders in between).
-         foreach ((FrameworkElement content, object opacity, _, _) in _touched)
-         {
-            _restoreOpacity(content, opacity);
-         }
-
          Dictionary<string, Part> current = _collect(_root).ToDictionary(x => x.Key);
          int firstTier = _old.Values.Select(x => x.Part.Tier).Concat(current.Values.Select(x => x.Tier)).DefaultIfEmpty(0).Min();
          Storyboard storyboard = new();
@@ -156,16 +139,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          {
             Snapshot? before = _old.GetValueOrDefault(key);
             Part? after = current.GetValueOrDefault(key);
-            SnapshotAdorner? adorner = before is null ? null : _adorners.FirstOrDefault(x => x.Key == key);
 
-            // Unchanged (same place, same pixels): nothing moves.
+            // Unchanged (same place, same pixels): nothing is drawn over it, nothing moves.
+            // Only the drawn pixels count, so a field that just got narrower (a
+            // scrollbar appeared next to it) with the same text is unchanged too.
             if (before is not null && after is not null
-               && before.Bounds == after.Content.TransformToAncestor(_root).TransformBounds(new Rect(after.Content.RenderSize))
+               && before.Bounds.TopLeft == after.Content.TransformToAncestor(_root).Transform(default)
                && _samePixels(before.Image, _render(after.Content)))
             {
-               _remove(adorner);
                continue;
             }
+
+            SnapshotAdorner? adorner = before is null ? null : _addAdorner(before);
 
             Part reference = after ?? before!.Part;
             TimeSpan delay = ((reference.Tier - firstTier) * _tierStagger) + (Math.Min(reference.Row, MAX_STAGGERED_ROWS) * _rowStagger);
@@ -255,6 +240,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       {
          SnapshotAdorner adorner = new(_root, snapshot);
          AdornerLayer.GetAdornerLayer(_root)?.Add(adorner);
+         _adorners.Add(adorner);
          return adorner;
       }
 
@@ -403,19 +389,38 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          return bitmap;
       }
 
+      /// <summary>
+      /// Same drawing, both anchored top-left; whatever lies outside one bitmap
+      /// counts as transparent, so only a real difference in what is drawn counts.
+      /// </summary>
       private static bool _samePixels(BitmapSource a, BitmapSource b)
       {
-         if (a.PixelWidth != b.PixelWidth || a.PixelHeight != b.PixelHeight)
+         int[] left = _pixels(a);
+         int[] right = _pixels(b);
+         int width = Math.Max(a.PixelWidth, b.PixelWidth);
+         int height = Math.Max(a.PixelHeight, b.PixelHeight);
+
+         for (int y = 0; y < height; y++)
          {
-            return false;
+            for (int x = 0; x < width; x++)
+            {
+               int pa = x < a.PixelWidth && y < a.PixelHeight ? left[(y * a.PixelWidth) + x] : 0;
+               int pb = x < b.PixelWidth && y < b.PixelHeight ? right[(y * b.PixelWidth) + x] : 0;
+               if (pa != pb)
+               {
+                  return false;
+               }
+            }
          }
 
-         int stride = a.PixelWidth * 4;
-         byte[] left = new byte[stride * a.PixelHeight];
-         byte[] right = new byte[left.Length];
-         a.CopyPixels(left, stride, 0);
-         b.CopyPixels(right, stride, 0);
-         return left.AsSpan().SequenceEqual(right);
+         return true;
+      }
+
+      private static int[] _pixels(BitmapSource bitmap)
+      {
+         int[] pixels = new int[bitmap.PixelWidth * bitmap.PixelHeight];
+         bitmap.CopyPixels(pixels, bitmap.PixelWidth * 4, 0);
+         return pixels;
       }
 
       private static void _keyFrames(Storyboard storyboard, DependencyObject target, DependencyProperty property, TimeSpan start, (double Value, TimeSpan At, IEasingFunction? Ease) from, (double Value, TimeSpan Duration, IEasingFunction Ease) to)
@@ -453,7 +458,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          public SnapshotAdorner(UIElement root, Snapshot snapshot)
             : base(root)
          {
-            Key = snapshot.Part.Key;
             _bounds = snapshot.Bounds;
             IsHitTestVisible = false;
             Image = new Image
@@ -465,8 +469,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             AddVisualChild(Image);
             Clip = new RectangleGeometry(snapshot.Visible);
          }
-
-         public string Key { get; }
 
          public Image Image { get; }
 
