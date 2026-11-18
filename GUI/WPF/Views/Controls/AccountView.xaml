@@ -23,7 +23,8 @@
                        Text="{Binding [Label_LayerAccount], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}}"/>
             <Button Style="{StaticResource NotchIconButton}"
                     Content="i"
-                    AutomationProperties.Name="{Binding AccountId}"
+                    AutomationProperties.Name="{loc:Loc Tooltip_CopyItemId}"
+                       AutomationProperties.HelpText="{Binding AccountId}"
                     Click="_copyAccountId_Click">
                <Button.ToolTip>
                   <StackPanel>

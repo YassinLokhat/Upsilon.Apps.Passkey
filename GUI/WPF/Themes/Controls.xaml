@@ -2192,7 +2192,18 @@
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
-    <!-- 6 px square status dot. -->
+    <!-- "Needs attention": an outline ring, so it differs from the unsaved dot
+         by shape as well as colour. -->
+    <Style x:Key="AttentionRing" TargetType="Ellipse">
+        <Setter Property="Width" Value="8"/>
+        <Setter Property="Height" Value="8"/>
+        <Setter Property="StrokeThickness" Value="1.5"/>
+        <Setter Property="Fill" Value="Transparent"/>
+        <Setter Property="Stroke" Value="{DynamicResource WarningBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- 6 px square status dot ("unsaved change"). -->
     <Style x:Key="Dot" TargetType="Rectangle">
         <Setter Property="Effect" Value="{DynamicResource Glow.Soft}"/>
         <Setter Property="Width" Value="6"/>

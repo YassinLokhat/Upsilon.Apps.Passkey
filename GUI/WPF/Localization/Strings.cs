@@ -156,6 +156,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Label_SeverityCritical => Get(nameof(Label_SeverityCritical));
       public static string Label_SeverityWarning => Get(nameof(Label_SeverityWarning));
       public static string Label_SignInWith => Get(nameof(Label_SignInWith));
+      public static string Label_StatusAttention => Get(nameof(Label_StatusAttention));
+      public static string Label_StatusUnsaved => Get(nameof(Label_StatusUnsaved));
       public static string Label_StoredLocally => Get(nameof(Label_StoredLocally));
       public static string Label_TypeShortAll => Get(nameof(Label_TypeShortAll));
       public static string Label_TypeShortAuthenticator => Get(nameof(Label_TypeShortAuthenticator));

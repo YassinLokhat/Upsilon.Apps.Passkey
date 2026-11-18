@@ -43,8 +43,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public bool NeedsAttention
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               OnPropertyChanged(nameof(StatusText));
+            }
+         }
       }
+
+      /// <summary>The row's dots in words, for screen readers (AutomationProperties.ItemStatus).</summary>
+      public string StatusText => string.Join(", ", new[]
+      {
+         HasUnsavedChanges ? Strings.Label_StatusUnsaved : null,
+         NeedsAttention ? Strings.Label_StatusAttention : null,
+      }.Where(static x => x is not null));
 
       public AccountViewModel? SelectedAccount
       {
@@ -135,6 +148,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          OnPropertyChanged($"{propertyName}Background");
          OnPropertyChanged(nameof(ServiceDisplay));
          OnPropertyChanged(nameof(HasUnsavedChanges));
+         OnPropertyChanged(nameof(StatusText));
          OnPropertyChanged(nameof(IsNotesChanged));
          OnPropertyChanged(nameof(AccountCount));
       }

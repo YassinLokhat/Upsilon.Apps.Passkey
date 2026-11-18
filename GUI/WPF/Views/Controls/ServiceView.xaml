@@ -24,7 +24,8 @@
                        Text="{Binding [Label_LayerService], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}}"/>
             <Button Style="{StaticResource NotchIconButton}"
                     Content="i"
-                    AutomationProperties.Name="{Binding ServiceId}"
+                    AutomationProperties.Name="{loc:Loc Tooltip_CopyItemId}"
+                       AutomationProperties.HelpText="{Binding ServiceId}"
                     Click="_copyServiceId_Click">
                <Button.ToolTip>
                   <StackPanel>

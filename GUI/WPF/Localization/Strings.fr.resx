@@ -1583,4 +1583,10 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
   <data name="Label_TypeShortAll" xml:space="preserve">
     <value>Tous</value>
   </data>
+  <data name="Label_StatusUnsaved" xml:space="preserve">
+    <value>Modification non enregistrée</value>
+  </data>
+  <data name="Label_StatusAttention" xml:space="preserve">
+    <value>À vérifier</value>
+  </data>
 </root>

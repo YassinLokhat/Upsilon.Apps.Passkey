@@ -316,7 +316,8 @@
                           Text="{Binding [Label_LayerVault], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}}"/>
                <Button Style="{StaticResource NotchIconButton}"
                        Content="i"
-                       AutomationProperties.Name="{Binding UserId}"
+                       AutomationProperties.Name="{loc:Loc Tooltip_CopyItemId}"
+                       AutomationProperties.HelpText="{Binding UserId}"
                        Click="_copyUserId_Click">
                   <Button.ToolTip>
                      <StackPanel>
@@ -466,6 +467,12 @@
                            VirtualizingStackPanel.IsVirtualizing="True"
                            VirtualizingStackPanel.VirtualizationMode="Recycling"
                            SelectionChanged="_services_LB_SelectionChanged">
+                     <!-- Screen readers hear the dots too ("Unsaved change, Needs attention"). -->
+                     <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                           <Setter Property="AutomationProperties.ItemStatus" Value="{Binding StatusText}"/>
+                        </Style>
+                     </ListBox.ItemContainerStyle>
                      <ListBox.ItemTemplate>
                         <DataTemplate>
                            <DockPanel LastChildFill="True">
@@ -476,11 +483,9 @@
                                             Margin="8,0,0,0"
                                             Fill="{DynamicResource AccentBrush}"
                                             Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BooleanToVisibility}}"/>
-                                 <Rectangle Style="{StaticResource Dot}"
-                                            Margin="8,0,0,0"
-                                            Effect="{DynamicResource Glow.Warning}"
-                                            Fill="{DynamicResource WarningBrush}"
-                                            Visibility="{Binding NeedsAttention, Converter={StaticResource BooleanToVisibility}}"/>
+                                 <Ellipse Style="{StaticResource AttentionRing}"
+                                          Margin="8,0,0,0"
+                                          Visibility="{Binding NeedsAttention, Converter={StaticResource BooleanToVisibility}}"/>
                                  <TextBlock Margin="8,0,0,0"
                                             VerticalAlignment="Center"
                                             FontFamily="{StaticResource MonoFontFamily}"
@@ -507,9 +512,9 @@
                                    Foreground="{DynamicResource MutedForegroundBrush}"
                                    Text="{loc:Loc Label_LegendUnsaved}"/>
                      </StackPanel>
-                     <StackPanel Margin="6,6,0,0"
+                     <StackPanel Margin="7,4,0,0"
                                  Orientation="Horizontal">
-                        <Rectangle Style="{StaticResource Dot}" Effect="{DynamicResource Glow.Warning}" Fill="{DynamicResource WarningBrush}"/>
+                        <Ellipse Style="{StaticResource AttentionRing}"/>
                         <TextBlock Margin="8,0,0,0"
                                    FontSize="12"
                                    Foreground="{DynamicResource MutedForegroundBrush}"
