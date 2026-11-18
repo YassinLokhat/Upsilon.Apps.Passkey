@@ -463,6 +463,7 @@
     </Style>
 
     <Style TargetType="ListBox">
+        <Setter Property="helper:PressSelection.IsEnabled" Value="True"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource SubtleBorderBrush}"/>

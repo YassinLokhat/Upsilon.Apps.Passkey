@@ -31,6 +31,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       // A scroll or a change of the items since the last selection: snap, don't glide.
       private bool _snapOnly;
 
+      private static readonly TimeSpan _rapidWindow = TimeSpan.FromMilliseconds(250);
+      private DateTime _lastSelectionChange = DateTime.MinValue;
+
       private SelectionGlide(ListBox list)
       {
          _list = list;
@@ -50,7 +53,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       private void _list_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
          // Selectors inside the rows (combo boxes) bubble their own changes.
-         if (!ReferenceEquals(e.OriginalSource, _list) || _glideQueued)
+         if (!ReferenceEquals(e.OriginalSource, _list))
+         {
+            return;
+         }
+
+         // Fast clicking or a held arrow key: the highlight jumps straight to each
+         // new row instead of gliding after it (a glide that is always catching up
+         // makes a click look as if it had not been taken).
+         DateTime now = DateTime.UtcNow;
+         if (_gliding || now - _lastSelectionChange < _rapidWindow)
+         {
+            _snapOnly = true;
+         }
+
+         _lastSelectionChange = now;
+         if (_glideQueued)
          {
             return;
          }

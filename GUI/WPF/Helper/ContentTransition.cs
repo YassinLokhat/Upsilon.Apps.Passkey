@@ -502,11 +502,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          {
             _bounds = snapshot.Bounds;
             IsHitTestVisible = false;
+            // Never in the way of a click: the rows under the snapshot must take it.
             Image = new Image
             {
                Source = snapshot.Image,
                Stretch = Stretch.Fill,
                RenderTransform = Shift,
+               IsHitTestVisible = false,
             };
             AddVisualChild(Image);
             Clip = new RectangleGeometry(snapshot.Visible);
