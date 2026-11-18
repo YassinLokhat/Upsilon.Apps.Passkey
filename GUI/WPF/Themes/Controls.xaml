@@ -156,16 +156,19 @@
     </Style>
 
     <sys:Double x:Key="KeyChipLineHeight">12</sys:Double>
-    <Thickness x:Key="KeyChipTextLift">0,0,0,2</Thickness>
-    <!-- Segoe UI carries its x-height about 2 px below the middle of its line
-         box: the chip drops by that much so its centre meets the label's
-         x-height centre (measured by the layout audit at 96–192 dpi). -->
-    <Thickness x:Key="KeyChipDrop">0,4,0,0</Thickness>
+    <Thickness x:Key="KeyChipTextLift">0,0,0,0</Thickness>
+    <!-- One-line tweaks for the chip alignment. Labels start with a capital,
+         so the eye reads a word's middle at its cap height: the chip box centre
+         meets the middle of the label's capitals (baseline to cap top), which
+         in Segoe UI sits a little below the middle of its line box. The chip
+         text is centred the same way, on its own capitals. Checked by the
+         layout audit at 96–192 dpi (within 1 device px). -->
+    <Thickness x:Key="KeyChipBaselineNudge">0,1.5,0,0</Thickness>
     <!-- Shortcut key chip (design class .kbd), the one style every chip uses:
          command row, filter row, the Copy button and menu shortcuts. A fixed
          18 px box centred on its row; the mono text uses a block line height
          and a small lift so its lowercase / caps sit optically centred in the
-         box, and the box sits on the label's x-height rather than its line box. -->
+         box, and the box sits on the label's cap height rather than its line box. -->
     <Style x:Key="KeyChip" TargetType="ContentControl">
         <Setter Property="Focusable" Value="False"/>
         <Setter Property="IsTabStop" Value="False"/>
@@ -181,7 +184,7 @@
                 <ControlTemplate TargetType="ContentControl">
                     <Border x:Name="chipBox"
                             Height="18"
-                            Margin="{StaticResource KeyChipDrop}"
+                            Margin="{StaticResource KeyChipBaselineNudge}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="1"
                             CornerRadius="{StaticResource ControlCornerRadius}"
@@ -219,7 +222,10 @@
                 BorderThickness="1"
                 CornerRadius="{StaticResource ControlCornerRadius}"
                 SnapsToDevicePixels="True">
+            <!-- Taller than the chip, so the chip's baseline nudge moves the chip and
+                 not the row it sits in. -->
             <StackPanel Orientation="Horizontal"
+                        MinHeight="22"
                         Margin="{TemplateBinding Padding}">
                 <ContentPresenter ContentSource="Header"
                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
