@@ -144,20 +144,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
             _autoClearTimer?.Stop();
             _autoClearTimer = null;
 
-            if (PendingClearUtc is not null)
-            {
-               PendingClearUtc = null;
-               PendingClearChanged?.Invoke(null, EventArgs.Empty);
-            }
-
-            if (tracked is null)
-            {
-               return;
-            }
+            bool wasPending = PendingClearUtc is not null;
+            PendingClearUtc = null;
 
             try
             {
-               if (Clipboard.ContainsText() && Clipboard.GetText() == tracked)
+               if (tracked is not null && Clipboard.ContainsText() && Clipboard.GetText() == tracked)
                {
                   Clipboard.Clear();
                }
@@ -168,6 +160,28 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
             {
                Log.Error(ex, "Failed to clear sensitive clipboard content");
             }
+            finally
+            {
+               // Listeners (the countdown strip) hear about it only after the
+               // clear, and none of them can stop it.
+               if (wasPending)
+               {
+                  _raisePendingClearChanged();
+               }
+            }
+         }
+      }
+
+      private static void _raisePendingClearChanged()
+      {
+         try
+         {
+            PendingClearChanged?.Invoke(null, EventArgs.Empty);
+         }
+         catch (Exception ex)
+            when (ex is InvalidOperationException or ArgumentException or NullReferenceException)
+         {
+            Log.Error(ex, "A clipboard status listener failed");
          }
       }
 
@@ -186,7 +200,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
             _autoClearTimer.Start();
 
             PendingClearUtc = DateTime.UtcNow + delay;
-            PendingClearChanged?.Invoke(null, EventArgs.Empty);
+            _raisePendingClearChanged();
          }
       }
 
