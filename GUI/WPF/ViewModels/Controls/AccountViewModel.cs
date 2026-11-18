@@ -67,25 +67,50 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       private string _firstIdentifier => Account.Identifiers.FirstOrDefault()?.Value ?? string.Empty;
 
       /// <summary>
-      /// Quality ticks under the password, computed locally with his
-      /// <see cref="SecretQuality"/> rules plus the duplicate / leak alerts the broker
-      /// already holds. No new Core call; nothing leaves the process.
+      /// Test seam: the quality rules (<see cref="SecretQuality.Evaluate"/>).
+      /// </summary>
+      internal static Func<string, string?, SecretQualityIssue> EvaluateQuality { get; set; } = SecretQuality.Evaluate;
+
+      // The quality of the current password, worked out only when the account is
+      // first shown and when the password itself changes (where the plain text is
+      // already in hand). Refreshing the ticks never reads the password again.
+      private bool _qualityKnown;
+      private bool _hasPassword;
+      private SecretQualityIssue _qualityIssues;
+
+      private void _evaluateQuality(string? password)
+      {
+         _hasPassword = !string.IsNullOrEmpty(password);
+         _qualityIssues = _hasPassword
+            ? EvaluateQuality(password!, AppServices.Session.User?.Username)
+            : SecretQualityIssue.None;
+         _qualityKnown = true;
+      }
+
+      /// <summary>
+      /// Quality ticks under the password: the <see cref="SecretQuality"/> rules plus
+      /// the duplicate / leak alerts the broker already holds (the same notified,
+      /// mask-respecting source as the Alerts menu). No new Core call; nothing
+      /// leaves the process.
       /// </summary>
       public IReadOnlyList<QualityCheck> QualityChecks
       {
          get
          {
-            string password = Account.Password;
+            if (!_qualityKnown)
+            {
+               _evaluateQuality(Account.Password);
+            }
 
-            if (string.IsNullOrEmpty(password))
+            if (!_hasPassword)
             {
                return [];
             }
 
-            SecretQualityIssue issues = SecretQuality.Evaluate(password, AppServices.Session.User?.Username);
+            SecretQualityIssue issues = _qualityIssues;
 
             bool reused = AppServices.Session.Alerts
-               .GetAllAlerts(AlertKinds.DuplicatedPasswords)
+               .GetNotifiedAlerts(AlertKinds.DuplicatedPasswords)
                .OfType<IAccountsAlert>()
                .Any(x => x.Accounts.Contains(Account));
 
@@ -144,7 +169,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Account.Password != value)
             {
                Account.Password = value;
+               _evaluateQuality(value);
                _notify(nameof(Password));
+               OnPropertyChanged(nameof(QualityChecks));
                AppServices.Session.Database?.RefreshAlerts();
             }
          }
@@ -323,6 +350,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
 
          Identifiers.Clear();
+
+         // Undo / redo may have changed the password: work the quality out again
+         // the next time the ticks are shown.
+         _qualityKnown = false;
          OnPropertyChanged(string.Empty);
       }
 
@@ -362,7 +393,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          OnPropertyChanged(nameof(AccountDisplay));
          OnPropertyChanged(nameof(DisplayTitle));
          OnPropertyChanged(nameof(DisplaySubtitle));
-         OnPropertyChanged(nameof(QualityChecks));
       }
 
       private void _identifierViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
