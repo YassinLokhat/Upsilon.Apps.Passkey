@@ -93,6 +93,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       private readonly string _openedTheme = AppInfo.AppSettings.Theme;
       private bool _previewEnded;
 
+      // Set when something wrote the config file while the dialog was open (the
+      // offline filter build does): a cancel must then write the restored values.
+      private bool _configWrittenDuringPreview;
+
+      /// <summary>Records that the config file was written while the dialog is open.</summary>
+      public void NoteConfigWritten() => _configWrittenDuringPreview = true;
+
       /// <summary>
       /// Ends the live preview when the dialog closes. Without a save, the
       /// language and theme go back to what they were when it opened (both the
@@ -113,6 +120,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          AppInfo.AppSettings.Language = _openedLanguage;
          AppInfo.AppSettings.Theme = _openedTheme;
+         if (_configWrittenDuringPreview)
+         {
+            AppInfo.AppSettings.Save(AppInfo.ConfigFile);
+         }
+
          _ = LocalizationService.ApplyEffective(AppInfo.AppSettings.Language, AppServices.Session.User?.Settings.Language);
          _ = ThemeService.ApplyEffective(AppInfo.AppSettings.Theme, AppServices.Session.User?.Settings.Theme);
       }

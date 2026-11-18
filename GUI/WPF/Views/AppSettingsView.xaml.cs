@@ -282,6 +282,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
                   = 7;
                AppInfo.AppSettings.LocalLeakDatabaseQuality = _viewModel.SelectedLeakFilterQuality.Code;
                AppInfo.AppSettings.Save(AppInfo.ConfigFile);
+               _viewModel.NoteConfigWritten();
             }
 
             _viewModel.OfflineLeakFilterProgress = _completionMessage(result.Value);
