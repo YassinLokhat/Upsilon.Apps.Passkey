@@ -46,6 +46,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       // One transition at a time: a new selection finishes the running one at once.
       private static ContentTransition? _current;
 
+      // Selections closer together than this count as rapid navigation (no motion).
+      private static readonly TimeSpan _rapidWindow = TimeSpan.FromMilliseconds(250);
+      private static DateTime _lastRequest = DateTime.MinValue;
+
       private readonly FrameworkElement _root;
       private readonly Dictionary<string, Snapshot> _old;
       private readonly List<SnapshotAdorner> _adorners = [];
@@ -67,9 +71,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       {
          ArgumentNullException.ThrowIfNull(root);
 
+         // A selection while the previous transition is still playing, or within
+         // 250 ms of the previous selection (fast clicking, a held arrow key), ends
+         // that one at once and switches without motion: snapshotting and
+         // animating every step only piles up work on the UI thread, and the list
+         // feels stuck. The next unhurried selection animates again.
+         DateTime now = DateTime.UtcNow;
+         bool rapid = _current is { _finished: false } || now - _lastRequest < _rapidWindow;
+         _lastRequest = now;
          _current?._finish();
 
-         if (!Motion.Enabled || !root.IsLoaded || !root.IsVisible)
+         if (rapid || !Motion.Enabled || !root.IsLoaded || !root.IsVisible)
          {
             return null;
          }

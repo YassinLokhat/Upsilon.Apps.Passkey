@@ -60,6 +60,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          _ = _list.Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
          {
             _glideQueued = false;
+
+            // Measure the rows as they are now laid out (a scroll into view or a new
+            // item source may still be pending).
+            _list.UpdateLayout();
             bool animate = !_snapOnly;
             _snapOnly = false;
             _place(animate);
@@ -117,8 +121,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          }
 
          bool glide = animate && Motion.Enabled && !_shown.IsEmpty && _highlight.Visibility == Visibility.Visible;
+
+         // Start from where the highlight is drawn right now (mid-glide included),
+         // not from the row it was heading to.
          double fromTop = Canvas.GetTop(_highlight);
-         double fromHeight = _highlight.ActualHeight;
+         double fromHeight = _highlight.GetValue(FrameworkElement.HeightProperty) is double height && !double.IsNaN(height)
+            ? height
+            : _highlight.ActualHeight;
 
          _stop();
          _highlight.Visibility = Visibility.Visible;
@@ -140,9 +149,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          Storyboard storyboard = new() { FillBehavior = FillBehavior.Stop };
          _add(storyboard, Canvas.TopProperty, fromTop, to.Y);
          _add(storyboard, FrameworkElement.HeightProperty, fromHeight, to.Height);
-         storyboard.Completed += (_, _) => _gliding = false;
-         storyboard.Begin(_highlight, HandoffBehavior.SnapshotAndReplace, isControllable: true);
+         storyboard.Completed += (_, _) =>
+         {
+            // A newer glide or a snap took over: this one has nothing left to say.
+            if (_storyboard != storyboard)
+            {
+               return;
+            }
+
+            _stop();
+
+            // End on the selected row as it is laid out now (rows can move during
+            // a glide), never on a stale target.
+            _place(animate: false);
+         };
          _storyboard = storyboard;
+         storyboard.Begin(_highlight, HandoffBehavior.SnapshotAndReplace, isControllable: true);
       }
 
       private void _add(Storyboard storyboard, DependencyProperty property, double from, double to)
