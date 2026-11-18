@@ -144,6 +144,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       /// <summary>Strip / panel appearing: fade in and slide 6 px up.</summary>
       public static Storyboard Enter(FrameworkElement element)
       {
+         ArgumentNullException.ThrowIfNull(element);
+         element.ClearValue(_pendingCollapseProperty);
+
          (_, TranslateTransform translate) = _transforms(element, new Point(0.5, 0.5));
          Storyboard storyboard = new();
          _add(storyboard, element, UIElement.OpacityProperty, 0, 1, Slow);
@@ -169,14 +172,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          return _begin(storyboard, element);
       }
 
-      /// <summary>Fade out, then collapse.</summary>
+      /// <summary>
+      /// Fade out, then collapse. If something shows the element again before the
+      /// fade ends (an <see cref="Enter"/>), it stays visible.
+      /// </summary>
       public static Storyboard FadeOutThenCollapse(FrameworkElement element)
       {
+         ArgumentNullException.ThrowIfNull(element);
+
          Storyboard storyboard = new();
          _add(storyboard, element, UIElement.OpacityProperty, element.Opacity, 0, Fast);
-         storyboard.Completed += (_, _) => element.Visibility = Visibility.Collapsed;
+         element.SetValue(_pendingCollapseProperty, storyboard);
+         storyboard.Completed += (_, _) =>
+         {
+            if (element.GetValue(_pendingCollapseProperty) == storyboard)
+            {
+               element.ClearValue(_pendingCollapseProperty);
+               element.Visibility = Visibility.Collapsed;
+            }
+         };
          return _begin(storyboard, element);
       }
+
+      // The fade-out a later show cancels (see FadeOutThenCollapse).
+      private static readonly DependencyProperty _pendingCollapseProperty = DependencyProperty.RegisterAttached(
+         "PendingCollapse", typeof(Storyboard), typeof(Motion), new PropertyMetadata(null));
 
       /// <summary>Badge pop: scale 1.15 → 1.</summary>
       public static Storyboard Pop(FrameworkElement element)
