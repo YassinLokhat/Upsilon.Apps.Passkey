@@ -9,7 +9,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
    /// <summary>
    /// One selection highlight per list that glides from the old row to the new
-   /// one (150 ms ease-out) instead of each row fading its own. The highlight is
+   /// one (150 ms strong ease-out) instead of each row fading its own. The highlight is
    /// <c>PART_GlideHighlight</c> in the <c>GlideListBox</c> template, on a canvas
    /// behind the rows. Scrolling, resizing and filtering snap it without
    /// animating; with no visible selected row it hides. Turned on by
@@ -18,7 +18,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    internal sealed class SelectionGlide
    {
       private static readonly TimeSpan _duration = TimeSpan.FromMilliseconds(150);
-      private static readonly CubicEase _easeOut = _frozenEase();
+      private static readonly QuinticEase _easeOut = _frozenEase();
 
       private readonly ListBox _list;
       private FrameworkElement? _highlight;
@@ -73,7 +73,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             return;
          }
 
-         // Let the list lay out (scroll into view, filtering) before measuring.
+         // The clicked row is usually already on screen and laid out: start the glide
+         // right away, before the rest of the page does its own work for the new
+         // selection, so the highlight answers the click at once.
+         if (_list.SelectedItem is not null
+            && _list.ItemContainerGenerator.ContainerFromItem(_list.SelectedItem) is ListBoxItem { IsVisible: true, IsArrangeValid: true })
+         {
+            bool animateNow = !_snapOnly;
+            _snapOnly = false;
+            _place(animateNow);
+            return;
+         }
+
+         // Otherwise let the list lay out (scroll into view, filtering) before measuring.
          _glideQueued = true;
          _ = _list.Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
          {
@@ -204,9 +216,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          _storyboard = null;
       }
 
-      private static CubicEase _frozenEase()
+      private static QuinticEase _frozenEase()
       {
-         CubicEase ease = new() { EasingMode = EasingMode.EaseOut };
+         QuinticEase ease = new() { EasingMode = EasingMode.EaseOut };
          ease.Freeze();
          return ease;
       }
