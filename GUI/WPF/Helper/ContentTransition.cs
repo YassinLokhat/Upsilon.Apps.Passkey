@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using Upsilon.Apps.Passkey.GUI.WPF.Views.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -57,9 +58,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          _root = root;
          _old = old;
       }
-
-      /// <summary>The last transition started (lets the offscreen harness sample its frames).</summary>
-      internal static Storyboard? LastStoryboard { get; set; }
 
       /// <summary>
       /// Snapshots every marked part under <paramref name="root"/>. Returns null
@@ -190,7 +188,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          _storyboard = storyboard;
          storyboard.Completed += (_, _) => _finish();
          storyboard.Begin(_root, HandoffBehavior.SnapshotAndReplace, isControllable: true);
-         LastStoryboard = storyboard;
       }
 
       private void _finish()
@@ -215,6 +212,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          }
 
          _touched.Clear();
+
+         // Drop the bitmaps now rather than whenever this object is collected.
+         _old.Clear();
+         _adorners.Clear();
          if (_current == this)
          {
             _current = null;
@@ -278,12 +279,18 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             {
                _collect(child, key, parts);
             }
+            else if (_revealsSecret(child))
+            {
+               // A password shown in clear is never captured into a bitmap: that
+               // part just switches without motion.
+            }
             else if (child is ItemsControl list)
             {
                // Lists move row by row.
                for (int row = 0; row < list.Items.Count; row++)
                {
-                  if (list.ItemContainerGenerator.ContainerFromIndex(row) is FrameworkElement { IsVisible: true } container)
+                  if (list.ItemContainerGenerator.ContainerFromIndex(row) is FrameworkElement { IsVisible: true } container
+                     && !_revealsSecret(container))
                   {
                      FrameworkElement content = container is ContentPresenter presenter
                         ? presenter
@@ -297,6 +304,26 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
                parts.Add(new Part(key, content, tier, 0));
             }
          }
+      }
+
+      /// <summary>True when <paramref name="element"/> is, or holds, a password box showing its password.</summary>
+      private static bool _revealsSecret(DependencyObject element)
+      {
+         if (element is VisiblePasswordBox { IsRevealed: true })
+         {
+            return true;
+         }
+
+         int count = VisualTreeHelper.GetChildrenCount(element);
+         for (int i = 0; i < count; i++)
+         {
+            if (_revealsSecret(VisualTreeHelper.GetChild(element, i)))
+            {
+               return true;
+            }
+         }
+
+         return false;
       }
 
       /// <summary>

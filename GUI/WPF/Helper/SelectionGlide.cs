@@ -47,9 +47,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       public static SelectionGlide Attach(ListBox list) => new(list);
 
-      /// <summary>The last glide started (lets the offscreen harness sample its frames).</summary>
-      internal static Storyboard? LastStoryboard { get; set; }
-
       private void _list_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
          // Selectors inside the rows (combo boxes) bubble their own changes.
@@ -146,7 +143,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          storyboard.Completed += (_, _) => _gliding = false;
          storyboard.Begin(_highlight, HandoffBehavior.SnapshotAndReplace, isControllable: true);
          _storyboard = storyboard;
-         LastStoryboard = storyboard;
       }
 
       private void _add(Storyboard storyboard, DependencyProperty property, double from, double to)

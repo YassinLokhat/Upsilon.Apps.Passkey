@@ -35,6 +35,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
       }
 
+      /// <summary>True while the password is shown in clear.</summary>
+      public bool IsRevealed => _viewModel.TextVisibility == Visibility.Visible;
+
       public bool ReadOnly
       {
          get => !_viewModel.IsEnabled;
