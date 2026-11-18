@@ -165,6 +165,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          // Drop any previously revealed / mirrored secrets before switching.
          _clearSecrets();
 
+         // The password box colour is set from code (the box is not bound): follow
+         // the view model when it changes, e.g. after a theme switch.
+         _viewModel?.PropertyChanged -= _viewModel_PropertyChanged;
+         dataContext?.PropertyChanged += _viewModel_PropertyChanged;
+
          if (dataContext is null)
          {
             DataContext = null;
@@ -207,6 +212,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          _password_VPB.Password = _viewModel.Password;
          _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
          _refreshPasswordHistory();
+      }
+
+      private void _viewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+      {
+         if (e.PropertyName == nameof(AccountViewModel.PasswordBackground) && sender == _viewModel && _viewModel is not null)
+         {
+            _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
+         }
       }
 
       private void _clearSecrets()
