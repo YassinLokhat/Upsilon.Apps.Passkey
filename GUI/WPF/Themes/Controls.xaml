@@ -542,6 +542,11 @@
                     <!-- Hover and selection fade in (Motion.Fast); the selected
                          row's outline tints mint with a soft glow. -->
                     <Grid SnapsToDevicePixels="True">
+                        <!-- The 4 px gap under each row (Margin) takes clicks too: half
+                             to the row above, half to the row below. Without it a
+                             press between two rows reaches the list and selects
+                             nothing. Only hit-testable: nothing is drawn. -->
+                        <Border Background="Transparent" Margin="0,-2"/>
                         <Border x:Name="hoverFill"
                                 Opacity="0"
                                 Background="{DynamicResource HoverBackgroundBrush}"/>
