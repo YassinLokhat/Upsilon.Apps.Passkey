@@ -58,6 +58,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          // process tears down, in case MainWindow.Closed did not run first.
          AppServices.Session.EndSession();
          ThemeService.Shutdown();
+         Motion.Shutdown();
 
          Log.Info($"Application exiting with code {e.ApplicationExitCode}.");
          Log.Flush();

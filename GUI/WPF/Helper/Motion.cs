@@ -28,23 +28,54 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       private static readonly CubicEase _easeOut = _frozenEase();
 
+      private static Application? _application;
+
       /// <summary>
-      /// Call once at start-up (before any window loads): with animations off, the
-      /// template durations in Motion.xaml become zero.
+      /// Call once at start-up (before any window loads): applies the Windows
+      /// animation setting to the template durations in Motion.xaml, and keeps
+      /// following it while the app runs (a change applies to what is created from
+      /// then on; code-driven motion reads <see cref="Enabled"/> on every call).
       /// </summary>
       public static void Initialize(Application application)
       {
          ArgumentNullException.ThrowIfNull(application);
 
-         if (Enabled)
+         _application = application;
+         _applyDurations();
+         SystemParameters.StaticPropertyChanged += _systemParameters_StaticPropertyChanged;
+      }
+
+      /// <summary>Stops following the Windows animation setting (app exit).</summary>
+      public static void Shutdown()
+      {
+         SystemParameters.StaticPropertyChanged -= _systemParameters_StaticPropertyChanged;
+         _application = null;
+      }
+
+      private static void _systemParameters_StaticPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+      {
+         if (e.PropertyName == nameof(SystemParameters.ClientAreaAnimation))
+         {
+            _ = _application?.Dispatcher.BeginInvoke(_applyDurations);
+         }
+      }
+
+      /// <summary>With animations off the template duration becomes zero; on, Motion.xaml's value shows through.</summary>
+      private static void _applyDurations()
+      {
+         if (_application is null)
          {
             return;
          }
 
-         Duration none = new(TimeSpan.Zero);
-         application.Resources["Motion.Fast"] = none;
-         application.Resources["Motion.Normal"] = none;
-         application.Resources["Motion.Slow"] = none;
+         if (Enabled)
+         {
+            _application.Resources.Remove("Motion.Fast");
+         }
+         else
+         {
+            _application.Resources["Motion.Fast"] = new Duration(TimeSpan.Zero);
+         }
       }
 
       #region Attached behaviours
