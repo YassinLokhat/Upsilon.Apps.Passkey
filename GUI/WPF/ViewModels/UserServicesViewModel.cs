@@ -596,6 +596,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       private void _reloadAfterHistory()
       {
+         // Undo / redo can restore the user's alert mask as well.
+         AppServices.Session.Alerts.RefreshSavedMask();
+
          string? selectedServiceId = SelectedService?.Service.ItemId;
          string? selectedAccountId = SelectedService?.SelectedAccount?.Account.ItemId;
 
@@ -715,7 +718,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                ? Strings.Msg_SessionNoLimit
                : Strings.Format(nameof(Strings.Msg_SessionLeft), sessionLeftTime / 60, sessionLeftTime % 60);
 
-            int changedServices = user.Services.Count(static x => x.HasChanged());
+            // Counted from the service view models already held: reading
+            // user.Services here would go through Touch and reset the idle and
+            // clipboard countdowns on every tick. HasChanged() itself does not touch.
+            int changedServices = _serviceViewModelsById.Values.Count(static x => x.HasUnsavedChanges);
             ChangeCount = changedServices != 0 ? changedServices : user.HasChanged() ? 1 : 0;
          }
 

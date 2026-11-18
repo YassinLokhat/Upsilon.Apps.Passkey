@@ -226,6 +226,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             }
 
             _database.User.Settings.AlertsToNotify = alertsToNotify;
+            _session.Alerts.RefreshSavedMask();
 
             await _database.SaveAsync().ConfigureAwait(true);
             _session.ApplySessionLanguage();

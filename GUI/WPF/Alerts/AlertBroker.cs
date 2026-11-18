@@ -23,6 +23,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
       // mask instead of the saved one (the vault is never written for a preview).
       private AlertKindList? _previewMask;
 
+      // The saved mask, read once per session (and again after the user settings
+      // are saved): reading Settings goes through Touch, which would reset the
+      // idle countdown every time an alert scan reports.
+      private AlertKindList? _savedMask;
+      private bool _savedMaskLoaded;
+
       public event EventHandler? NotifiedAlertsChanged;
 
       public IReadOnlyList<string> AvailableKinds { get; } =
@@ -35,7 +41,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
       {
          lock (_gate)
          {
-            AlertKindList? mask = _previewMask ?? _database?.User?.Settings.AlertsToNotify;
+            if (!_savedMaskLoaded && _database?.User is { } user)
+            {
+               _savedMask = user.Settings.AlertsToNotify;
+               _savedMaskLoaded = true;
+            }
+
+            AlertKindList? mask = _previewMask ?? _savedMask;
             if (mask is null || mask.Count == 0)
             {
                return [];
@@ -110,6 +122,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
       public void Detach()
       {
          _previewMask = null;
+         _savedMask = null;
+         _savedMaskLoaded = false;
 
          if (_database is not null)
          {
@@ -133,6 +147,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
          lock (_gate)
          {
             _previewMask = mask;
+         }
+
+         _raiseChanged();
+      }
+
+      /// <summary>Re-reads the saved alert mask (after the user settings are saved).</summary>
+      public void RefreshSavedMask()
+      {
+         lock (_gate)
+         {
+            _savedMaskLoaded = false;
          }
 
          _raiseChanged();
