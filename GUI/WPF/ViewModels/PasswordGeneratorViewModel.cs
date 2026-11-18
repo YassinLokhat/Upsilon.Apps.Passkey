@@ -5,12 +5,13 @@ using System.Windows.Media;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.WPF.Themes;
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.Interfaces.Utils;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 {
-   internal sealed class PasswordGeneratorViewModel : ObservableObject, ILanguageAware
+   internal sealed class PasswordGeneratorViewModel : ObservableObject, ILanguageAware, IThemeAware
    {
       public string Title
       {
@@ -20,6 +21,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       public void OnLanguageChanged()
          => Title = Strings.Format(nameof(Strings.Title_PasswordGenerator), AppInfo.Title);
+
+      /// <summary>The field colour comes from the theme: re-read it after a switch.</summary>
+      public void OnThemeChanged()
+         => OnPropertyChanged(nameof(PasswordBackground));
 
       public bool CheckIfLeaked
       {

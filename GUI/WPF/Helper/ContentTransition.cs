@@ -358,6 +358,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          return visible.IsEmpty || visible.Width < 1 || visible.Height < 1 ? null : visible;
       }
 
+      /// <summary>A bitmap of <paramref name="element"/> at its device DPI, laid out as it is now.</summary>
+      internal static BitmapSource Render(FrameworkElement element) => _render(element);
+
       private static RenderTargetBitmap _render(FrameworkElement content)
       {
          DpiScale dpi = VisualTreeHelper.GetDpi(content);

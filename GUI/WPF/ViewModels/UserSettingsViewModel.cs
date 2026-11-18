@@ -132,52 +132,112 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
       public bool NotifyActivityReview
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               _previewAlerts();
+            }
+         }
       } = true;
       public bool NotifyPasswordUpdateReminder
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               _previewAlerts();
+            }
+         }
       } = true;
       public bool NotifyDuplicatedPasswords
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               _previewAlerts();
+            }
+         }
       } = true;
       public bool NotifyPasswordLeaked
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               _previewAlerts();
+            }
+         }
       } = true;
       public bool NotifySecuritySettings
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               _previewAlerts();
+            }
+         }
       } = true;
       public bool NotifyInsufficientPasskeys
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               _previewAlerts();
+            }
+         }
       } = true;
       public bool NotifyWeakPasskey
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               _previewAlerts();
+            }
+         }
       } = true;
       public bool NotifyPasskeyLeaked
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               _previewAlerts();
+            }
+         }
       } = true;
       public bool NotifyWeakAccountPassword
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               _previewAlerts();
+            }
+         }
       } = true;
       public bool NotifyPasskeyReusedAsAccountPassword
       {
          get;
-         set => SetProperty(ref field, value);
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               _previewAlerts();
+            }
+         }
       } = true;
 
       public IReadOnlyList<AppLanguage> Languages
@@ -196,7 +256,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                return;
             }
 
+            // A list rebuilt after a language switch re-selects the same code:
+            // only a different pick is previewed.
+            AppLanguage previous = field;
+            bool picked = previous is null || !string.Equals(previous.Code, value.Code, StringComparison.Ordinal);
             _ = SetProperty(ref field, value);
+            if (picked)
+            {
+               _previewLanguage();
+            }
          }
       }
 
@@ -216,7 +284,65 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                return;
             }
 
+            AppThemeOption previous = field;
+            bool picked = previous is null || !string.Equals(previous.Code, value.Code, StringComparison.Ordinal);
             _ = SetProperty(ref field, value);
+            if (picked)
+            {
+               _previewTheme();
+            }
+         }
+      }
+
+      // Live preview starts once the dialog's values are loaded and stops when it
+      // closes. Nothing is written to the vault for a preview: theme and language go
+      // through the same effective-value rules as a save, alerts through the
+      // broker's preview mask.
+      private bool _previewing;
+
+      /// <summary>
+      /// Ends the live preview when the dialog closes. Without a save, the
+      /// language, theme and alerts shown go back to the saved user settings.
+      /// </summary>
+      public void EndPreview(bool saved)
+      {
+         if (!_previewing)
+         {
+            return;
+         }
+
+         _previewing = false;
+         AppServices.Session.Alerts.SetPreviewMask(null);
+         if (saved)
+         {
+            return;
+         }
+
+         _ = LocalizationService.ApplyEffective(AppInfo.AppSettings.Language, AppServices.Session.User?.Settings.Language);
+         _ = ThemeService.ApplyEffective(AppInfo.AppSettings.Theme, AppServices.Session.User?.Settings.Theme);
+      }
+
+      private void _previewLanguage()
+      {
+         if (_previewing)
+         {
+            _ = LocalizationService.ApplyEffective(AppInfo.AppSettings.Language, SelectedLanguage.Code);
+         }
+      }
+
+      private void _previewTheme()
+      {
+         if (_previewing)
+         {
+            _ = ThemeService.ApplyEffective(AppInfo.AppSettings.Theme, SelectedTheme.Code);
+         }
+      }
+
+      private void _previewAlerts()
+      {
+         if (_previewing && AppServices.Session.User is not null)
+         {
+            AppServices.Session.Alerts.SetPreviewMask(BuildAlertsToNotify());
          }
       }
 
@@ -229,6 +355,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
          if (AppServices.Session.Database?.User is not { } user)
          {
+            _previewing = true;
             return;
          }
 
@@ -252,6 +379,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          NotifyPasskeyLeaked = notify.Contains(AlertKinds.PasskeyLeaked);
          NotifyWeakAccountPassword = notify.Contains(AlertKinds.WeakAccountPassword);
          NotifyPasskeyReusedAsAccountPassword = notify.Contains(AlertKinds.PasskeyReusedAsAccountPassword);
+         _previewing = true;
       }
 
       public AlertKindList BuildAlertsToNotify()

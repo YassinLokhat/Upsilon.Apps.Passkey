@@ -54,8 +54,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                return;
             }
 
+            // A list rebuilt after a language switch re-selects the same code:
+            // only a different pick is previewed.
+            AppLanguage previous = field;
+            bool picked = previous is null || !string.Equals(previous.Code, value.Code, StringComparison.Ordinal);
             _ = SetProperty(ref field, value);
             AppInfo.AppSettings.Language = field.Code;
+            if (picked)
+            {
+               _previewLanguage();
+            }
          }
       } = LocalizationService.GetLanguageOrDefault(AppInfo.AppSettings.Language);
 
@@ -69,10 +77,66 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
                return;
             }
 
+            AppThemeOption previous = field;
+            bool picked = previous is null || !string.Equals(previous.Code, value.Code, StringComparison.Ordinal);
             _ = SetProperty(ref field, value);
             AppInfo.AppSettings.Theme = field.Code;
+            if (picked)
+            {
+               _previewTheme();
+            }
          }
       } = ThemeService.GetOptionOrDefault(AppInfo.AppSettings.Theme);
+
+      // Values when the dialog opened: closing without Save puts them back.
+      private readonly string _openedLanguage = AppInfo.AppSettings.Language;
+      private readonly string _openedTheme = AppInfo.AppSettings.Theme;
+      private bool _previewEnded;
+
+      /// <summary>
+      /// Ends the live preview when the dialog closes. Without a save, the
+      /// language and theme go back to what they were when it opened (both the
+      /// setting and what is painted). Other settings keep their existing rules.
+      /// </summary>
+      public void EndPreview(bool saved)
+      {
+         if (_previewEnded)
+         {
+            return;
+         }
+
+         _previewEnded = true;
+         if (saved)
+         {
+            return;
+         }
+
+         AppInfo.AppSettings.Language = _openedLanguage;
+         AppInfo.AppSettings.Theme = _openedTheme;
+         _ = LocalizationService.ApplyEffective(AppInfo.AppSettings.Language, AppServices.Session.User?.Settings.Language);
+         _ = ThemeService.ApplyEffective(AppInfo.AppSettings.Theme, AppServices.Session.User?.Settings.Theme);
+      }
+
+      /// <summary>
+      /// Shows the app language at once. While a vault is open its user language
+      /// wins (the same rule as on save), so this changes nothing then.
+      /// </summary>
+      private void _previewLanguage()
+      {
+         if (!_previewEnded)
+         {
+            _ = LocalizationService.ApplyEffective(AppInfo.AppSettings.Language, AppServices.Session.User?.Settings.Language);
+         }
+      }
+
+      /// <summary>Shows the app theme at once, under the same user-override rule.</summary>
+      private void _previewTheme()
+      {
+         if (!_previewEnded)
+         {
+            _ = ThemeService.ApplyEffective(AppInfo.AppSettings.Theme, AppServices.Session.User?.Settings.Theme);
+         }
+      }
 
       /// <summary>
       /// Seconds of login-window inactivity before credentials/session reset.

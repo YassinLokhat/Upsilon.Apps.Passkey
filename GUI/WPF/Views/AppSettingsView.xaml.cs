@@ -49,6 +49,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       protected override void OnClosed(EventArgs e)
       {
          _unsubscribeUpdateService();
+
+         // Live preview of theme / language: kept when saved, reverted otherwise.
+         _viewModel.EndPreview(saved: DialogResult == true);
          // Do not cancel a background auto-update when closing settings; only the
          // Cancel button (or app exit) stops an in-flight run.
          base.OnClosed(e);

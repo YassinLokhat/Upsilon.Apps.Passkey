@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
@@ -220,6 +221,44 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       }
 
       #endregion
+
+      /// <summary>
+      /// Runs <paramref name="change"/> (a theme swap) behind a short crossfade:
+      /// every open Strata window is snapshotted, the change repaints it underneath,
+      /// and the snapshot fades out (160 ms) instead of the window flashing over.
+      /// With animations off the change is simply applied.
+      /// </summary>
+      public static void CrossfadeTheme(Action change)
+      {
+         ArgumentNullException.ThrowIfNull(change);
+
+         List<(AdornerLayer Layer, ImageOverlay Overlay)> overlays = [];
+         if (Enabled && Application.Current is { } app)
+         {
+            foreach (Window window in app.Windows)
+            {
+               if (window.IsVisible
+                  && VisualTreeHelper.GetChildrenCount(window) > 0
+                  && VisualTreeHelper.GetChild(window, 0) is AdornerDecorator { Child: FrameworkElement root } host
+                  && root.ActualWidth >= 1
+                  && host.AdornerLayer is AdornerLayer layer)
+               {
+                  ImageOverlay overlay = new(root, ContentTransition.Render(root));
+                  layer.Add(overlay);
+                  overlays.Add((layer, overlay));
+               }
+            }
+         }
+
+         change();
+
+         foreach ((AdornerLayer layer, ImageOverlay overlay) in overlays)
+         {
+            DoubleAnimation fade = new(1, 0, Normal) { EasingFunction = _easeOut };
+            fade.Completed += (_, _) => layer.Remove(overlay);
+            overlay.BeginAnimation(UIElement.OpacityProperty, fade);
+         }
+      }
 
       #region Behaviour handlers
 

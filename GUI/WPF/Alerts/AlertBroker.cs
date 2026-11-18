@@ -19,6 +19,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
       private IDatabase? _database;
       private bool _disposed;
 
+      // While User Settings is open, the alert toggles are shown live through this
+      // mask instead of the saved one (the vault is never written for a preview).
+      private AlertKindList? _previewMask;
+
       public event EventHandler? NotifiedAlertsChanged;
 
       public IReadOnlyList<string> AvailableKinds { get; } =
@@ -31,7 +35,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
       {
          lock (_gate)
          {
-            AlertKindList? mask = _database?.User?.Settings.AlertsToNotify;
+            AlertKindList? mask = _previewMask ?? _database?.User?.Settings.AlertsToNotify;
             if (mask is null || mask.Count == 0)
             {
                return [];
@@ -105,6 +109,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
 
       public void Detach()
       {
+         _previewMask = null;
+
          if (_database is not null)
          {
             _unsubscribe(_database);
@@ -115,6 +121,21 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
          {
             _byKind.Clear();
          }
+      }
+
+      /// <summary>
+      /// Shows the alerts as if <paramref name="mask"/> were the user's saved
+      /// <see cref="ISettings.AlertsToNotify"/>; <see langword="null"/> goes back to
+      /// the saved one. Raises <see cref="NotifiedAlertsChanged"/>.
+      /// </summary>
+      public void SetPreviewMask(AlertKindList? mask)
+      {
+         lock (_gate)
+         {
+            _previewMask = mask;
+         }
+
+         _raiseChanged();
       }
 
       public void RefreshHostAlerts()
