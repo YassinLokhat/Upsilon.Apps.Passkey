@@ -23,7 +23,7 @@
 
     <!-- Strata additions -->
     <SolidColorBrush x:Key="MutedForegroundBrush" Color="#5A5A64"/>
-    <SolidColorBrush x:Key="FaintForegroundBrush" Color="#6E6E78"/>
+    <SolidColorBrush x:Key="FaintForegroundBrush" Color="#62626B"/>
     <SolidColorBrush x:Key="SoftForegroundBrush" Color="#33333B"/>
     <SolidColorBrush x:Key="ControlBorderBrush" Color="#7A7A74"/>
     <SolidColorBrush x:Key="SubtleBorderBrush" Color="#D9D9D2"/>
@@ -45,6 +45,10 @@
          sections one more step, and every control / section / window edge has a
          border of at least 3:1 against the surfaces on both sides of it (WCAG
          1.4.11), so nothing reads as black on black. -->
+    <!-- The window close button's hover / press red (the same in both themes). -->
+    <SolidColorBrush x:Key="ChromeCloseHoverBrush" Color="#C42B1C"/>
+    <SolidColorBrush x:Key="ChromeClosePressedBrush" Color="#9E2316"/>
+    <SolidColorBrush x:Key="ChromeCloseForegroundBrush" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="DialogBackgroundBrush" Color="#F8F8F5"/>
     <SolidColorBrush x:Key="DialogTitleBarBrush" Color="#EEEEE9"/>
     <SolidColorBrush x:Key="SectionBackgroundBrush" Color="#FFFFFF"/>

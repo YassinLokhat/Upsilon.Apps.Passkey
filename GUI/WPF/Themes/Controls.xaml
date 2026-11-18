@@ -2130,14 +2130,6 @@
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
-    <!-- Kept for older views: small muted heading above a group of fields. -->
-    <Style x:Key="SectionHeader" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="12"/>
-        <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="{DynamicResource MutedForegroundBrush}"/>
-        <Setter Property="Margin" Value="4,8,4,4"/>
-    </Style>
-
     <!-- Field label in a form row (design class .lbl). -->
     <Style x:Key="FieldLabel" TargetType="TextBlock">
         <Setter Property="FontSize" Value="13"/>
@@ -2497,12 +2489,12 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="chromeButtonBorder" Property="Background" Value="#C42B1C"/>
-                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                            <Setter TargetName="chromeButtonBorder" Property="Background" Value="{DynamicResource ChromeCloseHoverBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource ChromeCloseForegroundBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="chromeButtonBorder" Property="Background" Value="#9E2316"/>
-                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                            <Setter TargetName="chromeButtonBorder" Property="Background" Value="{DynamicResource ChromeClosePressedBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource ChromeCloseForegroundBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
