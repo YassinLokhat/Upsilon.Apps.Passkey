@@ -209,8 +209,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
             : "DarkTheme.xaml";
          ResourceDictionary colors = new()
          {
-            // Component-qualified so it resolves whichever assembly hosts the app.
-            Source = new Uri($"pack://application:,,,/Upsilon.Apps.Passkey.GUI.WPF;component/Themes/{file}", UriKind.Absolute),
+            Source = new Uri($"pack://application:,,,/Themes/{file}", UriKind.Absolute),
          };
 
          void swap()
