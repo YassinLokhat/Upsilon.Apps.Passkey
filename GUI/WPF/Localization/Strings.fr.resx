@@ -1341,7 +1341,7 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
     <value>Session : sans limite de temps</value>
   </data>
   <data name="Msg_SessionLeft" xml:space="preserve">
-    <value>Session : {0:D2}:{1:D2} restantes</value>
+    <value>Session : il reste {0:D2}:{1:D2}</value>
   </data>
   <data name="Msg_ChangeOne" xml:space="preserve">
     <value>1 modification</value>
@@ -1588,5 +1588,17 @@ Cela concerne tous les utilisateurs du coffre. Désactiver l'option ne supprime 
   </data>
   <data name="Label_StatusAttention" xml:space="preserve">
     <value>À vérifier</value>
+  </data>
+  <data name="Msg_AlertTotalOne" xml:space="preserve">
+    <value>{0} alerte</value>
+  </data>
+  <data name="Msg_AlertActivitySubOne" xml:space="preserve">
+    <value>{0} événement à revoir</value>
+  </data>
+  <data name="Msg_AlertSettingsSubOne" xml:space="preserve">
+    <value>{0} réglage à vérifier</value>
+  </data>
+  <data name="Msg_AlertPasskeySubOne" xml:space="preserve">
+    <value>{0} problème de passkey</value>
   </data>
 </root>

@@ -1589,4 +1589,16 @@ This affects all vault users. Disabling the option alone does not delete the fil
   <data name="Label_StatusAttention" xml:space="preserve">
     <value>Needs attention</value>
   </data>
+  <data name="Msg_AlertTotalOne" xml:space="preserve">
+    <value>{0} alert</value>
+  </data>
+  <data name="Msg_AlertActivitySubOne" xml:space="preserve">
+    <value>{0} event to review</value>
+  </data>
+  <data name="Msg_AlertSettingsSubOne" xml:space="preserve">
+    <value>{0} setting to check</value>
+  </data>
+  <data name="Msg_AlertPasskeySubOne" xml:space="preserve">
+    <value>{0} passkey issue</value>
+  </data>
 </root>

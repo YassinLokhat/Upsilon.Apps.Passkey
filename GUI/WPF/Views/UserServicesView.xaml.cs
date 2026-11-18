@@ -454,9 +454,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _weakPasswordAlerts_MI.Tag = _viewModel.ServiceNamesFor(weakKind);
          _duplicatedPasswordAlerts_MI.Tag = _viewModel.ServiceNamesFor(duplicatedKind);
          _expiredPasswordAlerts_MI.Tag = _viewModel.ServiceNamesFor(expiredKind);
-         _activityAlerts_MI.Tag = Strings.Format(nameof(Strings.Msg_AlertActivitySub), activityAlerts);
-         _securitySettingsAlerts_MI.Tag = Strings.Format(nameof(Strings.Msg_AlertSettingsSub), securitySettingsAlerts);
-         _passkeyQualityAlerts_MI.Tag = Strings.Format(nameof(Strings.Msg_AlertPasskeySub), passkeyQualityAlerts);
+         _activityAlerts_MI.Tag = Strings.FormatCount(nameof(Strings.Msg_AlertActivitySub), activityAlerts);
+         _securitySettingsAlerts_MI.Tag = Strings.FormatCount(nameof(Strings.Msg_AlertSettingsSub), securitySettingsAlerts);
+         _passkeyQualityAlerts_MI.Tag = Strings.FormatCount(nameof(Strings.Msg_AlertPasskeySub), passkeyQualityAlerts);
 
          _viewModel.ApplyAlerts(alerts);
 
@@ -496,7 +496,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _ = _alerts_MI.Items.Add(new MenuItem
          {
             Style = (Style)FindResource("AlertMenuTitle"),
-            Header = Strings.Format(nameof(Strings.Msg_AlertTotal), total),
+            Header = Strings.FormatCount(nameof(Strings.Msg_AlertTotal), total),
          });
 
          foreach ((string group, (MenuItem Item, AlertSeverity Severity, int Count)[] entries) in groups)

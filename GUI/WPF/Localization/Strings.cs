@@ -24,6 +24,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
          => string.Format(CultureInfo.CurrentCulture, Get(name), args);
 
       /// <summary>
+      /// Formats a count with the right grammatical number: <c>{name}One</c> for the
+      /// singular (1, and 0 in French), <paramref name="name"/> otherwise.
+      /// </summary>
+      public static string FormatCount(string name, int count)
+      {
+         bool singular = count == 1
+            || (count == 0 && CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "fr");
+         return Format(singular ? $"{name}One" : name, count);
+      }
+
+      /// <summary>
       /// True when <paramref name="value"/> starts with the current-culture
       /// prefix or the English fallback, so a language switch still finds an
       /// unsaved "new service/account" placeholder.
@@ -251,9 +262,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       public static string Menu_ViewActivities => Get(nameof(Menu_ViewActivities));
       public static string Msg_AccountId => Get(nameof(Msg_AccountId));
       public static string Msg_AlertActivitySub => Get(nameof(Msg_AlertActivitySub));
+      public static string Msg_AlertActivitySubOne => Get(nameof(Msg_AlertActivitySubOne));
       public static string Msg_AlertPasskeySub => Get(nameof(Msg_AlertPasskeySub));
+      public static string Msg_AlertPasskeySubOne => Get(nameof(Msg_AlertPasskeySubOne));
       public static string Msg_AlertSettingsSub => Get(nameof(Msg_AlertSettingsSub));
+      public static string Msg_AlertSettingsSubOne => Get(nameof(Msg_AlertSettingsSubOne));
       public static string Msg_AlertTotal => Get(nameof(Msg_AlertTotal));
+      public static string Msg_AlertTotalOne => Get(nameof(Msg_AlertTotalOne));
       public static string Msg_AtLeastOnePassword => Get(nameof(Msg_AtLeastOnePassword));
       public static string Msg_AutosaveDetected => Get(nameof(Msg_AutosaveDetected));
       public static string Msg_BuildFailed => Get(nameof(Msg_BuildFailed));

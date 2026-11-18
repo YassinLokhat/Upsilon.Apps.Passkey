@@ -321,7 +321,7 @@
                                 Command="{Binding DataContext.GeneratePasswordCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
                      </UniformGrid>
 
-                     <!-- Quality ticks (his SecretQuality rules + reuse / leak state). -->
+                     <!-- Quality ticks (the SecretQuality rules + reuse / leak state). -->
                      <ItemsControl Grid.Row="2"
                                    helper:Motion.TransitionTier="2"
                                    Margin="{DynamicResource CoreGap}"
