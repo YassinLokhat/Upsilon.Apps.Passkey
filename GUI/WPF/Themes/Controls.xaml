@@ -447,6 +447,21 @@
 
     <!-- Lists: borderless, rows highlighted on hover and selection with theme
          brushes (the default chrome hard-codes a light blue). -->
+    <!-- Keyboard focus, drawn only when the keyboard moves focus (WPF shows a
+         FocusVisualStyle for keyboard navigation, not for clicks): a 1 px mint
+         ring on the element's edge, like the inputs' focus ring. -->
+    <Style x:Key="StrataFocusVisual">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border BorderBrush="{DynamicResource AccentBrush}"
+                            BorderThickness="1"
+                            SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style TargetType="ListBox">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
@@ -519,7 +534,7 @@
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource StrataFocusVisual}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
@@ -607,7 +622,7 @@
         <Setter Property="Margin" Value="0,0,0,6"/>
         <Setter Property="Padding" Value="0"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource StrataFocusVisual}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
@@ -714,7 +729,7 @@
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="Padding" Value="12,4"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource StrataFocusVisual}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="DataGridCell">
@@ -1427,7 +1442,7 @@
         <Setter Property="MinHeight" Value="32"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource StrataFocusVisual}"/>
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
@@ -1622,6 +1637,7 @@
     <!-- Calendar (the date picker's drop-down): Strata surface, square cells,
          today in the accent, the selected day with the selection fill and ring. -->
     <Style x:Key="StrataCalendarDayButton" TargetType="CalendarDayButton">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource StrataFocusVisual}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="FontSize" Value="12"/>
@@ -1666,6 +1682,7 @@
     </Style>
 
     <Style x:Key="StrataCalendarButton" TargetType="CalendarButton">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource StrataFocusVisual}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="FontSize" Value="12"/>
