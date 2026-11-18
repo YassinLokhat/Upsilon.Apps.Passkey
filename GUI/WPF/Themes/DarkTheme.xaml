@@ -26,7 +26,7 @@
     <SolidColorBrush x:Key="MutedForegroundBrush" Color="#9A9AA6"/>
     <SolidColorBrush x:Key="FaintForegroundBrush" Color="#7C7C88"/>
     <SolidColorBrush x:Key="SoftForegroundBrush" Color="#C9C9D2"/>
-    <SolidColorBrush x:Key="ControlBorderBrush" Color="#34343E"/>
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="#6E6E7A"/>
     <SolidColorBrush x:Key="SubtleBorderBrush" Color="#24242B"/>
     <SolidColorBrush x:Key="Divider1Brush" Color="#2A2A32"/>
     <SolidColorBrush x:Key="Divider2Brush" Color="#30303A"/>
@@ -43,6 +43,15 @@
     <SolidColorBrush x:Key="WarningFieldBrush" Color="#463613"/>
     <Color x:Key="CoreGlowColor">#6EE7C8</Color>
 
+    <!-- Dialogs and sections: a dialog sits one step off the main window, its
+         sections one more step, and every control / section / window edge has a
+         border of at least 3:1 against the surfaces on both sides of it (WCAG
+         1.4.11), so nothing reads as black on black. -->
+    <SolidColorBrush x:Key="DialogBackgroundBrush" Color="#17171C"/>
+    <SolidColorBrush x:Key="DialogTitleBarBrush" Color="#111115"/>
+    <SolidColorBrush x:Key="SectionBackgroundBrush" Color="#1E1E25"/>
+    <SolidColorBrush x:Key="SectionBorderBrush" Color="#6E6E7A"/>
+    <SolidColorBrush x:Key="WindowEdgeBrush" Color="#6E6E7A"/>
     <SolidColorBrush x:Key="Layer0Brush" Color="#0C0C0F"/>
     <SolidColorBrush x:Key="Layer1Brush" Color="#111115"/>
     <SolidColorBrush x:Key="Layer2Brush" Color="#17171C"/>

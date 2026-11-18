@@ -56,9 +56,9 @@
     <!-- Frame with its caption on the top line (the vault's layer language):
          uppercase mono caption, muted, cut into the line by the frame's fill. -->
     <Style TargetType="GroupBox">
-        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource SectionBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SectionBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="12,8,12,12"/>
         <Setter Property="Margin" Value="8,4"/>
@@ -707,7 +707,7 @@
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Margin" Value="4"/>
         <Setter Property="Padding" Value="8,0,0,0"/>
@@ -816,7 +816,7 @@
     <Style TargetType="RadioButton">
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Margin" Value="4"/>
         <Setter Property="Padding" Value="8,0,0,0"/>
@@ -1275,7 +1275,7 @@
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
@@ -1303,7 +1303,7 @@
     <Style TargetType="PasswordBox">
         <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
@@ -1375,7 +1375,7 @@
             <Border x:Name="toggleBorder"
                     Grid.ColumnSpan="2"
                     Background="{DynamicResource InputBackgroundBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderBrush="{DynamicResource ControlBorderBrush}"
                     BorderThickness="1"
                     SnapsToDevicePixels="True"/>
             <Path Grid.Column="1"
@@ -1398,7 +1398,7 @@
     <Style TargetType="ComboBox">
         <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
         <Setter Property="Margin" Value="4"/>
         <Setter Property="Padding" Value="8,0,28,0"/>
         <Setter Property="MinHeight" Value="32"/>
@@ -1532,7 +1532,7 @@
     <Style TargetType="DatePicker">
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Margin" Value="4"/>
         <Setter Property="MinHeight" Value="32"/>
@@ -2463,7 +2463,7 @@
             <Setter.Value>
                 <shell:WindowChrome CaptionHeight="44"
                                     ResizeBorderThickness="6"
-                                    GlassFrameThickness="0"
+                                    GlassFrameThickness="0,0,0,1"
                                     CornerRadius="0"
                                     UseAeroCaptionButtons="False"/>
             </Setter.Value>
@@ -2473,93 +2473,96 @@
                 <ControlTemplate TargetType="Window">
                     <!-- A maximized chromeless window overhangs the screen by its
                          resize border; the 7 px margin keeps content on screen. -->
-                    <Border x:Name="windowFrame"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{DynamicResource BorderBrush}"
-                            BorderThickness="1">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="44"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <Border Grid.Row="0"
-                                    BorderBrush="{DynamicResource SubtleBorderBrush}"
-                                    BorderThickness="0,0,0,1">
-                                <DockPanel LastChildFill="True">
-                                    <StackPanel DockPanel.Dock="Right"
-                                                Orientation="Horizontal">
-                                        <Button x:Name="minimizeButton"
-                                                Style="{StaticResource ChromeButton}"
-                                                Tag="{StaticResource Icon.Minimize}"
-                                                ToolTip="{loc:Loc Tooltip_Minimize}"
-                                                AutomationProperties.Name="{loc:Loc Tooltip_Minimize}"
-                                                Command="{x:Static SystemCommands.MinimizeWindowCommand}"/>
-                                        <Button x:Name="maximizeButton"
-                                                Style="{StaticResource ChromeButton}"
-                                                Tag="{StaticResource Icon.Maximize}"
-                                                ToolTip="{loc:Loc Tooltip_Maximize}"
-                                                AutomationProperties.Name="{loc:Loc Tooltip_Maximize}"
-                                                Command="{x:Static SystemCommands.MaximizeWindowCommand}"/>
-                                        <Button x:Name="restoreButton"
-                                                Style="{StaticResource ChromeButton}"
-                                                Visibility="Collapsed"
-                                                Tag="{StaticResource Icon.Restore}"
-                                                ToolTip="{loc:Loc Tooltip_Restore}"
-                                                AutomationProperties.Name="{loc:Loc Tooltip_Restore}"
-                                                Command="{x:Static SystemCommands.RestoreWindowCommand}"/>
-                                        <Button Style="{StaticResource ChromeCloseButton}"
-                                                Tag="{StaticResource Icon.Close}"
-                                                ToolTip="{loc:Loc Tooltip_Close}"
-                                                AutomationProperties.Name="{loc:Loc Tooltip_Close}"
-                                                Command="{x:Static SystemCommands.CloseWindowCommand}"/>
-                                    </StackPanel>
-                                    <StackPanel Margin="16,0,0,0"
-                                                VerticalAlignment="Center"
-                                                Orientation="Horizontal">
-                                        <StackPanel Style="{StaticResource AppWordmark}">
-                                            <Path Width="21"
-                                                  Margin="0,0,8,0"
-                                                  VerticalAlignment="Center"
-                                                  Stretch="Uniform"
-                                                  Fill="{DynamicResource ForegroundBrush}"
-                                                  Data="{StaticResource LogoGeometry}"/>
-                                            <TextBlock VerticalAlignment="Center"
-                                                       FontFamily="{StaticResource MonoFontFamily}"
-                                                       FontSize="12"
-                                                       FontWeight="SemiBold"
-                                                       Text="PASSKEY"/>
-                                            <TextBlock Margin="8,0,0,0"
-                                                       VerticalAlignment="Center"
-                                                       FontFamily="{StaticResource MonoFontFamily}"
-                                                       FontSize="11"
-                                                       Foreground="{DynamicResource MutedForegroundBrush}"
-                                                       Text="{x:Static helper:StrataChrome.VersionLabel}"/>
+                    <!-- Hosts the theme-switch crossfade (Helper/Motion.CrossfadeTheme). -->
+                    <AdornerDecorator x:Name="themeFadeHost">
+                        <Border x:Name="windowFrame"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource WindowEdgeBrush}"
+                                BorderThickness="1">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="44"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Border Grid.Row="0"
+                                        BorderBrush="{DynamicResource SubtleBorderBrush}"
+                                        BorderThickness="0,0,0,1">
+                                    <DockPanel LastChildFill="True">
+                                        <StackPanel DockPanel.Dock="Right"
+                                                    Orientation="Horizontal">
+                                            <Button x:Name="minimizeButton"
+                                                    Style="{StaticResource ChromeButton}"
+                                                    Tag="{StaticResource Icon.Minimize}"
+                                                    ToolTip="{loc:Loc Tooltip_Minimize}"
+                                                    AutomationProperties.Name="{loc:Loc Tooltip_Minimize}"
+                                                    Command="{x:Static SystemCommands.MinimizeWindowCommand}"/>
+                                            <Button x:Name="maximizeButton"
+                                                    Style="{StaticResource ChromeButton}"
+                                                    Tag="{StaticResource Icon.Maximize}"
+                                                    ToolTip="{loc:Loc Tooltip_Maximize}"
+                                                    AutomationProperties.Name="{loc:Loc Tooltip_Maximize}"
+                                                    Command="{x:Static SystemCommands.MaximizeWindowCommand}"/>
+                                            <Button x:Name="restoreButton"
+                                                    Style="{StaticResource ChromeButton}"
+                                                    Visibility="Collapsed"
+                                                    Tag="{StaticResource Icon.Restore}"
+                                                    ToolTip="{loc:Loc Tooltip_Restore}"
+                                                    AutomationProperties.Name="{loc:Loc Tooltip_Restore}"
+                                                    Command="{x:Static SystemCommands.RestoreWindowCommand}"/>
+                                            <Button Style="{StaticResource ChromeCloseButton}"
+                                                    Tag="{StaticResource Icon.Close}"
+                                                    ToolTip="{loc:Loc Tooltip_Close}"
+                                                    AutomationProperties.Name="{loc:Loc Tooltip_Close}"
+                                                    Command="{x:Static SystemCommands.CloseWindowCommand}"/>
                                         </StackPanel>
-                                        <Rectangle x:Name="titleSeparator"
-                                                   Visibility="Collapsed"
-                                                   Width="1"
-                                                   Height="16"
-                                                   Margin="12,0"
-                                                   Fill="{DynamicResource BorderBrush}"/>
-                                        <TextBlock x:Name="titleText"
-                                                   Visibility="Collapsed"
-                                                   VerticalAlignment="Center"
-                                                   FontSize="13"
-                                                   Foreground="{DynamicResource MutedForegroundBrush}"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   Text="{Binding Title, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource WindowTitleConverter}}"/>
-                                    </StackPanel>
-                                    <!-- Window-specific bar content (vault: name, seal, session). -->
-                                    <ContentPresenter Margin="16,0,8,0"
-                                                      VerticalAlignment="Stretch"
-                                                      Content="{Binding (helper:StrataChrome.TitleBarContent), RelativeSource={RelativeSource TemplatedParent}}"/>
-                                </DockPanel>
-                            </Border>
-                            <AdornerDecorator Grid.Row="1">
-                                <ContentPresenter/>
-                            </AdornerDecorator>
-                        </Grid>
-                    </Border>
+                                        <StackPanel Margin="16,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    Orientation="Horizontal">
+                                            <StackPanel Style="{StaticResource AppWordmark}">
+                                                <Path Width="21"
+                                                      Margin="0,0,8,0"
+                                                      VerticalAlignment="Center"
+                                                      Stretch="Uniform"
+                                                      Fill="{DynamicResource ForegroundBrush}"
+                                                      Data="{StaticResource LogoGeometry}"/>
+                                                <TextBlock VerticalAlignment="Center"
+                                                           FontFamily="{StaticResource MonoFontFamily}"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Text="PASSKEY"/>
+                                                <TextBlock Margin="8,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           FontFamily="{StaticResource MonoFontFamily}"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource MutedForegroundBrush}"
+                                                           Text="{x:Static helper:StrataChrome.VersionLabel}"/>
+                                            </StackPanel>
+                                            <Rectangle x:Name="titleSeparator"
+                                                       Visibility="Collapsed"
+                                                       Width="1"
+                                                       Height="16"
+                                                       Margin="12,0"
+                                                       Fill="{DynamicResource BorderBrush}"/>
+                                            <TextBlock x:Name="titleText"
+                                                       Visibility="Collapsed"
+                                                       VerticalAlignment="Center"
+                                                       FontSize="13"
+                                                       Foreground="{DynamicResource MutedForegroundBrush}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Text="{Binding Title, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource WindowTitleConverter}}"/>
+                                        </StackPanel>
+                                        <!-- Window-specific bar content (vault: name, seal, session). -->
+                                        <ContentPresenter Margin="16,0,8,0"
+                                                          VerticalAlignment="Stretch"
+                                                          Content="{Binding (helper:StrataChrome.TitleBarContent), RelativeSource={RelativeSource TemplatedParent}}"/>
+                                    </DockPanel>
+                                </Border>
+                                <AdornerDecorator Grid.Row="1">
+                                    <ContentPresenter/>
+                                </AdornerDecorator>
+                            </Grid>
+                        </Border>
+                    </AdornerDecorator>
                     <ControlTemplate.Triggers>
                         <Trigger Property="WindowState" Value="Maximized">
                             <Setter TargetName="windowFrame" Property="BorderThickness" Value="0"/>
@@ -2592,11 +2595,12 @@
     </Style>
 
     <Style x:Key="StrataDialogWindow" TargetType="Window" BasedOn="{StaticResource StrataWindow}">
+        <Setter Property="Background" Value="{DynamicResource DialogBackgroundBrush}"/>
         <Setter Property="shell:WindowChrome.WindowChrome">
             <Setter.Value>
                 <shell:WindowChrome CaptionHeight="36"
                                     ResizeBorderThickness="6"
-                                    GlassFrameThickness="0"
+                                    GlassFrameThickness="0,0,0,1"
                                     CornerRadius="0"
                                     UseAeroCaptionButtons="False"/>
             </Setter.Value>
@@ -2604,60 +2608,64 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Window">
-                    <Border x:Name="windowFrame"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{DynamicResource BorderBrush}"
-                            BorderThickness="1">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="36"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <Border Grid.Row="0"
-                                    BorderBrush="{DynamicResource SubtleBorderBrush}"
-                                    BorderThickness="0,0,0,1">
-                                <DockPanel LastChildFill="True">
-                                    <Button DockPanel.Dock="Right"
-                                            Height="36"
-                                            Style="{StaticResource ChromeCloseButton}"
-                                            Tag="{StaticResource Icon.Close}"
-                                            ToolTip="{loc:Loc Tooltip_Close}"
-                                            AutomationProperties.Name="{loc:Loc Tooltip_Close}"
-                                            Command="{x:Static SystemCommands.CloseWindowCommand}"/>
-                                    <StackPanel Margin="16,0,0,0"
-                                                VerticalAlignment="Center"
-                                                Orientation="Horizontal">
-                                        <StackPanel Style="{StaticResource AppWordmark}">
-                                            <Path Width="16"
-                                                  Margin="0,0,8,0"
-                                                  VerticalAlignment="Center"
-                                                  Stretch="Uniform"
-                                                  Fill="{DynamicResource ForegroundBrush}"
-                                                  Data="{StaticResource LogoGeometry}"/>
+                    <!-- Hosts the theme-switch crossfade (Helper/Motion.CrossfadeTheme). -->
+                    <AdornerDecorator x:Name="themeFadeHost">
+                        <Border x:Name="windowFrame"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource WindowEdgeBrush}"
+                                BorderThickness="1">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="36"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Border Grid.Row="0"
+                                        Background="{DynamicResource DialogTitleBarBrush}"
+                                        BorderBrush="{DynamicResource SubtleBorderBrush}"
+                                        BorderThickness="0,0,0,1">
+                                    <DockPanel LastChildFill="True">
+                                        <Button DockPanel.Dock="Right"
+                                                Height="36"
+                                                Style="{StaticResource ChromeCloseButton}"
+                                                Tag="{StaticResource Icon.Close}"
+                                                ToolTip="{loc:Loc Tooltip_Close}"
+                                                AutomationProperties.Name="{loc:Loc Tooltip_Close}"
+                                                Command="{x:Static SystemCommands.CloseWindowCommand}"/>
+                                        <StackPanel Margin="16,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    Orientation="Horizontal">
+                                            <StackPanel Style="{StaticResource AppWordmark}">
+                                                <Path Width="16"
+                                                      Margin="0,0,8,0"
+                                                      VerticalAlignment="Center"
+                                                      Stretch="Uniform"
+                                                      Fill="{DynamicResource ForegroundBrush}"
+                                                      Data="{StaticResource LogoGeometry}"/>
+                                                <TextBlock VerticalAlignment="Center"
+                                                           FontFamily="{StaticResource MonoFontFamily}"
+                                                           FontSize="11"
+                                                           FontWeight="SemiBold"
+                                                           Text="PASSKEY"/>
+                                            </StackPanel>
+                                            <Rectangle Width="1"
+                                                       Height="14"
+                                                       Margin="12,0"
+                                                       VerticalAlignment="Center"
+                                                       Fill="{DynamicResource BorderBrush}"/>
                                             <TextBlock VerticalAlignment="Center"
-                                                       FontFamily="{StaticResource MonoFontFamily}"
-                                                       FontSize="11"
+                                                       FontSize="13"
                                                        FontWeight="SemiBold"
-                                                       Text="PASSKEY"/>
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Text="{Binding Title, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource WindowTitleConverter}}"/>
                                         </StackPanel>
-                                        <Rectangle Width="1"
-                                                   Height="14"
-                                                   Margin="12,0"
-                                                   VerticalAlignment="Center"
-                                                   Fill="{DynamicResource BorderBrush}"/>
-                                        <TextBlock VerticalAlignment="Center"
-                                                   FontSize="13"
-                                                   FontWeight="SemiBold"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   Text="{Binding Title, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource WindowTitleConverter}}"/>
-                                    </StackPanel>
-                                </DockPanel>
-                            </Border>
-                            <AdornerDecorator Grid.Row="1">
-                                <ContentPresenter/>
-                            </AdornerDecorator>
-                        </Grid>
-                    </Border>
+                                    </DockPanel>
+                                </Border>
+                                <AdornerDecorator Grid.Row="1">
+                                    <ContentPresenter/>
+                                </AdornerDecorator>
+                            </Grid>
+                        </Border>
+                    </AdornerDecorator>
                     <ControlTemplate.Triggers>
                         <Trigger Property="WindowState" Value="Maximized">
                             <Setter TargetName="windowFrame" Property="BorderThickness" Value="0"/>

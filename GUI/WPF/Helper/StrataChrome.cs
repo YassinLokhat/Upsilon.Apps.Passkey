@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Interop;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -117,6 +118,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          {
             return;
          }
+
+         // The 1 px glass frame of the chrome brings back the native drop shadow;
+         // Windows 11 would then round the corners, Strata keeps them square.
+         window.SourceInitialized += static (sender, args) =>
+         {
+            if (sender is Window initialized && new WindowInteropHelper(initialized).Handle is { } handle && handle != IntPtr.Zero)
+            {
+               int square = NativeMethods.DwmCornerDoNotRound;
+               _ = NativeMethods.DwmSetWindowAttribute(handle, NativeMethods.DwmWindowCornerPreference, ref square, sizeof(int));
+            }
+         };
 
          _ = window.CommandBindings.Add(new CommandBinding(
             SystemCommands.CloseWindowCommand,
