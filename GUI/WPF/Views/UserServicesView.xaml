@@ -138,7 +138,7 @@
                                    Foreground="{DynamicResource AccentForegroundBrush}"
                                    Text="{Binding ChangeBadge}"/>
                      </Border>
-                     <ContentControl Style="{StaticResource Kbd}"
+                     <ContentControl Style="{StaticResource KeyChip}"
                                      Margin="8,0,0,0"
                                      Content="Ctrl S"/>
                   </StackPanel>
@@ -176,7 +176,7 @@
                        Command="{Binding GeneratePasswordCommand}">
                   <StackPanel Orientation="Horizontal">
                      <TextBlock VerticalAlignment="Center" Text="{loc:Loc Label_Generator}"/>
-                     <ContentControl Style="{StaticResource Kbd}" Margin="8,0,0,0" Content="Ctrl P"/>
+                     <ContentControl Style="{StaticResource KeyChip}" Margin="8,0,0,0" Content="Ctrl P"/>
                   </StackPanel>
                </Button>
                <Button Style="{StaticResource GhostButton}"
@@ -184,7 +184,7 @@
                        Command="{Binding ShowActivitiesCommand}">
                   <StackPanel Orientation="Horizontal">
                      <TextBlock VerticalAlignment="Center" Text="{loc:Loc Label_Activity}"/>
-                     <ContentControl Style="{StaticResource Kbd}" Margin="8,0,0,0" Content="Ctrl Shift A"/>
+                     <ContentControl Style="{StaticResource KeyChip}" Margin="8,0,0,0" Content="Ctrl Shift A"/>
                   </StackPanel>
                </Button>
             </StackPanel>
@@ -277,7 +277,7 @@
                            Margin="0,0,8,0"
                            Data="{StaticResource Icon.Lock}"/>
                      <TextBlock VerticalAlignment="Center" Text="{loc:Loc Label_UserSettingsShort}"/>
-                     <ContentControl Style="{StaticResource Kbd}"
+                     <ContentControl Style="{StaticResource KeyChip}"
                                      Margin="8,0,0,0"
                                      Visibility="{DynamicResource RightChipVisibility}"
                                      Content="Ctrl Shift ,"/>
@@ -289,7 +289,7 @@
                        Command="{Binding AppSettingsCommand}">
                   <StackPanel Orientation="Horizontal">
                      <TextBlock VerticalAlignment="Center" Text="{loc:Loc Label_AppSettingsShort}"/>
-                     <ContentControl Style="{StaticResource Kbd}"
+                     <ContentControl Style="{StaticResource KeyChip}"
                                      Margin="8,0,0,0"
                                      Visibility="{DynamicResource RightChipVisibility}"
                                      Content="Ctrl ,"/>
@@ -403,11 +403,11 @@
                        Command="{Binding ClearFiltersCommand}">
                   <StackPanel Orientation="Horizontal">
                      <TextBlock VerticalAlignment="Center" Text="{loc:Loc Label_Clear}"/>
-                     <ContentControl Style="{StaticResource Kbd}" Margin="8,0,0,0" Content="Shift F3"/>
+                     <ContentControl Style="{StaticResource KeyChip}" Margin="8,0,0,0" Content="Shift F3"/>
                   </StackPanel>
                </Button>
                <ContentControl Grid.Column="10"
-                               Style="{StaticResource Kbd}"
+                               Style="{StaticResource KeyChip}"
                                Margin="8,0,0,0"
                                Content="Ctrl F"/>
             </Grid>

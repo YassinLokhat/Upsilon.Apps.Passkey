@@ -297,17 +297,12 @@
                                 Click="_copyPassword_Clicked">
                            <StackPanel Orientation="Horizontal">
                               <AccessText VerticalAlignment="Center" Text="{loc:Loc Menu_Copy}"/>
-                              <Border Margin="10,0,0,0"
-                                      Padding="4,1"
-                                      VerticalAlignment="Center"
-                                      BorderBrush="{DynamicResource AccentForegroundBrush}"
-                                      BorderThickness="1"
-                                      Opacity="0.55">
-                                 <TextBlock FontFamily="{StaticResource MonoFontFamily}"
-                                            FontSize="10"
-                                            FontWeight="Normal"
-                                            Text="Ctrl Shift P"/>
-                              </Border>
+                              <ContentControl Style="{StaticResource KeyChip}"
+                                              Margin="8,0,0,0"
+                                              Opacity="0.7"
+                                              BorderBrush="{DynamicResource AccentForegroundBrush}"
+                                              Foreground="{DynamicResource AccentForegroundBrush}"
+                                              Content="Ctrl Shift P"/>
                            </StackPanel>
                         </Button>
                         <Button Margin="0,0,6,0"

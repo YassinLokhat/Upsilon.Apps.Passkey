@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
                     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
                     xmlns:helper="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Helper"
                     xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization">
@@ -154,6 +155,50 @@
         <Setter Property="BorderThickness" Value="0"/>
     </Style>
 
+    <sys:Double x:Key="KeyChipLineHeight">12</sys:Double>
+    <Thickness x:Key="KeyChipTextLift">0,0,0,2</Thickness>
+    <!-- Segoe UI carries its x-height about 2 px below the middle of its line
+         box: the chip drops by that much so its centre meets the label's
+         x-height centre (measured by the layout audit at 96–192 dpi). -->
+    <Thickness x:Key="KeyChipDrop">0,4,0,0</Thickness>
+    <!-- Shortcut key chip (design class .kbd), the one style every chip uses:
+         command row, filter row, the Copy button and menu shortcuts. A fixed
+         18 px box centred on its row; the mono text uses a block line height
+         and a small lift so its lowercase / caps sit optically centred in the
+         box, and the box sits on the label's x-height rather than its line box. -->
+    <Style x:Key="KeyChip" TargetType="ContentControl">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Padding" Value="5,0"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource MutedForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource MonoFontFamily}"/>
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontWeight" Value="Normal"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContentControl">
+                    <Border x:Name="chipBox"
+                            Height="18"
+                            Margin="{StaticResource KeyChipDrop}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource ControlCornerRadius}"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <TextBlock x:Name="chipText"
+                                   VerticalAlignment="Center"
+                                   LineStackingStrategy="BlockLineHeight"
+                                   LineHeight="{StaticResource KeyChipLineHeight}"
+                                   Margin="{StaticResource KeyChipTextLift}"
+                                   Text="{TemplateBinding Content}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style TargetType="Menu">
         <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
         <Setter Property="Padding" Value="8,4"/>
@@ -182,24 +227,17 @@
                 <!-- Shortcut as a small key chip, as in the design. A menu can hide
                      the chips below a window width (StrataChrome.ShortcutChipsMinWidth);
                      the shortcut then stays in the tooltip only. -->
-                <Border x:Name="gestureChip"
-                        Margin="8,0,0,0"
-                        Padding="4,0"
-                        VerticalAlignment="Center"
-                        BorderBrush="{DynamicResource BorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="{StaticResource ControlCornerRadius}">
-                    <Border.Visibility>
+                <ContentControl x:Name="gestureChip"
+                                Style="{StaticResource KeyChip}"
+                                Margin="8,0,0,0"
+                                Content="{TemplateBinding InputGestureText}">
+                    <ContentControl.Visibility>
                         <MultiBinding Converter="{StaticResource ShortcutChipVisibilityConverter}">
                             <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Window}"/>
                             <Binding Path="(helper:StrataChrome.ShortcutChipsMinWidth)" RelativeSource="{RelativeSource AncestorType=Menu}"/>
                         </MultiBinding>
-                    </Border.Visibility>
-                    <TextBlock FontFamily="{StaticResource MonoFontFamily}"
-                               FontSize="11"
-                               Foreground="{DynamicResource MutedForegroundBrush}"
-                               Text="{TemplateBinding InputGestureText}"/>
-                </Border>
+                    </ContentControl.Visibility>
+                </ContentControl>
             </StackPanel>
         </Border>
         <ControlTemplate.Triggers>
@@ -1185,27 +1223,6 @@
         <Setter Property="HorizontalAlignment" Value="Center"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
         <Setter Property="SnapsToDevicePixels" Value="False"/>
-    </Style>
-
-    <!-- Shortcut key chip (design class .kbd). -->
-    <Style x:Key="Kbd" TargetType="ContentControl">
-        <Setter Property="Focusable" Value="False"/>
-        <Setter Property="IsTabStop" Value="False"/>
-        <Setter Property="VerticalAlignment" Value="Center"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ContentControl">
-                    <Border BorderBrush="{DynamicResource ControlBorderBrush}"
-                            BorderThickness="1"
-                            Padding="4,1">
-                        <TextBlock FontFamily="{StaticResource MonoFontFamily}"
-                                   FontSize="10"
-                                   Foreground="{DynamicResource MutedForegroundBrush}"
-                                   Text="{TemplateBinding Content}"/>
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
     </Style>
 
     <!-- Text inputs (design class .fld): 32 px, square, 1 px border, a
