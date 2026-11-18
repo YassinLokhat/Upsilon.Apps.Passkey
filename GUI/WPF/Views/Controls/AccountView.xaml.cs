@@ -20,11 +20,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    {
       private AccountViewModel? _viewModel;
 
-      // Ticks the clipboard strip's countdown while a copied secret is pending.
-      private readonly DispatcherTimer _clipboardTimer = new()
-      {
-         Interval = TimeSpan.FromMilliseconds(250),
-      };
+      // The clipboard strip's state (shown / countdown text / clear) lives in its
+      // view model; this view only animates it.
+      private readonly ClipboardStatusViewModel _clipboardStatus = new();
 
       internal string? GetAccountId() => _viewModel?.Account.ItemId;
 
@@ -32,67 +30,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       {
          InitializeComponent();
 
-         _clipboardTimer.Tick += (_, _) => _refreshClipboardStrip();
-         Loaded += (_, _) =>
-         {
-            ClipboardManager.PendingClearChanged += _clipboardManager_PendingClearChanged;
-            _refreshClipboardStrip();
-         };
-         Unloaded += (_, _) =>
-         {
-            ClipboardManager.PendingClearChanged -= _clipboardManager_PendingClearChanged;
-            _clipboardTimer.Stop();
-         };
+         _clipboard_G.DataContext = _clipboardStatus;
+         _clipboardStatus.CountdownStarted += _clipboardStatus_CountdownStarted;
+         _clipboardStatus.PropertyChanged += _clipboardStatus_PropertyChanged;
+         Loaded += (_, _) => _clipboardStatus.Start();
+         Unloaded += (_, _) => _clipboardStatus.Stop();
       }
 
-      private void _clipboardManager_PendingClearChanged(object? sender, EventArgs e)
-         => _refreshClipboardStrip();
-
-      /// <summary>
-      /// Shows "Copied. Clears in N s…" while the clipboard holds something we
-      /// copied with an auto-clear, and hides the strip otherwise.
-      /// </summary>
-      private void _refreshClipboardStrip()
+      /// <summary>New copy: slide the strip in and restart the progress line.</summary>
+      private void _clipboardStatus_CountdownStarted(object? sender, EventArgs e)
       {
-         DateTime? pending = ClipboardManager.PendingClearUtc;
-
-         if (pending is null)
-         {
-            _clipboardTimer.Stop();
-            _shownPendingClear = null;
-
-            if (_clipboard_G.Visibility == Visibility.Visible)
-            {
-               _ = Motion.FadeOutThenCollapse(_clipboard_G);
-            }
-
-            return;
-         }
-
-         TimeSpan remaining = pending.Value - DateTime.UtcNow;
-         int seconds = Math.Max(0, (int)Math.Ceiling(remaining.TotalSeconds));
-         _clipboard_TB.Text = Strings.Format(nameof(Strings.Msg_ClipboardClears), seconds);
-
-         // New copy: slide the strip in and restart the progress line.
-         if (_shownPendingClear != pending)
-         {
-            _shownPendingClear = pending;
-            _clipboard_G.Visibility = Visibility.Visible;
-            _ = Motion.Enter(_clipboard_G);
-            _ = Motion.Progress(_clipboardProgress_R, remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero);
-         }
-
-         if (!_clipboardTimer.IsEnabled)
-         {
-            _clipboardTimer.Start();
-         }
+         _clipboard_G.Visibility = Visibility.Visible;
+         _ = Motion.Enter(_clipboard_G);
+         _ = Motion.Progress(_clipboardProgress_R, _clipboardStatus.Remaining);
       }
 
-      // Auto-clear time the strip currently shows (to restart its motion on a new copy).
-      private DateTime? _shownPendingClear;
-
-      private void _clearClipboard_Click(object sender, RoutedEventArgs e)
-         => ClipboardManager.ClearIfStillOwned();
+      /// <summary>Cleared: fade the strip out.</summary>
+      private void _clipboardStatus_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+      {
+         if (e.PropertyName == nameof(ClipboardStatusViewModel.IsActive)
+            && !_clipboardStatus.IsActive
+            && _clipboard_G.Visibility == Visibility.Visible)
+         {
+            _ = Motion.FadeOutThenCollapse(_clipboard_G);
+         }
+      }
 
       /// <summary>
       /// Identifier row "⋯": selects that row, then opens its menu (move up, move

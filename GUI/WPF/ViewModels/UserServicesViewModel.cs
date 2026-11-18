@@ -191,6 +191,60 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       }
 
+      /// <summary>
+      /// Applies the notified alerts to what the vault shows besides the Alerts menu:
+      /// the seal in the title bar and the per-service "needs attention" dots.
+      /// </summary>
+      public void ApplyAlerts(IReadOnlyCollection<IAlert> notified)
+      {
+         ArgumentNullException.ThrowIfNull(notified);
+
+         (SealText, ShowAddPasskey) = SealFor(AppServices.Session.Alerts
+            .GetAllAlerts(AlertKinds.InsufficientPasskeys)
+            .OfType<IInsufficientPasskeysAlert>()
+            .FirstOrDefault());
+
+         IAccount[] flagged = [.. notified.OfType<IAccountsAlert>().SelectMany(static x => x.Accounts)];
+         foreach (ServiceViewModel service in _serviceViewModelsById.Values)
+         {
+            service.NeedsAttention = flagged.Any(service.Holds);
+         }
+      }
+
+      /// <summary>Title-bar seal: how many passkeys protect the vault, and whether to offer another.</summary>
+      internal static (string Text, bool OfferAnother) SealFor(IInsufficientPasskeysAlert? insufficient)
+         => insufficient is null
+            ? (Strings.Format(nameof(Strings.Msg_SealAtLeastPasskeys), AlertKinds.RecommendedPasskeyCount), false)
+            : (insufficient.Count switch
+            {
+               0 => Strings.Msg_SealUsernameOnly,
+               1 => Strings.Msg_SealOnePasskey,
+               _ => Strings.Format(nameof(Strings.Msg_SealPasskeys), insufficient.Count),
+            }, true);
+
+      /// <summary>
+      /// Subtitle for an account alert row: the services concerned, up to four,
+      /// taken from the service view models already held.
+      /// </summary>
+      public string? ServiceNamesFor(IEnumerable<IAlert> alerts)
+      {
+         IAccount[] accounts = [.. alerts.OfType<IAccountsAlert>().SelectMany(static x => x.Accounts)];
+         string[] names =
+         [
+            .. _serviceViewModelsById.Values
+               .Where(service => accounts.Any(service.Holds))
+               .Select(static service => service.ServiceName)
+               .Distinct(StringComparer.CurrentCulture),
+         ];
+
+         return names.Length switch
+         {
+            0 => null,
+            <= 4 => string.Join(" · ", names),
+            _ => $"{string.Join(" · ", names.Take(4))} …",
+         };
+      }
+
       public string ServiceFilter
       {
          get;

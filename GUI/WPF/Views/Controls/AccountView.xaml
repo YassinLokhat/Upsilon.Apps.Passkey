@@ -461,8 +461,9 @@
                         <Button DockPanel.Dock="Right"
                                 Style="{StaticResource SmallGhostButton}"
                                 Content="{loc:Loc Label_ClearNow}"
-                                Click="_clearClipboard_Click"/>
+                                Command="{Binding ClearCommand}"/>
                         <TextBlock x:Name="_clipboard_TB"
+                                   Text="{Binding Text}"
                                    VerticalAlignment="Center"
                                    FontSize="13"
                                    TextWrapping="Wrap"

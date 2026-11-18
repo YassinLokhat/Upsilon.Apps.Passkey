@@ -93,7 +93,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
       {
-         _updateServiceAttention(_notifiedAlerts());
+         _viewModel.ApplyAlerts(_notifiedAlerts());
          // Selection is owned by the VM; keep the service detail pane in sync.
          _service_SV.SetDataContext(_viewModel.SelectedService);
          if (_viewModel.SelectedService is not null)
@@ -450,16 +450,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _viewModel.AlertCount = totalAlertCount;
 
          // Plain-language subtitles, from the broker's own payloads.
-         _leakedPasswordAlerts_MI.Tag = _serviceNames(leakedKind);
-         _weakPasswordAlerts_MI.Tag = _serviceNames(weakKind);
-         _duplicatedPasswordAlerts_MI.Tag = _serviceNames(duplicatedKind);
-         _expiredPasswordAlerts_MI.Tag = _serviceNames(expiredKind);
+         _leakedPasswordAlerts_MI.Tag = _viewModel.ServiceNamesFor(leakedKind);
+         _weakPasswordAlerts_MI.Tag = _viewModel.ServiceNamesFor(weakKind);
+         _duplicatedPasswordAlerts_MI.Tag = _viewModel.ServiceNamesFor(duplicatedKind);
+         _expiredPasswordAlerts_MI.Tag = _viewModel.ServiceNamesFor(expiredKind);
          _activityAlerts_MI.Tag = Strings.Format(nameof(Strings.Msg_AlertActivitySub), activityAlerts);
          _securitySettingsAlerts_MI.Tag = Strings.Format(nameof(Strings.Msg_AlertSettingsSub), securitySettingsAlerts);
          _passkeyQualityAlerts_MI.Tag = Strings.Format(nameof(Strings.Msg_AlertPasskeySub), passkeyQualityAlerts);
 
-         _updateSeal();
-         _updateServiceAttention(alerts);
+         _viewModel.ApplyAlerts(alerts);
 
          _rebuildAlertsMenu(
             totalAlertCount,
@@ -526,71 +525,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             .Select(static e => e.Item))
          {
             _ = _alerts_MI.Items.Add(item);
-         }
-      }
-
-      /// <summary>Services named in account alerts, e.g. "npm · Netflix".</summary>
-      private static string? _serviceNames(IEnumerable<IAlert> alerts)
-      {
-         string[] names =
-         [
-            .. alerts
-               .OfType<IAccountsAlert>()
-               .SelectMany(static x => x.Accounts)
-               .Select(static x => x.Service.ServiceName)
-               .Distinct(StringComparer.CurrentCulture),
-         ];
-
-         return names.Length switch
-         {
-            0 => null,
-            <= 4 => string.Join(" · ", names),
-            _ => $"{string.Join(" · ", names.Take(4))} …",
-         };
-      }
-
-      /// <summary>
-      /// Title-bar seal ("username + 1 passkey"). The count comes from the
-      /// insufficient-passkeys alert payload: the passkeys themselves are never
-      /// read (IUser.Passkeys would reveal them).
-      /// </summary>
-      private void _updateSeal()
-      {
-         IInsufficientPasskeysAlert? insufficient = _session.Alerts
-            .GetAllAlerts(AlertKinds.InsufficientPasskeys)
-            .OfType<IInsufficientPasskeysAlert>()
-            .FirstOrDefault();
-
-         if (insufficient is null)
-         {
-            _viewModel.SealText = Strings.Format(nameof(Strings.Msg_SealAtLeastPasskeys), AlertKinds.RecommendedPasskeyCount);
-            _viewModel.ShowAddPasskey = false;
-            return;
-         }
-
-         _viewModel.SealText = insufficient.Count switch
-         {
-            0 => Strings.Msg_SealUsernameOnly,
-            1 => Strings.Msg_SealOnePasskey,
-            _ => Strings.Format(nameof(Strings.Msg_SealPasskeys), insufficient.Count),
-         };
-         _viewModel.ShowAddPasskey = true;
-      }
-
-      /// <summary>Amber "needs attention" dot on services with an account in a notified account alert.</summary>
-      private void _updateServiceAttention(IEnumerable<IAlert> alerts)
-      {
-         HashSet<IService> flagged =
-         [
-            .. alerts
-               .OfType<IAccountsAlert>()
-               .SelectMany(static x => x.Accounts)
-               .Select(static x => x.Service),
-         ];
-
-         foreach (ServiceViewModel service in _viewModel.Services)
-         {
-            service.NeedsAttention = flagged.Contains(service.Service);
          }
       }
 

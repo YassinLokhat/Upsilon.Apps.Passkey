@@ -37,8 +37,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       /// <summary>
       /// "Needs attention" dot: one of this service's accounts is in a notified
-      /// account alert (weak, reused, leaked, due for change). Set by the vault view
-      /// from the alert broker's payloads.
+      /// account alert (weak, reused, leaked, due for change). Set by the vault
+      /// view model from the alert broker's payloads.
       /// </summary>
       public bool NeedsAttention
       {
@@ -192,6 +192,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       /// Applies list filters to visible accounts. With a concrete type filter, an empty match stays empty;
       /// with All, a service-level text hit with no account match still shows every account.
       /// </summary>
+      /// <summary>
+      /// True when <paramref name="account"/> is one of this service's accounts.
+      /// Compared by reference against the view models already held, so nothing is
+      /// read from the vault (no Touch).
+      /// </summary>
+      internal bool Holds(IAccount account)
+         => _accountViewModelsById.Values.Any(x => ReferenceEquals(x.Account, account));
+
       public void ApplyFilters(string identifierFilter, string textFilter, bool changedItemsOnly, IdentifierType identifierTypeFilter)
       {
          _syncAccountViewModels();
@@ -216,6 +224,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          SelectedAccount = selectedId is not null
             ? Accounts.FirstOrDefault(x => x.Account.ItemId == selectedId) ?? Accounts.FirstOrDefault()
             : Accounts.FirstOrDefault();
+
+         OnPropertyChanged(nameof(AccountCount));
       }
 
       public AccountViewModel? AddAccount()
