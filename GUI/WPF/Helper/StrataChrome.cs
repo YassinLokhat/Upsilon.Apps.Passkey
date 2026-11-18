@@ -93,7 +93,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       /// <summary>
       /// Prefix of every main window title (<see cref="AppInfo.Title"/> without forcing
-      /// its config-file load): the title bar draws it as "UPSILON vX.Y.Z" instead.
+      /// its config-file load): the title bar draws it as "PASSKEY vX.Y.Z" instead.
       /// </summary>
       internal static string TitlePrefix { get; } = $"{_assemblyName.Name} {VersionLabel}";
 
