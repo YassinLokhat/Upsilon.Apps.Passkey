@@ -550,8 +550,7 @@
                         <Border x:Name="selectRing"
                                 Opacity="0"
                                 BorderBrush="{DynamicResource AccentBrush}"
-                                BorderThickness="1"
-                                Effect="{DynamicResource Glow.Soft}"/>
+                                BorderThickness="1"/>
                         <Border x:Name="Bd"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -583,6 +582,7 @@
                                 <Condition Property="IsSelected" Value="True"/>
                                 <Condition Property="helper:Motion.GlideSelection" Value="False"/>
                             </MultiTrigger.Conditions>
+                            <Setter TargetName="selectRing" Property="Effect" Value="{DynamicResource Glow.Soft}"/>
                             <MultiTrigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
@@ -967,7 +967,8 @@
                         <Grid.RenderTransform>
                             <ScaleTransform x:Name="pressScale"/>
                         </Grid.RenderTransform>
-                        <Border Background="{TemplateBinding Background}"
+                        <Border x:Name="baseFill"
+                                Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"/>
                         <Border x:Name="hoverFill"
@@ -988,6 +989,20 @@
                                           Focusable="False"/>
                     </Grid>
                     <ControlTemplate.Triggers>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="helper:Motion.GlowOnHover" Value="True"/>
+                            <Condition Property="IsMouseOver" Value="True"/>
+                        </MultiTrigger.Conditions>
+                        <Setter TargetName="baseFill" Property="Effect" Value="{DynamicResource Glow.Soft}"/>
+                    </MultiTrigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="helper:Motion.GlowOnHover" Value="True"/>
+                            <Condition Property="IsKeyboardFocused" Value="True"/>
+                        </MultiTrigger.Conditions>
+                        <Setter TargetName="baseFill" Property="Effect" Value="{DynamicResource Glow.Soft}"/>
+                    </MultiTrigger>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Trigger.EnterActions>
                             <BeginStoryboard>
@@ -1036,8 +1051,10 @@
         </Setter>
     </Style>
 
+    <!-- Mint button. Its glow sits on the fill behind the label (the label keeps
+         ClearType) and only while hovered or focused. -->
     <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Effect" Value="{DynamicResource Glow.Soft}"/>
+        <Setter Property="helper:Motion.GlowOnHover" Value="True"/>
         <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
@@ -1277,8 +1294,7 @@
                     Opacity="0"
                     BorderBrush="{DynamicResource AccentBrush}"
                     BorderThickness="1"
-                    IsHitTestVisible="False"
-                    Effect="{DynamicResource Glow.Soft}"/>
+                    IsHitTestVisible="False"/>
         </Grid>
         <ControlTemplate.Triggers>
             <Trigger Property="Text" Value="">
@@ -1288,6 +1304,7 @@
                 <Setter TargetName="inputBorder" Property="BorderBrush" Value="{DynamicResource EditedBorderBrush}"/>
             </DataTrigger>
             <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="focusRing" Property="Effect" Value="{DynamicResource Glow.Soft}"/>
                 <Trigger.EnterActions>
                     <BeginStoryboard>
                         <Storyboard>
@@ -1369,14 +1386,14 @@
                                 Opacity="0"
                                 BorderBrush="{DynamicResource AccentBrush}"
                                 BorderThickness="1"
-                                IsHitTestVisible="False"
-                                Effect="{DynamicResource Glow.Soft}"/>
+                                IsHitTestVisible="False"/>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <DataTrigger Binding="{Binding Background, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource IsChangedBrushConverter}}" Value="True">
                             <Setter TargetName="inputBorder" Property="BorderBrush" Value="{DynamicResource EditedBorderBrush}"/>
                         </DataTrigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="focusRing" Property="Effect" Value="{DynamicResource Glow.Soft}"/>
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
@@ -2225,9 +2242,9 @@
         </Setter>
     </Style>
 
-    <!-- Password core: accent outline and a soft accent glow. The glow is on its
-         own border behind the frame, so text inside is never rasterized by the
-         effect. -->
+    <!-- Password core: accent outline and a soft accent glow, drawn as three
+         thin rings fading outwards (no bitmap effect: nothing to re-blur on every
+         repaint, and the text inside keeps ClearType). -->
     <Style x:Key="CoreGroupBox" TargetType="GroupBox" BasedOn="{StaticResource LayerGroupBox}">
         <Setter Property="Background" Value="{DynamicResource Layer3Brush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
@@ -2239,24 +2256,18 @@
                             <RowDefinition Height="10"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
+                        <Grid Grid.Row="1"
+                              Opacity="{DynamicResource CoreGlowOpacity}"
+                              IsHitTestVisible="False">
+                            <Border Margin="-3" BorderThickness="2" Opacity="0.9" BorderBrush="{TemplateBinding BorderBrush}"/>
+                            <Border Margin="-6" BorderThickness="3" Opacity="0.45" BorderBrush="{TemplateBinding BorderBrush}"/>
+                            <Border Margin="-10" BorderThickness="4" Opacity="0.18" BorderBrush="{TemplateBinding BorderBrush}"/>
+                        </Grid>
                         <Border Grid.Row="1"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                SnapsToDevicePixels="True">
-                            <Border.Effect>
-                                <DropShadowEffect ShadowDepth="0"
-                                                  BlurRadius="40"
-                                                  Opacity="{DynamicResource CoreGlowOpacity}"
-                                                  Color="{DynamicResource CoreGlowColor}"/>
-                            </Border.Effect>
-                        </Border>
-                        <Border Grid.Row="1"
-                                Margin="-4"
-                                BorderThickness="4"
-                                Opacity="0.06"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                IsHitTestVisible="False"/>
+                                SnapsToDevicePixels="True"/>
                         <ContentPresenter Grid.Row="1"
                                           Margin="{TemplateBinding Padding}"/>
                         <Border Grid.Row="0"

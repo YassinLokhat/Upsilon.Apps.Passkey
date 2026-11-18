@@ -40,7 +40,6 @@
     <SolidColorBrush x:Key="DangerBorderBrush" Color="#E6B3AE"/>
     <SolidColorBrush x:Key="DangerFieldBrush" Color="#F7D9D9"/>
     <SolidColorBrush x:Key="WarningFieldBrush" Color="#F5E6C4"/>
-    <Color x:Key="CoreGlowColor">#0F7B68</Color>
 
     <!-- Dialogs and sections: a dialog sits one step off the main window, its
          sections one more step, and every control / section / window edge has a
@@ -61,6 +60,5 @@
          about half strength on the light theme, where glows read as smudges. -->
     <DropShadowEffect x:Key="Glow.Soft" ShadowDepth="0" BlurRadius="12" Opacity="0.12" Color="#0F7B68"/>
     <DropShadowEffect x:Key="Glow.Warning" ShadowDepth="0" BlurRadius="10" Opacity="0.12" Color="#935500"/>
-    <DropShadowEffect x:Key="Glow.Pulse" ShadowDepth="0" BlurRadius="28" Opacity="0.25" Color="#0F7B68"/>
     <sys:Double x:Key="CoreGlowOpacity">0.10</sys:Double>
 </ResourceDictionary>

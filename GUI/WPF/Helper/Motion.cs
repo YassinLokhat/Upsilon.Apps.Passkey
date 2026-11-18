@@ -69,6 +69,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       public static void SetTransitionTier(DependencyObject element, int value) => _notNull(element).SetValue(TransitionTierProperty, value);
 
+      /// <summary>
+      /// Marks a button whose fill glows (accent) while hovered or keyboard-focused.
+      /// The glow is applied to the fill element in the template, not the label.
+      /// </summary>
+      public static readonly DependencyProperty GlowOnHoverProperty = DependencyProperty.RegisterAttached(
+         "GlowOnHover", typeof(bool), typeof(Motion), new PropertyMetadata(false));
+
+      public static bool GetGlowOnHover(DependencyObject element) => (bool)_notNull(element).GetValue(GlowOnHoverProperty);
+
+      public static void SetGlowOnHover(DependencyObject element, bool value) => _notNull(element).SetValue(GlowOnHoverProperty, value);
+
       /// <summary>Fades in each time the element becomes visible (reveal crossfade).</summary>
       public static readonly DependencyProperty FadeInWhenShownProperty = DependencyProperty.RegisterAttached(
          "FadeInWhenShown", typeof(bool), typeof(Motion), new PropertyMetadata(false, _onFadeInWhenShownChanged));
