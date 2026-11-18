@@ -14,7 +14,9 @@
         Title="{Binding WindowTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="184" Width="750">
+        Height="184"
+        SizeToContent="Width"
+        MinWidth="750">
    <Window.Resources>
       <BooleanToVisibilityConverter x:Key="_booleanToVisibility"/>
    </Window.Resources>

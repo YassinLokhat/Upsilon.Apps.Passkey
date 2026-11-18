@@ -13,7 +13,9 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="420" Width="760">
+        SizeToContent="Height"
+        MaxHeight="{x:Static SystemParameters.MaximizedPrimaryScreenHeight}"
+        Width="760">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -46,15 +48,18 @@
                        IsEnabled="{Binding OfflineLeakFilterIdle}"
                        Click="_browseButton_Click"/>
             </Grid>
+            <!-- Language and theme on one row, the login reset on the next: in
+                 French the three labels do not fit one row next to readable boxes. -->
             <Grid>
+               <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="Auto"/>
+               </Grid.RowDefinitions>
                <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="Auto"/>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>
                   <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="Auto"/>
                </Grid.ColumnDefinitions>
                <Label Grid.Column="0"
                       Content="{loc:Loc Label_Language}"/>
@@ -70,18 +75,19 @@
                          SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
                          DisplayMemberPath="DisplayName"
                          IsEnabled="{Binding OfflineLeakFilterIdle}"/>
-                <Label Grid.Column="4"
-                        Content="{loc:Loc Label_LoginIdleTimeout}"/>
-                <TextBox Grid.Column="5"
-                        Width="40"
+               <StackPanel Grid.Row="1"
+                           Grid.ColumnSpan="4"
+                           Orientation="Horizontal">
+                <Label Content="{loc:Loc Label_LoginIdleTimeout}"/>
+                <TextBox Width="56"
                         HorizontalContentAlignment="Center"
                         IsEnabled="{Binding OfflineLeakFilterIdle}"
                         TextChanged="_value_TextBox_TextChanged"
                         PreviewTextInput="_value_TextBox_PreviewTextInput"
                         DataObject.Pasting="_value_TextBox_Pasting"
                         Text="{Binding LoginIdleTimeoutSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <Label Grid.Column="6"
-                        Margin="0" Content="{loc:Loc Label_Seconds}"/>
+                <Label Margin="0" Content="{loc:Loc Label_Seconds}"/>
+               </StackPanel>
             </Grid>
             <GroupBox Header="{loc:Loc Label_OfflineLeakDatabase}"
                       ToolTip="{loc:Loc Tooltip_OfflineLeakDatabase}">
@@ -97,7 +103,7 @@
                                 Text="{Binding OfflineLeakFilterStatus}"/>
                      <TextBlock Grid.Column="1"
                                 TextWrapping="Wrap"
-                                Foreground="Gray"
+                                Foreground="{DynamicResource MutedForegroundBrush}"
                                 Text="{Binding OfflineLeakFilterProgress}"/>
                   </Grid>
                   <CheckBox Content="{loc:Loc Label_UseOfflineBloomFilter}"
@@ -119,7 +125,7 @@
                   </Grid>
                   <StackPanel Orientation="Horizontal">
                     <Label Content="{loc:Loc Label_AutoUpdateOfflineLeakDatabase}"/>
-                    <TextBox Width="40"
+                    <TextBox Width="56"
                             HorizontalContentAlignment="Center"
                             ToolTip="{loc:Loc Tooltip_AutoUpdateOfflineLeakDatabase}"
                             IsEnabled="{Binding OfflineLeakFilterAutoUpdateEditable}"

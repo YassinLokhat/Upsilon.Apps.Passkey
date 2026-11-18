@@ -12,9 +12,10 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
         Title="{Binding Title}"
-        MinHeight="360"
+        MinHeight="240"
         MinWidth="560"
-        Height="420"
+        SizeToContent="Height"
+        MaxHeight="{x:Static SystemParameters.MaximizedPrimaryScreenHeight}"
         Width="640">
    <Grid Margin="16">
       <Grid.RowDefinitions>
@@ -27,7 +28,7 @@
          <ItemsControl ItemsSource="{Binding Issues}">
             <ItemsControl.ItemTemplate>
                <DataTemplate>
-                  <Border Padding="10,10"
+                  <Border Padding="12"
                           BorderBrush="{DynamicResource BorderBrush}"
                           BorderThickness="0,0,0,1">
                      <StackPanel>
@@ -37,7 +38,7 @@
                                    TextWrapping="Wrap"
                                    Foreground="{DynamicResource WarningBrush}"/>
                         <TextBlock Text="{Binding Description}"
-                                   Margin="0,5,0,0"
+                                   Margin="0,4,0,0"
                                    TextWrapping="Wrap"/>
                      </StackPanel>
                   </Border>

@@ -65,7 +65,7 @@
                        Text="{Binding VaultName, Mode=OneWay}"/>
             <Rectangle Width="1"
                        Height="16"
-                       Margin="14,0"
+                       Margin="12,0"
                        Fill="{DynamicResource BorderBrush}"/>
             <TextBlock FontSize="13"
                        VerticalAlignment="Center"
@@ -74,7 +74,7 @@
                <Run Foreground="{DynamicResource ForegroundBrush}" Text="{Binding SealText, Mode=OneWay}"/>
             </TextBlock>
             <Button Style="{StaticResource SmallButton}"
-                    Margin="14,0,0,0"
+                    Margin="12,0,0,0"
                     MinHeight="28"
                     FontSize="13"
                     shell:WindowChrome.IsHitTestVisibleInChrome="True"
@@ -497,9 +497,9 @@
                   </ListBox>
                   <StackPanel Grid.Row="2">
                      <Rectangle Style="{StaticResource DashedRule}"
-                                Margin="0,8,0,10"
+                                Margin="0,8,0,8"
                                 Stroke="{DynamicResource SubtleBorderBrush}"/>
-                     <StackPanel Margin="6,0,0,0"
+                     <StackPanel Margin="8,0,0,0"
                                  Orientation="Horizontal">
                         <Rectangle Style="{StaticResource Dot}" Fill="{DynamicResource AccentBrush}"/>
                         <TextBlock Margin="8,0,0,0"

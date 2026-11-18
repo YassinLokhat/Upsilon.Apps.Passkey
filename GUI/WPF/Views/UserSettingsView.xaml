@@ -14,7 +14,9 @@
         Title="{Binding Title}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="690" Width="1040">
+        SizeToContent="Height"
+        MaxHeight="{x:Static SystemParameters.MaximizedPrimaryScreenHeight}"
+        Width="1040">
    <Grid>
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto"/>
@@ -61,7 +63,7 @@
                   <StackPanel Orientation="Horizontal">
                      <Label Content="{loc:Loc Label_Username}"/>
                      <TextBox Name="_username_TB"
-                              Width="400"
+                              Width="320"
                               Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                   </StackPanel>
                   <Controls:UserPasswordsContainer x:Name="_passwordsContainer"/>
@@ -73,7 +75,7 @@
                   <StackPanel Orientation="Horizontal">
                      <CheckBox IsChecked="{Binding LogoutTimeoutChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                Content="{loc:Loc Label_LogoutAfter}"/>
-                     <TextBox Width="25"
+                     <TextBox Width="64"
                               HorizontalContentAlignment="Center"
                               TextChanged="_value_TextBox_TextChanged"
                               PreviewTextInput="_value_TextBox_PreviewTextInput"
@@ -84,7 +86,7 @@
                   <StackPanel Orientation="Horizontal">
                      <CheckBox IsChecked="{Binding CleaningClipboardTimeoutChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                Content="{loc:Loc Label_CleanClipboardEvery}"/>
-                     <TextBox Width="35"
+                     <TextBox Width="64"
                               HorizontalContentAlignment="Center"
                               TextChanged="_value_TextBox_TextChanged"
                               PreviewTextInput="_value_TextBox_PreviewTextInput"
@@ -95,7 +97,7 @@
                   <StackPanel Orientation="Horizontal">
                      <CheckBox IsChecked="{Binding ShowPasswordDelayChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                Content="{loc:Loc Label_ShowQrCodeDuring}"/>
-                     <TextBox Width="40"
+                     <TextBox Width="64"
                               HorizontalContentAlignment="Center"
                               TextChanged="_value_TextBox_TextChanged"
                               PreviewTextInput="_value_TextBox_PreviewTextInput"
@@ -106,7 +108,7 @@
                   <StackPanel Orientation="Horizontal">
                      <CheckBox IsChecked="{Binding NumberOfOldPasswordToKeepChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                Content="{loc:Loc Label_LimitPasswordHistory}"/>
-                     <TextBox Width="40"
+                     <TextBox Width="64"
                               HorizontalContentAlignment="Center"
                               TextChanged="_value_TextBox_TextChanged"
                               PreviewTextInput="_value_TextBox_PreviewTextInput"
@@ -117,7 +119,7 @@
                   <StackPanel Orientation="Horizontal">
                      <CheckBox IsChecked="{Binding NumberOfMonthActivitiesToKeepChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                Content="{loc:Loc Label_LimitActivityHistory}"/>
-                     <TextBox Width="40"
+                     <TextBox Width="64"
                               HorizontalContentAlignment="Center"
                               TextChanged="_value_TextBox_TextChanged"
                               PreviewTextInput="_value_TextBox_PreviewTextInput"
