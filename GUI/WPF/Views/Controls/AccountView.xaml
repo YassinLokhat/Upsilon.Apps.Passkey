@@ -10,6 +10,18 @@
              xmlns:helper="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Helper"
              d:DataContext="{d:DesignInstance Type=controls:AccountViewModel}"
              mc:Ignorable="d">
+   <UserControl.Resources>
+      <!-- The identifier rows' "⋯" menu, built on the first click of each row
+           instead of with every row (rows are rebuilt on each account switch). -->
+      <ContextMenu x:Key="IdentifierMoreMenu" x:Shared="False">
+         <MenuItem Header="{loc:Loc Tooltip_MoveUp}"
+                   Command="{Binding MoveIdentifierUpCommand}"/>
+         <MenuItem Header="{loc:Loc Tooltip_MoveDown}"
+                   Command="{Binding MoveIdentifierDownCommand}"/>
+         <MenuItem Header="{loc:Loc Tooltip_DeleteIdentifier}"
+                   Command="{Binding DeleteIdentifierCommand}"/>
+      </ContextMenu>
+   </UserControl.Resources>
    <!-- Layer 2: the selected account. Label on top; sign-in identifiers, the
         watch-for options and notes on the left; the password core (layer 3)
         nested on the right. -->
@@ -86,7 +98,7 @@
                  notes take whatever height is left. -->
             <ScrollViewer x:Name="_details_SV"
                           Grid.Column="0"
-                          Width="{DynamicResource AccountColumnWidth}"
+                          Width="{Binding AccountColumnWidth, Source={x:Static helper:VaultLayout.Current}}"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
                <Grid Margin="14"
@@ -105,8 +117,8 @@
                              Style="{StaticResource Caption}"
                              Margin="0,0,0,8"
                              Text="{Binding [Label_SignInWith], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}}"/>
-                  <ListBox Grid.Row="1"
-                           Name="_identifiers_LB"
+                  <helper:PooledListBox Grid.Row="1"
+                           x:Name="_identifiers_LB"
                            HorizontalContentAlignment="Stretch"
                            ScrollViewer.VerticalScrollBarVisibility="Disabled"
                            ItemContainerStyle="{StaticResource PlainListBoxItem}"
@@ -134,18 +146,7 @@
                                       ToolTip="{loc:Loc Tooltip_MoreActions}"
                                       ContextMenuService.IsEnabled="False"
                                       AutomationProperties.Name="{loc:Loc Tooltip_MoreActions}"
-                                      Click="_identifierMore_Click">
-                                 <Button.ContextMenu>
-                                    <ContextMenu>
-                                       <MenuItem Header="{loc:Loc Tooltip_MoveUp}"
-                                                 Command="{Binding MoveIdentifierUpCommand}"/>
-                                       <MenuItem Header="{loc:Loc Tooltip_MoveDown}"
-                                                 Command="{Binding MoveIdentifierDownCommand}"/>
-                                       <MenuItem Header="{loc:Loc Tooltip_DeleteIdentifier}"
-                                                 Command="{Binding DeleteIdentifierCommand}"/>
-                                    </ContextMenu>
-                                 </Button.ContextMenu>
-                              </Button>
+                                      Click="_identifierMore_Click"/>
                               <Button DockPanel.Dock="Right"
                                       Style="{StaticResource SmallIconButton}"
                                       Margin="2,0,0,0"
@@ -173,7 +174,7 @@
                            </DockPanel>
                         </DataTemplate>
                      </ListBox.ItemTemplate>
-                  </ListBox>
+                  </helper:PooledListBox>
                   <Button Grid.Row="2"
                           Style="{StaticResource DashedButton}"
                           Margin="0,2,0,0"
@@ -326,7 +327,7 @@
                                    helper:Motion.TransitionTier="2"
                                    Margin="{DynamicResource CoreGap}"
                                    Focusable="False"
-                                   ItemsSource="{Binding QualityChecks}">
+                                   helper:StableItems.Source="{Binding QualityChecks}">
                         <ItemsControl.ItemsPanel>
                            <ItemsPanelTemplate>
                               <UniformGrid Columns="3"/>
@@ -345,14 +346,14 @@
                                             FontSize="13"
                                             TextWrapping="Wrap"
                                             Foreground="{DynamicResource SoftForegroundBrush}"
-                                            Text="{Binding Text}"/>
+                                            Text="{Binding Value.Text}"/>
                               </DockPanel>
                               <DataTemplate.Triggers>
-                                 <DataTrigger Binding="{Binding State}" Value="Fail">
+                                 <DataTrigger Binding="{Binding Value.State}" Value="Fail">
                                     <Setter TargetName="mark" Property="Text" Value="✕"/>
                                     <Setter TargetName="mark" Property="Foreground" Value="{DynamicResource WarningBrush}"/>
                                  </DataTrigger>
-                                 <DataTrigger Binding="{Binding State}" Value="Off">
+                                 <DataTrigger Binding="{Binding Value.State}" Value="Off">
                                     <Setter TargetName="mark" Property="Text" Value="–"/>
                                     <Setter TargetName="mark" Property="Foreground" Value="{DynamicResource MutedForegroundBrush}"/>
                                     <Setter TargetName="text" Property="Foreground" Value="{DynamicResource MutedForegroundBrush}"/>
@@ -369,8 +370,8 @@
                         <Run Text="·"/>
                         <Run Text="{Binding Items.Count, ElementName=_passwords_LB, Mode=OneWay}"/>
                      </TextBlock>
-                     <ListBox Grid.Row="4"
-                              Name="_passwords_LB"
+                     <helper:PooledListBox Grid.Row="4"
+                              x:Name="_passwords_LB"
                               helper:Motion.TransitionTier="2"
                               VerticalAlignment="Top"
                               AlternationCount="100000"
@@ -379,7 +380,7 @@
                               ScrollViewer.CanContentScroll="True"
                               ScrollViewer.IsDeferredScrollingEnabled="True"
                               VirtualizingStackPanel.IsVirtualizing="True"
-                              VirtualizingStackPanel.VirtualizationMode="Recycling">
+                              VirtualizingStackPanel.VirtualizationMode="Standard">
                         <ListBox.ItemTemplate>
                            <DataTemplate>
                               <Border Height="38"
@@ -435,7 +436,7 @@
                               </DataTemplate.Triggers>
                            </DataTemplate>
                         </ListBox.ItemTemplate>
-                     </ListBox>
+                     </helper:PooledListBox>
 
                   <!-- Clipboard status, pinned to the bottom of the core; only while
                        something we copied is waiting to be cleared. -->
@@ -455,7 +456,7 @@
                                 Fill="{DynamicResource AccentBrush}"
                                 Opacity="0.7"/>
                      <DockPanel Margin="12,8" LastChildFill="True">
-                        <Rectangle DockPanel.Dock="Left"
+                        <helper:GlowHalo DockPanel.Dock="Left"
                                    Style="{StaticResource Dot}"
                                    Margin="0,0,12,0"
                                    Fill="{DynamicResource AccentBrush}"/>

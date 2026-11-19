@@ -12,6 +12,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    internal sealed partial class ServiceView : UserControl
    {
       private ServiceViewModel? _viewModel;
+      private readonly HeldKeySelection _accountsHeldKeys;
 
       // True while a service switch runs: its transition already covers the
       // account and core, so the account selection inside it starts none.
@@ -29,6 +30,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       public ServiceView()
       {
          InitializeComponent();
+         _accountsHeldKeys = new HeldKeySelection(_accounts_LB, _showSelectedAccount);
       }
 
       /// <summary>
@@ -107,9 +109,42 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          AppServices.Session.User?.Shake();
 
+         // A held arrow key: the list follows every step, the account is shown
+         // for the row the keys stop on.
+         if (_accountsHeldKeys.Defer())
+         {
+            return;
+         }
+
          ContentTransition? transition = _switchingService ? null : ContentTransition.Capture(_account_AV);
          _account_AV.SetDataContext(_accounts_LB.SelectedItem as AccountViewModel);
          transition?.Play(ContentTransition.Direction(_accounts_LB, e));
+      }
+
+      private bool _showSelectedAccount()
+      {
+         if (Window.GetWindow(this) is not Window window)
+         {
+            return true;
+         }
+
+         if (window.GetIsBusy())
+         {
+            return false;
+         }
+
+         AccountViewModel? selected = _accounts_LB.SelectedItem as AccountViewModel;
+         if (ReferenceEquals(_account_AV.DataContext, selected))
+         {
+            return true;
+         }
+
+         int from = _accounts_LB.Items.IndexOf(_account_AV.DataContext);
+         int to = _accounts_LB.Items.IndexOf(selected);
+         ContentTransition? transition = ContentTransition.Capture(_account_AV);
+         _account_AV.SetDataContext(selected);
+         transition?.Play(from < 0 || to < 0 ? 0 : Math.Sign(to - from));
+         return true;
       }
 
       public bool SelectAccount(string itemId)

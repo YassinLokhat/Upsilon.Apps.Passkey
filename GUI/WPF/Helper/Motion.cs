@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
@@ -41,9 +42,31 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          ArgumentNullException.ThrowIfNull(application);
 
          _application = application;
+         _useDisplayFrameRate();
          _applyDurations();
          SystemParameters.StaticPropertyChanged += _systemParameters_StaticPropertyChanged;
+         PopupGhost.Initialize();
       }
+
+      /// <summary>
+      /// WPF ticks animations at 60 fps unless told otherwise. On a 120/144 Hz
+      /// screen 60 does not divide the refresh, so frames land unevenly (14, 21,
+      /// 14 ms...) and a glide judders even with nothing slow behind it. Asking
+      /// for more lets every animation tick on each refresh of the screen it is
+      /// on; frames stay paced by the display, so a 60 Hz screen is unchanged.
+      /// </summary>
+      private static void _useDisplayFrameRate()
+      {
+         if (_frameRateSet)
+         {
+            return;
+         }
+
+         _frameRateSet = true;
+         Timeline.DesiredFrameRateProperty.OverrideMetadata(typeof(Timeline), new FrameworkPropertyMetadata { DefaultValue = 240 });
+      }
+
+      private static bool _frameRateSet;
 
       /// <summary>Stops following the Windows animation setting (app exit).</summary>
       public static void Shutdown()
@@ -119,6 +142,32 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       public static void SetFadeInWhenShown(DependencyObject element, bool value) => _notNull(element).SetValue(FadeInWhenShownProperty, value);
 
+      /// <summary>
+      /// Bind this instead of Visibility for a small part a binding shows and
+      /// hides (a badge, a status dot, a button that comes and goes): it fades in
+      /// when shown and out when hidden. Hiding copies the part's last drawing
+      /// first (hiding clears it at once), then hides it: the layout changes now
+      /// and the copy fades over the page, so input is never delayed. Never for
+      /// anything that can show a secret.
+      /// </summary>
+      public static readonly DependencyProperty AnimateVisibilityProperty = DependencyProperty.RegisterAttached(
+         "AnimateVisibility", typeof(Visibility), typeof(Motion), new PropertyMetadata(Visibility.Visible, _onAnimateVisibilityChanged));
+
+      public static Visibility GetAnimateVisibility(DependencyObject element) => (Visibility)_notNull(element).GetValue(AnimateVisibilityProperty);
+
+      public static void SetAnimateVisibility(DependencyObject element, Visibility value) => _notNull(element).SetValue(AnimateVisibilityProperty, value);
+
+      /// <summary>
+      /// On a popup (a drop-down, menu or calendar): when it closes, a click-through
+      /// copy of its last frame fades out where it was (see <see cref="PopupGhost"/>).
+      /// </summary>
+      public static readonly DependencyProperty FadeOnCloseProperty = DependencyProperty.RegisterAttached(
+         "FadeOnClose", typeof(bool), typeof(Motion), new PropertyMetadata(false, _onFadeOnCloseChanged));
+
+      public static bool GetFadeOnClose(DependencyObject element) => (bool)_notNull(element).GetValue(FadeOnCloseProperty);
+
+      public static void SetFadeOnClose(DependencyObject element, bool value) => _notNull(element).SetValue(FadeOnCloseProperty, value);
+
       /// <summary>Fades in and drops 6 px each time the element becomes visible (menus, popups).</summary>
       public static readonly DependencyProperty DropInWhenShownProperty = DependencyProperty.RegisterAttached(
          "DropInWhenShown", typeof(bool), typeof(Motion), new PropertyMetadata(false, _onDropInWhenShownChanged));
@@ -169,7 +218,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          _add(storyboard, element, UIElement.OpacityProperty, 0, 1, Normal);
          _add(storyboard, scale, ScaleTransform.ScaleXProperty, 0.98, 1, Normal);
          _add(storyboard, scale, ScaleTransform.ScaleYProperty, 0.98, 1, Normal);
-         return _begin(storyboard, element);
+         return _beginWhenDrawn(storyboard, element);
       }
 
       /// <summary>Strip / panel appearing: fade in and slide 6 px up.</summary>
@@ -182,7 +231,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          Storyboard storyboard = new();
          _add(storyboard, element, UIElement.OpacityProperty, 0, 1, Slow);
          _add(storyboard, translate, TranslateTransform.YProperty, 6, 0, Slow);
-         return _begin(storyboard, element);
+         return _beginWhenDrawn(storyboard, element);
       }
 
       /// <summary>Menus and popups: fade in and drop 6 px.</summary>
@@ -192,7 +241,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          Storyboard storyboard = new();
          _add(storyboard, element, UIElement.OpacityProperty, 0, 1, Popup);
          _add(storyboard, translate, TranslateTransform.YProperty, -6, 0, Popup);
-         return _begin(storyboard, element);
+         return _beginWhenDrawn(storyboard, element);
       }
 
       /// <summary>Plain fade in.</summary>
@@ -200,7 +249,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       {
          Storyboard storyboard = new();
          _add(storyboard, element, UIElement.OpacityProperty, 0, 1, Fast);
-         return _begin(storyboard, element);
+         return _beginWhenDrawn(storyboard, element);
       }
 
       /// <summary>
@@ -331,9 +380,22 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             return;
          }
 
+         IdleWarmup.StartAfterFirstFrame(window);
+
+         // Kept invisible (cloaked by the compositor) until its first frame is
+         // fully drawn, so a window never shows half built or as a blank flash;
+         // its zoom and fade then start from that finished first frame.
+         window.SourceInitialized += static (sender, _) =>
+         {
+            if (sender is Window initialized)
+            {
+               WindowReveal.Prepare(initialized);
+            }
+         };
          window.Loaded += static (sender, args) =>
          {
             if (sender is Window loaded
+               && !WindowReveal.HoldsOpen(loaded)
                && VisualTreeHelper.GetChildrenCount(loaded) > 0
                && VisualTreeHelper.GetChild(loaded, 0) is FrameworkElement root)
             {
@@ -357,6 +419,49 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
                _ = FadeIn(shown);
             }
          };
+      }
+
+      private static void _onFadeOnCloseChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+      {
+         if (d is System.Windows.Controls.Primitives.Popup popup && e.NewValue is true)
+         {
+            PopupGhost.Attach(popup);
+         }
+      }
+
+      private static void _onAnimateVisibilityChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+      {
+         if (d is not FrameworkElement element || e.NewValue is not Visibility shown)
+         {
+            return;
+         }
+
+         // The first value, or a page not on screen yet: just apply it.
+         if (!element.IsLoaded || !element.IsVisible && shown != Visibility.Visible)
+         {
+            element.Visibility = shown;
+            return;
+         }
+
+         if (shown == Visibility.Visible)
+         {
+            if (element.Visibility != Visibility.Visible)
+            {
+               element.Visibility = Visibility.Visible;
+               _ = FadeIn(element);
+            }
+
+            return;
+         }
+
+         // Copy what it draws while it still draws it (hiding clears it at once),
+         // then hide: the layout changes now, the copy fades out over the page.
+         if (Enabled && element.Visibility == Visibility.Visible)
+         {
+            DrawingGhost.FadeOut(element, element.RenderSize);
+         }
+
+         element.Visibility = shown;
       }
 
       private static void _onDropInWhenShownChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -446,6 +551,46 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       {
          storyboard.Begin(element, HandoffBehavior.SnapshotAndReplace, isControllable: true);
          return storyboard;
+      }
+
+      /// <summary>
+      /// For something that appears: holds the animation on its first values until
+      /// the element has been laid out and drawn once, then lets it run. A new
+      /// window, popup or panel often needs a long first layout; a clock started
+      /// before it would show its first frames all at once (the motion "skips").
+      /// Started here, its first visible frame is its start, whatever that layout
+      /// cost.
+      /// </summary>
+      private static Storyboard _beginWhenDrawn(Storyboard storyboard, FrameworkElement element)
+      {
+         storyboard.Begin(element, HandoffBehavior.SnapshotAndReplace, isControllable: true);
+         if (!Enabled)
+         {
+            return storyboard;
+         }
+
+         storyboard.Pause(element);
+
+         // Apply the first values now, not at the next animation tick: a frame drawn
+         // before that tick (a popup's first layout pass draws in the same pass)
+         // would otherwise show the element at full strength, then the motion
+         // would restart from invisible (a flash).
+         storyboard.SeekAlignedToLastTick(element, TimeSpan.Zero, TimeSeekOrigin.BeginTime);
+         FrameGate.AfterNextDrawnFrame(element.Dispatcher, () => storyboard.Resume(element));
+         return storyboard;
+      }
+
+      /// <summary>Exit motion (popups closing, parts hiding): fade out and rise 4 px.</summary>
+      internal static Storyboard Leave(FrameworkElement element, Action completed)
+      {
+         ArgumentNullException.ThrowIfNull(completed);
+
+         (_, TranslateTransform translate) = _transforms(element, new Point(0.5, 0));
+         Storyboard storyboard = new();
+         _add(storyboard, element, UIElement.OpacityProperty, 1, 0, Fast);
+         _add(storyboard, translate, TranslateTransform.YProperty, 0, -4, Fast);
+         storyboard.Completed += (_, _) => completed();
+         return _beginWhenDrawn(storyboard, element);
       }
 
       private static DependencyObject _notNull(DependencyObject element)

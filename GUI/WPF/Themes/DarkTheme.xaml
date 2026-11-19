@@ -63,7 +63,10 @@
     <!-- Soft accent glow for things that "emit" the accent (selected rows,
          focused fields, mint buttons, dots, the logo). Small elements only;
          about half strength on the light theme, where glows read as smudges. -->
-    <DropShadowEffect x:Key="Glow.Soft" ShadowDepth="0" BlurRadius="12" Opacity="0.28" Color="#6EE7C8"/>
-    <DropShadowEffect x:Key="Glow.Warning" ShadowDepth="0" BlurRadius="10" Opacity="0.30" Color="#F5B83D"/>
+    <!-- Drawn by Helper/GlowHalo (pre-drawn, no live blur): colour and peak opacity. -->
+    <Color x:Key="Glow.SoftColor">#6EE7C8</Color>
+    <sys:Double x:Key="Glow.SoftStrength">0.28</sys:Double>
+    <Color x:Key="Glow.WarningColor">#F5B83D</Color>
+    <sys:Double x:Key="Glow.WarningStrength">0.30</sys:Double>
     <sys:Double x:Key="CoreGlowOpacity">0.22</sys:Double>
 </ResourceDictionary>

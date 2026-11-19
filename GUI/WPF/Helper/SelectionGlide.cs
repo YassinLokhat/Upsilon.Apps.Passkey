@@ -2,37 +2,48 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Windows.Threading;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 {
    /// <summary>
    /// One selection highlight per list that glides from the old row to the new
-   /// one (150 ms strong ease-out) instead of each row fading its own. The highlight is
+   /// one instead of each row fading its own. The highlight is
    /// <c>PART_GlideHighlight</c> in the <c>GlideListBox</c> template, on a canvas
    /// behind the rows. Scrolling, resizing and filtering snap it without
    /// animating; with no visible selected row it hides. Turned on by
    /// <see cref="Motion.GlideSelectionProperty"/>.
+   /// <para>
+   /// The glide is a per-frame follow, not a fixed-length animation: every frame
+   /// the highlight closes the same share of the distance left (time constant
+   /// 25 ms, so it starts at full speed and lands softly, about 110 ms for one
+   /// row). A new selection only moves the target, so a click, a tapped arrow and
+   /// a held arrow all move the same way: nothing restarts, nothing snaps, and a
+   /// fast run of steps is followed smoothly a fraction of a row behind.
+   /// The highlight is laid out on the target row once per selection; the glide
+   /// itself only changes a render transform, so its frames cost no layout.
+   /// </para>
    /// </summary>
    internal sealed class SelectionGlide
    {
-      private static readonly TimeSpan _duration = TimeSpan.FromMilliseconds(150);
-      private static readonly QuinticEase _easeOut = _frozenEase();
+      private const double TIME_CONSTANT_SECONDS = 0.025;
+      private const double LANDED_PIXELS = 0.5;
 
       private readonly ListBox _list;
       private FrameworkElement? _highlight;
-      private Storyboard? _storyboard;
+
+      // Where the highlight is heading (the selected row), and where it is drawn.
       private Rect _shown = Rect.Empty;
       private object? _shownItem;
+      private double _drawnTop = double.NaN;
+      private double _drawnHeight = double.NaN;
+
       private bool _gliding;
       private bool _glideQueued;
+      private TimeSpan _lastFrame;
 
       // A scroll or a change of the items since the last selection: snap, don't glide.
       private bool _snapOnly;
-
-      private static readonly TimeSpan _rapidWindow = TimeSpan.FromMilliseconds(250);
-      private DateTime _lastSelectionChange = DateTime.MinValue;
 
       private SelectionGlide(ListBox list)
       {
@@ -41,7 +52,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          _list.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler(_list_ScrollChanged));
          ((INotifyCollectionChanged)_list.Items).CollectionChanged += (_, _) => _snapOnly = true;
          _list.Loaded += (_, _) => _list.LayoutUpdated += _list_LayoutUpdated;
-         _list.Unloaded += (_, _) => _list.LayoutUpdated -= _list_LayoutUpdated;
+         _list.Unloaded += (_, _) =>
+         {
+            _list.LayoutUpdated -= _list_LayoutUpdated;
+            _stop();
+         };
          if (_list.IsLoaded)
          {
             _list.LayoutUpdated += _list_LayoutUpdated;
@@ -53,29 +68,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
       private void _list_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
          // Selectors inside the rows (combo boxes) bubble their own changes.
-         if (!ReferenceEquals(e.OriginalSource, _list))
+         if (!ReferenceEquals(e.OriginalSource, _list) || _glideQueued)
          {
             return;
          }
 
-         // Fast clicking or a held arrow key: the highlight jumps straight to each
-         // new row instead of gliding after it (a glide that is always catching up
-         // makes a click look as if it had not been taken).
-         DateTime now = DateTime.UtcNow;
-         if (_gliding || now - _lastSelectionChange < _rapidWindow)
-         {
-            _snapOnly = true;
-         }
-
-         _lastSelectionChange = now;
-         if (_glideQueued)
-         {
-            return;
-         }
-
-         // The clicked row is usually already on screen and laid out: start the glide
+         // The new row is usually already on screen and laid out: move the target
          // right away, before the rest of the page does its own work for the new
-         // selection, so the highlight answers the click at once.
+         // selection, so the highlight answers the click or key at once.
          if (_list.SelectedItem is not null
             && _list.ItemContainerGenerator.ContainerFromItem(_list.SelectedItem) is ListBoxItem { IsVisible: true, IsArrangeValid: true })
          {
@@ -111,8 +111,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       private void _list_LayoutUpdated(object? sender, EventArgs e)
       {
-         // A new selection is placed by its own (queued) glide: the page's own
-         // SelectionChanged handler may lay out before ours has even run.
+         // While gliding, the glide itself lays the canvas out every frame and
+         // lands on the row as laid out then. A new selection is placed by its own
+         // (queued) glide: the page's own SelectionChanged handler may lay out
+         // before ours has even run.
          if (_gliding || _glideQueued || !Equals(_list.SelectedItem, _shownItem))
          {
             return;
@@ -145,82 +147,112 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             return;
          }
 
-         if (!animate && to == _shown && _highlight.Visibility == Visibility.Visible)
+         if (!animate && !_gliding && to == _shown && _highlight.Visibility == Visibility.Visible)
          {
             return;
          }
 
-         bool glide = animate && Motion.Enabled && !_shown.IsEmpty && _highlight.Visibility == Visibility.Visible;
+         bool glide = animate
+            && Motion.Enabled
+            && !_shown.IsEmpty
+            && _highlight.Visibility == Visibility.Visible
+            && !double.IsNaN(_drawnTop);
 
-         // Start from where the highlight is drawn right now (mid-glide included),
-         // not from the row it was heading to.
-         double fromTop = Canvas.GetTop(_highlight);
-         double fromHeight = _highlight.GetValue(FrameworkElement.HeightProperty) is double height && !double.IsNaN(height)
-            ? height
-            : _highlight.ActualHeight;
-
-         _stop();
          _highlight.Visibility = Visibility.Visible;
          Canvas.SetLeft(_highlight, to.X);
-         Canvas.SetTop(_highlight, to.Y);
          _highlight.Width = to.Width;
-         _highlight.Height = to.Height;
          _shown = to;
          _shownItem = _list.SelectedItem;
 
-         if (!glide || double.IsNaN(fromTop) || (fromTop == to.Y && fromHeight == to.Height))
+         if (!glide)
+         {
+            _stop();
+            _draw(to.Y, to.Height);
+            return;
+         }
+
+         // Only the target moves: a glide already running keeps its position and
+         // simply heads somewhere new (redrawn now against the new layout slot).
+         _draw(_drawnTop, _drawnHeight);
+         if (!_gliding)
+         {
+            _gliding = true;
+            _lastFrame = TimeSpan.Zero;
+            CompositionTarget.Rendering += _compositionTarget_Rendering;
+         }
+      }
+
+      private void _compositionTarget_Rendering(object? sender, EventArgs e)
+      {
+         if (!_gliding || _highlight is null)
          {
             return;
          }
 
-         // The base values are already the target: the storyboard only runs from
-         // where the highlight was and lets go at the end (FillBehavior.Stop).
-         _gliding = true;
-         Storyboard storyboard = new() { FillBehavior = FillBehavior.Stop };
-         _add(storyboard, Canvas.TopProperty, fromTop, to.Y);
-         _add(storyboard, FrameworkElement.HeightProperty, fromHeight, to.Height);
-         storyboard.Completed += (_, _) =>
+         // Rendering can be raised more than once for one frame.
+         TimeSpan now = e is RenderingEventArgs rendering ? rendering.RenderingTime : TimeSpan.Zero;
+         if (now == _lastFrame)
          {
-            // A newer glide or a snap took over: this one has nothing left to say.
-            if (_storyboard != storyboard)
-            {
-               return;
-            }
+            return;
+         }
 
+         // The first frame of a glide moves by one display frame (about 7 ms at
+         // 143 Hz); a late frame (a busy page) catches up but never overshoots.
+         double seconds = _lastFrame == TimeSpan.Zero ? 1.0 / 144 : Math.Clamp((now - _lastFrame).TotalSeconds, 0, 0.1);
+         _lastFrame = now;
+         double share = 1 - Math.Exp(-seconds / TIME_CONSTANT_SECONDS);
+
+         double top = _drawnTop + ((_shown.Y - _drawnTop) * share);
+         double height = _drawnHeight + ((_shown.Height - _drawnHeight) * share);
+
+         if (Math.Abs(_shown.Y - top) < LANDED_PIXELS && Math.Abs(_shown.Height - height) < LANDED_PIXELS)
+         {
             _stop();
 
             // End on the selected row as it is laid out now (rows can move during
             // a glide), never on a stale target.
             _place(animate: false);
-         };
-         _storyboard = storyboard;
-         storyboard.Begin(_highlight, HandoffBehavior.SnapshotAndReplace, isControllable: true);
+            if (!_shown.IsEmpty)
+            {
+               _draw(_shown.Y, _shown.Height);
+            }
+
+            return;
+         }
+
+         _draw(top, height);
       }
 
-      private void _add(Storyboard storyboard, DependencyProperty property, double from, double to)
+      // The highlight is laid out once on its target row; where it is drawn on the
+      // way there is a render transform only, so a glide frame never runs layout.
+      private void _draw(double top, double height)
       {
-         DoubleAnimation animation = new(from, to, _duration) { EasingFunction = _easeOut };
-         Storyboard.SetTarget(animation, _highlight);
-         Storyboard.SetTargetProperty(animation, new PropertyPath(property));
-         storyboard.Children.Add(animation);
+         _drawnTop = top;
+         _drawnHeight = height;
+
+         FrameworkElement highlight = _highlight!;
+         Canvas.SetTop(highlight, _shown.Y);
+         highlight.Height = _shown.Height;
+
+         if (highlight.RenderTransform is not TransformGroup { Children: [ScaleTransform scale, TranslateTransform translate] })
+         {
+            scale = new ScaleTransform();
+            translate = new TranslateTransform();
+            highlight.RenderTransformOrigin = new Point(0, 0);
+            highlight.RenderTransform = new TransformGroup { Children = { scale, translate } };
+         }
+
+         translate.Y = top - _shown.Y;
+         scale.ScaleY = _shown.Height > 0 ? height / _shown.Height : 1;
       }
 
       private void _stop()
       {
-         _gliding = false;
-         if (_storyboard is not null && _highlight is not null)
+         if (_gliding)
          {
-            _storyboard.Remove(_highlight);
+            _gliding = false;
+            CompositionTarget.Rendering -= _compositionTarget_Rendering;
          }
-
-         _storyboard = null;
-      }
-
-      private static QuinticEase _frozenEase()
-      {
-         QuinticEase ease = new() { EasingMode = EasingMode.EaseOut };
-         ease.Freeze();
-         return ease;
       }
    }
 }

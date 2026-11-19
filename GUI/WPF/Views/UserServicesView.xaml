@@ -35,9 +35,6 @@
       <system:Double xmlns:system="clr-namespace:System;assembly=System.Runtime" x:Key="CoreButtonHeight">38</system:Double>
       <Thickness x:Key="CoreGap">0,18,0,0</Thickness>
       <Thickness x:Key="CoreCaptionGap">0,18,0,6</Thickness>
-      <system:Double xmlns:system="clr-namespace:System;assembly=System.Runtime" x:Key="ServicesWidth">204</system:Double>
-      <system:Double xmlns:system="clr-namespace:System;assembly=System.Runtime" x:Key="AccountsWidth">196</system:Double>
-      <system:Double xmlns:system="clr-namespace:System;assembly=System.Runtime" x:Key="AccountColumnWidth">340</system:Double>
       <Visibility x:Key="RightChipVisibility">Visible</Visibility>
       <!-- Title bar: vault name, what seals it, the session state. -->
       <DockPanel x:Key="VaultTitleBarContent"
@@ -46,11 +43,13 @@
          <StackPanel DockPanel.Dock="Right"
                      Orientation="Horizontal"
                      VerticalAlignment="Center">
-            <Rectangle Style="{StaticResource Dot}"
+            <helper:GlowHalo Style="{StaticResource Dot}"
                        Margin="0,0,8,0"
-                       Effect="{DynamicResource Glow.Warning}"
+                       Color="{DynamicResource Glow.WarningColor}"
+                       Strength="{DynamicResource Glow.WarningStrength}"
+                       Radius="10"
                        Fill="{DynamicResource WarningBrush}"
-                       Visibility="{Binding IsSessionUnlimited, Converter={StaticResource BooleanToVisibility}}"/>
+                       helper:Motion.AnimateVisibility="{Binding IsSessionUnlimited, Converter={StaticResource BooleanToVisibility}}"/>
             <TextBlock FontSize="13"
                        Foreground="{DynamicResource MutedForegroundBrush}"
                        Text="{Binding SessionText}"/>
@@ -82,7 +81,7 @@
                     BorderBrush="{DynamicResource DangerBorderBrush}"
                     Content="{loc:Loc Label_AddSecondPasskey}"
                     Command="{Binding UserSettingsCommand}"
-                    Visibility="{Binding ShowAddPasskey, Converter={StaticResource BooleanToVisibility}}"/>
+                    helper:Motion.AnimateVisibility="{Binding ShowAddPasskey, Converter={StaticResource BooleanToVisibility}}"/>
          </StackPanel>
       </DockPanel>
    </Window.Resources>
@@ -126,18 +125,20 @@
                   <StackPanel Orientation="Horizontal">
                      <AccessText VerticalAlignment="Center"
                                  Text="{loc:Loc Menu_Save}"/>
-                     <Border Margin="8,0,0,0"
-                             Padding="5,1"
-                             VerticalAlignment="Center"
-                             Effect="{DynamicResource Glow.Soft}"
-                             helper:Motion.PopOnValue="{Binding ChangeCount}"
-                             Background="{DynamicResource AccentBrush}"
-                             Visibility="{Binding ChangeCount, Converter={StaticResource CountToVisibilityConverter}}">
-                        <TextBlock FontFamily="{StaticResource MonoFontFamily}"
-                                   FontSize="10"
-                                   Foreground="{DynamicResource AccentForegroundBrush}"
-                                   Text="{Binding ChangeBadge}"/>
-                     </Border>
+                     <Grid Margin="8,0,0,0"
+                           VerticalAlignment="Center"
+                           helper:Motion.PopOnValue="{Binding ChangeCount}"
+                           helper:Motion.AnimateVisibility="{Binding ChangeCount, Converter={StaticResource CountToVisibilityConverter}}">
+                        <helper:GlowHalo Color="{DynamicResource Glow.SoftColor}"
+                                         Strength="{DynamicResource Glow.SoftStrength}"/>
+                        <Border Padding="5,1"
+                                Background="{DynamicResource AccentBrush}">
+                           <TextBlock FontFamily="{StaticResource MonoFontFamily}"
+                                      FontSize="10"
+                                      Foreground="{DynamicResource AccentForegroundBrush}"
+                                      Text="{Binding ChangeBadge}"/>
+                        </Border>
+                     </Grid>
                      <ContentControl Style="{StaticResource KeyChip}"
                                      Margin="8,0,0,0"
                                      Content="Ctrl S"/>
@@ -426,7 +427,7 @@
 
                <!-- Services column -->
                <Grid Grid.Column="0"
-                     Width="{DynamicResource ServicesWidth}"
+                     Width="{Binding ServicesWidth, Source={x:Static helper:VaultLayout.Current}}"
                      Margin="{DynamicResource ColumnPadding}">
                   <Grid.RowDefinitions>
                      <RowDefinition Height="Auto"/>
@@ -456,8 +457,8 @@
                         <Run Text="{Binding [Label_ServicesCaption], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}, Mode=OneWay}"/>
                      </TextBlock>
                   </DockPanel>
-                  <ListBox Grid.Row="1"
-                           Name="_services_LB"
+                  <helper:PooledListBox Grid.Row="1"
+                           x:Name="_services_LB"
                            Style="{StaticResource GlideListBox}"
                            ItemsSource="{Binding Services}"
                            SelectedItem="{Binding SelectedService, Mode=TwoWay}"
@@ -465,7 +466,7 @@
                            ScrollViewer.CanContentScroll="True"
                            ScrollViewer.IsDeferredScrollingEnabled="True"
                            VirtualizingStackPanel.IsVirtualizing="True"
-                           VirtualizingStackPanel.VirtualizationMode="Recycling"
+                           VirtualizingStackPanel.VirtualizationMode="Standard"
                            SelectionChanged="_services_LB_SelectionChanged">
                      <!-- Screen readers hear the dots too ("Unsaved change, Needs attention"). -->
                      <ListBox.ItemContainerStyle>
@@ -479,7 +480,7 @@
                               <StackPanel DockPanel.Dock="Right"
                                           Orientation="Horizontal"
                                           VerticalAlignment="Center">
-                                 <Rectangle Style="{StaticResource Dot}"
+                                 <helper:GlowHalo Style="{StaticResource Dot}"
                                             Margin="8,0,0,0"
                                             Fill="{DynamicResource AccentBrush}"
                                             Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BooleanToVisibility}}"/>
@@ -499,14 +500,14 @@
                            </DockPanel>
                         </DataTemplate>
                      </ListBox.ItemTemplate>
-                  </ListBox>
+                  </helper:PooledListBox>
                   <StackPanel Grid.Row="2">
                      <Rectangle Style="{StaticResource DashedRule}"
                                 Margin="0,8,0,8"
                                 Stroke="{DynamicResource SubtleBorderBrush}"/>
                      <StackPanel Margin="8,0,0,0"
                                  Orientation="Horizontal">
-                        <Rectangle Style="{StaticResource Dot}" Fill="{DynamicResource AccentBrush}"/>
+                        <helper:GlowHalo Style="{StaticResource Dot}" Fill="{DynamicResource AccentBrush}"/>
                         <TextBlock Margin="8,0,0,0"
                                    FontSize="12"
                                    Foreground="{DynamicResource MutedForegroundBrush}"
@@ -544,15 +545,17 @@
             <StackPanel DockPanel.Dock="Left"
                         Orientation="Horizontal"
                         VerticalAlignment="Center">
-               <StackPanel Orientation="Horizontal"
-                           VerticalAlignment="Center"
-                           Margin="0,0,14,0"
-                           Effect="{DynamicResource Glow.Soft}">
+               <Grid VerticalAlignment="Center"
+                     Margin="0,0,14,0">
+               <helper:GlowHalo Color="{DynamicResource Glow.SoftColor}"
+                                Strength="{DynamicResource Glow.SoftStrength}"/>
+               <StackPanel Orientation="Horizontal">
                   <Rectangle Width="16" Height="4" Margin="0,0,3,0" Fill="{DynamicResource AccentBrush}"/>
                   <Rectangle Width="16" Height="4" Margin="0,0,3,0" Fill="{DynamicResource AccentBrush}"/>
                   <Rectangle Width="16" Height="4" Margin="0,0,3,0" Fill="{DynamicResource AccentBrush}"/>
                   <Rectangle Width="16" Height="4" Fill="{DynamicResource AccentBrush}"/>
                </StackPanel>
+               </Grid>
                <TextBlock FontSize="12"
                           VerticalAlignment="Center"
                           Foreground="{DynamicResource ForegroundBrush}">

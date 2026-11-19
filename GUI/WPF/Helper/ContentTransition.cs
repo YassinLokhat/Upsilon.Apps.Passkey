@@ -14,10 +14,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// <para>
    /// Parts are marked with <see cref="Motion.TransitionTierProperty"/>: a field's
    /// text, a combo box's value, each row of a list (account rows, quality ticks,
-   /// history rows). <see cref="Capture"/> snapshots every part just before the
-   /// selection changes; after the change <see cref="Play"/> snapshots them again and
-   /// compares the pixels, before the next frame is drawn. Identical parts are left
-   /// alone: no overlay, no motion.
+   /// history rows). <see cref="Capture"/> copies every part's drawing (the vector
+   /// instructions WPF already keeps for it: glyph runs, shapes) just before the
+   /// selection changes; after the change <see cref="Play"/> lays the page out once
+   /// and compares those drawings with the new ones, before the next frame is drawn.
+   /// Identical parts are left alone: no overlay, no motion. Nothing is rasterized
+   /// and no pixels are compared, so a switch costs about a millisecond on top of
+   /// the page's own layout.
    /// A part that changed hands over quickly and lopsidedly: the old value fades
    /// out over 100 ms (ease-in, so it drops late and fast) while the new one fades
    /// in from 70 to 190 ms (ease-out), both sliding 10 px in the direction of
@@ -25,7 +28,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
    /// a muddy 50/50 frame of two texts).
    /// </para>
    /// <para>
-   /// The old snapshots sit in the window's adorner layer, clipped to each part's
+   /// The old drawings sit in the window's adorner layer, clipped to each part's
    /// visible bounds, so nothing slides over a frame. Frames, captions and buttons
    /// are never parts. Cosmetic only: nothing waits on it, and with Windows
    /// animations off nothing is captured.
@@ -52,7 +55,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
       private readonly FrameworkElement _root;
       private readonly Dictionary<string, Snapshot> _old;
-      private readonly List<SnapshotAdorner> _adorners = [];
+      private readonly List<DrawingAdorner> _adorners = [];
       private readonly List<(FrameworkElement Content, object Opacity, Transform Transform, Geometry? Clip)> _touched = [];
       private Storyboard? _storyboard;
       private bool _finished;
@@ -91,7 +94,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          {
             if (_visibleBounds(part.Content, root) is Rect visible)
             {
-               old[part.Key] = new Snapshot(part, _render(part.Content), part.Content.TransformToAncestor(root).TransformBounds(new Rect(part.Content.RenderSize)), visible);
+               old[part.Key] = new Snapshot(part, VectorSnapshot.Of(part.Content), part.Content.TransformToAncestor(root).TransformBounds(new Rect(part.Content.RenderSize)), visible);
             }
          }
 
@@ -108,8 +111,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          _current = this;
 
          // Everything is decided before the next frame is drawn: an unchanged part
-         // never gets an overlay, not even for one frame (a bitmap of text is
-         // never pixel-identical to the live text, so that read as a vibration).
+         // never gets an overlay, not even for one frame (an overlay over unchanged
+         // text read as a vibration).
          _start(Math.Sign(direction));
       }
 
@@ -150,24 +153,25 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             Snapshot? before = _old.GetValueOrDefault(key);
             Part? after = current.GetValueOrDefault(key);
 
-            // Unchanged (same place, same pixels): nothing is drawn over it, nothing moves.
-            // Only the drawn pixels count, so a field that just got narrower (a
-            // scrollbar appeared next to it) with the same text is unchanged too.
+            // Unchanged (same place, same drawing): nothing is drawn over it, nothing
+            // moves. Only what is visibly drawn counts, so a field that just got
+            // narrower (a scrollbar appeared next to it) with the same text is
+            // unchanged too.
             if (before is not null && after is not null
                && before.Bounds.TopLeft == after.Content.TransformToAncestor(_root).Transform(default)
-               && _samePixels(before.Image, _render(after.Content)))
+               && before.Drawing.Matches(VectorSnapshot.Of(after.Content)))
             {
                continue;
             }
 
-            SnapshotAdorner? adorner = before is null ? null : _addAdorner(before);
+            DrawingAdorner? adorner = before is null ? null : _addAdorner(before);
 
             Part reference = after ?? before!.Part;
             TimeSpan delay = ((reference.Tier - firstTier) * _tierStagger) + (Math.Min(reference.Row, MAX_STAGGERED_ROWS) * _rowStagger);
 
             if (adorner is not null)
             {
-               _keyFrames(storyboard, adorner.Image, UIElement.OpacityProperty, delay, (1, TimeSpan.Zero, null), (0, _outDuration, _easeIn));
+               _keyFrames(storyboard, adorner.Host, UIElement.OpacityProperty, delay, (1, TimeSpan.Zero, null), (0, _outDuration, _easeIn));
                _keyFrames(storyboard, adorner.Shift, TranslateTransform.XProperty, delay, (0, TimeSpan.Zero, null), (-SLIDE_DISTANCE * direction, _outDuration, _easeIn));
             }
 
@@ -186,6 +190,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
                TimeSpan inStart = delay + _inStart;
                _keyFrames(storyboard, content, UIElement.OpacityProperty, inStart, (0, TimeSpan.Zero, null), (1, _inDuration, _easeOut));
+               if (after.Companion is { IsVisible: true } companion && !_touched.Any(x => x.Content == companion))
+               {
+                  _touch(companion);
+                  _keyFrames(storyboard, companion, UIElement.OpacityProperty, inStart, (0, TimeSpan.Zero, null), (1, _inDuration, _easeOut));
+               }
                _keyFrames(storyboard, shift, TranslateTransform.XProperty, inStart, (SLIDE_DISTANCE * direction, TimeSpan.Zero, null), (0, _inDuration, _easeOut));
                _keyFrames(storyboard, clipShift, TranslateTransform.XProperty, inStart, (-SLIDE_DISTANCE * direction, TimeSpan.Zero, null), (0, _inDuration, _easeOut));
             }
@@ -211,7 +220,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
          _finished = true;
          _storyboard?.Remove(_root);
-         foreach (SnapshotAdorner adorner in _adorners.ToList())
+         foreach (DrawingAdorner adorner in _adorners.ToList())
          {
             _remove(adorner);
          }
@@ -225,7 +234,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
          _touched.Clear();
 
-         // Drop the bitmaps now rather than whenever this object is collected.
+         // Drop the drawings now rather than whenever this object is collected.
          _old.Clear();
          _adorners.Clear();
          if (_current == this)
@@ -249,15 +258,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          }
       }
 
-      private SnapshotAdorner _addAdorner(Snapshot snapshot)
+      private DrawingAdorner _addAdorner(Snapshot snapshot)
       {
-         SnapshotAdorner adorner = new(_root, snapshot);
+         DrawingAdorner adorner = new(_root, snapshot);
          AdornerLayer.GetAdornerLayer(_root)?.Add(adorner);
          _adorners.Add(adorner);
          return adorner;
       }
 
-      private void _remove(SnapshotAdorner? adorner)
+      private void _remove(DrawingAdorner? adorner)
       {
          if (adorner is null || !_adorners.Remove(adorner))
          {
@@ -293,8 +302,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             }
             else if (_revealsSecret(child))
             {
-               // A password shown in clear is never captured into a bitmap: that
-               // part just switches without motion.
+               // A password shown in clear is never copied: that part just
+               // switches without motion.
             }
             else if (child is ItemsControl list)
             {
@@ -313,12 +322,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
             }
             else if (_content(child) is FrameworkElement content)
             {
-               parts.Add(new Part(key, content, tier, 0));
+               parts.Add(new Part(key, content, tier, 0, _placeholder(child)));
             }
          }
       }
 
       /// <summary>True when <paramref name="element"/> is, or holds, a password box showing its password.</summary>
+      internal static bool RevealsSecret(DependencyObject element) => _revealsSecret(element);
+
       private static bool _revealsSecret(DependencyObject element)
       {
          if (element is VisiblePasswordBox { IsRevealed: true })
@@ -337,6 +348,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
 
          return false;
       }
+
+      /// <summary>A text box's placeholder (the template's <c>placeholder</c> part), if it has one.</summary>
+      private static FrameworkElement? _placeholder(FrameworkElement marked)
+         => marked is TextBoxBase box ? box.Template?.FindName("placeholder", box) as FrameworkElement : null;
 
       /// <summary>
       /// The piece that actually changes: a text box's text (not its box), a combo
@@ -397,7 +412,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          return visible.IsEmpty || visible.Width < 1 || visible.Height < 1 ? null : visible;
       }
 
-      /// <summary>A bitmap of <paramref name="element"/> at its device DPI, laid out as it is now.</summary>
+      /// <summary>
+      /// A bitmap of <paramref name="element"/> at its device DPI, laid out as it is
+      /// now. Only for the theme crossfade (once per theme change), never per selection.
+      /// </summary>
       internal static BitmapSource Render(FrameworkElement element) => _render(element);
 
       private static RenderTargetBitmap _render(FrameworkElement content)
@@ -431,40 +449,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          return bitmap;
       }
 
-      /// <summary>
-      /// Same drawing, both anchored top-left; whatever lies outside one bitmap
-      /// counts as transparent, so only a real difference in what is drawn counts.
-      /// </summary>
-      private static bool _samePixels(BitmapSource a, BitmapSource b)
-      {
-         int[] left = _pixels(a);
-         int[] right = _pixels(b);
-         int width = Math.Max(a.PixelWidth, b.PixelWidth);
-         int height = Math.Max(a.PixelHeight, b.PixelHeight);
-
-         for (int y = 0; y < height; y++)
-         {
-            for (int x = 0; x < width; x++)
-            {
-               int pa = x < a.PixelWidth && y < a.PixelHeight ? left[(y * a.PixelWidth) + x] : 0;
-               int pb = x < b.PixelWidth && y < b.PixelHeight ? right[(y * b.PixelWidth) + x] : 0;
-               if (pa != pb)
-               {
-                  return false;
-               }
-            }
-         }
-
-         return true;
-      }
-
-      private static int[] _pixels(BitmapSource bitmap)
-      {
-         int[] pixels = new int[bitmap.PixelWidth * bitmap.PixelHeight];
-         bitmap.CopyPixels(pixels, bitmap.PixelWidth * 4, 0);
-         return pixels;
-      }
-
       private static void _keyFrames(Storyboard storyboard, DependencyObject target, DependencyProperty property, TimeSpan start, (double Value, TimeSpan At, IEasingFunction? Ease) from, (double Value, TimeSpan Duration, IEasingFunction Ease) to)
       {
          // Holds the start value until the part's turn (a plain BeginTime would show
@@ -488,51 +472,58 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          return ease;
       }
 
-      private sealed record Part(string Key, FrameworkElement Content, int Tier, int Row);
+      // Companion: drawn in place of the content when it is empty (a text box's
+      // placeholder); it fades in with the new value instead of showing at once over
+      // the old one.
+      private sealed record Part(string Key, FrameworkElement Content, int Tier, int Row, FrameworkElement? Companion = null);
 
-      private sealed record Snapshot(Part Part, BitmapSource Image, Rect Bounds, Rect Visible);
+      private sealed record Snapshot(Part Part, VectorSnapshot Drawing, Rect Bounds, Rect Visible);
 
-      /// <summary>Draws one outgoing snapshot over its part, clipped to what was visible of it.</summary>
-      private sealed class SnapshotAdorner : Adorner
+      /// <summary>Draws one outgoing part over its place, clipped to what was visible of it.</summary>
+      private sealed class DrawingAdorner : Adorner
       {
          private readonly Rect _bounds;
 
-         public SnapshotAdorner(UIElement root, Snapshot snapshot)
+         public DrawingAdorner(UIElement root, Snapshot snapshot)
             : base(root)
          {
             _bounds = snapshot.Bounds;
+            // Never in the way of a click: the rows under the old drawing must take it.
             IsHitTestVisible = false;
-            // Never in the way of a click: the rows under the snapshot must take it.
-            Image = new Image
+            Host = new DrawingHost(snapshot.Drawing.Drawing)
             {
-               Source = snapshot.Image,
-               Stretch = Stretch.Fill,
                RenderTransform = Shift,
                IsHitTestVisible = false,
             };
-            AddVisualChild(Image);
+            AddVisualChild(Host);
             Clip = new RectangleGeometry(snapshot.Visible);
          }
 
-         public Image Image { get; }
+         public FrameworkElement Host { get; }
 
          public TranslateTransform Shift { get; } = new();
 
          protected override int VisualChildrenCount => 1;
 
-         protected override Visual GetVisualChild(int index) => Image;
+         protected override Visual GetVisualChild(int index) => Host;
 
          protected override Size MeasureOverride(Size constraint)
          {
-            Image.Measure(_bounds.Size);
+            Host.Measure(_bounds.Size);
             return AdornedElement.RenderSize;
          }
 
          protected override Size ArrangeOverride(Size finalSize)
          {
-            Image.Arrange(_bounds);
+            Host.Arrange(_bounds);
             return finalSize;
          }
+      }
+
+      /// <summary>Replays a copied drawing at its own origin.</summary>
+      private sealed class DrawingHost(Drawing drawing) : FrameworkElement
+      {
+         protected override void OnRender(DrawingContext drawingContext) => drawingContext.DrawDrawing(drawing);
       }
    }
 }

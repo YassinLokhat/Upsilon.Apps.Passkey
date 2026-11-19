@@ -2,7 +2,6 @@
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
@@ -29,6 +28,19 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       public AccountView()
       {
          InitializeComponent();
+
+         // History rows are reused (a new account, scrolling): a row's masked
+         // password is set for its own entry each time it gets one, and wiped the
+         // moment it lets go, so a reused row never holds another entry's password.
+         // (A new row has no template yet here; its Loaded handler fills it.)
+         _passwords_LB.ContainerPrepared += (row, item) =>
+         {
+            if (item is PasswordViewModel entry && PooledListBox.Find<VisiblePasswordBox>(row) is VisiblePasswordBox passwordBox)
+            {
+               passwordBox.Password = entry.Password;
+            }
+         };
+         _passwords_LB.ContainerCleared += row => PooledListBox.Find<VisiblePasswordBox>(row)?.Clear();
 
          _clipboard_G.DataContext = _clipboardStatus;
          _clipboardStatus.CountdownStarted += _clipboardStatus_CountdownStarted;
@@ -62,11 +74,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       /// </summary>
       private void _identifierMore_Click(object sender, RoutedEventArgs e)
       {
-         if (_viewModel is null
-            || sender is not Button { ContextMenu: { } menu } button)
+         if (_viewModel is null || sender is not Button button)
          {
             return;
          }
+
+         // Built on first use (see IdentifierMoreMenu), then kept with the row.
+         button.ContextMenu ??= (ContextMenu)FindResource("IdentifierMoreMenu");
+         ContextMenu menu = button.ContextMenu;
 
          if (button.DataContext is IdentifierViewModel identifier)
          {
@@ -209,41 +224,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             }
          }
 
+         // The rows fill their masked password on Loaded, which runs in the same
+         // pass as the layout, before that frame is drawn. No extra layout pass here:
+         // one for the whole switch is enough.
          _passwords_LB.ItemsSource = _viewModel?.Passwords;
-
-         // Fill the rows now rather than on their Loaded (a frame later), so a row
-         // is final in the first frame drawn and the layer transition sees it as is.
-         if (_passwords_LB.IsLoaded)
-         {
-            _passwords_LB.UpdateLayout();
-            for (int i = 0; i < _passwords_LB.Items.Count; i++)
-            {
-               if (_passwords_LB.ItemContainerGenerator.ContainerFromIndex(i) is ListBoxItem { Content: PasswordViewModel entry } row
-                  && _findChild<VisiblePasswordBox>(row) is VisiblePasswordBox passwordBox)
-               {
-                  passwordBox.Password = entry.Password;
-               }
-            }
-         }
-      }
-
-      private static T? _findChild<T>(DependencyObject parent) where T : DependencyObject
-      {
-         for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-         {
-            DependencyObject child = VisualTreeHelper.GetChild(parent, i);
-            if (child is T match)
-            {
-               return match;
-            }
-
-            if (_findChild<T>(child) is T found)
-            {
-               return found;
-            }
-         }
-
-         return null;
       }
 
       private void _value_TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)

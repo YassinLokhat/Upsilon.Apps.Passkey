@@ -21,6 +21,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    internal sealed partial class UserServicesView : Window, IDisposable, ILanguageAware
    {
       private readonly UserServicesViewModel _viewModel;
+      private readonly HeldKeySelection _servicesHeldKeys;
       private readonly IDatabase _database;
       private bool _isClosing;
       private bool _forceClose;
@@ -45,6 +46,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _navigation.ItemRequested += _navigation_ItemRequested;
 
          DataContext = _viewModel = new($"{_session.User}");
+         _servicesHeldKeys = new HeldKeySelection(_services_LB, _showSelectedService);
          _viewModel.FiltersRefreshed += _viewModel_FiltersRefreshed;
          _viewModel.LanguageRefreshed += (_, _) => _refreshAlertsMenuFromSession();
          _viewModel.ThemeRefreshed += (_, _) => _refreshAlertsMenuFromSession();
@@ -68,6 +70,52 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
          Loaded += _userServicesView_Loaded;
          Closing += _window_Closing;
+         SourceInitialized += (_, _) =>
+         {
+            if (PresentationSource.FromVisual(this) is System.Windows.Interop.HwndSource source)
+            {
+               source.AddHook(_liveResizeHook);
+            }
+         };
+      }
+
+      private const int WM_ENTERSIZEMOVE = 0x0231;
+      private const int WM_EXITSIZEMOVE = 0x0232;
+
+      // True while the user drags a window edge (or moves the window).
+      private bool _liveResize;
+
+      private IntPtr _liveResizeHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+      {
+         if (msg == WM_ENTERSIZEMOVE)
+         {
+            BeginLiveResize();
+         }
+         else if (msg == WM_EXITSIZEMOVE)
+         {
+            EndLiveResize();
+         }
+
+         return IntPtr.Zero;
+      }
+
+      /// <summary>
+      /// While a window edge is dragged, the side columns keep their width and only
+      /// the password core stretches: re-measuring every list row on each step is
+      /// what made resizing struggle. The columns take their proportional width once
+      /// the edge is released (<see cref="EndLiveResize"/>).
+      /// </summary>
+      internal void BeginLiveResize() => _liveResize = true;
+
+      internal void EndLiveResize()
+      {
+         if (!_liveResize)
+         {
+            return;
+         }
+
+         _liveResize = false;
+         _applyLayoutTokens(new Size(ActualWidth, ActualHeight));
       }
 
       private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
@@ -289,9 +337,41 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          _session.User?.Shake();
+
+         // A held arrow key: the list follows every step, the service is shown
+         // for the row the keys stop on.
+         if (_servicesHeldKeys.Defer())
+         {
+            return;
+         }
+
          // The list's own selection (what was just clicked), not the view model's
          // copy, which a binding may not have caught up with yet.
          _service_SV.SetDataContext(_services_LB.SelectedItem as ServiceViewModel, ContentTransition.Direction(_services_LB, e));
+      }
+
+      private bool _showSelectedService()
+      {
+         if (_isClosing)
+         {
+            return true;
+         }
+
+         if (this.GetIsBusy())
+         {
+            return false;
+         }
+
+         ServiceViewModel? selected = _services_LB.SelectedItem as ServiceViewModel;
+         if (ReferenceEquals(_service_SV.DataContext, selected))
+         {
+            return true;
+         }
+
+         int from = _services_LB.Items.IndexOf(_service_SV.DataContext);
+         int to = _services_LB.Items.IndexOf(selected);
+         _service_SV.SetDataContext(selected, from < 0 || to < 0 ? 0 : Math.Sign(to - from));
+         return true;
       }
 
       private async void _save()
@@ -535,13 +615,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       /// max), padding between layers tightens and the right-hand shortcut chips
       /// drop on short or narrow windows.
       /// </summary>
-      private void _window_SizeChanged(object sender, SizeChangedEventArgs e)
+      private void _window_SizeChanged(object sender, SizeChangedEventArgs e) => _applyLayoutTokens(e.NewSize);
+
+      private void _applyLayoutTokens(Size size)
       {
          const double coreMaxWidth = 900;
          const double fixedChrome = 150;
 
-         double width = e.NewSize.Width;
-         bool compact = width < 1400 || e.NewSize.Height < 800;
+         double width = size.Width;
+         bool compact = width < 1400 || size.Height < 800;
 
          double services = Math.Clamp(width * 0.142, 180, 280);
          double accounts = Math.Clamp(width * 0.136, 170, 260);
@@ -553,18 +635,32 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             Math.Clamp(width * 0.236, 300, 460),
             width - services - accounts - fixedChrome - coreMaxWidth);
 
-         Resources["ServicesWidth"] = services;
-         Resources["AccountsWidth"] = accounts;
-         Resources["AccountColumnWidth"] = accountColumn;
-         Resources["BodyMargin"] = compact ? new Thickness(8, 12, 8, 8) : new Thickness(16, 20, 16, 12);
-         Resources["LayerHeaderPadding"] = compact ? new Thickness(10, 14, 10, 6) : new Thickness(14, 20, 14, 12);
-         Resources["LayerInset"] = compact ? new Thickness(8, 14, 8, 8) : new Thickness(14, 22, 14, 14);
-         Resources["ColumnPadding"] = compact ? new Thickness(8, 8, 8, 8) : new Thickness(10, 12, 10, 12);
-         Resources["CorePadding"] = compact ? new Thickness(14, 16, 14, 8) : new Thickness(20, 24, 20, 16);
-         Resources["CoreGap"] = compact ? new Thickness(0, 8, 0, 0) : new Thickness(0, 18, 0, 0);
-         Resources["CoreCaptionGap"] = compact ? new Thickness(0, 8, 0, 4) : new Thickness(0, 18, 0, 6);
-         Resources["CoreButtonHeight"] = compact ? 34d : 38d;
-         Resources["RightChipVisibility"] = width >= 1500 ? Visibility.Visible : Visibility.Collapsed;
+         // The widths change on every resize step: bound directly, they update only
+         // their own columns, and not at all while an edge is being dragged.
+         if (!_liveResize)
+         {
+            VaultLayout.Current.Set(services, accounts, accountColumn);
+         }
+
+         // Window resources make WPF walk the whole window to find their users, so
+         // these are written only when they change (at the compact threshold).
+         _setToken("BodyMargin", compact ? new Thickness(8, 12, 8, 8) : new Thickness(16, 20, 16, 12));
+         _setToken("LayerHeaderPadding", compact ? new Thickness(10, 14, 10, 6) : new Thickness(14, 20, 14, 12));
+         _setToken("LayerInset", compact ? new Thickness(8, 14, 8, 8) : new Thickness(14, 22, 14, 14));
+         _setToken("ColumnPadding", compact ? new Thickness(8, 8, 8, 8) : new Thickness(10, 12, 10, 12));
+         _setToken("CorePadding", compact ? new Thickness(14, 16, 14, 8) : new Thickness(20, 24, 20, 16));
+         _setToken("CoreGap", compact ? new Thickness(0, 8, 0, 0) : new Thickness(0, 18, 0, 0));
+         _setToken("CoreCaptionGap", compact ? new Thickness(0, 8, 0, 4) : new Thickness(0, 18, 0, 6));
+         _setToken("CoreButtonHeight", compact ? 34d : 38d);
+         _setToken("RightChipVisibility", width >= 1500 ? Visibility.Visible : Visibility.Collapsed);
+      }
+
+      private void _setToken(string key, object value)
+      {
+         if (!Equals(Resources[key], value))
+         {
+            Resources[key] = value;
+         }
       }
 
       private static int _passkeyQualityCount(IEnumerable<IAlert> alerts)

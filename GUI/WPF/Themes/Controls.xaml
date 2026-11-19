@@ -106,6 +106,7 @@
     </Style>
 
     <Style TargetType="ToolTip">
+        <Setter Property="helper:Motion.DropInWhenShown" Value="True"/>
         <Setter Property="Background" Value="{DynamicResource Layer2Brush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
@@ -280,6 +281,7 @@
                           Data="M 0 0 L 3.5 3.5 L 7 0"/>
                 </StackPanel>
                 <Popup x:Name="PART_Popup"
+                       helper:Motion.FadeOnClose="True"
                        Placement="Bottom"
                        VerticalOffset="4"
                        IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
@@ -381,6 +383,7 @@
                       StrokeThickness="1.2"
                       Data="M 0 0 L 3.5 3.5 L 0 7"/>
                 <Popup x:Name="PART_Popup"
+                       helper:Motion.FadeOnClose="True"
                        Placement="Right"
                        VerticalOffset="-5"
                        IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
@@ -507,8 +510,9 @@
                                     <Border Background="{DynamicResource SelectedBackgroundBrush}"/>
                                     <Border BorderBrush="{DynamicResource AccentBrush}"
                                             BorderThickness="1"
-                                            Opacity="0.75"
-                                            Effect="{DynamicResource Glow.Soft}"/>
+                                            Opacity="0.75">
+                                        <helper:GlowHalo Margin="-1" Source="Line" Color="{DynamicResource Glow.SoftColor}" Strength="{DynamicResource Glow.SoftStrength}"/>
+                                    </Border>
                                 </Grid>
                             </Canvas>
                             <ScrollViewer Focusable="False"
@@ -556,7 +560,9 @@
                         <Border x:Name="selectRing"
                                 Opacity="0"
                                 BorderBrush="{DynamicResource AccentBrush}"
-                                BorderThickness="1"/>
+                                BorderThickness="1">
+                            <helper:GlowHalo x:Name="selectGlow" Visibility="Collapsed" Margin="-1" Source="Line" Color="{DynamicResource Glow.SoftColor}" Strength="{DynamicResource Glow.SoftStrength}"/>
+                        </Border>
                         <Border x:Name="Bd"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -588,7 +594,7 @@
                                 <Condition Property="IsSelected" Value="True"/>
                                 <Condition Property="helper:Motion.GlideSelection" Value="False"/>
                             </MultiTrigger.Conditions>
-                            <Setter TargetName="selectRing" Property="Effect" Value="{DynamicResource Glow.Soft}"/>
+                            <Setter TargetName="selectGlow" Property="Visibility" Value="Visible"/>
                             <MultiTrigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
@@ -619,6 +625,14 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <!-- In a gliding list the highlight already shows the keyboard position
+                 (selection follows focus): a focus ring snapping to the new row
+                 while the highlight glides there reads as two motions. -->
+            <Trigger Property="helper:Motion.GlideSelection" Value="True">
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- Rows that hold their own controls (identifiers, password history): no
@@ -788,6 +802,14 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
+                        <helper:GlowHalo x:Name="checkBoxGlow"
+                                         Visibility="Collapsed"
+                                         Width="16"
+                                         Height="16"
+                                         CornerRadius="2"
+                                         VerticalAlignment="Center"
+                                         Color="{DynamicResource Glow.SoftColor}"
+                                         Strength="{DynamicResource Glow.SoftStrength}"/>
                         <Border x:Name="checkBoxBorder"
                                 Width="16"
                                 Height="16"
@@ -847,7 +869,7 @@
                             </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="checkBoxBorder" Property="Effect" Value="{DynamicResource Glow.Soft}"/>
+                            <Setter TargetName="checkBoxGlow" Property="Visibility" Value="Visible"/>
                             <Setter TargetName="checkBoxBorder" Property="Background" Value="{DynamicResource AccentBrush}"/>
                             <Setter TargetName="checkBoxBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
                         </Trigger>
@@ -973,15 +995,18 @@
                         <Grid.RenderTransform>
                             <ScaleTransform x:Name="pressScale"/>
                         </Grid.RenderTransform>
+                        <helper:GlowHalo x:Name="fillGlow"
+                                         Visibility="Collapsed"
+                                         Color="{DynamicResource Glow.SoftColor}"
+                                         Strength="{DynamicResource Glow.SoftStrength}"/>
                         <Border x:Name="baseFill"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"/>
+                        <!-- Hover fill and outline in one element: they always fade together. -->
                         <Border x:Name="hoverFill"
                                 Opacity="0"
-                                Background="{DynamicResource HoverBackgroundBrush}"/>
-                        <Border x:Name="hoverRing"
-                                Opacity="0"
+                                Background="{DynamicResource HoverBackgroundBrush}"
                                 BorderBrush="{DynamicResource AccentBrush}"
                                 BorderThickness="1"/>
                         <Border x:Name="focusRing"
@@ -1000,21 +1025,20 @@
                             <Condition Property="helper:Motion.GlowOnHover" Value="True"/>
                             <Condition Property="IsMouseOver" Value="True"/>
                         </MultiTrigger.Conditions>
-                        <Setter TargetName="baseFill" Property="Effect" Value="{DynamicResource Glow.Soft}"/>
+                        <Setter TargetName="fillGlow" Property="Visibility" Value="Visible"/>
                     </MultiTrigger>
                     <MultiTrigger>
                         <MultiTrigger.Conditions>
                             <Condition Property="helper:Motion.GlowOnHover" Value="True"/>
                             <Condition Property="IsKeyboardFocused" Value="True"/>
                         </MultiTrigger.Conditions>
-                        <Setter TargetName="baseFill" Property="Effect" Value="{DynamicResource Glow.Soft}"/>
+                        <Setter TargetName="fillGlow" Property="Visibility" Value="Visible"/>
                     </MultiTrigger>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Trigger.EnterActions>
                             <BeginStoryboard>
                                 <Storyboard>
                                 <DoubleAnimation Storyboard.TargetName="hoverFill" Storyboard.TargetProperty="Opacity" To="1" Duration="{StaticResource Motion.Fast}" EasingFunction="{StaticResource Motion.EaseOut}"/>
-                                <DoubleAnimation Storyboard.TargetName="hoverRing" Storyboard.TargetProperty="Opacity" To="1" Duration="{StaticResource Motion.Fast}" EasingFunction="{StaticResource Motion.EaseOut}"/>
                                 </Storyboard>
                             </BeginStoryboard>
                         </Trigger.EnterActions>
@@ -1022,7 +1046,6 @@
                             <BeginStoryboard>
                                 <Storyboard>
                                 <DoubleAnimation Storyboard.TargetName="hoverFill" Storyboard.TargetProperty="Opacity" To="0" Duration="{StaticResource Motion.Fast}" EasingFunction="{StaticResource Motion.EaseOut}"/>
-                                <DoubleAnimation Storyboard.TargetName="hoverRing" Storyboard.TargetProperty="Opacity" To="0" Duration="{StaticResource Motion.Fast}" EasingFunction="{StaticResource Motion.EaseOut}"/>
                                 </Storyboard>
                             </BeginStoryboard>
                         </Trigger.ExitActions>
@@ -1090,11 +1113,10 @@
                         <Border Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"/>
+                        <!-- Hover fill and outline in one element: they always fade together. -->
                         <Border x:Name="hoverFill"
                                 Opacity="0"
-                                Background="{DynamicResource HoverBackgroundBrush}"/>
-                        <Border x:Name="hoverRing"
-                                Opacity="0"
+                                Background="{DynamicResource HoverBackgroundBrush}"
                                 BorderBrush="{DynamicResource ControlBorderBrush}"
                                 BorderThickness="1"/>
                         <Border x:Name="focusRing"
@@ -1113,7 +1135,6 @@
                             <BeginStoryboard>
                                 <Storyboard>
                                 <DoubleAnimation Storyboard.TargetName="hoverFill" Storyboard.TargetProperty="Opacity" To="1" Duration="{StaticResource Motion.Fast}" EasingFunction="{StaticResource Motion.EaseOut}"/>
-                                <DoubleAnimation Storyboard.TargetName="hoverRing" Storyboard.TargetProperty="Opacity" To="1" Duration="{StaticResource Motion.Fast}" EasingFunction="{StaticResource Motion.EaseOut}"/>
                                 </Storyboard>
                             </BeginStoryboard>
                         </Trigger.EnterActions>
@@ -1121,7 +1142,6 @@
                             <BeginStoryboard>
                                 <Storyboard>
                                 <DoubleAnimation Storyboard.TargetName="hoverFill" Storyboard.TargetProperty="Opacity" To="0" Duration="{StaticResource Motion.Fast}" EasingFunction="{StaticResource Motion.EaseOut}"/>
-                                <DoubleAnimation Storyboard.TargetName="hoverRing" Storyboard.TargetProperty="Opacity" To="0" Duration="{StaticResource Motion.Fast}" EasingFunction="{StaticResource Motion.EaseOut}"/>
                                 </Storyboard>
                             </BeginStoryboard>
                         </Trigger.ExitActions>
@@ -1300,7 +1320,9 @@
                     Opacity="0"
                     BorderBrush="{DynamicResource AccentBrush}"
                     BorderThickness="1"
-                    IsHitTestVisible="False"/>
+                    IsHitTestVisible="False">
+                <helper:GlowHalo x:Name="focusGlow" Visibility="Collapsed" Margin="-1" Source="Line" Color="{DynamicResource Glow.SoftColor}" Strength="{DynamicResource Glow.SoftStrength}"/>
+            </Border>
         </Grid>
         <ControlTemplate.Triggers>
             <Trigger Property="Text" Value="">
@@ -1310,7 +1332,7 @@
                 <Setter TargetName="inputBorder" Property="BorderBrush" Value="{DynamicResource EditedBorderBrush}"/>
             </DataTrigger>
             <Trigger Property="IsKeyboardFocused" Value="True">
-                <Setter TargetName="focusRing" Property="Effect" Value="{DynamicResource Glow.Soft}"/>
+                <Setter TargetName="focusGlow" Property="Visibility" Value="Visible"/>
                 <Trigger.EnterActions>
                     <BeginStoryboard>
                         <Storyboard>
@@ -1392,14 +1414,16 @@
                                 Opacity="0"
                                 BorderBrush="{DynamicResource AccentBrush}"
                                 BorderThickness="1"
-                                IsHitTestVisible="False"/>
+                                IsHitTestVisible="False">
+                            <helper:GlowHalo x:Name="focusGlow" Visibility="Collapsed" Margin="-1" Source="Line" Color="{DynamicResource Glow.SoftColor}" Strength="{DynamicResource Glow.SoftStrength}"/>
+                        </Border>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <DataTrigger Binding="{Binding Background, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource IsChangedBrushConverter}}" Value="True">
                             <Setter TargetName="inputBorder" Property="BorderBrush" Value="{DynamicResource EditedBorderBrush}"/>
                         </DataTrigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="focusRing" Property="Effect" Value="{DynamicResource Glow.Soft}"/>
+                            <Setter TargetName="focusGlow" Property="Visibility" Value="Visible"/>
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
@@ -1487,6 +1511,7 @@
                                           ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
                                           ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"/>
                         <Popup x:Name="PART_Popup"
+                               helper:Motion.FadeOnClose="True"
                                Placement="Bottom"
                                VerticalOffset="2"
                                IsOpen="{TemplateBinding IsDropDownOpen}"
@@ -1633,6 +1658,7 @@
                                 <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Calendar}"/>
                             </Button>
                             <Popup x:Name="PART_Popup"
+                                   helper:Motion.FadeOnClose="True"
                                    AllowsTransparency="True"
                                    Placement="Bottom"
                                    VerticalOffset="2"
@@ -2202,8 +2228,9 @@
     </Style>
 
     <!-- 6 px square status dot ("unsaved change"). -->
-    <Style x:Key="Dot" TargetType="Rectangle">
-        <Setter Property="Effect" Value="{DynamicResource Glow.Soft}"/>
+    <Style x:Key="Dot" TargetType="helper:GlowHalo">
+        <Setter Property="Color" Value="{DynamicResource Glow.SoftColor}"/>
+        <Setter Property="Strength" Value="{DynamicResource Glow.SoftStrength}"/>
         <Setter Property="Width" Value="6"/>
         <Setter Property="Height" Value="6"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
@@ -2311,6 +2338,7 @@
                                   ContentSource="Header"
                                   RecognizesAccessKey="True"/>
                 <Popup x:Name="PART_Popup"
+                       helper:Motion.FadeOnClose="True"
                        Placement="Bottom"
                        HorizontalOffset="0"
                        VerticalOffset="6"

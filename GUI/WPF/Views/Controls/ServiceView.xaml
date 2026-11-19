@@ -147,7 +147,7 @@
 
             <!-- Accounts column -->
             <Grid Grid.Column="0"
-                  Width="{DynamicResource AccountsWidth}"
+                  Width="{Binding AccountsWidth, Source={x:Static helper:VaultLayout.Current}}"
                   Margin="{DynamicResource ColumnPadding}">
                <Grid.RowDefinitions>
                   <RowDefinition Height="Auto"/>
@@ -168,8 +168,8 @@
                      <Run Text="{Binding [Label_AccountsCaption], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}, Mode=OneWay}"/>
                   </TextBlock>
                </DockPanel>
-               <ListBox Grid.Row="1"
-                        Name="_accounts_LB"
+               <helper:PooledListBox Grid.Row="1"
+                        x:Name="_accounts_LB"
                         Style="{StaticResource GlideListBox}"
                         helper:Motion.TransitionTier="0"
                         SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
@@ -177,7 +177,7 @@
                         ScrollViewer.CanContentScroll="True"
                         ScrollViewer.IsDeferredScrollingEnabled="True"
                         VirtualizingStackPanel.IsVirtualizing="True"
-                        VirtualizingStackPanel.VirtualizationMode="Recycling"
+                        VirtualizingStackPanel.VirtualizationMode="Standard"
                         SelectionChanged="_accounts_LB_SelectionChanged">
                   <ListBox.ItemContainerStyle>
                      <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
@@ -204,7 +204,7 @@
                         </DataTemplate.Triggers>
                      </DataTemplate>
                   </ListBox.ItemTemplate>
-               </ListBox>
+               </helper:PooledListBox>
                <StackPanel Grid.Row="2">
                   <Rectangle Style="{StaticResource DashedRule}"
                              Margin="0,8,0,8"
