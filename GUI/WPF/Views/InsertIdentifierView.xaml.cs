@@ -29,8 +29,6 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             if (child is RadioButton button)
             {
                IdentifierType type = Enum.GetValues<IdentifierType>().FirstOrDefault(x => Enum.GetName(x) == $"{button.Tag}");
-               string glyph = $"{button.Tag}" != "All" ? IdentifierViewModel.TypeGlyphs[type] : IdentifierViewModel.AllTypeGlyph;
-               button.Content = $"{glyph} {button.Content}";
                button.IsChecked = $"{button.Tag}" == "All" || identifierType == type;
             }
          }

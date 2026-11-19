@@ -15,6 +15,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       public string Glyph { get; } = glyph;
 
       public string Display => Glyph;
+
+      /// <summary>Short word for the Strata type button ("User ▾", "Mail ▾", …).</summary>
+      public string ShortLabel => Type switch
+      {
+         IdentifierType.Username => Strings.Label_TypeShortUsername,
+         IdentifierType.Email => Strings.Label_TypeShortEmail,
+         IdentifierType.PhoneNumber => Strings.Label_TypeShortPhone,
+         IdentifierType.Passkey => Strings.Label_TypeShortPasskey,
+         IdentifierType.AuthenticatorApp => Strings.Label_TypeShortAuthenticator,
+         _ => Strings.Label_TypeShortAll,
+      };
    }
 
    internal sealed class IdentifierViewModel(IAccount account, IIdentifier identifier, bool isNew = false) : ObservableObject, IThemeAware, ILanguageAware

@@ -13,9 +13,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Helper
          => isDirty
             ? FieldStateBrushes.ChangedBrush
             : isNotifiedLeak
-               ? SemanticBrushes.Danger
+               ? SemanticBrushes.DangerField
                : isNotifiedWeak
-                  ? SemanticBrushes.Warning
+                  ? SemanticBrushes.WarningField
                   : FieldStateBrushes.UnchangedBrush2;
    }
 }

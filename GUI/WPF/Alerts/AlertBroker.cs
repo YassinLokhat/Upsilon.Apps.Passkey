@@ -19,6 +19,16 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
       private IDatabase? _database;
       private bool _disposed;
 
+      // While User Settings is open, the alert toggles are shown live through this
+      // mask instead of the saved one (the vault is never written for a preview).
+      private AlertKindList? _previewMask;
+
+      // The saved mask, read once per session (and again after the user settings
+      // are saved): reading Settings goes through Touch, which would reset the
+      // idle countdown every time an alert scan reports.
+      private AlertKindList? _savedMask;
+      private bool _savedMaskLoaded;
+
       public event EventHandler? NotifiedAlertsChanged;
 
       public IReadOnlyList<string> AvailableKinds { get; } =
@@ -31,7 +41,13 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
       {
          lock (_gate)
          {
-            AlertKindList? mask = _database?.User?.Settings.AlertsToNotify;
+            if (!_savedMaskLoaded && _database?.User is { } user)
+            {
+               _savedMask = user.Settings.AlertsToNotify;
+               _savedMaskLoaded = true;
+            }
+
+            AlertKindList? mask = _previewMask ?? _savedMask;
             if (mask is null || mask.Count == 0)
             {
                return [];
@@ -105,6 +121,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
 
       public void Detach()
       {
+         _previewMask = null;
+         _savedMask = null;
+         _savedMaskLoaded = false;
+
          if (_database is not null)
          {
             _unsubscribe(_database);
@@ -115,6 +135,32 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Alerts
          {
             _byKind.Clear();
          }
+      }
+
+      /// <summary>
+      /// Shows the alerts as if <paramref name="mask"/> were the user's saved
+      /// <see cref="ISettings.AlertsToNotify"/>; <see langword="null"/> goes back to
+      /// the saved one. Raises <see cref="NotifiedAlertsChanged"/>.
+      /// </summary>
+      public void SetPreviewMask(AlertKindList? mask)
+      {
+         lock (_gate)
+         {
+            _previewMask = mask;
+         }
+
+         _raiseChanged();
+      }
+
+      /// <summary>Re-reads the saved alert mask (after the user settings are saved).</summary>
+      public void RefreshSavedMask()
+      {
+         lock (_gate)
+         {
+            _savedMaskLoaded = false;
+         }
+
+         _raiseChanged();
       }
 
       public void RefreshHostAlerts()

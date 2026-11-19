@@ -2,6 +2,7 @@ using Microsoft.Win32;
 using System.IO;
 using System.Security;
 using System.Windows;
+using Upsilon.Apps.Passkey.GUI.WPF.Helper;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
@@ -222,7 +223,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
             app.Resources.MergedDictionaries[0] = colors;
          }
 
-         _dispatch(swap);
+         // Open windows crossfade to the new colours rather than flashing over.
+         _dispatch(() => Motion.CrossfadeTheme(swap));
       }
 
       private static void _notifyOpenWindows()

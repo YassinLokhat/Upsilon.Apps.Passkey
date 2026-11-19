@@ -1,0 +1,11 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Strata motion tokens. Quick and subtle, never bouncy: 120 ms with an ease-out
+         in the templates (code-driven motion: 120–200 ms). Helper/Motion.cs sets the template duration to zero
+         while Windows animations are off (SystemParameters.ClientAreaAnimation),
+         so every storyboard in the control templates stops animating at once.
+         Nothing here changes how long a secret is shown or kept: reveal, QR
+         auto-close and clipboard clearing keep their own timers. -->
+    <Duration x:Key="Motion.Fast">0:0:0.12</Duration>
+    <CubicEase x:Key="Motion.EaseOut" EasingMode="EaseOut"/>
+</ResourceDictionary>

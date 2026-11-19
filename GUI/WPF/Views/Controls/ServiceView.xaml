@@ -9,119 +9,238 @@
              xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
              d:DataContext="{d:DesignInstance Type=controls:ServiceViewModel}"
              mc:Ignorable="d">
-   <GroupBox Name="_service_GB"
-             Header="{Binding ServiceId}"
-             MouseRightButtonUp="_serviceView_MouseRightButtonUp">
-      <Grid>
+   <UserControl.Resources>
+      <BooleanToVisibilityConverter x:Key="BooleanToVisibility"/>
+   </UserControl.Resources>
+   <!-- Layer 1: the selected service. Its fields on top, its accounts on the
+        left, the account layer nested on the right. -->
+   <GroupBox Style="{StaticResource LayerGroupBox}"
+             Background="{DynamicResource Layer1Brush}"
+             Tag="{DynamicResource Layer0Brush}">
+      <GroupBox.Header>
+         <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource LayerNumber}" Text="1"/>
+            <TextBlock Style="{StaticResource LayerName}"
+                       Text="{Binding [Label_LayerService], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}}"/>
+            <Button Style="{StaticResource NotchIconButton}"
+                    Content="i"
+                    AutomationProperties.Name="{loc:Loc Tooltip_CopyItemId}"
+                       AutomationProperties.HelpText="{Binding ServiceId}"
+                    Click="_copyServiceId_Click">
+               <Button.ToolTip>
+                  <StackPanel>
+                     <TextBlock FontFamily="{StaticResource MonoFontFamily}" Text="{Binding ServiceId}"/>
+                     <TextBlock Margin="0,4,0,0"
+                                Foreground="{DynamicResource MutedForegroundBrush}"
+                                Text="{loc:Loc Tooltip_CopyItemId}"/>
+                  </StackPanel>
+               </Button.ToolTip>
+            </Button>
+         </StackPanel>
+      </GroupBox.Header>
+      <Grid xmlns:helper="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Helper">
          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
          </Grid.RowDefinitions>
-         <Grid Grid.Row="0">
+
+         <!-- Name, URL, Open, Activity / Notes -->
+         <Grid Grid.Row="0"
+               Margin="{DynamicResource LayerHeaderPadding}">
             <Grid.RowDefinitions>
-               <RowDefinition/>
-               <RowDefinition/>
-               <RowDefinition/>
+               <RowDefinition Height="Auto"/>
+               <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
+               <ColumnDefinition Width="Auto" MinWidth="48"/>
+               <ColumnDefinition Width="200"/>
                <ColumnDefinition Width="Auto"/>
                <ColumnDefinition Width="*"/>
                <ColumnDefinition Width="Auto"/>
+               <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Row="0"
-                   Grid.Column="0"
-                   Content="{loc:Loc Label_ServiceName}"/>
+            <TextBlock Grid.Row="0"
+                       Grid.Column="0"
+                       Style="{StaticResource FieldLabel}"
+                       Text="{loc:Loc Label_Name}"/>
             <TextBox Grid.Row="0"
                      Grid.Column="1"
+                     helper:Motion.TransitionTier="0"
+                     Margin="0"
+                     FontWeight="SemiBold"
                      Text="{Binding ServiceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Background="{Binding ServiceNameBackground}"/>
-            <Button Grid.Row="0"
-                    Grid.Column="2"
-                    Content="👓"
-                    ToolTip="{loc:Loc Tooltip_ViewActivities}"
-                    Command="{Binding ViewActivitiesCommand}"/>
-            <Label Grid.Row="1"
-                   Grid.Column="0"
-                   Content="{loc:Loc Label_Url}"/>
-            <TextBox Grid.Row="1"
-                     Grid.Column="1"
+            <TextBlock Grid.Row="0"
+                       Grid.Column="2"
+                       Style="{StaticResource FieldLabel}"
+                       Margin="16,0,8,0"
+                       Text="{loc:Loc Label_UrlShort}"/>
+            <TextBox Grid.Row="0"
+                     Grid.Column="3"
+                     helper:Motion.TransitionTier="0"
+                     Margin="0"
+                     Style="{StaticResource MonoTextBox}"
                      Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Background="{Binding UrlBackground}"/>
-            <Button Grid.Row="1"
-                    Grid.Column="2"
-                    Content="🌐"
+            <Button Grid.Row="0"
+                    Grid.Column="4"
+                    Margin="8,0,0,0"
+                    Padding="10,0"
                     ToolTip="{loc:Loc Tooltip_OpenUrl}"
-                    Command="{Binding OpenUrlCommand}"/>
-            <Label Grid.Row="2"
-                   Grid.Column="0"
-                   Content="{loc:Loc Label_Notes}"/>
-            <TextBox Grid.Row="2"
+                    Command="{Binding OpenUrlCommand}">
+               <StackPanel Orientation="Horizontal">
+                  <TextBlock VerticalAlignment="Center" FontSize="12" Text="{loc:Loc Label_Open}"/>
+                  <Path Style="{StaticResource IconPath}"
+                        Margin="8,0,0,0"
+                        Data="{StaticResource Icon.OpenExternal}"/>
+               </StackPanel>
+            </Button>
+            <Button Grid.Row="0"
+                    Grid.Column="5"
+                    Style="{StaticResource GhostButton}"
+                    Margin="6,0,0,0"
+                    Padding="10,0"
+                    FontSize="12"
+                    ToolTip="{loc:Loc Tooltip_ViewActivities}"
+                    Content="{loc:Loc Label_Activity}"
+                    Command="{Binding ViewActivitiesCommand}"/>
+            <TextBlock Grid.Row="1"
+                       Grid.Column="0"
+                       Style="{StaticResource FieldLabel}"
+                       Margin="0,8,8,0"
+                       Text="{loc:Loc Label_NotesShort}"/>
+            <TextBox Grid.Row="1"
                      Grid.Column="1"
-                     Grid.ColumnSpan="2"
+                     helper:Motion.TransitionTier="0"
+                     Grid.ColumnSpan="5"
+                     Margin="0,8,0,0"
                      Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Background="{Binding NotesBackground}"
                      MaxHeight="75"
                      VerticalScrollBarVisibility="Auto"
                      AcceptsReturn="True"
                      AcceptsTab="True"/>
+            <TextBlock Grid.Row="1"
+                       Grid.Column="5"
+                       Margin="0,8,10,0"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"
+                       FontFamily="{StaticResource MonoFontFamily}"
+                       FontSize="11"
+                       Foreground="{DynamicResource AccentBrush}"
+                       IsHitTestVisible="False"
+                       Text="{loc:Loc Label_Edited}"
+                       Visibility="{Binding IsNotesChanged, Converter={StaticResource BooleanToVisibility}}"/>
          </Grid>
-         <Grid Grid.Row="1">
-            <Grid.RowDefinitions>
-               <RowDefinition Height="*"/>
-               <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+
+         <Rectangle Grid.Row="1"
+                    Style="{StaticResource DashedRule}"
+                    Stroke="{DynamicResource Divider1Brush}"/>
+
+         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
+               <ColumnDefinition Width="Auto"/>
                <ColumnDefinition Width="Auto"/>
                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <ListBox Grid.Row="0"
-                     Grid.Column="0"
-                     Name="_accounts_LB"
-                     ItemsSource="{Binding Accounts}"
-                     SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     ScrollViewer.CanContentScroll="True"
-                     ScrollViewer.IsDeferredScrollingEnabled="True"
-                     VirtualizingStackPanel.IsVirtualizing="True"
-                     VirtualizingStackPanel.VirtualizationMode="Recycling"
-                     SelectionChanged="_accounts_LB_SelectionChanged">
-               <ListBox.ItemTemplate>
-                  <DataTemplate>
-                     <Label Margin="0"
-                            Content="{Binding AccountDisplay}"
-                            Background="Transparent"/>
-                  </DataTemplate>
-               </ListBox.ItemTemplate>
-            </ListBox>
-            <Grid Grid.Row="1"
-                  Grid.Column="0">
-               <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="Auto"/>
-               </Grid.ColumnDefinitions>
-               <Button Grid.Column="0"
-                       Command="{Binding AddAccountCommand}"
-                       ToolTip="{loc:Loc Tooltip_AddAccount}"
-                       Content="+"/>
-               <Button Grid.Column="1"
-                          Content="🠉"
-                          ToolTip="{loc:Loc Tooltip_MoveUp}"
-                          Command="{Binding MoveAccountUpCommand}"/>
-               <Button Grid.Column="2"
-                          Command="{Binding MoveAccountDownCommand}"
-                          ToolTip="{loc:Loc Tooltip_MoveDown}"
-                          Content="🠋"/>
-               <Button Grid.Column="3"
-                       Command="{Binding DeleteAccountCommand}"
-                       ToolTip="{loc:Loc Tooltip_DeleteAccount}"
-                       Content="✕"/>
+
+            <!-- Accounts column -->
+            <Grid Grid.Column="0"
+                  Width="{Binding AccountsWidth, Source={x:Static helper:VaultLayout.Current}}"
+                  Margin="{DynamicResource ColumnPadding}">
+               <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto"/>
+                  <RowDefinition Height="*"/>
+                  <RowDefinition Height="Auto"/>
+               </Grid.RowDefinitions>
+               <DockPanel Grid.Row="0"
+                          Margin="4,0,0,8">
+                  <Button DockPanel.Dock="Right"
+                          Style="{StaticResource SmallIconButton}"
+                          Command="{Binding AddAccountCommand}"
+                          ToolTip="{loc:Loc Tooltip_AddAccount}"
+                          AutomationProperties.Name="{loc:Loc Tooltip_AddAccount}">
+                     <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Plus}"/>
+                  </Button>
+                  <TextBlock Style="{StaticResource Caption}">
+                     <Run Text="{Binding AccountCount, Mode=OneWay}"/>
+                     <Run Text="{Binding [Label_AccountsCaption], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}, Mode=OneWay}"/>
+                  </TextBlock>
+               </DockPanel>
+               <helper:PooledListBox Grid.Row="1"
+                        x:Name="_accounts_LB"
+                        Style="{StaticResource GlideListBox}"
+                        helper:Motion.TransitionTier="0"
+                        SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        ScrollViewer.CanContentScroll="True"
+                        ScrollViewer.IsDeferredScrollingEnabled="True"
+                        VirtualizingStackPanel.IsVirtualizing="True"
+                        VirtualizingStackPanel.VirtualizationMode="Standard"
+                        SelectionChanged="_accounts_LB_SelectionChanged">
+                  <ListBox.ItemContainerStyle>
+                     <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                        <Setter Property="MinHeight" Value="48"/>
+                     </Style>
+                  </ListBox.ItemContainerStyle>
+                  <ListBox.ItemTemplate>
+                     <DataTemplate>
+                        <StackPanel VerticalAlignment="Center">
+                           <TextBlock TextTrimming="CharacterEllipsis"
+                                      Text="{Binding DisplayTitle, Mode=OneWay}"/>
+                           <TextBlock x:Name="subtitle"
+                                      Margin="0,2,0,0"
+                                      FontFamily="{StaticResource MonoFontFamily}"
+                                      FontSize="11"
+                                      Foreground="{DynamicResource MutedForegroundBrush}"
+                                      TextTrimming="CharacterEllipsis"
+                                      Text="{Binding DisplaySubtitle, Mode=OneWay}"/>
+                        </StackPanel>
+                        <DataTemplate.Triggers>
+                           <DataTrigger Binding="{Binding DisplaySubtitle}" Value="">
+                              <Setter TargetName="subtitle" Property="Visibility" Value="Collapsed"/>
+                           </DataTrigger>
+                        </DataTemplate.Triggers>
+                     </DataTemplate>
+                  </ListBox.ItemTemplate>
+               </helper:PooledListBox>
+               <StackPanel Grid.Row="2">
+                  <Rectangle Style="{StaticResource DashedRule}"
+                             Margin="0,8,0,8"
+                             Stroke="{DynamicResource Divider1Brush}"/>
+                  <DockPanel LastChildFill="False">
+                     <Button DockPanel.Dock="Left"
+                             Style="{StaticResource SmallIconButton}"
+                             ToolTip="{loc:Loc Tooltip_MoveUp}"
+                             AutomationProperties.Name="{loc:Loc Tooltip_MoveUp}"
+                             Command="{Binding MoveAccountUpCommand}">
+                        <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Up}"/>
+                     </Button>
+                     <Button DockPanel.Dock="Left"
+                             Style="{StaticResource SmallIconButton}"
+                             Margin="4,0,0,0"
+                             ToolTip="{loc:Loc Tooltip_MoveDown}"
+                             AutomationProperties.Name="{loc:Loc Tooltip_MoveDown}"
+                             Command="{Binding MoveAccountDownCommand}">
+                        <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Down}"/>
+                     </Button>
+                     <Button DockPanel.Dock="Right"
+                             Style="{StaticResource DangerGhostButton}"
+                             ToolTip="{loc:Loc Tooltip_DeleteAccount}"
+                             Content="{loc:Loc Label_Delete}"
+                             Command="{Binding DeleteAccountCommand}"/>
+                  </DockPanel>
+               </StackPanel>
             </Grid>
+
+            <Rectangle Grid.Column="1"
+                       Style="{StaticResource DashedColumnRule}"
+                       Stroke="{DynamicResource Divider1Brush}"/>
+
             <local:AccountView x:Name="_account_AV"
-                               Grid.Row="0"
-                               Grid.RowSpan="2"
-                               Grid.Column="1"/>
+                               Grid.Column="2"
+                               Margin="{DynamicResource LayerInset}"/>
          </Grid>
       </Grid>
    </GroupBox>
