@@ -58,6 +58,87 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string AccountId => Strings.Format(nameof(Strings.Msg_AccountId), Account.ItemId);
 
+      /// <summary>Accounts list, first line: the label, or the first identifier when unlabeled.</summary>
+      public string DisplayTitle => string.IsNullOrWhiteSpace(Account.Label) ? _firstIdentifier : Account.Label;
+
+      /// <summary>Accounts list, second line (mono): the first identifier under a label.</summary>
+      public string DisplaySubtitle => string.IsNullOrWhiteSpace(Account.Label) ? string.Empty : _firstIdentifier;
+
+      private string _firstIdentifier => Account.Identifiers.FirstOrDefault()?.Value ?? string.Empty;
+
+      /// <summary>
+      /// Test seam: the quality rules (<see cref="SecretQuality.Evaluate"/>).
+      /// </summary>
+      internal static Func<string, string?, SecretQualityIssue> EvaluateQuality { get; set; } = SecretQuality.Evaluate;
+
+      // The quality of the current password, worked out only when the account is
+      // first shown and when the password itself changes (where the plain text is
+      // already in hand). Refreshing the ticks never reads the password again.
+      private bool _qualityKnown;
+      private bool _hasPassword;
+      private SecretQualityIssue _qualityIssues;
+
+      private void _evaluateQuality(string? password)
+      {
+         _hasPassword = !string.IsNullOrEmpty(password);
+         _qualityIssues = _hasPassword
+            ? EvaluateQuality(password!, AppServices.Session.User?.Username)
+            : SecretQualityIssue.None;
+         _qualityKnown = true;
+      }
+
+      /// <summary>
+      /// Quality ticks under the password: the <see cref="SecretQuality"/> rules plus
+      /// the duplicate / leak alerts the broker already holds (the same notified,
+      /// mask-respecting source as the Alerts menu). No new Core call; nothing
+      /// leaves the process.
+      /// </summary>
+      public IReadOnlyList<QualityCheck> QualityChecks
+      {
+         get
+         {
+            if (!_qualityKnown)
+            {
+               _evaluateQuality(Account.Password);
+            }
+
+            if (!_hasPassword)
+            {
+               return [];
+            }
+
+            SecretQualityIssue issues = _qualityIssues;
+
+            bool reused = AppServices.Session.Alerts
+               .GetNotifiedAlerts(AlertKinds.DuplicatedPasswords)
+               .OfType<IAccountsAlert>()
+               .Any(x => x.Accounts.Contains(Account));
+
+            return
+            [
+               issues.HasFlag(SecretQualityIssue.TooShort)
+                  ? new(Strings.Msg_QualityShort, QualityState.Fail)
+                  : new(Strings.Msg_Quality12, QualityState.Pass),
+               issues.HasFlag(SecretQualityIssue.LowDiversity)
+                  ? new(Strings.Msg_QualityFewKinds, QualityState.Fail)
+                  : new(Strings.Msg_QualityKinds, QualityState.Pass),
+               issues.HasFlag(SecretQualityIssue.MatchesUsername)
+                  ? new(Strings.Msg_QualityIsUsername, QualityState.Fail)
+                  : new(Strings.Msg_QualityNotUsername, QualityState.Pass),
+               reused
+                  ? new(Strings.Msg_QualityReused, QualityState.Fail)
+                  : WarnIfDuplicatedPassword
+                     ? new(Strings.Msg_QualityUnique, QualityState.Pass)
+                     : new(Strings.Msg_QualityReuseOff, QualityState.Off),
+               PasswordLeaked
+                  ? new(Strings.Msg_QualityLeaked, QualityState.Fail)
+                  : WarnPasswordLeak
+                     ? new(Strings.Msg_QualityLeakClean, QualityState.Pass)
+                     : new(Strings.Msg_QualityLeakOff, QualityState.Off),
+            ];
+         }
+      }
+
       public Brush LabelBackground => Account.HasChanged(nameof(Label)) ? FieldStateBrushes.ChangedBrush : FieldStateBrushes.UnchangedBrush2;
       public string Label
       {
@@ -88,7 +169,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
             if (Account.Password != value)
             {
                Account.Password = value;
+               _evaluateQuality(value);
                _notify(nameof(Password));
+               OnPropertyChanged(nameof(QualityChecks));
                AppServices.Session.Database?.RefreshAlerts();
             }
          }
@@ -172,6 +255,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                }
 
                OnPropertyChanged(nameof(WarnPasswordLeak));
+               OnPropertyChanged(nameof(QualityChecks));
                AppServices.Session.Database?.RefreshAlerts();
             }
          }
@@ -194,6 +278,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
                }
 
                OnPropertyChanged(nameof(WarnIfDuplicatedPassword));
+               OnPropertyChanged(nameof(QualityChecks));
                AppServices.Session.Database?.RefreshAlerts();
             }
          }
@@ -265,6 +350,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          }
 
          Identifiers.Clear();
+
+         // Undo / redo may have changed the password: work the quality out again
+         // the next time the ticks are shown.
+         _qualityKnown = false;
          OnPropertyChanged(string.Empty);
       }
 
@@ -294,6 +383,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          {
             OnPropertyChanged(nameof(PasswordLeaked));
             OnPropertyChanged(nameof(PasswordBackground));
+            OnPropertyChanged(nameof(QualityChecks));
          });
 
       private void _notify(string propertyName)
@@ -301,6 +391,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          OnPropertyChanged(propertyName);
          OnPropertyChanged($"{propertyName}Background");
          OnPropertyChanged(nameof(AccountDisplay));
+         OnPropertyChanged(nameof(DisplayTitle));
+         OnPropertyChanged(nameof(DisplaySubtitle));
       }
 
       private void _identifierViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)

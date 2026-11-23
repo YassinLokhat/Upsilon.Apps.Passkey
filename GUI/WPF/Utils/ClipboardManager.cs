@@ -123,6 +123,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
          => AppServices.Session.User?.Settings.CleaningClipboardTimeout ?? 0;
 
       /// <summary>
+      /// When the pending auto-clear will run (UTC), or null when nothing we copied
+      /// is waiting to be cleared. Drives the password core's clipboard strip.
+      /// </summary>
+      internal static DateTime? PendingClearUtc { get; private set; }
+
+      /// <summary>Raised (on the UI thread) when <see cref="PendingClearUtc"/> changes.</summary>
+      internal static event EventHandler? PendingClearChanged;
+
+      /// <summary>
       /// Clears the clipboard if (and only if) its current text content still
       /// matches the value previously written through <see cref="SetText"/>.
       /// </summary>
@@ -135,14 +144,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
             _autoClearTimer?.Stop();
             _autoClearTimer = null;
 
-            if (tracked is null)
-            {
-               return;
-            }
+            bool wasPending = PendingClearUtc is not null;
+            PendingClearUtc = null;
 
             try
             {
-               if (Clipboard.ContainsText() && Clipboard.GetText() == tracked)
+               if (tracked is not null && Clipboard.ContainsText() && Clipboard.GetText() == tracked)
                {
                   Clipboard.Clear();
                }
@@ -153,6 +160,28 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
             {
                Log.Error(ex, "Failed to clear sensitive clipboard content");
             }
+            finally
+            {
+               // Listeners (the countdown strip) hear about it only after the
+               // clear, and none of them can stop it.
+               if (wasPending)
+               {
+                  _raisePendingClearChanged();
+               }
+            }
+         }
+      }
+
+      private static void _raisePendingClearChanged()
+      {
+         try
+         {
+            PendingClearChanged?.Invoke(null, EventArgs.Empty);
+         }
+         catch (Exception ex)
+            when (ex is InvalidOperationException or ArgumentException or NullReferenceException)
+         {
+            Log.Error(ex, "A clipboard status listener failed");
          }
       }
 
@@ -169,6 +198,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Utils
             };
             _autoClearTimer.Tick += (_, _) => ClearIfStillOwned();
             _autoClearTimer.Start();
+
+            PendingClearUtc = DateTime.UtcNow + delay;
+            _raisePendingClearChanged();
          }
       }
 

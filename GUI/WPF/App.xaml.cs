@@ -30,6 +30,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          // Refresh an existing .pkbf only — never a first full build (too heavy).
          AppServices.OfflineLeakFilterUpdate.TryStartAutoUpdate();
 
+         // Animations off in Windows: zero every motion duration up front.
+         Motion.Initialize(this);
+
          base.OnStartup(e);
       }
 
@@ -55,6 +58,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF
          // process tears down, in case MainWindow.Closed did not run first.
          AppServices.Session.EndSession();
          ThemeService.Shutdown();
+         Motion.Shutdown();
 
          Log.Info($"Application exiting with code {e.ApplicationExitCode}.");
          Log.Flush();

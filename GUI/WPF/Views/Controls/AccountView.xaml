@@ -7,242 +7,475 @@
              xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views.Controls"
              xmlns:controls="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls"
              xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
+             xmlns:helper="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Helper"
              d:DataContext="{d:DesignInstance Type=controls:AccountViewModel}"
              mc:Ignorable="d">
-   <GroupBox Name="_account_GB"
-             Header="{Binding AccountId}"
-             MouseRightButtonUp="_accountView_MouseRightButtonUp">
+   <UserControl.Resources>
+      <!-- The identifier rows' "⋯" menu, built on the first click of each row
+           instead of with every row (rows are rebuilt on each account switch). -->
+      <ContextMenu x:Key="IdentifierMoreMenu" x:Shared="False">
+         <MenuItem Header="{loc:Loc Tooltip_MoveUp}"
+                   Command="{Binding MoveIdentifierUpCommand}"/>
+         <MenuItem Header="{loc:Loc Tooltip_MoveDown}"
+                   Command="{Binding MoveIdentifierDownCommand}"/>
+         <MenuItem Header="{loc:Loc Tooltip_DeleteIdentifier}"
+                   Command="{Binding DeleteIdentifierCommand}"/>
+      </ContextMenu>
+   </UserControl.Resources>
+   <!-- Layer 2: the selected account. Label on top; sign-in identifiers, the
+        watch-for options and notes on the left; the password core (layer 3)
+        nested on the right. -->
+   <GroupBox Style="{StaticResource LayerGroupBox}"
+             Background="{DynamicResource Layer2Brush}"
+             Tag="{DynamicResource Layer1Brush}">
+      <GroupBox.Header>
+         <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource LayerNumber}" Text="2"/>
+            <TextBlock Style="{StaticResource LayerName}"
+                       Text="{Binding [Label_LayerAccount], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}}"/>
+            <Button Style="{StaticResource NotchIconButton}"
+                    Content="i"
+                    AutomationProperties.Name="{loc:Loc Tooltip_CopyItemId}"
+                       AutomationProperties.HelpText="{Binding AccountId}"
+                    Click="_copyAccountId_Click">
+               <Button.ToolTip>
+                  <StackPanel>
+                     <TextBlock FontFamily="{StaticResource MonoFontFamily}" Text="{Binding AccountId}"/>
+                     <TextBlock Margin="0,4,0,0"
+                                Foreground="{DynamicResource MutedForegroundBrush}"
+                                Text="{loc:Loc Tooltip_CopyItemId}"/>
+                  </StackPanel>
+               </Button.ToolTip>
+            </Button>
+         </StackPanel>
+      </GroupBox.Header>
       <Grid>
          <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
          </Grid.RowDefinitions>
-         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
-         </Grid.ColumnDefinitions>
-         <Label Grid.Row="0"
-                Grid.Column="0"
-                Content="{loc:Loc Label_Label}"/>
-         <Button Grid.Row="0"
-                 Grid.Column="2"
-                 Content="👓"
-                 ToolTip="{loc:Loc Tooltip_ViewActivities}"
-                 Command="{Binding ViewActivitiesCommand}"/>
-         <TextBox Grid.Row="0"
-                  Grid.Column="1"
-                  Text="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  Background="{Binding LabelBackground}"/>
-         <Grid Grid.Row="1"
-               Grid.Column="0"
-               Grid.ColumnSpan="3">
+
+         <!-- Label + Activity -->
+         <Grid Grid.Row="0"
+               Margin="{DynamicResource LayerHeaderPadding}">
             <Grid.ColumnDefinitions>
-               <ColumnDefinition Width="2*"/>
-               <ColumnDefinition Width="3*"/>
+               <ColumnDefinition Width="Auto"/>
+               <ColumnDefinition Width="*"/>
+               <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <GroupBox Header="{loc:Loc Label_Identifiers}"
-                      Grid.Column="0">
-               <Grid>
+            <TextBlock Grid.Column="0"
+                       Style="{StaticResource FieldLabel}"
+                       Text="{loc:Loc Label_LabelShort}"/>
+            <TextBox Grid.Column="1"
+                     helper:Motion.TransitionTier="1"
+                     Margin="0"
+                     FontWeight="SemiBold"
+                     Text="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Background="{Binding LabelBackground}"/>
+            <Button Grid.Column="2"
+                    Style="{StaticResource GhostButton}"
+                    Margin="8,0,0,0"
+                    Padding="10,0"
+                    FontSize="12"
+                    ToolTip="{loc:Loc Tooltip_ViewActivities}"
+                    Content="{loc:Loc Label_Activity}"
+                    Command="{Binding ViewActivitiesCommand}"/>
+         </Grid>
+
+         <Rectangle Grid.Row="1"
+                    Style="{StaticResource DashedRule}"
+                    Stroke="{DynamicResource Divider2Brush}"/>
+
+         <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+               <ColumnDefinition Width="Auto"/>
+               <ColumnDefinition Width="Auto"/>
+               <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Account details: scrolls as a whole when the window is short;
+                 notes take whatever height is left. -->
+            <ScrollViewer x:Name="_details_SV"
+                          Grid.Column="0"
+                          Width="{Binding AccountColumnWidth, Source={x:Static helper:VaultLayout.Current}}"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+               <Grid Margin="14"
+                     MinHeight="{Binding ViewportHeight, ElementName=_details_SV, Converter={StaticResource ViewportMinusPaddingConverter}}">
                   <Grid.RowDefinitions>
-                     <RowDefinition Height="*"/>
                      <RowDefinition Height="Auto"/>
+                     <RowDefinition Height="Auto"/>
+                     <RowDefinition Height="Auto"/>
+                     <RowDefinition Height="Auto"/>
+                     <RowDefinition Height="Auto"/>
+                     <RowDefinition Height="Auto"/>
+                     <RowDefinition Height="*" MinHeight="64"/>
                   </Grid.RowDefinitions>
-                  <Grid.ColumnDefinitions>
-                     <ColumnDefinition Width="*"/>
-                     <ColumnDefinition Width="Auto"/>
-                     <ColumnDefinition Width="Auto"/>
-                     <ColumnDefinition Width="Auto"/>
-                     <ColumnDefinition Width="Auto"/>
-                     <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <ListBox Grid.Row="0"
-                           Grid.Column="0"
-                           Grid.ColumnSpan="6"
+
+                  <TextBlock Grid.Row="0"
+                             Style="{StaticResource Caption}"
+                             Margin="0,0,0,8"
+                             Text="{Binding [Label_SignInWith], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}}"/>
+                  <helper:PooledListBox Grid.Row="1"
+                           x:Name="_identifiers_LB"
                            HorizontalContentAlignment="Stretch"
-                           ScrollViewer.CanContentScroll="True"
-                           ScrollViewer.IsDeferredScrollingEnabled="True"
-                           VirtualizingStackPanel.IsVirtualizing="True"
-                           VirtualizingStackPanel.VirtualizationMode="Recycling"
-                           Name="_identifiers_LB"
+                           ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                           ItemContainerStyle="{StaticResource PlainListBoxItem}"
                            SelectedItem="{Binding SelectedIdentifier, Mode=TwoWay}"
                            PreviewGotKeyboardFocus="_identifiers_LB_PreviewGotKeyboardFocus">
                      <ListBox.ItemTemplate>
                         <DataTemplate>
                            <DockPanel LastChildFill="True">
                               <ComboBox DockPanel.Dock="Left"
-                                        MinWidth="44"
+                                        helper:Motion.TransitionTier="1"
+                                        MinWidth="64"
                                         Margin="0,0,4,0"
                                         VerticalAlignment="Center"
                                         ItemsSource="{Binding TypeChoices}"
                                         SelectedValue="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         SelectedValuePath="Type"
-                                        DisplayMemberPath="Display"
+                                        DisplayMemberPath="ShortLabel"
                                         ToolTip="{Binding TypeLabel}"/>
-                              <TextBox Background="{Binding IdentifierBackground}"
+                              <Button DockPanel.Dock="Right"
+                                      Style="{StaticResource SmallIconButton}"
+                                      Margin="2,0,0,0"
+                                      FontFamily="{StaticResource UiFontFamily}"
+                                      FontSize="15"
+                                      Content="⋯"
+                                      ToolTip="{loc:Loc Tooltip_MoreActions}"
+                                      ContextMenuService.IsEnabled="False"
+                                      AutomationProperties.Name="{loc:Loc Tooltip_MoreActions}"
+                                      Click="_identifierMore_Click"/>
+                              <Button DockPanel.Dock="Right"
+                                      Style="{StaticResource SmallIconButton}"
+                                      Margin="2,0,0,0"
+                                      ToolTip="{loc:Loc Tooltip_ShowQrCodeIdentifier}"
+                                      AutomationProperties.Name="{loc:Loc Tooltip_ShowQrCodeIdentifier}"
+                                      Command="{Binding DataContext.ShowQrCodeIdentifierCommand, RelativeSource={RelativeSource AncestorType=ListBox}}">
+                                 <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Qr}"/>
+                              </Button>
+                              <Button DockPanel.Dock="Right"
+                                      Style="{StaticResource SmallIconButton}"
+                                      Margin="4,0,0,0"
+                                      ToolTip="{loc:Loc Tooltip_CopyIdentifier}"
+                                      AutomationProperties.Name="{loc:Loc Tooltip_CopyIdentifier}"
+                                      Command="{Binding DataContext.CopyIdentifierCommand, RelativeSource={RelativeSource AncestorType=ListBox}}">
+                                 <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Copy}"/>
+                              </Button>
+                              <TextBox Style="{StaticResource MonoTextBox}"
+                                       helper:Motion.TransitionTier="1"
+                                       Margin="0"
+                                       MinHeight="28"
+                                       FontSize="12"
+                                       Background="{Binding IdentifierBackground}"
                                        Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                        KeyUp="_identifier_TextBox_KeyUp"/>
                            </DockPanel>
                         </DataTemplate>
                      </ListBox.ItemTemplate>
-                  </ListBox>
-                  <Button Grid.Row="1"
-                          Grid.Column="0"
-                          Content="+"
+                  </helper:PooledListBox>
+                  <Button Grid.Row="2"
+                          Style="{StaticResource DashedButton}"
+                          Margin="0,2,0,0"
+                          HorizontalAlignment="Left"
+                          Content="{loc:Loc Label_AddIdentifierShort}"
                           ToolTip="{loc:Loc Tooltip_AddIdentifier}"
                           Command="{Binding AddIdentifierCommand}"/>
-                  <Button Grid.Row="1"
-                          Grid.Column="1"
-                          Content="🠉"
-                          ToolTip="{loc:Loc Tooltip_MoveUp}"
-                          Command="{Binding MoveIdentifierUpCommand}"/>
-                  <Button Grid.Row="1"
-                          Grid.Column="2"
-                          Command="{Binding MoveIdentifierDownCommand}"
-                          ToolTip="{loc:Loc Tooltip_MoveDown}"
-                          Content="🠋"/>
-                  <Button Grid.Row="1"
-                          Grid.Column="3"
-                          Command="{Binding DeleteIdentifierCommand}"
-                          ToolTip="{loc:Loc Tooltip_DeleteIdentifier}"
-                          Content="✕"/>
-                  <Button Grid.Row="1"
-                          Grid.Column="4"
-                          Content="📋"
-                          ToolTip="{loc:Loc Tooltip_CopyIdentifier}"
-                          Command="{Binding CopyIdentifierCommand}"/>
-                  <Button Grid.Row="1"
-                          Grid.Column="5"
-                          Content="▣"
-                          ToolTip="{loc:Loc Tooltip_ShowQrCodeIdentifier}"
-                          Command="{Binding ShowQrCodeIdentifierCommand}"/>
-               </Grid>
-            </GroupBox>
-            <GroupBox Header="{loc:Loc Label_PasswordGroup}"
-                      Grid.Column="1">
-               <Grid>
-                  <Grid.RowDefinitions>
-                     <RowDefinition Height="Auto"/>
-                     <RowDefinition Height="*"/>
-                  </Grid.RowDefinitions>
-                  <Grid.ColumnDefinitions>
-                     <ColumnDefinition Width="*"/>
-                     <ColumnDefinition Width="Auto"/>
-                     <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <local:VisiblePasswordBox x:Name="_password_VPB"
-                                            Grid.Row="0"
-                                            Grid.Column="0"
-                                            Margin="5"
-                                            Background="{Binding PasswordBackground}"
-                                            Validated="_password_VPB_Validated"
-                                            Aborted="_password_VPB_Aborted"/>
-                  <Button Grid.Row="0"
-                          Grid.Column="1"
-                          Content="📋"
-                          ToolTip="{loc:Loc Tooltip_CopyPassword}"
-                          Click="_copyPassword_Clicked"/>
-                  <Button Grid.Row="0"
-                          Grid.Column="2"
-                          Content="▣"
-                          ToolTip="{loc:Loc Tooltip_ShowQrCodePassword}"
-                          Click="_showQrCodePassword_Clicked"/>
-                  <ListBox Grid.Row="1"
-                           Grid.Column="0"
-                           Grid.ColumnSpan="3"
-                           HorizontalContentAlignment="Stretch"
-                           ScrollViewer.CanContentScroll="True"
-                           ScrollViewer.IsDeferredScrollingEnabled="True"
-                           VirtualizingStackPanel.IsVirtualizing="True"
-                           VirtualizingStackPanel.VirtualizationMode="Recycling"
-                           Name="_passwords_LB">
-                     <ListBox.ItemTemplate>
-                        <DataTemplate>
-                           <Grid>
-                              <Grid.ColumnDefinitions>
-                                 <ColumnDefinition Width="Auto"/>
-                                 <ColumnDefinition Width="*"/>
-                                 <ColumnDefinition Width="Auto"/>
-                                 <ColumnDefinition Width="Auto"/>
-                              </Grid.ColumnDefinitions>
-                              <Label Grid.Column="0"
-                                     Content="{Binding UpdateDate}"
-                                     Background="Transparent"/>
-                              <local:VisiblePasswordBox Grid.Column="1"
-                                                        Margin="5"
-                                                        MinWidth="230"
-                                                        ReadOnly="True"
-                                                        Loaded="_passwords_VPB_Loaded"/>
-                              <Button Grid.Column="2"
-                                      Content="📋"
-                                      ToolTip="{loc:Loc Tooltip_CopyPassword}"
-                                      Command="{Binding CopyCommand}"/>
-                              <Button Grid.Column="3"
-                                      Content="▣"
-                                      ToolTip="{loc:Loc Tooltip_ShowQrCodePassword}"
-                                      Command="{Binding ShowQrCodeCommand}"/>
-                           </Grid>
-                        </DataTemplate>
-                     </ListBox.ItemTemplate>
-                  </ListBox>
-               </Grid>
-            </GroupBox>
-         </Grid>
 
-         <Label Grid.Row="2"
-                Grid.Column="0"
-                Content="{loc:Loc Label_Notes}"/>
-         <TextBox Grid.Row="2"
-                  Grid.Column="1"
-                  Grid.ColumnSpan="2"
-                  Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  Background="{Binding NotesBackground}"
-                  MaxHeight="75"
-                  VerticalScrollBarVisibility="Auto"
-                  AcceptsReturn="True"
-                  AcceptsTab="True"/>
-         <GroupBox Header="{loc:Loc Label_Options}"
-                   Grid.Row="3"
-                   Grid.Column="0"
-                   Grid.ColumnSpan="3">
-            <Grid>
-               <Grid.RowDefinitions>
-                  <RowDefinition Height="*"/>
-                  <RowDefinition Height="*"/>
-               </Grid.RowDefinitions>
-               <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="*"/>
-               </Grid.ColumnDefinitions>
-               <StackPanel Grid.Row="0"
-                           Grid.Column="0"
-                           Orientation="Horizontal">
-                  <CheckBox IsChecked="{Binding RemindPasswordUpdate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Content="{loc:Loc Label_RemindPasswordUpdate}"/>
-                  <TextBox Width="25"
-                           HorizontalContentAlignment="Center"
-                           TextChanged="_value_TextBox_TextChanged"
-                           PreviewTextInput="_value_TextBox_PreviewTextInput"
-                           DataObject.Pasting="_value_TextBox_Pasting"
-                           Text="{Binding RemindPasswordUpdateDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                  <Label Margin="0" Content="{loc:Loc Label_Months}"/>
-               </StackPanel>
-               <CheckBox Grid.Row="0"
-                           Grid.Column="1"
-                           IsChecked="{Binding WarnPasswordLeak, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                           Content="{loc:Loc Label_WarnPasswordLeak}"/>
-               <CheckBox Grid.Row="1"
-                           Grid.Column="0"
-                           IsChecked="{Binding WarnIfDuplicatedPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                           Content="{loc:Loc Label_WarnDuplicatedPassword}"/>
-               <CheckBox Grid.Row="1"
-                           Grid.Column="1"
-                           IsChecked="{Binding WarnIfWeakPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                           Content="{loc:Loc Label_WarnWeakPassword}"/>
+                  <TextBlock Grid.Row="3"
+                             Style="{StaticResource Caption}"
+                             Margin="0,16,0,4"
+                             Text="{Binding [Label_WatchFor], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}}"/>
+                  <StackPanel Grid.Row="4" TextElement.FontSize="13">
+                     <CheckBox Margin="0,2" FontSize="13"
+                               IsChecked="{Binding WarnIfWeakPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBlock TextWrapping="Wrap" Text="{loc:Loc Label_WatchWeak}"/>
+                     </CheckBox>
+                     <CheckBox Margin="0,2" FontSize="13"
+                               IsChecked="{Binding WarnIfDuplicatedPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBlock TextWrapping="Wrap" Text="{loc:Loc Label_WatchReused}"/>
+                     </CheckBox>
+                     <CheckBox Margin="0,2" FontSize="13"
+                               IsChecked="{Binding WarnPasswordLeak, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBlock TextWrapping="Wrap" Text="{loc:Loc Label_WatchLeaked}"/>
+                     </CheckBox>
+                     <WrapPanel Orientation="Horizontal">
+                        <CheckBox Margin="0,2,6,2" FontSize="13"
+                                  IsChecked="{Binding RemindPasswordUpdate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  Content="{loc:Loc Label_WatchRemind}"/>
+                        <TextBox Width="44"
+                                 helper:Motion.TransitionTier="1"
+                                 Margin="0,2,6,2"
+                                 MinHeight="26"
+                                 Style="{StaticResource MonoTextBox}"
+                                 HorizontalContentAlignment="Center"
+                                 TextChanged="_value_TextBox_TextChanged"
+                                 PreviewTextInput="_value_TextBox_PreviewTextInput"
+                                 DataObject.Pasting="_value_TextBox_Pasting"
+                                 Text="{Binding RemindPasswordUpdateDelay, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock VerticalAlignment="Center"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource SoftForegroundBrush}"
+                                   Text="{loc:Loc Label_MonthsShort}"/>
+                     </WrapPanel>
+                  </StackPanel>
+
+                  <TextBlock Grid.Row="5"
+                             Style="{StaticResource Caption}"
+                             Margin="0,16,0,4"
+                             Text="{Binding [Label_NotesShort], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}}"/>
+                  <TextBox Grid.Row="6"
+                           helper:Motion.TransitionTier="1"
+                           Margin="0"
+                           helper:StrataChrome.Placeholder="{loc:Loc Msg_PlaceholderNotes}"
+                           Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                           Background="{Binding NotesBackground}"
+                           VerticalScrollBarVisibility="Auto"
+                           TextWrapping="Wrap"
+                           AcceptsReturn="True"
+                           AcceptsTab="True"/>
+               </Grid>
+            </ScrollViewer>
+
+            <Rectangle Grid.Column="1"
+                       Style="{StaticResource DashedColumnRule}"
+                       Stroke="{DynamicResource Divider2Brush}"/>
+
+            <!-- Layer 3: the password core (+ the pulse shown on Copy) -->
+            <Grid Grid.Column="2"
+                  Margin="{DynamicResource LayerInset}">
+            <!-- One brighter pulse of the core's rings on Copy (opacity only, no blur). -->
+            <Grid x:Name="_corePulse_B"
+                  Margin="0,10,0,0"
+                  Opacity="0"
+                  IsHitTestVisible="False"
+                  Panel.ZIndex="1">
+               <Border BorderThickness="2" BorderBrush="{DynamicResource AccentBrush}"/>
+               <Border Margin="-4" BorderThickness="3" Opacity="0.5" BorderBrush="{DynamicResource AccentBrush}"/>
+               <Border Margin="-9" BorderThickness="4" Opacity="0.22" BorderBrush="{DynamicResource AccentBrush}"/>
+               <Border Margin="-15" BorderThickness="5" Opacity="0.08" BorderBrush="{DynamicResource AccentBrush}"/>
             </Grid>
-         </GroupBox>
+            <GroupBox Style="{StaticResource CoreGroupBox}"
+                      Tag="{DynamicResource Layer2Brush}">
+               <GroupBox.Header>
+                  <StackPanel Orientation="Horizontal">
+                     <TextBlock Style="{StaticResource LayerNumber}"
+                                Foreground="{DynamicResource AccentBrush}"
+                                Text="3"/>
+                     <TextBlock Style="{StaticResource LayerName}"
+                                Text="{Binding [Label_PasswordGroup], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}}"/>
+                  </StackPanel>
+               </GroupBox.Header>
+               <!-- Content sized to itself and capped in width; when the window is
+                    short, the history list is what shrinks, so the core never
+                    needs a scroll bar. The clipboard strip stays at the bottom. -->
+               <Grid Margin="{DynamicResource CorePadding}"
+                     MaxWidth="760"
+                     HorizontalAlignment="Left">
+                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                     </Grid.RowDefinitions>
+
+                     <local:VisiblePasswordBox x:Name="_password_VPB"
+                                               helper:Motion.TransitionTier="2"
+                                               Grid.Row="0"
+                                               Height="44"
+                                               FontSize="16"
+                                               Background="{Binding PasswordBackground}"
+                                               Validated="_password_VPB_Validated"
+                                               Aborted="_password_VPB_Aborted"/>
+
+                     <UniformGrid Grid.Row="1"
+                                  Margin="0,10,0,0"
+                                  Columns="3">
+                        <Button Style="{StaticResource PrimaryButton}"
+                                Margin="0,0,6,0"
+                                MinHeight="{DynamicResource CoreButtonHeight}"
+                                ToolTip="{loc:Loc Tooltip_CopyPassword}"
+                                AutomationProperties.Name="{loc:Loc Tooltip_CopyPassword}"
+                                Click="_copyPassword_Clicked">
+                           <StackPanel Orientation="Horizontal">
+                              <AccessText VerticalAlignment="Center" Text="{loc:Loc Menu_Copy}"/>
+                              <ContentControl Style="{StaticResource KeyChip}"
+                                              Margin="8,0,0,0"
+                                              Opacity="0.7"
+                                              BorderBrush="{DynamicResource AccentForegroundBrush}"
+                                              Foreground="{DynamicResource AccentForegroundBrush}"
+                                              Content="Ctrl Shift P"/>
+                           </StackPanel>
+                        </Button>
+                        <Button Margin="0,0,6,0"
+                                MinHeight="{DynamicResource CoreButtonHeight}"
+                                Content="{loc:Loc Label_QrCode}"
+                                ToolTip="{loc:Loc Tooltip_ShowQrCodePassword}"
+                                Click="_showQrCodePassword_Clicked"/>
+                        <Button Margin="0"
+                                MinHeight="{DynamicResource CoreButtonHeight}"
+                                Content="{loc:Loc Label_GenerateNew}"
+                                ToolTip="{loc:Loc Tooltip_GeneratePassword}"
+                                Command="{Binding DataContext.GeneratePasswordCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                     </UniformGrid>
+
+                     <!-- Quality ticks (the SecretQuality rules + reuse / leak state). -->
+                     <ItemsControl Grid.Row="2"
+                                   helper:Motion.TransitionTier="2"
+                                   Margin="{DynamicResource CoreGap}"
+                                   Focusable="False"
+                                   helper:StableItems.Source="{Binding QualityChecks}">
+                        <ItemsControl.ItemsPanel>
+                           <ItemsPanelTemplate>
+                              <UniformGrid Columns="3"/>
+                           </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                           <DataTemplate>
+                              <DockPanel Margin="0,3,16,3" LastChildFill="True">
+                                 <TextBlock x:Name="mark"
+                                            DockPanel.Dock="Left"
+                                            Width="16"
+                                            FontSize="13"
+                                            Foreground="{DynamicResource AccentBrush}"
+                                            Text="✓"/>
+                                 <TextBlock x:Name="text"
+                                            FontSize="13"
+                                            TextWrapping="Wrap"
+                                            Foreground="{DynamicResource SoftForegroundBrush}"
+                                            Text="{Binding Value.Text}"/>
+                              </DockPanel>
+                              <DataTemplate.Triggers>
+                                 <DataTrigger Binding="{Binding Value.State}" Value="Fail">
+                                    <Setter TargetName="mark" Property="Text" Value="✕"/>
+                                    <Setter TargetName="mark" Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                                 </DataTrigger>
+                                 <DataTrigger Binding="{Binding Value.State}" Value="Off">
+                                    <Setter TargetName="mark" Property="Text" Value="–"/>
+                                    <Setter TargetName="mark" Property="Foreground" Value="{DynamicResource MutedForegroundBrush}"/>
+                                    <Setter TargetName="text" Property="Foreground" Value="{DynamicResource MutedForegroundBrush}"/>
+                                 </DataTrigger>
+                              </DataTemplate.Triggers>
+                           </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                     </ItemsControl>
+
+                     <TextBlock Grid.Row="3"
+                                Style="{StaticResource Caption}"
+                                Margin="{DynamicResource CoreCaptionGap}">
+                        <Run Text="{Binding [Label_PasswordHistory], Source={x:Static loc:TranslationSource.Instance}, Converter={StaticResource UpperCaseConverter}, Mode=OneWay}"/>
+                        <Run Text="·"/>
+                        <Run Text="{Binding Items.Count, ElementName=_passwords_LB, Mode=OneWay}"/>
+                     </TextBlock>
+                     <helper:PooledListBox Grid.Row="4"
+                              x:Name="_passwords_LB"
+                              helper:Motion.TransitionTier="2"
+                              VerticalAlignment="Top"
+                              AlternationCount="100000"
+                              HorizontalContentAlignment="Stretch"
+                              ItemContainerStyle="{StaticResource PlainListBoxItem}"
+                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.IsDeferredScrollingEnabled="True"
+                              VirtualizingStackPanel.IsVirtualizing="True"
+                              VirtualizingStackPanel.VirtualizationMode="Standard">
+                        <ListBox.ItemTemplate>
+                           <DataTemplate>
+                              <Border Height="38"
+                                      BorderBrush="{DynamicResource Divider2Brush}"
+                                      BorderThickness="0,1,0,1">
+                                 <Grid>
+                                    <Grid.ColumnDefinitions>
+                                       <ColumnDefinition Width="Auto"/>
+                                       <ColumnDefinition Width="*"/>
+                                       <ColumnDefinition Width="Auto"/>
+                                       <ColumnDefinition Width="Auto"/>
+                                       <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Margin="0,0,12,0"
+                                               VerticalAlignment="Center"
+                                               FontFamily="{StaticResource MonoFontFamily}"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource SoftForegroundBrush}"
+                                               Text="{Binding UpdateDate}"/>
+                                    <local:VisiblePasswordBox Grid.Column="1"
+                                                              Height="30"
+                                                              FontSize="13"
+                                                              ReadOnly="True"
+                                                              Loaded="_passwords_VPB_Loaded"/>
+                                    <TextBlock x:Name="currentTag"
+                                               Grid.Column="2"
+                                               Margin="10,0,6,0"
+                                               VerticalAlignment="Center"
+                                               FontFamily="{StaticResource MonoFontFamily}"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               Visibility="Collapsed"
+                                               Text="{loc:Loc Label_Current}"/>
+                                    <Button Grid.Column="3"
+                                            Style="{StaticResource SmallGhostButton}"
+                                            Margin="4,0,0,0"
+                                            Content="{loc:Loc Label_Copy}"
+                                            ToolTip="{loc:Loc Tooltip_CopyPassword}"
+                                            Command="{Binding CopyCommand}"/>
+                                    <Button Grid.Column="4"
+                                            Style="{StaticResource SmallGhostButton}"
+                                            Margin="2,0,0,0"
+                                            Content="{loc:Loc Label_Qr}"
+                                            ToolTip="{loc:Loc Tooltip_ShowQrCodePassword}"
+                                            Command="{Binding ShowQrCodeCommand}"/>
+                                 </Grid>
+                              </Border>
+                              <DataTemplate.Triggers>
+                                 <DataTrigger Binding="{Binding (ItemsControl.AlternationIndex), RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="0">
+                                    <Setter TargetName="currentTag" Property="Visibility" Value="Visible"/>
+                                 </DataTrigger>
+                              </DataTemplate.Triggers>
+                           </DataTemplate>
+                        </ListBox.ItemTemplate>
+                     </helper:PooledListBox>
+
+                  <!-- Clipboard status, pinned to the bottom of the core; only while
+                       something we copied is waiting to be cleared. -->
+                  <Grid x:Name="_clipboard_G"
+                        Grid.Row="5"
+                        Margin="0,10,0,0"
+                        Visibility="Collapsed">
+                     <Rectangle Stroke="{DynamicResource OutlineBrush}"
+                                StrokeThickness="1"
+                                StrokeDashArray="3 3"
+                                SnapsToDevicePixels="True"/>
+                     <!-- Shrinks over the auto-clear time. -->
+                     <Rectangle x:Name="_clipboardProgress_R"
+                                Height="2"
+                                Margin="1,0,1,1"
+                                VerticalAlignment="Bottom"
+                                Fill="{DynamicResource AccentBrush}"
+                                Opacity="0.7"/>
+                     <DockPanel Margin="12,8" LastChildFill="True">
+                        <helper:GlowHalo DockPanel.Dock="Left"
+                                   Style="{StaticResource Dot}"
+                                   Margin="0,0,12,0"
+                                   Fill="{DynamicResource AccentBrush}"/>
+                        <Button DockPanel.Dock="Right"
+                                Style="{StaticResource SmallGhostButton}"
+                                Content="{loc:Loc Label_ClearNow}"
+                                Command="{Binding ClearCommand}"/>
+                        <TextBlock x:Name="_clipboard_TB"
+                                   Text="{Binding Text}"
+                                   VerticalAlignment="Center"
+                                   FontSize="13"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource SoftForegroundBrush}"/>
+                     </DockPanel>
+                  </Grid>
+               </Grid>
+            </GroupBox>
+            </Grid>
+         </Grid>
       </Grid>
    </GroupBox>
 </UserControl>

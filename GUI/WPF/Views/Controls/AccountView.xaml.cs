@@ -1,7 +1,10 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
+using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
@@ -16,22 +19,87 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    {
       private AccountViewModel? _viewModel;
 
+      // The clipboard strip's state (shown / countdown text / clear) lives in its
+      // view model; this view only animates it.
+      private readonly ClipboardStatusViewModel _clipboardStatus = new();
+
       internal string? GetAccountId() => _viewModel?.Account.ItemId;
 
       public AccountView()
       {
          InitializeComponent();
+
+         // History rows are reused (a new account, scrolling): a row's masked
+         // password is set for its own entry each time it gets one, and wiped the
+         // moment it lets go, so a reused row never holds another entry's password.
+         // (A new row has no template yet here; its Loaded handler fills it.)
+         _passwords_LB.ContainerPrepared += (row, item) =>
+         {
+            if (item is PasswordViewModel entry && PooledListBox.Find<VisiblePasswordBox>(row) is VisiblePasswordBox passwordBox)
+            {
+               passwordBox.Password = entry.Password;
+            }
+         };
+         _passwords_LB.ContainerCleared += row => PooledListBox.Find<VisiblePasswordBox>(row)?.Clear();
+
+         _clipboard_G.DataContext = _clipboardStatus;
+         _clipboardStatus.CountdownStarted += _clipboardStatus_CountdownStarted;
+         _clipboardStatus.PropertyChanged += _clipboardStatus_PropertyChanged;
+         Loaded += (_, _) => _clipboardStatus.Start();
+         Unloaded += (_, _) => _clipboardStatus.Stop();
       }
 
-      private void _accountView_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+      /// <summary>New copy: slide the strip in and restart the progress line.</summary>
+      private void _clipboardStatus_CountdownStarted(object? sender, EventArgs e)
       {
-         string sourceText = (e.OriginalSource as TextBlock)?.Text ?? string.Empty;
+         _clipboard_G.Visibility = Visibility.Visible;
+         _ = Motion.Enter(_clipboard_G);
+         _ = Motion.Progress(_clipboardProgress_R, _clipboardStatus.Remaining);
+      }
 
-         if (sourceText != _account_GB.Header.ToString())
+      /// <summary>Cleared: fade the strip out.</summary>
+      private void _clipboardStatus_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+      {
+         if (e.PropertyName == nameof(ClipboardStatusViewModel.IsActive)
+            && !_clipboardStatus.IsActive
+            && _clipboard_G.Visibility == Visibility.Visible)
+         {
+            _ = Motion.FadeOutThenCollapse(_clipboard_G);
+         }
+      }
+
+      /// <summary>
+      /// Identifier row "⋯": selects that row, then opens its menu (move up, move
+      /// down, delete) bound to this account's identifier commands.
+      /// </summary>
+      private void _identifierMore_Click(object sender, RoutedEventArgs e)
+      {
+         if (_viewModel is null || sender is not Button button)
          {
             return;
          }
 
+         // Built on first use (see IdentifierMoreMenu), then kept with the row.
+         button.ContextMenu ??= (ContextMenu)FindResource("IdentifierMoreMenu");
+         ContextMenu menu = button.ContextMenu;
+
+         if (button.DataContext is IdentifierViewModel identifier)
+         {
+            _identifiers_LB.SelectedItem = identifier;
+         }
+
+         menu.DataContext = _viewModel;
+         menu.PlacementTarget = button;
+         menu.Placement = PlacementMode.Bottom;
+         menu.IsOpen = true;
+      }
+
+      /// <summary>
+      /// The account layer's info button shows the account Id as a tooltip and
+      /// copies it on click (it used to be the frame header, copied on right-click).
+      /// </summary>
+      private void _copyAccountId_Click(object sender, RoutedEventArgs e)
+      {
          string? itemId = GetAccountId();
 
          if (itemId is null)
@@ -73,6 +141,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       {
          // Drop any previously revealed / mirrored secrets before switching.
          _clearSecrets();
+
+         // The password box colour is set from code (the box is not bound): follow
+         // the view model when it changes, e.g. after a theme switch.
+         _viewModel?.PropertyChanged -= _viewModel_PropertyChanged;
+         dataContext?.PropertyChanged += _viewModel_PropertyChanged;
 
          if (dataContext is null)
          {
@@ -118,6 +191,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          _refreshPasswordHistory();
       }
 
+      private void _viewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+      {
+         if (e.PropertyName == nameof(AccountViewModel.PasswordBackground) && sender == _viewModel && _viewModel is not null)
+         {
+            _password_VPB.BackgroundColor = _viewModel.PasswordBackground;
+         }
+      }
+
       private void _clearSecrets()
       {
          _password_VPB.Clear();
@@ -143,6 +224,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
             }
          }
 
+         // The rows fill their masked password on Loaded, which runs in the same
+         // pass as the layout, before that frame is drawn. No extra layout pass here:
+         // one for the whole switch is enough.
          _passwords_LB.ItemsSource = _viewModel?.Passwords;
       }
 
@@ -215,6 +299,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
          AppServices.Clipboard.SetText(_password_VPB.Password,
           ClipboardManager.AutoClearAfter);
+
+         // One brighter pulse of the core's glow, then it settles.
+         _ = Motion.Pulse(_corePulse_B);
       }
 
       private void _showQrCodePassword_Clicked(object sender, RoutedEventArgs e)

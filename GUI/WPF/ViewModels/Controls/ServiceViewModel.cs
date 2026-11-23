@@ -26,6 +26,39 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
 
       public string ServiceId => Strings.Format(nameof(Strings.Msg_ServiceId), Service.ItemId);
 
+      /// <summary>Unsaved-change dot in the services list.</summary>
+      public bool HasUnsavedChanges => Service.HasChanged();
+
+      /// <summary>"edited" tag next to the service notes.</summary>
+      public bool IsNotesChanged => Service.HasChanged(nameof(Notes));
+
+      /// <summary>Number of accounts, shown in the services list and the accounts caption.</summary>
+      public int AccountCount => Accounts.Count;
+
+      /// <summary>
+      /// "Needs attention" dot: one of this service's accounts is in a notified
+      /// account alert (weak, reused, leaked, due for change). Set by the vault
+      /// view model from the alert broker's payloads.
+      /// </summary>
+      public bool NeedsAttention
+      {
+         get;
+         set
+         {
+            if (SetProperty(ref field, value))
+            {
+               OnPropertyChanged(nameof(StatusText));
+            }
+         }
+      }
+
+      /// <summary>The row's dots in words, for screen readers (AutomationProperties.ItemStatus).</summary>
+      public string StatusText => string.Join(", ", new[]
+      {
+         HasUnsavedChanges ? Strings.Label_StatusUnsaved : null,
+         NeedsAttention ? Strings.Label_StatusAttention : null,
+      }.Where(static x => x is not null));
+
       public AccountViewModel? SelectedAccount
       {
          get;
@@ -114,6 +147,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          OnPropertyChanged(propertyName);
          OnPropertyChanged($"{propertyName}Background");
          OnPropertyChanged(nameof(ServiceDisplay));
+         OnPropertyChanged(nameof(HasUnsavedChanges));
+         OnPropertyChanged(nameof(StatusText));
+         OnPropertyChanged(nameof(IsNotesChanged));
+         OnPropertyChanged(nameof(AccountCount));
       }
 
       public ServiceViewModel(IService service)
@@ -169,6 +206,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
       /// Applies list filters to visible accounts. With a concrete type filter, an empty match stays empty;
       /// with All, a service-level text hit with no account match still shows every account.
       /// </summary>
+      /// <summary>
+      /// True when <paramref name="account"/> is one of this service's accounts.
+      /// Compared by reference against the view models already held, so nothing is
+      /// read from the vault (no Touch).
+      /// </summary>
+      internal bool Holds(IAccount account)
+         => _accountViewModelsById.Values.Any(x => ReferenceEquals(x.Account, account));
+
       public void ApplyFilters(string identifierFilter, string textFilter, bool changedItemsOnly, IdentifierType identifierTypeFilter)
       {
          _syncAccountViewModels();
@@ -193,6 +238,8 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls
          SelectedAccount = selectedId is not null
             ? Accounts.FirstOrDefault(x => x.Account.ItemId == selectedId) ?? Accounts.FirstOrDefault()
             : Accounts.FirstOrDefault();
+
+         OnPropertyChanged(nameof(AccountCount));
       }
 
       public AccountViewModel? AddAccount()

@@ -9,6 +9,7 @@ using Upsilon.Apps.Passkey.GUI.WPF.Localization;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
 using Upsilon.Apps.Passkey.GUI.WPF.Utils;
 using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
+using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
 
@@ -20,6 +21,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    internal sealed partial class UserServicesView : Window, IDisposable, ILanguageAware
    {
       private readonly UserServicesViewModel _viewModel;
+      private readonly HeldKeySelection _servicesHeldKeys;
       private readonly IDatabase _database;
       private bool _isClosing;
       private bool _forceClose;
@@ -44,6 +46,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _navigation.ItemRequested += _navigation_ItemRequested;
 
          DataContext = _viewModel = new($"{_session.User}");
+         _servicesHeldKeys = new HeldKeySelection(_services_LB, _showSelectedService);
          _viewModel.FiltersRefreshed += _viewModel_FiltersRefreshed;
          _viewModel.LanguageRefreshed += (_, _) => _refreshAlertsMenuFromSession();
          _viewModel.ThemeRefreshed += (_, _) => _refreshAlertsMenuFromSession();
@@ -67,6 +70,52 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _session.Alerts.NotifiedAlertsChanged += _alerts_NotifiedAlertsChanged;
          Loaded += _userServicesView_Loaded;
          Closing += _window_Closing;
+         SourceInitialized += (_, _) =>
+         {
+            if (PresentationSource.FromVisual(this) is System.Windows.Interop.HwndSource source)
+            {
+               source.AddHook(_liveResizeHook);
+            }
+         };
+      }
+
+      private const int WM_ENTERSIZEMOVE = 0x0231;
+      private const int WM_EXITSIZEMOVE = 0x0232;
+
+      // True while the user drags a window edge (or moves the window).
+      private bool _liveResize;
+
+      private IntPtr _liveResizeHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+      {
+         if (msg == WM_ENTERSIZEMOVE)
+         {
+            BeginLiveResize();
+         }
+         else if (msg == WM_EXITSIZEMOVE)
+         {
+            EndLiveResize();
+         }
+
+         return IntPtr.Zero;
+      }
+
+      /// <summary>
+      /// While a window edge is dragged, the side columns keep their width and only
+      /// the password core stretches: re-measuring every list row on each step is
+      /// what made resizing struggle. The columns take their proportional width once
+      /// the edge is released (<see cref="EndLiveResize"/>).
+      /// </summary>
+      internal void BeginLiveResize() => _liveResize = true;
+
+      internal void EndLiveResize()
+      {
+         if (!_liveResize)
+         {
+            return;
+         }
+
+         _liveResize = false;
+         _applyLayoutTokens(new Size(ActualWidth, ActualHeight));
       }
 
       private void _alerts_NotifiedAlertsChanged(object? sender, EventArgs e)
@@ -92,6 +141,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
 
       private void _viewModel_FiltersRefreshed(object? sender, EventArgs e)
       {
+         _viewModel.ApplyAlerts(_notifiedAlerts());
          // Selection is owned by the VM; keep the service detail pane in sync.
          _service_SV.SetDataContext(_viewModel.SelectedService);
          if (_viewModel.SelectedService is not null)
@@ -287,7 +337,41 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
 
          _session.User?.Shake();
-         _service_SV.SetDataContext(_viewModel.SelectedService);
+
+         // A held arrow key: the list follows every step, the service is shown
+         // for the row the keys stop on.
+         if (_servicesHeldKeys.Defer())
+         {
+            return;
+         }
+
+         // The list's own selection (what was just clicked), not the view model's
+         // copy, which a binding may not have caught up with yet.
+         _service_SV.SetDataContext(_services_LB.SelectedItem as ServiceViewModel, ContentTransition.Direction(_services_LB, e));
+      }
+
+      private bool _showSelectedService()
+      {
+         if (_isClosing)
+         {
+            return true;
+         }
+
+         if (this.GetIsBusy())
+         {
+            return false;
+         }
+
+         ServiceViewModel? selected = _services_LB.SelectedItem as ServiceViewModel;
+         if (ReferenceEquals(_service_SV.DataContext, selected))
+         {
+            return true;
+         }
+
+         int from = _services_LB.Items.IndexOf(_service_SV.DataContext);
+         int to = _services_LB.Items.IndexOf(selected);
+         _service_SV.SetDataContext(selected, from < 0 || to < 0 ? 0 : Math.Sign(to - from));
+         return true;
       }
 
       private async void _save()
@@ -445,40 +529,137 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          _securitySettingsAlerts_MI.Visibility = securitySettingsAlerts != 0 ? Visibility.Visible : Visibility.Collapsed;
          _passkeyQualityAlerts_MI.Visibility = passkeyQualityAlerts != 0 ? Visibility.Visible : Visibility.Collapsed;
 
-         _reorderAlertsMenu(
-         [
-            (_leakedPasswordAlerts_MI, leakedSeverity, leakedPasswordAlerts),
-            (_passkeyQualityAlerts_MI, passkeySeverity, passkeyQualityAlerts),
-            (_expiredPasswordAlerts_MI, expiredSeverity, expiredPasswordAlerts),
-            (_weakPasswordAlerts_MI, weakSeverity, weakPasswordAlerts),
-            (_activityAlerts_MI, activitySeverity, activityAlerts),
-            (_duplicatedPasswordAlerts_MI, duplicatedSeverity, duplicatedPasswordAlerts),
-            (_securitySettingsAlerts_MI, securitySeverity, securitySettingsAlerts),
-         ]);
+         _viewModel.AlertCount = totalAlertCount;
+
+         // Plain-language subtitles, from the broker's own payloads.
+         _leakedPasswordAlerts_MI.Tag = _viewModel.ServiceNamesFor(leakedKind);
+         _weakPasswordAlerts_MI.Tag = _viewModel.ServiceNamesFor(weakKind);
+         _duplicatedPasswordAlerts_MI.Tag = _viewModel.ServiceNamesFor(duplicatedKind);
+         _expiredPasswordAlerts_MI.Tag = _viewModel.ServiceNamesFor(expiredKind);
+         _activityAlerts_MI.Tag = Strings.FormatCount(nameof(Strings.Msg_AlertActivitySub), activityAlerts);
+         _securitySettingsAlerts_MI.Tag = Strings.FormatCount(nameof(Strings.Msg_AlertSettingsSub), securitySettingsAlerts);
+         _passkeyQualityAlerts_MI.Tag = Strings.FormatCount(nameof(Strings.Msg_AlertPasskeySub), passkeyQualityAlerts);
+
+         _viewModel.ApplyAlerts(alerts);
+
+         _rebuildAlertsMenu(
+            totalAlertCount,
+            [
+               (Strings.Label_AlertGroupVault,
+               [
+                  (_passkeyQualityAlerts_MI, passkeySeverity, passkeyQualityAlerts),
+                  (_securitySettingsAlerts_MI, securitySeverity, securitySettingsAlerts),
+               ]),
+               (Strings.Label_AlertGroupPasswords,
+               [
+                  (_leakedPasswordAlerts_MI, leakedSeverity, leakedPasswordAlerts),
+                  (_weakPasswordAlerts_MI, weakSeverity, weakPasswordAlerts),
+                  (_duplicatedPasswordAlerts_MI, duplicatedSeverity, duplicatedPasswordAlerts),
+                  (_expiredPasswordAlerts_MI, expiredSeverity, expiredPasswordAlerts),
+               ]),
+               (Strings.Label_AlertGroupActivity,
+               [
+                  (_activityAlerts_MI, activitySeverity, activityAlerts),
+               ]),
+            ]);
       }
 
       /// <summary>
-      /// Critical first, then Warning, then Info. Hidden items stay at the end;
-      /// equal severity keeps the stable secondary order of <paramref name="entries"/>.
+      /// Rebuilds the alerts dropdown: a title row ("20 alerts" + legend), then one
+      /// group per area (vault protection, passwords, activity). Inside a group,
+      /// critical first, then warning, then info. Hidden kinds stay at the end.
       /// </summary>
-      private void _reorderAlertsMenu(
-         (MenuItem Item, AlertSeverity Severity, int Count)[] entries)
+      private void _rebuildAlertsMenu(
+         int total,
+         (string Group, (MenuItem Item, AlertSeverity Severity, int Count)[] Entries)[] groups)
       {
-         MenuItem[] ordered =
-         [
-            .. entries
+         _alerts_MI.Items.Clear();
+
+         _ = _alerts_MI.Items.Add(new MenuItem
+         {
+            Style = (Style)FindResource("AlertMenuTitle"),
+            Header = Strings.FormatCount(nameof(Strings.Msg_AlertTotal), total),
+         });
+
+         foreach ((string group, (MenuItem Item, AlertSeverity Severity, int Count)[] entries) in groups)
+         {
+            if (entries.Any(static e => e.Count > 0))
+            {
+               _ = _alerts_MI.Items.Add(new MenuItem
+               {
+                  Style = (Style)FindResource("AlertGroupHeader"),
+                  Header = group,
+               });
+            }
+
+            foreach (MenuItem item in entries
                .Where(static e => e.Count > 0)
                .OrderByDescending(static e => e.Severity)
-               .Select(static e => e.Item),
-            .. entries
-               .Where(static e => e.Count == 0)
-               .Select(static e => e.Item),
-         ];
+               .Select(static e => e.Item))
+            {
+               _ = _alerts_MI.Items.Add(item);
+            }
+         }
 
-         _alerts_MI.Items.Clear();
-         foreach (MenuItem item in ordered)
+         foreach (MenuItem item in groups
+            .SelectMany(static g => g.Entries)
+            .Where(static e => e.Count == 0)
+            .Select(static e => e.Item))
          {
             _ = _alerts_MI.Items.Add(item);
+         }
+      }
+
+      /// <summary>
+      /// Layout tokens follow the window: columns grow with the width (with min /
+      /// max), padding between layers tightens and the right-hand shortcut chips
+      /// drop on short or narrow windows.
+      /// </summary>
+      private void _window_SizeChanged(object sender, SizeChangedEventArgs e) => _applyLayoutTokens(e.NewSize);
+
+      private void _applyLayoutTokens(Size size)
+      {
+         const double coreMaxWidth = 900;
+         const double fixedChrome = 150;
+
+         double width = size.Width;
+         bool compact = width < 1400 || size.Height < 800;
+
+         double services = Math.Clamp(width * 0.142, 180, 280);
+         double accounts = Math.Clamp(width * 0.136, 170, 260);
+
+         // The account column grows with the window; past the point where the
+         // password core would exceed coreMaxWidth, it takes the extra width so
+         // the core never turns into a vast empty panel.
+         double accountColumn = Math.Max(
+            Math.Clamp(width * 0.236, 300, 460),
+            width - services - accounts - fixedChrome - coreMaxWidth);
+
+         // The widths change on every resize step: bound directly, they update only
+         // their own columns, and not at all while an edge is being dragged.
+         if (!_liveResize)
+         {
+            VaultLayout.Current.Set(services, accounts, accountColumn);
+         }
+
+         // Window resources make WPF walk the whole window to find their users, so
+         // these are written only when they change (at the compact threshold).
+         _setToken("BodyMargin", compact ? new Thickness(8, 12, 8, 8) : new Thickness(16, 20, 16, 12));
+         _setToken("LayerHeaderPadding", compact ? new Thickness(10, 14, 10, 6) : new Thickness(14, 20, 14, 12));
+         _setToken("LayerInset", compact ? new Thickness(8, 14, 8, 8) : new Thickness(14, 22, 14, 14));
+         _setToken("ColumnPadding", compact ? new Thickness(8, 8, 8, 8) : new Thickness(10, 12, 10, 12));
+         _setToken("CorePadding", compact ? new Thickness(14, 16, 14, 8) : new Thickness(20, 24, 20, 16));
+         _setToken("CoreGap", compact ? new Thickness(0, 8, 0, 0) : new Thickness(0, 18, 0, 0));
+         _setToken("CoreCaptionGap", compact ? new Thickness(0, 8, 0, 4) : new Thickness(0, 18, 0, 6));
+         _setToken("CoreButtonHeight", compact ? 34d : 38d);
+         _setToken("RightChipVisibility", width >= 1500 ? Visibility.Visible : Visibility.Collapsed);
+      }
+
+      private void _setToken(string key, object value)
+      {
+         if (!Equals(Resources[key], value))
+         {
+            Resources[key] = value;
          }
       }
 
@@ -593,15 +774,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
       }
 
-      private void _userServicesView_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+      /// <summary>
+      /// The vault layer's info button shows the user Id as a tooltip and copies
+      /// it on click (it used to be the frame header, copied on right-click).
+      /// </summary>
+      private void _copyUserId_Click(object sender, RoutedEventArgs e)
       {
-         string sourceText = (e.OriginalSource as TextBlock)?.Text ?? string.Empty;
-
-         if (sourceText != _userServices_GB.Header.ToString())
-         {
-            return;
-         }
-
          string? itemId = AppServices.Session.User?.ItemId;
 
          if (itemId is null)

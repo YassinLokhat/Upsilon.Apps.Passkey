@@ -132,6 +132,119 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
          set => SetProperty(ref field, value);
       } = string.Empty;
 
+      /// <summary>Vault (user) name shown in the custom title bar.</summary>
+      public string VaultName => _userDisplayName;
+
+      /// <summary>Session state for the title bar ("Session: no time limit" / time left).</summary>
+      public string SessionText
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      } = string.Empty;
+
+      /// <summary>True when auto-logout is off (shown with a warning dot).</summary>
+      public bool IsSessionUnlimited
+      {
+         get;
+         private set => SetProperty(ref field, value);
+      }
+
+      /// <summary>Number of unsaved items (changed services, or 1 for user-level changes).</summary>
+      public int ChangeCount
+      {
+         get;
+         private set
+         {
+            if (SetProperty(ref field, value))
+            {
+               OnPropertyChanged(nameof(ChangeBadge));
+            }
+         }
+      }
+
+      /// <summary>Save button badge: "1 change" / "N changes".</summary>
+      public string ChangeBadge => ChangeCount == 1
+         ? Strings.Msg_ChangeOne
+         : Strings.Format(nameof(Strings.Msg_ChangeMany), ChangeCount);
+
+      /// <summary>Total notified alerts, shown on the Alerts button.</summary>
+      public int AlertCount
+      {
+         get;
+         set => SetProperty(ref field, value);
+      }
+
+      /// <summary>
+      /// What seals the vault ("username + 1 passkey"). The passkey count comes from
+      /// the insufficient-passkeys alert payload, never from the passkeys themselves.
+      /// </summary>
+      public string SealText
+      {
+         get;
+         set => SetProperty(ref field, value);
+      } = Strings.Format(nameof(Strings.Msg_SealAtLeastPasskeys), AlertKinds.RecommendedPasskeyCount);
+
+      /// <summary>True when fewer passkeys than recommended protect the vault.</summary>
+      public bool ShowAddPasskey
+      {
+         get;
+         set => SetProperty(ref field, value);
+      }
+
+      /// <summary>
+      /// Applies the notified alerts to what the vault shows besides the Alerts menu:
+      /// the seal in the title bar and the per-service "needs attention" dots.
+      /// </summary>
+      public void ApplyAlerts(IReadOnlyCollection<IAlert> notified)
+      {
+         ArgumentNullException.ThrowIfNull(notified);
+
+         (SealText, ShowAddPasskey) = SealFor(AppServices.Session.Alerts
+            .GetAllAlerts(AlertKinds.InsufficientPasskeys)
+            .OfType<IInsufficientPasskeysAlert>()
+            .FirstOrDefault());
+
+         IAccount[] flagged = [.. notified.OfType<IAccountsAlert>().SelectMany(static x => x.Accounts)];
+         foreach (ServiceViewModel service in _serviceViewModelsById.Values)
+         {
+            service.NeedsAttention = flagged.Any(service.Holds);
+         }
+      }
+
+      /// <summary>Title-bar seal: how many passkeys protect the vault, and whether to offer another.</summary>
+      internal static (string Text, bool OfferAnother) SealFor(IInsufficientPasskeysAlert? insufficient)
+         => insufficient is null
+            ? (Strings.Format(nameof(Strings.Msg_SealAtLeastPasskeys), AlertKinds.RecommendedPasskeyCount), false)
+            : (insufficient.Count switch
+            {
+               0 => Strings.Msg_SealUsernameOnly,
+               1 => Strings.Msg_SealOnePasskey,
+               _ => Strings.Format(nameof(Strings.Msg_SealPasskeys), insufficient.Count),
+            }, true);
+
+      /// <summary>
+      /// Subtitle for an account alert row: the services concerned, up to four,
+      /// taken from the service view models already held.
+      /// </summary>
+      public string? ServiceNamesFor(IEnumerable<IAlert> alerts)
+      {
+         IAccount[] accounts = [.. alerts.OfType<IAccountsAlert>().SelectMany(static x => x.Accounts)];
+         string[] names =
+         [
+            .. _serviceViewModelsById.Values
+               .Where(service => accounts.Any(service.Holds))
+               .Select(static service => service.ServiceName)
+               .Distinct(StringComparer.CurrentCulture),
+         ];
+
+         return names.Length switch
+         {
+            0 => null,
+            <= 4 => string.Join(" · ", names),
+            _ => $"{string.Join(" · ", names.Take(4))} …",
+         };
+      }
+
       public string ServiceFilter
       {
          get;
@@ -537,6 +650,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
 
       private void _reloadAfterHistory()
       {
+         // Undo / redo can restore the user's alert mask as well.
+         AppServices.Session.Alerts.RefreshSavedMask();
+
          string? selectedServiceId = SelectedService?.Service.ItemId;
          string? selectedAccountId = SelectedService?.SelectedAccount?.Account.ItemId;
 
@@ -650,6 +766,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.ViewModels
             title += sessionLeftTime == 0
                ? Strings.Msg_SessionUnlimitedTime
                : Strings.Format(nameof(Strings.Msg_SessionLeftTime), sessionLeftTime / 60, sessionLeftTime % 60);
+
+            IsSessionUnlimited = sessionLeftTime == 0;
+            SessionText = sessionLeftTime == 0
+               ? Strings.Msg_SessionNoLimit
+               : Strings.Format(nameof(Strings.Msg_SessionLeft), sessionLeftTime / 60, sessionLeftTime % 60);
+
+            // Counted from the service view models already held: reading
+            // user.Services here would go through Touch and reset the idle and
+            // clipboard countdowns on every tick. HasChanged() itself does not touch.
+            int changedServices = _serviceViewModelsById.Values.Count(static x => x.HasUnsavedChanges);
+            ChangeCount = changedServices != 0 ? changedServices : user.HasChanged() ? 1 : 0;
          }
 
          Title = title;

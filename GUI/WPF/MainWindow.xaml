@@ -1,5 +1,6 @@
 ﻿<Window xmlns:Controls="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views.Controls"
         x:Class="Upsilon.Apps.Passkey.GUI.WPF.MainWindow"
+        Style="{StaticResource StrataWindow}"
         x:ClassModifier="internal"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -13,7 +14,9 @@
         Title="{Binding WindowTitle}"
         ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
-        Height="150" Width="750">
+        Height="184"
+        SizeToContent="Width"
+        MinWidth="750">
    <Window.Resources>
       <BooleanToVisibilityConverter x:Key="_booleanToVisibility"/>
    </Window.Resources>
@@ -28,28 +31,32 @@
          <RowDefinition Height="Auto"/>
          <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
-      <Menu Grid.Row="0"
-            IsEnabled="{Binding MenusEnabled}">
-         <Menu.ItemsPanel>
-            <ItemsPanelTemplate>
-               <DockPanel HorizontalAlignment="Stretch"/>
-            </ItemsPanelTemplate>
-         </Menu.ItemsPanel>
-         <MenuItem Header="{loc:Loc Menu_OpenDatabase}"
-                   Command="{Binding OpenDatabaseCommand}"
-                   InputGestureText="Ctrl+O"/>
-         <MenuItem Header="{loc:Loc Menu_NewUser}"
-                   Command="{Binding NewUserCommand}"
-                   InputGestureText="Ctrl+N"/>
-         <MenuItem Header="{loc:Loc Menu_AppSettings}"
-                   Command="{Binding AppSettingsCommand}"
-                   InputGestureText="Ctrl+,"/>
-         <MenuItem Header="{loc:Loc Menu_GenerateRandomPassword}"
-                   Command="{Binding GeneratePasswordCommand}"
-                   InputGestureText="Ctrl+P"
-                   HorizontalAlignment="Right"/>
-      </Menu>
-      <Grid Grid.Row="1">
+      <Border Grid.Row="0"
+              BorderBrush="{DynamicResource SubtleBorderBrush}"
+              BorderThickness="0,0,0,1">
+         <Menu IsEnabled="{Binding MenusEnabled}">
+            <Menu.ItemsPanel>
+               <ItemsPanelTemplate>
+                  <DockPanel HorizontalAlignment="Stretch"/>
+               </ItemsPanelTemplate>
+            </Menu.ItemsPanel>
+            <MenuItem Header="{loc:Loc Menu_OpenDatabase}"
+                      Command="{Binding OpenDatabaseCommand}"
+                      InputGestureText="Ctrl+O"/>
+            <MenuItem Header="{loc:Loc Menu_NewUser}"
+                      Command="{Binding NewUserCommand}"
+                      InputGestureText="Ctrl+N"/>
+            <MenuItem Header="{loc:Loc Menu_AppSettings}"
+                      Command="{Binding AppSettingsCommand}"
+                      InputGestureText="Ctrl+,"/>
+            <MenuItem Header="{loc:Loc Menu_GenerateRandomPassword}"
+                      Command="{Binding GeneratePasswordCommand}"
+                      InputGestureText="Ctrl+P"
+                      HorizontalAlignment="Right"/>
+         </Menu>
+      </Border>
+      <Grid Grid.Row="1"
+            Margin="12,12,16,8">
          <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -61,9 +68,13 @@
          </Grid.ColumnDefinitions>
          <Label Grid.Row="1"
                 Grid.Column="0"
-                Grid.ColumnSpan="2">
+                Grid.ColumnSpan="2"
+                Margin="4,8,4,0">
             <TextBlock Text="{Binding DatabaseLabel}"
-                       TextWrapping="Wrap"/>
+                       FontFamily="{StaticResource MonoFontFamily}"
+                       FontSize="11"
+                       Foreground="{DynamicResource MutedForegroundBrush}"
+                       TextTrimming="CharacterEllipsis"/>
          </Label>
          <Label Grid.Row="0"
                 Grid.Column="0"
@@ -80,11 +91,12 @@
                       Visibility="Collapsed"
                       IsEnabled="{Binding CanTypePasskey}"/>
          <ProgressBar Grid.Row="2"
-                     Grid.Column="0"
-                     Grid.ColumnSpan="2"
-                     IsIndeterminate="True"
-                     Height="6"
-                     Visibility="{Binding IsBusy, Converter={StaticResource _booleanToVisibility}}"/>
+                      Grid.Column="0"
+                      Grid.ColumnSpan="2"
+                      Margin="4,8,4,0"
+                      IsIndeterminate="True"
+                      Height="2"
+                      Visibility="{Binding IsBusy, Converter={StaticResource _booleanToVisibility}}"/>
       </Grid>
    </Grid>
 </Window>

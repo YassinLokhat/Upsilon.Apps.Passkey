@@ -21,6 +21,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
    {
       private readonly UserSettingsViewModel _viewModel;
       private bool _isClosing;
+      private bool _saved;
       private IDatabase? _database;
 
       private static ISessionService _session => AppServices.Session;
@@ -62,6 +63,9 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
       private void _window_Closed(object? sender, EventArgs e)
       {
          _isClosing = true;
+
+         // Live preview of theme / language / alerts: kept when saved, reverted otherwise.
+         _viewModel.EndPreview(_saved);
 
          _passwordsContainer.ClearSecrets();
          _passwordsContainer.DisposeItems();
@@ -222,12 +226,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
             }
 
             _database.User.Settings.AlertsToNotify = alertsToNotify;
+            _session.Alerts.RefreshSavedMask();
 
             await _database.SaveAsync().ConfigureAwait(true);
             _session.ApplySessionLanguage();
             _session.ApplySessionTheme();
          }
 
+         _saved = true;
          string message;
          bool endSessionAfterClose = false;
 
