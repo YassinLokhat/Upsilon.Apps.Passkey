@@ -61,12 +61,12 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views
          }
          else if (e.Key == System.Windows.Input.Key.Enter)
          {
-            if (_viewModel.Identifiers.Any()
+            if (_viewModel.Identifiers.Count != 0
                && _identifiers_LB.SelectedIndex == -1)
             {
                _identifiers_LB.SelectedIndex = 0;
             }
-            else if (!_viewModel.Identifiers.Any())
+            else if (_viewModel.Identifiers.Count == 0)
             {
                _selectedIdentifier = _viewModel.ToIdentifier();
                DialogResult = true;
