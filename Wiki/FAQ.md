@@ -42,7 +42,7 @@ Argon2 is not part of the .NET base class library. Core, Utils, Interfaces, and 
 
 ## Can I use Core on Linux?
 
-Yes. Build `Upsilon.Apps.Passkey.Linux.slnx` (Interfaces + Utils + Core + Multiplateform tests). You must implement `IClipboardManager`. There is no official Linux GUI. Multiplateform unit tests run on that solution (and in Linux CI); the WPF ViewModel suite (`UnitTests/Windows`, Windows TFM) does not.
+Yes. Build `Upsilon.Apps.Passkey.Linux.slnx` (Interfaces + Utils + Core + Presentation, with the Multiplateform and Presentation tests). You must implement `IClipboardManager`. There is no official Linux GUI. Both test suites run on that solution (and in Linux CI); the WPF host tests (`UnitTests/Windows`, Windows TFM) do not.
 
 ## Where is my vault file in the WPF app?
 

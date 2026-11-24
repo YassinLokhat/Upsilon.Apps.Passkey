@@ -100,4 +100,28 @@ namespace Upsilon.Apps.Passkey.Interfaces.Utils
          Name = message;
       }
    }
+
+   /// <summary>
+   /// Thrown when the vault file on disk no longer matches the session handle
+   /// (e.g. a sync client replaced the <c>.pku</c> while it was open). Hosts
+   /// must not overwrite silently — keep a conflict copy or reload. Derives from
+   /// <see cref="IOException"/> so existing I/O failure handling still applies.
+   /// </summary>
+   public sealed class ExternalVaultReplacedException : IOException
+   {
+      public ExternalVaultReplacedException()
+         : base("The vault file was replaced or removed by another process while the session was open.")
+      {
+      }
+
+      public ExternalVaultReplacedException(string message) : base(message)
+      {
+      }
+
+      public ExternalVaultReplacedException(string message, Exception innerException)
+         : base(message, innerException)
+      {
+      }
+   }
 }
+

@@ -1,9 +1,10 @@
 <Project>
 
   <!--
-    Zero-dependency gate for Core / Utils / Interfaces / WPF.
+    Zero-dependency gate for Core / Utils / Interfaces / WPF / Presentation.
     Opt in with <EnforceZeroExternalDependencies>true</EnforceZeroExternalDependencies>.
-    See CONTRIBUTING.md.
+    The MAUI host may set <AllowedExternalPackagePrefixes> (semicolon-separated
+    Identity prefixes) to allowlist Microsoft packages only. See CONTRIBUTING.md.
   -->
   <Target Name="EnforceZeroExternalDependencies"
           BeforeTargets="Build;Pack"

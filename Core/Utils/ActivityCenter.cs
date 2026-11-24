@@ -355,6 +355,12 @@ namespace Upsilon.Apps.Passkey.Core.Utils
       /// </summary>
       internal void CancelPending() => _deferred.Cancel();
 
+      /// <summary>
+      /// Writes a pending debounced append now, unsealed, exactly as the timer
+      /// would have done. Sealing stays reserved for Save and Close.
+      /// </summary>
+      internal void FlushPending() => _deferred.Flush();
+
       internal void Save(bool rebuildStringActivities)
       {
          // An explicit save supersedes any pending debounce.

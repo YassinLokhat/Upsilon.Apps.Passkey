@@ -6,6 +6,8 @@ namespace Upsilon.Apps.Passkey.Core.Models
 {
    public sealed partial class Database
    {
+      private int _closed;
+
       private void _save(bool logSaveEvent, bool refreshAlerts = true)
       {
          _saveActivities(rebuildStringActivities: true);
@@ -85,6 +87,28 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       internal void Close(bool logCloseEvent, bool loginTimeoutReached)
       {
+         // Hosts may close from several paths (logout, idle timeout, Delete):
+         // only the first one flushes, tears down and raises DatabaseClosed.
+         if (Interlocked.Exchange(ref _closed, 1) != 0)
+         {
+            return;
+         }
+
+         // A failed flush (I/O error, external replace) must still release the
+         // file handle and the sibling .lock, otherwise the vault stays locked
+         // until the process exits.
+         try
+         {
+            _flushOnClose(logCloseEvent);
+         }
+         finally
+         {
+            _teardownSession(loginTimeoutReached);
+         }
+      }
+
+      private void _flushOnClose(bool logCloseEvent)
+      {
          if (logCloseEvent)
          {
             if (User is not null)
@@ -132,7 +156,10 @@ namespace Upsilon.Apps.Passkey.Core.Models
             AutoSave.Clear(deleteFile: false);
             ActivityCenter.CancelPending();
          }
+      }
 
+      private void _teardownSession(bool loginTimeoutReached)
+      {
          // Stop the session timer before tearing down the file handle: this both
          // blocks until any in-flight tick finishes and prevents future ticks
          // from operating on the disposed FileLocker.

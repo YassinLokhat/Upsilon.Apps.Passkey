@@ -260,7 +260,9 @@ namespace Upsilon.Apps.Passkey.Utils
          catch (Exception ex)
             when (ex is OutOfMemoryException
             or IOException
-            or HttpRequestException)
+            or HttpRequestException
+            or PlatformNotSupportedException
+            or NotSupportedException)
          {
             System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
             return null;
@@ -307,7 +309,9 @@ namespace Upsilon.Apps.Passkey.Utils
          catch (Exception ex)
             when (ex is HttpRequestException
             or IOException
-            or OperationCanceledException)
+            or OperationCanceledException
+            or PlatformNotSupportedException
+            or NotSupportedException)
          {
             System.Diagnostics.Trace.TraceWarning($"HIBP leak check failed ({ex.GetType().Name}); trying XposedOrNot.");
             return null;
@@ -337,7 +341,9 @@ namespace Upsilon.Apps.Passkey.Utils
             when (ex is OutOfMemoryException
             or IOException
             or OperationCanceledException
-            or HttpRequestException)
+            or HttpRequestException
+            or PlatformNotSupportedException
+            or NotSupportedException)
          {
             System.Diagnostics.Trace.TraceWarning($"XposedOrNot leak check failed: {ex}");
             return null;
@@ -367,7 +373,9 @@ namespace Upsilon.Apps.Passkey.Utils
          catch (Exception ex)
             when (ex is HttpRequestException
             or IOException
-            or OperationCanceledException)
+            or OperationCanceledException
+            or PlatformNotSupportedException
+            or NotSupportedException)
          {
             System.Diagnostics.Trace.TraceWarning($"XposedOrNot leak check failed ({ex.GetType().Name}); trying local bloom.");
             return null;

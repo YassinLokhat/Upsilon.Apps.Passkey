@@ -5,7 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views"
-        xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels"
+        xmlns:viewmodels="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Activities;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
         xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
         d:DataContext="{d:DesignInstance Type=viewmodels:UserActivitiesViewModel}"
         mc:Ignorable="d"

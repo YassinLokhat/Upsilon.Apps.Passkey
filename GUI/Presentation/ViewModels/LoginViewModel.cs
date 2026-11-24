@@ -1,0 +1,668 @@
+using Upsilon.Apps.Passkey.GUI.Presentation.Helper;
+using Upsilon.Apps.Passkey.GUI.Presentation.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
+using Upsilon.Apps.Passkey.Interfaces.Events;
+using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.Interfaces.Utils;
+
+namespace Upsilon.Apps.Passkey.GUI.Presentation.ViewModels
+{
+   /// <summary>
+   /// Progressive login of the WPF and MAUI login screens, without binding passkeys
+   /// to the ViewModel: an explicitly picked vault wins over the default directory,
+   /// then username, then each passkey in order (no rollback). An idle countdown
+   /// clears typed credentials and any half-open session.
+   /// Hosts read the secret from the control and pass it to <see cref="SubmitPasskeyAsync"/>.
+   /// Must be driven from the UI thread.
+   /// </summary>
+   internal sealed class LoginViewModel : ObservableObject, ILanguageRefreshable, IDisposable
+   {
+      private IDatabase? _database;
+      private IUser? _user;
+      private bool _isBusy;
+      private string? _pickedVault;
+      private string _pickedVaultName = string.Empty;
+      private string _statusMessage = string.Empty;
+      private readonly ISessionService _session;
+      private readonly LoginIdleTimer _idleTimer;
+      private bool _disposed;
+      private bool _vaultOperationRunning;
+      private bool _resetPending;
+
+      public LoginViewModel()
+      {
+         _session = AppServices.Session;
+         _session.WriteBackCompleted += _onWriteBackCompleted;
+         _idleTimer = new LoginIdleTimer(AppServices.Timers);
+         _idleTimer.Changed += (_, _) => OnPropertyChanged(nameof(Title));
+         _idleTimer.Elapsed += _onIdleTimeout;
+         SaveConflictCopiesCommand = new AsyncRelayCommand(SaveConflictCopiesAsync, () => HasConflictCopies && IsIdle);
+         OpenVaultCommand = new AsyncRelayCommand(_pickVaultAsync, () => MenusEnabled);
+         NewUserCommand = new AsyncRelayCommand(() => _showToolAsync(new UserSettingsRequest()), () => MenusEnabled);
+         AppSettingsCommand = new AsyncRelayCommand(() => _showToolAsync(new AppSettingsRequest()), () => MenusEnabled);
+         GeneratePasswordCommand = new AsyncRelayCommand(() => _showToolAsync(new GeneratePasswordRequest()), () => MenusEnabled);
+         RefreshConflictCopies();
+      }
+
+      public AsyncRelayCommand SaveConflictCopiesCommand { get; }
+
+      /// <summary>Picks a vault file through <see cref="IDialogService.PickOpenFileAsync"/> (desktop hosts).</summary>
+      public AsyncRelayCommand OpenVaultCommand { get; }
+
+      public AsyncRelayCommand NewUserCommand { get; }
+
+      public AsyncRelayCommand AppSettingsCommand { get; }
+
+      public AsyncRelayCommand GeneratePasswordCommand { get; }
+
+      /// <summary>
+      /// Menus and shortcuts stay off while an open or a login runs and during the
+      /// passkey prompt, so a half-open session cannot race "New user" or "Open".
+      /// </summary>
+      public bool MenusEnabled => IsIdle && !DatabaseOpened;
+
+      /// <summary>App title, followed by the idle reset countdown while it runs.</summary>
+      public string Title => _idleTimer.AppendCountdown(AppServices.Info.Title);
+
+      public int ConflictCopyCount
+      {
+         get;
+         private set
+         {
+            if (SetProperty(ref field, value))
+            {
+               OnPropertyChanged(nameof(HasConflictCopies));
+               OnPropertyChanged(nameof(ConflictCopiesMessage));
+               SaveConflictCopiesCommand.RaiseCanExecuteChanged();
+            }
+         }
+      }
+
+      public bool HasConflictCopies => ConflictCopyCount > 0;
+
+      public string ConflictCopiesMessage
+         => HasConflictCopies ? Strings.Format(nameof(Strings.Login_ConflictCopies), ConflictCopyCount) : string.Empty;
+
+      public void RefreshConflictCopies()
+         => ConflictCopyCount = AppServices.ConflictCopies?.List().Count ?? 0;
+
+      /// <summary>
+      /// Saves each conflict copy through the host file exchange and deletes it once
+      /// written. Stops at the first cancelled picker; copies not saved stay on the device.
+      /// </summary>
+      public async Task SaveConflictCopiesAsync()
+      {
+         if (AppServices.ConflictCopies is not { } store || AppServices.Files is not { } files || IsBusy)
+         {
+            return;
+         }
+
+         IsBusy = true;
+         try
+         {
+            foreach (ConflictCopy copy in store.List())
+            {
+               ExchangeFile? target = await files.OpenWriteAsync(Strings.Title_SaveConflictCopy, copy.FileName, ".pku").ConfigureAwait(true);
+               if (target is null)
+               {
+                  break;
+               }
+
+               try
+               {
+                  await using (target.ConfigureAwait(true))
+                  {
+                     using Stream source = store.OpenRead(copy);
+                     await source.CopyToAsync(target.Stream).ConfigureAwait(true);
+                  }
+
+                  store.Delete(copy);
+               }
+               catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+               {
+                  AppServices.Log.Warn($"Saving a conflict copy failed: {ErrorText.ForLog(ex)}");
+                  if (AppServices.Dialogs is { } dialogs)
+                  {
+                     await dialogs.WarnAsync(Strings.Msg_ConflictCopySaveFailed, Strings.Title_SaveConflictCopy).ConfigureAwait(true);
+                  }
+
+                  break;
+               }
+            }
+         }
+         finally
+         {
+            IsBusy = false;
+            RefreshConflictCopies();
+         }
+      }
+
+      public void Dispose()
+      {
+         if (_disposed)
+         {
+            return;
+         }
+
+         _disposed = true;
+         _session.WriteBackCompleted -= _onWriteBackCompleted;
+         _idleTimer.Dispose();
+         LoggedIn = null;
+         SessionEnded = null;
+         IdleTimeoutElapsed = null;
+         CredentialsReset = null;
+         ErrorReported = null;
+      }
+
+      /// <summary>Raised on the UI thread once the last passkey unlocked the vault.</summary>
+      public event EventHandler? LoggedIn;
+
+      /// <summary>
+      /// Raised by <see cref="Reset"/> (Open, idle timeout, a corrupted vault, the
+      /// host's own reset); the host clears its credential controls.
+      /// </summary>
+      public event EventHandler? CredentialsReset;
+
+      /// <summary>
+      /// Raised with each failure also shown in <see cref="StatusMessage"/>, for hosts
+      /// that report failures in a dialog.
+      /// </summary>
+      public event EventHandler<LoginErrorEventArgs>? ErrorReported;
+
+      /// <summary>Raised on the UI thread after the session closed (logout, timeout, reset).</summary>
+      public event EventHandler<LogoutEventArgs>? SessionEnded;
+
+      /// <summary>
+      /// Raised after the idle countdown reset the login; the host clears the
+      /// credential control.
+      /// </summary>
+      public event EventHandler? IdleTimeoutElapsed;
+
+      public bool DatabaseOpened => _database is not null;
+
+      public bool IsLoggedIn => _user is not null;
+
+      public bool IsBusy
+      {
+         get => _isBusy;
+         private set
+         {
+            if (SetProperty(ref _isBusy, value))
+            {
+               OnPropertyChanged(nameof(IsIdle));
+               SaveConflictCopiesCommand.RaiseCanExecuteChanged();
+               _raiseMenusEnabled();
+            }
+         }
+      }
+
+      public bool IsIdle => !_isBusy;
+
+      public string StatusMessage
+      {
+         get => _statusMessage;
+         private set => _ = SetProperty(ref _statusMessage, value);
+      }
+
+      public string SelectedVaultName
+      {
+         get => _pickedVaultName;
+         private set
+         {
+            if (SetProperty(ref _pickedVaultName, value))
+            {
+               OnPropertyChanged(nameof(HasSelectedVault));
+               OnPropertyChanged(nameof(SelectedVaultLabel));
+            }
+         }
+      }
+
+      public bool HasSelectedVault => _pickedVaultName.Length != 0;
+
+      public string SelectedVaultLabel
+         => HasSelectedVault ? Strings.Format(nameof(Strings.Login_SelectedVault), _pickedVaultName) : string.Empty;
+
+      public string CredentialsLabel
+         => DatabaseOpened ? Strings.Label_Password : Strings.Label_Username;
+
+      /// <summary>File name of the picked or half-open vault; empty when none.</summary>
+      public string VaultFileName
+      {
+         get;
+         private set => SetProperty(ref field, value, [nameof(DatabaseLabel)]);
+      } = string.Empty;
+
+      public string DatabaseLabel => VaultFileName.Length != 0
+         ? Strings.Format(nameof(Strings.Msg_DatabaseLabel), VaultFileName)
+         : Strings.Msg_NoDatabaseLoaded;
+
+      /// <summary>Re-reads culture-dependent labels after <see cref="LocalizationService.LanguageChanged"/>.</summary>
+      public void OnLanguageChanged()
+      {
+         OnPropertyChanged(nameof(CredentialsLabel));
+         OnPropertyChanged(nameof(SelectedVaultLabel));
+         OnPropertyChanged(nameof(DatabaseLabel));
+         OnPropertyChanged(nameof(Title));
+      }
+
+      /// <summary>
+      /// Call when the credential control's text changes: restarts the idle
+      /// countdown while something is typed or a vault is half-open.
+      /// </summary>
+      public void NotifyCredentialInput(bool hasText)
+      {
+         if (IsBusy || IsLoggedIn || (!hasText && !DatabaseOpened))
+         {
+            return;
+         }
+
+         _idleTimer.Restart();
+      }
+
+      /// <summary>
+      /// Applies <see cref="LoginCommandLine"/> arguments: selects the vault, then
+      /// submits the username so the passkey prompt is shown.
+      /// </summary>
+      public async Task ApplyCommandLineAsync(IReadOnlyList<string> args)
+      {
+         (string? vaultPath, string? username) = LoginCommandLine.Parse(args);
+         if (vaultPath is not null)
+         {
+            SelectVault(vaultPath, Path.GetFileName(vaultPath));
+         }
+
+         if (!string.IsNullOrWhiteSpace(username))
+         {
+            await SubmitUsernameAsync(username).ConfigureAwait(true);
+         }
+      }
+
+      public IDatabase? Database => _database;
+
+      public IUser? User => _user;
+
+      /// <summary>
+      /// Remembers an explicitly picked vault (path, or SAF URI on Android).
+      /// The next username is opened against it instead of the default directory.
+      /// </summary>
+      public void SelectVault(string location, string displayName)
+      {
+         ArgumentException.ThrowIfNullOrWhiteSpace(location);
+         if (IsBusy)
+         {
+            return;
+         }
+
+         Reset();
+         _pickedVault = location;
+         SelectedVaultName = displayName;
+         VaultFileName = displayName;
+         StatusMessage = Strings.Login_EnterVaultUsername;
+      }
+
+      public async Task SubmitUsernameAsync(string username, CancellationToken cancellationToken = default)
+      {
+         username = CredentialRules.NormalizeUsername(username);
+         if (IsBusy
+             || DatabaseOpened
+             || username.Length == 0)
+         {
+            return;
+         }
+
+         _idleTimer.Stop();
+
+         if (AppServices.DefaultVaultDirectory is not { } vaultDirectory
+             || AppServices.VaultSources is null
+             || AppServices.Clipboard is null)
+         {
+            _reportError(Strings.Title_Error, Strings.Login_HostNotConfigured);
+            return;
+         }
+
+         string location = _pickedVault
+            ?? Path.GetFullPath(Path.Join(vaultDirectory, AppServices.Cryptography.GetHash(username) + ".pku"));
+
+         if (_pickedVault is null
+             && !File.Exists(location))
+         {
+            _reportError(Strings.Title_Error, Strings.Format(
+               nameof(Strings.Login_NoVaultForUsername),
+               vaultDirectory,
+               Strings.Login_OpenVault));
+            return;
+         }
+
+         IsBusy = true;
+         _vaultOperationRunning = true;
+         StatusMessage = Strings.Login_Opening;
+         IDatabase? database = null;
+         IVaultSource? source = null;
+         try
+         {
+            source = await AppServices.VaultSources.OpenPathAsync(location, cancellationToken).ConfigureAwait(true);
+            IVaultSource opened = source;
+            VaultCheckoutResult checkout = await AppServices.Session
+               .RunSourceOperationAsync(() => opened.CheckoutAsync(cancellationToken))
+               .ConfigureAwait(true);
+
+            database = await Core.Models.Database.OpenAsync(
+               AppServices.Cryptography,
+               AppServices.Serialization,
+               AppServices.PasswordFactory,
+               AppServices.Clipboard,
+               AppServices.SecretProtector,
+               source.WorkingPath,
+               username,
+               cancellationToken).ConfigureAwait(true);
+
+            // The host closed while the vault was opening: never publish it.
+            if (_disposed)
+            {
+               database.Close();
+               return;
+            }
+
+            database.AutoSaveDetected += _onAutoSaveDetected;
+            AppServices.Session.TrackVaultSource(database, source);
+            source = null;
+            database.DatabaseClosed += _onDatabaseClosed;
+            _database = database;
+
+            OnPropertyChanged(nameof(DatabaseOpened));
+            OnPropertyChanged(nameof(CredentialsLabel));
+            _raiseMenusEnabled();
+            if (_pickedVault is null)
+            {
+               VaultFileName = Path.GetFileName(location);
+            }
+
+            StatusMessage = checkout switch
+            {
+               VaultCheckoutResult.RecoveredLocalChanges => $"{Strings.Login_RecoveredLocalChanges} {Strings.Login_EnterPasskeys}",
+               VaultCheckoutResult.StaleCopyKeptAsConflict => $"{Strings.Login_StaleCopyKeptAsConflict} {Strings.Login_EnterPasskeys}",
+               _ => Strings.Login_EnterPasskeys,
+            };
+            RefreshConflictCopies();
+         }
+         catch (InsufficientKdfParametersException ex)
+         {
+            AppServices.Log.Warn($"Failed to open database: {ErrorText.ForLog(ex)}");
+            _reportError(Strings.Title_InsufficientKdf, Strings.Msg_InsufficientKdf);
+         }
+         catch (Exception ex) when (ex is IOException
+            or UnauthorizedAccessException
+            or ArgumentException
+            or InvalidOperationException
+            or CorruptedSourceException
+            or NullValueException)
+         {
+            AppServices.Log.Warn($"Failed to open database: {ErrorText.ForLog(ex)}");
+            _reportError(Strings.Title_Error, Strings.Format(nameof(Strings.Login_OpenFailed), ErrorText.Describe(ex)));
+         }
+         finally
+         {
+            // Not handed to the session (open failed): release it now. An
+            // untouched working copy is removed; recovered edits are kept.
+            if (source is not null)
+            {
+               await source.DisposeAsync().ConfigureAwait(true);
+            }
+
+            _vaultOperationRunning = false;
+            IsBusy = false;
+         }
+
+         if (_resetPending)
+         {
+            _resetNow();
+            return;
+         }
+
+         if (DatabaseOpened)
+         {
+            _idleTimer.Restart();
+         }
+      }
+
+      /// <summary>Pass the passkey from the control; do not store it on this ViewModel.</summary>
+      public async Task<bool> SubmitPasskeyAsync(string passkey, CancellationToken cancellationToken = default)
+      {
+         IDatabase? database = _database;
+         if (IsBusy
+             || IsLoggedIn
+             || database is null
+             || string.IsNullOrEmpty(passkey))
+         {
+            return false;
+         }
+
+         _idleTimer.Stop();
+         IsBusy = true;
+         _vaultOperationRunning = true;
+         StatusMessage = Strings.Login_CheckingPasskey;
+         try
+         {
+            _user = await database.LoginAsync(passkey, cancellationToken).ConfigureAwait(true);
+         }
+         catch (CorruptedSourceException ex)
+         {
+            AppServices.Log.Warn($"Database corrupted during login: {ErrorText.ForLog(ex)}");
+            _resetNow();
+            _reportError(Strings.Title_CorruptedDatabase, Strings.Msg_CorruptedDatabase);
+            return false;
+         }
+         catch (Exception ex) when (ex is IOException
+            or UnauthorizedAccessException
+            or InvalidOperationException
+            or NullValueException)
+         {
+            AppServices.Log.Warn($"Login failed: {ErrorText.ForLog(ex)}");
+            _resetNow();
+            _reportError(Strings.Title_Error, Strings.Format(nameof(Strings.Login_LoginFailed), ErrorText.Describe(ex)));
+            return false;
+         }
+         finally
+         {
+            _vaultOperationRunning = false;
+            IsBusy = false;
+         }
+
+         // The host closed during the login: never start the session.
+         if (_disposed)
+         {
+            _user = null;
+            database.Close();
+            return false;
+         }
+
+         if (_resetPending)
+         {
+            _resetNow();
+            return false;
+         }
+
+         OnPropertyChanged(nameof(IsLoggedIn));
+
+         if (_user is null)
+         {
+            // Same soft feedback as WPF: a wrong layer is not reported (no rollback).
+            StatusMessage = Strings.Login_NextPasskey;
+            _idleTimer.Restart();
+            return false;
+         }
+
+         StatusMessage = string.Empty;
+         AppServices.Session.StartSession(database);
+         LoggedIn?.Invoke(this, EventArgs.Empty);
+         return true;
+      }
+
+      /// <summary>
+      /// Closes any open or half-open session and clears the picked vault. While
+      /// a vault opens or a passkey is checked, the reset runs once that call returns.
+      /// </summary>
+      public void Reset()
+      {
+         // Closing the database under a running OpenAsync / LoginAsync would race Core on its worker thread.
+         if (_vaultOperationRunning)
+         {
+            _resetPending = true;
+            return;
+         }
+
+         _resetNow();
+      }
+
+      private void _resetNow()
+      {
+         _resetPending = false;
+         IDatabase? database = _database;
+         _clearSessionState();
+         _pickedVault = null;
+         SelectedVaultName = string.Empty;
+         VaultFileName = string.Empty;
+
+         // Close raises DatabaseClosed; the session then writes the working copy back.
+         if (database is not null && ReferenceEquals(AppServices.Session.Database, database))
+         {
+            AppServices.Session.EndSession();
+         }
+         else
+         {
+            database?.Close();
+         }
+         StatusMessage = string.Empty;
+         CredentialsReset?.Invoke(this, EventArgs.Empty);
+      }
+
+      private void _clearSessionState()
+      {
+         _idleTimer.Stop();
+         _database = null;
+         _user = null;
+         VaultFileName = _pickedVaultName;
+         OnPropertyChanged(nameof(DatabaseOpened));
+         OnPropertyChanged(nameof(CredentialsLabel));
+         OnPropertyChanged(nameof(IsLoggedIn));
+         _raiseMenusEnabled();
+      }
+
+      private void _reportError(string title, string message)
+      {
+         StatusMessage = message;
+         ErrorReported?.Invoke(this, new LoginErrorEventArgs(title, message));
+      }
+
+      private async Task _pickVaultAsync()
+      {
+         if (AppServices.Dialogs is not { } dialogs)
+         {
+            return;
+         }
+
+         _idleTimer.Stop();
+         string? path = await dialogs.PickOpenFileAsync(Strings.Filter_Pku, Strings.Title_OpenDatabase).ConfigureAwait(true);
+         if (!string.IsNullOrWhiteSpace(path))
+         {
+            SelectVault(path, Path.GetFileName(path));
+         }
+      }
+
+      private void _raiseMenusEnabled()
+      {
+         OnPropertyChanged(nameof(MenusEnabled));
+         OpenVaultCommand.RaiseCanExecuteChanged();
+         NewUserCommand.RaiseCanExecuteChanged();
+         AppSettingsCommand.RaiseCanExecuteChanged();
+         GeneratePasswordCommand.RaiseCanExecuteChanged();
+      }
+
+      private async Task _showToolAsync<TResult>(IViewRequest<TResult> request)
+      {
+         _idleTimer.Stop();
+         if (AppServices.Dialogs is { } dialogs)
+         {
+            _ = await dialogs.ShowAsync(request).ConfigureAwait(true);
+         }
+      }
+
+      private void _onIdleTimeout(object? sender, EventArgs e)
+      {
+         if (IsBusy || IsLoggedIn)
+         {
+            return;
+         }
+
+         Reset();
+         IdleTimeoutElapsed?.Invoke(this, EventArgs.Empty);
+      }
+
+      private void _onAutoSaveDetected(object? sender, AutoSaveDetectedEventArgs e)
+      {
+         // Raised by LoginAsync on a worker thread, which blocks for the answer.
+         // The UI thread is awaiting (not blocking on) the login, so a synchronous
+         // hop to it is safe — the same contract as the WPF Dispatcher.Invoke.
+         IUiDispatcher? ui = AppServices.Ui;
+         IDialogService? dialogs = AppServices.Dialogs;
+         if (ui is null
+             || dialogs is null
+             || ui.CheckAccess())
+         {
+            e.MergeBehavior = AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile;
+            return;
+         }
+
+         DialogResult answer = ui.Send(() => dialogs.ConfirmAsync(
+               Strings.Msg_AutosaveDetected,
+               Strings.Title_AutosaveDetected,
+               DialogButtons.YesNoCancel))
+            .GetAwaiter()
+            .GetResult();
+
+         e.MergeBehavior = answer switch
+         {
+            DialogResult.Yes => AutoSaveMergeBehavior.MergeAndSaveThenRemoveAutoSaveFile,
+            DialogResult.No => AutoSaveMergeBehavior.DontMergeAndRemoveAutoSaveFile,
+            _ => AutoSaveMergeBehavior.MergeWithoutSavingAndKeepAutoSaveFile,
+         };
+      }
+
+      private void _onDatabaseClosed(object? sender, LogoutEventArgs e)
+      {
+         // May run on the session-timer thread (auto-logout).
+         if (sender is not IDatabase database)
+         {
+            return;
+         }
+
+         database.DatabaseClosed -= _onDatabaseClosed;
+         database.AutoSaveDetected -= _onAutoSaveDetected;
+
+         UiThread.Post(() =>
+         {
+            if (ReferenceEquals(AppServices.Session.Database, database))
+            {
+               AppServices.Session.EndSession(closeDatabase: false);
+            }
+
+            if (ReferenceEquals(_database, database))
+            {
+               _clearSessionState();
+            }
+
+            RefreshConflictCopies();
+            SessionEnded?.Invoke(this, e);
+         });
+      }
+
+      private void _onWriteBackCompleted(object? sender, VaultWriteBackEventArgs e)
+      {
+         StatusMessage = e.Message;
+         RefreshConflictCopies();
+      }
+   }
+}

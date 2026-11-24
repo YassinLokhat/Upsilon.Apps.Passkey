@@ -160,7 +160,11 @@ namespace Upsilon.Apps.Passkey.Core.Models
       };
 
       public int SessionLeftTime { get; set; }
-      private int _clipboardLeftTime;
+
+      // Wall-clock deadlines so background freeze (Android) or sleep still expires
+      // the session when the process resumes and the next tick runs.
+      private DateTime? _sessionDeadlineUtc;
+      private DateTime? _clipboardDeadlineUtc;
 
       // The timer fires on a ThreadPool thread, so a tick can run concurrently
       // with CloseOnSessionTimeout on the UI thread. This gate serializes both: a
@@ -195,11 +199,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
                return;
             }
 
-            if (Settings.LogoutTimeout != 0)
-            {
-               SessionLeftTime--;
+            DateTime utcNow = DateTime.UtcNow;
 
-               if (SessionLeftTime == 0)
+            if (Settings.LogoutTimeout != 0
+               && _sessionDeadlineUtc is { } sessionDeadline)
+            {
+               int left = (int)Math.Ceiling((sessionDeadline - utcNow).TotalSeconds);
+               SessionLeftTime = Math.Max(0, left);
+
+               if (utcNow >= sessionDeadline)
                {
                   Host.AddActivity(itemId: ItemId,
                      Username,
@@ -219,21 +227,18 @@ namespace Upsilon.Apps.Passkey.Core.Models
                }
             }
 
-            if (Settings.CleaningClipboardTimeout != 0)
+            if (Settings.CleaningClipboardTimeout != 0
+               && _clipboardDeadlineUtc is { } clipboardDeadline
+               && utcNow >= clipboardDeadline)
             {
-               _clipboardLeftTime--;
-
-               if (_clipboardLeftTime == 0)
+               lock (_recentClipboardSecretsGate)
                {
-                  lock (_recentClipboardSecretsGate)
-                  {
-                     clipboardScrubList = [.. _recentClipboardSecrets];
-                     _recentClipboardSecrets.Clear();
-                  }
-
-                  clipboardManager = Host.ClipboardManager;
-                  _clipboardLeftTime = Settings.CleaningClipboardTimeout;
+                  clipboardScrubList = [.. _recentClipboardSecrets];
+                  _recentClipboardSecrets.Clear();
                }
+
+               clipboardManager = Host.ClipboardManager;
+               _clipboardDeadlineUtc = utcNow.AddSeconds(Settings.CleaningClipboardTimeout);
             }
          }
 
@@ -271,8 +276,15 @@ namespace Upsilon.Apps.Passkey.Core.Models
       /// </summary>
       public void ResetTimer()
       {
-         SessionLeftTime = Settings.LogoutTimeout * 60;
-         _clipboardLeftTime = Settings.CleaningClipboardTimeout;
+         DateTime utcNow = DateTime.UtcNow;
+         int logoutSeconds = Settings.LogoutTimeout * 60;
+         SessionLeftTime = logoutSeconds;
+         _sessionDeadlineUtc = Settings.LogoutTimeout == 0
+            ? null
+            : utcNow.AddSeconds(logoutSeconds);
+         _clipboardDeadlineUtc = Settings.CleaningClipboardTimeout == 0
+            ? null
+            : utcNow.AddSeconds(Settings.CleaningClipboardTimeout);
       }
 
       internal void StopTimer()

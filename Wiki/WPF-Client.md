@@ -2,19 +2,21 @@
 
 The Windows desktop app lives in `GUI/WPF`. It is MVVM with a small service locator (`AppServices`) instead of a DI container, so ViewModels stay unit-testable. The project currently has no NuGet packages either; keep it that way unless a Windows-only capability cannot be done with the BCL.
 
-**MVVM conventions:** ViewModels inherit `ObservableObject` (`SetProperty` / `OnPropertyChanged`) and expose `RelayCommand` for user actions. Prefer `{Binding}` / `ItemsSource="{Binding …}"` over code-behind assignments. Keep code-behind for focus, list selection, and secret lifecycle (`VisiblePasswordBox`, `SetDataContext`). Marshal worker-thread callbacks with `UiThread.Post` / `UiThread.Send`. Busy UI uses bindable `IsBusy` on shells (e.g. `MainViewModel`) plus `WindowHelper.SetIsBusy` wait-cursor for modal save/import flows. Field dirty/unchanged brushes live in `FieldStateBrushes` (synced from the active theme).
+**MVVM conventions:** feature ViewModels live in the shared `GUI/Presentation` project and the MAUI client binds the same ones (the login window binds the shared `LoginViewModel` like the MAUI login page; `VisiblePasswordBox` keeps its hold-to-reveal state in the shared `SecretField`, like the MAUI reveal buttons). They inherit `ObservableObject` (`SetProperty` / `OnPropertyChanged`) and expose `RelayCommand` for user actions. Prefer `{Binding}` / `ItemsSource="{Binding …}"` over code-behind assignments. Keep code-behind for focus, list selection, and secret lifecycle (`VisiblePasswordBox`, `SetDataContext`). Marshal worker-thread callbacks with the shared Presentation `UiThread.Post` / `UiThread.Send`. Session, alerts and clipboard (`IClipboardService`) come from the shared Presentation `AppServices`. Busy UI uses bindable `IsBusy` on shells (e.g. `LoginViewModel`) plus `WindowHelper.SetIsBusy` wait-cursor for modal save/import flows. Field dirty/unchanged brushes live in `FieldStateBrushes` (synced from the active theme).
 
 Target framework: `net10.0-windows10.0.18362.0`. Light and dark WPF resource dictionaries, with Windows immersive title bars matching the active appearance.
 
 ## Localization
 
-UI strings live in `GUI/WPF/Localization/`:
+UI strings are shared with the MAUI client and live in `GUI/Presentation/Localization/`:
 
 * `Strings.resx` — English (neutral / fallback)
 * `Strings.fr.resx` — French
 * `LocalizationService.Supported` — combo-box registry (`System` + shipped cultures)
-* `{loc:Loc KeyName}` in XAML (live binding via `TranslationSource`); `Strings.KeyName` / `Strings.Format(...)` in C#
-* `LocalizationService.Apply` refreshes open windows via `LanguageAwareNotify` / `ILanguageAware` (titles, combos, computed labels) — **no restart required**
+* `{loc:Loc KeyName}` in XAML (live binding via `LocalizationCatalog`); `Strings.KeyName` / `Strings.Format(...)` in C#. The WPF and MAUI clients each have their own `LocExtension` over the same catalog.
+* `LocalizationService.Apply` refreshes the catalog, then raises `LanguageChanged`. WPF subscribes once at startup (`LanguageAwareNotify.Install`) to refresh open windows via `ILanguageAware` (titles, combos, computed labels) — **no restart required**
+
+`GUI/WPF/Localization/` keeps only the WPF-specific pieces (`LocExtension`, `ILanguageAware`, `LanguageAwareNotify`).
 
 **Live-refresh contract:** every dialog `Window` implements `ILanguageAware` and, in `OnLanguageChanged`, forwards to its DataContext (`this.ForwardToDataContext()` or the typed ViewModel) before rebuilding any code-behind snapshots (combo `ItemsSource`, progress text, immersive title). Static XAML text should use `{loc:Loc …}` so it does not depend on that walk. `LanguageAwareNotify` isolates failures so one window cannot skip the others.
 
@@ -80,7 +82,8 @@ Other enum labels follow the same `EnumValue_{EnumType}_{Member}` pattern (optio
 
 1. Copy `Strings.resx` → `Strings.xx.resx` and translate values (keep key names). Pay special attention to **both** `EnumValue_ActivityEventType_*` and `Activity_*` for every event.
 2. Append `new("xx", "Native name")` to `LocalizationService.Shipped`.
-3. Run `LocalizationTests` — they loop every non-English entry in `Shipped` (`SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
+3. Add `xx` to `SatelliteResourceLanguages` in `GUI/MAUI/Upsilon.Apps.Passkey.GUI.MAUI.csproj`, or the MAUI client will not ship the satellite.
+4. Run `LocalizationTests` (in `UnitTests.Presentation` and `UnitTests.Windows`) — they loop every non-English entry in `Shipped` (`Case02_SatelliteResources_ContainEveryNeutralKey`, etc.), so a new satellite is covered automatically once registered.
 
 ## User settings — credentials confirmation
 
@@ -95,7 +98,7 @@ Saving **User settings** that change the username or ordered master passkeys (or
 | **Open User settings** (vault loaded) | Re-type the **old** credentials (gate for settings + export UI) |
 | **Export** JSON / CSV | After save-pending (if dirty), confirm the **plaintext warning**, then pick the file (no second credentials prompt) |
 
-Entry is progressive (username, then each passkey) **without rollback** — the same **deliberate** rule as progressive login, not a dialog bug. A mistype **intentionally poisons** the in-dialog sequence; typing the remaining correct factors cannot recover it. **Escape** clears the poison and restarts the sequence (it does **not** cancel the dialog — close the window / X to abort and skip the action). Failures are silent (no “wrong factor” toast). Passkey fields use `SecurePassword` / `UseAsString` (unmanaged BSTR wiped) like login; the ViewModel keeps only an accepted-count / poison flag, not typed secrets. After a successful credentials change, the client clears the on-screen secrets and ends the session so the next open uses the new onion.
+Entry is progressive (username, then each passkey) **without rollback** — the same **deliberate** rule as progressive login, not a dialog bug. A mistype **intentionally poisons** the in-dialog sequence; typing the remaining correct factors cannot recover it. **Escape** clears the poison and restarts the sequence (it does **not** cancel the dialog — close the window / X to abort and skip the action). Failures are silent (no “wrong factor” toast). Passkey fields use `SecurePassword` through `PasswordBoxSecretInput` (unmanaged BSTR wiped) like login; the ViewModel keeps only an accepted-count / poison flag, not typed secrets. After a successful credentials change, the client clears the on-screen secrets and ends the session so the next open uses the new onion.
 
 This is **intentionality / anti-mistype**, not cryptographic re-auth of an unlocked session: User settings may already show the current passkeys, and Core does not enforce the prompt. See [[Security]].
 
@@ -105,7 +108,7 @@ While logged in, **User settings** offers **Import** (`.json` or `.csv`) and **E
 
 ## Dialogs
 
-All window / message / file picks go through `IDialogService` (`AppServices.Dialogs`): `ShowDialog`, `ShowSingleton`, `PickOpenFile` / `PickSaveFile`, and `Confirm` / `Info` / `Warn` / `Error`. Thin static `Show*` helpers on views may remain as wrappers that call `Dialogs.ShowDialog`. Themed prompts use `ThemedMessageBoxView` — not `System.Windows.MessageBox.Show`. Shared issue lists (passkey quality / security settings) use `IssuesAlertView` with a parameterized footer. `CredentialsConfirmationView` is currently shown via its own `ShowDialog()` helper (same modal pattern; not yet routed through `Dialogs.ShowDialog`).
+ViewModels ask the user through the shared async Presentation `IDialogService` (`AppServices.AsyncDialogs`: `ConfirmAsync`, `ErrorAsync`, `Pick*Async`, `ShowAsync(request)`). WPF window hosting and blocking prompts for code-behind that cannot await (for example `Closing` handlers) go through `IWindowDialogService` (`AppServices.Dialogs`): `ShowDialog`, `ShowSingleton`, `PickOpenFile` / `PickSaveFile`, and `Confirm` / `Info` / `Warn` / `Error`. The same `DialogService` instance backs both. Item navigation uses the shared `INavigationService` (`ItemNavigationEventArgs`). Thin static `Show*` helpers on views may remain as wrappers that call `Dialogs.ShowDialog`. Themed prompts use `ThemedMessageBoxView` — not `System.Windows.MessageBox.Show`. Shared issue lists (passkey quality / security settings) use `IssuesAlertView` with a parameterized footer. `CredentialsConfirmationView` is currently shown via its own `ShowDialog()` helper (same modal pattern; not yet routed through `Dialogs.ShowDialog`).
 
 ## Vault files and logs
 
@@ -129,7 +132,7 @@ Preferences that *are* persisted (`Enabled`, quality preset, auto-update frequen
 
 ## Alerts in the GUI
 
-Core publishes **per-kind** alert events; the host publishes app-level posture (`IdleLoginDisabled`, `OfflineLeakFilterUnavailable`). `SessionService.Alerts` (`AlertBroker`) subscribes to both, applies `ISettings.AlertsToNotify`, and drives the services-window Alerts menu. Badge colors come from `IAlert.Severity` (`AlertBroker.BrushFor`), not hard-coded kinds.
+Core publishes **per-kind** alert events; the host publishes app-level posture (`IdleLoginDisabled`, `OfflineLeakFilterUnavailable`). `SessionService.Alerts` (`AlertBroker`) subscribes to both, applies `ISettings.AlertsToNotify`, and drives the services-window Alerts menu. Badge colors come from `IAlert.Severity` (`AlertSeverity` on the ViewModel, mapped to brushes by `AlertSeverityToBrushConverter`), not hard-coded kinds.
 
 User settings exposes one checkbox per known kind (`Label_Notify*`). An empty notify list shows a MessageBox. Detail windows: activities review, account passwords (reminder / leaked / weak / passkey-reuse), duplicates, vault+host security settings, and passkey quality. See [[Alerts and Activity]].
 
@@ -138,7 +141,7 @@ User settings exposes one checkbox per known kind (`Label_Notify*`). An empty no
 `LoginIdleTimeoutSeconds` (`config.json`, default **5**) is the inactivity budget on the **login** window before typed credentials and any half-open session are cleared.
 
 * **0** disables the idle reset (no countdown, no automatic clear). Not recommended: typed factors can remain on the login window indefinitely; the host raises `IdleLoginDisabled`.
-* While the timer is armed, the window title appends a live countdown (`Msg_LoginIdleLeftTime`, e.g. ` - 5s`).
+* While the timer is armed, the window title appends a live countdown (`Title_IdleResetCredentialTimeout`, e.g. ` - Credentials reset in 5`).
 * Typing on the username or passkey field restarts the budget; Escape still clears immediately.
 * Open / Login awaits pause the timer; it is re-armed only when something remains to protect (typed username or half-open session).
 
@@ -151,7 +154,7 @@ This is separate from the vault **session** auto-logout (`ISettings.LogoutTimeou
 
 Escape cancels and closes the half-open session. That is required: there is no passkey rollback (see [[Security]]). Inactivity on this screen also clears credentials after `LoginIdleTimeoutSeconds` when that setting is non-zero.
 
-The GUI keeps the typed secret in `PasswordBox.SecurePassword` and bridges it through `SecureStringExtensions.UseAsString`: the unmanaged BSTR is zeroed in a `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of the `Login` call. The short-lived managed `string` passed to Core remains subject to the usual .NET GC limitations.
+The GUI keeps the typed secret in `PasswordBox.SecurePassword` and reads it through `PasswordBoxSecretInput`, the WPF adapter of the shared `ISecretInput` port: the unmanaged BSTR is zeroed in a `finally` block (`Marshal.ZeroFreeBSTR`) so it only lives for the duration of the `Login` call. The short-lived managed `string` passed to Core remains subject to the usual .NET GC limitations.
 
 `Create` already logs the user in; the new-user flow must not call `Login` again on that session.
 
@@ -163,10 +166,10 @@ The GUI keeps the typed secret in `PasswordBox.SecurePassword` and bridges it th
 | `Ctrl+N` | New user |
 | `Ctrl+,` | App Settings (language, theme, default vault folder, login idle timeout, offline leak database) |
 | `Ctrl+P` | Password generator |
-| `Ctrl+Shift+L` | While the services window is open: paste the selected **identifier** into the focused field |
-| `Ctrl+Shift+P` | Paste the selected **password** into the focused field |
+| `Ctrl+Shift+L` | While the services window is open: copy the selected **identifier** to the clipboard |
+| `Ctrl+Shift+P` | Copy the selected **password** to the clipboard |
 
-Paste hotkeys copy via `IClipboardManager` then synthesize Ctrl+V. The clipboard still auto-clears after `ISettings.CleaningClipboardTimeout`, and Windows clipboard history is scrubbed through `RemoveAllOccurrenceAsync`.
+These shortcuts are window key bindings, not global hotkeys: they copy via `IClipboardManager` only and never paste into another application. The MAUI Windows client has the same shortcuts in its vault menu. Copies carry the formats that keep them out of Windows clipboard history, the cloud clipboard and clipboard monitors; the clipboard still auto-clears after `ISettings.CleaningClipboardTimeout`, and older history entries are scrubbed through `RemoveAllOccurrenceAsync`.
 
 ## QR codes
 
@@ -195,7 +198,7 @@ The WPF client uses a Yes / No / Cancel prompt and maps it as follows:
 
 ## Manual smoke (GUI)
 
-After changes that touch login, clipboard, or hotkeys, verify on Windows:
+After changes that touch login, clipboard, or keyboard shortcuts, verify on Windows:
 
 1. Create a new vault (multi-passkey): confirm the **new** credentials dialog, then reopen with the same ordered passkeys.
 2. Mistype a passkey, then close/reopen and log in correctly (progressive login, no rollback).
@@ -206,8 +209,8 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 7. **Delete** vault: after the two Yes dialogs, confirm **old** credentials (cancel skips delete).
 8. Copy an account password; confirm the clipboard clears after the configured timeout.
 9. Idle until auto-logout; confirm the session closes and the vault file is released.
-10. Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
+10. In the services window, press Ctrl+Shift+L / Ctrl+Shift+P: the selected identifier / password is copied (never pasted) and cleared after the timeout.
 11. Show a password as a QR code and confirm the window closes after the configured delay.
 12. Close while an offline leak-database build/update is running: Yes / No / Cancel (finish after vault lock, cancel, or stay open).
 
-There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, themed confirmation dialogs (`ThemedMessageBoxView`), and `CredentialsConfirmationView` stay out of the automated suite — [[Testing and CI]]. ViewModel coverage for the confirmation sequence lives in `CredentialsConfirmationViewModelTests`.
+There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, keyboard shortcuts, themed confirmation dialogs (`ThemedMessageBoxView`), and `CredentialsConfirmationView` stay out of the automated suite — [[Testing and CI]]. ViewModel coverage for the confirmation sequence lives in `CredentialsConfirmationViewModelTests`.

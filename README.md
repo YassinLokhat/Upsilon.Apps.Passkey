@@ -6,7 +6,7 @@
 
 A local-only password manager written in C# on **.NET 10**. There is no server,
 no account, and no synchronization: every secret lives in a single encrypted
-`.pku` file on the user's device. Version <!-- BEGIN:versions-overview -->**2.0.0**<!-- END:versions-overview --> (each assembly is versioned
+`.pku` file on the user's device. Version <!-- BEGIN:versions-overview -->**2.1.0**<!-- END:versions-overview --> (each assembly is versioned
 independently; see [SECURITY.md](SECURITY.md) and [`versions.json`](versions.json)).
 
 **Features**
@@ -17,37 +17,41 @@ independently; see [SECURITY.md](SECURITY.md) and [`versions.json`](versions.jso
 *   **Activity log**: tamper-evident audit trail of vault events
 *   **Alerts**: activity review, password reminders / duplicates / leaks, vault & host security posture, passkey quality (count, strength, leak, reuse)
 *   **Autosave**: unsaved edits are kept in the `.pku` ZIP and merged on the next login
-*   **Undo / Redo**: session-scoped edit history (Ctrl+Shift+Z / Ctrl+Shift+Y in the WPF vault window); cleared on logout
+*   **Undo / Redo**: session-scoped edit history (Ctrl+Shift+Z / Ctrl+Shift+Y in the vault window on Windows); cleared on logout
 *   **Password generation**: CSPRNG over a configurable alphabet
 *   **Leak detection**: opt-in Have I Been Pwned checks, then XposedOrNot failover, then an optional local HIBP Bloom filter (k-anonymity / offline; see [SECURITY.md](SECURITY.md))
 *   **Import / Export**: plaintext JSON (settings + services) or CSV (services only; import accepts comma- or tab-delimited)
-*   **WPF client** (Windows): System / Light / Dark theme, QR codes, global paste hotkeys, auto-logout, clipboard cleaning
+*   **WPF client** (Windows): System / Light / Dark theme, QR codes, copy shortcuts (Ctrl+Shift+L / Ctrl+Shift+P), auto-logout, clipboard cleaning
+*   **MAUI client** (Windows + Android): same vault files, shared ViewModels and the same features as WPF, with modal pages instead of extra windows. Android adds SAF documents with conflict copies, a background lock and screenshot blocking, and has no offline `.pkbf` or keyboard shortcuts (see [Wiki/MAUI-Client.md](Wiki/MAUI-Client.md) and [Wiki/MAUI-Parity-Checklist.md](Wiki/MAUI-Parity-Checklist.md)). WPF stays supported alongside it.
 
 **Architecture**
 ----------------
 
-Four layers, two solution files:
+Four layers, three solution files:
 
 ```
 Interfaces/     Public contracts (IDatabase, IUser, crypto, clipboard, IProtectedSecret, ISecretMemoryProtector, …)
 Utils/          Default crypto, JSON, password factory, SecretMemoryProtector / ProtectedSecret, LeakFilter (.pkbf). Zero NuGet (BCL only).
 Core/           Vault implementation (Interfaces only — no ProjectReference to Utils). Zero NuGet packages (BCL only).
+GUI/Presentation/ Shared ViewModels/ports (net10.0, zero NuGet) for WPF and MAUI.
 GUI/WPF/        Windows desktop client (MVVM + a small AppServices locator); composes Utils defaults.
-UnitTests/      Multiplateform (net10.0: Core/Utils) + Windows (net10.0-windows: WPF ViewModels).
+GUI/MAUI/       MAUI host (Windows unpackaged + Android); Microsoft.Maui allowlist only.
+UnitTests/      Multiplateform (Core/Utils) + Presentation (shared ViewModels) + Windows (WPF host).
 ```
 
 | Solution | Projects |
 | -------- | -------- |
-| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, WPF GUI, both test projects |
-| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, Core, Multiplateform tests |
+| `Upsilon.Apps.Passkey.Windows.slnx` | Interfaces, Utils, Core, Presentation, WPF GUI, tests |
+| `Upsilon.Apps.Passkey.Linux.slnx` | Interfaces, Utils, Core, Presentation, Multiplateform + Presentation tests |
+| `Upsilon.Apps.Passkey.MAUI.slnx` | Interfaces, Utils, Core, Presentation, MAUI host, Presentation tests |
 
 Core talks to the OS for clipboard only through an injected port
 (`IClipboardManager` must be OS-specific). In-memory secret wrapping goes through
 `ISecretMemoryProtector` (Utils ships `SecretMemoryProtector`). File I/O uses the BCL in Core.
 Opt-in HTTP leak checks and the optional offline HIBP Bloom filter live in Utils
-(`PasswordFactory`, `Utils/LeakFilter/`). The WPF app supplies
-the clipboard implementation, the secret protector, and hosts dialogs, session, and navigation behind
-`AppServices` so ViewModels stay testable without a window.
+(`PasswordFactory`, `Utils/LeakFilter/`). Each client (WPF, MAUI) supplies
+the clipboard implementation and its platform ports; dialogs, session, and navigation sit behind the
+shared Presentation `AppServices` locator so ViewModels stay testable without a window.
 
 **Security**
 ------------
@@ -55,7 +59,7 @@ the clipboard implementation, the secret protector, and hosts dialogs, session, 
 *   **At rest**: AES-256-GCM onion (HKDF-SHA256 per layer) over ordered passkeys; the activity log uses RSA-4096 hybrid encryption plus a login-time seal. See [SECURITY.md](SECURITY.md).
 *   **In memory**: account passwords, passkeys, and the RSA private key are held as `IProtectedSecret` via an injected `ISecretMemoryProtector` (default: Utils `ProtectedSecret`, process-wide AES-GCM) and only revealed just in time.
 *   **Session**: configurable auto-logout, clipboard auto-clear (including Windows clipboard history), and progressive login without rollback.
-*   **Supply chain**: Core, Utils, Interfaces, and the WPF GUI refuse any third-party NuGet package at build time. GitHub CodeQL scans production code on CI.
+*   **Supply chain**: Core, Utils, Interfaces, Presentation, and the WPF GUI refuse any third-party NuGet package at build time; the MAUI host may reference only `Microsoft.Maui.*`, with its transitive packages locked and audited. GitHub CodeQL scans production code on CI.
 
 **Models**
 ----------
@@ -272,6 +276,7 @@ classDiagram
         + Save()* void
         + SaveAsync(cancellationToken : CancellationToken)* Task
         + RefreshAlerts()* void
+        + FlushPendingChanges()* void
         + Delete()* void
         + Close()* void
         + HasChanged(itemId : string)* bool
@@ -869,9 +874,9 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     [Wiki/WPF-Client.md](Wiki/WPF-Client.md).
 *   **Shortcuts**: `Ctrl+O` open, `Ctrl+N` new user, `Ctrl+,` App Settings,
     `Ctrl+P` password generator. While the services window is open,
-    **Ctrl+Shift+L** pastes the selected identifier and **Ctrl+Shift+P** pastes
-    the selected password into the focused field (copy + synthetic Ctrl+V;
-    clipboard still auto-clears).
+    **Ctrl+Shift+L** copies the selected identifier and **Ctrl+Shift+P** copies
+    the selected password to the clipboard (no automatic paste; the clipboard
+    still auto-clears).
 *   **Offline leak database**: App Settings can build / update / enable / delete
     the local `.pkbf` Bloom filter next to the executable, and schedule
     auto-refresh of an existing file at startup
@@ -895,10 +900,13 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
     lifecycle, import/export, persistence, and related models. Activity checks use
     structured `ExpectedActivity` fields (not localized UI strings). Runs on both
     Windows and Linux solutions.
-*   **GUI ViewModels**: `UnitTests/Windows` references the WPF app and exercises
-    ViewModels (`UnitTests/Windows/Gui/`) through a replaceable `AppServices` seam
-    and fakes. Localized activity rendering is covered there (`ActivityAssertHelper`).
-    No UI automation (FlaUI / WinAppDriver): login `PasswordBox`, hotkeys, themed
+*   **GUI ViewModels**: `UnitTests/Presentation` (`net10.0`) exercises the
+    ViewModels and services shared by WPF and MAUI through a replaceable
+    `AppServices` seam and fakes, on Windows, Linux and the MAUI Windows workflow.
+    Localized activity rendering is covered there (`ActivityViewModelMessageTests`).
+    `UnitTests/Windows` keeps the WPF host tests (theme, `{loc:Loc}` extension,
+    language delivery to open windows).
+    No UI automation (FlaUI / WinAppDriver): login `PasswordBox`, keyboard shortcuts, themed
     confirmation dialogs (`ThemedMessageBoxView` via `DialogService`), and
     `CredentialsConfirmationView` stay out of the automated suite. ViewModel
     coverage for the confirmation sequence is in `CredentialsConfirmationViewModelTests`.
@@ -910,12 +918,12 @@ The desktop app lives in `GUI/WPF`. It is MVVM with a small service locator
 ```bash
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
 dotnet test Upsilon.Apps.Passkey.Linux.slnx
-dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Windows.Gui"
+dotnet test UnitTests/Presentation/UnitTests.Presentation.csproj
 ```
 
 ### Manual smoke (GUI)
 
-After changes that touch login, clipboard, or hotkeys, verify on Windows:
+After changes that touch login, clipboard, or keyboard shortcuts, verify on Windows:
 
 1.  Create a new vault (multi-passkey): complete the **new** credentials
     confirmation dialog, then reopen with the same ordered passkeys.
@@ -927,7 +935,7 @@ After changes that touch login, clipboard, or hotkeys, verify on Windows:
 6.  Delete vault: after the two Yes dialogs, confirm **old** credentials (cancel skips delete).
 7.  Copy an account password; confirm the clipboard clears after the configured timeout.
 8.  Idle until auto-logout; confirm the session closes and the vault file is released.
-9.  Use the Ctrl+Shift paste hotkeys on a focused field (identifier / password).
+9.  In the vault, press Ctrl+Shift+L / Ctrl+Shift+P: the selected identifier / password is copied (never pasted) and cleared after the timeout.
 10. Show a password as a QR code and confirm the window closes after the configured delay.
 11. Close while an offline leak-database build/update is running: Yes / No / Cancel
     (finish after vault lock, cancel, or stay open).
@@ -940,8 +948,10 @@ GitHub Actions on `master` and pull requests:
 | Workflow | What it does |
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Multiplateform tests); `dotnet test` runs Multiplateform with the **90% Core line-coverage gate** |
-| `.github/workflows/codeql.yml` | CodeQL on every push (any branch) and weekly; Release build of production projects (tests excluded); SARIF filtered for `bin`/`obj`/`*.g.cs` |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Presentation + tests); `dotnet test` with the **90% Core line-coverage gate** |
+| `.github/workflows/csharp-dotnet-maui-windows.yml` | MAUI workloads, locked restore, Debug + Release build for `net10.0-windows10.0.19041.0`, Presentation tests |
+| `.github/workflows/csharp-dotnet-maui-android.yml` | MAUI Android workload + JDK 17, locked restore, Debug + Release build for `net10.0-android` |
+| `.github/workflows/codeql.yml` | CodeQL on every push (any branch) and weekly; Release build of WPF + MAUI production projects (tests excluded); SARIF filtered for `bin`/`obj`/`*.g.cs` |
 | `.github/workflows/publish-wiki.yml` | On `Wiki/**` changes to `master`: publish the `Wiki/` folder to the GitHub Wiki |
 
 There is currently **no** automated `release.yml`. After tagging, publish GitHub Releases manually. See [CONTRIBUTING.md](CONTRIBUTING.md#cutting-a-release).
@@ -962,7 +972,8 @@ To build from source:
 
 1.  Clone the repository: `git clone https://github.com/YassinLokhat/Upsilon.Apps.Passkey.git`
 2.  Windows (GUI + tests): `dotnet build Upsilon.Apps.Passkey.Windows.slnx` then `dotnet run --project GUI/WPF`
-3.  Linux (Interfaces + Utils + Core): `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
+3.  Linux (Interfaces + Utils + Core + Presentation, with their tests): `dotnet build Upsilon.Apps.Passkey.Linux.slnx`
+4.  MAUI client (Windows + Android): the Windows zip and the Android APK are attached to each `maui-v*` GitHub Release; to build from source, workloads and commands are in [Wiki/MAUI-Client.md](Wiki/MAUI-Client.md#build)
 
 Requires the .NET 10 SDK. The WPF app targets `net10.0-windows10.0.18362.0`.
 

@@ -12,6 +12,47 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
    /// </summary>
    internal static class LanguageAwareNotify
    {
+      private static int _installed;
+
+      /// <summary>
+      /// Subscribes once to <see cref="LocalizationService.LanguageChanged"/> so
+      /// every open <see cref="Window"/> is refreshed after a culture change.
+      /// Call before the first <see cref="LocalizationService.Apply"/>.
+      /// </summary>
+      public static void Install()
+      {
+         if (Interlocked.Exchange(ref _installed, 1) == 0)
+         {
+            LocalizationService.LanguageChanged += (_, _) => _notifyOpenWindows();
+         }
+      }
+
+      private static void _notifyOpenWindows()
+      {
+         Application? app = Application.Current;
+         if (app is null)
+         {
+            return;
+         }
+
+         void notify()
+         {
+            foreach (Window window in app.Windows.Cast<Window>().ToArray())
+            {
+               Notify(window);
+            }
+         }
+
+         if (app.Dispatcher.CheckAccess())
+         {
+            notify();
+         }
+         else
+         {
+            app.Dispatcher.Invoke(notify);
+         }
+      }
+
       /// <summary>
       /// Refreshes culture-dependent snapshots on <paramref name="window"/>.
       /// When the window implements <see cref="ILanguageAware"/>, only the window
@@ -34,10 +75,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
                return;
             }
 
-            if (window.DataContext is ILanguageAware dataContextAware)
-            {
-               dataContextAware.OnLanguageChanged();
-            }
+            _forward(window.DataContext);
          }
          catch (Exception ex)
             when (ex is NotSupportedException
@@ -52,10 +90,17 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       /// Call from window <see cref="ILanguageAware.OnLanguageChanged"/> handlers.
       /// </summary>
       public static void ForwardToDataContext(this Window window)
+         => _forward(window.DataContext);
+
+      private static void _forward(object? dataContext)
       {
-         if (window.DataContext is ILanguageAware dataContextAware)
+         if (dataContext is ILanguageAware dataContextAware)
          {
             dataContextAware.OnLanguageChanged();
+         }
+         else if (dataContext is ILanguageRefreshable shared)
+         {
+            shared.OnLanguageChanged();
          }
       }
    }

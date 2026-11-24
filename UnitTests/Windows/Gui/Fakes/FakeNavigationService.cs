@@ -1,4 +1,4 @@
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui.Fakes
 {
@@ -6,12 +6,12 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui.Fakes
    {
       public List<string> RequestedItems { get; } = [];
 
-      public event EventHandler<string>? ItemRequested;
+      public event EventHandler<ItemNavigationEventArgs>? ItemRequested;
 
       public void RequestItem(string itemId)
       {
          RequestedItems.Add(itemId);
-         ItemRequested?.Invoke(this, itemId);
+         ItemRequested?.Invoke(this, new ItemNavigationEventArgs(itemId));
       }
    }
 }
