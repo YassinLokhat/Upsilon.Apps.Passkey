@@ -119,8 +119,21 @@
          }
       }
 
+      // Runs on a ThreadPool thread: an escaping exception would terminate the
+      // process. Flush re-arms dirty on failure, so the next explicit Flush
+      // (Save / Close) retries and surfaces the error to the host.
       private void _onTimer(object? state)
-         => Flush();
+      {
+         try
+         {
+            Flush();
+         }
+         catch (Exception ex) when (ex is IOException
+            or UnauthorizedAccessException)
+         {
+            System.Diagnostics.Trace.TraceWarning($"Deferred persistence failed: {ex.GetType().Name}");
+         }
+      }
 
       private void _cancelTimer_NoLock()
       {

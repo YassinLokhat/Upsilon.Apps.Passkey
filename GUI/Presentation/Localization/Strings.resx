@@ -1,0 +1,1484 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Menu_Save" xml:space="preserve">
+    <value>_Save</value>
+  </data>
+  <data name="Menu_Undo" xml:space="preserve">
+    <value>_Undo</value>
+  </data>
+  <data name="Menu_Redo" xml:space="preserve">
+    <value>_Redo</value>
+  </data>
+  <data name="Menu_ResetToDefault" xml:space="preserve">
+    <value>_Reset to default</value>
+  </data>
+  <data name="Menu_OpenDatabase" xml:space="preserve">
+    <value>_Open database</value>
+  </data>
+  <data name="Menu_NewUser" xml:space="preserve">
+    <value>_New User</value>
+  </data>
+  <data name="Menu_AppSettings" xml:space="preserve">
+    <value>_App Settings</value>
+  </data>
+  <data name="Menu_GenerateRandomPassword" xml:space="preserve">
+    <value>_Generate random Password</value>
+  </data>
+  <data name="Menu_Import" xml:space="preserve">
+    <value>_Import</value>
+  </data>
+  <data name="Menu_Export" xml:space="preserve">
+    <value>_Export</value>
+  </data>
+  <data name="Menu_ExportJson" xml:space="preserve">
+    <value>Export as _JSON (Settings and Services)</value>
+  </data>
+  <data name="Menu_ExportCsv" xml:space="preserve">
+    <value>Export as _CSV (tab-delimited, Services only)</value>
+  </data>
+  <data name="Menu_ViewActivities" xml:space="preserve">
+    <value>View Activities</value>
+  </data>
+  <data name="Menu_DeleteUser" xml:space="preserve">
+    <value>_Delete User</value>
+  </data>
+  <data name="Menu_UserSettings" xml:space="preserve">
+    <value>_User settings</value>
+  </data>
+  <data name="Menu_ShowActivities" xml:space="preserve">
+    <value>_Show activities</value>
+  </data>
+  <data name="Menu_Logout" xml:space="preserve">
+    <value>_Logout</value>
+  </data>
+  <data name="Menu_Regenerate" xml:space="preserve">
+    <value>_Regenerate</value>
+  </data>
+  <data name="Menu_Copy" xml:space="preserve">
+    <value>_Copy</value>
+  </data>
+  <data name="Menu_Insert" xml:space="preserve">
+    <value>_Insert</value>
+  </data>
+  <data name="Menu_Vault" xml:space="preserve">
+    <value>_Vault</value>
+  </data>
+  <data name="Label_Username" xml:space="preserve">
+    <value>Username :</value>
+  </data>
+  <data name="Label_Password" xml:space="preserve">
+    <value>Password :</value>
+  </data>
+  <data name="Label_DefaultDatabaseDirectory" xml:space="preserve">
+    <value>Default database directory :</value>
+  </data>
+  <data name="Label_Language" xml:space="preserve">
+    <value>Language :</value>
+  </data>
+  <data name="Label_UseAppLanguage" xml:space="preserve"><value>Use application language</value></data>
+  <data name="Label_Theme" xml:space="preserve">
+    <value>Theme :</value>
+  </data>
+  <data name="Label_UseAppTheme" xml:space="preserve"><value>Use application theme</value></data>
+  <data name="Label_Browse" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="Label_Credentials" xml:space="preserve">
+    <value>Credentials</value>
+  </data>
+  <data name="Label_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Label_Alerts" xml:space="preserve">
+    <value>Alerts</value>
+  </data>
+  <data name="Label_Filters" xml:space="preserve">
+    <value>Filters</value>
+  </data>
+  <data name="Label_FiltersColon" xml:space="preserve">
+    <value>Filters : </value>
+  </data>
+  <data name="Label_Service" xml:space="preserve">
+    <value>Service :</value>
+  </data>
+  <data name="Label_Identifier" xml:space="preserve">
+    <value>Indentifier :</value>
+  </data>
+  <data name="Label_Text" xml:space="preserve">
+    <value>Text :</value>
+  </data>
+  <data name="Label_UnsavedItemsOnly" xml:space="preserve">
+    <value>Unsaved items only</value>
+  </data>
+  <data name="Label_From" xml:space="preserve">
+    <value>From :</value>
+  </data>
+  <data name="Label_To" xml:space="preserve">
+    <value>To :</value>
+  </data>
+  <data name="Label_EventType" xml:space="preserve">
+    <value>Event type :</value>
+  </data>
+  <data name="Label_Message" xml:space="preserve">
+    <value>Message :</value>
+  </data>
+  <data name="Label_NeedsReviewOnly" xml:space="preserve">
+    <value>Needs review only</value>
+  </data>
+  <data name="Label_SortBy" xml:space="preserve">
+    <value>Sort by :</value>
+  </data>
+  <data name="ActivitySort_NewestFirst" xml:space="preserve">
+    <value>Newest first</value>
+  </data>
+  <data name="ActivitySort_OldestFirst" xml:space="preserve">
+    <value>Oldest first</value>
+  </data>
+  <data name="ActivitySort_EventType" xml:space="preserve">
+    <value>Event type</value>
+  </data>
+  <data name="ActivitySort_NeedsReviewFirst" xml:space="preserve">
+    <value>Needs review first</value>
+  </data>
+  <data name="ActivitySort_Message" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="Label_DateAndTime" xml:space="preserve">
+    <value>Date and Time</value>
+  </data>
+  <data name="Label_NeedsReview" xml:space="preserve">
+    <value>Needs review</value>
+  </data>
+  <data name="Label_EventTypeColumn" xml:space="preserve">
+    <value>Event type</value>
+  </data>
+  <data name="Label_MessageColumn" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="Label_GoToItem" xml:space="preserve">
+    <value>Go to item</value>
+  </data>
+  <data name="Label_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Label_AlertType" xml:space="preserve">
+    <value>Alert type :</value>
+  </data>
+  <data name="Label_AlertTypeColumn" xml:space="preserve">
+    <value>Alert type</value>
+  </data>
+  <data name="Label_ServiceColumn" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <data name="Label_AccountColumn" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="Label_GoToAccount" xml:space="preserve">
+    <value>Go to account</value>
+  </data>
+  <data name="Label_Go" xml:space="preserve">
+    <value>Go</value>
+  </data>
+  <data name="Label_ServiceName" xml:space="preserve">
+    <value>Service name : </value>
+  </data>
+  <data name="Label_Url" xml:space="preserve">
+    <value>Url : </value>
+  </data>
+  <data name="Label_Notes" xml:space="preserve">
+    <value>Notes : </value>
+  </data>
+  <data name="Label_Label" xml:space="preserve">
+    <value>Label : </value>
+  </data>
+  <data name="Label_Identifiers" xml:space="preserve">
+    <value>Identifiers</value>
+  </data>
+  <data name="Label_PasswordGroup" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Label_Passwords" xml:space="preserve">
+    <value>Passwords</value>
+  </data>
+  <data name="Label_Options" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="Label_LogoutAfter" xml:space="preserve">
+    <value>Logout after</value>
+  </data>
+  <data name="Label_LoginIdleTimeout" xml:space="preserve">
+    <value>Reset login after</value>
+  </data>
+  <data name="Label_Minutes" xml:space="preserve">
+    <value>minutes.</value>
+  </data>
+  <data name="Label_CleanClipboardEvery" xml:space="preserve">
+    <value>Clean any passwords in clipboard every</value>
+  </data>
+  <data name="Label_Seconds" xml:space="preserve">
+    <value>seconds.</value>
+  </data>
+  <data name="Label_Days" xml:space="preserve">
+    <value>days.</value>
+  </data>
+  <data name="Label_ShowQrCodeDuring" xml:space="preserve">
+    <value>Show QR Code during</value>
+  </data>
+  <data name="Label_Milliseconds" xml:space="preserve">
+    <value>milliseconds.</value>
+  </data>
+  <data name="Label_LimitPasswordHistory" xml:space="preserve">
+    <value>Limit password history to the previous</value>
+  </data>
+  <data name="Label_Entries" xml:space="preserve">
+    <value>entries.</value>
+  </data>
+  <data name="Label_LimitActivityHistory" xml:space="preserve">
+    <value>Limit activity history to the previous</value>
+  </data>
+  <data name="Label_Months" xml:space="preserve">
+    <value>months.</value>
+  </data>
+  <data name="Label_NotifyActivityReview" xml:space="preserve">
+    <value>Notify Activity Review</value>
+  </data>
+  <data name="Label_NotifyDuplicatedPasswords" xml:space="preserve">
+    <value>Notify Duplicated Passwords</value>
+  </data>
+  <data name="Label_NotifyPasswordUpdateReminder" xml:space="preserve">
+    <value>Notify Password Update Reminder</value>
+  </data>
+  <data name="Label_NotifyPasswordLeaked" xml:space="preserve">
+    <value>Notify Password Leaked</value>
+  </data>
+  <data name="Label_NotifySecuritySettings" xml:space="preserve">
+    <value>Notify Security Settings</value>
+  </data>
+  <data name="Label_NotifyInsufficientPasskeys" xml:space="preserve">
+    <value>Notify Insufficient Passkeys</value>
+  </data>
+  <data name="Label_NotifyWeakPasskey" xml:space="preserve">
+    <value>Notify Weak Passkey</value>
+  </data>
+  <data name="Label_NotifyPasskeyLeaked" xml:space="preserve">
+    <value>Notify Passkey Leaked</value>
+  </data>
+  <data name="Label_NotifyWeakAccountPassword" xml:space="preserve">
+    <value>Notify Weak Account Password</value>
+  </data>
+  <data name="Label_NotifyPasskeyReusedAsAccountPassword" xml:space="preserve">
+    <value>Notify Passkey Reused as Account Password</value>
+  </data>
+  <data name="Label_RemindPasswordUpdate" xml:space="preserve">
+    <value>Remind to update password every</value>
+  </data>
+  <data name="Label_WarnPasswordLeak" xml:space="preserve">
+    <value>Warn if the password leaked.</value>
+  </data>
+  <data name="Label_WarnDuplicatedPassword" xml:space="preserve">
+    <value>Warn if the password is same as another account's password.</value>
+  </data>
+  <data name="Label_WarnWeakPassword" xml:space="preserve">
+    <value>Warn if the password is weak.</value>
+  </data>
+  <data name="Label_CheckIfLeaked" xml:space="preserve">
+    <value>Check if leaked</value>
+  </data>
+  <data name="Label_Length" xml:space="preserve">
+    <value>Length :</value>
+  </data>
+  <data name="Label_Numerics" xml:space="preserve">
+    <value>Numerics</value>
+  </data>
+  <data name="Label_UpperCaseAlphabet" xml:space="preserve">
+    <value>Upper case Alphabet</value>
+  </data>
+  <data name="Label_LowerCaseAlphabet" xml:space="preserve">
+    <value>Lower case Alphabet</value>
+  </data>
+  <data name="Label_SpecialCharacters" xml:space="preserve">
+    <value>Special Characters</value>
+  </data>
+  <data name="Label_Alphabet" xml:space="preserve">
+    <value>Alphabet</value>
+  </data>
+  <data name="Label_Reviewed" xml:space="preserve">
+    <value>Reviewed</value>
+  </data>
+  <data name="Title_AppSettings" xml:space="preserve">
+    <value>{0} - App Settings</value>
+  </data>
+  <data name="Title_UserSettings" xml:space="preserve">
+    <value>{0} - User settings</value>
+  </data>
+  <data name="Title_NewUser" xml:space="preserve">
+    <value>{0} - New user</value>
+  </data>
+  <data name="Title_PasswordGenerator" xml:space="preserve">
+    <value>{0} - Password Generator</value>
+  </data>
+  <data name="Title_ActualCredentialsConfirmation" xml:space="preserve">
+    <value>Please enter your actual credentials</value>
+  </data>
+  <data name="Title_NewCredentialsConfirmation" xml:space="preserve">
+    <value>Please confirm your new credentials</value>
+  </data>
+  <data name="Title_Activities" xml:space="preserve">
+    <value>{0} - Activities</value>
+  </data>
+  <data name="Title_AccountPasswordsAlerts" xml:space="preserve">
+    <value>{0} - Account Passwords Alerts</value>
+  </data>
+  <data name="Title_DuplicatedPasswordsAlerts" xml:space="preserve">
+    <value>{0} - Duplicated Passwords Alerts</value>
+  </data>
+  <data name="Title_InsertIdentifier" xml:space="preserve">
+    <value>Insert identifier</value>
+  </data>
+  <data name="Title_BrowseDatabaseDirectory" xml:space="preserve">
+    <value>Browse to the default database directory</value>
+  </data>
+  <data name="Title_OpenDatabase" xml:space="preserve">
+    <value>Open user database file</value>
+  </data>
+  <data name="Title_NewUserDatabase" xml:space="preserve">
+    <value>New user database file</value>
+  </data>
+  <data name="Title_ImportData" xml:space="preserve">
+    <value>Import data from a file</value>
+  </data>
+  <data name="Title_ExportJson" xml:space="preserve">
+    <value>Export settings and services to a JSON file</value>
+  </data>
+  <data name="Title_ExportCsv" xml:space="preserve">
+    <value>Export services to a tab-delimited CSV file</value>
+  </data>
+  <data name="Title_ConfirmationRequired" xml:space="preserve">
+    <value>Confirmation required</value>
+  </data>
+  <data name="Title_Success" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="Title_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Title_ConfigFileError" xml:space="preserve">
+    <value>Config file error</value>
+  </data>
+  <data name="Title_UseDefaultLocation" xml:space="preserve">
+    <value>Use default location?</value>
+  </data>
+  <data name="Title_ImportSuccess" xml:space="preserve">
+    <value>Import success</value>
+  </data>
+  <data name="Title_ImportFailed" xml:space="preserve">
+    <value>Import failed</value>
+  </data>
+  <data name="Title_ExportSuccess" xml:space="preserve">
+    <value>Export success</value>
+  </data>
+  <data name="Title_ExportFailed" xml:space="preserve">
+    <value>Export failed</value>
+  </data>
+  <data name="Title_DeleteService" xml:space="preserve">
+    <value>Delete Service</value>
+  </data>
+  <data name="Title_DeleteAccount" xml:space="preserve">
+    <value>Delete Account</value>
+  </data>
+  <data name="Title_OpenUrl" xml:space="preserve">
+    <value>Open URL</value>
+  </data>
+  <data name="Title_ItemNotFound" xml:space="preserve">
+    <value>Item not found</value>
+  </data>
+  <data name="Title_AutosaveDetected" xml:space="preserve">
+    <value>Autosave detected</value>
+  </data>
+  <data name="Title_InsufficientKdf" xml:space="preserve">
+    <value>Insufficient KDF parameters</value>
+  </data>
+  <data name="Title_CorruptedDatabase" xml:space="preserve">
+    <value>Corrupted database</value>
+  </data>
+  <data name="Filter_Pku" xml:space="preserve">
+    <value>Passkey user database file|*.pku</value>
+  </data>
+  <data name="Filter_Json" xml:space="preserve">
+    <value>json file|*.json</value>
+  </data>
+  <data name="Filter_Csv" xml:space="preserve">
+    <value>CSV file (comma or tab delimited)|*.csv</value>
+  </data>
+  <data name="Filter_CsvExport" xml:space="preserve">
+    <value>Tab delimited CSV file|*.csv</value>
+  </data>
+  <data name="Button_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Button_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Button_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Button_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Filter_All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Msg_NoDatabaseLoaded" xml:space="preserve">
+    <value>No database loaded.</value>
+  </data>
+  <data name="Msg_DatabaseLabel" xml:space="preserve">
+    <value>Database : {0}</value>
+  </data>
+  <data name="Msg_UsernameEmpty" xml:space="preserve">
+    <value>Username cannot be empty.</value>
+  </data>
+  <data name="Msg_AtLeastOnePassword" xml:space="preserve">
+    <value>At least one password should be set.</value>
+  </data>
+  <data name="Msg_NoPasswordEmpty" xml:space="preserve">
+    <value>No password can be empty.</value>
+  </data>
+  <data name="Msg_DeleteUserConfirm1" xml:space="preserve">
+    <value>If you delete the user database, you will lost all credentials.
+Are you sure you want to delete the database anyway?</value>
+  </data>
+  <data name="Msg_DeleteUserConfirm2" xml:space="preserve">
+    <value>This procedure is non-reversible.
+Please confirm to proceed the deletion.</value>
+  </data>
+  <data name="Msg_UserDeleted" xml:space="preserve">
+    <value>'{0}' user database deleted successfully</value>
+  </data>
+  <data name="Msg_UseDefaultLocation" xml:space="preserve">
+    <value>Use default database location :
+{0}</value>
+  </data>
+  <data name="Msg_CredentialsUpdated" xml:space="preserve">
+    <value>'{0}' user's credentials has been updated.
+You will be logged out.
+Please login again.</value>
+  </data>
+  <data name="Msg_UserCreated" xml:space="preserve">
+    <value>'{0}' user database created successfully</value>
+  </data>
+  <data name="Msg_UserUpdated" xml:space="preserve">
+    <value>'{0}' user database updated successfully</value>
+  </data>
+  <data name="Msg_VaultReplacedExternally" xml:space="preserve">
+    <value>The vault file was modified or replaced by another program (for example a sync client) while it was open. Your changes were not written over it. Close the vault and reopen it to continue.</value>
+  </data>
+  <data name="Msg_SaveBeforeContinue" xml:space="preserve">
+    <value>Before continuing, all unsaved changes will be saved.</value>
+  </data>
+  <data name="Msg_ImportSuccess" xml:space="preserve">
+    <value>Import data has been completed successfully.
+More details in the activities.</value>
+  </data>
+  <data name="Msg_ImportFailed" xml:space="preserve">
+    <value>Import data failed.
+More details in the activities.</value>
+  </data>
+  <data name="Msg_ExportSuccess" xml:space="preserve">
+    <value>Export data has been completed successfully.
+More details in the activities.</value>
+  </data>
+  <data name="Msg_ExportPlaintextWarning" xml:space="preserve">
+    <value>The export file will contain identifiers and passwords in cleartext so other tools can import them.
+
+This is not an encrypted backup — copy the .pku vault file if you need a secure backup.
+
+Continue?</value>
+  </data>
+  <data name="Title_ExportPlaintextWarning" xml:space="preserve">
+    <value>Plaintext export</value>
+  </data>
+  <data name="Msg_ExportFailed" xml:space="preserve">
+    <value>Export data failed.
+More details in the activities.</value>
+  </data>
+  <data name="Msg_ImportData" xml:space="preserve">
+    <value>Import data</value>
+  </data>
+  <data name="Msg_ExportData" xml:space="preserve">
+    <value>Export data</value>
+  </data>
+  <data name="Msg_ConfigFileError" xml:space="preserve">
+    <value>It seems that there is an error in the configuration file.
+</value>
+  </data>
+  <data name="Msg_DeleteService" xml:space="preserve">
+    <value>Are you sure you want to delete the service '{0}'</value>
+  </data>
+  <data name="Msg_DeleteAccount" xml:space="preserve">
+    <value>Are you sure you want to delete the account '{0}'</value>
+  </data>
+  <data name="Msg_ItemNotFound" xml:space="preserve">
+    <value>The item '{0}' was not found.
+It has been deleted.</value>
+  </data>
+  <data name="Msg_InsufficientKdf" xml:space="preserve">
+    <value>This database file uses key-stretching parameters below the accepted security floor and cannot be opened.</value>
+  </data>
+  <data name="Msg_CorruptedDatabase" xml:space="preserve">
+    <value>This database file appears to be corrupted or is not a valid Passkey vault and cannot be opened.</value>
+  </data>
+  <data name="Msg_AutosaveDetected" xml:space="preserve">
+    <value>Unsaved changes have been detected.
+Click Yes to apply these changes.
+Click No to discard them.
+Click Cancel to ignore and keep the save file.</value>
+  </data>
+  <data name="Title_UserServices" xml:space="preserve">
+    <value>{0} - '{1}'</value>
+  </data>
+  <data name="Msg_ShowAlerts" xml:space="preserve">
+    <value>Show {0} alerts</value>
+  </data>
+  <data name="Msg_ShowActivityAlerts" xml:space="preserve">
+    <value>Show {0} activities to review</value>
+  </data>
+  <data name="Msg_ShowExpiredPasswordAlerts" xml:space="preserve">
+    <value>Show {0} expired passwords</value>
+  </data>
+  <data name="Msg_ShowDuplicatedPasswordAlerts" xml:space="preserve">
+    <value>Show {0} duplicated passwords</value>
+  </data>
+  <data name="Msg_ShowLeakedPasswordAlerts" xml:space="preserve">
+    <value>Show {0} leaked passwords</value>
+  </data>
+  <data name="Msg_ShowWeakPasswordAlerts" xml:space="preserve">
+    <value>Show {0} weak passwords</value>
+  </data>
+  <data name="Msg_ShowSecuritySettingsAlerts" xml:space="preserve">
+    <value>Show {0} security settings alerts</value>
+  </data>
+  <data name="Msg_ShowPasskeyQualityAlerts" xml:space="preserve">
+    <value>Show {0} passkey quality alerts</value>
+  </data>
+  <data name="Msg_NoAlertsToNotify" xml:space="preserve">
+    <value>No alert notifications are enabled.
+
+You will not be alerted about:
+• Activities to review
+• Expired, duplicated, or leaked passwords
+• Insecure security settings</value>
+  </data>
+  <data name="Msg_OpenHttpUrlConfirm" xml:space="preserve">
+    <value>This URL uses HTTP (not encrypted):
+
+{0}
+
+Opening it may expose the request on the network. Open anyway?</value>
+  </data>
+  <data name="Msg_UrlSchemeNotAllowed" xml:space="preserve">
+    <value>Only absolute HTTP and HTTPS URLs can be opened. Local paths, UNC paths, and custom protocols are not allowed.</value>
+  </data>
+  <data name="Title_NoAlertsToNotify" xml:space="preserve">
+    <value>Alert notifications disabled</value>
+  </data>
+  <data name="Title_SecuritySettingsAlerts" xml:space="preserve">
+    <value>Security settings alerts</value>
+  </data>
+  <data name="Title_SecuritySettingsAlertsWindow" xml:space="preserve">
+    <value>{0} - Security settings alerts</value>
+  </data>
+  <data name="Title_PasskeyQualityAlertsWindow" xml:space="preserve">
+    <value>{0} - Passkey quality alerts</value>
+  </data>
+  <data name="Msg_PasskeyQuality_InsufficientPasskeys" xml:space="preserve">
+    <value>Only {0} passkey layer(s) configured; at least {1} are recommended.</value>
+  </data>
+  <data name="Msg_PasskeyQuality_WeakPasskey" xml:space="preserve">
+    <value>Weak passkey layer(s): {0}.</value>
+  </data>
+  <data name="Msg_PasskeyQuality_PasskeyLeaked" xml:space="preserve">
+    <value>Leaked passkey layer(s): {0}.</value>
+  </data>
+  <data name="Msg_PasskeyQuality_PasskeyReused" xml:space="preserve">
+    <value>Vault passkey reused as account password: {0}.</value>
+  </data>
+  <data name="Label_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
+    <value>Auto-logout disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_AutoLogoutDisabled" xml:space="preserve">
+    <value>An unlocked session stays open until you log out manually.</value>
+  </data>
+  <data name="Label_SecuritySettings_ClipboardCleaningDisabled" xml:space="preserve">
+    <value>Clipboard auto-clear disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_ClipboardCleaningDisabled" xml:space="preserve">
+    <value>Copied secrets may remain on the clipboard.</value>
+  </data>
+  <data name="Label_SecuritySettings_QrAutoCloseDisabled" xml:space="preserve">
+    <value>QR auto-close disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_QrAutoCloseDisabled" xml:space="preserve">
+    <value>The QR window stays open until you dismiss it.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountLeakCheck" xml:space="preserve">
+    <value>No leak check on any account</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountLeakCheck" xml:space="preserve">
+    <value>No account has password leak checks enabled.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountDuplicateCheck" xml:space="preserve">
+    <value>No duplicate check on any account</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountDuplicateCheck" xml:space="preserve">
+    <value>No account has duplicated-password checks enabled.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountWeakPasswordCheck" xml:space="preserve">
+    <value>No weak-password check on any account</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountWeakPasswordCheck" xml:space="preserve">
+    <value>No account has weak-password checks enabled.</value>
+  </data>
+  <data name="Label_SecuritySettings_NoAccountUpdateReminder" xml:space="preserve">
+    <value>No update reminder on any account</value>
+  </data>
+  <data name="Msg_SecuritySettings_NoAccountUpdateReminder" xml:space="preserve">
+    <value>No account has a password-update reminder delay enabled.</value>
+  </data>
+  <data name="Label_SecuritySettings_IdleLoginDisabled" xml:space="preserve">
+    <value>Login idle clear disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_IdleLoginDisabled" xml:space="preserve">
+    <value>Typed credentials on the login window are not cleared after inactivity. Prefer a non-zero Login idle timeout in App Settings.</value>
+  </data>
+  <data name="Label_SecuritySettings_OfflineLeakFilterUnavailable" xml:space="preserve">
+    <value>Offline leak filter unavailable</value>
+  </data>
+  <data name="Msg_SecuritySettings_OfflineLeakFilterUnavailable" xml:space="preserve">
+    <value>No offline Bloom filter is loaded. Leak checks fail open when HIBP and XposedOrNot are unreachable.</value>
+  </data>
+  <data name="Label_SecuritySettings_DuplicatePasswordNotificationsDisabled" xml:space="preserve">
+    <value>Duplicated-password notifications disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_DuplicatePasswordNotificationsDisabled" xml:space="preserve">
+    <value>You will not be notified when accounts share the same password.</value>
+  </data>
+  <data name="Label_SecuritySettings_PasswordUpdateReminderNotificationsDisabled" xml:space="preserve">
+    <value>Password-update reminder notifications disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_PasswordUpdateReminderNotificationsDisabled" xml:space="preserve">
+    <value>You will not be notified when passwords are due for an update reminder.</value>
+  </data>
+  <data name="Label_SecuritySettings_PasswordLeakedNotificationsDisabled" xml:space="preserve">
+    <value>Leaked-password notifications disabled</value>
+  </data>
+  <data name="Msg_SecuritySettings_PasswordLeakedNotificationsDisabled" xml:space="preserve">
+    <value>You will not be notified when an account password is found in a breach corpus.</value>
+  </data>
+  <data name="Msg_OpenUserSettingsPrompt" xml:space="preserve">
+    <value>Open User Settings to review these options?</value>
+  </data>
+  <data name="Msg_UserId" xml:space="preserve">
+    <value>User Id : {0}</value>
+  </data>
+  <data name="Msg_ServiceId" xml:space="preserve">
+    <value>Service Id : {0}</value>
+  </data>
+  <data name="Msg_AccountId" xml:space="preserve">
+    <value>Account Id : {0}</value>
+  </data>
+  <data name="Msg_SessionLeftTime" xml:space="preserve">
+    <value> - Left session time : {0:D2}:{1:D2}</value>
+  </data>
+  <data name="Msg_SessionUnlimitedTime" xml:space="preserve">
+    <value> - Unlimited session time</value>
+  </data>
+  <data name="Msg_FiltersHeader" xml:space="preserve">
+    <value>Filters : {0} activities found over {1}</value>
+  </data>
+  <data name="Msg_DuplicatedPasswordAccounts" xml:space="preserve">
+    <value>{0} accounts with same passwords</value>
+  </data>
+  <data name="Msg_NewServicePrefix" xml:space="preserve">
+    <value>New Service #</value>
+  </data>
+  <data name="Msg_NewAccountPrefix" xml:space="preserve">
+    <value>New Account #</value>
+  </data>
+  <data name="IdentifierType_All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="IdentifierType_Username" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="IdentifierType_Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="IdentifierType_PhoneNumber" xml:space="preserve">
+    <value>Phone Number</value>
+  </data>
+  <data name="IdentifierType_Passkey" xml:space="preserve">
+    <value>Passkey</value>
+  </data>
+  <data name="IdentifierType_AuthenticatorApp" xml:space="preserve">
+    <value>Authenticator App</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_MergeAndSaveThenRemoveAutoSaveFile" xml:space="preserve">
+    <value>Auto-save merged then saved</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_MergeWithoutSavingAndKeepAutoSaveFile" xml:space="preserve">
+    <value>Auto-save merged but not saved</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_DontMergeAndRemoveAutoSaveFile" xml:space="preserve">
+    <value>Auto-save discarded</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_DontMergeAndKeepAutoSaveFile" xml:space="preserve">
+    <value>Auto-save not merged and kept</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_DatabaseCreated" xml:space="preserve">
+    <value>Database created</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_DatabaseOpened" xml:space="preserve">
+    <value>Database opened</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_DatabaseSaved" xml:space="preserve">
+    <value>Database saved</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_DatabaseClosed" xml:space="preserve">
+    <value>Database closed</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_LoginSessionTimeoutReached" xml:space="preserve">
+    <value>Login session timeout reached</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_LoginFailed" xml:space="preserve">
+    <value>Login failed</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_UserLoggedIn" xml:space="preserve">
+    <value>User logged in</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_UserLoggedOut" xml:space="preserve">
+    <value>User logged out</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ImportingDataStarted" xml:space="preserve">
+    <value>Importing data started</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ImportingDataSucceeded" xml:space="preserve">
+    <value>Importing data succeeded</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ImportingDataFailed" xml:space="preserve">
+    <value>Importing data failed</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ExportingDataStarted" xml:space="preserve">
+    <value>Exporting data started</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ExportingDataSucceeded" xml:space="preserve">
+    <value>Exporting data succeeded</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ExportingDataFailed" xml:space="preserve">
+    <value>Exporting data failed</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ItemUpdated" xml:space="preserve">
+    <value>Item updated</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ItemAdded" xml:space="preserve">
+    <value>Item added</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ItemDeleted" xml:space="preserve">
+    <value>Item deleted</value>
+  </data>
+  <data name="EnumValue_ActivityEventType_ActivityLogTampered" xml:space="preserve">
+    <value>Activity log tampered</value>
+  </data>
+  <data name="EnumValue_AlertKind_ActivityReview" xml:space="preserve">
+    <value>Activities to review</value>
+  </data>
+  <data name="EnumValue_AlertKind_PasswordUpdateReminder" xml:space="preserve">
+    <value>Expired passwords</value>
+  </data>
+  <data name="EnumValue_AlertKind_DuplicatedPasswords" xml:space="preserve">
+    <value>Duplicated passwords</value>
+  </data>
+  <data name="EnumValue_AlertKind_PasswordLeaked" xml:space="preserve">
+    <value>Leaked passwords</value>
+  </data>
+  <data name="EnumValue_AlertKind_SecuritySettings" xml:space="preserve">
+    <value>Security settings</value>
+  </data>
+  <data name="EnumValue_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Title_QrCode" xml:space="preserve">
+    <value>{0} - QR Code</value>
+  </data>
+  <data name="Label_NewUser" xml:space="preserve">
+    <value>NewUser</value>
+  </data>
+  <data name="Activity_MergeAndSaveThenRemoveAutoSaveFile" xml:space="preserve">
+    <value>User '{0}'s autosave merged and saved</value>
+  </data>
+  <data name="Activity_MergeWithoutSavingAndKeepAutoSaveFile" xml:space="preserve">
+    <value>User '{0}'s autosave merged without saving</value>
+  </data>
+  <data name="Activity_DontMergeAndRemoveAutoSaveFile" xml:space="preserve">
+    <value>User '{0}'s autosave not merged and removed</value>
+  </data>
+  <data name="Activity_DontMergeAndKeepAutoSaveFile" xml:space="preserve">
+    <value>User '{0}'s autosave not merged and kept</value>
+  </data>
+  <data name="Activity_DatabaseCreated" xml:space="preserve">
+    <value>User '{0}'s database created</value>
+  </data>
+  <data name="Activity_DatabaseOpened" xml:space="preserve">
+    <value>User '{0}'s database opened</value>
+  </data>
+  <data name="Activity_DatabaseSaved" xml:space="preserve">
+    <value>User '{0}'s database saved</value>
+  </data>
+  <data name="Activity_DatabaseClosed" xml:space="preserve">
+    <value>User '{0}'s database closed</value>
+  </data>
+  <data name="Activity_LoginSessionTimeoutReached" xml:space="preserve">
+    <value>User '{0}'s login session timeout reached</value>
+  </data>
+  <data name="Activity_LoginFailed" xml:space="preserve">
+    <value>User '{0}' login failed at level {1}</value>
+  </data>
+  <data name="Activity_UserLoggedIn" xml:space="preserve">
+    <value>User '{0}' logged in</value>
+  </data>
+  <data name="Activity_UserLoggedOut" xml:space="preserve">
+    <value>User '{0}' logged out</value>
+  </data>
+  <data name="Activity_UserLoggedOutWithoutSaving" xml:space="preserve">
+    <value>User '{0}' logged out without saving</value>
+  </data>
+  <data name="Activity_ImportingDataStarted" xml:space="preserve">
+    <value>Importing data from file : '{0}'</value>
+  </data>
+  <data name="Activity_ImportingDataSucceeded" xml:space="preserve">
+    <value>Import completed successfully</value>
+  </data>
+  <data name="Activity_ImportingDataFailed" xml:space="preserve">
+    <value>Import failed because {0}</value>
+  </data>
+  <data name="Activity_ExportingDataStarted" xml:space="preserve">
+    <value>Exporting data to file : '{0}'</value>
+  </data>
+  <data name="Activity_ExportingDataSucceeded" xml:space="preserve">
+    <value>Export completed successfully</value>
+  </data>
+  <data name="Activity_ExportingDataFailed" xml:space="preserve">
+    <value>Export failed because {0}</value>
+  </data>
+  <data name="Activity_AccountUpdated" xml:space="preserve">
+    <value>Service '{2}'s Account '{0}'s {1} has been updated</value>
+  </data>
+  <data name="Activity_AccountSet" xml:space="preserve">
+    <value>Service '{2}'s Account '{0}'s {1} has been set to '{3}'</value>
+  </data>
+  <data name="Activity_ItemUpdated" xml:space="preserve">
+    <value>{0} '{1}'s {2} has been updated</value>
+  </data>
+  <data name="Activity_ItemSet" xml:space="preserve">
+    <value>{0} '{1}'s {2} has been set to '{3}'</value>
+  </data>
+  <data name="Activity_ItemAdded" xml:space="preserve">
+    <value>{2} '{3}' has been added to {0} '{1}'</value>
+  </data>
+  <data name="Activity_ItemDeleted" xml:space="preserve">
+    <value>{2} '{3}' has been removed from {0} '{1}'</value>
+  </data>
+  <data name="Activity_ActivityLogTampered" xml:space="preserve">
+    <value>User '{0}'s activity log integrity check failed</value>
+  </data>
+  <data name="Activity_User" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="FieldName_Label" xml:space="preserve">
+    <value>label</value>
+  </data>
+  <data name="FieldName_Identifiers" xml:space="preserve">
+    <value>identifiers</value>
+  </data>
+  <data name="FieldName_Password" xml:space="preserve">
+    <value>password</value>
+  </data>
+  <data name="FieldName_Notes" xml:space="preserve">
+    <value>notes</value>
+  </data>
+  <data name="FieldName_PasswordUpdateReminderDelay" xml:space="preserve">
+    <value>password update reminder delay</value>
+  </data>
+  <data name="FieldName_Options" xml:space="preserve">
+    <value>options</value>
+  </data>
+  <data name="FieldName_ServiceName" xml:space="preserve">
+    <value>service name</value>
+  </data>
+  <data name="FieldName_Url" xml:space="preserve">
+    <value>url</value>
+  </data>
+  <data name="FieldName_Services" xml:space="preserve">
+    <value>services</value>
+  </data>
+  <data name="FieldName_Accounts" xml:space="preserve">
+    <value>accounts</value>
+  </data>
+  <data name="FieldName_LogoutTimeout" xml:space="preserve">
+    <value>logout timeout</value>
+  </data>
+  <data name="FieldName_CleaningClipboardTimeout" xml:space="preserve">
+    <value>cleaning clipboard timeout</value>
+  </data>
+  <data name="FieldName_ShowPasswordDelay" xml:space="preserve">
+    <value>show password delay</value>
+  </data>
+  <data name="FieldName_NumberOfOldPasswordToKeep" xml:space="preserve">
+    <value>number of old password to keep</value>
+  </data>
+  <data name="FieldName_NumberOfMonthActivitiesToKeep" xml:space="preserve">
+    <value>number of month activities to keep</value>
+  </data>
+  <data name="FieldName_AlertsToNotify" xml:space="preserve">
+    <value>alerts to notify</value>
+  </data>
+  <data name="FieldName_Username" xml:space="preserve">
+    <value>username</value>
+  </data>
+  <data name="FieldName_Passkeys" xml:space="preserve">
+    <value>passkeys</value>
+  </data>
+  <data name="FieldName_Language" xml:space="preserve">
+    <value>language</value>
+  </data>
+  <data name="FieldName_Theme" xml:space="preserve">
+    <value>theme</value>
+  </data>
+  <data name="EnumValue_Theme_System" xml:space="preserve">
+    <value>Same as system</value>
+  </data>
+  <data name="EnumValue_Theme_Light" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="EnumValue_Theme_Dark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="EnumValue_FollowApp" xml:space="preserve">
+    <value>Same as application</value>
+  </data>
+  <data name="Activity_DateTimeFormat" xml:space="preserve">
+    <value>yyyy-MM-dd HH:mm</value>
+  </data>
+  <data name="EnumValue_ImportExportError_None" xml:space="preserve">
+    <value>none</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ImportFileNotAccessible" xml:space="preserve">
+    <value>import file is not accessible</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ImportFileTooLarge" xml:space="preserve">
+    <value>import file exceeds the maximum allowed size</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ExtensionFileNotSupported" xml:space="preserve">
+    <value>file extension type is not supported</value>
+  </data>
+  <data name="EnumValue_ImportExportError_CSVHeadersDontMatch" xml:space="preserve">
+    <value>the CSV header does not match</value>
+  </data>
+  <data name="EnumValue_ImportExportError_IncorrectCSVFormat" xml:space="preserve">
+    <value>the CSV format is incorrect</value>
+  </data>
+  <data name="EnumValue_ImportExportError_NoDataToImport" xml:space="preserve">
+    <value>no data to import</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ImportFileDeserializationFailed" xml:space="preserve">
+    <value>import file deserialization failed</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ServiceAlreadyExists" xml:space="preserve">
+    <value>a service already exists</value>
+  </data>
+  <data name="EnumValue_ImportExportError_BlankService" xml:space="preserve">
+    <value>a service is blank</value>
+  </data>
+  <data name="EnumValue_ImportExportError_ExportFileAlreadyExists" xml:space="preserve">
+    <value>export file already exists</value>
+  </data>
+  <data name="EnumValue_ImportExportError_SecurityTimeoutsDisabled" xml:space="preserve">
+    <value>imported settings would disable session security timeouts</value>
+  </data>
+  <data name="Label_OfflineLeakDatabase" xml:space="preserve">
+    <value>Offline leak database</value>
+  </data>
+  <data name="Tooltip_OfflineLeakDatabase" xml:space="preserve">
+    <value>Application-wide setting shared by all vault users. Not stored in the .pku vault. Disable keeps the file; only Delete removes it.</value>
+  </data>
+  <data name="Label_UseOfflineBloomFilter" xml:space="preserve">
+    <value>Use offline Bloom filter when HIBP and XposedOrNot are unreachable</value>
+  </data>
+  <data name="Label_AutoUpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>Automatically update the offline database in the background every</value>
+  </data>
+  <data name="Tooltip_AutoUpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>Sets the existing offline database refreshing frequency from HIBP at startup every. A first build is never started automatically (too large).</value>
+  </data>
+  <data name="Label_LeakFilterQuality" xml:space="preserve">
+    <value>Filter quality</value>
+  </data>
+  <data name="Tooltip_LeakFilterQuality" xml:space="preserve">
+    <value>Target false-positive rate for the offline Bloom filter. Applied only on a full build or rebuild (hours; larger disk for stricter presets). Background updates keep the current file sizing.</value>
+  </data>
+  <data name="Label_LeakFilterQuality_Balanced" xml:space="preserve">
+    <value>Balanced (~1% false positives, ~{0:0.0} GiB)</value>
+  </data>
+  <data name="Label_LeakFilterQuality_Strict" xml:space="preserve">
+    <value>Strict (~0.1% false positives, ~{0:0.0} GiB)</value>
+  </data>
+  <data name="Label_LeakFilterQuality_Paranoid" xml:space="preserve">
+    <value>Paranoid (~0.01% false positives, ~{0:0.0} GiB)</value>
+  </data>
+  <data name="Label_BuildUpdate" xml:space="preserve">
+    <value>Build / Update</value>
+  </data>
+  <data name="Label_DeleteOfflineDatabase" xml:space="preserve">
+    <value>Delete offline database</value>
+  </data>
+  <data name="Title_UpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>Update offline leak database</value>
+  </data>
+  <data name="Msg_UpdateOfflineLeakDatabase" xml:space="preserve">
+    <value>An offline leak database already exists. Refresh it from HIBP?
+Every hash range is revalidated and only the ones that changed are downloaded, so this normally takes minutes and a few megabytes.</value>
+  </data>
+  <data name="Title_BuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Build offline leak database</value>
+  </data>
+  <data name="Title_RebuildOfflineLeakDatabaseQuality" xml:space="preserve">
+    <value>Rebuild offline leak database</value>
+  </data>
+  <data name="Msg_BuildOfflineLeakDatabase" xml:space="preserve">
+    <value>Download the HIBP password corpus and build a local Bloom filter (~{0:0.0} GiB on disk)?
+The first build downloads the whole corpus (tens of GiB) and can take several hours. It can be interrupted and resumed, and later updates only fetch what changed. The file is shared by all vault users on this machine.</value>
+  </data>
+  <data name="Msg_RebuildOfflineLeakDatabaseQuality" xml:space="preserve">
+    <value>Rebuild the offline Bloom filter at the selected quality (~{0:0.0} GiB on disk)?
+This downloads the whole HIBP corpus again (tens of GiB) and can take several hours. Background updates cannot change filter quality — only a full rebuild can. The file is shared by all vault users on this machine.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildStarting" xml:space="preserve">
+    <value>Starting…</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildCancelled" xml:space="preserve">
+    <value>Cancelled.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildSkipped" xml:space="preserve">
+    <value>Skipped (file already present).</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildProgress" xml:space="preserve">
+    <value>{0:0.00}% · prefixes {1}/{2} · hashes ≈ {3}</value>
+  </data>
+  <data name="Msg_OfflineLeakUpdateProgress" xml:space="preserve">
+    <value>{0:0.00}% · ranges {1}/{2} · unchanged {3} · refreshed {4} · {5:0.0} MiB</value>
+  </data>
+  <data name="Msg_OfflineLeakAlreadyUpToDate" xml:space="preserve">
+    <value>Already up to date.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildComplete" xml:space="preserve">
+    <value>Build complete ({0} hashes).</value>
+  </data>
+  <data name="Msg_OfflineLeakUpdateComplete" xml:space="preserve">
+    <value>Completed · {0} ranges refreshed · {1} unchanged · {2:0.0} MiB downloaded.</value>
+  </data>
+  <data name="Msg_OfflineLeakUpdateExitPrompt" xml:space="preserve">
+    <value>An offline leak database update is still running.
+
+Yes — hide Passkey and finish the update in the background (the process stays until it completes, then exits).
+No — cancel the update and exit now.
+Cancel — keep Passkey open.</value>
+  </data>
+  <data name="Msg_OfflineLeakBuildFailed" xml:space="preserve">
+    <value>Offline leak database build failed:
+{0}</value>
+  </data>
+  <data name="Title_BuildFailed" xml:space="preserve">
+    <value>Build failed</value>
+  </data>
+  <data name="Msg_BuildFailed" xml:space="preserve">
+    <value>Build failed.</value>
+  </data>
+  <data name="Msg_NoOfflineLeakDatabase" xml:space="preserve">
+    <value>No offline leak database file is present.</value>
+  </data>
+  <data name="Title_OfflineLeakDatabase" xml:space="preserve">
+    <value>Offline leak database</value>
+  </data>
+  <data name="Title_OfflineLeakUpdateInProgress" xml:space="preserve">
+    <value>Offline leak database update in progress</value>
+  </data>
+  <data name="Msg_DeleteOfflineLeakDatabase" xml:space="preserve">
+    <value>Permanently delete the shared offline leak database from this machine?
+This affects all vault users. Disabling the option alone does not delete the file.</value>
+  </data>
+  <data name="Title_DeleteOfflineLeakDatabase" xml:space="preserve">
+    <value>Delete offline leak database</value>
+  </data>
+  <data name="Title_IdleResetCredentialTimeout" xml:space="preserve">
+    <value> - Credentials reset in {0}</value>
+  </data>
+  <data name="Msg_OfflineLeakFileAbsent" xml:space="preserve">
+    <value>Absent file</value>
+  </data>
+  <data name="Msg_OfflineLeakFilePresent" xml:space="preserve">
+    <value>Present · {0:0.00} GiB · Updated {1}</value>
+  </data>
+  <data name="Msg_OfflineLeakFilePresentDisabled" xml:space="preserve">
+    <value>Present on disk · {0:0.00} GiB · Updated {1} · Disabled</value>
+  </data>
+  <data name="Msg_OfflineLeakStatusUnknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Tooltip_AddAccount" xml:space="preserve">
+    <value>Add account</value>
+  </data>
+  <data name="Tooltip_AddIdentifier" xml:space="preserve">
+    <value>Add identifier</value>
+  </data>
+  <data name="Tooltip_AddPassword" xml:space="preserve">
+    <value>Add password</value>
+  </data>
+  <data name="Tooltip_AddService" xml:space="preserve">
+    <value>Add service</value>
+  </data>
+  <data name="Tooltip_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Tooltip_ClearFilters" xml:space="preserve">
+    <value>Clear filters</value>
+  </data>
+  <data name="Tooltip_Copy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="Tooltip_CopyIdentifier" xml:space="preserve">
+    <value>Copy identifier</value>
+  </data>
+  <data name="Tooltip_CopyPassword" xml:space="preserve">
+    <value>Copy password</value>
+  </data>
+  <data name="Tooltip_DeleteAccount" xml:space="preserve">
+    <value>Delete account</value>
+  </data>
+  <data name="Tooltip_DeleteIdentifier" xml:space="preserve">
+    <value>Delete identifier</value>
+  </data>
+  <data name="Tooltip_DeletePassword" xml:space="preserve">
+    <value>Delete password</value>
+  </data>
+  <data name="Tooltip_DeleteService" xml:space="preserve">
+    <value>Delete service</value>
+  </data>
+  <data name="Tooltip_GoToItem" xml:space="preserve">
+    <value>Go to item</value>
+  </data>
+  <data name="Tooltip_MoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="Tooltip_MoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="Tooltip_OpenUrl" xml:space="preserve">
+    <value>Open URL</value>
+  </data>
+  <data name="Tooltip_RevealPassword" xml:space="preserve">
+    <value>Show password</value>
+  </data>
+  <data name="Tooltip_ShowQrCodeIdentifier" xml:space="preserve">
+    <value>Show identifier QR code</value>
+  </data>
+  <data name="Tooltip_ShowQrCodePassword" xml:space="preserve">
+    <value>Show password QR code</value>
+  </data>
+  <data name="Tooltip_ViewActivities" xml:space="preserve">
+    <value>View activities</value>
+  </data>
+  <data name="Login_SelectedVault" xml:space="preserve">
+    <value>Vault: {0}</value>
+  </data>
+  <data name="Login_Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="Login_OpenVault" xml:space="preserve">
+    <value>Open vault…</value>
+  </data>
+  <data name="Login_Reset" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="Login_EnterVaultUsername" xml:space="preserve">
+    <value>Enter the username of this vault.</value>
+  </data>
+  <data name="Login_HostNotConfigured" xml:space="preserve">
+    <value>Host paths are not configured.</value>
+  </data>
+  <data name="Login_NoVaultForUsername" xml:space="preserve">
+    <value>No vault for this username in '{0}'. Use "{1}" to pick the file.</value>
+  </data>
+  <data name="Login_Opening" xml:space="preserve">
+    <value>Opening…</value>
+  </data>
+  <data name="Login_EnterPasskeys" xml:space="preserve">
+    <value>Enter passkeys in order. Reset to start over after a typo.</value>
+  </data>
+  <data name="Login_OpenFailed" xml:space="preserve">
+    <value>Open failed: {0}</value>
+  </data>
+  <data name="Login_CheckingPasskey" xml:space="preserve">
+    <value>Checking passkey…</value>
+  </data>
+  <data name="Login_LoginFailed" xml:space="preserve">
+    <value>Login failed: {0}</value>
+  </data>
+  <data name="Login_NextPasskey" xml:space="preserve">
+    <value>Next passkey (Reset to start over).</value>
+  </data>
+  <data name="Login_WriteBackConflict" xml:space="preserve">
+    <value>The vault source changed elsewhere; your copy was kept locally and the source was not overwritten.</value>
+  </data>
+  <data name="Login_WriteBackFailed" xml:space="preserve">
+    <value>Could not write the vault back to its source.</value>
+  </data>
+  <data name="Login_WriteBackSourceDamaged" xml:space="preserve">
+    <value>Writing the vault back failed and the original could not be restored. Your copy was kept locally; reopen the vault to write it again.</value>
+  </data>
+  <data name="Login_VaultDeleteRefused" xml:space="preserve">
+    <value>The vault source changed elsewhere, so it was not deleted.</value>
+  </data>
+  <data name="Login_RecoveredLocalChanges" xml:space="preserve">
+    <value>Unsaved changes from an interrupted session were recovered.</value>
+  </data>
+  <data name="Login_StaleCopyKeptAsConflict" xml:space="preserve">
+    <value>Changes from an interrupted session conflict with the vault source; they were kept aside locally and the source was opened as is.</value>
+  </data>
+  <data name="Login_WriteBackFailedWithReason" xml:space="preserve">
+    <value>Could not write the vault back to its source: {0}</value>
+  </data>
+  <data name="Title_SessionClosed" xml:space="preserve">
+    <value>Session closed</value>
+  </data>
+  <data name="Msg_SessionClosedTimeout" xml:space="preserve">
+    <value>The session was closed after the configured inactivity timeout.</value>
+  </data>
+  <data name="Session_Summary" xml:space="preserve">
+    <value>{0} service(s), {1} account(s).</value>
+  </data>
+  <data name="Session_Logout" xml:space="preserve">
+    <value>Log out</value>
+  </data>
+  <data name="Maui_Title_FolderPicker" xml:space="preserve">
+    <value>Folder picker</value>
+  </data>
+  <data name="Maui_FolderPickerAndroid" xml:space="preserve">
+    <value>On Android, pick a vault document with "{0}". Folder browsing is only available on Windows.</value>
+  </data>
+  <data name="Maui_Title_SaveFile" xml:space="preserve">
+    <value>Save file</value>
+  </data>
+  <data name="Maui_SaveAsUnavailable" xml:space="preserve">
+    <value>Save-as is not yet available in the MAUI client.</value>
+  </data>
+  <data name="Maui_ViewUnavailable" xml:space="preserve">
+    <value>This view is not available in the MAUI client yet.</value>
+  </data>
+  <data name="Error_FileAccess" xml:space="preserve">
+    <value>the file could not be read or written</value>
+  </data>
+  <data name="Error_AccessDenied" xml:space="preserve">
+    <value>access was denied</value>
+  </data>
+  <data name="Error_InvalidVault" xml:space="preserve">
+    <value>the vault file is invalid or damaged</value>
+  </data>
+  <data name="Error_Unexpected" xml:space="preserve">
+    <value>an unexpected error occurred</value>
+  </data>
+  <data name="Vault_AddService" xml:space="preserve">
+    <value>Add service</value>
+  </data>
+  <data name="Vault_DeleteService" xml:space="preserve">
+    <value>Delete service</value>
+  </data>
+  <data name="Vault_AddAccount" xml:space="preserve">
+    <value>Add account</value>
+  </data>
+  <data name="Vault_DeleteAccount" xml:space="preserve">
+    <value>Delete account</value>
+  </data>
+  <data name="Vault_AddIdentifier" xml:space="preserve">
+    <value>Add identifier</value>
+  </data>
+  <data name="Vault_MoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="Vault_MoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="Vault_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Vault_Accounts" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="Vault_OpenUrl" xml:space="preserve">
+    <value>Open URL</value>
+  </data>
+  <data name="Vault_SearchServices" xml:space="preserve">
+    <value>Search services</value>
+  </data>
+  <data name="Vault_CopyIdentifier" xml:space="preserve">
+    <value>Copy identifier</value>
+  </data>
+  <data name="Vault_CopyPassword" xml:space="preserve">
+    <value>Copy password</value>
+  </data>
+  <data name="Vault_NoSelection" xml:space="preserve">
+    <value>Select a service</value>
+  </data>
+  <data name="Msg_VaultRenameKept" xml:space="preserve">
+    <value>Your vault was saved, but its file could not be renamed and keeps its previous name:{0}{1}{0}Use Open vault to select it.</value>
+  </data>
+  <data name="Msg_VaultTargetExists" xml:space="preserve">
+    <value>A vault file named {0} already exists in this folder. Nothing was changed.</value>
+  </data>
+  <data name="Msg_UserSaveFailed" xml:space="preserve">
+    <value>The vault could not be saved; your previous settings were restored.{0}{1}</value>
+  </data>
+  <data name="Msg_VaultCreateFailed" xml:space="preserve">
+    <value>The vault could not be created.{0}{1}</value>
+  </data>
+  <data name="Label_BackgroundLock" xml:space="preserve">
+    <value>Lock the vault after the app stays in the background for</value>
+  </data>
+  <data name="Login_ConflictCopies" xml:space="preserve">
+    <value>{0} conflict copies of your vaults are kept on this device. Save them somewhere safe, then they are removed from the app.</value>
+  </data>
+  <data name="Button_SaveConflictCopies" xml:space="preserve">
+    <value>Save conflict copies</value>
+  </data>
+  <data name="Title_SaveConflictCopy" xml:space="preserve">
+    <value>Save conflict copy</value>
+  </data>
+  <data name="Msg_ConflictCopySaveFailed" xml:space="preserve">
+    <value>A conflict copy could not be saved; it is still kept on this device.</value>
+  </data>
+</root>

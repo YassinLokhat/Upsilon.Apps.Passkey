@@ -1,6 +1,11 @@
-﻿using Upsilon.Apps.Passkey.GUI.WPF.Alerts;
+using Upsilon.Apps.Passkey.GUI.Presentation.Alerts;
 using Upsilon.Apps.Passkey.GUI.WPF.Services;
+using Upsilon.Apps.Passkey.GUI.Presentation.Ports;
+using Upsilon.Apps.Passkey.Interfaces.Enums;
 using Upsilon.Apps.Passkey.Interfaces.Models;
+using Upsilon.Apps.Passkey.GUI.Presentation.Services;
+
+using AppServices = Upsilon.Apps.Passkey.GUI.WPF.Services.AppServices;
 
 namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui.Fakes
 {
@@ -10,9 +15,40 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui.Fakes
 
       public IUser? User => Database?.User;
 
-      public AlertBroker Alerts { get; } = new();
+      public AlertBroker Alerts { get; } = new(static () => HostSecurityIssue.None);
 
       public event EventHandler? SessionChanged;
+
+      public event EventHandler<VaultWriteBackEventArgs>? WriteBackCompleted
+      {
+         add { }
+         remove { }
+      }
+
+      public void TrackVaultSource(IDatabase database, IVaultSource source)
+      {
+      }
+
+      public Task<bool> FlushWriteBacksAsync(TimeSpan timeout) => Task.FromResult(true);
+
+      public Task<T> RunSourceOperationAsync<T>(Func<Task<T>> operation) => operation();
+
+      public Task<VaultWriteBackResult?> FlushToSourceAsync() => Task.FromResult<VaultWriteBackResult?>(null);
+
+      public void DeleteVault() => Database?.Delete();
+
+      public Task<bool> DeleteVaultAsync()
+      {
+         DeleteVault();
+         return Task.FromResult(true);
+      }
+
+      public Task<VaultRenameOutcome> EndSessionAndRenameAsync(string newFileName)
+      {
+         string? location = Database?.DatabaseFile;
+         EndSession();
+         return Task.FromResult(new VaultRenameOutcome(false, VaultWriteBackResult.Skipped, location));
+      }
 
       public void StartSession(IDatabase database)
       {

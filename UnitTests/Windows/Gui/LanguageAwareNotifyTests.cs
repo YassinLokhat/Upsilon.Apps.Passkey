@@ -1,8 +1,6 @@
 ﻿using FluentAssertions;
 using System.Windows;
 using Upsilon.Apps.Passkey.GUI.WPF.Localization;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels;
-
 namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
 {
    /// <summary>
@@ -37,7 +35,7 @@ namespace Upsilon.Apps.Passkey.UnitTests.Windows.Gui
       public void Notify_WindowWithoutILanguageAware_RefreshesDataContextTitle()
       {
          AppLanguage satellite = _satellite();
-         UserSettingsViewModel vm = new();
+         using UserSettingsViewModel vm = new();
          Window window = new() { DataContext = vm };
 
          try

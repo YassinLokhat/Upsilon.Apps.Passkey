@@ -2,28 +2,30 @@
 
 ## Automated tests
 
-Two test projects:
+Three test projects:
 
 | Project | TFM | Scope |
 | ------- | --- | ----- |
 | `UnitTests/Multiplateform/` | `net10.0` | Core + Utils (vault lifecycle, import/export, crypto, models). Asserts structured activity fields via `ExpectedActivity` — not localized UI strings. |
-| `UnitTests/Windows/` | `net10.0-windows` | WPF ViewModels / localization through `AppServices` fakes. Localized activity rendering lives here (`ActivityAssertHelper`, `ActivityViewModelMessageTests`). |
+| `UnitTests/Presentation/` | `net10.0` | Shared Presentation ports, services and ViewModels used by both hosts, including localized activity messages (`ActivityViewModelMessageTests`). Runs in the Windows, Linux and MAUI Windows workflows. |
+| `UnitTests/Windows/` | `net10.0-windows` | WPF host code only: theme service, `{loc:Loc}` extension, language delivery to open windows. |
 
-There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, global hotkeys, and themed confirmation dialogs (`ThemedMessageBoxView`) stay on the [[WPF Client]] manual smoke list.
+There is no UI automation (FlaUI / WinAppDriver). Login `PasswordBox`, keyboard shortcuts, and themed confirmation dialogs (`ThemedMessageBoxView`) stay on the [[WPF Client]] manual smoke list.
 
 ### Activity log assertions
 
-Multiplateform tests compare `IActivity` fields with `UnitTestsHelper.LastActivitiesShouldMatch` and `ExpectedActivity` factories (`ImportFailed`, `DatabaseSaved`, `ItemUpdated`, …). Windows GUI / localization tests that need the Activities-grid message path use `ActivityAssertHelper` (same templates as `ActivityViewModel`). Alert waits use `WaitForAlertKind` / `WaitForAlerts` (event-driven); avoid `Thread.Sleep` polling.
+Multiplateform tests compare `IActivity` fields with `UnitTestsHelper.LastActivitiesShouldMatch` and `ExpectedActivity` factories (`ImportFailed`, `DatabaseSaved`, `ItemUpdated`, …). The WPF localization tests that need the Activities-grid message path use `ActivityAssertHelper` (same templates as `ActivityViewModel`). Alert waits use `WaitForAlertKind` / `WaitForAlerts` (event-driven); avoid `Thread.Sleep` polling.
 
 ### Naming conventions
 
 - Models/Utils tests: `*UnitTests` classes and `CaseNN_…` method names.
-- GUI tests: `*Tests` classes, descriptive method names, `[TestInitialize]` / `[TestCleanup]` via `GuiTestServices`.
+- GUI tests: `*Tests` classes, descriptive method names, `[TestInitialize]` / `[TestCleanup]` via `ViewModelTestServices` (Presentation) or `GuiTestServices` (WPF host).
 - `TestDatabaseGenerator` is a `[TestMethod]` in Multiplateform (`GenerateNewDatabase`); it writes a sample vault under the test output and runs with `dotnet test` on Windows and Linux CI.
 
 ```bash
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --settings coverage.runsettings
 dotnet test Upsilon.Apps.Passkey.Linux.slnx
+dotnet test UnitTests/Presentation/UnitTests.Presentation.csproj
 dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitTests.Windows.Gui"
 ```
 
@@ -31,41 +33,44 @@ dotnet test Upsilon.Apps.Passkey.Windows.slnx --filter "FullyQualifiedName~UnitT
 
 `coverage.runsettings` measures **Core only** (the vault assembly). Utils (crypto, password factory) is a separate assembly and is not in that gate. The WPF assembly is excluded. Windows and Linux CI fail the build if line coverage of `Upsilon.Apps.Passkey.Core` drops below **90%**. Do not lower that gate without an explicit discussion in the pull request.
 
-Locally, `run_code_coverage.bat` (and Windows CI) write TRX / Cobertura output under `_testResult/` (gitignored). The same path is set in `coverage.runsettings` (`<ResultsDirectory>`). Both test projects set `RunSettingsFilePath` to that file so Visual Studio Test Explorer and a plain `dotnet test` pick it up without a manual menu selection.
+Locally, `run_code_coverage.bat` (and Windows CI) write TRX / Cobertura output under `_testResult/` (gitignored). The same path is set in `coverage.runsettings` (`<ResultsDirectory>`). All three test projects set `RunSettingsFilePath` to that file so Visual Studio Test Explorer and a plain `dotnet test` pick it up without a manual menu selection.
 
-Linux CI builds Interfaces + Utils + Core, runs Multiplateform tests on `Upsilon.Apps.Passkey.Linux.slnx`, and enforces the same **90%** Core coverage gate.
+Linux CI builds Interfaces + Utils + Core + Presentation, runs the Multiplateform and Presentation tests on `Upsilon.Apps.Passkey.Linux.slnx`, and enforces the same **90%** Core coverage gate.
 
 ## GitHub Actions
 
-Windows and Linux build workflows run on push to `master` and on pull requests. CodeQL runs on **every** push (any branch) plus a weekly schedule (not on pull requests). There is currently **no** automated `release.yml` — GitHub Releases are published manually after tagging (see [[Contributing]]).
+Windows and Linux build workflows run on push to `master` and on pull requests. CodeQL runs on **every** push (any branch) plus a weekly schedule (not on pull requests). `release.yml` publishes a GitHub Release for each component tag (see [Cutting a GitHub Release](#cutting-a-github-release)).
 
 | Workflow | What it does |
 | -------- | ------------ |
 | `.github/workflows/csharp-dotnet-windows.yml` | Restore, **versions.json sync check**, Debug + Release build, tests with Cobertura, **90% Core line-coverage gate** |
-| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Multiplateform tests); `dotnet test` runs Multiplateform with the **90% Core line-coverage gate** |
-| `.github/workflows/codeql.yml` | CodeQL on a Release build of production projects (both test projects removed from the solution for the trace); weekly scan as well; SARIF filtered for `bin`/`obj`/`*.g.cs` |
+| `.github/workflows/csharp-dotnet-linux.yml` | Restore, **versions.json sync check**, Debug + Release build of the Linux solution (Interfaces + Utils + Core + Multiplateform + Presentation tests); `dotnet test` with the **90% Core line-coverage gate** |
+| `.github/workflows/csharp-dotnet-maui-windows.yml` | MAUI workloads, locked restore of `Upsilon.Apps.Passkey.MAUI.slnx`, NuGet audit, versions check, Debug + Release `-f net10.0-windows10.0.19041.0`, Presentation tests |
+| `.github/workflows/csharp-dotnet-maui-android.yml` | JDK 17, `maui-android` workload, locked restore, NuGet audit, Debug + Release `-f net10.0-android` (unsigned; the signed APK comes from `release.yml`) |
+| `.github/workflows/release.yml` | On `interfaces-v*`, `utils-v*`, `core-v*`, `wpf-v*` and `maui-v*` tags: checks the tag against `versions.json`, versions check, Release build + tests of `Upsilon.Apps.Passkey.Windows.slnx`, `Sync-Versions.ps1 -PublishOnly` for that component, then `gh release create` with the assets and their `.sha256`. `maui-v*` tags add the MAUI workloads and JDK 17 and sign the APK with the `android-release` environment secrets |
+| `.github/workflows/codeql.yml` | CodeQL on a Release build of production projects (test projects removed from the solution for the trace); installs MAUI workloads; weekly scan; SARIF filtered for `bin`/`obj`/`*.g.cs` |
 | `.github/workflows/publish-wiki.yml` | On `Wiki/**` changes to `master`: publish the `Wiki/` folder to the GitHub Wiki |
 
 ### Cutting a GitHub Release
 
 1. Edit [`versions.json`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/versions.json) (version and dependency ranges for the packages you ship).
 2. Run `.\scripts\Sync-Versions.ps1 -SyncOnly` and commit the updated `.csproj` / docs.
-3. Merge to `master` and wait for Windows / Linux / CodeQL to pass.
-4. Tag **each** package you ship and push the tags, then create the GitHub Release manually (attach `.nupkg` / WPF zip + `.sha256` as appropriate):
+3. Merge to `master` and wait for Windows / Linux / MAUI / CodeQL to pass. Before a MAUI tag, run the manual smoke list in [[MAUI Parity Checklist]] on Windows and Android.
+4. Tag **each** package you ship and push the tags; `release.yml` creates each GitHub Release:
 
 ```bash
 # Examples — use the versions from versions.json
-git tag interfaces-v2.0.0 && git push origin interfaces-v2.0.0
-git tag utils-v2.0.0 && git push origin utils-v2.0.0
-git tag core-v2.0.0 && git push origin core-v2.0.0
-git tag wpf-v2.0.0 && git push origin wpf-v2.0.0
+git tag interfaces-v2.1.0 && git push origin interfaces-v2.1.0
+git tag core-v2.1.0 && git push origin core-v2.1.0
+git tag wpf-v2.1.0 && git push origin wpf-v2.1.0
+git tag maui-v2.0.0 && git push origin maui-v2.0.0
 ```
 
 The tag should match `versions.json` for that component. A `-` suffix can mark a GitHub Release as a prerelease. Do not reuse a tag.
 
-WPF assets are named `Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64.zip` (not a generic Passkey zip). Library releases attach a `.nupkg`. Each Release notes file lists dependency ranges from `versions.json`.
+WPF assets are named `Upsilon.Apps.Passkey.GUI.WPF-{version}-win-x64.zip` (not a generic Passkey zip). MAUI releases attach `Upsilon.Apps.Passkey.GUI.MAUI-{version}-win-x64.zip` and a signed `Upsilon.Apps.Passkey.GUI.MAUI-{version}-android.apk`. Library releases attach a `.nupkg`. Each Release notes file lists dependency ranges from `versions.json`.
 
-Local dry-run (all shippable packages into `_artifacts/`): `.\scripts\Sync-Versions.ps1`.
+Local dry-run (all shippable packages into `_artifacts/`): `.\scripts\Sync-Versions.ps1`. Without a release keystore, add `-SkipAndroid`; otherwise pass `-AndroidKeyStore` / `-AndroidKeyAlias` and set `PASSKEY_ANDROID_STORE_PASS` / `PASSKEY_ANDROID_KEY_PASS` (see [[Contributing]]).
 
 See [`CONTRIBUTING.md`](https://github.com/YassinLokhat/Upsilon.Apps.Passkey/blob/master/CONTRIBUTING.md#cutting-a-release).
 
@@ -74,7 +79,7 @@ Dependabot is configured for the **`github-actions`** ecosystem only (pinned wor
 ## What a change should add
 
 * Tests for Core/Utils behaviour you change (crypto, vault lifecycle, import/export, alerts, persistence) — prefer Multiplateform when OS-independent
-* ViewModel tests when you change GUI logic that already sits behind `AppServices` (Windows test project)
+* ViewModel tests when you change GUI logic in `GUI/Presentation` (Presentation test project); the Windows test project is only for WPF host code
 * README / SECURITY.md / `Wiki/` updates when you change a public contract, a threat-model assumption, or a user-visible security behaviour
 
 See [[Contributing]].

@@ -57,6 +57,17 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
       public void RefreshAlerts() => _queueAlertScan();
 
+      public void FlushPendingChanges()
+      {
+         if (User is null)
+         {
+            return;
+         }
+
+         AutoSave.Flush();
+         ActivityCenter.FlushPending();
+      }
+
       // Progressive onion login: each call appends a stretched passkey and never
       // rolls back on failure. A wrong attempt poisons the stack until Close/Open,
       // which is deliberate online brute-force friction (see SECURITY.md).
@@ -199,15 +210,29 @@ namespace Upsilon.Apps.Passkey.Core.Models
 
          FileLocker = new(cryptographicCenter, serializationCenter, databaseFile, fileMode);
 
-         // New databases adopt the crypto center's current parameters; opened
-         // databases read the salt and work factor from the header entry.
-         _slowHashParameters = fileMode == FileMode.Create
-            ? CryptographyCenter.DefaultSlowHashParameters
-            : FileLocker.Open<KdfParameters>(HeaderFileEntry);
-
          try
          {
+            // New databases adopt the crypto center's current parameters; opened
+            // databases read the salt and work factor from the header entry.
+            _slowHashParameters = fileMode == FileMode.Create
+               ? CryptographyCenter.DefaultSlowHashParameters
+               : FileLocker.Open<KdfParameters>(HeaderFileEntry);
+
             CryptographyCenter.EnsureSufficientSlowHashParameters(_slowHashParameters);
+
+            Passkeys = [CryptographyCenter.GetHash(username)];
+
+            if (passkeys is not null)
+            {
+               Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x, _slowHashParameters))];
+            }
+
+            ActivityCenter = fileMode == FileMode.Create
+               ? new()
+               {
+                  PublicKey = publicKey,
+               }
+               : FileLocker.Open<ActivityCenter>(ActivityFileEntry);
          }
          catch
          {
@@ -216,20 +241,6 @@ namespace Upsilon.Apps.Passkey.Core.Models
             FileLocker.Dispose();
             throw;
          }
-
-         Passkeys = [CryptographyCenter.GetHash(username)];
-
-         if (passkeys is not null)
-         {
-            Passkeys = [.. Passkeys, .. passkeys.Select(x => CryptographyCenter.GetSlowHash(x, _slowHashParameters))];
-         }
-
-         ActivityCenter = fileMode == FileMode.Create
-            ? new()
-            {
-               PublicKey = publicKey,
-            }
-            : FileLocker.Open<ActivityCenter>(ActivityFileEntry);
 
          ActivityCenter.Host = this;
       }

@@ -2,7 +2,7 @@ using Microsoft.Win32;
 using System.IO;
 using System.Security;
 using System.Windows;
-using Upsilon.Apps.Passkey.GUI.WPF.Localization;
+using Upsilon.Apps.Passkey.GUI.Presentation.Models;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
 {
@@ -12,20 +12,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
    /// </summary>
    internal static class ThemeService
    {
-      public const string SystemCode = "System";
-      public const string LightCode = "Light";
-      public const string DarkCode = "Dark";
+      public const string SystemCode = ThemePreferences.SystemCode;
+      public const string LightCode = ThemePreferences.LightCode;
+      public const string DarkCode = ThemePreferences.DarkCode;
 
       /// <summary>
       /// Theme preferences the client knows how to apply. Order is display order
       /// in App Settings.
       /// </summary>
-      public static IReadOnlyList<AppThemeOption> Supported =>
-      [
-         new(SystemCode, Strings.EnumValue_Theme_System),
-         new(LightCode, Strings.EnumValue_Theme_Light),
-         new(DarkCode, Strings.EnumValue_Theme_Dark),
-      ];
+      public static IReadOnlyList<AppThemeOption> Supported => ThemePreferences.Options;
 
       /// <summary>
       /// Last preference passed to <see cref="Apply"/> (<c>System</c>, <c>Light</c>,
@@ -245,6 +240,10 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Themes
                if (window.DataContext is IThemeAware dataContextAware)
                {
                   dataContextAware.OnThemeChanged();
+               }
+               else if (window.DataContext is Presentation.Models.IThemeRefreshable shared)
+               {
+                  shared.OnThemeChanged();
                }
             }
          }

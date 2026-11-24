@@ -229,6 +229,20 @@ namespace Upsilon.Apps.Passkey.Core.Utils
 
       public static ImportExportError ExportCSV(this Database database, string filePath)
       {
+         string content = database.BuildExportCsv();
+         File.WriteAllText(filePath, content);
+         return ImportExportError.None;
+      }
+
+      public static ImportExportError ExportJson(this Database database, string filePath)
+      {
+         string content = database.BuildExportJson();
+         File.WriteAllText(filePath, content);
+         return ImportExportError.None;
+      }
+
+      public static string BuildExportCsv(this Database database)
+      {
          if (database.User is null)
          {
             throw new NullValueException(nameof(database.User));
@@ -258,12 +272,10 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             }
          }
 
-         File.WriteAllText(filePath, sb.ToString());
-
-         return ImportExportError.None;
+         return sb.ToString();
       }
 
-      public static ImportExportError ExportJson(this Database database, string filePath)
+      public static string BuildExportJson(this Database database)
       {
          if (database.User is null)
          {
@@ -276,9 +288,7 @@ namespace Upsilon.Apps.Passkey.Core.Utils
             Services = [.. database.User.Services],
          };
 
-         File.WriteAllText(filePath, database.SerializationCenter.Serialize(data));
-
-         return ImportExportError.None;
+         return database.SerializationCenter.Serialize(data);
       }
    }
 

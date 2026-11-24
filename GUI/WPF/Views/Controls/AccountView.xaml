@@ -1,11 +1,11 @@
-<UserControl x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.Controls.AccountView"
+﻿<UserControl x:Class="Upsilon.Apps.Passkey.GUI.WPF.Views.Controls.AccountView"
              x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Views.Controls"
-             xmlns:controls="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls"
+             xmlns:controls="clr-namespace:Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Vault;assembly=Upsilon.Apps.Passkey.GUI.Presentation"
              xmlns:loc="clr-namespace:Upsilon.Apps.Passkey.GUI.WPF.Localization"
              d:DataContext="{d:DesignInstance Type=controls:AccountViewModel}"
              mc:Ignorable="d">
@@ -35,7 +35,7 @@
          <TextBox Grid.Row="0"
                   Grid.Column="1"
                   Text="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  Background="{Binding LabelBackground}"/>
+                  Background="{Binding LabelState, Converter={StaticResource FieldStateBrush}}"/>
          <Grid Grid.Row="1"
                Grid.Column="0"
                Grid.ColumnSpan="3">
@@ -81,7 +81,7 @@
                                         SelectedValuePath="Type"
                                         DisplayMemberPath="Display"
                                         ToolTip="{Binding TypeLabel}"/>
-                              <TextBox Background="{Binding IdentifierBackground}"
+                              <TextBox Background="{Binding IdentifierState, Converter={StaticResource FieldStateBrush}}"
                                        Text="{Binding Identifier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                        KeyUp="_identifier_TextBox_KeyUp"/>
                            </DockPanel>
@@ -136,7 +136,7 @@
                                             Grid.Row="0"
                                             Grid.Column="0"
                                             Margin="5"
-                                            Background="{Binding PasswordBackground}"
+                                            Background="{Binding PasswordState, Converter={StaticResource FieldStateBrush}}"
                                             Validated="_password_VPB_Validated"
                                             Aborted="_password_VPB_Aborted"/>
                   <Button Grid.Row="0"
@@ -198,7 +198,7 @@
                   Grid.Column="1"
                   Grid.ColumnSpan="2"
                   Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  Background="{Binding NotesBackground}"
+                  Background="{Binding NotesState, Converter={StaticResource FieldStateBrush}}"
                   MaxHeight="75"
                   VerticalScrollBarVisibility="Auto"
                   AcceptsReturn="True"

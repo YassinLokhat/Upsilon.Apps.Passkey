@@ -1,156 +1,85 @@
-﻿using System.Windows;
+﻿using System.Collections.Specialized;
+using System.Windows;
 using System.Windows.Controls;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Settings;
 using Upsilon.Apps.Passkey.GUI.WPF.Helper;
-using Upsilon.Apps.Passkey.GUI.WPF.Services;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 {
    /// <summary>
-   /// Interaction logic for UserPasswordsContainer.xaml
+   /// Interaction logic for UserPasswordsContainer.xaml: one <see cref="UserPasswordItem"/>
+   /// per row of the bound <see cref="PasskeyListViewModel"/>, kept in its order.
    /// </summary>
    internal sealed partial class UserPasswordsContainer : UserControl
    {
-      public IEnumerable<string> Passkeys => [.. _passwords.Select(x => x.Password)];
-
-      private readonly List<UserPasswordItem> _passwords;
+      private readonly Dictionary<PasskeyEntryViewModel, UserPasswordItem> _items = [];
+      private PasskeyListViewModel? _list;
 
       public UserPasswordsContainer()
       {
          InitializeComponent();
+      }
 
-         _passwords = [];
+      public void Bind(PasskeyListViewModel list)
+      {
+         ArgumentNullException.ThrowIfNull(list);
+         _list = list;
+         list.Entries.CollectionChanged += _entries_CollectionChanged;
+         list.EntryAdded += (_, entry) => Dispatcher.BeginInvoke(() => _items.GetValueOrDefault(entry)?.Focus());
+         _rebuild();
+      }
 
-         if (AppServices.Session.User?.Passkeys is not null)
+      public void Unbind()
+      {
+         if (_list is not null)
          {
-            foreach (string password in AppServices.Session.User.Passkeys)
+            _list.Entries.CollectionChanged -= _entries_CollectionChanged;
+            _list = null;
+         }
+
+         _items.Clear();
+         _stackPanel.Children.Clear();
+      }
+
+      private void _entries_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => _rebuild();
+
+      private void _rebuild()
+      {
+         _stackPanel.Children.Clear();
+
+         if (_list is null)
+         {
+            return;
+         }
+
+         foreach (PasskeyEntryViewModel entry in _list.Entries)
+         {
+            if (!_items.TryGetValue(entry, out UserPasswordItem? item))
             {
-               _addPassword(password);
+               item = new UserPasswordItem(entry);
+               _items[entry] = item;
             }
+
+            _ = _stackPanel.Children.Add(item);
          }
-         else
+
+         foreach (PasskeyEntryViewModel gone in _items.Keys.Except(_list.Entries).ToArray())
          {
-            _addPassword(string.Empty);
-         }
-      }
-
-      /// <summary>
-      /// Clears every PasswordBox buffer (and any revealed copy) so secrets do
-      /// not linger after save / close.
-      /// </summary>
-      public void ClearSecrets()
-      {
-         foreach (UserPasswordItem item in _passwords)
-         {
-            item.Clear();
-         }
-      }
-
-      public void DisposeItems()
-      {
-         foreach (UserPasswordItem item in _passwords)
-         {
-            item.ViewModel.Dispose();
-         }
-      }
-
-      public void OnThemeChanged()
-      {
-         foreach (UserPasswordItem item in _passwords)
-         {
-            item.ViewModel.OnThemeChanged();
-         }
-      }
-
-      private void _passwordItem_DeleteRequested(object? sender, EventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _findItem(sender) is not UserPasswordItem passwordItem
-            || _passwords.Count == 1)
-         {
-            return;
+            _ = _items.Remove(gone);
          }
 
-         passwordItem.Clear();
-         int index = passwordItem.ViewModel.Index;
-         passwordItem.ViewModel.Dispose();
-         _stackPanel.Children.Remove(passwordItem);
-         _ = _passwords.Remove(passwordItem);
-
-         for (int i = index; i < _passwords.Count; i++)
-         {
-            _passwords[i].ViewModel.Index = i;
-         }
-      }
-
-      private void _passwordItem_UpRequested(object? sender, EventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _findItem(sender) is not UserPasswordItem passwordItem
-            || passwordItem.ViewModel.Index == 0)
-         {
-            return;
-         }
-
-         _movePassword(passwordItem, passwordItem.ViewModel.Index - 1);
-      }
-
-      private void _passwordItem_DownRequested(object? sender, EventArgs e)
-      {
-         if (this.GetIsBusy()
-            || _findItem(sender) is not UserPasswordItem passwordItem
-            || passwordItem.ViewModel.Index == _passwords.Count - 1)
-         {
-            return;
-         }
-
-         _movePassword(passwordItem, passwordItem.ViewModel.Index + 1);
+         _stackPanel.UpdateLayout();
       }
 
       private void _addButton_Click(object sender, RoutedEventArgs e)
       {
-         if (this.GetIsBusy())
+         if (this.GetIsBusy() || _list is null)
          {
             return;
          }
 
-         _addPassword(string.Empty);
-
+         _ = _list.Add();
          Window.GetWindow(this).ComputeTabIndex();
-      }
-
-      private void _addPassword(string password)
-      {
-         UserPasswordItem passwordItem = new(new() { Index = _passwords.Count, InitialPassword = password });
-         passwordItem.ViewModel.UpRequested += _passwordItem_UpRequested;
-         passwordItem.ViewModel.DownRequested += _passwordItem_DownRequested;
-         passwordItem.ViewModel.DeleteRequested += _passwordItem_DeleteRequested;
-
-         _passwords.Add(passwordItem);
-         _ = _stackPanel.Children.Add(passwordItem);
-         _stackPanel.UpdateLayout();
-
-         passwordItem.Focus();
-      }
-
-      private UserPasswordItem? _findItem(object? sender)
-         => sender is UserPasswordItemViewModel viewModel
-            ? _passwords.FirstOrDefault(x => ReferenceEquals(x.ViewModel, viewModel))
-            : null;
-
-      private void _movePassword(UserPasswordItem passwordItem, int index)
-      {
-         UserPasswordItem temp = _passwords[index];
-         _passwords[index] = passwordItem;
-         _passwords[passwordItem.ViewModel.Index] = temp;
-
-         _stackPanel.Children.Clear();
-
-         for (int i = 0; i < _passwords.Count; i++)
-         {
-            _passwords[i].ViewModel.Index = i;
-            _ = _stackPanel.Children.Add(_passwords[i]);
-         }
       }
    }
 }

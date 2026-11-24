@@ -47,6 +47,7 @@ Default implementations in `Upsilon.Apps.Passkey.Utils`: `CryptographyCenter`, `
 | `HasChanged(itemId)` / `HasChanged(itemId, fieldName)` | Dirty tracking for UI |
 | `ImportFromFile` / `ExportToFile` (+ Async) | `.json` or `.csv` only — returns `ImportExportError` (see [[Import Export]]) |
 | `RefreshAlerts` | Re-run the Core alert scan without saving (e.g. after host posture changes) |
+| `FlushPendingChanges` | Write debounced autosave and activity entries now, without saving the user or sealing the log (e.g. before the OS may kill a backgrounded app) |
 
 Events: `AutoSaveDetected`, `DatabaseSaved`, per-kind Core alert events (`CoreAlertsChanged` (filter on `AlertsChangedEventArgs.Kind`) / `CoreAlertsScanCompleted`, `DatabaseClosed` (`LogoutEventArgs.LoginTimeoutReached` tells you whether idle timeout closed the session).
 

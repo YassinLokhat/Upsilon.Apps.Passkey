@@ -2,7 +2,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Upsilon.Apps.Passkey.GUI.WPF.ViewModels.Controls;
+using Upsilon.Apps.Passkey.GUI.Presentation.ViewModels.Controls;
+using Upsilon.Apps.Passkey.GUI.WPF.Adapters;
 
 namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 {
@@ -11,11 +12,11 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
    /// </summary>
    internal sealed partial class VisiblePasswordBox : UserControl
    {
-      private readonly VisiblePasswordBoxViewModel _viewModel = new();
+      private readonly SecretField _secret;
 
       /// <summary>
       /// Reads from / writes to the underlying <see cref="PasswordBox"/>. The
-      /// ViewModel only holds a plaintext copy while the password is revealed.
+      /// reveal TextBox only holds a plaintext copy while the password is revealed.
       /// </summary>
       public string Password
       {
@@ -27,18 +28,14 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
                _passwordBox.Password = value;
             }
 
-            // Keep the reveal TextBox in sync only while it is visible.
-            if (_viewModel.TextVisibility == Visibility.Visible)
-            {
-               _viewModel.RevealText = value;
-            }
+            _secret.RefreshMirror();
          }
       }
 
       public bool ReadOnly
       {
-         get => !_viewModel.IsEnabled;
-         set => _viewModel.IsEnabled = !value;
+         get => !_secret.IsEnabled;
+         set => _secret.IsEnabled = !value;
       }
 
       /// <summary>
@@ -58,25 +55,15 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       public VisiblePasswordBox()
       {
          InitializeComponent();
+         _secret = new SecretField(new PasswordBoxSecretInput(_passwordBox), mirrorsPlaintext: true);
 
          // Keep DataContext on the inner tree only: the UserControl must inherit
          // the parent DataContext so attributes like Background="{Binding …}" resolve.
-         _root.DataContext = _viewModel;
-         _viewModel.Background = Background;
+         _root.DataContext = _secret;
 
          _passwordBox.LostFocus += _passwordBox_LostFocus;
          _passwordBox.KeyUp += _passwordBox_KeyUp;
          _passwordBox.PasswordChanged += _passwordBox_PasswordChanged;
-      }
-
-      protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
-      {
-         base.OnPropertyChanged(e);
-
-         if (e.Property == BackgroundProperty)
-         {
-            _viewModel.Background = (Brush)e.NewValue;
-         }
       }
 
       public new void Focus()
@@ -87,12 +74,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
       /// <summary>
       /// Clears both the PasswordBox buffer and any revealed plaintext copy.
       /// </summary>
-      public void Clear()
-      {
-         _viewModel.HidePassword();
-         _viewModel.RevealText = string.Empty;
-         _passwordBox.Clear();
-      }
+      public void Clear() => _secret.Clear();
 
       private void _passwordBox_LostFocus(object sender, RoutedEventArgs e)
       {
@@ -101,13 +83,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
 
       private void _passwordBox_PasswordChanged(object sender, RoutedEventArgs e)
       {
-         // Do not mirror into a managed string while the password stays masked;
-         // only refresh the reveal TextBox when it is currently shown.
-         if (_viewModel.TextVisibility == Visibility.Visible)
-         {
-            _viewModel.RevealText = _passwordBox.Password;
-         }
-
+         _secret.RefreshMirror();
          PasswordChanged?.Invoke(this, EventArgs.Empty);
       }
 
@@ -131,17 +107,26 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Views.Controls
          }
       }
 
+      // Left button only: the button captures it, so the release always comes back here.
       private void _viewButton_MouseDown(object sender, MouseButtonEventArgs e)
       {
-         // Materialize plaintext only for the duration of the press-and-hold reveal.
-         _viewModel.RevealText = _passwordBox.Password;
-         _viewModel.ShowPassword();
+         if (e.ChangedButton == MouseButton.Left)
+         {
+            _secret.Reveal();
+         }
       }
 
-      private void _viewButton_MouseUp(object sender, MouseButtonEventArgs e)
+      private void _viewButton_MouseUp(object sender, MouseButtonEventArgs e) => _secret.Mask();
+
+      // Alt+Tab or a modal steals the capture before the release arrives.
+      private void _viewButton_LostMouseCapture(object sender, MouseEventArgs e) => _secret.Mask();
+
+      private void _root_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
       {
-         _viewModel.HidePassword();
-         _viewModel.RevealText = string.Empty;
+         if (!(bool)e.NewValue)
+         {
+            _secret.Mask();
+         }
       }
    }
 }

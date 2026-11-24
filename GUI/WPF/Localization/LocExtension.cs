@@ -4,7 +4,7 @@ using System.Windows.Markup;
 namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
 {
    /// <summary>
-   /// XAML markup: <c>{loc:Loc Menu_Save}</c> binds to <see cref="TranslationSource"/>
+   /// XAML markup: <c>{loc:Loc Menu_Save}</c> binds to <see cref="LocalizationCatalog"/>
    /// so values update when the UI language changes (no restart).
    /// </summary>
    [MarkupExtensionReturnType(typeof(string))]
@@ -20,7 +20,7 @@ namespace Upsilon.Apps.Passkey.GUI.WPF.Localization
       {
          Binding binding = new($"[{Key}]")
          {
-            Source = TranslationSource.Instance,
+            Source = LocalizationCatalog.Instance,
             Mode = BindingMode.OneWay,
          };
 
